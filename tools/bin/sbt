@@ -1,0 +1,5 @@
+PROJECT_DIR=`dirname $(cd "${0%/*}/../.." 2>/dev/null; echo "$PWD"/"${0##*/}")`
+if [ -z $SBT_DIR ]; then 
+    SBT_DIR=$PROJECT_DIR/sbt 
+fi
+java -Dfile.encoding=UTF8  $JAVA_OPTS -XX:ReservedCodeCacheSize=${RESERVED_CODE_CACHE_SIZE:=900m} -Xss128M -XX:+CMSClassUnloadingEnabled -XX:PermSize=512m -Xmx${JAVA_HEAP_SIZE:=1024m} -jar $PROJECT_DIR/tools/bin/sbt-launch.jar $SBT_OPTS "$@"

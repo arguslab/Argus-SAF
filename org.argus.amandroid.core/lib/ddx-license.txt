@@ -1,0 +1,6 @@
+License
+
+Dedexer is in the public domain, no rights are reserved. If you reuse it, please, retain the credits.
+
+Gabor Paller
+http://pallergabor.uw.hu
