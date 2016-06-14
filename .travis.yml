@@ -1,11 +1,19 @@
 language: scala
+scala:
+- 2.11.8
 jdk:
-  - oraclejdk8
+- oraclejdk8
 script:
 - git config --global user.email "fgwei521@gmail.com"
-- git config --global user.name "fgwei"
-- ./.travis.credentials.sh
-- tools/bin/sbt "release with-defaults"
+  git config --global user.name "fgwei"
+  ./.travis.credentials.sh
+  pwd
+  whereis sbt
+  sbt clean coverage "release with-defaults"
+  sbt coverageReport
+  sbt coverageAggregate
+after_success:
+- sbt coveralls
 sudo: false
 cache:
   directories:

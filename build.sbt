@@ -154,7 +154,6 @@ releasePublishArtifactsAction := PgpKeys.publishSigned.value
 releaseProcess := Seq(
   checkSnapshotDependencies,
   inquireVersions,
-  runClean,
   runTest,
   setReleaseVersion,
   commitReleaseVersion,
