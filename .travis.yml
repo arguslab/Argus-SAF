@@ -7,7 +7,8 @@ branches:
   only:
   - master
 script:
-- sbt clean coverage test &&
+- sbt clean coverage coverageReport test &&
+  sbt coverageReport &&
   sbt coverageAggregate
 after_success:
 - sbt coveralls
