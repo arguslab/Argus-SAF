@@ -106,7 +106,7 @@ lazy val argus_saf: Project =
 lazy val jawa_core: Project =
   newProject("jawa-core", file("org.argus.jawa.core"))
   .settings(libraryDependencies ++= DependencyGroups.jawa_core)
-  .settings(publishSettings)
+  .settings(doNotPublishSettings)
 
 lazy val jawa_alir: Project =
   newProject("jawa-alir", file("org.argus.jawa.alir"))
@@ -154,6 +154,7 @@ releasePublishArtifactsAction := PgpKeys.publishSigned.value
 releaseProcess := Seq(
   checkSnapshotDependencies,
   inquireVersions,
+  runClean,
   runTest,
   setReleaseVersion,
   commitReleaseVersion,
