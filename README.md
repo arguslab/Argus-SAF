@@ -33,3 +33,37 @@ For more information on building and developing Amandroid, please also check out
 ## What to contribute
 
 If you don't know what to contribute, please check out our [challenges need to resolve](CHALLENGE.md).
+
+## Developing Argus-SAF
+
+In order to take part in Argus-SAF development, you need to:
+
+1. Install the following software:
+    - IntelliJ IDEA 14 or higher with compatible version of Scala plugin
+
+2. Fork this repository and clone it to your computer
+
+  ```
+  $ git clone https://github.com/arguslab/Argus-SAF.git
+  ```
+
+3. Open IntelliJ IDEA, select `File -> New -> Project from existing sources`
+(if from initial window: `Import Project`), point to
+the directory where Scala plugin repository is and then import it as SBT project.
+
+4. When importing is finished, go to Argus-SAF repo directory and run
+
+  ```
+  $ git checkout .idea
+  ```
+
+  in order to get artifacts and run configurations for IDEA project.
+
+5. [Optional] To build Argus-SAF more smooth you should give 2GB of the heap size to the compiler process.
+   - if you use Scala Compile Server (default):
+   ```Settings > Languages & Frameworks > Scala Compile Server > JVM maximum heap size```
+
+   - if Scala Compile Server is disabled:
+   ```Settings > Build, Execution, Deployment > Compiler > Build process heap size```
+   
+6. Build Argus-SAF from command line
