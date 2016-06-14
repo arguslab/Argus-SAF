@@ -1,4 +1,6 @@
 language: scala
+jdk:
+  - oraclejdk8
 script:
 - git config --global user.email "fgwei521@gmail.com"
 - git config --global user.name "fgwei"

@@ -1,4 +1,4 @@
-#Argus-SAF [ ![Download](https://api.bintray.com/packages/arguslab/maven/argus-saf/images/download.svg) ](https://bintray.com/arguslab/maven/argus-saf/_latestVersion)
+#Argus-SAF [ ![Download](https://api.bintray.com/packages/arguslab/maven/argus-saf/images/download.svg) ](https://bintray.com/arguslab/maven/argus-saf/_latestVersion) [![Build Status](https://travis-ci.org/arguslab/Argus-SAF.svg?branch=master)](https://travis-ci.org/arguslab/Argus-SAF)
 
 
 Argus static analysis framework
