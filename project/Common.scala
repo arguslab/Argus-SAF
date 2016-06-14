@@ -18,11 +18,7 @@ object Common {
     Project(projectName, base).settings(
       name := projectName,
       organization := "ArgusLab",
-      scalaVersion := ArgusVersions.scalaVersion,
-      unmanagedSourceDirectories in Compile += baseDirectory.value / "src",
-      unmanagedSourceDirectories in Test += baseDirectory.value / "test",
-      unmanagedResourceDirectories in Compile += baseDirectory.value / "resources",
-      libraryDependencies += Dependencies.junitInterface
+      scalaVersion := ArgusVersions.scalaVersion
     )
 
   def newProject(projectName: String): Project =

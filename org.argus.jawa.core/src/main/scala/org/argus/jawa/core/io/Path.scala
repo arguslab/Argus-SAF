@@ -136,7 +136,7 @@ class Path private[io] (val jfile: JFile) {
     def createRelativePath(baseSegs: List[String], otherSegs: List[String]): String = {
       (baseSegs, otherSegs) match {
         case (b :: bs, o :: os) if b == o => createRelativePath(bs, os)
-        case (bs, os) => ((".."+separator)*bs.length)+os.mkString(separatorStr)
+        case (bs, os) => (("src/main" +separator)*bs.length)+os.mkString(separatorStr)
       }
     }
 
@@ -149,11 +149,11 @@ class Path private[io] (val jfile: JFile) {
    * @return The path of the parent directory, or root if path is already root
    */
   def parent: Directory = path match {
-    case "" | "." => Directory("..")
+    case "" | "." => Directory("src/main")
     case _        =>
       // the only solution <-- a comment which could have used elaboration
-      if (segments.nonEmpty && segments.last == "..")
-        (path / "..").toDirectory
+      if (segments.nonEmpty && segments.last == "src/main")
+        (path / "src/main").toDirectory
       else jfile.getParent match {
         case null =>
           if (isAbsolute) toDirectory // it should be a root. BTW, don't need to worry about relative pathed root

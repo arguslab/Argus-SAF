@@ -120,7 +120,7 @@ final case class PTAConcreteStringInstance(string: String, defSite: Context) ext
   override def toString: String = {
     val sb = new StringBuilder
     sb.append(this.typ + ":")
-    sb.append("\"" + {if(this.string.length > 30)this.string.substring(0, 30) + ".." else this.string} + "\"@")
+    sb.append("\"" + {if(this.string.length > 30)this.string.substring(0, 30) + "src/main" else this.string} + "\"@")
     sb.append(this.defSite.getCurrentLocUri)
     sb.toString.intern()
   }
