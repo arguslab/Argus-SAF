@@ -7,9 +7,7 @@ branches:
   only:
   - master
 script:
-- sbt clean coverage test &&
-  sbt coverageReport &&
-  sbt coverageAggregate
+- sbt clean coverage test && sbt coverageReport && sbt coverageAggregate
 after_success:
 - sbt codacyCoverage
 sudo: false
@@ -17,10 +15,11 @@ cache:
   directories:
   - $HOME/.ivy2/cache
 before_cache:
-  # Delete the cached artifacts
-  - rm -rf $HOME/.ivy2/cache/scala_*/sbt_*/com.github.gseitz
-  # Delete all ivydata files
-  - find $HOME/.ivy2/cache -name "ivydata-*.properties" | xargs rm
+- rm -rf $HOME/.ivy2/cache/scala_*/sbt_*/com.github.gseitz
+- find $HOME/.ivy2/cache -name "ivydata-*.properties" | xargs rm
 notifications:
   email:
   - fgwei521@gmail.com
+env:
+  global:
+    secure: qBRWjzt7D154UDzoLy2hpyfoXrsTkIWRvT4OG9KtrTrZMbD0/0uLgsCvlcUkvWeXev0aaMX3HVl+zyW/SqWUj79atN49m6oyYyqr5qA6PNqfbiuQGd/vu7225YUor2vjo5mzx3TllYAlcmchoW+Y48dA4zbBdNPn84yrAQc1FBKPwNaG4KHCzFmwURhVWuMroujLMLHrNYmFWfx8U/Q0KF/NUCU8xT9Va2Np8pGtWekoszryIpHar9l8YfWiIV4IHtSeZVWix2NIC5c8WgwY5clYNXBPsqnNVRYorGke3WYbigI7lIM7y8Db2E5/wpAjD9HRe04hLo64Rjnntce9hVH4DI9Fg/kv8EdSwdk0FP1Z3jxJQEhl78+Zdu30XOoZ8eP5oi2ykyndUd5O1Waql1FTpl/qZhBehZywIz7C4Spanft49BmWpAvu/Y3dRsNnc02eY6KRx1r8BhUW5MnkxPOm6SUMH9nrYPOafQ0xNNMs9TwyNjkWIWHt/ZbOCDBtork0N7EtwsBh0dWqqwezzy3fqeqTJ62+kQi10P8wnheLDD2rZNk+zOm/EG02z0Jdx27FOXe10L83QkZyKfcKWp+7AHjbaYKLwWNWuDfLWIBZf6PAASIfdvE9s0Ap8+i81clk2qrWc8XgdSQucv8PwPvv7DeKlsCg/TrJrC7/MF4=
