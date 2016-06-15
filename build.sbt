@@ -80,7 +80,7 @@ lazy val argus_saf: Project =
     amandroid_plugin, amandroid_serialization,
     amandroid_concurrent, amandroid_cli
   )
-  .settings(doNotPublishSettings)
+//  .settings(doNotPublishSettings)
   .settings(
     artifact in (Compile, assembly) ~= { art =>
       art.copy(`classifier` = Some("assembly"))
