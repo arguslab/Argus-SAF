@@ -54,6 +54,8 @@ object Dependencies {
 object DependencyGroups {
   import Dependencies._
 
+  val saf_library = Seq()
+
   val jawa_core = Seq(
     scala_reflect,
     asm_all,
@@ -65,26 +67,14 @@ object DependencyGroups {
     blueprints_core
   )
 
-  val jawa_alir = jawa_core
-
   val amandroid_core = Seq(
-    ini4j
-  ) ++ jawa_alir
-
-  val amandroid_alir = amandroid_core
-
-  val amandroid_plugin = amandroid_alir
-
-  val amandroid_serialization = Seq(
+    ini4j,
     json4s_native,
-    json4s_ext
-  ) ++ amandroid_plugin
-
-  val amandroid_concurrent = Seq(
+    json4s_ext,
     akka_actor
-  ) ++ amandroid_serialization
+  ) ++ jawa_core
 
-  val amandroid_cli = Seq(
+  val argus_saf = Seq(
     commons_cli
-  ) ++ amandroid_concurrent
+  ) ++ amandroid_core
 }

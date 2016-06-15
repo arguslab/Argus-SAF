@@ -11,7 +11,7 @@
 package org.argus.saf
 
 import org.apache.commons.cli._
-import org.argus.amandroid.cli.{ApiMisuse, Decompiler, Staging, TaintAnalysis}
+import org.argus.saf.cli.{ApiMisuse, Decompiler, Staging, TaintAnalysis}
 import org.argus.amandroid.plugin.{ApiMisuseModules, TaintAnalysisModules}
 
 /**
@@ -85,21 +85,21 @@ object Main extends App {
   }
 
   object Mode extends Enumeration {
-    val AMANDROID, APICHECK, DECOMPILE, STAGE, TAINT = Value
+    val ARGUS_SAF, APICHECK, DECOMPILE, STAGE, TAINT = Value
   }
 
   private def usage(mode: Mode.Value): Unit ={
     val formatter: HelpFormatter = new HelpFormatter
     formatter.setWidth(120)
     mode match {
-      case Mode.AMANDROID =>
-        println(s"""Amandroid v$version - a static analysis framework for Android apks
+      case Mode.ARGUS_SAF =>
+        println(s"""Argus-SAF v$version - a static analysis framework for Android apks
                     |Copyright 2016 Argus Laboratory, University of South Florida""".stripMargin)
         println("")
         println("""Available Modes:
                   |  a[picheck]    Detecting API misuse.
                   |  d[ecompile]   Decompile Apk file(s).
-                  |  s[tage]       Stage Amandroid middle results.
+                  |  s[tage]       Stage middle results.
                   |  t[aint]       Perform taint analysis on Apk(s).""".stripMargin)
         println("")
         formatter.printHelp("<options>", normalOptions)
@@ -129,7 +129,7 @@ object Main extends App {
   catch {
     case exp: ParseException =>
       println("ParseException:" + exp.getMessage)
-      usage(Mode.AMANDROID)
+      usage(Mode.ARGUS_SAF)
       System.exit(1)
   }
 
@@ -163,10 +163,10 @@ object Main extends App {
     // if no commands ran, run the version / usage check.
     if (!cmdFound) {
       if (commandLine.hasOption("-v") || commandLine.hasOption("--version")) {
-        println("Amandroid v" + version)
+        println("Argus-SAF v" + version)
       }
       else {
-        usage(Mode.AMANDROID)
+        usage(Mode.ARGUS_SAF)
       }
     }
   }
