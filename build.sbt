@@ -60,6 +60,7 @@ val doNotPublishSettings = Seq(
 
 val publishSettings = Seq(
     publishArtifact in Test := false,
+    releasePublishArtifactsAction := PgpKeys.publishSigned.value,
     pomExtra := <scm>
       <url>https://github.com/arguslab/Argus-SAF</url>
       <connection>scm:git:https://github.com/arguslab/Argus-SAF</connection>
@@ -85,9 +86,10 @@ lazy val argus_saf: Project =
   .aggregate(
     saf_library, jawa_core, amandroid_core
   )
+  .settings(publishSettings)
   .settings(
     artifact in (Compile, assembly) ~= { art =>
-      art.copy(`classifier` = Some("assembly"))
+      art.copy(`classifier` = None)
     },
     addArtifact(artifact in (Compile, assembly), assembly),
     publishArtifact in (Compile, packageBin) := false,
@@ -99,7 +101,7 @@ lazy val saf_library: Project =
   newProject("saf-library", file("org.argus.saf.library"))
     .settings(libraryDependencies ++= DependencyGroups.saf_library)
     .settings(
-      assemblyJarName in assembly := s"${name.value}-${version.value}-assembly.jar",
+      assemblyJarName in assembly := s"${name.value}-${version.value}.jar",
       mainClass in assembly := None,
       artifact in (Compile, assembly) ~= { art =>
         art.copy(`classifier` = Some("assembly"))
@@ -123,7 +125,6 @@ lazy val amandroid_core: Project =
   .settings(libraryDependencies ++= DependencyGroups.amandroid_core)
   .settings(publishSettings)
 
-releasePublishArtifactsAction in ThisBuild := PgpKeys.publishSigned.value
 releaseProcess := Seq(
   checkSnapshotDependencies,
   inquireVersions,
