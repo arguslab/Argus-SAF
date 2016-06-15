@@ -65,7 +65,7 @@ object DependencyGroups {
     jgrapht_core,
     jgrapht_ext,
     blueprints_core
-  )
+  ) ++ saf_library
 
   val amandroid_core = Seq(
     ini4j,

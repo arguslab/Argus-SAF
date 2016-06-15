@@ -89,7 +89,7 @@ lazy val argus_saf: Project =
   .settings(publishSettings)
   .settings(
     artifact in (Compile, assembly) ~= { art =>
-      art.copy(`classifier` = None)
+      art.copy(`classifier` = Some("assembly"))
     },
     addArtifact(artifact in (Compile, assembly), assembly),
     publishArtifact in (Compile, packageBin) := false,
@@ -104,7 +104,7 @@ lazy val saf_library: Project =
       assemblyJarName in assembly := s"${name.value}-${version.value}.jar",
       mainClass in assembly := None,
       artifact in (Compile, assembly) ~= { art =>
-        art.copy(`classifier` = Some("assembly"))
+        art.copy(`classifier` = None)
       },
       addArtifact(artifact in (Compile, assembly), assembly),
       publishArtifact in (Compile, packageBin) := false,
