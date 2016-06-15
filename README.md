@@ -27,7 +27,7 @@ For more information on building and developing Amandroid, please also check out
 
 If you don't know what to contribute, please check out our [challenges need to resolve](CHALLENGE.md).
 
-## Obtaining Argus-SAF
+## Obtaining Argus-SAF library
 
 Depend on Jawa by editing
 `build.sbt`:
@@ -46,6 +46,19 @@ libraryDependencies += "org.arguslab" %% "amandroid-core" % "1.0.1"
 ```
 
 > Note that: Depend on Amandroid will automatically add Jawa as dependency. If you use Maven or Gradle, you should translate it to corresponding format.
+
+## Obtaining Argus-SAF CLI Tool
+
+Requirement: Java 8
+
+1. Click on Download badge on top of the README
+2. In arguslab bintray repo click Files > Version Folder
+3. Download argus-saf_***-version-assembly.jar
+4. Get usage by:
+  
+ ```
+ $ java -jar argus-saf_***-version-assembly.jar
+ ```
 
 ## Developing Argus-SAF
 
