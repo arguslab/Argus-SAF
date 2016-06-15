@@ -86,7 +86,6 @@ lazy val argus_saf: Project =
       art.copy(`classifier` = Some("assembly"))
     },
     addArtifact(artifact in (Compile, assembly), assembly),
-    publishArtifact := false,
     publishArtifact in assembly := true,
     pomExtra := <scm>
       <url>https://github.com/arguslab/Argus-SAF</url>
