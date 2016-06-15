@@ -51,7 +51,7 @@ libraryDependencies += "org.arguslab" %% "amandroid-core" % "1.0.1"
 
 Requirement: Java 8
 
-1. Click on Download badge on top of the README
+1. Click [![Download](https://api.bintray.com/packages/arguslab/maven/argus-saf/images/download.svg)](https://bintray.com/arguslab/maven/argus-saf/_latestVersion)
 2. In arguslab bintray repo click Files > Version Folder
 3. Download argus-saf_***-version-assembly.jar
 4. Get usage by:
