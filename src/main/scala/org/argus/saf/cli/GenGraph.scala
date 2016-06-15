@@ -98,7 +98,7 @@ object GenGraph {
             val global = new Global(apkFileUri, reporter)
             global.setJavaLib(liblist)
             
-            val timer = AndroidGlobalConfig.settings.timeout minutes
+            val timer = AndroidGlobalConfig.settings.timeout.minutes
             val (f, cancel) = FutureUtil.interruptableFuture[(InterproceduralControlFlowGraph[ICFGNode], FileResourceUri)] { () =>
               val (outUri, srcs, _) = ApkDecompiler.decompile(FileUtil.toFile(apkFileUri), FileUtil.toFile(outputUri), dpsuri, dexLog = false, debugMode = false, removeSupportGen = true, forceDelete = true)
               srcs foreach {

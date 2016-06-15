@@ -52,7 +52,7 @@ object Staging {
     println("Total apks: " + apkFileUris.size)
     val outputUri = FileUtil.toUri(outputPath)
     val _system = ActorSystem("AmandroidTestApplication", ConfigFactory.load)
-    implicit val to = Timeout(AndroidGlobalConfig.settings.timeout * apkFileUris.size minutes)
+    implicit val to = Timeout(AndroidGlobalConfig.settings.timeout * apkFileUris.size.minutes)
     
     try {
       val supervisor = _system.actorOf(Props[AmandroidSupervisorActor], name = "AmandroidSupervisorActor")
