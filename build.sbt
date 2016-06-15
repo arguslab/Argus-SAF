@@ -83,14 +83,16 @@ lazy val argus_saf: Project =
   .settings(buildInfoSettings)
   .settings(assemblySettings)
   .aggregate(
-    jawa_core, amandroid_core
+    saf_library, jawa_core, amandroid_core
   )
-//  .settings(doNotPublishSettings)
   .settings(
     artifact in (Compile, assembly) ~= { art =>
       art.copy(`classifier` = Some("assembly"))
     },
-    addArtifact(artifact in (Compile, assembly), assembly)
+    addArtifact(artifact in (Compile, assembly), assembly),
+    publishArtifact in (Compile, packageBin) := false,
+    publishArtifact in (Compile, packageDoc) := false,
+    publishArtifact in (Compile, packageSrc) := false
   )
 
 lazy val saf_library: Project =
@@ -121,7 +123,7 @@ lazy val amandroid_core: Project =
   .settings(libraryDependencies ++= DependencyGroups.amandroid_core)
   .settings(publishSettings)
 
-releasePublishArtifactsAction := PgpKeys.publishSigned.value
+releasePublishArtifactsAction in ThisBuild := PgpKeys.publishSigned.value
 releaseProcess := Seq(
   checkSnapshotDependencies,
   inquireVersions,
@@ -132,6 +134,9 @@ releaseProcess := Seq(
   ReleaseStep(releaseStepTask(assembly)),
   tagRelease,
   publishArtifacts,
+  ReleaseStep(releaseStepTask(bintrayRelease in saf_library)),
+  ReleaseStep(releaseStepTask(bintrayRelease in jawa_core)),
+  ReleaseStep(releaseStepTask(bintrayRelease in amandroid_core)),
   ReleaseStep(releaseStepTask(bintrayRelease in argus_saf)),
   setNextVersion,
   commitNextVersion,
