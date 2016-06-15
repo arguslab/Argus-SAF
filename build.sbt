@@ -88,7 +88,6 @@ lazy val argus_saf: Project =
     addArtifact(artifact in (Compile, assembly), assembly),
     publishArtifact := false,
     publishArtifact in assembly := true,
-    publishMavenStyle := false,
     pomExtra := <scm>
       <url>https://github.com/arguslab/Argus-SAF</url>
       <connection>scm:git:https://github.com/arguslab/Argus-SAF</connection>
@@ -99,8 +98,7 @@ lazy val argus_saf: Project =
         <name>Fengguo Wei</name>
         <url>http://www.arguslab.org/~fgwei/</url>
       </developer>
-    </developers>,
-    resolvers += Resolver.url("argus-saf", url("https://dl.bintray.com/arguslab/maven"))(Resolver.ivyStylePatterns)
+    </developers>
   )
 
 lazy val jawa_core: Project =

@@ -21,17 +21,17 @@ your documentation improvement is very much appreciated, and we will do our best
 You can make these changes directly in your browser in GitHub, 
 or follow the same process as for code. Up to you!
 
-For bigger documentation changes, you may want to poll the (amandroid@sireum.org) mailing list first, 
+For bigger documentation changes, you may want to poll the (fgwei521@gmail.com) mailing list first, 
 to quickly gauge whether others support the direction you're taking, 
 so there won't be any surprises when it comes to reviewing your PR.
 
 ### Code
-For bigger changes, we do recommend announcing your intentions on amandroid@sireum.org first, 
+For bigger changes, we do recommend announcing your intentions on fgwei521@gmail.com first, 
 to avoid duplicated effort, or spending a lot of time reworking something we are not able to 
 change at this time in the release cycle, for example.
 
 #### Bug Fix
-Prefix your commit title with "#NN", where https://github.com/sireum/amandroid/issues/NN tracks the bug you're fixing. 
+Prefix your commit title with "#NN", where https://github.com/arguslab/Argus-SAF/issues/NN tracks the bug you're fixing. 
 We also recommend naming your branch after the ticket number.
 
 #### Enhancement or New Feature
