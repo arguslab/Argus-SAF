@@ -11,7 +11,7 @@ This is official reporitory for the [Argus-SAF](http://amandroid.sireum.org/).
 
 ```
 Argus-SAF/
-+--src/org.argus.saf             Main class for argus-saf CLI.
++--src/main/scala/org.argus.saf             Main class for argus-saf CLI.
 +--org.argus.saf.library         Libraries for Argus-SAF
 +--org.argus.jawa.core           Core static analysis data structures, "*.class"&"*.pilar" file managing, class hierarchy, method body resolving, flow analysis, etc.
 +--org.argus.amandroid.core      Android resource parsers, information collector, decompiler, environment method builder, flow analysis, etc.
@@ -90,7 +90,7 @@ the directory where Scala plugin repository is and then import it as SBT project
 
 To contribute to the Argus-SAF, please send us a [pull request](https://help.github.com/articles/using-pull-requests/#fork--pull) from your fork of this repository!
 
-For more information on building and developing Amandroid, please also check out our [guidelines for contributing](CONTRIBUTING.md). People who provided excellent ideas are listed in [contributor](CONTRIBUTOR.md).
+For more information on building and developing Argus-SAF, please also check out our [guidelines for contributing](CONTRIBUTING.md). People who provided excellent ideas are listed in [contributor](CONTRIBUTOR.md).
  
 ## What to contribute
 

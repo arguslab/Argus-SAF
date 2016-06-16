@@ -3,12 +3,12 @@ We follow the standard GitHub [fork & pull](https://help.github.com/articles/usi
 approach to pull requests. Just fork the official repo, develop in a branch, and submit a PR!
 
 You're always welcome to submit your PR straight away and start the discussion.
-The goal of these notes is to make your experience contributing to Amandroid as 
+The goal of these notes is to make your experience contributing to Argus-SAF as 
 smooth and pleasant as possible. We're happy to guide you through the process once you've submitted your PR.
 
 ## What kind of PR are you submitting?
 
-You don't need to submit separate PRs for different version of Amandroid.
+You don't need to submit separate PRs for different version of Argus-SAF.
 Any changes accepted on one of these branches will, in time, be merged into the later branches.
 
 ### Documentation
