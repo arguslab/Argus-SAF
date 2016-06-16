@@ -17,7 +17,7 @@ object Common {
   def newProject(projectName: String, base: File): Project =
     Project(projectName, base).settings(
       name := projectName,
-      organization := "org.arguslab",
+      organization := "com.github.arguslab",
       scalaVersion := ArgusVersions.scalaVersion
     )
 
