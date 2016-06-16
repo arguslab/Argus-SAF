@@ -24,7 +24,7 @@ Depend on Jawa by editing
 
 ```
 resolvers += Resolver.bintrayRepo("arguslab", "maven")
-libraryDependencies += "org.arguslab" %% "jawa-core" % "1.0.1"
+libraryDependencies += "org.arguslab" %% "jawa-core" % "1.0.2"
 ```
 
 Depend on Amandroid by editing
@@ -32,7 +32,7 @@ Depend on Amandroid by editing
 
 ```
 resolvers += Resolver.bintrayRepo("arguslab", "maven")
-libraryDependencies += "org.arguslab" %% "amandroid-core" % "1.0.1"
+libraryDependencies += "org.arguslab" %% "amandroid-core" % "1.0.2"
 ```
 
 > Note that: Depend on Amandroid will automatically add Jawa as dependency. If you use Maven or Gradle, you should translate it to corresponding format.

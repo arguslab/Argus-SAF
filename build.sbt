@@ -63,7 +63,7 @@ val publishSettings = Seq(
     releasePublishArtifactsAction := PgpKeys.publishSigned.value,
     pomExtra := <scm>
       <url>https://github.com/arguslab/Argus-SAF</url>
-      <connection>scm:git:https://github.com/arguslab/Argus-SAF</connection>
+      <connection>scm:git:https://github.com/arguslab/Argus-SAF.git</connection>
     </scm>
     <developers>
       <developer>
@@ -107,9 +107,7 @@ lazy val saf_library: Project =
         art.copy(`classifier` = None)
       },
       addArtifact(artifact in (Compile, assembly), assembly),
-      publishArtifact in (Compile, packageBin) := false,
-      publishArtifact in (Compile, packageDoc) := false,
-      publishArtifact in (Compile, packageSrc) := false
+      publishArtifact in (Compile, packageBin) := false
     )
     .settings(publishSettings)
 
