@@ -17,17 +17,7 @@ Argus-SAF/
 +--org.argus.amandroid.core      Android resource parsers, information collector, decompiler, environment method builder, flow analysis, etc.
 ```
 
-## How to contribute
-
-To contribute to the Argus-SAF, please send us a [pull request](https://help.github.com/articles/using-pull-requests/#fork--pull) from your fork of this repository!
-
-For more information on building and developing Amandroid, please also check out our [guidelines for contributing](CONTRIBUTING.md). People who provided excellent ideas are listed in [contributor](CONTRIBUTOR.md).
- 
-## What to contribute
-
-If you don't know what to contribute, please check out our [challenges need to resolve](CHALLENGE.md).
-
-## Obtaining Argus-SAF library
+## Obtaining Argus-SAF as library
 
 Depend on Jawa by editing
 `build.sbt`:
@@ -97,3 +87,13 @@ the directory where Scala plugin repository is and then import it as SBT project
    ```
    $ tools/bin/sbt clean compile test
    ```
+
+## How to contribute
+
+To contribute to the Argus-SAF, please send us a [pull request](https://help.github.com/articles/using-pull-requests/#fork--pull) from your fork of this repository!
+
+For more information on building and developing Amandroid, please also check out our [guidelines for contributing](CONTRIBUTING.md). People who provided excellent ideas are listed in [contributor](CONTRIBUTOR.md).
+ 
+## What to contribute
+
+If you don't know what to contribute, please check out our [challenges need to resolve](CHALLENGE.md).
