@@ -209,10 +209,10 @@ object Main extends App {
       debug = true
     }
     if(cli.hasOption("o") || cli.hasOption("output")) {
-      outputPath = cli.getOptionValue("dir")
+      outputPath = cli.getOptionValue("o")
     }
     if(cli.hasOption("mo") || cli.hasOption("module")) {
-      module = cli.getOptionValue("name") match {
+      module = cli.getOptionValue("mo") match {
         case "DATA_LEAKAGE" => TaintAnalysisModules.DATA_LEAKAGE
         case "INTENT_INJECTION" => TaintAnalysisModules.INTENT_INJECTION
         case "PASSWORD_TRACKING" => TaintAnalysisModules.PASSWORD_TRACKING
@@ -240,10 +240,10 @@ object Main extends App {
       debug = true
     }
     if(cli.hasOption("o") || cli.hasOption("output")) {
-      outputPath = cli.getOptionValue("dir")
+      outputPath = cli.getOptionValue("o")
     }
     if(cli.hasOption("c") || cli.hasOption("checker")) {
-      module = cli.getOptionValue("name") match {
+      module = cli.getOptionValue("c") match {
         case "CRYPTO_MISUSE" => ApiMisuseModules.CRYPTO_MISUSE
         case "HIDE_ICON" => ApiMisuseModules.HIDE_ICON
       }
@@ -267,7 +267,7 @@ object Main extends App {
       debug = true
     }
     if(cli.hasOption("o") || cli.hasOption("output")) {
-      outputPath = cli.getOptionValue("dir")
+      outputPath = cli.getOptionValue("o")
     }
     var sourcePath: String = null
 

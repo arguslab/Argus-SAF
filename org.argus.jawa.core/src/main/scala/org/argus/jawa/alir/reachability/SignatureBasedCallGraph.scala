@@ -20,6 +20,7 @@ import org.sireum.util._
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
  */ 
 object SignatureBasedCallGraph {
+  final val TITLE = "SignatureBasedCallGraph"
   
   def apply(
       global: Global, 
@@ -51,30 +52,34 @@ object SignatureBasedCallGraph {
     while(worklist.nonEmpty) {
       val m = worklist.remove(0)
       processed += m.getSignature.signature
-      val points = new PointsCollector().points(m.getSignature, m.getBody)
-      points foreach {
-        case pi: Point with Right with Invoke =>
-          val typ = pi.invokeTyp
-          val sig = pi.sig
-          val callees: MSet[JawaMethod] = msetEmpty
-          typ match {
-            case "super" =>
-              callees ++= CallHandler.getSuperCalleeMethod(global, sig)
-            case "direct" =>
-              callees ++= CallHandler.getDirectCalleeMethod(global, sig)
-            case "static" =>
-              callees ++= CallHandler.getStaticCalleeMethod(global, sig)
-            case "virtual" | "interface" | _ =>
-              callees ++= CallHandler.getUnknownVirtualCalleeMethods(global, sig.getClassType, sig.getSubSignature)
-          }
-          callees foreach {
-            callee =>
-              cg.addCall(m.getSignature, callee.getSignature)
-              if (!processed.contains(callee.getSignature.signature) && !PTAScopeManager.shouldBypass(callee.getDeclaringClass) && callee.isConcrete) {
-                worklist += callee
-              }
-          }
-        case _ =>
+      try {
+        val points = new PointsCollector().points(m.getSignature, m.getBody)
+        points foreach {
+          case pi: Point with Right with Invoke =>
+            val typ = pi.invokeTyp
+            val sig = pi.sig
+            val callees: MSet[JawaMethod] = msetEmpty
+            typ match {
+              case "super" =>
+                callees ++= CallHandler.getSuperCalleeMethod(global, sig)
+              case "direct" =>
+                callees ++= CallHandler.getDirectCalleeMethod(global, sig)
+              case "static" =>
+                callees ++= CallHandler.getStaticCalleeMethod(global, sig)
+              case "virtual" | "interface" | _ =>
+                callees ++= CallHandler.getUnknownVirtualCalleeMethods(global, sig.getClassType, sig.getSubSignature)
+            }
+            callees foreach {
+              callee =>
+                cg.addCall(m.getSignature, callee.getSignature)
+                if (!processed.contains(callee.getSignature.signature) && !PTAScopeManager.shouldBypass(callee.getDeclaringClass) && callee.isConcrete) {
+                  worklist += callee
+                }
+            }
+          case _ =>
+        }
+      } catch {
+        case e: Throwable => global.reporter.error(TITLE, e.getMessage)
       }
     }
   }
