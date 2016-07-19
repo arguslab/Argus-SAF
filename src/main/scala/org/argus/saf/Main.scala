@@ -11,6 +11,7 @@
 package org.argus.saf
 
 import org.apache.commons.cli._
+import org.argus.amandroid.core.AndroidGlobalConfig
 import org.argus.saf.cli.{ApiMisuse, Decompiler, Staging, TaintAnalysis}
 import org.argus.amandroid.plugin.{ApiMisuseModules, TaintAnalysisModules}
 
@@ -47,6 +48,8 @@ object Main extends App {
     val outputOption: Option = Option.builder("o")
       .longOpt("output").desc("Set output directory. [Default: .]")
       .hasArg(true).argName("dir").build()
+    val forceDeleteOption: Option = Option.builder("f")
+      .longOpt("force").desc("Force delete previous decompile result. [Default: false]").build()
     val iniPathOption: Option = Option.builder("i")
       .longOpt("ini").desc("Set .ini configuration file path.")
       .hasArg(true).argName("path").build()
@@ -64,6 +67,7 @@ object Main extends App {
     generalOptionGroup.addOption(debugDecOption)
     generalOptionGroup.addOption(outputOption)
     generalOptionGroup.addOption(iniPathOption)
+    generalOptionGroup.addOption(forceDeleteOption)
 
     normalOptions.addOption(versionOption)
 
@@ -80,8 +84,11 @@ object Main extends App {
     allOptions.addOption(versionOption)
     allOptions.addOption(debugDecOption)
     allOptions.addOption(outputOption)
+    allOptions.addOption(forceDeleteOption)
+    allOptions.addOption(iniPathOption)
     allOptions.addOption(taintmoduleOption)
     allOptions.addOption(apimoduleOption)
+
   }
 
   object Mode extends Enumeration {
@@ -138,6 +145,9 @@ object Main extends App {
   var cmdFound: Boolean = false
 
   try {
+    if(commandLine.hasOption("i") || commandLine.hasOption("ini")) {
+      AndroidGlobalConfig.iniPathOpt = Some(commandLine.getOptionValue("i"))
+    }
     for (opt <- commandLine.getArgs) {
       if (opt.equalsIgnoreCase("d") || opt.equalsIgnoreCase("decompile")) {
         cmdDecompile(commandLine)
@@ -176,18 +186,15 @@ object Main extends App {
   private def cmdDecompile(cli: CommandLine) = {
     var debug = false
     var outputPath: String = "."
-    // check for verbose / quiet
-//    if (commandLine.hasOption("v") || commandLine.hasOption("verbose")) {
-//      verbosity = Verbosity.VERBOSE
-//    }
-//    else if (commandLine.hasOption("q") || commandLine.hasOption("quiet")) {
-//      verbosity = Verbosity.QUIET
-//    }
+    var forceDelete: Boolean = false
     if(cli.hasOption("d") || cli.hasOption("debug")) {
       debug = true
     }
     if(cli.hasOption("o") || cli.hasOption("output")) {
       outputPath = cli.getOptionValue("o")
+    }
+    if(cli.hasOption("f") || cli.hasOption("force")) {
+      forceDelete = true
     }
     var sourcePath: String = null
 
@@ -198,18 +205,22 @@ object Main extends App {
         usage(Mode.DECOMPILE)
         System.exit(0)
     }
-    Decompiler(debug, sourcePath, outputPath)
+    Decompiler(debug, sourcePath, outputPath, forceDelete)
   }
 
   private def cmdTaintAnalysis(cli: CommandLine) = {
     var debug = false
     var outputPath: String = "."
+    var forceDelete: Boolean = false
     var module: TaintAnalysisModules.Value = TaintAnalysisModules.DATA_LEAKAGE
     if(cli.hasOption("d") || cli.hasOption("debug")) {
       debug = true
     }
     if(cli.hasOption("o") || cli.hasOption("output")) {
       outputPath = cli.getOptionValue("o")
+    }
+    if(cli.hasOption("f") || cli.hasOption("force")) {
+      forceDelete = true
     }
     if(cli.hasOption("mo") || cli.hasOption("module")) {
       module = cli.getOptionValue("mo") match {
@@ -229,18 +240,22 @@ object Main extends App {
         usage(Mode.TAINT)
         System.exit(0)
     }
-    TaintAnalysis(module, debug, sourcePath, outputPath)
+    TaintAnalysis(module, debug, sourcePath, outputPath, forceDelete)
   }
 
   private def cmdApiMisuse(cli: CommandLine) = {
     var debug = false
     var outputPath: String = "."
+    var forceDelete: Boolean = false
     var module: ApiMisuseModules.Value = ApiMisuseModules.CRYPTO_MISUSE
     if(cli.hasOption("d") || cli.hasOption("debug")) {
       debug = true
     }
     if(cli.hasOption("o") || cli.hasOption("output")) {
       outputPath = cli.getOptionValue("o")
+    }
+    if(cli.hasOption("f") || cli.hasOption("force")) {
+      forceDelete = true
     }
     if(cli.hasOption("c") || cli.hasOption("checker")) {
       module = cli.getOptionValue("c") match {
@@ -257,17 +272,21 @@ object Main extends App {
         usage(Mode.APICHECK)
         System.exit(0)
     }
-    ApiMisuse(module, debug, sourcePath, outputPath)
+    ApiMisuse(module, debug, sourcePath, outputPath, forceDelete)
   }
 
   private def cmdStaging(cli: CommandLine) = {
     var debug = false
     var outputPath: String = "."
+    var forceDelete: Boolean = false
     if(cli.hasOption("d") || cli.hasOption("debug")) {
       debug = true
     }
     if(cli.hasOption("o") || cli.hasOption("output")) {
       outputPath = cli.getOptionValue("o")
+    }
+    if(cli.hasOption("f") || cli.hasOption("force")) {
+      forceDelete = true
     }
     var sourcePath: String = null
 
@@ -278,6 +297,6 @@ object Main extends App {
         usage(Mode.STAGE)
         System.exit(0)
     }
-    Staging(debug, sourcePath, outputPath)
+    Staging(debug, sourcePath, outputPath, forceDelete)
   }
 }

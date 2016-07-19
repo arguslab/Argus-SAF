@@ -250,7 +250,7 @@ case class DexInstructionToPilarParser(
             } catch {
               case e: Exception => ""
             }
-          val string = StringEscapeUtils.escapeJava(rawstring)
+          val string = rawstring.replaceAll("\"", "\\\"").replaceAll("\\", "\\\\")
           val lines = string.lines.size
           val typ = new JawaType("java.lang.String")
           val regName = genRegName(reg, DedexJawaType(typ))
@@ -274,7 +274,7 @@ case class DexInstructionToPilarParser(
             } catch {
               case e: Exception => ""
             }
-          val string = StringEscapeUtils.escapeJava(rawstring)
+          val string = rawstring.replaceAll("\"", "\\\"").replaceAll("\\", "\\\\")
           val lines = string.lines.size
           val typ = new JawaType("java.lang.String")
           val regName = genRegName(reg, DedexJawaType(typ))

@@ -197,7 +197,7 @@ case class JawaMethod(declaringClass: JawaClass,
   def getBody: MethodBody = {
 //    if(getDeclaringClass.getResolvingLevel >= ResolveLevel.BODY) throw new RuntimeException(getSignature +" is already resolved to " + this.resolvingLevel)
     if(isUnknown) throw new RuntimeException(getSignature + " is an unknown method so cannot be resolved to body.")
-    if(!(this ? BODY)){
+    if(!(this ? BODY)) {
       val global = getDeclaringClass.global
       global.resolveMethodBody(getDeclaringClass)
     }

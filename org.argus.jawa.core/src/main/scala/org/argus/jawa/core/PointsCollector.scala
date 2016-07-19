@@ -127,9 +127,9 @@ class PointsCollector {
               val dimensions = ie.indices.size
               if(isStaticField(n.name.name)){
                 val fqn = new FieldFQN(n.name.name.replace("@@", ""), typ.get)
-                PointStaticFieldArrayL(fqn, dimensions, loc, locIndex, ownerSig)
+                PointStaticFieldMyArrayL(fqn, dimensions, loc, locIndex, ownerSig)
               } else {
-                PointArrayL(n.name.name, dimensions, loc, locIndex, ownerSig)
+                PointMyArrayL(n.name.name, dimensions, loc, locIndex, ownerSig)
               }
             case _ => null
           }
@@ -181,9 +181,9 @@ class PointsCollector {
             case n: NameExp =>
               if(isStaticField(n.name.name)){
                 val fqn = new FieldFQN(n.name.name.replace("@@", ""), typ.get)
-                PointStaticFieldArrayR(fqn, dimensions, loc, locIndex, ownerSig)
+                PointStaticFieldMyArrayR(fqn, dimensions, loc, locIndex, ownerSig)
               } else {
-                PointArrayR(n.name.name, dimensions, loc, locIndex, ownerSig)
+                PointMyArrayR(n.name.name, dimensions, loc, locIndex, ownerSig)
               }
             case _ => null
           }
@@ -420,12 +420,12 @@ final case class PointFieldR(baseP: PointBaseR, fqn: FieldFQN, loc: ResourceUri,
 /**
  * Set of program points corresponding to l-value array variable. 
  */
-final case class PointArrayL(arrayname: String, dimensions: Int, loc: ResourceUri, locIndex: Int, ownerSig: Signature) extends Point with Loc with Left with Array
+final case class PointMyArrayL(arrayname: String, dimensions: Int, loc: ResourceUri, locIndex: Int, ownerSig: Signature) extends Point with Loc with Left with MyArray
 
 /**
  * Set of program points corresponding to R-value array variable. 
  */
-final case class PointArrayR(arrayname: String, dimensions: Int, loc: ResourceUri, locIndex: Int, ownerSig: Signature) extends Point with Loc with Right with Array
+final case class PointMyArrayR(arrayname: String, dimensions: Int, loc: ResourceUri, locIndex: Int, ownerSig: Signature) extends Point with Loc with Right with MyArray
 
 /**
  * Set of program points corresponding to l-value static field variable. 
@@ -440,12 +440,12 @@ final case class PointStaticFieldR(staticFieldFQN: FieldFQN, loc: ResourceUri, l
 /**
  * Set of program points corresponding to l-value static field array variable. 
  */
-final case class PointStaticFieldArrayL(staticFieldFQN: FieldFQN, dimensions: Int, loc: ResourceUri, locIndex: Int, ownerSig: Signature) extends Point with Loc with Left with Static_Field with Array
+final case class PointStaticFieldMyArrayL(staticFieldFQN: FieldFQN, dimensions: Int, loc: ResourceUri, locIndex: Int, ownerSig: Signature) extends Point with Loc with Left with Static_Field with MyArray
 
 /**
  * Set of program points corresponding to R-value static field array variable. 
  */
-final case class PointStaticFieldArrayR(staticFieldFQN: FieldFQN, dimensions: Int, loc: ResourceUri, locIndex: Int, ownerSig: Signature) extends Point with Loc with Right with Static_Field with Array
+final case class PointStaticFieldMyArrayR(staticFieldFQN: FieldFQN, dimensions: Int, loc: ResourceUri, locIndex: Int, ownerSig: Signature) extends Point with Loc with Right with Static_Field with MyArray
 
 /**
  * Set of program points corresponding to base part of field access expressions in the LHS. 

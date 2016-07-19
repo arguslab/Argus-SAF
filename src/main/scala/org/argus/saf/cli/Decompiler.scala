@@ -22,7 +22,7 @@ import org.sireum.util._
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
  */ 
 object Decompiler {
-  def apply(debug: Boolean, sourcePath: String, outputPath: String) {
+  def apply(debug: Boolean, sourcePath: String, outputPath: String, forceDelete: Boolean) {
     val dpsuri = AndroidGlobalConfig.settings.dependence_dir.map(FileUtil.toUri)
     val outputUri = FileUtil.toUri(outputPath)
     try {
@@ -35,21 +35,21 @@ object Decompiler {
           decs.foreach {
             apkUri =>
               println("####" + apkUri + "####")
-              ApkDecompiler.decompile(FileUtil.toFile(apkUri), FileUtil.toFile(outputUri), dpsuri, dexLog = false, debugMode = false, removeSupportGen = true, forceDelete = true)
+              ApkDecompiler.decompile(FileUtil.toFile(apkUri), FileUtil.toFile(outputUri), dpsuri, dexLog = false, debugMode = false, removeSupportGen = true, forceDelete)
               println("Done!")
           }
           dexs.foreach {
             dexUri =>
               println("####" + dexUri + "####")
               val dexname = dexUri.substring(dexUri.lastIndexOf("/") + 1, dexUri.lastIndexOf("."))
-              ApkDecompiler.decompileDex(dexUri, outputUri + "/" + dexname, dpsuri, "", dexLog = false, debugMode = false, removeSupportGen = false, forceDelete = true)
+              ApkDecompiler.decompileDex(dexUri, outputUri + "/" + dexname, dpsuri, "", dexLog = false, debugMode = false, removeSupportGen = false, forceDelete)
               println("Done!")
           }
         case file =>
           println("Processing " + file)
           if(Apk.isValidApk(FileUtil.toUri(file)))
-            ApkDecompiler.decompile(file, FileUtil.toFile(outputUri), dpsuri, dexLog = false, debugMode = false, removeSupportGen = true, forceDelete = true)
-          else if(file.getName.endsWith(".dex")) ApkDecompiler.decompileDex(FileUtil.toUri(file), outputUri, dpsuri, "", dexLog = false, debugMode = false, removeSupportGen = false, forceDelete = true)
+            ApkDecompiler.decompile(file, FileUtil.toFile(outputUri), dpsuri, dexLog = false, debugMode = false, removeSupportGen = true, forceDelete)
+          else if(file.getName.endsWith(".dex")) ApkDecompiler.decompileDex(FileUtil.toUri(file), outputUri, dpsuri, "", dexLog = false, debugMode = false, removeSupportGen = false, forceDelete)
           else println(file + " is not decompilable.")
       }
     } catch {

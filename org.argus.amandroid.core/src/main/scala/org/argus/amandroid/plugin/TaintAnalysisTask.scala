@@ -33,12 +33,12 @@ object TaintAnalysisModules extends Enumeration {
   val INTENT_INJECTION, PASSWORD_TRACKING, OAUTH_TOKEN_TRACKING, DATA_LEAKAGE, COMMUNICATION_LEAKAGE = Value
 }
 
-case class TaintAnalysisTask(global: Global, module: TaintAnalysisModules.Value, outputUri: FileResourceUri, dpsuri: Option[FileResourceUri], file: FileResourceUri) {
+case class TaintAnalysisTask(global: Global, module: TaintAnalysisModules.Value, outputUri: FileResourceUri, dpsuri: Option[FileResourceUri], file: FileResourceUri, forceDelete: Boolean) {
   import TaintAnalysisModules._
 //  private final val TITLE = "TaintAnalysisTask"
   def run: Option[TaintAnalysisResult[AndroidDataDependentTaintAnalysis.Node, InterproceduralDataDependenceAnalysis.Edge]] = {
     val yard = new ApkYard(global)
-    val apk = yard.loadApk(file, outputUri, dpsuri, dexLog = false, debugMode = false, forceDelete = true)
+    val apk = yard.loadApk(file, outputUri, dpsuri, dexLog = false, debugMode = false, forceDelete)
     val ssm = module match {
       case INTENT_INJECTION =>
         new IntentInjectionSourceAndSinkManager(global, apk, apk.getLayoutControls, apk.getCallbackMethods, AndroidGlobalConfig.settings.sas_file)
