@@ -25,7 +25,8 @@ import org.sireum.pilar.ast._
  * well-known Android callback and handler interfaces.
  * 
  * Adapted Steven Arzt (FlowDroid) 's equivalent code
- * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
+  *
+  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
  * @author Sankardas Roy. 
  */
 class ReachableInfoCollector(val global: Global, entryPointTypes: ISet[JawaType]) {
@@ -141,27 +142,34 @@ class ReachableInfoCollector(val global: Global, entryPointTypes: ISet[JawaType]
     procedures.foreach{
       procedure =>
         if(procedure.isConcrete){
-          procedure.getBody.locations foreach {
-            case j: JumpLocation =>
-              j.jump match {
-                case t: CallJump if t.jump.isEmpty =>
-                  val sig = ASTUtil.getSignature(t).get
-                  if (sig.getSubSignature == AndroidConstants.SETCONTENTVIEW) {
-                    val nums = ExplicitValueFinder.findExplicitIntValueForArgs(procedure, j, 1)
-                    val declType = sig.getClassType
-                    this.layoutClasses.getOrElseUpdate(declType, msetEmpty) ++= nums
-                  }
-                case _ =>
-              }
-            case _ =>
+          try {
+            procedure.getBody.locations foreach {
+              case j: JumpLocation =>
+                j.jump match {
+                  case t: CallJump if t.jump.isEmpty =>
+                    val sig = ASTUtil.getSignature(t).get
+                    if (sig.getSubSignature == AndroidConstants.SETCONTENTVIEW) {
+                      val nums = ExplicitValueFinder.findExplicitIntValueForArgs(procedure, j, 1)
+                      val declType = sig.getClassType
+                      this.layoutClasses.getOrElseUpdate(declType, msetEmpty) ++= nums
+                    }
+                  case _ =>
+                }
+              case _ =>
+            }
+          } catch {
+            case e: Throwable =>
+              global.reporter.error(TITLE, e.getMessage)
           }
         }
     }
+
   }
 
   /**
    * Analyzes the given class to find callback methods
-   * @param clazz The class to analyze
+    *
+    * @param clazz The class to analyze
    * @param lifecycleElement The lifecycle element (activity, service, etc.)
    * to which the callback methods belong
    */
@@ -351,7 +359,8 @@ class ReachableInfoCollector(val global: Global, entryPointTypes: ISet[JawaType]
   /**
    * Checks whether the given method comes from a system class. If not,
    * it is added to the list of callback methods.
-   * @param proc The method to check and add
+    *
+    * @param proc The method to check and add
    * @param lifecycleElement The component (activity, service, etc.) to which this
    * callback method belongs
    */
