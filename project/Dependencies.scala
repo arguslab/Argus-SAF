@@ -51,6 +51,8 @@ object Dependencies {
   val json4s_native = "org.json4s" %% "json4s-native" % "3.3.0"
   val json4s_ext = "org.json4s" %% "json4s-ext" % "3.3.0"
 
+  val scalatest = "org.scalatest" %% "scalatest" % "2.2.6" % "test"
+
 }
 
 object DependencyGroups {
@@ -60,6 +62,7 @@ object DependencyGroups {
 
   val jawa_core = Seq(
     scala_reflect,
+    scalatest,
     asm_all,
     guava,
 //    antlr4_runtime,

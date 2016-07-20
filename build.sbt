@@ -16,6 +16,7 @@ bintrayPackage in ThisBuild := "argus-saf"
 
 dependencyOverrides in ThisBuild += "org.scala-lang.modules" %% "scala-xml" % "1.0.5"
 
+
 val argusSafSettings = Defaults.coreDefaultSettings ++ Seq(
   libraryDependencies += "org.scala-lang" % "scala-compiler" % ArgusVersions.scalaVersion,
   scalacOptions ++= Seq("-unchecked", "-deprecation", "-feature")
