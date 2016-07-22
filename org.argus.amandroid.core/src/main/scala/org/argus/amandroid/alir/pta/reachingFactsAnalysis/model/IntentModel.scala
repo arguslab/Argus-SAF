@@ -1155,7 +1155,7 @@ object IntentModel {
           isetEmpty
         else
           mExtraValue.map{ins => s.pointsToSet(FieldSlot(ins, "entries"), currentContext)}.reduce(iunion[Instance])
-      if(keyValue.nonEmpty && !keyValue.exists(_.isInstanceOf[PTAPointStringInstance])){
+      if(keyValue.nonEmpty && keyValue.forall(_.isInstanceOf[PTAConcreteStringInstance])){
         val keys = keyValue.map{k => k.asInstanceOf[PTAConcreteStringInstance].string}
         entValue.foreach{
           v =>

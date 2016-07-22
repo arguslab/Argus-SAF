@@ -119,7 +119,7 @@ object IntentFilterModel {
           case pstr@PTAPointStringInstance(c) =>
             newfacts += new RFAFact(FieldSlot(tv, JavaKnowledge.getFieldNameFromFieldFQN(AndroidConstants.INTENTFILTER_ACTIONS)), pstr)
           case ustr if ustr.isUnknown =>
-          case acStr => throw new RuntimeException("unexpected instance type: " + acStr)
+          case acStr => System.err.println(TITLE + ": unexpected instance type: " + acStr)
         }
     }
     (newfacts, delfacts)
