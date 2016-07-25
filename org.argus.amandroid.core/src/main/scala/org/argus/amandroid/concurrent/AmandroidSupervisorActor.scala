@@ -24,9 +24,10 @@ import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Await
 import akka.pattern.ask
+import org.argus.amandroid.concurrent.util.Recorder
 import org.argus.amandroid.plugin.TaintAnalysisModules
 
-class AmandroidSupervisorActor extends Actor with ActorLogging {
+class AmandroidSupervisorActor(recorder: Recorder) extends Actor with ActorLogging {
   private val decActor = context.actorOf(FromConfig.props(Props[DecompilerActor]), "DecompilerActor")
   private val apkInfoColActor = context.actorOf(FromConfig.props(Props[ApkInfoCollectActor]), "ApkInfoCollectorActor")
   private val ptaActor = context.actorOf(FromConfig.props(Props[PointsToAnalysisActor]), "PointsToAnalysisActor")
@@ -39,16 +40,20 @@ class AmandroidSupervisorActor extends Actor with ActorLogging {
     case dr: DecompilerResult =>
       dr match {
         case dsr: DecompileSuccResult =>
+          recorder.decompile(FileUtil.toFile(dsr.fileUri).getName, succ = true)
           apkInfoColActor ! ApkInfoCollectData(dsr.fileUri, dsr.outApkUri, dsr.srcFolders, 30 minutes)
         case dfr: DecompileFailResult =>
+          recorder.decompile(FileUtil.toFile(dfr.fileUri).getName, succ = false)
           log.error(dfr.e, "Decompile fail on " + dfr.fileUri)
       }
     case aicr: ApkInfoCollectResult =>
       aicr match {
         case aicsr: ApkInfoCollectSuccResult =>
+          recorder.infocollect(FileUtil.toFile(aicsr.fileUri).getName, succ = true)
           ptaActor ! PointsToAnalysisData(aicsr.apk, aicsr.outApkUri, aicsr.srcFolders, PTAAlgorithms.RFA, stage = true, timeoutForeachComponent = 5 minutes)
         case aicfr: ApkInfoCollectFailResult =>
-          log.error(aicfr.e, "Infomation collect failed on " + aicfr.fileUri)
+          recorder.infocollect(FileUtil.toFile(aicfr.fileUri).getName, succ = false)
+          log.error(aicfr.e, "Information collect failed on " + aicfr.fileUri)
           sendership(aicfr.fileUri) ! aicfr
           sendership -= aicfr.fileUri
       }
@@ -56,9 +61,12 @@ class AmandroidSupervisorActor extends Actor with ActorLogging {
       ptar match {
         case ptsr: PointsToAnalysisSuccResult =>
           log.info("Points to analysis success for " + ptsr.fileUri)
+          recorder.pta(FileUtil.toFile(ptsr.fileUri).getName, succ = true)
         case ptssr: PointsToAnalysisSuccStageResult =>
+          recorder.pta(FileUtil.toFile(ptssr.fileUri).getName, succ = true)
           log.info("Points to analysis success staged for " + ptssr.fileUri)
         case ptfr: PointsToAnalysisFailResult =>
+          recorder.pta(FileUtil.toFile(ptfr.fileUri).getName, succ = false)
           log.error(ptfr.e, "Points to analysis failed on " + ptfr.fileUri)
       }
       sendership(ptar.fileUri) ! ptar
@@ -92,9 +100,9 @@ class AmandroidSupervisorActorPrioMailbox(settings: ActorSystem.Settings, config
 
 object AmandroidTestApplication extends App {
   val _system = ActorSystem("AmandroidTestApplication", ConfigFactory.load)
-  val supervisor = _system.actorOf(Props[AmandroidSupervisorActor], name = "AmandroidSupervisorActor")
   val fileUris = FileUtil.listFiles(FileUtil.toUri(args(0)), ".apk", recursive = true)
   val outputUri = FileUtil.toUri(args(1))
+  val supervisor = _system.actorOf(Props(classOf[AmandroidSupervisorActor], Recorder(outputUri)), name = "AmandroidSupervisorActor")
   val futures = fileUris map {
     fileUri =>
       supervisor.ask(AnalysisSpec(fileUri, outputUri, None, removeSupportGen = true, forceDelete = true))(600 minutes).mapTo[PointsToAnalysisResult].recover{

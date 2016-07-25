@@ -16,6 +16,7 @@ import akka.actor.{ActorSystem, _}
 import akka.pattern.ask
 import akka.util.Timeout
 import com.typesafe.config.ConfigFactory
+import org.argus.amandroid.concurrent.util.Recorder
 import org.argus.saf.cli.util.CliLogger
 import org.argus.amandroid.concurrent.{AmandroidSupervisorActor, AnalysisSpec, PointsToAnalysisResult}
 import org.argus.amandroid.core.util.ApkFileUtil
@@ -55,7 +56,7 @@ object Staging {
     implicit val to = Timeout(AndroidGlobalConfig.settings.timeout * apkFileUris.size.minutes)
     
     try {
-      val supervisor = _system.actorOf(Props[AmandroidSupervisorActor], name = "AmandroidSupervisorActor")
+      val supervisor = _system.actorOf(Props(classOf[AmandroidSupervisorActor], Recorder(outputUri)), name = "AmandroidSupervisorActor")
       val futures = apkFileUris map {
         fileUri =>
           (supervisor ? AnalysisSpec(fileUri, outputUri, None, removeSupportGen = true, forceDelete)).mapTo[PointsToAnalysisResult]

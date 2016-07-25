@@ -193,7 +193,14 @@ object Staging {
     val stageRp = FileUtil.toFile(MyFileUtil.appendFileName(outUri, "stage_report.txt"))
     this.synchronized {
       val writer = new FileWriter(stageRp, true)
-      writer.write(apkName + "\n")
+      try {
+        writer.write(apkName + "\n")
+      } catch {
+        case e: Exception =>
+          throw e
+      } finally {
+        writer.close()
+      }
     }
   }
 }
