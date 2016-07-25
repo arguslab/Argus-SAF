@@ -11,13 +11,11 @@
 package org.argus.amandroid.serialization.stage
 
 import org.sireum.util._
-import java.io.PrintWriter
+import java.io.{FileReader, FileWriter, PrintWriter}
 
 import org.json4s._
 import org.json4s.native.Serialization
 import org.json4s.native.Serialization.{read, write}
-import java.io.FileReader
-
 import org.argus.amandroid.core.Apk
 import org.argus.amandroid.plugin.ApiMisuseResult
 import org.argus.amandroid.serialization.{ApkSerializer, ContextSerializer, PTAResultSerializer, SignatureKeySerializer}
@@ -189,5 +187,13 @@ object Staging {
     val outStageUri = MyFileUtil.appendFileName(outApkUri, "stage")
     val outStageDir = FileUtil.toFile(outStageUri)
     outStageDir.exists()
+  }
+
+  def stageReport(outUri: FileResourceUri, apkName: String) = {
+    val stageRp = FileUtil.toFile(MyFileUtil.appendFileName(outUri, "stage_report.txt"))
+    this.synchronized {
+      val writer = new FileWriter(stageRp, true)
+      writer.write(apkName + "\n")
+    }
   }
 }

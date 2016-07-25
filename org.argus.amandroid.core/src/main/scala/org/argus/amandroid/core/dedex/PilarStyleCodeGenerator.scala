@@ -867,7 +867,7 @@ class PilarStyleCodeGenerator(
         val excpT: String = "L" + dtcb.getTryHandlerType(i, n) + ";"
         val excpType: JawaType = JavaKnowledge.formatSignatureToType(excpT)
         val handlerOffset: Long = dtcb.getTryHandlerOffset(i, n)
-        visitStack.push(new VisitStackEntry(handlerOffset, initRegMap.toMap, Some(start)))
+        visitStack.push(VisitStackEntry(handlerOffset, initRegMap.toMap, Some(start)))
         val handlerLabel = "L%06x".format(handlerOffset)
         // Put a marker for the first pass that register map needs to be saved for a certain
         // exception handler at the start location

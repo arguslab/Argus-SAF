@@ -66,14 +66,15 @@ class PointsToAnalysisActor extends Actor with ActorLogging {
           log.error(e, "PTA failed for " + esig)
       }
     }
+    val outUri = FileUtil.toUri(FileUtil.toFile(ptadata.outApkUri).getParentFile)
     if(ptadata.stage) {
       try {
         Staging.stage(apk, ptaresults.toMap, ptadata.outApkUri)
+        Staging.stageReport(outUri, apk.getAppName)
         PointsToAnalysisSuccStageResult(apk.nameUri, ptadata.outApkUri)
       } catch {
         case e: Exception =>
           PointsToAnalysisFailResult(apk.nameUri, e)
-        
       }
     } else {
       PointsToAnalysisSuccResult(apk, ptaresults.toMap)

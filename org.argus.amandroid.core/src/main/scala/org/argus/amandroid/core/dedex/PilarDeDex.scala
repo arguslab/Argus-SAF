@@ -243,10 +243,14 @@ class PilarDeDex {
 object PilarDeDex {
   def main(args: Array[String]): Unit = {
     val srcRes = args(0)
-    val dpsPath = args(1)
+    val dpsPath = args.lift(1)
     val srcResUri = FileUtil.toUri(srcRes)
     val pdd = new PilarDeDex
-    val dpsuri = FileUtil.toUri(dpsPath)
-    pdd.decompile(srcResUri, None, Some(dpsuri), (_) => true, dexlog = false, debugMode = true)
+    val dpsuri = dpsPath map FileUtil.toUri
+    val rf = {
+      typ: JawaType =>
+        typ.jawaName == "com.apkpure.aegon.activities.MainFrameActivity"
+    }
+    pdd.decompile(srcResUri, None, dpsuri, rf, dexlog = false, debugMode = true)
   }
 }

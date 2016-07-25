@@ -46,7 +46,7 @@ class AmandroidSupervisorActor extends Actor with ActorLogging {
     case aicr: ApkInfoCollectResult =>
       aicr match {
         case aicsr: ApkInfoCollectSuccResult =>
-          ptaActor ! PointsToAnalysisData(aicsr.apk, aicsr.outApkUri, aicsr.srcFolders, PTAAlgorithms.RFA, stage = true, timeoutForeachComponent = 10 minutes)
+          ptaActor ! PointsToAnalysisData(aicsr.apk, aicsr.outApkUri, aicsr.srcFolders, PTAAlgorithms.RFA, stage = true, timeoutForeachComponent = 5 minutes)
         case aicfr: ApkInfoCollectFailResult =>
           log.error(aicfr.e, "Infomation collect failed on " + aicfr.fileUri)
           sendership(aicfr.fileUri) ! aicfr
