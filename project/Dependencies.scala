@@ -13,7 +13,6 @@ import sbt._
 object ArgusVersions {
   val scalaVersion = "2.11.8"
   val sbtVersion = "0.13.9"
-  val kamonVersion = "0.3.4"
 }
 
 object Dependencies {
@@ -53,16 +52,6 @@ object Dependencies {
   val json4s_ext = "org.json4s" %% "json4s-ext" % "3.3.0"
 
   val scalatest = "org.scalatest" %% "scalatest" % "2.2.6" % "test"
-
-  val kamon = Seq(
-    "com.typesafe.akka" %% "akka-actor" % "2.3.5",
-    "io.kamon" %% "kamon-core" % kamonVersion,
-    "io.kamon" %% "kamon-statsd" % kamonVersion,
-    "io.kamon" %% "kamon-log-reporter" % kamonVersion,
-    "io.kamon" %% "kamon-system-metrics" % kamonVersion,
-    "org.aspectj" % "aspectjweaver" % "1.8.1"
-  )
-
 }
 
 object DependencyGroups {
@@ -87,7 +76,7 @@ object DependencyGroups {
     json4s_native,
     json4s_ext,
     akka_actor
-  ) ++ jawa_core ++ kamon
+  ) ++ jawa_core
 
   val argus_saf = Seq(
     commons_cli

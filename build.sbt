@@ -84,11 +84,6 @@ lazy val argus_saf: Project =
   .settings(myUnidocSettings)
   .settings(buildInfoSettings)
   .settings(assemblySettings)
-  .settings(
-    aspectjSettings,
-    javaOptions <++= AspectjKeys.weaverOptions in Aspectj,
-    // when you call "sbt run" aspectj weaving kicks in
-    fork in run := true)
   .aggregate(
     saf_library, jawa_core, amandroid_core
   )
