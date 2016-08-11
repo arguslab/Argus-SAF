@@ -45,6 +45,8 @@ class AmandroidSupervisorActor(recorder: Recorder) extends Actor with ActorLoggi
         case dfr: DecompileFailResult =>
           recorder.decompile(FileUtil.toFile(dfr.fileUri).getName, succ = false)
           log.error(dfr.e, "Decompile fail on " + dfr.fileUri)
+          sendership(dfr.fileUri) ! dfr
+          sendership -= dfr.fileUri
       }
     case aicr: ApkInfoCollectResult =>
       aicr match {

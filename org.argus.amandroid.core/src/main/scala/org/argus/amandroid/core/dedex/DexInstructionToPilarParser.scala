@@ -642,7 +642,8 @@ case class DexInstructionToPilarParser(
           }
           if((byteCounter % 2) != 0)
             read8Bit()         // Align to 16 bit
-          val arrayType = JavaKnowledge.formatSignatureToType(dexTypeIdsBlock.getType(typeidx))
+          var arrayType = JavaKnowledge.formatSignatureToType(dexTypeIdsBlock.getType(typeidx))
+          arrayType = arrayType.jawaName.resolveRecord
           val baseType = JawaType.generateType(arrayType.baseTyp, arrayType.dimensions - 1)
           val baseTypeStr = generator.generateType(baseType).render()
           val regNames = regs.map{
@@ -825,7 +826,7 @@ case class DexInstructionToPilarParser(
           val regbase = read16Bit()
           val regsize = regno
           var arrayType = JavaKnowledge.formatSignatureToType(dexTypeIdsBlock.getType(typeidx))
-          arrayType = arrayType.name.resolveRecord
+          arrayType = arrayType.jawaName.resolveRecord
           val baseType = JawaType.generateType(arrayType.baseTyp, arrayType.dimensions - 1)
           val baseTypeStr = generator.generateType(baseType).render()
           val regs: IList[Int] = (0 until regsize).map(regbase + _).toList

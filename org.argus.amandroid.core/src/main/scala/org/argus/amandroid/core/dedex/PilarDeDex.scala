@@ -249,7 +249,7 @@ object PilarDeDex {
     val dpsuri = dpsPath map FileUtil.toUri
     val rf = {
       typ: JawaType =>
-        typ.jawaName == "com.apkpure.aegon.activities.MainFrameActivity"
+        typ.jawaName == "com.likeapp.game.bubbleshooter.arcade.ArcadeGame"
     }
     pdd.decompile(srcResUri, None, dpsuri, rf, dexlog = false, debugMode = true)
   }

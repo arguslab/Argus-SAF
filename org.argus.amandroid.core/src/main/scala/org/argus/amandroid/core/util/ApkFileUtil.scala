@@ -26,6 +26,7 @@ import org.argus.jawa.core.util.MyFileUtil
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
  */
 object ApkFileUtil {
+  def getApkName(apkUri: FileResourceUri): String = FileUtil.toFile(apkUri).getName
   def getDecompileableFiles(dirUri: FileResourceUri, recursive: Boolean = true): ISeq[FileResourceUri] = {
     FileUtil.listFiles(dirUri, "", recursive).filter(Apk.isDecompilable)
   }

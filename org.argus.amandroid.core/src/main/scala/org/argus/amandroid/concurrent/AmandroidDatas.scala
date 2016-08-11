@@ -31,7 +31,7 @@ trait DecompilerResult extends AmandroidData {
   def fileUri: FileResourceUri
 }
 case class DecompileSuccResult(fileUri: FileResourceUri, outApkUri: FileResourceUri, srcFolders: ISet[String], dependencies: ISet[String]) extends DecompilerResult with Success
-case class DecompileFailResult(fileUri: FileResourceUri, e: Exception) extends DecompilerResult with Failure
+case class DecompileFailResult(fileUri: FileResourceUri, e: Throwable) extends DecompilerResult with Failure
 
 // ApkInfoCollectActor's input
 case class ApkInfoCollectData(fileUri: FileResourceUri, outApkUri: FileResourceUri, srcFolders: ISet[String], timeout: Duration) extends DecompilerResult

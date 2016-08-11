@@ -58,7 +58,7 @@ class DecompilerActor extends Actor with ActorLogging {
               val (outApkUri, srcs, deps) = ApkDecompiler.decompile(apkFile, resultDir, ddata.dpsuri, dexLog = false, debugMode = false, removeSupportGen = ddata.removeSupportGen, forceDelete = ddata.forceDelete, Some(listener))
               DecompileSuccResult(ddata.fileUri, outApkUri, srcs, deps)
             } catch {
-              case e: Exception =>
+              case e: Throwable =>
                 DecompileFailResult(ddata.fileUri, e)
             }
           res
