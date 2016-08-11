@@ -17,7 +17,7 @@ import org.argus.amandroid.alir.pta.reachingFactsAnalysis.IntentHelper
 import org.argus.amandroid.alir.pta.reachingFactsAnalysis.model.InterComponentCommunicationModel
 import org.argus.amandroid.core.{AndroidConstants, Apk}
 import org.sireum.util._
-import org.stringtemplate.v4.STGroupFile
+import org.stringtemplate.v4.STGroupString
 import org.argus.amandroid.core.parser.{ComponentType, IntentFilter, UriData}
 import org.argus.jawa.alir.Context
 import org.argus.jawa.alir.controlFlowGraph.ICFGCallNode
@@ -35,7 +35,7 @@ import org.sireum.alir.AlirEdge
  */ 
 object DataCollector {
   
-  private val template = new STGroupFile("org/sireum/amandroid/alir/resources/dataRecorder/AppData.stg")
+  private val template = new STGroupString(AppDataStg.getStg)
   
   private def getIntentFilterStrings(intentFilters: ISet[IntentFilter]): util.ArrayList[String] = {
     val intFs: util.ArrayList[String] = new util.ArrayList[String]
