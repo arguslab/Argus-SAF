@@ -10,8 +10,9 @@
 
 package org.argus.amandroid.core.dedex
 
+import java.io.{IOException, StringWriter, Writer}
+
 import hu.uw.pallergabor.dedexer._
-import org.apache.commons.lang.StringEscapeUtils
 import org.argus.jawa.core._
 import org.sireum.util._
 
@@ -48,7 +49,7 @@ case class DexInstructionToPilarParser(
   private val tasks: MList[PilarDedexerTask] = mlistEmpty
   protected[dedex] var secondPass = false
   private var lowestDataBlock: Long = -1
-  private var forkStatus: ForkStatus.Value = null
+  private var forkStatus: ForkStatus.Value = _
   private val forkData: MList[Long] = mlistEmpty
   
   // For special task param type resolve
@@ -167,6 +168,75 @@ case class DexInstructionToPilarParser(
     val target = instrBase + (offset * 2)
     target
   }
+
+  /**
+    * modified from org.apache.commons.lang.StringEscapeUtils
+    * @param str rawstring to escape
+    */
+  private def escapeJavaStyleString(str: String): String = {
+    if (str == null) return null
+    try {
+      val writer: StringWriter = new StringWriter(str.length * 2)
+      escapeJavaStyleString(writer, str)
+      writer.toString
+    } catch {
+      case ioe: IOException =>
+        // this should never ever happen while writing to a StringWriter
+        ioe.printStackTrace()
+        null
+    }
+  }
+
+  private def escapeJavaStyleString(out: Writer, str: String): Unit = {
+    if (out == null) throw new IllegalArgumentException("The Writer must not be null")
+    if (str == null) return
+    var sz: Int = 0
+    sz = str.length
+    var i: Int = 0
+    while (i < sz) {
+      {
+        val ch: Char = str.charAt(i)
+        // handle unicode
+//        if (ch > 0xfff) out.write("\\u" + hex(ch))
+//        else if (ch > 0xff) out.write("\\u0" + hex(ch))
+//        else if (ch > 0x7f) out.write("\\u00" + hex(ch))
+        if (ch < 32) ch match {
+          case '\b' =>
+            out.write('\\')
+            out.write('b')
+          case '\n' =>
+            out.write('\\')
+            out.write('n')
+          case '\t' =>
+            out.write('\\')
+            out.write('t')
+          case '\f' =>
+            out.write('\\')
+            out.write('f')
+          case '\r' =>
+            out.write('\\')
+            out.write('r')
+          case _ =>
+            if (ch > 0xf) out.write("\\u00" + hex(ch))
+            else out.write("\\u000" + hex(ch))
+        } else ch match {
+          case '"' =>
+            out.write('\\')
+            out.write('"')
+          case '\\' =>
+            out.write('\\')
+            out.write('\\')
+          case _ =>
+            out.write(ch)
+        }
+      }
+      {
+        i += 1; i - 1
+      }
+    }
+  }
+
+  private def hex(ch: Char): String = Integer.toHexString(ch).toUpperCase
   
   /**
    * Input will be: "Test3.c Ljava/lang/Class;"
@@ -250,7 +320,7 @@ case class DexInstructionToPilarParser(
             } catch {
               case e: Exception => ""
             }
-          val string = StringEscapeUtils.escapeJava(rawstring)
+          val string = escapeJavaStyleString(rawstring)
           val lines = string.lines.size
           val typ = new JawaType("java.lang.String")
           val regName = genRegName(reg, DedexJawaType(typ))
@@ -274,7 +344,7 @@ case class DexInstructionToPilarParser(
             } catch {
               case e: Exception => ""
             }
-          val string = StringEscapeUtils.escapeJava(rawstring)
+          val string = escapeJavaStyleString(rawstring)
           val lines = string.lines.size
           val typ = new JawaType("java.lang.String")
           val regName = genRegName(reg, DedexJawaType(typ))

@@ -50,7 +50,7 @@ trait PAGConstraint{
               case _ =>
             }
           //if an array point in lhs, then have flow from this array point to most recent array var shadowing place
-          case pal: PointArrayL =>
+          case pal: PointMyArrayL =>
             flowMap.getOrElseUpdate(EdgeType.ARRAY_STORE, mmapEmpty).getOrElseUpdate(rhs, msetEmpty) += pal
             udChain(pal, ps, cfg, rda).foreach {
               point =>
@@ -84,7 +84,7 @@ trait PAGConstraint{
                     flowMap.getOrElseUpdate(EdgeType.TRANSFER, mmapEmpty).getOrElseUpdate(point, msetEmpty) += pfr.baseP
                   }
                 )
-              case par: PointArrayR =>
+              case par: PointMyArrayR =>
                 flowMap.getOrElseUpdate(EdgeType.ARRAY_LOAD, mmapEmpty).getOrElseUpdate(par, msetEmpty) += lhs
                 udChain(par, ps, cfg, rda).foreach(
                   point => {
@@ -209,8 +209,8 @@ trait PAGConstraint{
             case pr: PointRet => pr.retname
             case gl: Point with Static_Field => gl.staticFieldFQN.toString()
             case ba: Point with Base => ba.baseName
-            case al: PointArrayL => al.arrayname
-            case ar: PointArrayR => ar.arrayname
+            case al: PointMyArrayL => al.arrayname
+            case ar: PointMyArrayR => ar.arrayname
             case pa: Point with Arg => pa.argName
             case pp: Point with Param => pp.paramName
             case _ => ""
@@ -276,7 +276,7 @@ trait PAGConstraint{
           case gl: Point with Loc with Static_Field with Left =>
             if (gl.staticFieldFQN.toString().equals(uri) && locUri.equals(gl.loc) && locIndex == gl.locIndex)
               point = lhs
-          case ar: PointArrayL =>
+          case ar: PointMyArrayL =>
             if (ar.arrayname.equals(uri) && locUri.equals(ar.loc) && locIndex == ar.locIndex)
               point = lhs
           case iP: PointL =>

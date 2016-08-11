@@ -16,6 +16,7 @@ import akka.actor.{ActorSystem, _}
 import akka.pattern.ask
 import akka.util.Timeout
 import com.typesafe.config.ConfigFactory
+import org.argus.amandroid.concurrent.util.Recorder
 import org.argus.saf.cli.util.CliLogger
 import org.argus.amandroid.concurrent.{AmandroidSupervisorActor, AnalysisSpec, PointsToAnalysisResult}
 import org.argus.amandroid.core.util.ApkFileUtil
@@ -34,7 +35,7 @@ object Staging {
   
 //  private final val TITLE = "Staging"
   
-  def apply(debug: Boolean, sourcePath: String, outputPath: String) {
+  def apply(debug: Boolean, sourcePath: String, outputPath: String, forceDelete: Boolean) {
     val apkFileUris: MSet[FileResourceUri] = msetEmpty
     val fileOrDir = new File(sourcePath)
     fileOrDir match {
@@ -45,20 +46,20 @@ object Staging {
           apkFileUris += FileUtil.toUri(file)
         else println(file + " is not decompilable.")
     }
-    staging(apkFileUris.toSet, outputPath)
+    staging(apkFileUris.toSet, outputPath, forceDelete)
   }
   
-  def staging(apkFileUris: ISet[FileResourceUri], outputPath: String) = {
+  def staging(apkFileUris: ISet[FileResourceUri], outputPath: String, forceDelete: Boolean) = {
     println("Total apks: " + apkFileUris.size)
     val outputUri = FileUtil.toUri(outputPath)
     val _system = ActorSystem("AmandroidTestApplication", ConfigFactory.load)
     implicit val to = Timeout(AndroidGlobalConfig.settings.timeout * apkFileUris.size.minutes)
     
     try {
-      val supervisor = _system.actorOf(Props[AmandroidSupervisorActor], name = "AmandroidSupervisorActor")
+      val supervisor = _system.actorOf(Props(classOf[AmandroidSupervisorActor], Recorder(outputUri)), name = "AmandroidSupervisorActor")
       val futures = apkFileUris map {
         fileUri =>
-          (supervisor ? AnalysisSpec(fileUri, outputUri, None, removeSupportGen = true, forceDelete = true)).mapTo[PointsToAnalysisResult]
+          (supervisor ? AnalysisSpec(fileUri, outputUri, None, removeSupportGen = true, forceDelete)).mapTo[PointsToAnalysisResult]
       }
       val fseq = Future.sequence(futures)
       Await.result(fseq, Duration.Inf).foreach {

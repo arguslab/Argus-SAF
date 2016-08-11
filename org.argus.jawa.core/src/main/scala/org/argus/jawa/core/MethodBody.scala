@@ -23,7 +23,7 @@ import org.sireum.pilar.symbol.SymbolTableProducer
  */ 
 class MethodBody(val procedureUri: ResourceUri, st: SymbolTable) extends ProcedureSymbolTable with ProcedureSymbolTableProducer {
   val tables = ProcedureSymbolTableData()
-  var nextLocTable: CMap[ResourceUri, ResourceUri] = null
+  var nextLocTable: CMap[ResourceUri, ResourceUri] = _
   var symbolTable: SymbolTable = st
   var symbolTableProducer: SymbolTableProducer = st.asInstanceOf[SymbolTableProducer]
   def procedure = symbolTableProducer.tables.procedureAbsTable(procedureUri)

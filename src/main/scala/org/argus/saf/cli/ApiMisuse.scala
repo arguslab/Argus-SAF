@@ -32,7 +32,7 @@ object ApiMisuse {
   
 //  private final val TITLE = "CryptoMisuse"
   
-  def apply(module: ApiMisuseModules.Value, debug: Boolean, sourcePath: String, outputPath: String) {
+  def apply(module: ApiMisuseModules.Value, debug: Boolean, sourcePath: String, outputPath: String, forceDelete: Boolean) {
     val apkFileUris: MSet[FileResourceUri] = msetEmpty
     val fileOrDir = new File(sourcePath)
     fileOrDir match {
@@ -47,10 +47,10 @@ object ApiMisuse {
       case ApiMisuseModules.CRYPTO_MISUSE => (new CryptographicMisuse, true)
       case ApiMisuseModules.HIDE_ICON => (new HideIcon, false)
     }
-    apiMisuse(apkFileUris.toSet, outputPath, checker, buildIDFG, debug)
+    apiMisuse(apkFileUris.toSet, outputPath, checker, buildIDFG, debug, forceDelete)
   }
   
-  def apiMisuse(apkFileUris: Set[FileResourceUri], outputPath: String, checker: ApiMisuseChecker, buildIDFG: Boolean, debug: Boolean) = {
+  def apiMisuse(apkFileUris: Set[FileResourceUri], outputPath: String, checker: ApiMisuseChecker, buildIDFG: Boolean, debug: Boolean, forceDelete: Boolean) = {
     Context.init_context_length(AndroidGlobalConfig.settings.k_context)
     AndroidReachingFactsAnalysisConfig.parallel = AndroidGlobalConfig.settings.parallel
 
@@ -70,7 +70,7 @@ object ApiMisuse {
             global.setJavaLib(AndroidGlobalConfig.settings.lib_files)
             val yard = new ApkYard(global)
             val outputUri = FileUtil.toUri(outputPath)
-            val apk = yard.loadApk(fileUri, outputUri, AndroidGlobalConfig.settings.dependence_dir.map(FileUtil.toUri), dexLog = false, debugMode = false, forceDelete = true)
+            val apk = yard.loadApk(fileUri, outputUri, AndroidGlobalConfig.settings.dependence_dir.map(FileUtil.toUri), dexLog = false, debugMode = false, forceDelete)
             if(buildIDFG) {
               apk.getComponents foreach {
                 comp =>

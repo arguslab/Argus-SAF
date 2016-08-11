@@ -634,7 +634,7 @@ final case class PtaNode(point: Point, context: Context) extends Interprocedural
         Set(InstanceSlot(ClassInstance(pco.classtyp, context.copy)))
       case per: PointExceptionR =>
         Set(InstanceSlot(PTAInstance(per.typ, context.copy, isNull_ = false)))
-      case gla: Point with Loc with Static_Field with Array =>
+      case gla: Point with Loc with Static_Field with MyArray =>
         val pts = ptaresult.pointsToSet(StaticFieldSlot(gla.staticFieldFQN), context)
         pts.map{
           ins =>
@@ -642,13 +642,13 @@ final case class PtaNode(point: Point, context: Context) extends Interprocedural
         }
       case glo: Point with Loc with Static_Field =>
         Set(StaticFieldSlot(glo.staticFieldFQN))
-      case arr: PointArrayL =>
+      case arr: PointMyArrayL =>
         val pts = ptaresult.pointsToSet(VarSlot(arr.arrayname, isBase = true, isArg = false), context)
         pts.map{
           ins =>
             ArraySlot(ins)
         }
-      case arr: PointArrayR =>
+      case arr: PointMyArrayR =>
         val pts = ptaresult.pointsToSet(VarSlot(arr.arrayname, isBase = true, isArg = false), context)
         pts.map{
           ins =>

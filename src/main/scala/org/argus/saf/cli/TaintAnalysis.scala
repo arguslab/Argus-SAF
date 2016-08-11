@@ -27,8 +27,7 @@ import org.sireum.util._
  */ 
 object TaintAnalysis{
 //  private final val TITLE = "TaintAnalysis"
-  def apply(module: TaintAnalysisModules.Value, debug: Boolean, sourcePath: String, outputPath: String) {
-
+  def apply(module: TaintAnalysisModules.Value, debug: Boolean, sourcePath: String, outputPath: String, forceDelete: Boolean) = {
     val dpsuri = AndroidGlobalConfig.settings.dependence_dir.map(FileUtil.toUri)
     val liblist = AndroidGlobalConfig.settings.lib_files
     val static = AndroidGlobalConfig.settings.static_init
@@ -45,10 +44,10 @@ object TaintAnalysis{
           apkFileUris += FileUtil.toUri(file)
         else println(file + " is not decompilable.")
     }
-    taintAnalyze(module, apkFileUris.toSet, outputPath, dpsuri, liblist, static, parallel, k_context, debug)
+    taintAnalyze(module, apkFileUris.toSet, outputPath, dpsuri, liblist, static, parallel, k_context, debug, forceDelete)
   }
   
-  def taintAnalyze(module: TaintAnalysisModules.Value, apkFileUris: ISet[FileResourceUri], outputPath: String, dpsuri: Option[FileResourceUri], liblist: String, static: Boolean, parallel: Boolean, k_context: Int, debug: Boolean) = {
+  def taintAnalyze(module: TaintAnalysisModules.Value, apkFileUris: ISet[FileResourceUri], outputPath: String, dpsuri: Option[FileResourceUri], liblist: String, static: Boolean, parallel: Boolean, k_context: Int, debug: Boolean, forceDelete: Boolean) = {
 
     Context.init_context_length(k_context)
     AndroidReachingFactsAnalysisConfig.parallel = parallel
@@ -67,7 +66,7 @@ object TaintAnalysis{
               else new NoReporter
             val global = new Global(file, reporter)
             global.setJavaLib(liblist)
-            TaintAnalysisTask(global, module, outputUri, dpsuri, file).run
+            TaintAnalysisTask(global, module, outputUri, dpsuri, file, forceDelete).run
             println("Done!")
             if(debug) println("Debug info write into " + reporter.asInstanceOf[FileReporter].f)
           } catch {

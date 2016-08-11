@@ -256,6 +256,7 @@ object ActivityModel {
       case "Landroid/app/Activity;.takeKeyEvents:(Z)V" =>  //public
       case "Landroid/app/Activity;.triggerSearch:(Ljava/lang/String;Landroid/os/Bundle;)V" =>  //public
       case "Landroid/app/Activity;.unregisterForContextMenu:(Landroid/view/View;)V" =>  //public
+      case _ =>
     }
     (newFacts, delFacts, byPassFlag)
   }

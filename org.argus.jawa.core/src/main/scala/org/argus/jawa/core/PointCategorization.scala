@@ -38,7 +38,7 @@ trait Static_Field{def staticFieldFQN: FieldFQN}
 /**
  * array
  */
-trait Array{def dimensions: Int}
+trait MyArray{def dimensions: Int}
 
 /**
  * object creation

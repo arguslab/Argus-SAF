@@ -121,7 +121,8 @@ trait JawaClassLoadManager extends JavaKnowledge with JawaResolver { self: Globa
   def resolveAllApplicationClasses() = {
     this.applicationClassCodes foreach {
       case (typ, sf) =>
-        getClassOrResolve(typ)
+        if(!isJavaPrimitive(typ)) //TODO: Hack to avoid exception caused by rename class to java primitives obfuscation.
+          getClassOrResolve(typ)
     }
   }
   
@@ -154,11 +155,9 @@ trait JawaClassLoadManager extends JavaKnowledge with JawaResolver { self: Globa
   }
   
   /**
-   * get class by type, if not present resolve it, if it still not exist, return None
+   * get class by type, if not present resolve it.
    */
-  def getClassOrResolve(typ: JawaType): JawaClass = {
-    classCache.get(typ)
-  }
+  def getClassOrResolve(typ: JawaType): JawaClass = classCache.get(typ)
   
   
   protected[jawa] def getClassOrResolveWithoutCache(typ: JawaType): JawaClass = {

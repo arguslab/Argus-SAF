@@ -42,6 +42,8 @@ object Dependencies {
 
   val commons_cli = "commons-cli" % "commons-cli" % "1.3.1"
 
+  val commons_lang3 = "org.apache.commons" % "commons-lang3" % "3.4"
+
   val akka_actor = "com.typesafe.akka" %% "akka-actor" % "2.4.7"
 
   val junitInterface = "com.novocode" % "junit-interface" % "0.11" % "test"
@@ -49,15 +51,17 @@ object Dependencies {
   val json4s_native = "org.json4s" %% "json4s-native" % "3.3.0"
   val json4s_ext = "org.json4s" %% "json4s-ext" % "3.3.0"
 
+  val scalatest = "org.scalatest" %% "scalatest" % "2.2.6" % "test"
 }
 
 object DependencyGroups {
   import Dependencies._
 
-  val saf_library = Seq()
+  val saf_library = Seq(commons_lang3)
 
   val jawa_core = Seq(
     scala_reflect,
+    scalatest,
     asm_all,
     guava,
 //    antlr4_runtime,

@@ -39,12 +39,12 @@ trait SourceAndSinkManager {
 
   def parse() =
     SSParser.parse(sasFilePath) match {
-      case (`sources`, `sinks`) =>
-        sources.foreach{
+      case (srcs, sins) =>
+        srcs.foreach{
           case (sig, tags) =>
             this.sources += (sig -> tags)
         }
-        sinks.foreach{
+        sins.foreach{
           case (sig, (poss, tags)) =>
             this.sinks += (sig -> (poss, tags))
         }

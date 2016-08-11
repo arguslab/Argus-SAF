@@ -69,11 +69,12 @@ class PointsToAnalysisActor extends Actor with ActorLogging {
     if(ptadata.stage) {
       try {
         Staging.stage(apk, ptaresults.toMap, ptadata.outApkUri)
+        val outUri = FileUtil.toUri(FileUtil.toFile(ptadata.outApkUri).getParentFile)
+        Staging.stageReport(outUri, apk.getAppName)
         PointsToAnalysisSuccStageResult(apk.nameUri, ptadata.outApkUri)
       } catch {
         case e: Exception =>
           PointsToAnalysisFailResult(apk.nameUri, e)
-        
       }
     } else {
       PointsToAnalysisSuccResult(apk, ptaresults.toMap)
