@@ -18,20 +18,26 @@ import org.sireum.util._
 /**
   * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
   */
-case class DecompilerSettings(apk: File,
-                              dpsuri: Option[FileResourceUri],
+case class DecompilerSettings(dpsuri: Option[FileResourceUri],
                               dexLog: Boolean,
                               debugMode: Boolean,
                               removeSupportGen: Boolean,
                               forceDelete: Boolean,
                               listener: Option[PilarStyleCodeGeneratorListener] = None,
-                              layout: DecompileLayout) {
-  def apkUri: FileResourceUri = FileUtil.toUri(apk)
-}
+                              layout: DecompileLayout)
 
-case class DecompileLayout(outputLocation: File,
-                           createFolder: Boolean,
-                           srcFolder: String,
-                           createSeparateFolderForDexes: Boolean) {
-  def outputUri: FileResourceUri = FileUtil.toUri(outputLocation)
+case class DecompileLayout(outputUri: FileResourceUri,
+                           createFolder: Boolean = true,
+                           srcFolder: String = "src",
+                           createSeparateFolderForDexes: Boolean = true) {
+  def outputFolder: File = FileUtil.toFile(outputUri)
+  def sourceFolder(dexUri: FileResourceUri): String = {
+    srcFolder + {
+      if (createSeparateFolderForDexes) File.separator + {
+        if (dexUri.startsWith(outputUri)) dexUri.replace(outputUri, "").replace(".dex", "").replace(".odex", "")
+        else dexUri.substring(dexUri.lastIndexOf("/") + 1, dexUri.lastIndexOf("."))
+      }.replaceAll("/", "_")
+      else ""
+    }
+  }
 }

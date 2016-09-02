@@ -18,6 +18,7 @@ import java.io.FileWriter
 import org.argus.amandroid.alir.componentSummary.ApkYard
 import org.argus.amandroid.core.{AndroidGlobalConfig, Apk}
 import org.argus.amandroid.core.appInfo.ApkCertificate
+import org.argus.amandroid.core.decompile.{DecompileLayout, DecompilerSettings}
 import org.argus.amandroid.core.parser.{ComponentInfo, ComponentType, IntentFilterDataBase, LayoutControl}
 import org.argus.jawa.core._
 import org.argus.jawa.core.util.MyFileUtil
@@ -117,7 +118,9 @@ object ApkSerTest {
     val global = new Global(apkUri, reporter)
     global.setJavaLib(AndroidGlobalConfig.settings.lib_files)
     val yard = new ApkYard(global)
-    val apk = yard.loadApk(apkUri, outputUri, None, dexLog = false, debugMode = false, forceDelete = true)
+    val layout = DecompileLayout(outputUri)
+    val settings = DecompilerSettings(None, dexLog = false, debugMode = false, removeSupportGen = true, forceDelete = true, None, layout)
+    val apk = yard.loadApk(apkUri, settings)
     println(apk.getCertificates)
     implicit val formats = Serialization.formats(NoTypeHints) + ApkSerializer
     val apkRes = FileUtil.toFile(MyFileUtil.appendFileName(outputUri, "apk.json"))

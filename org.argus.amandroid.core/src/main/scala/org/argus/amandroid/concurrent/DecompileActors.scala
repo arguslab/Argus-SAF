@@ -15,7 +15,7 @@ import java.util.concurrent.TimeoutException
 import akka.actor._
 import akka.pattern.{AskTimeoutException, ask}
 import com.typesafe.config.ConfigFactory
-import org.argus.amandroid.core.decompile.ApkDecompiler
+import org.argus.amandroid.core.decompile.{ApkDecompiler, DecompileLayout, DecompilerSettings}
 import org.argus.amandroid.core.dedex.{PilarStyleCodeGenerator, PilarStyleCodeGeneratorListener}
 import org.argus.amandroid.core.{Apk, InvalidApk}
 import org.argus.jawa.core.JawaType
@@ -25,6 +25,7 @@ import org.sireum.util._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
+import scala.language.postfixOps
 
 /**
  * This is an actor for managing the whole decompile process.
@@ -51,11 +52,12 @@ class DecompilerActor extends Actor with ActorLogging {
           def onGenerateEnd(recordCount: Int) = {}
         }
         val apkFile = FileUtil.toFile(ddata.fileUri)
-        val resultDir = FileUtil.toFile(ddata.outputUri)
         val (f, cancel) = FutureUtil.interruptableFuture[DecompilerResult] { () =>
           val res = 
             try {
-              val (outApkUri, srcs, deps) = ApkDecompiler.decompile(apkFile, resultDir, ddata.dpsuri, dexLog = false, debugMode = false, removeSupportGen = ddata.removeSupportGen, forceDelete = ddata.forceDelete, Some(listener))
+              val layout = DecompileLayout(ddata.outputUri)
+              val settings = DecompilerSettings(ddata.dpsuri, dexLog = false, debugMode = false, removeSupportGen = ddata.removeSupportGen, forceDelete = ddata.forceDelete, Some(listener), layout)
+              val (outApkUri, srcs, deps) = ApkDecompiler.decompile(ddata.fileUri, settings)
               DecompileSuccResult(ddata.fileUri, outApkUri, srcs, deps)
             } catch {
               case e: Throwable =>

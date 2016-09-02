@@ -14,6 +14,7 @@ import java.io.File
 
 import org.argus.amandroid.alir.componentSummary.ApkYard
 import org.argus.amandroid.alir.pta.reachingFactsAnalysis.AndroidReachingFactsAnalysisConfig
+import org.argus.amandroid.core.decompile.{DecompileLayout, DecompilerSettings}
 import org.argus.amandroid.core.util.ApkFileUtil
 import org.argus.amandroid.core.{AndroidGlobalConfig, Apk}
 import org.argus.amandroid.plugin.apiMisuse.{CryptographicMisuse, HideIcon}
@@ -70,7 +71,9 @@ object ApiMisuse {
             global.setJavaLib(AndroidGlobalConfig.settings.lib_files)
             val yard = new ApkYard(global)
             val outputUri = FileUtil.toUri(outputPath)
-            val apk = yard.loadApk(fileUri, outputUri, AndroidGlobalConfig.settings.dependence_dir.map(FileUtil.toUri), dexLog = false, debugMode = false, forceDelete)
+            val layout = DecompileLayout(outputUri)
+            val settings = DecompilerSettings(AndroidGlobalConfig.settings.dependence_dir.map(FileUtil.toUri), dexLog = false, debugMode = false, removeSupportGen = true, forceDelete = forceDelete, None, layout)
+            val apk = yard.loadApk(fileUri, settings)
             if(buildIDFG) {
               apk.getComponents foreach {
                 comp =>

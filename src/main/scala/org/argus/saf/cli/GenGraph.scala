@@ -15,7 +15,7 @@ import java.util.concurrent.TimeoutException
 
 import org.argus.saf.cli.util.CliLogger
 import org.argus.amandroid.core.appInfo.AppInfoCollector
-import org.argus.amandroid.core.decompile.ApkDecompiler
+import org.argus.amandroid.core.decompile.{ApkDecompiler, DecompileLayout, DecompilerSettings}
 import org.argus.amandroid.core.util.{AndroidLibraryAPISummary, ApkFileUtil}
 import org.argus.amandroid.core.{AndroidConstants, AndroidGlobalConfig, Apk}
 import org.argus.jawa.alir.Context
@@ -100,7 +100,9 @@ object GenGraph {
             
             val timer = AndroidGlobalConfig.settings.timeout.minutes
             val (f, cancel) = FutureUtil.interruptableFuture[(InterproceduralControlFlowGraph[ICFGNode], FileResourceUri)] { () =>
-              val (outUri, srcs, _) = ApkDecompiler.decompile(FileUtil.toFile(apkFileUri), FileUtil.toFile(outputUri), dpsuri, dexLog = false, debugMode = false, removeSupportGen = true, forceDelete = true)
+              val layout = DecompileLayout(outputUri)
+              val settings = DecompilerSettings(dpsuri, dexLog = false, debugMode = false, removeSupportGen = true, forceDelete = true, None, layout)
+              val (outUri, srcs, _) = ApkDecompiler.decompile(apkFileUri, settings)
               srcs foreach {
                 src =>
                   val fileUri = FileUtil.toUri(FileUtil.toFilePath(outUri) + File.separator + src)

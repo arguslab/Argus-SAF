@@ -17,7 +17,7 @@ import org.argus.amandroid.alir.componentSummary.ApkYard
 import org.argus.amandroid.alir.pta.reachingFactsAnalysis.{AndroidRFAConfig, AndroidRFAScopeManager, AndroidReachingFactsAnalysis}
 import org.argus.amandroid.alir.taintAnalysis.AndroidDataDependentTaintAnalysis.TarApk
 import org.argus.amandroid.alir.taintAnalysis.{AndroidDataDependentTaintAnalysis, AndroidSourceAndSinkManager}
-import org.argus.amandroid.core.decompile.ApkDecompiler
+import org.argus.amandroid.core.decompile.{ApkDecompiler, DecompileLayout, DecompilerSettings}
 import org.argus.amandroid.core.{AndroidConstants, Apk}
 import org.argus.jawa.alir.dataDependenceAnalysis.InterproceduralDataDependenceAnalysis
 import org.argus.jawa.alir.pta.reachingFactsAnalysis.RFAFactFactory
@@ -63,10 +63,10 @@ class AmandroidSocket(global: Global, yard: ApkYard, apk: Apk) {
   }
   
   def loadApk(output_path: String, lib_sum: LibraryAPISummary, dpsuri: Option[FileResourceUri], dexLog: Boolean, debugMode: Boolean, forceDelete: Boolean = true) = {
-    val apkFile = FileUtil.toFile(apk.nameUri)
 //    val name = try{apkFile.getName.substring(0, apkFile.getName().lastIndexOf(".apk"))} catch {case e: Exception => apkFile.getName}
-    val resultDir = new File(output_path)
-    val (outUri, srcs, _) = ApkDecompiler.decompile(apkFile, resultDir, dpsuri, dexLog, debugMode, removeSupportGen = true, forceDelete = forceDelete)
+    val layout = DecompileLayout(FileUtil.toUri(output_path))
+    val settings = DecompilerSettings(dpsuri, dexLog = false, debugMode = false, removeSupportGen = true, forceDelete = forceDelete, None, layout)
+    val (outUri, srcs, _) = ApkDecompiler.decompile(apk.nameUri, settings)
     // convert the dex file to the "pilar" form
     srcs foreach {
       src =>
