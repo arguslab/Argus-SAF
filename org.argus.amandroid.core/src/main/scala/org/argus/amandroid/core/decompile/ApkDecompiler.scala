@@ -72,16 +72,7 @@ object ApkDecompiler {
     (srcFolder, dependencies.toSet)
   }
   
-  def decompile(
-      apk: File, 
-      outputLocation: File, 
-      dpsuri: Option[FileResourceUri], 
-      dexLog: Boolean, 
-      debugMode: Boolean, 
-      removeSupportGen: Boolean, 
-      forceDelete: Boolean,
-      listener: Option[PilarStyleCodeGeneratorListener] = None,
-      createFolder: Boolean = true): (FileResourceUri, ISet[String], ISet[String]) = {
+  def decompile(settings: DecompilerSettings): (FileResourceUri, ISet[String], ISet[String]) = {
     val outUri = decodeApk(FileUtil.toUri(apk), FileUtil.toUri(outputLocation), forceDelete, createFolder)
     val manifestUri = MyFileUtil.appendFileName(outUri, "AndroidManifest.xml")
     val pkg = ManifestParser.loadPackageName(manifestUri)
