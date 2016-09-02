@@ -52,12 +52,17 @@ object Staging {
   def staging(apkFileUris: ISet[FileResourceUri], outputPath: String, forceDelete: Boolean) = {
     println("Total apks: " + apkFileUris.size)
     val outputUri = FileUtil.toUri(outputPath)
-    val _system = ActorSystem("AmandroidTestApplication", ConfigFactory.load)
-    implicit val to = Timeout(AndroidGlobalConfig.settings.timeout * apkFileUris.size.minutes)
+    val noStageApks: ISet[FileResourceUri] = apkFileUris.filter{ uri =>
+      val apkName = ApkFileUtil.getApkName(uri)
+      !org.argus.amandroid.serialization.stage.Staging.hasStage(outputUri, apkName)
+    }
+    println("Total apks don't have stage: " + noStageApks.size)
+    val _system = ActorSystem("AmandroidStageApplication", ConfigFactory.load)
+    implicit val to = Timeout(AndroidGlobalConfig.settings.timeout * noStageApks.size.minutes)
     
     try {
       val supervisor = _system.actorOf(Props(classOf[AmandroidSupervisorActor], Recorder(outputUri)), name = "AmandroidSupervisorActor")
-      val futures = apkFileUris map {
+      val futures = noStageApks map {
         fileUri =>
           (supervisor ? AnalysisSpec(fileUri, outputUri, None, removeSupportGen = true, forceDelete)).mapTo[PointsToAnalysisResult]
       }

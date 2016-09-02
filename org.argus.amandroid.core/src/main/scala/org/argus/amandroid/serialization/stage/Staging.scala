@@ -11,7 +11,7 @@
 package org.argus.amandroid.serialization.stage
 
 import org.sireum.util._
-import java.io.{FileReader, FileWriter, PrintWriter}
+import java.io._
 
 import org.json4s._
 import org.json4s.native.Serialization
@@ -184,9 +184,23 @@ object Staging {
   }
   
   def isStageAvailable(outApkUri: FileResourceUri): Boolean = {
-    val outStageUri = MyFileUtil.appendFileName(outApkUri, "stage")
-    val outStageDir = FileUtil.toFile(outStageUri)
-    outStageDir.exists()
+    val outStageDir = new File(FileUtil.toFile(outApkUri), "stage")
+    outStageDir.exists() && new File(outStageDir, "apk.json").exists() && new File(outStageDir, "ptaresult.json").exists()
+  }
+
+  def hasStage(outUri: FileResourceUri, apkName: String): Boolean = {
+    val stageRp = FileUtil.toFile(MyFileUtil.appendFileName(outUri, "stage_report.txt"))
+    if(stageRp.exists()) {
+      val br = new BufferedReader(new FileReader(stageRp))
+      var line = br.readLine()
+      var found = false
+      while (line != null && line != apkName) {
+        line = br.readLine()
+        if (line == apkName) found = true
+      }
+      br.close()
+      found
+    } else false
   }
 
   def stageReport(outUri: FileResourceUri, apkName: String) = {
