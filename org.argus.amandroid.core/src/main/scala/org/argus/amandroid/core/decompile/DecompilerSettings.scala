@@ -40,4 +40,5 @@ case class DecompileLayout(outputUri: FileResourceUri,
       else ""
     }
   }
+  var outputSrcUri: FileResourceUri = _
 }

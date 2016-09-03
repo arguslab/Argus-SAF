@@ -52,7 +52,7 @@ object ApkDecompiler {
     }
     val srcFolder: String = settings.layout.sourceFolder(dexUri)
     val pilarOutUri = {
-      val outPath = FileUtil.toFilePath(settings.layout.outputUri)
+      val outPath = FileUtil.toFilePath(settings.layout.outputSrcUri)
       FileUtil.toUri(outPath + File.separator + srcFolder)
     }
     Dex2PilarConverter.convert(dexUri, pilarOutUri, settings.layout.outputUri, settings.dpsuri, recordFilter, settings.dexLog, settings.debugMode, settings.forceDelete, settings.listener)
@@ -61,6 +61,7 @@ object ApkDecompiler {
   
   def decompile(apkUri: FileResourceUri, settings: DecompilerSettings): (FileResourceUri, ISet[String], ISet[String]) = {
     val outUri = decodeApk(apkUri, settings.layout.outputUri, settings.forceDelete, settings.layout.createFolder)
+    settings.layout.outputSrcUri = outUri
     val manifestUri = MyFileUtil.appendFileName(outUri, "AndroidManifest.xml")
     val pkg = ManifestParser.loadPackageName(manifestUri)
     val srcFolders: MSet[String] = msetEmpty

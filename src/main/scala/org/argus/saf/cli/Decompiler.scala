@@ -45,6 +45,7 @@ object Decompiler {
               println("####" + dexUri + "####")
               val dexname = dexUri.substring(dexUri.lastIndexOf("/") + 1, dexUri.lastIndexOf("."))
               val layout = DecompileLayout(outputUri + "/" + dexname)
+              layout.outputSrcUri = layout.outputUri
               val settings = DecompilerSettings(dpsuri, dexLog = false, debugMode = false, removeSupportGen = true, forceDelete = forceDelete, None, layout)
               ApkDecompiler.decompileDex("", dexUri, settings)
               println("Done!")
@@ -58,6 +59,7 @@ object Decompiler {
           }
           else if(file.getName.endsWith(".dex")) {
             val layout = DecompileLayout(outputUri)
+            layout.outputSrcUri = layout.outputUri
             val settings = DecompilerSettings(dpsuri, dexLog = false, debugMode = false, removeSupportGen = true, forceDelete = forceDelete, None, layout)
             ApkDecompiler.decompileDex("", FileUtil.toUri(file), settings)
           }
