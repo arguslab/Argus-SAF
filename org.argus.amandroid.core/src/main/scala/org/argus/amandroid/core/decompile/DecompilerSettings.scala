@@ -34,11 +34,11 @@ case class DecompileLayout(outputUri: FileResourceUri,
   def sourceFolder(dexUri: FileResourceUri): String = {
     srcFolder + {
       if (createSeparateFolderForDexes) File.separator + {
-        if (dexUri.startsWith(outputUri)) dexUri.replace(outputUri, "").replace(".dex", "").replace(".odex", "")
+        if (dexUri.startsWith(outputSrcUri)) dexUri.replace(outputSrcUri, "").replace(".dex", "").replace(".odex", "")
         else dexUri.substring(dexUri.lastIndexOf("/") + 1, dexUri.lastIndexOf("."))
       }.replaceAll("/", "_")
       else ""
     }
   }
-  var outputSrcUri: FileResourceUri = _
+  var outputSrcUri: FileResourceUri = outputUri
 }
