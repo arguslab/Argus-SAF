@@ -16,7 +16,7 @@ import org.argus.jawa.core.util.URLInString
 import org.sireum.util._
 
 object AndroidUrlCollector {
-  def collectUrls(global: Global, file: FileResourceUri, outUri: FileResourceUri): ISet[String] = {
+  def collectUrls(global: Global, file: FileResourceUri): ISet[String] = {
 //    val man = AppInfoCollector.analyzeManifest(global.reporter, outUri + "AndroidManifest.xml")
     val afp = AppInfoCollector.analyzeARSC(global.reporter, file)    
     val strs = msetEmpty[String]

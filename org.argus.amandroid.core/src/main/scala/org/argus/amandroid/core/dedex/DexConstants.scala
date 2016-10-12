@@ -752,21 +752,21 @@ trait DexConstants {
   def notLong(x: String, y: String) = "%s:= ~%s  @kind long;".format(x, y) // 0x7e
   def negFloat(x: String, y: String) = "%s:= -%s  @kind float;".format(x, y) // 0x7f
   def negDouble(x: String, y: String) = "%s:= -%s  @kind double;".format(x, y) // 0x80
-  def int2Long(x: String, y: String) = "%s:= (long)%s  @kind i2l;".format(x, y) // 0x81
-  def int2Float(x: String, y: String) = "%s:= (float)%s  @kind i2f;".format(x, y) // 0x82
-  def int2Double(x: String, y: String) = "%s:= (double)%s  @kind i2d;".format(x, y) // 0x83
-  def long2Int(x: String, y: String)  = "%s:= (int)%s  @kind l2i;".format(x, y) // 0x84
-  def long2Float(x: String, y: String) = "%s:= (float)%s  @kind l2f;".format(x, y) // 0x85
-  def long2Double(x: String, y: String) = "%s:= (double)%s  @kind l2d;".format(x, y) // 0x86
-  def float2Int(x: String, y: String) = "%s:= (int)%s  @kind f2i;".format(x, y) // 0x87
-  def float2Long(x: String, y: String) = "%s:= (long)%s  @kind f2l;".format(x, y) // 0x88
-  def float2Double(x: String, y: String) = "%s:= (double)%s  @kind f2d;".format(x, y) // 0x89
-  def double2Int(x: String, y: String) = "%s:= (int)%s  @kind d2i;".format(x, y) // 0x8a
-  def double2Long(x: String, y: String) = "%s:= (long)%s  @kind d2l;".format(x, y) // 0x8b
-  def double2Float(x: String, y: String) = "%s:= (float)%s  @kind d2f;".format(x, y) // 0x8c
-  def int2Byte(x: String, y: String)  = "%s:= (byte)%s  @kind i2b;".format(x, y) // 0x8d
-  def int2Char(x: String, y: String)  = "%s:= (char)%s  @kind i2c;".format(x, y) // 0x8e
-  def int2short(x: String, y: String) = "%s:= (short)%s  @kind i2s;".format(x, y) // 0x8f
+  def int2Long(x: String, y: String) = "%s:= (`long`)%s  @kind i2l;".format(x, y) // 0x81
+  def int2Float(x: String, y: String) = "%s:= (`float`)%s  @kind i2f;".format(x, y) // 0x82
+  def int2Double(x: String, y: String) = "%s:= (`double`)%s  @kind i2d;".format(x, y) // 0x83
+  def long2Int(x: String, y: String)  = "%s:= (`int`)%s  @kind l2i;".format(x, y) // 0x84
+  def long2Float(x: String, y: String) = "%s:= (`float`)%s  @kind l2f;".format(x, y) // 0x85
+  def long2Double(x: String, y: String) = "%s:= (`double`)%s  @kind l2d;".format(x, y) // 0x86
+  def float2Int(x: String, y: String) = "%s:= (`int`)%s  @kind f2i;".format(x, y) // 0x87
+  def float2Long(x: String, y: String) = "%s:= (`long`)%s  @kind f2l;".format(x, y) // 0x88
+  def float2Double(x: String, y: String) = "%s:= (`double`)%s  @kind f2d;".format(x, y) // 0x89
+  def double2Int(x: String, y: String) = "%s:= (`int`)%s  @kind d2i;".format(x, y) // 0x8a
+  def double2Long(x: String, y: String) = "%s:= (`long`)%s  @kind d2l;".format(x, y) // 0x8b
+  def double2Float(x: String, y: String) = "%s:= (`float`)%s  @kind d2f;".format(x, y) // 0x8c
+  def int2Byte(x: String, y: String)  = "%s:= (`byte`)%s  @kind i2b;".format(x, y) // 0x8d
+  def int2Char(x: String, y: String)  = "%s:= (`char`)%s  @kind i2c;".format(x, y) // 0x8e
+  def int2short(x: String, y: String) = "%s:= (`short`)%s  @kind i2s;".format(x, y) // 0x8f
   def addInt(x: String, y: String, z: String) = "%s:= %s + %s  @kind int;".format(x, y, z) // 0x90
   def subInt(x: String, y: String, z: String) = "%s:= %s - %s  @kind int;".format(x, y, z) // 0x91
   def mulInt(x: String, y: String, z: String) = "%s:= %s * %s  @kind int;".format(x, y, z) // 0x92
