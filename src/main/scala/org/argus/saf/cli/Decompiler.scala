@@ -12,7 +12,7 @@ package org.argus.saf.cli
 
 import java.io.File
 
-import org.argus.amandroid.core.decompile.ApkDecompiler
+import org.argus.amandroid.core.decompile.{ApkDecompiler, DecompileLayout, DecompilerSettings}
 import org.argus.amandroid.core.util.ApkFileUtil
 import org.argus.amandroid.core.{AndroidGlobalConfig, Apk}
 import org.argus.saf.cli.util.CliLogger
@@ -35,21 +35,32 @@ object Decompiler {
           decs.foreach {
             apkUri =>
               println("####" + apkUri + "####")
-              ApkDecompiler.decompile(FileUtil.toFile(apkUri), FileUtil.toFile(outputUri), dpsuri, dexLog = false, debugMode = false, removeSupportGen = true, forceDelete)
+              val layout = DecompileLayout(outputUri)
+              val settings = DecompilerSettings(dpsuri, dexLog = false, debugMode = false, removeSupportGen = true, forceDelete = forceDelete, None, layout)
+              ApkDecompiler.decompile(apkUri, settings)
               println("Done!")
           }
           dexs.foreach {
             dexUri =>
               println("####" + dexUri + "####")
               val dexname = dexUri.substring(dexUri.lastIndexOf("/") + 1, dexUri.lastIndexOf("."))
-              ApkDecompiler.decompileDex(dexUri, outputUri + "/" + dexname, dpsuri, "", dexLog = false, debugMode = false, removeSupportGen = false, forceDelete)
+              val layout = DecompileLayout(outputUri + "/" + dexname)
+              val settings = DecompilerSettings(dpsuri, dexLog = false, debugMode = false, removeSupportGen = true, forceDelete = forceDelete, None, layout)
+              ApkDecompiler.decompileDex("", dexUri, settings)
               println("Done!")
           }
         case file =>
           println("Processing " + file)
-          if(Apk.isValidApk(FileUtil.toUri(file)))
-            ApkDecompiler.decompile(file, FileUtil.toFile(outputUri), dpsuri, dexLog = false, debugMode = false, removeSupportGen = true, forceDelete)
-          else if(file.getName.endsWith(".dex")) ApkDecompiler.decompileDex(FileUtil.toUri(file), outputUri, dpsuri, "", dexLog = false, debugMode = false, removeSupportGen = false, forceDelete)
+          if(Apk.isValidApk(FileUtil.toUri(file))) {
+            val layout = DecompileLayout(outputUri)
+            val settings = DecompilerSettings(dpsuri, dexLog = false, debugMode = false, removeSupportGen = true, forceDelete = forceDelete, None, layout)
+            ApkDecompiler.decompile(FileUtil.toUri(file), settings)
+          }
+          else if(file.getName.endsWith(".dex")) {
+            val layout = DecompileLayout(outputUri)
+            val settings = DecompilerSettings(dpsuri, dexLog = false, debugMode = false, removeSupportGen = true, forceDelete = forceDelete, None, layout)
+            ApkDecompiler.decompileDex("", FileUtil.toUri(file), settings)
+          }
           else println(file + " is not decompilable.")
       }
     } catch {

@@ -57,16 +57,16 @@ object TaintAnalysis{
     try{
       var i: Int = 0
       apkFileUris.foreach{
-        file =>
+        fileUri =>
           i += 1
           try{
-            println("Analyzing #" + i + ":" + file)
+            println("Analyzing #" + i + ":" + fileUri)
             val reporter = 
-              if(debug) new FileReporter(getOutputDirUri(outputUri, file), MsgLevel.INFO)
+              if(debug) new FileReporter(getOutputDirUri(outputUri, fileUri), MsgLevel.INFO)
               else new NoReporter
-            val global = new Global(file, reporter)
+            val global = new Global(fileUri, reporter)
             global.setJavaLib(liblist)
-            TaintAnalysisTask(global, module, outputUri, dpsuri, file, forceDelete).run
+            TaintAnalysisTask(global, module, fileUri, outputUri, dpsuri, forceDelete).run
             println("Done!")
             if(debug) println("Debug info write into " + reporter.asInstanceOf[FileReporter].f)
           } catch {

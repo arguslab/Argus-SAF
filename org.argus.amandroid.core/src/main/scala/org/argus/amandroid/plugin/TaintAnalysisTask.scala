@@ -16,6 +16,7 @@ import org.argus.amandroid.alir.componentSummary.{ApkYard, ComponentBasedAnalysi
 import org.argus.amandroid.alir.dataRecorder.DataCollector
 import org.argus.amandroid.alir.taintAnalysis.{AndroidDataDependentTaintAnalysis, DataLeakageAndroidSourceAndSinkManager}
 import org.argus.amandroid.core.AndroidGlobalConfig
+import org.argus.amandroid.core.decompile.{DecompileLayout, DecompilerSettings}
 import org.argus.amandroid.core.util.ApkFileUtil
 import org.argus.amandroid.plugin.communication.CommunicationSourceAndSinkManager
 import org.argus.amandroid.plugin.dataInjection.IntentInjectionSourceAndSinkManager
@@ -33,12 +34,14 @@ object TaintAnalysisModules extends Enumeration {
   val INTENT_INJECTION, PASSWORD_TRACKING, OAUTH_TOKEN_TRACKING, DATA_LEAKAGE, COMMUNICATION_LEAKAGE = Value
 }
 
-case class TaintAnalysisTask(global: Global, module: TaintAnalysisModules.Value, outputUri: FileResourceUri, dpsuri: Option[FileResourceUri], file: FileResourceUri, forceDelete: Boolean) {
+case class TaintAnalysisTask(global: Global, module: TaintAnalysisModules.Value, fileUri: FileResourceUri, outputUri: FileResourceUri, dpsuri: Option[FileResourceUri], forceDelete: Boolean) {
   import TaintAnalysisModules._
 //  private final val TITLE = "TaintAnalysisTask"
   def run: Option[TaintAnalysisResult[AndroidDataDependentTaintAnalysis.Node, InterproceduralDataDependenceAnalysis.Edge]] = {
     val yard = new ApkYard(global)
-    val apk = yard.loadApk(file, outputUri, dpsuri, dexLog = false, debugMode = false, forceDelete)
+    val layout = DecompileLayout(outputUri)
+    val settings = DecompilerSettings(dpsuri, dexLog = false, debugMode = false, removeSupportGen = true, forceDelete = forceDelete, None, layout)
+    val apk = yard.loadApk(fileUri, settings)
     val ssm = module match {
       case INTENT_INJECTION =>
         new IntentInjectionSourceAndSinkManager(global, apk, apk.getLayoutControls, apk.getCallbackMethods, AndroidGlobalConfig.settings.sas_file)
@@ -46,7 +49,7 @@ case class TaintAnalysisTask(global: Global, module: TaintAnalysisModules.Value,
         new PasswordSourceAndSinkManager(global, apk, apk.getLayoutControls, apk.getCallbackMethods, AndroidGlobalConfig.settings.sas_file)
       case OAUTH_TOKEN_TRACKING =>
         new OAuthSourceAndSinkManager(global, apk, apk.getLayoutControls, apk.getCallbackMethods, AndroidGlobalConfig.settings.sas_file)
-      case DATA_LEAKAGE => 
+      case DATA_LEAKAGE =>
         new DataLeakageAndroidSourceAndSinkManager(global, apk, apk.getLayoutControls, apk.getCallbackMethods, AndroidGlobalConfig.settings.sas_file)
       case COMMUNICATION_LEAKAGE =>
         new CommunicationSourceAndSinkManager(global, apk, apk.getLayoutControls, apk.getCallbackMethods, AndroidGlobalConfig.settings.sas_file)
@@ -57,7 +60,7 @@ case class TaintAnalysisTask(global: Global, module: TaintAnalysisModules.Value,
     val iddResult = cba.phase2(Set(apk), parallel = false)
     val tar = cba.phase3(iddResult, ssm)
     val appData = DataCollector.collect(global, yard, apk)
-    val outUri = ApkFileUtil.getOutputUri(file, outputUri)
+    val outUri = ApkFileUtil.getOutputUri(fileUri, outputUri)
     val outputDirUri = MyFileUtil.appendFileName(outUri, "result")
     val outputDir = FileUtil.toFile(outputDirUri)
     if(!outputDir.exists()) outputDir.mkdirs()

@@ -13,7 +13,6 @@ package org.argus.amandroid.core.decompile
 import java.io.File
 
 import org.argus.amandroid.core.AndroidConstants
-import org.argus.amandroid.core.dedex.PilarStyleCodeGeneratorListener
 import org.argus.amandroid.core.parser.ManifestParser
 import org.argus.jawa.core.JawaType
 import org.argus.jawa.core.util.MyFileUtil
@@ -28,20 +27,11 @@ object ApkDecompiler {
     AmDecoder.decode(apkUri, outputUri, forceDelete, createFolder)
   }
   
-  def decompileDex(
-      dexUri: FileResourceUri, 
-      outUri: FileResourceUri, 
-      dpsuri: Option[FileResourceUri], 
-      pkg: String, 
-      dexLog: Boolean, 
-      debugMode: Boolean, 
-      removeSupportGen: Boolean, 
-      forceDelete: Boolean,
-      listener: Option[PilarStyleCodeGeneratorListener] = None): (String, ISet[String]) = {
+  def decompileDex(pkg: String, dexUri: FileResourceUri, settings: DecompilerSettings) = {
     val dependencies: MSet[String] = msetEmpty
     val recordFilter: (JawaType => Boolean) = {
       ot =>
-        if(removeSupportGen) {
+        if(settings.removeSupportGen) {
           if(ot.name.startsWith("android.support.v4")){
             dependencies += AndroidConstants.MAVEN_SUPPORT_V4
             false
@@ -60,29 +50,18 @@ object ApkDecompiler {
           } else true
         } else true
     }
-    val srcFolder: String = "src" + File.separator + {
-      if(dexUri.startsWith(outUri)) dexUri.replace(outUri, "").replace(".dex", "").replace(".odex", "")
-      else dexUri.substring(dexUri.lastIndexOf("/") + 1, dexUri.lastIndexOf("."))
-    }.replaceAll("/", "_")
+    val srcFolder: String = settings.layout.sourceFolder(dexUri)
     val pilarOutUri = {
-      val outPath = FileUtil.toFilePath(outUri)
+      val outPath = FileUtil.toFilePath(settings.layout.outputSrcUri)
       FileUtil.toUri(outPath + File.separator + srcFolder)
     }
-    Dex2PilarConverter.convert(dexUri, pilarOutUri, outUri, dpsuri, recordFilter, dexLog, debugMode, forceDelete, listener)
+    Dex2PilarConverter.convert(dexUri, pilarOutUri, settings.layout.outputUri, settings.dpsuri, recordFilter, settings.dexLog, settings.debugMode, settings.forceDelete, settings.listener)
     (srcFolder, dependencies.toSet)
   }
   
-  def decompile(
-      apk: File, 
-      outputLocation: File, 
-      dpsuri: Option[FileResourceUri], 
-      dexLog: Boolean, 
-      debugMode: Boolean, 
-      removeSupportGen: Boolean, 
-      forceDelete: Boolean,
-      listener: Option[PilarStyleCodeGeneratorListener] = None,
-      createFolder: Boolean = true): (FileResourceUri, ISet[String], ISet[String]) = {
-    val outUri = decodeApk(FileUtil.toUri(apk), FileUtil.toUri(outputLocation), forceDelete, createFolder)
+  def decompile(apkUri: FileResourceUri, settings: DecompilerSettings): (FileResourceUri, ISet[String], ISet[String]) = {
+    val outUri = decodeApk(apkUri, settings.layout.outputUri, settings.forceDelete, settings.layout.createFolder)
+    settings.layout.outputSrcUri = outUri
     val manifestUri = MyFileUtil.appendFileName(outUri, "AndroidManifest.xml")
     val pkg = ManifestParser.loadPackageName(manifestUri)
     val srcFolders: MSet[String] = msetEmpty
@@ -91,7 +70,7 @@ object ApkDecompiler {
       val dexUris = FileUtil.listFiles(outUri, ".dex", recursive = true)
       dexUris.foreach {
         dexUri =>
-          val (sf, dependent) = decompileDex(dexUri, outUri, dpsuri, pkg, dexLog, debugMode, removeSupportGen, forceDelete, listener)
+          val (sf, dependent) = decompileDex(pkg, dexUri, settings)
           srcFolders += sf
           dependencies ++= dependent
       }

@@ -16,7 +16,7 @@ import java.io.File
 
 import org.argus.amandroid.core.Apk
 import org.argus.amandroid.core.appInfo.AppInfoCollector
-import org.argus.amandroid.core.decompile.ApkDecompiler
+import org.argus.amandroid.core.decompile.{ApkDecompiler, DecompilerSettings}
 import org.argus.amandroid.core.util.AndroidLibraryAPISummary
 import org.argus.jawa.alir.dataDependenceAnalysis.InterproceduralDataDependenceInfo
 import org.argus.jawa.alir.dataFlowAnalysis.InterproceduralDataFlowGraph
@@ -41,19 +41,17 @@ class ApkYard(global: Global) {
   def getOwnerApk(component: JawaType): Option[Apk] = this.synchronized(componentToApkMap.get(component))
   def getComponentToApkMap = this.componentToApkMap.toMap
   
-  def loadApk(nameUri: FileResourceUri, outputUri: FileResourceUri, dpsuri: Option[FileResourceUri], dexLog: Boolean, debugMode: Boolean, forceDelete: Boolean = true): Apk = {
-    val (outUri, srcs) = loadCode(nameUri, outputUri, dpsuri, dexLog, debugMode, forceDelete)
-    val apk = new Apk(nameUri, outUri, srcs)
+  def loadApk(apkUri: FileResourceUri, settings: DecompilerSettings): Apk = {
+    val (outUri, srcs) = loadCode(apkUri, settings)
+    val apk = new Apk(apkUri, outUri, srcs)
     AppInfoCollector.collectInfo(apk, global, outUri)
     addApk(apk)
     apk.getComponents.foreach(addComponent(_, apk))
     apk
   }
   
-  def loadCode(nameUri: FileResourceUri, outputUri: FileResourceUri, dpsuri: Option[FileResourceUri], dexLog: Boolean, debugMode: Boolean, forceDelete: Boolean = true): (FileResourceUri, ISet[String]) = {
-    val apkFile = FileUtil.toFile(nameUri)
-    val resultDir = FileUtil.toFile(outputUri)
-    val (outUri, srcs, _) = ApkDecompiler.decompile(apkFile, resultDir, dpsuri, dexLog, debugMode, removeSupportGen = true, forceDelete = forceDelete)
+  def loadCode(apkUri: FileResourceUri, settings: DecompilerSettings): (FileResourceUri, ISet[String]) = {
+    val (outUri, srcs, _) = ApkDecompiler.decompile(apkUri, settings)
     srcs foreach {
       src =>
         val fileUri = FileUtil.toUri(FileUtil.toFilePath(outUri) + File.separator + src)
