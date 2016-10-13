@@ -102,6 +102,7 @@ lazy val saf_library: Project =
   newProject("saf-library", file("org.argus.saf.library"))
     .settings(libraryDependencies ++= DependencyGroups.saf_library)
     .settings(
+      assemblyOption in assembly := (assemblyOption in assembly).value.copy(includeScala = false),
       assemblyJarName in assembly := s"${name.value}-${version.value}.jar",
       mainClass in assembly := None,
       artifact in (Compile, assembly) ~= { art =>
