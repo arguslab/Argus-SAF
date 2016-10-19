@@ -102,7 +102,7 @@ object ApkCertificateReader {
     if(Apk.isValidApk(fileUri)) {
       val jf = new JarFile(FileUtil.toFile(fileUri), true)
       for(ent <- jf.entries()) {
-        if(ent.getName == "META-INF/CERT.RSA") {
+        if(ent.getName.startsWith("META-INF/") && ent.getName.endsWith(".RSA")) {
           val is = jf.getInputStream(ent)
           apkcerts ++= getCertFromStream(is)
         }

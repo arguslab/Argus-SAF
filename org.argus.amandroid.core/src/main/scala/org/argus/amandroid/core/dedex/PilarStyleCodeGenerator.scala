@@ -442,7 +442,7 @@ class PilarStyleCodeGenerator(
       procTemplate.add("body", body)
       procTemplate.add("catchClauses", tryCatch)
     } else {
-      procTemplate.add("body", "# return;")
+      procTemplate.add("body", "#. return;")
     }
 //    }
     procTemplate
