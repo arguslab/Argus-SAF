@@ -13,7 +13,7 @@ package org.argus.jawa.core
 import org.sireum.util._
 
 /**
- * This class is an jawa representation of a pilar method. It can belong to JawaClass.
+ * This class is an jawa representation of a jawa method. It can belong to JawaClass.
  * You can also construct it manually. 
  * 
  * @constructor create a jawa method

@@ -70,12 +70,12 @@ trait JawaClasspathManager extends JavaKnowledge { self: Global =>
   }
   
   /**
-   * map from class name to pilar code of library. E.g. class type java.lang.Object to its file
+   * map from class name to jawa code of library. E.g. class type java.lang.Object to its file
    */
   protected val userLibraryClassCodes: MMap[JawaType, SourceFile] = mmapEmpty
   
   /**
-   * map from class name to pilar code of app. E.g. record name java.lang.MyObject to its file
+   * map from class name to jawa code of app. E.g. record name java.lang.MyObject to its file
    */
   protected val applicationClassCodes: MMap[JawaType, SourceFile] = mmapEmpty
   

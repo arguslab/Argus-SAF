@@ -13,7 +13,7 @@ package org.argus.jawa.core
 import org.objectweb.asm.Opcodes
 
 /**
- * This object provides constants which represent pilar access flag; Some helper methods are also present.
+ * This object provides constants which represent jawa access flag; Some helper methods are also present.
  *
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
  */

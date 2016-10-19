@@ -11,7 +11,7 @@
 package org.argus.jawa.core
 
 /**
- * This class is an jawa representation of a pilar field. It should belong to a JawaClass. 
+ * This class is an jawa representation of a jawa field. It should belong to a JawaClass.
  * 
  * @constructor create a jawa field
  * @param declaringClass The declaring class of this field

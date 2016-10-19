@@ -114,7 +114,7 @@ final class AndroidCacheFile[K] extends CacheProvider[K] with FileCaseFactory[K]
   }
   
   def formatProcedureUri(pUri: ResourceUri): String = {
-    pUri.replaceAll("pilar:/procedure/[a-zA-Z0-9]*/%5B%7C", "")
+    pUri.replaceAll("jawa:/procedure/[a-zA-Z0-9]*/%5B%7C", "")
         .replaceAll("%7C%5D/[0-9]*/[0-9]*/", "")
         .replaceAll("[:./;\\ ]", "")
         .replaceAll("@", "_AT_")

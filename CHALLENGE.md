@@ -36,5 +36,5 @@ In package `org.argus.amandroid.alir.pta.reachingFactsAnalysis.model`:
 - `#c13`. Models actually sharing similar desings, the best way of doing it is designing a DSL to write the model in a simpler way and generate the model codes automatically. (Important!) (Post by [`@fgwei`](https://github.com/fgwei))
 
 
-`#c14`. Package `org.sireum.amandroid.java` need to be added, and developing pilar to java translator. (Major task.) (Post by [`@fgwei`](https://github.com/fgwei))
+`#c14`. Package `org.sireum.amandroid.java` need to be added, and developing jawa to java translator. (Major task.) (Post by [`@fgwei`](https://github.com/fgwei))
 

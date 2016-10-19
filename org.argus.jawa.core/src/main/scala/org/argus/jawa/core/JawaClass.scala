@@ -13,7 +13,7 @@ package org.argus.jawa.core
 import org.sireum.util._
 
 /**
- * This class is an jawa class representation of a pilar record. A JawaClass corresponds to a class or an interface of the source code. They are usually created by jawa Resolver.
+ * This class is an jawa class representation of a jawa record. A JawaClass corresponds to a class or an interface of the source code. They are usually created by jawa Resolver.
  * You can also construct it manually.
  * 
  * @param global interactive compiler of this class
