@@ -13,7 +13,7 @@ This is official reporitory for the [Argus-SAF](http://amandroid.sireum.org/).
 Argus-SAF/
 +--src/main/scala/org.argus.saf     Main class for argus-saf CLI.
 +--org.argus.saf.library            Libraries for Argus-SAF
-+--org.argus.jawa.core              Core static analysis data structures, "*.class"&"*.pilar" file managing, class hierarchy, method body resolving, flow analysis, etc.
++--org.argus.jawa.core              Core static analysis data structures, "*.class"&"*.jawa" file managing, class hierarchy, method body resolving, flow analysis, etc.
 +--org.argus.amandroid.core         Android resource parsers, information collector, decompiler, environment method builder, flow analysis, etc.
 ```
 

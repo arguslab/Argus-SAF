@@ -18,7 +18,7 @@ import java.util.regex.PatternSyntaxException
 import scala.collection.{immutable, mutable}
 import scala.reflect.internal.util.StringOps.splitWhere
 import FileUtils.endsClass
-import FileUtils.endsPilarOrJava
+import FileUtils.endsJawaOrJava
 import org.argus.jawa.core.FatalError
 
 /** <p>
@@ -102,7 +102,7 @@ object Classpath {
      */
     def validClassFile(name: String)  = endsClass(name) && isValidName(name)
     def validPackage(name: String)    = (name != "META-INF") && (name != "") && (name.charAt(0) != '.')
-    def validSourceFile(name: String) = endsPilarOrJava(name)
+    def validSourceFile(name: String) = endsJawaOrJava(name)
 
     /** From the representation to its identifier.
      */
@@ -209,7 +209,7 @@ abstract class Classpath extends ClassFileLookup {
         val rep = packages find (_.name == pkg) flatMap (_ findClass rest)
         rep map {
           case x: ClassRepresentation => x
-          case x            => throw new FatalError("Unexpected ClassRep '%s' found searching for name '%s'".format(x, name))
+          case x            => throw FatalError("Unexpected ClassRep '%s' found searching for name '%s'".format(x, name))
         }
       case _ =>
         classes find (_.name == name)

@@ -27,7 +27,7 @@ object FileUtils {
 
     def isJavaSource: Boolean = !file.isDirectory && file.hasExtension("java")
     
-    def isPilarSource: Boolean = !file.isDirectory && (file.hasExtension("pilar") || file.hasExtension("plr"))
+    def isPilarSource: Boolean = !file.isDirectory && file.hasExtension("jawa")
 
     def isJarOrZip: Boolean = file.hasExtension("jar") || file.hasExtension("zip")
     
@@ -48,7 +48,7 @@ object FileUtils {
 
   def stripSourceExtension(fileName: String): String = {
     if (endsJava(fileName)) stripJavaExtension(fileName)
-    else throw new FatalError("Unexpected source file ending: " + fileName)
+    else throw FatalError("Unexpected source file ending: " + fileName)
   }
 
   def dirPath(forPackage: String) = forPackage.replace('.', '/')
@@ -56,16 +56,13 @@ object FileUtils {
   def endsClass(fileName: String): Boolean =
     fileName.length > 6 && fileName.substring(fileName.length - 6) == ".class"
 
-  def endsPilarOrJava(fileName: String): Boolean = endsPilar(fileName) || endsPilarShort(fileName) || endsJava(fileName)
+  def endsJawaOrJava(fileName: String): Boolean = endsJawa(fileName) || endsJava(fileName)
     
   def endsJava(fileName: String): Boolean =
     fileName.length > 5 && fileName.substring(fileName.length - 5) == ".java"
 
-  def endsPilar(fileName: String): Boolean =
-    fileName.length > 6 && (fileName.substring(fileName.length - 6) == ".pilar")
-    
-  def endsPilarShort(fileName: String): Boolean =
-    fileName.length > 6 && (fileName.substring(fileName.length - 6) == ".plr")
+  def endsJawa(fileName: String): Boolean =
+    fileName.length > 6 && (fileName.substring(fileName.length - 5) == ".jawa")
     
   def stripClassExtension(fileName: String): String =
     fileName.substring(0, fileName.length - 6) // equivalent of fileName.length - ".class".length

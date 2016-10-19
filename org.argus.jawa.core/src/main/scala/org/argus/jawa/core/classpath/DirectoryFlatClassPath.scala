@@ -162,6 +162,6 @@ case class DirectoryFlatSourcePath(dir: File)
 object DirectoryFlatSourcePath {
 
   private val sourceFileFilter = new FileFilter {
-    override def accept(pathname: File): Boolean = endsPilarOrJava(pathname.getName)
+    override def accept(pathname: File): Boolean = endsJawaOrJava(pathname.getName)
   }
 }

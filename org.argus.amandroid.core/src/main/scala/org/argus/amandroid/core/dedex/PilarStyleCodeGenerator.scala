@@ -44,11 +44,11 @@ object PilarStyleCodeGenerator {
     val classPath = recType.jawaName.replaceAll("\\.", "/")
     val outputStream = outputUri match {
       case Some(od) =>
-        var targetFile = FileUtil.toFile(MyFileUtil.appendFileName(od, classPath + ".pilar"))
+        var targetFile = FileUtil.toFile(MyFileUtil.appendFileName(od, classPath + ".jawa"))
         var i = 0
         while(targetFile.exists()){
           i += 1
-          targetFile = FileUtil.toFile(MyFileUtil.appendFileName(od, classPath + "." + i + ".pilar"))
+          targetFile = FileUtil.toFile(MyFileUtil.appendFileName(od, classPath + "." + i + ".jawa"))
         }
         val parent = targetFile.getParentFile
         if(parent != null)

@@ -24,17 +24,17 @@ class JawaSymbolTable extends SymbolTable with SymbolTableProducer {
   var hasErrors = false
 
   val ERROR_TAG_TYPE = MarkerType(
-    "org.sireum.pilar.tag.error.symtab",
+    "org.argus.jawa.core.symbolResolver",
     None,
-    "Pilar Symbol Resolution Error",
+    "Jawa Symbol Resolution Error",
     MarkerTagSeverity.Error,
     MarkerTagPriority.Normal,
     ilist(MarkerTagKind.Problem, MarkerTagKind.Text))
 
   val WARNING_TAG_TYPE = MarkerType(
-    "org.sireum.pilar.tag.error.symtab",
+    "org.argus.jawa.core.symbolResolver",
     None,
-    "Pilar Symbol Resolution Warning",
+    "Jawa Symbol Resolution Warning",
     MarkerTagSeverity.Warning,
     MarkerTagPriority.Normal,
     ilist(MarkerTagKind.Problem, MarkerTagKind.Text))

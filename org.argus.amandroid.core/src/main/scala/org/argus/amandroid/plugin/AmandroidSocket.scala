@@ -73,7 +73,7 @@ class AmandroidSocket(global: Global, yard: ApkYard, apk: Apk) {
         val fileUri = FileUtil.toUri(FileUtil.toFilePath(outUri) + File.separator + src)
         if(FileUtil.toFile(fileUri).exists()) {
           //store the app's pilar code in AmandroidCodeSource which is organized class by class.
-          global.load(fileUri, Constants.PILAR_FILE_EXT, lib_sum)
+          global.load(fileUri, Constants.JAWA_FILE_EXT, lib_sum)
         }
     }
     outUri

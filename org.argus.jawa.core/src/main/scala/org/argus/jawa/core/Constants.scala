@@ -20,5 +20,5 @@ object Constants {
   final val EXCEPTION = "Exception"
   final val ALL_FIELD = "ALL.FIELD"
   
-  final val PILAR_FILE_EXT = "pilar"
+  final val JAWA_FILE_EXT = "jawa"
 }

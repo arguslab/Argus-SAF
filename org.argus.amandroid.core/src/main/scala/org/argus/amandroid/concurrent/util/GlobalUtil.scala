@@ -25,7 +25,7 @@ object GlobalUtil {
         val fileUri = MyFileUtil.appendFileName(outApkUri, src)
         if(FileUtil.toFile(fileUri).exists()) {
           //store the app's pilar code in AmandroidCodeSource which is organized class by class.
-          global.load(fileUri, Constants.PILAR_FILE_EXT, AndroidLibraryAPISummary)
+          global.load(fileUri, Constants.JAWA_FILE_EXT, AndroidLibraryAPISummary)
         }
     }
     global
