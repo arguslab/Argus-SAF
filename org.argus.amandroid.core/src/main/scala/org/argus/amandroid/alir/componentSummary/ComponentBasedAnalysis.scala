@@ -119,7 +119,7 @@ class ComponentBasedAnalysis(global: Global, yard: ApkYard) {
   }
   
   def phase2(apks: ISet[Apk], parallel: Boolean): (ISet[Apk], InterproceduralDataDependenceInfo) = {
-    val components = apks.map(_.getComponents).fold(Set[JawaType]())(iunion _) -- problematicComp
+    val components = apks.map(_.getComponents).fold(Set[JawaType]())(iunion) -- problematicComp
     println(TITLE + ":" + "-------Phase 2-------" + apks.size + s" apk${if(apks.size > 1)"s" else ""} " + components.size + s" component${if(components.size > 1)"s" else ""}-------")
     val mddg = new MultiDataDependenceGraph[IDDGNode]
     val summaryTables = components.flatMap(yard.getSummaryTable)
@@ -170,7 +170,7 @@ class ComponentBasedAnalysis(global: Global, yard: ApkYard) {
   
   def phase3(iddResult: (ISet[Apk], InterproceduralDataDependenceInfo), ssm: AndroidSourceAndSinkManager): Option[TaintAnalysisResult[AndroidDataDependentTaintAnalysis.Node, InterproceduralDataDependenceAnalysis.Edge]] = {
     val apks = iddResult._1
-    val components = apks.map(_.getComponents).fold(Set[JawaType]())(iunion _) -- problematicComp
+    val components = apks.map(_.getComponents).fold(Set[JawaType]())(iunion) -- problematicComp
     println(TITLE + ":" + "-------Phase 3-------" + apks.size + s" apk${if(apks.size > 1)"s" else ""} " + components.size + s" component${if(components.size > 1)"s" else ""}-------")
     val idfgs = components.flatMap(yard.getIDFG)
     if(idfgs.nonEmpty) {

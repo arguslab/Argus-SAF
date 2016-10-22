@@ -62,11 +62,11 @@ abstract class AndroidSourceAndSinkManager(
   }
   
   private def getSourceTags(calleeSig: Signature): ISet[String] = {
-    this.sources.filter(src => matchs(calleeSig, src._1)).values.fold(isetEmpty)(iunion _)
+    this.sources.filter(src => matchs(calleeSig, src._1)).values.fold(isetEmpty)(iunion)
   }
   
   private def getSinkTags(calleeSig: Signature): ISet[String] = {
-    this.sinks.filter(sink => matchs(calleeSig, sink._1)).map(_._2._2).fold(isetEmpty)(iunion _)
+    this.sinks.filter(sink => matchs(calleeSig, sink._1)).map(_._2._2).fold(isetEmpty)(iunion)
   }
   
   private def handleICFGNode[N <: InterproceduralNode](icfgN: ICFGNode, ptaresult: PTAResult): (ISet[TaintSource[N]], ISet[TaintSink[N]]) = {
@@ -92,7 +92,7 @@ abstract class AndroidSourceAndSinkManager(
               var tags = getSinkTags(calleeSig)
               if(tags.isEmpty) tags += "ANY"
               global.reporter.echo(TITLE, "found sink: " + calleeSig + "@" + invNode.getContext + " " + tags)
-              val poss = this.sinks.filter(sink => matchs(calleeSig, sink._1)).map(_._2._1).fold(isetEmpty)(iunion _)
+              val poss = this.sinks.filter(sink => matchs(calleeSig, sink._1)).map(_._2._1).fold(isetEmpty)(iunion)
               val tn = TaintSink(gNode, TagTaintDescriptor(calleeSig.signature, poss, SourceAndSinkCategory.API_SINK, tags))
               sinks += tn
             }
@@ -152,7 +152,7 @@ abstract class AndroidSourceAndSinkManager(
             }
             invNode match {
               case node: IDDGCallArgNode if this.isSink(calleeSig) =>
-                val poss = this.sinks.filter(sink => matchs(calleeSig, sink._1)).map(_._2._1).fold(isetEmpty)(iunion _)
+                val poss = this.sinks.filter(sink => matchs(calleeSig, sink._1)).map(_._2._1).fold(isetEmpty)(iunion)
                 if (poss.isEmpty || poss.contains(node.position)) {
                   global.reporter.echo(TITLE, "found sink: " + calleeSig + "@" + invNode.getContext + " " + node.position)
                   val tn = TaintSink(gNode, TypeTaintDescriptor(calleeSig.signature, Some(node.position), SourceAndSinkCategory.API_SINK))

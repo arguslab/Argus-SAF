@@ -5,7 +5,7 @@
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/1a59d168b6fc42faaed643249ac3e2f5)](https://www.codacy.com/app/fgwei521/Argus-SAF?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=arguslab/Argus-SAF&amp;utm_campaign=Badge_Grade)
 [![Codacy Badge](https://api.codacy.com/project/badge/Coverage/1a59d168b6fc42faaed643249ac3e2f5)](https://www.codacy.com/app/fgwei521/Argus-SAF?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=arguslab/Argus-SAF&amp;utm_campaign=Badge_Coverage)
 
-This is official reporitory for the [Argus-SAF](http://amandroid.sireum.org/).
+This is official reporitory for the [Argus-SAF](http://pag.arguslab.org/argus-saf).
 
 ## Repository structure
 
@@ -37,7 +37,7 @@ libraryDependencies += "com.github.arguslab" %% "amandroid-core" % "1.1.4"
 
 ## Obtaining Argus-SAF CLI Tool
 
-Requirement: Java 8
+**Requirement: Java 8**
 
 1. Click [![Download](https://api.bintray.com/packages/arguslab/maven/argus-saf/images/download.svg)](https://bintray.com/arguslab/maven/argus-saf/_latestVersion)
 2. In arguslab bintray repo click Files > Version Folder

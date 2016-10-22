@@ -18,5 +18,4 @@ object AndroidReachingFactsAnalysisConfig {
   final var resolve_icc = false
   final var resolve_static_init = false
   final var parallel: Boolean = false
-  final var timeout: Option[Int] = None
 }

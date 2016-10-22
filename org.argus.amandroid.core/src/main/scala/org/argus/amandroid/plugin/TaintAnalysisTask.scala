@@ -29,6 +29,7 @@ import org.argus.jawa.core.util.MyFileUtil
 import org.sireum.util._
 
 import scala.concurrent.duration._
+import scala.language.postfixOps
 
 object TaintAnalysisModules extends Enumeration {
   val INTENT_INJECTION, PASSWORD_TRACKING, OAUTH_TOKEN_TRACKING, DATA_LEAKAGE, COMMUNICATION_LEAKAGE = Value
