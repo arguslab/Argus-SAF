@@ -25,12 +25,12 @@ object AndroidGlobalConfig {
   private val stash_dir = System.getProperty("user.home") + File.separator + ".amandroid_stash"
   final val amandroid_home = stash_dir + File.separator + "amandroid"
 
-  final val stash_url = "http://www.arguslab.org/~fgwei/resources/"
+  final val stash_url = "http://fgwei.arguslab.org/resources/"
   final val BUFFER_SIZE = 1024
 
   val homeReady = checkAmandroidHome
   if(!homeReady){
-    errPrintln("Failed to install amandroid_stash. You can install it manually by following instruction at http://amandroid.sireum.org/.")
+    errPrintln("Failed to install amandroid_stash. Please report the issue at our issue tracker: https://github.com/arguslab/Argus-SAF/issues")
     sys.exit(-1)
   }
   var iniPathOpt: Option[String] = None
