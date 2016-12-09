@@ -17,7 +17,7 @@ import java.io.IOException
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
  */
 case class PackedSwitchTask(defaultTarget: Long, instrParser: DexInstructionToPilarParser, base: Long, offset: Long) extends PilarDedexerTask {
-  var regName: String = null
+  var regName: String = _
   private var tableLength: Long = 0L
   private var low: Int = 0
   private val jumpTable: MList[Long] = mlistEmpty
@@ -48,8 +48,10 @@ case class PackedSwitchTask(defaultTarget: Long, instrParser: DexInstructionToPi
     val code: StringBuilder = new StringBuilder
     code.append("#L%06x.  ".format(instrParser.getFilePosition))
     code.append("switch %s\n".format(regName))
-    for(i <- labels.indices) {
+    var i = 0
+    while(i < labels.length) {
       code.append("                | %d => goto %s\n".format(low + i, labels(i)))
+      i += 1
     }
     code.append("                | else => goto %s;".format(defaultLabelName))
     val endTablePosition = instrParser.getFilePosition + tableLength

@@ -103,4 +103,12 @@ object ASTUtil {
   def getFieldFQN(accessExp: AccessExp, typ: JawaType): FieldFQN = {
     new FieldFQN(accessExp.attributeName.name, typ)
   }
+
+  def isStaticExp(exp: Exp): Boolean = {
+    exp match {
+      case al: NameExp =>
+        al.name.name.contains("@@")
+      case _ => false
+    }
+  }
 }

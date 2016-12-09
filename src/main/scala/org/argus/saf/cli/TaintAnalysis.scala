@@ -27,7 +27,7 @@ import org.sireum.util._
  */ 
 object TaintAnalysis{
 //  private final val TITLE = "TaintAnalysis"
-  def apply(module: TaintAnalysisModules.Value, debug: Boolean, sourcePath: String, outputPath: String, forceDelete: Boolean) = {
+  def apply(module: TaintAnalysisModules.Value, debug: Boolean, sourcePath: String, outputPath: String, forceDelete: Boolean): Unit = {
     val dpsuri = AndroidGlobalConfig.settings.dependence_dir.map(FileUtil.toUri)
     val liblist = AndroidGlobalConfig.settings.lib_files
     val static = AndroidGlobalConfig.settings.static_init
@@ -38,7 +38,7 @@ object TaintAnalysis{
     val fileOrDir = new File(sourcePath)
     fileOrDir match {
       case dir if dir.isDirectory =>
-        apkFileUris ++= ApkFileUtil.getApks(FileUtil.toUri(dir), recursive = true)
+        apkFileUris ++= ApkFileUtil.getApks(FileUtil.toUri(dir))
       case file =>
         if(Apk.isValidApk(FileUtil.toUri(file)))
           apkFileUris += FileUtil.toUri(file)
@@ -47,7 +47,7 @@ object TaintAnalysis{
     taintAnalyze(module, apkFileUris.toSet, outputPath, dpsuri, liblist, static, parallel, k_context, debug, forceDelete)
   }
   
-  def taintAnalyze(module: TaintAnalysisModules.Value, apkFileUris: ISet[FileResourceUri], outputPath: String, dpsuri: Option[FileResourceUri], liblist: String, static: Boolean, parallel: Boolean, k_context: Int, debug: Boolean, forceDelete: Boolean) = {
+  def taintAnalyze(module: TaintAnalysisModules.Value, apkFileUris: ISet[FileResourceUri], outputPath: String, dpsuri: Option[FileResourceUri], liblist: String, static: Boolean, parallel: Boolean, k_context: Int, debug: Boolean, forceDelete: Boolean): Unit = {
 
     Context.init_context_length(k_context)
     AndroidReachingFactsAnalysisConfig.parallel = parallel
@@ -70,7 +70,7 @@ object TaintAnalysis{
             println("Done!")
             if(debug) println("Debug info write into " + reporter.asInstanceOf[FileReporter].f)
           } catch {
-            case ie: IgnoreException => println("No interesting element found for " + module)
+            case _: IgnoreException => println("No interesting element found for " + module)
             case e: Throwable =>
               CliLogger.logError(new File(outputPath), "Error: " , e)
           } finally {

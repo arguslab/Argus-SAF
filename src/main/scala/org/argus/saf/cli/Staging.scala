@@ -40,7 +40,7 @@ object Staging {
     val fileOrDir = new File(sourcePath)
     fileOrDir match {
       case dir if dir.isDirectory =>
-        apkFileUris ++= ApkFileUtil.getApks(FileUtil.toUri(dir), recursive = true)
+        apkFileUris ++= ApkFileUtil.getApks(FileUtil.toUri(dir))
       case file =>
         if(Apk.isValidApk(FileUtil.toUri(file)))
           apkFileUris += FileUtil.toUri(file)
@@ -49,7 +49,7 @@ object Staging {
     staging(apkFileUris.toSet, outputPath, forceDelete)
   }
   
-  def staging(apkFileUris: ISet[FileResourceUri], outputPath: String, forceDelete: Boolean) = {
+  def staging(apkFileUris: ISet[FileResourceUri], outputPath: String, forceDelete: Boolean): Unit = {
     println("Total apks: " + apkFileUris.size)
     val outputUri = FileUtil.toUri(outputPath)
     val noStageApks: ISet[FileResourceUri] = apkFileUris.filter{ uri =>

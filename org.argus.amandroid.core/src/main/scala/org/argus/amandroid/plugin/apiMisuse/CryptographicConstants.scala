@@ -17,9 +17,13 @@ package org.argus.amandroid.plugin.apiMisuse
 object CryptographicConstants {
   final val JAVAX_CIPHER_GETINSTANCE_1 = "Ljavax/crypto/Cipher;.getInstance:(Ljava/lang/String;)Ljavax/crypto/Cipher;"
   final val JAVAX_CIPHER_GETINSTANCE_2 = "Ljavax/crypto/Cipher;.getInstance:(Ljava/lang/String;Ljava/lang/String;)Ljavax/crypto/Cipher;"
-  
-  def getCryptoAPIs: Set[String] = Set(JAVAX_CIPHER_GETINSTANCE_1, JAVAX_CIPHER_GETINSTANCE_2)
+
+	final val JAVAX_IVPARAMETER_INIT_1 = "Ljavax/crypto/spec/IvParameterSpec;.<init>:([B;)V"
+	final val JAVAX_IVPARAMETER_INIT_2 = "Ljavax/crypto/spec/IvParameterSpec;.<init>:([B;II)V"
+
+  def getCryptoAPIs: Set[String] = getCipherGetinstanceAPIs ++ getIVParameterInitAPIs
   def getCipherGetinstanceAPIs: Set[String] = Set(JAVAX_CIPHER_GETINSTANCE_1, JAVAX_CIPHER_GETINSTANCE_2)
+	def getIVParameterInitAPIs: Set[String] = Set(JAVAX_IVPARAMETER_INIT_1, JAVAX_IVPARAMETER_INIT_2)
   
   final val AES_CBC_PKCS5PADDING = "AES/CBC/PKCS5Padding"
 	final val AES = "AES" //*

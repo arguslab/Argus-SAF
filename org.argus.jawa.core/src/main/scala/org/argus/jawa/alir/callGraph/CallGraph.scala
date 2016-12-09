@@ -25,8 +25,8 @@ class CallGraph {
    */
   private val callMap: MMap[Signature, MSet[Signature]] = mmapEmpty
   
-  def addCall(from: Signature, to: Signature) = this.callMap.getOrElseUpdate(from, msetEmpty) += to
-  def addCalls(from: Signature, to: ISet[Signature]) = this.callMap.getOrElseUpdate(from, msetEmpty) ++= to
+  def addCall(from: Signature, to: Signature): MSet[Signature] = this.callMap.getOrElseUpdate(from, msetEmpty) += to
+  def addCalls(from: Signature, to: ISet[Signature]): MSet[Signature] = this.callMap.getOrElseUpdate(from, msetEmpty) ++= to
   
   def getCallMap: IMap[Signature, ISet[Signature]] = this.callMap.map{case (k, vs) => k -> vs.toSet}.toMap
 
@@ -76,7 +76,7 @@ class CallGraph {
     e
   }
   
-  def toSimpleCallGraph(header: String, outpath: String, format: String) = {
+  def storeSimpleCallGraph(header: String, outpath: String, format: String): Unit = {
     val fm = format match {
       case "GraphML" => TinkerGraph.FileType.GRAPHML
       case "GML" => TinkerGraph.FileType.GML
@@ -91,7 +91,7 @@ class CallGraph {
         val callerNode = CGSimpleCallNode(callerContext)
         val callerV = addNode(header, scg, callerNode)
         callees foreach {
-          case callee =>
+          callee =>
             val calleeContext = new Context
             calleeContext.setContext(callee, callee.signature)
             val calleeNode = CGSimpleCallNode(calleeContext)
@@ -102,7 +102,7 @@ class CallGraph {
     scg.shutdown()
   }
   
-  def toDetailedCallGraph(header: String, icfg: InterproceduralControlFlowGraph[ICFGNode], outpath: String, format: String) = {
+  def storeDetailedCallGraph(header: String, icfg: InterproceduralControlFlowGraph[ICFGNode], outpath: String, format: String): Unit = {
     val fm = format match {
       case "GraphML" => TinkerGraph.FileType.GRAPHML
       case "GML" => TinkerGraph.FileType.GML
@@ -138,9 +138,9 @@ class CallGraph {
     val ns = icfg.nodes filter{
       n =>
         n match{
-          case cn: ICFGCallNode => false
-          case en: ICFGEntryNode => false
-          case en: ICFGExitNode => false
+          case _: ICFGCallNode => false
+          case _: ICFGEntryNode => false
+          case _: ICFGExitNode => false
           case _ => true
         }
     }
@@ -174,36 +174,29 @@ class CallGraph {
         val source = CGEntryNode(en.context)
         val sourceV = addNode(header, dcg, source)
         icfg.successors(en) foreach {
-          case s =>
-            s match {
-              case sen: ICFGExitNode =>
-                val target = CGExitNode(sen.context)
-                val targetV = addNode(header, dcg, target)
-                addEdge(header, dcg, sourceV, targetV, "leadsto")
-              case scn: ICFGCallNode =>
-                val callees: ISet[Callee] = scn.getCalleeSet
-                val calleesig: Signature = scn.getCalleeSig
-                val target = CGDetailCallNode(calleesig, callees, scn.context)
-                val targetV = addNode(header, dcg, target)
-                addEdge(header, dcg, sourceV, targetV, "leadsto")
-              case _ => throw new RuntimeException(s + " cannot be successor of " + en + "!")
-            }
+          case sen: ICFGExitNode =>
+            val target = CGExitNode(sen.context)
+            val targetV = addNode(header, dcg, target)
+            addEdge(header, dcg, sourceV, targetV, "leadsto")
+          case scn: ICFGCallNode =>
+            val callees: ISet[Callee] = scn.getCalleeSet
+            val calleesig: Signature = scn.getCalleeSig
+            val target = CGDetailCallNode(calleesig, callees, scn.context)
+            val targetV = addNode(header, dcg, target)
+            addEdge(header, dcg, sourceV, targetV, "leadsto")
+          case s => throw new RuntimeException(s + " cannot be successor of " + en + "!")
         }
       case en: ICFGExitNode =>
         val source = CGExitNode(en.context)
         val sourceV = addNode(header, dcg, source)
         icfg.successors(en) foreach {
-          case s => // s should be only IcfgCallNode
-            s match {
-              case cn: ICFGCallNode =>
-                val callees: ISet[Callee] = cn.getCalleeSet
-                val calleesig: Signature = cn.getCalleeSig
-                val target = CGDetailCallNode(calleesig, callees, cn.context)
-                val targetV = addNode(header, dcg, target)
-                addEdge(header, dcg, sourceV, targetV, "return")
-              case _ => throw new RuntimeException(s + " cannot be successor of " + en + "!")
-            }
-
+          case cn: ICFGCallNode =>
+            val callees: ISet[Callee] = cn.getCalleeSet
+            val calleesig: Signature = cn.getCalleeSig
+            val target = CGDetailCallNode(calleesig, callees, cn.context)
+            val targetV = addNode(header, dcg, target)
+            addEdge(header, dcg, sourceV, targetV, "return")
+          case s => throw new RuntimeException(s + " cannot be successor of " + en + "!")
         }
       case n => throw new RuntimeException(n + " should not exist!")
     }

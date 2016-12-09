@@ -20,32 +20,22 @@ import org.argus.jawa.core.util.MyFileUtil
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
  */
 object FixResources {
-  def fix(decFolder: FileResourceUri, dedex: PilarDeDex) = {
-    val allxmls = FileUtil.listFiles(decFolder, ".xml", recursive = true)
-    allxmls foreach {
-      xml =>
-        if(xml.endsWith("AndroidManifest.xml") && !xml.endsWith("original/AndroidManifest.xml")) {
-          if(dedex.haveRenamedElements) {
-            var filestr = MyFileUtil.readFileContent(xml)
-//            val pkgMap = dedex.getPkgNameMapping
-//            val recMap = dedex.getRecordNameMapping
-            val (pkg, recs) = ManifestParser.loadPackageAndComponentNames(xml)
-            val newpkg = dedex.mapPackage(pkg)
-            filestr = filestr.replaceAll("\"" + pkg + "\"", "\"" + newpkg + "\"")
-//            val classparts: MList[String] = mlistEmpty
-            recs.foreach {
-              case (origstr, comclass) =>
-                val newclass = dedex.mapRecord(comclass)
-                filestr = filestr.replaceAll("\"" + origstr + "\"", "\"" + newclass + "\"")
-            }
-            val pw = new PrintWriter(FileUtil.toFile(xml))
-            pw.write(filestr)
-            pw.flush()
-            pw.close()
-          }
-        } else if(xml.contains("/res/layout/")) {
-          
-        }
+  def fix(decFolder: FileResourceUri, dedex: PilarDeDex): Unit = {
+    val xml = MyFileUtil.appendFileName(decFolder, "AndroidManifest.xml")
+    if(dedex.haveRenamedElements) {
+      var filestr = MyFileUtil.readFileContent(xml)
+      val (pkg, recs) = ManifestParser.loadPackageAndComponentNames(xml)
+      val newpkg = dedex.mapPackage(pkg)
+      filestr = filestr.replaceAll("\"" + pkg + "\"", "\"" + newpkg + "\"")
+      recs.foreach {
+        case (origstr, comclass) =>
+          val newclass = dedex.mapRecord(comclass)
+          filestr = filestr.replaceAll("\"" + origstr + "\"", "\"" + newclass + "\"")
+      }
+      val pw = new PrintWriter(FileUtil.toFile(xml))
+      pw.write(filestr)
+      pw.flush()
+      pw.close()
     }
   }
 }

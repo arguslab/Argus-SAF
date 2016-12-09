@@ -34,7 +34,7 @@ case class Signature(classTyp: JawaType, methodName: String, proto: String) exte
   override def hashCode: Int = signature.hashCode
   
   def this(sig: String) = this(Signature.getClassTyp(sig), Signature.getMethodName(sig), Signature.getProto(sig))
-  private var _signature: String = null
+  private var _signature: String = _
   def signature: String = {
     if(_signature == null) _signature = formatTypeToSignature(classTyp) + "." + methodName + ":" + proto
     _signature

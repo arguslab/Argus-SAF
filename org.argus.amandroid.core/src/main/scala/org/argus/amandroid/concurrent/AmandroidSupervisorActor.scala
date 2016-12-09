@@ -92,12 +92,12 @@ class AmandroidSupervisorActorPrioMailbox(settings: ActorSystem.Settings, config
     // Create a new PriorityGenerator, lower prio means more important
     PriorityGenerator {
       case AnalysisSpec => 3
-      case dr: DecompilerResult => 2
-      case aicr: ApkInfoCollectResult => 1
-      case ptar: PointsToAnalysisResult => 0
-      case sed: SecurityEngineData => 3
-      case ser: SecurityEngineResult => 0
-      case otherwise => 4
+      case _: DecompilerResult => 2
+      case _: ApkInfoCollectResult => 1
+      case _: PointsToAnalysisResult => 0
+      case _: SecurityEngineData => 3
+      case _: SecurityEngineResult => 0
+      case _ => 4
     })
 
 object AmandroidTestApplication extends App {

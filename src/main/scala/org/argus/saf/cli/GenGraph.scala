@@ -61,7 +61,7 @@ object GenGraph {
     val fileOrDir = new File(sourcePath)
     fileOrDir match {
       case dir if dir.isDirectory =>
-        apkFileUris ++= ApkFileUtil.getApks(FileUtil.toUri(dir), recursive = true)
+        apkFileUris ++= ApkFileUtil.getApks(FileUtil.toUri(dir))
       case file =>
         if(Apk.isValidApk(FileUtil.toUri(file)))
           apkFileUris += FileUtil.toUri(file)
@@ -81,7 +81,7 @@ object GenGraph {
       header: String,
       format: GraphFormat.Value,
       graphtyp: GraphType.Value,
-      debug: Boolean) = {
+      debug: Boolean): Unit = {
     Context.init_context_length(k_context)
     println("Total apks: " + apkFileUris.size)
     try{
@@ -142,7 +142,7 @@ object GenGraph {
                       case GraphFormat.GraphML => graph.toGraphML(zipw)
                       case GraphFormat.GML => graph.toGML(zipw)
                     }
-                  } catch {case e: Exception => }
+                  } catch {case _: Exception => }
                   finally {
                     zipw.close()
                   }
@@ -152,14 +152,14 @@ object GenGraph {
                     case GraphFormat.GraphML => "GraphML"
                     case GraphFormat.GML => "GML"
                   }
-                  icfg.getCallGraph.toSimpleCallGraph(header, path.getPath, fm)
+                  icfg.getCallGraph.storeSimpleCallGraph(header, path.getPath, fm)
                 case GraphType.DETAILED_CALL =>
                   val path = new File(outputPath + "/" + apkName.filter(_.isUnicodeIdentifierPart) + "/detailed_cg")
                   val fm = format match {
                     case GraphFormat.GraphML => "GraphML"
                     case GraphFormat.GML => "GML"
                   }
-                  icfg.getCallGraph.toDetailedCallGraph(header, icfg, path.getPath, fm)
+                  icfg.getCallGraph.storeDetailedCallGraph(header, icfg, path.getPath, fm)
                 case GraphType.API =>
                   val graph = icfg.toApiGraph(global)
                   val ext = format match {
@@ -175,7 +175,7 @@ object GenGraph {
                       case GraphFormat.GraphML => graph.toGraphML(zipw)
                       case GraphFormat.GML => graph.toGML(zipw)
                     }
-                  } catch {case e: Exception =>}
+                  } catch {case _: Exception =>}
                   finally {
                     zipw.close()
                   }

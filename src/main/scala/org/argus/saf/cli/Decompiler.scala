@@ -29,7 +29,7 @@ object Decompiler {
       val fileOrDir = new File(sourcePath)
       fileOrDir match {
         case dir if dir.isDirectory =>
-          val decs = ApkFileUtil.getDecompileableFiles(FileUtil.toUri(dir), recursive = true)
+          val decs = ApkFileUtil.getDecompileableFiles(FileUtil.toUri(dir))
           val dexs = FileUtil.listFiles(FileUtil.toUri(dir), ".dex", recursive = true)
           println(s"Processing directory which contains ${if(decs.nonEmpty) s"${decs.size} apk/jar${if(decs.size > 1) "s" else ""}" else ""} ${if(dexs.nonEmpty) s"${dexs.size} dex${if(dexs.size > 1) "s" else ""}" else ""}")
           decs.foreach {
@@ -55,13 +55,11 @@ object Decompiler {
             val layout = DecompileLayout(outputUri)
             val settings = DecompilerSettings(dpsuri, dexLog = false, debugMode = false, removeSupportGen = true, forceDelete = forceDelete, None, layout)
             ApkDecompiler.decompile(FileUtil.toUri(file), settings)
-          }
-          else if(file.getName.endsWith(".dex")) {
+          } else if(file.getName.endsWith(".dex")) {
             val layout = DecompileLayout(outputUri)
             val settings = DecompilerSettings(dpsuri, dexLog = false, debugMode = false, removeSupportGen = true, forceDelete = forceDelete, None, layout)
             ApkDecompiler.decompileDex("", FileUtil.toUri(file), settings)
-          }
-          else println(file + " is not decompilable.")
+          } else println(file + " is not decompilable.")
       }
     } catch {
       case e: Exception => 

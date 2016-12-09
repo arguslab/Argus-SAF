@@ -45,11 +45,11 @@ class DecompilerActor extends Actor with ActorLogging {
         var opUri: Option[FileResourceUri] = None
         val codes: MMap[JawaType, String] = mmapEmpty
         val listener = new PilarStyleCodeGeneratorListener {
-          def onRecordGenerated(recType: JawaType, code: String, outputUri: Option[FileResourceUri]) = {
+          def onRecordGenerated(recType: JawaType, code: String, outputUri: Option[FileResourceUri]): Unit = {
             opUri = outputUri
             codes(recType) = code
           }
-          def onGenerateEnd(recordCount: Int) = {}
+          def onGenerateEnd(recordCount: Int): Unit = {}
         }
         val apkFile = FileUtil.toFile(ddata.fileUri)
         val (f, cancel) = FutureUtil.interruptableFuture[DecompilerResult] { () =>
@@ -74,8 +74,8 @@ class DecompilerActor extends Actor with ActorLogging {
             DecompileFailResult(ddata.fileUri, te)
         }
         res match {
-          case dfr: DecompileFailResult =>
-            val dirName = try{apkFile.getName.substring(0, apkFile.getName.lastIndexOf("."))} catch {case e: Exception => apkFile.getName}
+          case _: DecompileFailResult =>
+            val dirName = try{apkFile.getName.substring(0, apkFile.getName.lastIndexOf("."))} catch {case _: Exception => apkFile.getName}
             val outDir = FileUtil.toFile(MyFileUtil.appendFileName(ddata.outputUri, dirName))
             MyFileUtil.deleteDir(outDir)
           case _ =>
@@ -99,9 +99,9 @@ object DecompileTestApplication extends App {
   val futures = fileUris map {
     fileUri =>
       supervisor.ask(DecompileData(fileUri, outputUri, None, removeSupportGen = true, forceDelete = true, 10 seconds))(30 seconds).mapTo[DecompilerResult].recover{
-          case te: AskTimeoutException =>
+          case _: AskTimeoutException =>
             (fileUri, false)
-          case ex: Exception => 
+          case _: Exception =>
             (fileUri, false)
         }
   }
