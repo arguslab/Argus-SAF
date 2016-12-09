@@ -29,7 +29,7 @@ object SourcefileParser {
     }
     val v = new MySTVisitor
     try {
-      val st: SymbolTable = JawaResolver.getSymbolResolveResult(Set(code))
+      val st: SymbolTable = JawaResolver.getSymbolResolveResult(Set(code.replaceAllLiterally("#. ", "# ")))
       v.resolveFromST(st, level)
     } catch {
       case ie: InterruptedException => throw ie
