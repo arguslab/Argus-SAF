@@ -23,7 +23,7 @@ import org.sireum.util._
  */ 
 object ComponentNameModel {
   final val TITLE = "ComponentNameModel"
-  def isComponentName(r: JawaClass): Boolean = r.getName == "android.content.ComponentName"
+  def isComponentName(r: JawaClass): Boolean = r.getName.equals("android.content.ComponentName")
     
   def doComponentNameCall(s: PTAResult, p: JawaMethod, args: List[String], retVars: Seq[String], currentContext: Context)(implicit factory: RFAFactFactory): (ISet[RFAFact], ISet[RFAFact], Boolean) = {
     var newFacts = isetEmpty[RFAFact]
@@ -142,16 +142,16 @@ object ComponentNameModel {
   
   private def getShortNameFromClassName(global: Global, s: ISet[Instance], currentContext: Context): ISet[Instance] = {
     s.map {
-      case cstr@PTAConcreteStringInstance(text, c) =>
+      case PTAConcreteStringInstance(text, _) =>
         val recordTyp = new JawaType(text)
-        val recOpt = global.tryLoadClass(recordTyp)
+        val recOpt = global.getClazz(recordTyp)
         recOpt match {
           case Some(rec) =>
             PTAConcreteStringInstance(rec.getName, currentContext.copy)
           case None =>
             PTAInstance(recordTyp.toUnknown, currentContext.copy, isNull_ = false)
         }
-      case pstr@PTAPointStringInstance(c) =>
+      case PTAPointStringInstance(_) =>
         PTAPointStringInstance(currentContext.copy)
       case _ =>
         PTAInstance(JavaKnowledge.JAVA_TOPLEVEL_OBJECT_TYPE.toUnknown, currentContext.copy, isNull_ = false)
@@ -189,7 +189,7 @@ object ComponentNameModel {
             clazzNames.map {
               case cstr@PTAConcreteStringInstance(text, c) =>
                 val recordTyp = new JawaType(text)
-                val recOpt = global.tryLoadClass(recordTyp)
+                val recOpt = global.getClazz(recordTyp)
                 var facts = isetEmpty[RFAFact]
                 recOpt match {
                   case Some(rec) =>
@@ -206,7 +206,7 @@ object ComponentNameModel {
                     facts += new RFAFact(FieldSlot(tv, JavaKnowledge.getFieldNameFromFieldFQN(AndroidConstants.COMPONENTNAME_CLASS)), unknownIns)
                 }
                 facts
-              case pstr@PTAPointStringInstance(c) =>
+              case pstr@PTAPointStringInstance(_) =>
                 var facts = isetEmpty[RFAFact]
                 facts += new RFAFact(FieldSlot(tv, JavaKnowledge.getFieldNameFromFieldFQN(AndroidConstants.COMPONENTNAME_PACKAGE)), pstr)
                 facts += new RFAFact(FieldSlot(tv, JavaKnowledge.getFieldNameFromFieldFQN(AndroidConstants.COMPONENTNAME_CLASS)), pstr)
@@ -234,7 +234,7 @@ object ComponentNameModel {
           isetEmpty[RFAFact]
         } else {
           param2Value.map {
-            case cstr@PTAConcreteStringInstance(text, c) =>
+            case PTAConcreteStringInstance(text, c) =>
               val recordType = JavaKnowledge.getTypeFromName(text)
               val rec = global.getClassOrResolve(recordType)
               val claStr = PTAConcreteStringInstance(recordType.name, c)
@@ -247,7 +247,7 @@ object ComponentNameModel {
               facts += new RFAFact(FieldSlot(tv, JavaKnowledge.getFieldNameFromFieldFQN(AndroidConstants.COMPONENTNAME_PACKAGE)), pakStr)
               facts += new RFAFact(FieldSlot(tv, JavaKnowledge.getFieldNameFromFieldFQN(AndroidConstants.COMPONENTNAME_CLASS)), claStr)
               facts
-            case pstr@PTAPointStringInstance(c) =>
+            case pstr@PTAPointStringInstance(_) =>
               var facts = isetEmpty[RFAFact]
               facts += new RFAFact(FieldSlot(tv, JavaKnowledge.getFieldNameFromFieldFQN(AndroidConstants.COMPONENTNAME_PACKAGE)), pstr)
               facts += new RFAFact(FieldSlot(tv, JavaKnowledge.getFieldNameFromFieldFQN(AndroidConstants.COMPONENTNAME_CLASS)), pstr)
@@ -276,12 +276,12 @@ object ComponentNameModel {
           isetEmpty[RFAFact]
         } else {
           param1Value.map {
-            case pv1@(cstr1@PTAConcreteStringInstance(text, c)) =>
+            case pv1@(PTAConcreteStringInstance(text, c)) =>
               if (param2Value.isEmpty) {
                 isetEmpty[RFAFact]
               } else {
                 param2Value.map {
-                  case cstr2@PTAConcreteStringInstance(`text`, `c`) =>
+                  case PTAConcreteStringInstance(`text`, `c`) =>
                     val recordType = JavaKnowledge.getTypeFromName(text)
                     val claStr = PTAConcreteStringInstance(recordType.name, c)
                     var facts = isetEmpty[RFAFact]
@@ -300,12 +300,12 @@ object ComponentNameModel {
                     facts
                 }.reduce(iunion[RFAFact])
               }
-            case pstr1@PTAPointStringInstance(c) =>
+            case PTAPointStringInstance(c) =>
               if (param2Value.isEmpty) {
                 isetEmpty[RFAFact]
               } else {
                 param2Value.map {
-                  case cstr2@PTAConcreteStringInstance(text, `c`) =>
+                  case PTAConcreteStringInstance(text, `c`) =>
                     val recordType = JavaKnowledge.getTypeFromName(text)
                     val rec = global.getClassOrResolve(recordType)
                     val claStr = PTAConcreteStringInstance(recordType.name, c)

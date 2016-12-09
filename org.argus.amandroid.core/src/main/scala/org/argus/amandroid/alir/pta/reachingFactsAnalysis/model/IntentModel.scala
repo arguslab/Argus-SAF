@@ -24,7 +24,7 @@ import org.sireum.util._
 object IntentModel {
   final val TITLE = "IntentModel"
   
-  def isIntent(r: JawaClass): Boolean = r.getName == AndroidConstants.INTENT
+  def isIntent(r: JawaClass): Boolean = r.getName.equals(AndroidConstants.INTENT)
   
   def doIntentCall(s: PTAResult, p: JawaMethod, args: List[String], retVars: Seq[String], currentContext: Context)(implicit factory: RFAFactFactory): (ISet[RFAFact], ISet[RFAFact], Boolean) = {
     var newFacts = isetEmpty[RFAFact]
@@ -600,7 +600,7 @@ object IntentModel {
         clazzNames.foreach {
           case cstr@PTAConcreteStringInstance(text, c) =>
             val recordTyp = new JawaType(text)
-            val recOpt = global.tryLoadClass(recordTyp)
+            val recOpt = global.getClazz(recordTyp)
             recOpt match {
               case Some(rec) =>
                 val packageName = rec.getPackage match {
@@ -654,7 +654,7 @@ object IntentModel {
     clazzNames.foreach {
       case cstr@PTAConcreteStringInstance(text, c) =>
         val recordTyp = new JawaType(text)
-        val recOpt = global.tryLoadClass(recordTyp)
+        val recOpt = global.getClazz(recordTyp)
         recOpt match {
           case Some(rec) =>
             val packageName = rec.getPackage match {
@@ -800,7 +800,7 @@ object IntentModel {
     clazzNames.foreach {
       case cstr@PTAConcreteStringInstance(text, c) =>
         val recordTyp = new JawaType(text)
-        val recOpt = global.tryLoadClass(recordTyp)
+        val recOpt = global.getClazz(recordTyp)
         recOpt match {
           case Some(rec) =>
             val packageName = rec.getPackage match {
@@ -847,7 +847,7 @@ object IntentModel {
     clazzValue.foreach {
       case cstr@PTAConcreteStringInstance(text, c) =>
         val recordTyp = new JawaType(text)
-        val recOpt = global.tryLoadClass(recordTyp)
+        val recOpt = global.getClazz(recordTyp)
         recOpt match {
           case Some(rec) =>
             val packageName = rec.getPackage match {

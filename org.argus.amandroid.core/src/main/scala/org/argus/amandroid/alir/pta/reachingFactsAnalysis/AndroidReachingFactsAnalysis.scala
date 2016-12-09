@@ -34,7 +34,7 @@ class AndroidReachingFactsAnalysisBuilder(global: Global, apk: Apk, clm: ClassLo
   
   final val TITLE = "AndroidReachingFactsAnalysisBuilder"
   
-  var icfg: InterproceduralControlFlowGraph[ICFGNode] = null
+  var icfg: InterproceduralControlFlowGraph[ICFGNode] = _
   val ptaresult = new PTAResult
   val needtoremove: MSet[(Context, RFAFact)] = msetEmpty
 
@@ -67,7 +67,7 @@ class AndroidReachingFactsAnalysisBuilder(global: Global, apk: Apk, clm: ClassLo
   
   private def checkAndLoadClassFromHierarchy(me: JawaClass, s: ISet[RFAFact], currentNode: ICFGLocNode): Unit = {
     if(me.hasSuperClass){
-      checkAndLoadClassFromHierarchy(me.getSuperClass.get, s, currentNode)
+      checkAndLoadClassFromHierarchy(global.getClassOrResolve(me.getSuperClass), s, currentNode)
     }
     val bitset = currentNode.getLoadedClassBitSet
     if(!clm.isLoaded(me, bitset)) {
@@ -79,7 +79,7 @@ class AndroidReachingFactsAnalysisBuilder(global: Global, apk: Apk, clm: ClassLo
           if(AndroidReachingFactsAnalysisHelper.isModelCall(p)) {
             ReachingFactsAnalysisHelper.getUnknownObjectForClinit(p, currentNode.getContext)
           } else if(!this.icfg.isProcessed(p.getSignature, currentNode.getContext)) { // for normal call
-            val nodes = this.icfg.collectCfgToBaseGraph(p, currentNode.getContext, isFirst = false)
+            val nodes = this.icfg.collectCfgToBaseGraph(p, currentNode.getContext)
             nodes.foreach{n => n.setLoadedClassBitSet(clm.loadClass(me, bitset))}
             val clinitVirEntryContext = currentNode.getContext.copy.setContext(p.getSignature, "Entry")
             val clinitVirExitContext = currentNode.getContext.copy.setContext(p.getSignature, "Exit")
@@ -134,7 +134,7 @@ class AndroidReachingFactsAnalysisBuilder(global: Global, apk: Apk, clm: ClassLo
           val recTyp = JavaKnowledge.getClassTypeFromFieldFQN(fqn)
           checkClass(recTyp, s, currentNode)
         }
-      case ce: CallExp =>
+      case _: CallExp =>
         val typ = a.getValueAnnotation("kind") match {
           case Some(exp) => exp match {
             case ne: NameExp => ne.name.name
@@ -154,7 +154,7 @@ class AndroidReachingFactsAnalysisBuilder(global: Global, apk: Apk, clm: ClassLo
   def getExceptionFacts(a: Assignment, s: ISet[RFAFact], currentContext: Context): ISet[RFAFact] = {
     var result = isetEmpty[RFAFact]
     a match{
-      case aa: AssignAction =>
+      case _: AssignAction =>
         val thrownExcNames = ExceptionCenter.getExceptionMayThrowFromAssignment(a)
         thrownExcNames.foreach{
           excName =>
@@ -173,8 +173,8 @@ class AndroidReachingFactsAnalysisBuilder(global: Global, apk: Apk, clm: ClassLo
     a match{
       case aa: AssignAction => 
         aa.rhs match {
-          case ne: NewExp => result = true
-          case ce: CastExp => result = true
+          case _: NewExp => result = true
+          case _: CastExp => result = true
           case _ =>
             a.getValueAnnotation("kind") match {
               case Some(e) => 
@@ -185,7 +185,7 @@ class AndroidReachingFactsAnalysisBuilder(global: Global, apk: Apk, clm: ClassLo
               case None => 
             }
         }
-      case cj: CallJump => result = true
+      case _: CallJump => result = true
       case _ =>
     }
     result
@@ -258,7 +258,7 @@ class AndroidReachingFactsAnalysisBuilder(global: Global, apk: Apk, clm: ClassLo
       val lhss = PilarAstHelper.getLHSs(a)
       ReachingFactsAnalysisHelper.updatePTAResultLHSs(lhss, currentNode.getContext, s, ptaresult)
       val slotsWithMark = ReachingFactsAnalysisHelper.processLHSs(lhss, typ, currentNode.getContext, ptaresult, global).values.flatten.toSet
-      for (rdf @ RFAFact(slot, value) <- s) {
+      for (rdf @ RFAFact(_, _) <- s) {
         //if it is a strong definition, we can kill the existing definition
         if (slotsWithMark.contains(rdf.s, true)) {
           needtoremove += ((currentNode.getContext, rdf))
@@ -457,7 +457,7 @@ class AndroidReachingFactsAnalysisBuilder(global: Global, apk: Apk, clm: ClassLo
         while(tmpRec.hasSuperClass){
           if(tmpRec == recCallee) return true
           else if(tmpRec.declaresMethod(calleeProc.getSubSignature)) return false
-          else tmpRec = tmpRec.getSuperClass.get
+          else tmpRec = global.getClassOrResolve(tmpRec.getSuperClass)
         }
         if(tmpRec == recCallee) true
         else {
@@ -554,7 +554,7 @@ class AndroidReachingFactsAnalysisBuilder(global: Global, apk: Apk, clm: ClassLo
           val value = insnums.map(factory.getInstance)
           ptaresult.addInstances(pSlot, calleeExitNode.getContext, value)
           heapfacts foreach {
-            case rfa @ RFAFact(s, v) => ptaresult.addInstance(rfa.s, calleeExitNode.getContext, rfa.v)
+            case rfa @ RFAFact(_, _) => ptaresult.addInstance(rfa.s, calleeExitNode.getContext, rfa.v)
           }
       }
       
@@ -612,7 +612,7 @@ class AndroidReachingFactsAnalysisBuilder(global: Global, apk: Apk, clm: ClassLo
           // kill the strong update for caller return node
           val lhss = PilarAstHelper.getLHSs(cj)
           val slotsWithMark = ReachingFactsAnalysisHelper.processLHSs(lhss, None, callerNode.getContext, ptaresult, global).values.flatten.toSet
-          for (rdf @ RFAFact(slot, value) <- result) {
+          for (rdf @ RFAFact(_, value) <- result) {
             //if it is a strong definition, we can kill the existing definition
             if (slotsWithMark.exists{case (s, st) => s.getId == rdf.s.getId && st}) {
               val news = rdf.s match {
@@ -638,7 +638,7 @@ class AndroidReachingFactsAnalysisBuilder(global: Global, apk: Apk, clm: ClassLo
               val insnums = values.map(factory.getInstanceNum)
               result ++= ReachingFactsAnalysisHelper.getRelatedHeapFacts(insnums, calleeS)
           }
-        case cnn: ICFGNode =>
+        case _: ICFGNode =>
       }
       /**
        * update pstresult with caller's return node and it's points-to info
@@ -650,7 +650,7 @@ class AndroidReachingFactsAnalysisBuilder(global: Global, apk: Apk, clm: ClassLo
           }
           rFact.s match{
             case VarSlot(a, b, true) => new RFAFact(VarSlot(a, b, isArg = false), rFact.v)
-            case a => rFact
+            case _ => rFact
           }
       }.toSet -- kill
     }

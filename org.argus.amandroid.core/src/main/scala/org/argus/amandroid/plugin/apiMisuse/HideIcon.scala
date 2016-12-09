@@ -27,7 +27,6 @@ class HideIcon extends ApiMisuseChecker {
 
   def check(global: Global, idfgOpt: Option[InterproceduralDataFlowGraph]): ApiMisuseResult = {
     val result: MMap[(Signature, String), String] = mmapEmpty
-    global.resolveAllApplicationClasses()
     global.getApplicationClasses foreach {
       ac =>
         ac.getDeclaredMethods foreach {

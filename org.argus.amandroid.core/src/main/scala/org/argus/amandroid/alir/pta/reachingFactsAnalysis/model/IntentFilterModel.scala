@@ -25,7 +25,7 @@ object IntentFilterModel {
   
   final val TITLE = "IntentFilterModel"
   
-  def isIntentFilter(r: JawaClass): Boolean = r.getName == AndroidConstants.INTENTFILTER
+  def isIntentFilter(r: JawaClass): Boolean = r.getName.equals(AndroidConstants.INTENTFILTER)
     
   def doIntentFilterCall(s: PTAResult, p: JawaMethod, args: List[String], retVars: Seq[String], currentContext: Context)(implicit factory: RFAFactFactory): (ISet[RFAFact], ISet[RFAFact], Boolean) = {
     var newFacts = isetEmpty[RFAFact]

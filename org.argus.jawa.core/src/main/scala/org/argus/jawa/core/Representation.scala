@@ -21,9 +21,9 @@ case class MyClass(
             var outerType: Option[JawaType] = None,
             var fields: IList[MyField] = ilistEmpty,
             var methods: IList[MyMethod] = ilistEmpty) {
-  protected[jawa] def setOuter(o: JawaType) = this.outerType = Some(o)
-  protected[jawa] def addField(f: MyField) = this.fields :+= f
-  protected[jawa] def addMethod(m: MyMethod) = this.methods :+= m
+  protected[jawa] def setOuter(o: JawaType): Unit = this.outerType = Some(o)
+  protected[jawa] def addField(f: MyField): Unit = this.fields :+= f
+  protected[jawa] def addMethod(m: MyMethod): Unit = this.methods :+= m
 }
 
 case class MyField(accessFlag: Int, FQN: FieldFQN) {
@@ -35,6 +35,6 @@ case class MyMethod(
             signature: Signature,
             var params: IList[String] = ilistEmpty,
             var body: Option[MethodBody] = None) {
-  protected[jawa] def addParam(name: String) = this.params :+= name
-  protected[jawa] def setBody(b: MethodBody) = this.body = Some(b)
+  protected[jawa] def addParam(name: String): Unit = this.params :+= name
+  protected[jawa] def setBody(b: MethodBody): Unit = this.body = Some(b)
 }

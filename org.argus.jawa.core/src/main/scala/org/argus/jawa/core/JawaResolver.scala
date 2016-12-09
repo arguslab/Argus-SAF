@@ -13,7 +13,7 @@ package org.argus.jawa.core
 import org.argus.jawa.core.io.AbstractFile
 import org.argus.jawa.core.sourcefile.{MySTVisitor, SourcefileParser}
 import org.argus.jawa.core.symbolResolver.{JawaSymbolTable, JawaSymbolTableBuilder}
-import org.argus.jawa.core.util.MyFileUtil
+import org.argus.jawa.core.util.{MyFileUtil, WorklistAlgorithm}
 import org.sireum.pilar.symbol.SymbolTableProducer
 import org.sireum.pilar.ast._
 import org.sireum.util._
@@ -54,7 +54,7 @@ trait JawaResolver extends JavaKnowledge { self: Global =>
   /**
    * resolve the given method's body to body level. 
    */
-  def resolveMethodBody(c: JawaClass) = {
+  def resolveMethodBody(c: JawaClass): Unit = {
     val typ = c.getType
     val mcs = this.applicationClassCodes.get(typ) match {
       case Some(asrc) =>
@@ -78,41 +78,60 @@ trait JawaResolver extends JavaKnowledge { self: Global =>
   /**
    * resolve the given classes to desired level. 
    */
-  protected[jawa] def resolveClass(classType: JawaType, desiredLevel: ResolveLevel.Value, allowUnknown: Boolean): JawaClass = {
+  protected[core] def resolveClass(classType: JawaType, desiredLevel: ResolveLevel.Value, allowUnknown: Boolean): JawaClass = {
     val clazz =
       if(!classType.isArray && !containsClassFile(classType)) {
         if(!allowUnknown) throw JawaResolverError("Does not find class " + classType + " and don't allow unknown.")
         if(desiredLevel >= ResolveLevel.BODY) throw JawaResolverError("Does not allow unknown class " + classType + " resolve to body level.")
-        getClazz(classType) match {
-          case None =>
-            val rec = new JawaClass(this, classType, "")
-            rec.setUnknown()
-            rec.setResolvingLevel(desiredLevel)
-            if(classType.baseType.unknown) {
-              addNeedToResolveExtend(rec, classType.removeUnknown())
-            } else {
-              reporter.echo(TITLE, "Add phantom class " + rec)
-              addClassNotFound(classType)
-            }
-            rec
-          case Some(c) =>
-            c
+        val rec = new JawaClass(this, classType, "")
+        rec.setUnknown()
+        rec.setResolvingLevel(desiredLevel)
+        if(classType.baseType.unknown) {
+          rec.setSuperClass(classType.removeUnknown())
+        } else {
+          rec.setSuperClass(JAVA_TOPLEVEL_OBJECT_TYPE)
+          reporter.echo(TITLE, "Add phantom class " + rec)
+          addClassNotFound(classType)
         }
+        rec
       } else {
-        getClazz(classType) match {
-          case None =>
-            desiredLevel match{
-              case ResolveLevel.BODY => forceResolveToBody(classType)
-              case ResolveLevel.HIERARCHY => forceResolveToHierarchy(classType)
-            }
-          case Some(c) =>
-            if(c.getResolvingLevel < desiredLevel) escalateReolvingLevel(c, desiredLevel)
-            else c
+        desiredLevel match{
+          case ResolveLevel.BODY => forceResolveToBody(classType)
+          case ResolveLevel.HIERARCHY => forceResolveToHierarchy(classType)
         }
       }
-    addClassesNeedUpdateInHierarchy(clazz)
-    resolveClassesRelationWholeProgram()
+    if(!getClassHierarchy.resolved(clazz.getType)) {
+      resolveClassRelation(clazz)
+    }
     clazz
+  }
+
+  /**
+    * resolve classes relation of the whole program
+    */
+  protected[core] def resolveClassRelation(clazz: JawaClass): Any = {
+    val worklistAlgo = new WorklistAlgorithm[JawaClass] {
+      override def processElement(clazz: JawaClass): Unit = {
+        addClassesNeedUpdateInHierarchy(clazz)
+        val parents = clazz.getInterfaces ++ Option(clazz.getSuperClass)
+        parents foreach { par =>
+          if(!getClassHierarchy.resolved(par)) {
+            getMyClass(par) match {
+              case Some(mc) =>
+                val parent = resolveFromMyClass(mc)
+                worklist.push(parent)
+              case None =>
+                val rec = new JawaClass(clazz.global, par, "")
+                rec.setUnknown()
+                rec.setSuperClass(JAVA_TOPLEVEL_OBJECT_TYPE)
+                addClassNotFound(par)
+                worklist.push(rec)
+            }
+          }
+        }
+      }
+    }
+    worklistAlgo.run(worklistAlgo.worklist.push(clazz))
   }
   
   protected[jawa] def getClassCode(file: AbstractFile, level: ResolveLevel.Value): String = {
@@ -139,8 +158,9 @@ trait JawaResolver extends JavaKnowledge { self: Global =>
       resolveArrayClass(classType)
     } else {
       val mc = getMyClass(classType).get
-      removeClass(classType)
-      resolveFromMyClass(mc)
+      val c = resolveFromMyClass(mc)
+      c.setResolvingLevel(ResolveLevel.HIERARCHY)
+      c
     }
     clazz
   }
@@ -157,14 +177,14 @@ trait JawaResolver extends JavaKnowledge { self: Global =>
   /**
    * escalate resolving level
    */
-  private def escalateReolvingLevel(clazz: JawaClass, desiredLevel: ResolveLevel.Value): JawaClass = {
-    require(clazz.getResolvingLevel < desiredLevel)
-    if(desiredLevel == ResolveLevel.BODY){
-      clazz.getDeclaredMethods.foreach(m => m.getBody)
-      clazz.setResolvingLevel(ResolveLevel.BODY)
-    }
-    clazz
-  }
+//  private def escalateReolvingLevel(clazz: JawaClass, desiredLevel: ResolveLevel.Value): JawaClass = {
+//    require(clazz.getResolvingLevel < desiredLevel)
+//    if(desiredLevel == ResolveLevel.BODY){
+//      clazz.getDeclaredMethods.foreach(m => m.getBody)
+//      clazz.setResolvingLevel(ResolveLevel.BODY)
+//    }
+//    clazz
+//  }
   
   /**
    * force resolve the given class to body level
@@ -175,8 +195,10 @@ trait JawaResolver extends JavaKnowledge { self: Global =>
         resolveArrayClass(classType)
       } else {
         val mc = getMyClass(classType).get
-        removeClass(classType)
-        resolveFromMyClass(mc)
+        val c = resolveFromMyClass(mc)
+        c.getDeclaredMethods.foreach(m => m.getBody)
+        c.setResolvingLevel(ResolveLevel.BODY)
+        c
       }
     clazz
   }
@@ -194,7 +216,7 @@ trait JawaResolver extends JavaKnowledge { self: Global =>
         if(baseaf.contains("FINAL")) baseaf else "FINAL_" + baseaf
       }
     val clazz: JawaClass = new JawaClass(this, typ, recAccessFlag)
-    addNeedToResolveExtend(clazz, JAVA_TOPLEVEL_OBJECT_TYPE)
+    clazz.setSuperClass(JAVA_TOPLEVEL_OBJECT_TYPE)
     clazz.setResolvingLevel(ResolveLevel.BODY)
     new JawaField(clazz, "class", new JawaType("java.lang.Class"), "FINAL_STATIC")
     new JawaField(clazz, "length", new JawaType("int"), "FINAL")
@@ -216,9 +238,12 @@ trait JawaResolver extends JavaKnowledge { self: Global =>
       m =>
         resolveFromMyMethod(clazz, m)
     }
-    mc.superType.foreach(addNeedToResolveExtend(clazz, _))
-    mc.outerType.foreach(addNeedToResolveOuterClass(clazz, _))
-    mc.interfaces.foreach(addNeedToResolveExtend(clazz, _))
+    mc.superType match {
+      case Some(t) => clazz.setSuperClass(t)
+      case None =>
+        if(!clazz.getName.equals(JAVA_TOPLEVEL_OBJECT)) clazz.setSuperClass(JAVA_TOPLEVEL_OBJECT_TYPE)
+    }
+    mc.interfaces.foreach(clazz.addInterface)
     clazz
   }
   
@@ -226,12 +251,12 @@ trait JawaResolver extends JavaKnowledge { self: Global =>
     val sig = m.signature
     val mname = sig.methodName
     var paramNames = m.params
-    val thisOpt: Option[String] = AccessFlag.isStatic(m.accessFlag) || AccessFlag.isAbstract(m.accessFlag) match {
-      case true => None
-      case false => 
-        val t = paramNames.head
-        paramNames = paramNames.tail
-        Some(t)
+    val thisOpt: Option[String] = if (AccessFlag.isStatic(m.accessFlag) || AccessFlag.isAbstract(m.accessFlag)) {
+      None
+    } else {
+      val t = paramNames.head
+      paramNames = paramNames.tail
+      Some(t)
     }
     val paramsize = paramNames.size
     val params: MList[(String, JawaType)] = mlistEmpty
@@ -249,7 +274,7 @@ trait JawaResolver extends JavaKnowledge { self: Global =>
 }
 
 object JawaResolver{
-  var fst = { _: Unit => new JawaSymbolTable }
+  var fst: (Unit) => JawaSymbolTable = { _: Unit => new JawaSymbolTable }
   
   def parseCodes(codes: Set[String]): Model = {
     val sb = new StringBuilder

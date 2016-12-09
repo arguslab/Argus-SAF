@@ -109,8 +109,8 @@ trait CSTCallee {
 class Intent_Summary extends CSTContent {
   private val callers: MSet[(ICFGNode, IntentCaller)] = msetEmpty
   private val callees: MSet[(ICFGNode, IntentCallee)] = msetEmpty
-  def addCaller(node: ICFGNode, caller: IntentCaller) = callers += ((node, caller))
-  def addCallee(node: ICFGNode, callee: IntentCallee) = callees += ((node, callee))
+  def addCaller(node: ICFGNode, caller: IntentCaller): Unit = callers += ((node, caller))
+  def addCallee(node: ICFGNode, callee: IntentCallee): Unit = callees += ((node, callee))
   def asCaller: ISet[(ICFGNode, CSTCaller)] = callers.toSet
   def asCallee: ISet[(ICFGNode, CSTCallee)] = callees.toSet
 }
@@ -141,8 +141,8 @@ case class IntentCallee(apk: Apk, component: JawaType, compTyp: AndroidConstants
 class RPC_Summary extends CSTContent {
   private val callers: MSet[(ICFGNode, RPCCaller)] = msetEmpty
   private val callees: MSet[(ICFGNode, RPCCallee)] = msetEmpty
-  def addCaller(node: ICFGNode, caller: RPCCaller) = callers += ((node, caller))
-  def addCallee(node: ICFGNode, callee: RPCCallee) = callees += ((node, callee))
+  def addCaller(node: ICFGNode, caller: RPCCaller): Unit = callers += ((node, caller))
+  def addCallee(node: ICFGNode, callee: RPCCallee): Unit = callees += ((node, callee))
   def asCaller: ISet[(ICFGNode, CSTCaller)] = callers.toSet
   def asCallee: ISet[(ICFGNode, CSTCallee)] = callees.toSet
 }
@@ -162,8 +162,8 @@ case class RPCCallee(sig: Signature) extends CSTCallee {
 class Storage_Summary extends CSTContent {
   private val callers: MSet[(ICFGNode, StorageCaller)] = msetEmpty
   private val callees: MSet[(ICFGNode, StorageCallee)] = msetEmpty
-  def addCaller(node: ICFGNode, caller: StorageCaller) = callers += ((node, caller))
-  def addCallee(node: ICFGNode, callee: StorageCallee) = callees += ((node, callee))
+  def addCaller(node: ICFGNode, caller: StorageCaller): Unit = callers += ((node, caller))
+  def addCallee(node: ICFGNode, callee: StorageCallee): Unit = callees += ((node, callee))
   def asCaller: ISet[(ICFGNode, CSTCaller)] = callers.toSet
   def asCallee: ISet[(ICFGNode, CSTCallee)] = callees.toSet
 }

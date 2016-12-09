@@ -34,9 +34,9 @@ abstract class SourceFile {
   /** Map a position to a position in the underlying source file.
    *  For regular source files, simply return the argument.
    */
-  def positionInUltimateSource(position: Position) = position
-  override def toString = file.name
-  def path = file.path
+  def positionInUltimateSource(position: Position): Position = position
+  override def toString: String = file.name
+  def path: String = file.path
 
   def lineToString(index: Int): String = {
     val start = lineToOffset(index)
@@ -60,28 +60,24 @@ object NoSourceFile extends SourceFile {
   def isLineBreak(idx: Int)     = false
   def isEndOfLine(idx: Int)     = false
   def isSelfContained           = true
-  def length                    = -1
-  def offsetToLine(offset: Int) = -1
-  def lineToOffset(index: Int) = -1
+  def length: Int = -1
+  def offsetToLine(offset: Int): Int = -1
+  def lineToOffset(index: Int): Int = -1
   override def toString = "<no source file>"
 }
 
 object NoFile extends VirtualFile("<no file>", "<no file>")
 
-class FgSourceFile(val file: AbstractFile, content0: Array[Char]) extends SourceFile {
-  def this(_file: AbstractFile)                 = this(_file, _file.toCharArray)
-  def this(sourceName: String, cs: Seq[Char])   = this(new VirtualFile(sourceName), cs.toArray)
-  def this(file: AbstractFile, cs: Seq[Char])   = this(file, cs.toArray)
+class FgSourceFile(val file: AbstractFile) extends SourceFile {
+  def this(sourceName: String)   = this(new VirtualFile(sourceName))
 
   // If non-whitespace tokens run all the way up to EOF,
   // positions go wrong because the correct end of the last
   // token cannot be used as an index into the char array.
   // The least painful way to address this was to add a
   // newline to the array.
-  val content =
-    if (content0.length == 0 || !content0.last.isWhitespace) content0 :+ '\n'
-    else content0
-  val length = content.length
+  def content: Array[Char] = file.toCharArray
+  def length: Int = content.length
   def start = 0
   def isSelfContained = true
 
@@ -90,7 +86,7 @@ class FgSourceFile(val file: AbstractFile, content0: Array[Char]) extends Source
     c.replaceAll("(record `)", "DELIMITER_FGWEI_HAHAHA$1").split("DELIMITER_FGWEI_HAHAHA").tail.toSet
   }
   
-  override def identifier(pos: Position) =
+  override def identifier(pos: Position): Option[String] =
     if (pos.isDefined && pos.source == this && pos.point != -1) {
       def isOK(c: Char) = isIdentifierPart(c, isGraveAccent = true) || isOperatorPart(c)
       Some(new String(content drop pos.point takeWhile isOK))
@@ -105,20 +101,20 @@ class FgSourceFile(val file: AbstractFile, content0: Array[Char]) extends Source
     idx < length && notCRLF0 && p(content(idx))
   }
 
-  def isLineBreak(idx: Int) = charAtIsEOL(idx)(isLineBreakChar)
+  def isLineBreak(idx: Int): Boolean = charAtIsEOL(idx)(isLineBreakChar)
 
   /** True if the index is included by an EOL sequence. */
-  def isEndOfLine(idx: Int) = (content isDefinedAt idx) && PartialFunction.cond(content(idx)) {
+  def isEndOfLine(idx: Int): Boolean = (content isDefinedAt idx) && PartialFunction.cond(content(idx)) {
     case CR | LF => true
   }
 
   /** True if the index is end of an EOL sequence. */
-  def isAtEndOfLine(idx: Int) = charAtIsEOL(idx) {
+  def isAtEndOfLine(idx: Int): Boolean = charAtIsEOL(idx) {
     case CR | LF => true
     case _       => false
   }
 
-  def calculateLineIndices(cs: Array[Char]) = {
+  def calculateLineIndices(cs: Array[Char]): Array[Int] = {
     val buf = new ArrayBuffer[Int]
     buf += 0
     for (i <- cs.indices) if (isAtEndOfLine(i)) buf += i + 1
@@ -145,9 +141,9 @@ class FgSourceFile(val file: AbstractFile, content0: Array[Char]) extends Source
     lastLine
   }
 
-  override def equals(that: Any) = that match {
+  override def equals(that: Any): Boolean = that match {
     case that: FgSourceFile => file.path == that.file.path && start == that.start
     case _ => false
   }
-  override def hashCode = file.path.## + start.##
+  override def hashCode: Int = file.path.## + start.##
 }

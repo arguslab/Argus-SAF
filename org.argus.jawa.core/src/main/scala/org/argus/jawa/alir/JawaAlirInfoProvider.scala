@@ -11,7 +11,7 @@
 package org.argus.jawa.alir
 
 import org.argus.jawa.core._
-import org.sireum.alir.{AlirIntraProceduralGraph, ControlFlowGraph => OrigControlFlowGraph, DefRef}
+import org.sireum.alir.{AlirIntraProceduralGraph, DefRef, ControlFlowGraph => OrigControlFlowGraph}
 import org.sireum.util._
 import org.sireum.pilar.symbol.SymbolTable
 import org.sireum.pilar.symbol.ProcedureSymbolTable
@@ -22,6 +22,7 @@ import org.sireum.pilar.ast.NameExp
 import org.argus.jawa.alir.controlFlowGraph.{ControlFlowGraph => JawaControlFlowGraph}
 import org.argus.jawa.alir.reachingDefinitionAnalysis.{JawaDefRef, JawaReachingDefinitionAnalysis, JawaVarAccesses}
 import org.argus.jawa.core.symbolResolver.JawaSymbolTableBuilder
+import org.sireum.pilar.parser.PilarParser.ErrorReporter
 
 /**
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
@@ -46,7 +47,7 @@ object JawaAlirInfoProvider {
   
   val saom: Boolean = true
   
-  def init(dr: (SymbolTable, Boolean) => DefRef) = {
+  def init(dr: (SymbolTable, Boolean) => DefRef): Unit = {
     this.dr = dr
   }
   
@@ -70,7 +71,7 @@ object JawaAlirInfoProvider {
 			          catchclause =>
 			            val excType = getExceptionType(catchclause)
 			            val exc = global.getClassOrResolve(excType)
-                  exc.global.getClassHierarchy.isClassRecursivelySubClassOfIncluding(child, exc)
+                  exc.global.getClassHierarchy.isClassRecursivelySubClassOfIncluding(child.getType, exc.getType)
 	      	    }
           result ++= ccOpt
       	}
@@ -78,10 +79,10 @@ object JawaAlirInfoProvider {
       	(result, false)
     }
   
-  def reporter = {
+  def reporter: ErrorReporter = {
 	  new org.sireum.pilar.parser.PilarParser.ErrorReporter {
       def report(source: Option[FileResourceUri], line: Int,
-                 column: Int, message: String) =
+                 column: Int, message: String): Unit =
         System.err.println("source:" + source + ".line:" + line + ".column:" + column + ".message:" + message)
     }
 	}
@@ -108,7 +109,7 @@ object JawaAlirInfoProvider {
 			        exp.name.name
 			      case _ => throw new RuntimeException("Can not find signature")
 			    }
-	      (procSig, new TransformIntraMethodResult(pst, cfg, rda))
+	      (procSig, TransformIntraMethodResult(pst, cfg, rda))
 	  }.toMap
 	}
   

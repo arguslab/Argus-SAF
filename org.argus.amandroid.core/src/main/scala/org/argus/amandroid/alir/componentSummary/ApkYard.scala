@@ -29,17 +29,17 @@ import org.argus.jawa.core.{Constants, Global, JawaType}
  */
 class ApkYard(global: Global) {
   private val apks: MMap[FileResourceUri, Apk] = mmapEmpty
-  def addApk(apk: Apk) = this.synchronized(apks(apk.nameUri) = apk)
-  def removeApk(apk: Apk) = this.synchronized(apks -= apk.nameUri)
-  def removeApk(nameUri: FileResourceUri) = this.synchronized(apks -= nameUri)
+  def addApk(apk: Apk): Unit = this.synchronized(apks(apk.nameUri) = apk)
+  def removeApk(apk: Apk): Unit = this.synchronized(apks -= apk.nameUri)
+  def removeApk(nameUri: FileResourceUri): Unit = this.synchronized(apks -= nameUri)
   def getApk(nameUri: FileResourceUri): Option[Apk] = this.synchronized(apks.get(nameUri))
-  def getApks = this.apks.toMap
+  def getApks: Map[FileResourceUri, Apk] = this.apks.toMap
   
   private val componentToApkMap: MMap[JawaType, Apk] = mmapEmpty
-  def addComponent(component: JawaType, apk: Apk) = this.synchronized(componentToApkMap(component) = apk)
-  def removeComponent(component: JawaType) = this.synchronized(componentToApkMap -= component)
+  def addComponent(component: JawaType, apk: Apk): Unit = this.synchronized(componentToApkMap(component) = apk)
+  def removeComponent(component: JawaType): Unit = this.synchronized(componentToApkMap -= component)
   def getOwnerApk(component: JawaType): Option[Apk] = this.synchronized(componentToApkMap.get(component))
-  def getComponentToApkMap = this.componentToApkMap.toMap
+  def getComponentToApkMap: Map[JawaType, Apk] = this.componentToApkMap.toMap
   
   def loadApk(apkUri: FileResourceUri, settings: DecompilerSettings): Apk = {
     val (outUri, srcs) = loadCode(apkUri, settings)
@@ -65,37 +65,37 @@ class ApkYard(global: Global) {
   
   private val idfgResults: MMap[JawaType, InterproceduralDataFlowGraph] = mmapEmpty
   
-  def addIDFG(key: JawaType, idfg: InterproceduralDataFlowGraph) = this.synchronized(this.idfgResults += (key -> idfg))
+  def addIDFG(key: JawaType, idfg: InterproceduralDataFlowGraph): Unit = this.synchronized(this.idfgResults += (key -> idfg))
   def hasIDFG(key: JawaType): Boolean = this.synchronized(this.idfgResults.contains(key))
   def getIDFG(key: JawaType): Option[InterproceduralDataFlowGraph] = this.synchronized(this.idfgResults.get(key))
-  def getIDFGs = this.idfgResults.toMap
+  def getIDFGs: Map[JawaType, InterproceduralDataFlowGraph] = this.idfgResults.toMap
   
   private val iddaResults: MMap[JawaType, InterproceduralDataDependenceInfo] = mmapEmpty
   
-  def addIDDG(key: JawaType, iddi: InterproceduralDataDependenceInfo) = this.synchronized(this.iddaResults += (key -> iddi))
+  def addIDDG(key: JawaType, iddi: InterproceduralDataDependenceInfo): Unit = this.synchronized(this.iddaResults += (key -> iddi))
   def hasIDDG(key: JawaType): Boolean = this.iddaResults.contains(key)
   def getIDDG(key: JawaType): Option[InterproceduralDataDependenceInfo] = this.synchronized(this.iddaResults.get(key))
-  def getIDDGs = this.iddaResults.toMap
+  def getIDDGs: Map[JawaType, InterproceduralDataDependenceInfo] = this.iddaResults.toMap
   
   private val summaryTables: MMap[JawaType, ComponentSummaryTable] = mmapEmpty
   
-  def addSummaryTable(key: JawaType, summary: ComponentSummaryTable) = this.synchronized(this.summaryTables += (key -> summary))
+  def addSummaryTable(key: JawaType, summary: ComponentSummaryTable): Unit = this.synchronized(this.summaryTables += (key -> summary))
   def hasSummaryTable(key: JawaType): Boolean = this.summaryTables.contains(key)
   def getSummaryTable(key: JawaType): Option[ComponentSummaryTable] = this.synchronized(this.summaryTables.get(key))
-  def getSummaryTables = this.summaryTables.toMap
+  def getSummaryTables: Map[JawaType, ComponentSummaryTable] = this.summaryTables.toMap
   
   private val apkTaintResult: MMap[FileResourceUri, Any] = mmapEmpty
   
-  def addTaintAnalysisResult[N <: InterproceduralNode, E <: AlirEdge[N]](fileUri: FileResourceUri, tar: TaintAnalysisResult[N, E]) = this.synchronized(this.apkTaintResult(fileUri) = tar)
+  def addTaintAnalysisResult[N <: InterproceduralNode, E <: AlirEdge[N]](fileUri: FileResourceUri, tar: TaintAnalysisResult[N, E]): Unit = this.synchronized(this.apkTaintResult(fileUri) = tar)
   def hasTaintAnalysisResult(fileUri: FileResourceUri): Boolean = this.apkTaintResult.contains(fileUri)
-  def getTaintAnalysisResult[N <: InterproceduralNode, E <: AlirEdge[N]](fileUri: FileResourceUri) = this.apkTaintResult.get(fileUri).map(_.asInstanceOf[TaintAnalysisResult[N, E]])
+  def getTaintAnalysisResult[N <: InterproceduralNode, E <: AlirEdge[N]](fileUri: FileResourceUri): Option[TaintAnalysisResult[N, E]] = this.apkTaintResult.get(fileUri).map(_.asInstanceOf[TaintAnalysisResult[N, E]])
   
   private var interAppTaintResult: Option[Any] = None
-  def setInterAppTaintAnalysisResult[N <: InterproceduralNode, E <: AlirEdge[N]](tar: TaintAnalysisResult[N, E]) = this.synchronized(this.interAppTaintResult = Option(tar))
+  def setInterAppTaintAnalysisResult[N <: InterproceduralNode, E <: AlirEdge[N]](tar: TaintAnalysisResult[N, E]): Unit = this.synchronized(this.interAppTaintResult = Option(tar))
   def hasInterAppTaintAnalysisResult: Boolean = interAppTaintResult.isDefined
-  def getInterAppTaintAnalysisResult[N <: InterproceduralNode, E <: AlirEdge[N]] = this.interAppTaintResult.map(_.asInstanceOf[TaintAnalysisResult[N, E]])
+  def getInterAppTaintAnalysisResult[N <: InterproceduralNode, E <: AlirEdge[N]]: Option[TaintAnalysisResult[N, E]] = this.interAppTaintResult.map(_.asInstanceOf[TaintAnalysisResult[N, E]])
   
-  def reset() = {
+  def reset(): Unit = {
     this.apks.clear()
     this.componentToApkMap.clear()
     this.idfgResults.clear()

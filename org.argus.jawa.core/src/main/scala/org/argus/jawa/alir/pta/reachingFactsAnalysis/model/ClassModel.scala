@@ -21,7 +21,7 @@ import org.sireum.util._
  */ 
 object ClassModel {
   val TITLE = "ClassModel"
-	def isClass(r: JawaClass): Boolean = r.getName == "java.lang.Class"
+	def isClass(r: JawaClass): Boolean = r.getName.equals("java.lang.Class")
 	  
 	def doClassCall(s: PTAResult, p: JawaMethod, args: List[String], retVars: Seq[String], currentContext: Context)(implicit factory: RFAFactFactory): (ISet[RFAFact], ISet[RFAFact], Boolean) = {
 	  var newFacts = isetEmpty[RFAFact]

@@ -22,7 +22,7 @@ import org.sireum.util._
  * @author <a href="mailto:sroy@k-state.edu">Sankardas Roy</a>
  */ 
 object BundleModel {
-  def isBundle(r: JawaClass): Boolean = r.getName == AndroidConstants.BUNDLE
+  def isBundle(r: JawaClass): Boolean = r.getName.equals(AndroidConstants.BUNDLE)
     
   def doBundleCall(s: PTAResult, p: JawaMethod, args: List[String], retVars: Seq[String], currentContext: Context)(implicit factory: RFAFactFactory): (ISet[RFAFact], ISet[RFAFact], Boolean) = {
     var newFacts = isetEmpty[RFAFact]

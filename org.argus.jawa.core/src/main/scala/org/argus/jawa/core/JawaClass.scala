@@ -69,40 +69,22 @@ case class JawaClass(global: Global, typ: JawaType, accessFlags: Int) extends Ja
   /**
    * set of interfaces which this class/interface implements/extends. map from interface name to JawaClass
    */
-  protected val interfaces: MMap[String, JawaClass] = mmapEmpty
-  
+  protected val interfaces: MSet[JawaType] = msetEmpty
+
   /**
    * super class of this class. For interface it's always java.lang.Object
    */
-  protected var superClass: JawaClass = null
-  
-  protected val unknownParents: MMap[String, JawaClass] = mmapEmpty
-  
-  /**
-   * outer class of this class
-   */
-  protected var outerClass: JawaClass = null
+  protected var superClass: JawaType = _
   
   /**
    * return true if it's a child of given record
    */
   def isChildOf(typ: JawaType): Boolean = {
-    isChildOf(global.getClassOrResolve(typ))
-  }
-  
-  /**
-   * return true if it's a child of given record
-   */
-  def isChildOf(clazz: JawaClass): Boolean = {
-    global.getClassHierarchy.getAllSuperClassesOf(this).contains(clazz)
+    global.getClassHierarchy.getAllSuperClassesOf(getType).contains(typ)
   }
   
   def isImplementerOf(typ: JawaType): Boolean = {
-    isImplementerOf(global.getClassOrResolve(typ))
-  }
-  
-  def isImplementerOf(clazz: JawaClass): Boolean = {
-    global.getClassHierarchy.getAllImplementersOf(clazz).contains(this)
+    global.getClassHierarchy.getAllImplementersOf(typ).contains(getType)
   }
   
   /**
@@ -113,31 +95,19 @@ case class JawaClass(global: Global, typ: JawaType, accessFlags: Int) extends Ja
   /**
    * return the number of fields declared in this class
    */
-  def fieldSize = this.fields.size
+  def fieldSize: Int = this.fields.size
 
   /**
    * get all the fields accessible from the class
    */
   def getFields: ISet[JawaField] = {
     var results = getDeclaredFields
-    var worklist: Set[JawaClass] = Set()
-    worklist += this
-    while(worklist.nonEmpty){
-      worklist =
-        worklist.map{
-          rec =>
-            var parents = rec.getInterfaces
-            rec.getSuperClass foreach{parents += _}
-            val fields =
-              if(parents.nonEmpty)
-                parents.map{
-                  parent =>
-                    parent.getDeclaredFields.filter(f => !f.isPrivate && !results.exists(_.getName == f.getName))
-                }.reduce(iunion[JawaField])
-              else Set[JawaField]()
-                results ++= fields
-              parents
-        }.reduce(iunion[JawaClass])
+    var rec = this
+    while(rec.hasSuperClass){
+      val parent = global.getClassOrResolve(rec.getSuperClass)
+      val fields = parent.getDeclaredFields.filter(f => !f.isPrivate && !results.exists(_.getName == f.getName))
+      results ++= fields
+      rec = parent
     }
     results
   }
@@ -200,7 +170,7 @@ case class JawaClass(global: Global, typ: JawaType, accessFlags: Int) extends Ja
   /**
    * add one field into the class
    */
-  def addField(field: JawaField) = {
+  def addField(field: JawaField): Unit = {
     val fieldName = field.getName
     if(declaresField(fieldName)) global.reporter.warning(TITLE, "Field " + fieldName + " in class " + getName)
     else this.fields(fieldName) = field
@@ -219,7 +189,7 @@ case class JawaClass(global: Global, typ: JawaType, accessFlags: Int) extends Ja
   /**
    * removes the given field from this class
    */
-  def removeField(field: JawaField) = {
+  def removeField(field: JawaField): fields.type = {
     if(field.getDeclaringClass != this) throw new RuntimeException(getName + " did not declare " + field.getName)
     this.fields -= field.getName
   }
@@ -382,7 +352,7 @@ case class JawaClass(global: Global, typ: JawaType, accessFlags: Int) extends Ja
   /**
    * add the given method to this class
    */
-  def addMethod(ap: JawaMethod) = {
+  def addMethod(ap: JawaMethod): Unit = {
     if(this.methods.contains(ap.getSubSignature)) 
       global.reporter.error(TITLE, "The method " + ap.getSubSignature + " is already declared in class " + getName)
     else this.methods(ap.getSubSignature) = ap
@@ -391,7 +361,7 @@ case class JawaClass(global: Global, typ: JawaType, accessFlags: Int) extends Ja
   /**
    * remove the given method from this class
    */
-  def removeMethod(ap: JawaMethod) = {
+  def removeMethod(ap: JawaMethod): Any = {
     if(ap.getDeclaringClass != this) global.reporter.error(TITLE, "Not correct declarer for remove: " + ap.getName)
     else if(!this.methods.contains(ap.getSubSignature)) global.reporter.error(TITLE, "The method " + ap.getName + " is not declared in class " + getName)
     else this.methods -= ap.getSubSignature
@@ -405,85 +375,51 @@ case class JawaClass(global: Global, typ: JawaType, accessFlags: Int) extends Ja
   /**
    * get interfaces
    */
-  def getInterfaces: ISet[JawaClass] = this.interfaces.values.toSet
+  def getInterfaces: ISet[JawaType] = this.interfaces.toSet
 
   /**
    * whether this class implements the given interface
    */
-  def implementsInterface(name: String): Boolean = {
-    this.interfaces.contains(name)
-  }
+  def implementsInterface(typ: JawaType): Boolean = this.interfaces.contains(typ)
 
   /**
    * add an interface which is directly implemented by this class
    */
-  def addInterface(i: JawaClass) = {
-    if(!i.isInterface) global.reporter.error(TITLE, "This is not an interface:" + i)
-    else if(implementsInterface(i.getName)) 
-      global.reporter.error(TITLE, this + " already implements interface " + i)
-    else this.interfaces(i.getName) = i
+  def addInterface(i: JawaType): Unit = {
+    this.interfaces += i
   }
 
   /**
    * remove an interface from this class
    */
-  def removeInterface(i: JawaClass) = {
-    if(!i.isInterface) global.reporter.error(TITLE, "This is not an interface:" + i)
-    else if(!implementsInterface(i.getName)) global.reporter.error(TITLE, this + " not implements interface " + i.getName)
-    else this.interfaces -= i.getName
+  def removeInterface(i: JawaType): Any = {
+    this.interfaces -= i
   }
 
   /**
    * whether the current class has a super class or not
    */
-  def hasSuperClass = this.superClass != null
+  def hasSuperClass: Boolean = this.superClass != null
 
   /**
    * get the super class
    */
-  def getSuperClass: Option[JawaClass] = {
-    if(!hasSuperClass){
-      None
-    } else {
-      Some(this.superClass)
-    }
-  }
+  def getSuperClass: JawaType = this.superClass
 
   /**
    * set super class
    */
-  def setSuperClass(sc: JawaClass) = {
-    this.superClass = sc
-  }
-  
-  def addUnknownParent(up: JawaClass) = {
-    if(up.isLoaded) global.reporter.error(TITLE, "The parent class is loaded, so there are no reason to be unknown:" + up)
-    else this.unknownParents(up.getName) = up
-  }
-  
-  def getUnknownParents: ISet[JawaClass] = this.unknownParents.values.toSet
+  def setSuperClass(sc: JawaType): Unit = this.superClass = sc
 
   /**
    * whether the current class has an outer class or not
    */
-  def hasOuterClass = this.outerClass != null
+  def hasOuterClass: Boolean = isInnerClass(getType)
 
   /**
    * get the outer class
    */
-  def getOuterClass: Option[JawaClass] = {
-    if(!hasOuterClass){
-      None
-    }
-    else Some(this.outerClass)
-  }
-
-  /**
-   * set outer class
-   */
-  def setOuterClass(oc: JawaClass) = {
-    this.outerClass = oc
-  }
+  def getOuterClass: Option[JawaType] = if(isInnerClass) Some(getOuterTypeFrom(getType)) else None
 
   /**
    * whether current class is an inner class or not
@@ -504,15 +440,6 @@ case class JawaClass(global: Global, typ: JawaType, accessFlags: Int) extends Ja
    * is this class an application class
    */
   def isApplicationClass: Boolean = global.isApplicationClasses(getType)
-  
-  /**
-   * set this class as an application class
-   */
-  def setApplicationClass() = {
-    val c = global.getContainingSet(this)
-    if(c != null) global.removeFromContainingSet(this)
-    global.addApplicationClass(this)
-  }
 
   /**
    * is this class  a framework class
@@ -523,25 +450,6 @@ case class JawaClass(global: Global, typ: JawaType, accessFlags: Int) extends Ja
    * is this class  a user lib class
    */
   def isUserLibraryClass: Boolean = global.isUserLibraryClasses(getType)
-  
-  
-  /**
-   * set this class as a system library class
-   */
-  def setSystemLibraryClass() = {
-    val c = global.getContainingSet(this)
-    if(c != null) global.removeFromContainingSet(this)
-    global.addSystemLibraryClass(this)
-  }
-  
-  /**
-   * set this class as a third party lib class
-   */
-  def setUserLibraryClass() = {
-    val c = global.getContainingSet(this)
-    if(c != null) global.removeFromContainingSet(this)
-    global.addUserLibraryClass(this)
-  }
   
   /**
    * whether this class is a java library class
@@ -558,41 +466,23 @@ case class JawaClass(global: Global, typ: JawaType, accessFlags: Int) extends Ja
     packageName.startsWith("org.omg.") ||
     packageName.startsWith("org.xml.")
   }
-  
-  /**
-   * Jawa AST node for this JawaClass. Unless unknown, it should not be null.
-   */
-//  private var classOrInterfaceDecl: ClassOrInterfaceDeclaration = null //NON-NIL
-//  
-//  def setAST(cid: ClassOrInterfaceDeclaration) = this.classOrInterfaceDecl = cid
-//  
-//  def getAST: ClassOrInterfaceDeclaration = {
-//    if(isUnknown) throw new RuntimeException(getName + " is unknown class, so cannot get the AST")
-//    require(this.classOrInterfaceDecl != null)
-//    this.classOrInterfaceDecl
-//  }
-    
-  /**
-   * retrieve code belong to this class
-   */
-//def retrieveCode: String = getAST.toCode
 
   /**
    * set resolving level. Don't set by yourself.
    */
-  def setResolvingLevel(level: ResolveLevel.Value) = {
+  def setResolvingLevel(level: ResolveLevel.Value): Unit = {
     this.resolvingLevel = level
   }
   
   /**
    * update resolving level for current class
    */
-  def updateResolvingLevel() = {
+  def updateResolvingLevel(): Unit = {
     setResolvingLevel(getDeclaredMethods.map(_.getResolvingLevel).reduceLeft((x, y) => if(x < y) x else y))
   }
 
-  def printDetail() = {
-    println("++++++++++++++++AmandroidClass++++++++++++++++")
+  def printDetail(): Unit = {
+    println("++++++++++++++++JawaClass++++++++++++++++")
     println("recName: " + getName)
     println("package: " + getPackage)
     println("simpleName: " + getSimpleName)
@@ -608,6 +498,4 @@ case class JawaClass(global: Global, typ: JawaType, accessFlags: Int) extends Ja
   }
 
   override def toString: String = getName
-  
-  this.global.addClassInternal(this)
 }

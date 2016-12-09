@@ -30,7 +30,7 @@ trait JawaClasspathManager extends JavaKnowledge { self: Global =>
   /**
    * load code from given root dir
    */
-  def load(fileRootUri: FileResourceUri, ext: String, summary: LibraryAPISummary) = {
+  def load(fileRootUri: FileResourceUri, ext: String, summary: LibraryAPISummary): Unit = {
     val fileUris = FileUtil.listFiles(fileRootUri, ext, recursive = true)
     fileUris.foreach{
       fileUri =>
@@ -49,23 +49,24 @@ trait JawaClasspathManager extends JavaKnowledge { self: Global =>
         }
         classTypes.foreach {
           typ =>
-            summary.isLibraryClass(typ) match {
-              case true => this.userLibraryClassCodes(typ) = source
-              case false => this.applicationClassCodes(typ) = source
+            if (summary.isLibraryClass(typ)) {
+              this.userLibraryClassCodes(typ) = source
+            } else {
+              this.applicationClassCodes(typ) = source
             }
         }
     }
   }
   
   def getClassCategoryFromClassPath(typ: JawaType): ClassCategory.Value = {
-    this.applicationClassCodes.contains(typ) match {
-      case true => ClassCategory.APPLICATION
-      case false =>
-        this.userLibraryClassCodes.contains(typ) match {
-          case true => ClassCategory.USER_LIBRARY
-          case false =>
-            ClassCategory.SYSTEM_LIBRARY
-        }
+    if (this.applicationClassCodes.contains(typ)) {
+      ClassCategory.APPLICATION
+    } else {
+      if (this.userLibraryClassCodes.contains(typ)) {
+        ClassCategory.USER_LIBRARY
+      } else {
+        ClassCategory.SYSTEM_LIBRARY
+      }
     }
   }
   
@@ -87,7 +88,7 @@ trait JawaClasspathManager extends JavaKnowledge { self: Global =>
 
   private var javaLibrary: String = ""
   
-  def setJavaLib(path: String) = {
+  def setJavaLib(path: String): Unit = {
     cachedClassRepresentation.invalidateAll()
     javaLibrary = path
   }
@@ -97,12 +98,8 @@ trait JawaClasspathManager extends JavaKnowledge { self: Global =>
     val javaLib: String = javaLibrary
   } with JavaPlatform
 
-  type ThisPlatform = JavaPlatform { val global: this.type }
   lazy val platform = new GlobalPlatform
 
-  type PlatformClassPath = Classpath
-  type OptClassPath = Option[PlatformClassPath]
-  
   def classpathImpl: ClasspathRepresentationType.Value = ClasspathRepresentationType.Flat
   
   def classPath: ClassFileLookup = classpathImpl match {
@@ -115,7 +112,7 @@ trait JawaClasspathManager extends JavaKnowledge { self: Global =>
   private def flatClassPath: FlatClasspath = platform.flatClassPath
   
   protected val cachedClassRepresentation: LoadingCache[JawaType, Option[ClassRepresentation]] = CacheBuilder.newBuilder()
-    .maximumSize(100).build(
+    .maximumSize(300).build(
         new CacheLoader[JawaType, Option[ClassRepresentation]]() {
           def load(typ: JawaType): Option[ClassRepresentation] = {
             classPath.findClass(typ.name)
@@ -133,22 +130,18 @@ trait JawaClasspathManager extends JavaKnowledge { self: Global =>
    */
   def getMethodCode(sig: Signature): Option[String] = {
     val typ = sig.getClassType
-    getMyClass(typ) match {
-      case Some(mc) =>
-        this.applicationClassCodes.get(typ) match {
-          case Some(asrc) =>
-            val recordCode = getClassCode(asrc.file, ResolveLevel.BODY)
+    this.applicationClassCodes.get(typ) match {
+      case Some(asrc) =>
+        val recordCode = getClassCode(asrc.file, ResolveLevel.BODY)
+        LightWeightPilarParser.getCode(recordCode, sig.signature)
+      case None =>
+        this.userLibraryClassCodes.get(typ) match {
+          case Some(usrc) =>
+            val recordCode = getClassCode(usrc.file, ResolveLevel.BODY)
             LightWeightPilarParser.getCode(recordCode, sig.signature)
           case None =>
-            this.userLibraryClassCodes.get(typ) match {
-              case Some(usrc) =>
-                val recordCode = getClassCode(usrc.file, ResolveLevel.BODY)
-                LightWeightPilarParser.getCode(recordCode, sig.signature)
-              case None =>
-                None
-            }
+            None
         }
-      case _ => None
     }
   }
   
@@ -174,12 +167,8 @@ trait JawaClasspathManager extends JavaKnowledge { self: Global =>
   def getClassRepresentation(typ: JawaType): Option[ClassRepresentation] = {
     this.cachedClassRepresentation.get(typ)
   }
-  
-  protected[jawa] def processClassRepresentation(cr: ClassRepresentation) = {
-    cr.source match {
-      case Some(f) =>
-        println(f.text)
-      case None =>
-    }
-  }
+}
+
+object ClasspathRepresentationType extends Enumeration {
+  val Flat, Recursive = Value
 }

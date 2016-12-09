@@ -24,7 +24,7 @@ object ListModel {
     if(r.isApplicationClass) false
     else {
       val list = r.global.getClassOrResolve(new JawaType("java.util.List"))
-      r.global.getClassHierarchy.getAllImplementersOf(list).contains(r)
+      r.global.getClassHierarchy.getAllImplementersOf(list.getType).contains(r.getType)
     }
   }
     

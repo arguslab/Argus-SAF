@@ -29,11 +29,10 @@ object SignatureBasedCallGraph {
   def build(
       global: Global, 
       entryPoints: ISet[Signature]): CallGraph = {
-    global.resolveAllApplicationClasses()
     val cg = new CallGraph
     entryPoints.foreach{
       ep =>
-        val epmopt = global.getMethod(ep)
+        val epmopt = global.getMethodOrResolve(ep)
         epmopt match {
           case Some(epm) => 
             if(!PTAScopeManager.shouldBypass(epm.getDeclaringClass) && epm.isConcrete) {
@@ -55,7 +54,14 @@ object SignatureBasedCallGraph {
       try {
         val points = new PointsCollector().points(m.getSignature, m.getBody)
         points foreach {
-          case pi: Point with Right with Invoke =>
+          case pa: PointAsmt =>
+            pa.rhs match {
+              case po: PointO =>
+                global.getClassOrResolve(po.obj)
+              case _ =>
+            }
+          case pc: PointCall =>
+            val pi = pc.rhs
             val typ = pi.invokeTyp
             val sig = pi.sig
             val callees: MSet[JawaMethod] = msetEmpty

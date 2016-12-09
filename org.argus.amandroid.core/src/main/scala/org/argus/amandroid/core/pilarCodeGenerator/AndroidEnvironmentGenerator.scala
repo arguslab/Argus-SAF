@@ -22,7 +22,7 @@ class AndroidEnvironmentGenerator(global: Global) extends MethodGenerator(global
 //  private final val TITLE = "AndroidEnvironmentGenerator"
   private var componentInfos: Set[ComponentInfo] = Set()
   
-  def setComponentInfos(componentInfos: Set[ComponentInfo]) = this.componentInfos = componentInfos
+  def setComponentInfos(componentInfos: Set[ComponentInfo]): Unit = this.componentInfos = componentInfos
   
   def generateInternal(methods: List[Signature]): String = {
     val classMap: MMap[JawaType, MList[Signature]] = mmapEmpty
@@ -52,10 +52,10 @@ class AndroidEnvironmentGenerator(global: Global) extends MethodGenerator(global
           var contentProvider = false
           var plain = false
           val currentClass = global.getClassOrResolve(item._1)
-          val ancestors = global.getClassHierarchy.getAllSuperClassesOfIncluding(currentClass)
+          val ancestors = global.getClassHierarchy.getAllSuperClassesOfIncluding(currentClass.getType)
           ancestors.foreach{
             ancestor =>
-              val recName = ancestor.getName
+              val recName = ancestor.name
               if(recName.equals(AndroidEntryPointConstants.ACTIVITY_CLASS)) activity = true
               if(recName.equals(AndroidEntryPointConstants.SERVICE_CLASS)) service = true
               if(recName.equals(AndroidEntryPointConstants.BROADCAST_RECEIVER_CLASS)) broadcastReceiver = true

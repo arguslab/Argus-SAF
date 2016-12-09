@@ -26,7 +26,7 @@ abstract class MethodGenerator(global: Global) {
   
   private final val TITLE = "MethodGenerator"
   
-  protected var currentComponent: JawaType = null
+  protected var currentComponent: JawaType = _
   protected var classes: ISet[JawaType] = isetEmpty
   /**
    * Map from class (i.e. container class) to list of callback method
@@ -35,9 +35,9 @@ abstract class MethodGenerator(global: Global) {
   protected var conditionCounter: Int = 0
   protected var codeCounter: Int = 0
   protected val template = new STGroupString(PilarCodeModelProvider.getPilarCodeModel)
-  protected val procDeclTemplate = template.getInstanceOf("ProcedureDecl")
-  protected val localVarsTemplate = template.getInstanceOf("LocalVars")
-  protected val bodyTemplate = template.getInstanceOf("Body")
+  protected val procDeclTemplate: ST = template.getInstanceOf("ProcedureDecl")
+  protected val localVarsTemplate: ST = template.getInstanceOf("LocalVars")
+  protected val bodyTemplate: ST = template.getInstanceOf("Body")
   protected val varGen = new VariableGenerator()
   protected val localVars = new util.ArrayList[String]
   protected val codeFragments = new util.ArrayList[CodeFragmentGenerator]
@@ -60,7 +60,7 @@ abstract class MethodGenerator(global: Global) {
   /**
    * set the substituteClassMap
    */
-  def setSubstituteClassMap(map: IMap[JawaType, JawaType]) = this.substituteClassMap = map
+  def setSubstituteClassMap(map: IMap[JawaType, JawaType]): Unit = this.substituteClassMap = map
   
   /**
    * Registers a list of classes to be automatically scanned for Android
@@ -68,16 +68,16 @@ abstract class MethodGenerator(global: Global) {
    * @param classes The list of classes to be automatically scanned for
    * Android lifecycle methods
    */
-  def setEntryPointClasses(classes: ISet[JawaType]) = {
+  def setEntryPointClasses(classes: ISet[JawaType]): Unit = {
     this.classes = classes
   }
   
-  def setCurrentComponent(clazz: JawaType) = {
+  def setCurrentComponent(clazz: JawaType): Unit = {
     this.currentComponent = clazz
   }
   
     
-  def setCodeCounter(codeCtr: Int) = {
+  def setCodeCounter(codeCtr: Int): Unit = {
     this.codeCounter = codeCtr
   }
   
@@ -151,7 +151,7 @@ abstract class MethodGenerator(global: Global) {
     annot.add("exps", expArray)
   }
   
-  protected def initMethodHead(retTyp: String, methodName: String, owner: String, signature: Signature, access: String) = {
+  protected def initMethodHead(retTyp: String, methodName: String, owner: String, signature: Signature, access: String): ST = {
     procDeclTemplate.add("retTyp", retTyp)
     procDeclTemplate.add("procedureName", methodName)
     val annotations = new util.ArrayList[ST]
@@ -223,8 +223,8 @@ abstract class MethodGenerator(global: Global) {
         if(!r.isConcrete){
           val substClassName = this.substituteClassMap.getOrElse(r.getType, null)
           if(substClassName != null) r = global.resolveToHierarchy(substClassName)
-          else if(r.isInterface) global.getClassHierarchy.getAllImplementersOf(r).foreach(i => if(constructionStack.contains(i.getType)) r = i)
-          else if(r.isAbstract) global.getClassHierarchy.getAllSubClassesOf(r).foreach(s => if(s.isConcrete && constructionStack.contains(s.getType)) r = s)
+          else if(r.isInterface) global.getClassHierarchy.getAllImplementersOf(r.getType).foreach(i => if(constructionStack.contains(i)) r = global.getClassOrResolve(i))
+          else if(r.isAbstract) global.getClassHierarchy.getAllSubClassesOf(r.getType).foreach(s => if(global.getClassOrResolve(s).isConcrete && constructionStack.contains(s)) r = global.getClassOrResolve(s))
         }
         // to protect from going into dead constructor create loop
         if(!r.isConcrete){
@@ -268,7 +268,7 @@ abstract class MethodGenerator(global: Global) {
     codefg.setCode(invokeStmt)
   }
 
-  protected def generateCallToAllCallbacks(callbackClass: JawaClass, callbackMethods: Set[JawaMethod], classLocalVar: String, codefg: CodeFragmentGenerator) = {
+  protected def generateCallToAllCallbacks(callbackClass: JawaClass, callbackMethods: Set[JawaMethod], classLocalVar: String, codefg: CodeFragmentGenerator): Unit = {
     var oneCallBackFragment = codefg
     callbackMethods.foreach{
       callbackMethod =>
@@ -288,7 +288,7 @@ abstract class MethodGenerator(global: Global) {
     }
   }
 
-  protected def searchAndBuildMethodCall(subsignature: String, clazz: JawaClass, entryPoints: MList[Signature], constructionStack: MSet[JawaType], codefg: CodeFragmentGenerator) = {
+  protected def searchAndBuildMethodCall(subsignature: String, clazz: JawaClass, entryPoints: MList[Signature], constructionStack: MSet[JawaType], codefg: CodeFragmentGenerator): Any = {
     val apopt = findMethod(clazz, subsignature)
     apopt match{
       case Some(ap) =>
@@ -347,15 +347,15 @@ abstract class MethodGenerator(global: Global) {
       if(act.getName.equals(expected.getName))
         return true
       if(expected.isInterface)
-        act.getInterfaces.foreach{int => if(int.getName.equals(expected.getName)) return true}
-      if(!act.hasSuperClass)
-        act = null
-      else act = act.getSuperClass.get
+        act.getInterfaces.foreach{int => if(int.name.equals(expected.getName)) return true}
+      if(act.hasSuperClass)
+        act = global.getClassOrResolve(act.getSuperClass)
+      else act = null
     }
     false
   }
 
-  protected def createIfStmt(targetfg: CodeFragmentGenerator, codefg: CodeFragmentGenerator) = {
+  protected def createIfStmt(targetfg: CodeFragmentGenerator, codefg: CodeFragmentGenerator): AnyVal = {
     val target = targetfg.getLabel
     if(target != null){
       val condExp = template.getInstanceOf("CondExp")
@@ -368,7 +368,7 @@ abstract class MethodGenerator(global: Global) {
     }
   }
 
-  protected def createGotoStmt(targetfg: CodeFragmentGenerator, codefg: CodeFragmentGenerator) = {
+  protected def createGotoStmt(targetfg: CodeFragmentGenerator, codefg: CodeFragmentGenerator): AnyVal = {
     val target = targetfg.getLabel
     if(target != null){
       val gotoStmt = template.getInstanceOf("GotoStmt")
@@ -377,13 +377,13 @@ abstract class MethodGenerator(global: Global) {
     }
   }
 
-  protected def createReturnStmt(variable: String, codefg: CodeFragmentGenerator) = {
+  protected def createReturnStmt(variable: String, codefg: CodeFragmentGenerator): Boolean = {
     val returnStmt = template.getInstanceOf("ReturnStmt")
     returnStmt.add("variable", variable)
     codefg.setCode(returnStmt)
   }
 
-  protected def createFieldSetStmt(base: String, field: String, rhs: String, annoTyps: List[String], fieldType: String, codefg: CodeFragmentGenerator) = {
+  protected def createFieldSetStmt(base: String, field: String, rhs: String, annoTyps: List[String], fieldType: String, codefg: CodeFragmentGenerator): Boolean = {
     val mBaseField = template.getInstanceOf("FieldAccessExp")
     mBaseField.add("base", base)
     mBaseField.add("field", field)
@@ -398,17 +398,17 @@ abstract class MethodGenerator(global: Global) {
   }
 
   protected class CodeFragmentGenerator {
-    protected val codeFragment = template.getInstanceOf("CodeFragment")
+    protected val codeFragment: ST = template.getInstanceOf("CodeFragment")
     protected val codes: util.ArrayList[ST] = new util.ArrayList[ST]
-    protected var label = template.getInstanceOf("Label")
+    protected var label: ST = template.getInstanceOf("Label")
     
-    def addLabel() = {
+    def addLabel(): Unit = {
       label.add("num", conditionCounter)
       codeFragment.add("label", label)
       conditionCounter += 1
     }
     def getLabel: ST = label
-    def setCode(code: ST) = {
+    def setCode(code: ST): Boolean = {
       codes.add(code)
     }
     def generate(): String = {
@@ -427,7 +427,7 @@ abstract class MethodGenerator(global: Global) {
 
   protected def findMethod(currentClass: JawaClass, subSig: String): Option[JawaMethod] = {
     if(currentClass.declaresMethod(subSig)) currentClass.getMethod(subSig)
-    else if(currentClass.hasSuperClass) findMethod(currentClass.getSuperClass.get, subSig)
+    else if(currentClass.hasSuperClass) findMethod(global.getClassOrResolve(currentClass.getSuperClass), subSig)
     else None
   }
 }

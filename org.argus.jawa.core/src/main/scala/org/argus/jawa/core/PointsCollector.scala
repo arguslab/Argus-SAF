@@ -167,7 +167,7 @@ class PointsCollector {
             }
             val typ: JawaType = ASTUtil.getType(e).get
             PointInstanceOfR(varname, typ, loc, locIndex, ownerSig)
-          } else if (n.name.name == Constants.EXCEPTION) {
+          } else if (n.name.name.equals(Constants.EXCEPTION)) {
             PointExceptionR(typ.get.toUnknown, loc, locIndex, ownerSig)
           } else if(isStaticField(n.name.name)){
             val fqn = new FieldFQN(n.name.name.replace("@@", ""), typ.get)
@@ -213,7 +213,7 @@ class PointsCollector {
         loc = getLocUri(ld)
         locIndex = ld.index
         true
-      case t: Transformation =>
+      case _: Transformation =>
         true
       case as: AssignAction =>
         var pl: Point with Left = null
@@ -349,7 +349,7 @@ final case class PointAsmt(lhs: Point with Left, rhs: Point with Right, loc: Res
 /**
  * Set of program points corresponding to call expression
  */
-final case class PointCall(lhsOpt: Option[Point with Left], rhs: Point with Right, loc: ResourceUri, locIndex: Int, ownerSig: Signature) extends Point with Loc
+final case class PointCall(lhsOpt: Option[Point with Left], rhs: Point with Right with Invoke, loc: ResourceUri, locIndex: Int, ownerSig: Signature) extends Point with Loc
 
 /**
  * Set of program points corresponding to object creating expressions. 
@@ -497,7 +497,7 @@ final case class PointStaticI(sig: Signature, invokeTyp: String, retTyp: JawaTyp
  * Set of program points corresponding to this variable .
  */
 final case class PointThisEntry(paramName: String, paramTyp: JawaType, ownerSig: Signature) extends Point with Param with Entry {
-  def index = -1
+  def index: Int = -1
 }
 
 /**
@@ -509,7 +509,7 @@ final case class PointParamEntry(paramName: String, paramTyp: JawaType, index: I
  * Set of program points corresponding to this variable .
  */
 final case class PointThisExit(paramName: String, paramTyp: JawaType, ownerSig: Signature) extends Point with Param with Exit {
-  def index = -1
+  def index: Int = -1
 }
 
 /**

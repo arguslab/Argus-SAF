@@ -21,7 +21,7 @@ import org.sireum.util._
  * @author <a href="mailto:sroy@k-state.edu">Sankardas Roy</a>
  */ 
 object StringModel {
-  def isString(r: JawaClass): Boolean = r.getName == "java.lang.String"
+  def isString(r: JawaClass): Boolean = r.getName.equals("java.lang.String")
 
 //  private def getReturnFactsWithAlias(rType: JawaType, retVar: String, currentContext: Context, alias: ISet[Instance])(implicit factory: RFAFactFactory): ISet[RFAFact] =
 //    alias.map{a=> new RFAFact(VarSlot(retVar, isBase = false, isArg = false), a)}

@@ -97,7 +97,7 @@ object AppInfoCollector {
                         if(callbackClass.declaresMethodByName(methodName))
                           callbackMethod ++= callbackClass.getDeclaredMethodsByName(methodName).map(_.getSignature)
                         if(callbackClass.hasSuperClass)
-                          callbackClass = callbackClass.getSuperClass.get
+                          callbackClass = analysisHelper.global.getClassOrResolve(callbackClass.getSuperClass)
                         else break
                       }
                     }
@@ -142,7 +142,7 @@ object AppInfoCollector {
     dmGen.getCodeCounter
   }
 
-  def dynamicRegisterReceiver(apk: Apk, comRec: JawaClass, iDB: IntentFilterDataBase, permission: ISet[String], reporter: Reporter) = {
+  def dynamicRegisterReceiver(apk: Apk, comRec: JawaClass, iDB: IntentFilterDataBase, permission: ISet[String], reporter: Reporter): Unit = {
     this.synchronized{
       if(!comRec.declaresMethodByName(AndroidConstants.COMP_ENV)){
         reporter.echo(TITLE, "*************Dynamically Register Component**************")

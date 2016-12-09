@@ -30,15 +30,15 @@ class VirtualFile(val name: String, override val path: String) extends AbstractF
    */
   def this(name: String) = this(name, name)
 
-  override def hashCode = path.hashCode
-  override def equals(that: Any) = that match {
+  override def hashCode: Int = path.hashCode
+  override def equals(that: Any): Boolean = that match {
     case x: VirtualFile => x.path == path
     case _              => false
   }
 
   private var content = Array.emptyByteArray
 
-  def absolute = this
+  def absolute: VirtualFile = this
 
   /** Returns null. */
   def file: JFile = null
@@ -51,7 +51,7 @@ class VirtualFile(val name: String, override val path: String) extends AbstractF
     new ByteArrayOutputStream() {
       override def close() {
         super.close()
-        content = toByteArray()
+        content = toByteArray
       }
     }
   }
@@ -98,7 +98,7 @@ class VirtualFile(val name: String, override val path: String) extends AbstractF
   /** Returns an abstract file with the given name. It does not
    *  check that it exists.
    */
-  def lookupNameUnchecked(name: String, directory: Boolean) = unsupported()
+  def lookupNameUnchecked(name: String, directory: Boolean): Nothing = unsupported()
 }
 
 /**
@@ -116,16 +116,16 @@ extends AbstractFile {
       case Some(parent) => parent.path+'/'+ name
     }
 
-  def absolute = this
+  def absolute: VirtualDirectory = this
 
-  def container = maybeContainer.get
+  def container: VirtualDirectory = maybeContainer.get
   def isDirectory = true
   override def isVirtual = true
   val lastModified: Long = System.currentTimeMillis
 
   override def file = null
-  override def input = sys.error("directories cannot be read")
-  override def output = sys.error("directories cannot be written")
+  override def input: Nothing = sys.error("directories cannot be read")
+  override def output: Nothing = sys.error("directories cannot be written")
 
   /** Does this abstract file denote an existing file? */
   def create() { unsupported() }
@@ -142,7 +142,7 @@ extends AbstractFile {
 
   // the toList is so that the directory may continue to be
   // modified while its elements are iterated
-  def iterator = files.values.toList.iterator
+  def iterator: Iterator[AbstractFile] = files.values.toList.iterator
 
   override def lookupName(name: String, directory: Boolean): AbstractFile =
     (files get name filter (_.isDirectory == directory)).orNull

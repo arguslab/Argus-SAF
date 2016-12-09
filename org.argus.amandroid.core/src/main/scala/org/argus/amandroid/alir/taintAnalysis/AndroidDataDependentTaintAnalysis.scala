@@ -162,7 +162,7 @@ object AndroidDataDependentTaintAnalysis {
         val argValue = ptaresult.pointsToSet(argSlot, callArgNode.getContext)
         val argRelatedValue = ptaresult.getRelatedHeapInstances(argValue, callArgNode.getContext)
         argRelatedValue.foreach{
-          case ins =>
+          ins =>
             if(ins.defSite != callArgNode.getContext){
               iddg.findDefSite(ins.defSite) match {
                 case Some(t) => iddg.addEdge(callArgNode.asInstanceOf[Node], t)
