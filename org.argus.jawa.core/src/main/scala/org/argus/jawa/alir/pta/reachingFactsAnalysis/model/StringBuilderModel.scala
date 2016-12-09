@@ -22,7 +22,7 @@ import org.sireum.util._
  */ 
 object StringBuilderModel {
   
-  def isStringBuilder(r: JawaClass): Boolean = r.getName == "java.lang.StringBuilder"
+  def isStringBuilder(r: JawaClass): Boolean = r.getName.equals("java.lang.StringBuilder")
   
   private def getReturnFactsWithAlias(rType: JawaType, retVar: String, currentContext: Context, alias: ISet[Instance])(implicit factory: RFAFactFactory): ISet[RFAFact] = 
     alias.map{a=> new RFAFact(VarSlot(retVar, isBase = false, isArg = false), a)}

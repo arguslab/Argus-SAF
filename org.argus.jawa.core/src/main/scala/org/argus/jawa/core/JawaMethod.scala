@@ -148,7 +148,7 @@ case class JawaMethod(declaringClass: JawaClass,
    */
   case class ExceptionHandler(exception: JawaClass, fromTarget: String, toTarget: String, jumpTo: String){
     def handleException(exc: JawaClass, locUri: String): Boolean = {
-      (exception == exc || exception.isChildOf(exc)) && withInScope(locUri)
+      (exception == exc || exception.isChildOf(exc.getType)) && withInScope(locUri)
     }
     def withInScope(locUri: String): Boolean = {
       getLocation(fromTarget) <= getLocation(locUri) && getLocation(locUri) <= getLocation(toTarget)
@@ -185,7 +185,7 @@ case class JawaMethod(declaringClass: JawaClass,
   
   final val BODY = "body"
   
-  def setBody(md: MethodBody) = {
+  def setBody(md: MethodBody): Unit = {
     setProperty(BODY, md)
     setResolvingLevel(ResolveLevel.BODY)
     getDeclaringClass.updateResolvingLevel()
@@ -207,7 +207,7 @@ case class JawaMethod(declaringClass: JawaClass,
   /**
    * set resolving level
    */
-  def setResolvingLevel(level: ResolveLevel.Value) = {
+  def setResolvingLevel(level: ResolveLevel.Value): Unit = {
     this.resolvingLevel = level
     getDeclaringClass.updateResolvingLevel()
   }
@@ -216,14 +216,14 @@ case class JawaMethod(declaringClass: JawaClass,
   /**
    * Adds exception which can be thrown by this method
    */
-  def addExceptionIfAbsent(exc: JawaClass) = {
+  def addExceptionIfAbsent(exc: JawaClass): Any = {
     if(!throwException(exc)) addException(exc)
   }
   
   /**
    * Adds exception thrown by this method
    */
-  def addException(exc: JawaClass) = {
+  def addException(exc: JawaClass): thrownExceptions.type = {
     if(DEBUG) println("Adding Exception: " + exc)
     if(throwException(exc)) throw new RuntimeException("already throwing exception: " + exc)
     this.thrownExceptions += exc
@@ -232,7 +232,7 @@ case class JawaMethod(declaringClass: JawaClass,
   /**
    * set exception with details
    */
-  def addExceptionHandler(excName: String, fromTarget: String, toTarget: String, jumpTo: String) = {
+  def addExceptionHandler(excName: String, fromTarget: String, toTarget: String, jumpTo: String): exceptionHandlers.type = {
     val recType: JawaType = getTypeFromName(excName)
     val exc: JawaClass = getDeclaringClass.global.getClazz(recType) match {
       case Some(c) => c
@@ -249,7 +249,7 @@ case class JawaMethod(declaringClass: JawaClass,
   /**
    * removes exception from this method
    */
-  def removeException(exc: JawaClass) = {
+  def removeException(exc: JawaClass): exceptionHandlers.type = {
     if(DEBUG) println("Removing Exception: " + exc)
     if(!throwException(exc)) throw new RuntimeException("does not throw exception: " + exc)
     this.thrownExceptions -= exc
@@ -259,7 +259,7 @@ case class JawaMethod(declaringClass: JawaClass,
   /**
    * throws this exception or not?
    */
-  def throwException(exc: JawaClass) = this.thrownExceptions.contains(exc)
+  def throwException(exc: JawaClass): Boolean = this.thrownExceptions.contains(exc)
   
   /**
    * get thrown exception target location
@@ -271,7 +271,7 @@ case class JawaMethod(declaringClass: JawaClass,
   /**
    * set exceptions for this method
    */
-  def setExceptions(excs: Set[JawaClass]) = {
+  def setExceptions(excs: Set[JawaClass]): thrownExceptions.type = {
     this.thrownExceptions.clear()
     this.thrownExceptions ++= excs
   }
@@ -334,10 +334,7 @@ case class JawaMethod(declaringClass: JawaClass,
           return
         }
     }
-    clazz.getSuperClass match{
-      case Some(s) => computeImplementsOrOverrides(s)
-      case None =>
-    }
+    if(clazz.hasSuperClass) computeImplementsOrOverrides(clazz.global.getClassOrResolve(clazz.getSuperClass))
   }
   
   def isImplements: Boolean = {
@@ -354,12 +351,12 @@ case class JawaMethod(declaringClass: JawaClass,
   /**
    * return true if this method is a class initializer or main function
    */
-  def isEntryMethod = {
+  def isEntryMethod: Boolean = {
     if(isStatic && name == getDeclaringClass.staticInitializerName) true
     else isMain
   }
   
-  def printDetail() = {
+  def printDetail(): Unit = {
     println("--------------AmandroidMethod--------------")
     println("name: " + getName)
     println("signature: " + getSignature)

@@ -29,7 +29,7 @@ object FrameworkMethodsModel {
   
   def isFrameworkMethods(p: JawaMethod): Boolean = {
     val contextRec = p.getDeclaringClass.global.getClassOrResolve(new JawaType("android.content.Context"))
-    if(!p.getDeclaringClass.isInterface && p.getDeclaringClass.global.getClassHierarchy.isClassRecursivelySubClassOfIncluding(p.getDeclaringClass, contextRec)){
+    if(!p.getDeclaringClass.isInterface && p.getDeclaringClass.global.getClassHierarchy.isClassRecursivelySubClassOfIncluding(p.getDeclaringClass.getType, contextRec.getType)){
       p.getSubSignature match{
         case "setContentView:(I)V" |
           "registerReceiver:(Landroid/content/BroadcastReceiver;Landroid/content/IntentFilter;)Landroid/content/Intent;" |
@@ -114,7 +114,7 @@ object FrameworkMethodsModel {
             val mActionsSlot = FieldSlot(fv, JavaKnowledge.getFieldNameFromFieldFQN(AndroidConstants.INTENTFILTER_ACTIONS))
             val mActionsValue = s.pointsToSet(mActionsSlot, currentContext)
             mActionsValue.foreach {
-              case cstr@PTAConcreteStringInstance(text, c) =>
+              case PTAConcreteStringInstance(text, _) =>
                 intentF.addAction(text)
               case _ =>
                 intentF.addAction("ANY")
@@ -122,7 +122,7 @@ object FrameworkMethodsModel {
             val mCategoriesSlot = FieldSlot(fv, JavaKnowledge.getFieldNameFromFieldFQN(AndroidConstants.INTENTFILTER_CATEGORIES))
             val mCategoriesValue = s.pointsToSet(mCategoriesSlot, currentContext)
             mCategoriesValue.foreach {
-              case cstr@PTAConcreteStringInstance(text, c) =>
+              case PTAConcreteStringInstance(text, _) =>
                 intentF.addCategory(text)
               case _ =>
                 intentF.addCategory("ANY")
@@ -132,7 +132,7 @@ object FrameworkMethodsModel {
         permissionValueOpt.foreach {
           pvs =>
             pvs foreach {
-              case cstr@PTAConcreteStringInstance(text, c) =>
+              case PTAConcreteStringInstance(text, _) =>
                 permission += text
               case _ =>
             }
@@ -153,13 +153,13 @@ object FrameworkMethodsModel {
     val paramSlot = VarSlot(args(1), isBase = false, isArg = true)
     val paramValue = s.pointsToSet(paramSlot, currentContext)
     paramValue.foreach {
-      case cstr@PTAConcreteStringInstance(text, c) =>
+      case cstr@PTAConcreteStringInstance(text, _) =>
         if (AndroidConstants.getSystemServiceStrings.contains(text)) {
           global.reporter.echo(TITLE, "Get " + text + " service in " + currentContext)
         } else {
           global.reporter.echo(TITLE, "Given service does not exist: " + cstr)
         }
-      case pstr@PTAPointStringInstance(c) => global.reporter.echo(TITLE, "Get system service use point string: " + pstr)
+      case pstr@PTAPointStringInstance(_) => global.reporter.echo(TITLE, "Get system service use point string: " + pstr)
       case str => global.reporter.echo(TITLE, "Get system service use unexpected instance type: " + str)
     }
     result

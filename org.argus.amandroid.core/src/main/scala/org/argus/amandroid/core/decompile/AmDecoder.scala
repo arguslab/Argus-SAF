@@ -9,11 +9,13 @@
  */
 package org.argus.amandroid.core.decompile
 
+import java.io.File
+
 import org.sireum.util._
-import brut.androlib.ApkDecoder
 import java.util.logging.Logger
 import java.util.logging.LogManager
 
+import brut.androlib.ApkDecoder
 import brut.androlib.err.CantFindFrameworkResException
 import org.argus.amandroid.core.util.ApkFileUtil
 
@@ -36,7 +38,7 @@ object AmDecoder {
     val outputDir = 
       if(createFolder) FileUtil.toFile(ApkFileUtil.getOutputUri(sourcePathUri, outputUri))
       else FileUtil.toFile(outputUri)
-    if(outputDir.exists() && !forceDelete) return FileUtil.toUri(outputDir)
+    if(new File(outputDir, "src").exists() && !forceDelete) return FileUtil.toUri(outputDir)
     try {
       val decoder = new ApkDecoder
       decoder.setDecodeSources(0x0000) // DECODE_SOURCES_NONE = 0x0000

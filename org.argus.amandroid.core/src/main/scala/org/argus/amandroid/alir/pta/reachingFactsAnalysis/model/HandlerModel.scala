@@ -21,7 +21,7 @@ import org.sireum.util._
  * @author <a href="mailto:sroy@k-state.edu">Sankardas Roy</a>
  */ 
 object HandlerModel {
-	def isHandler(r: JawaClass): Boolean = r.getName == "android.os.Handler"
+	def isHandler(r: JawaClass): Boolean = r.getName.equals("android.os.Handler")
 	def doHandlerCall(s: PTAResult, p: JawaMethod, args: List[String], retVars: Seq[String], currentContext: Context): (ISet[RFAFact], ISet[RFAFact], Boolean) = {
 	  val newFacts = isetEmpty[RFAFact]
 	  val delFacts = isetEmpty[RFAFact]

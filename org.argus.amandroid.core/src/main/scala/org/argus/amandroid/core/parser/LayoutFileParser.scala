@@ -22,6 +22,7 @@ import javax.xml.parsers.DocumentBuilderFactory
 import org.w3c.dom.Node
 import brut.androlib.res.data.ResTypeSpec
 import brut.androlib.res.data.ResResSpec
+import brut.androlib.res.decoder.ARSCDecoder.ARSCData
 import org.argus.jawa.core.{Global, JawaClass, JawaType}
 
 /**
@@ -40,18 +41,18 @@ class LayoutFileParser(global: Global, packageName: String, arsc: ARSCFileParser
   private final val callbackMethods: MMap[FileResourceUri, MSet[String]] = mmapEmpty
   private final val includes: MMap[FileResourceUri, MSet[Int]] = mmapEmpty
   
-  val data = arsc.getData
+  val data: ARSCData = arsc.getData
   val typs: MMap[String, ResTypeSpec] = mmapEmpty
-  import collection.JavaConversions._
+  import collection.JavaConverters._
   data.getPackages foreach {
     pkg =>
       try {
         val f = pkg.getClass.getDeclaredField("mTypes")
         f.setAccessible(true)
-        typs ++= f.get(pkg).asInstanceOf[java.util.LinkedHashMap[String, ResTypeSpec]]
+        typs ++= f.get(pkg).asInstanceOf[java.util.LinkedHashMap[String, ResTypeSpec]].asScala
       } catch {
         case ie: InterruptedException => throw ie
-        case e: Exception =>
+        case _: Exception =>
       }
   }
   
@@ -61,13 +62,13 @@ class LayoutFileParser(global: Global, packageName: String, arsc: ARSCFileParser
 //  private final val TYPE_TEXT_VARIATION_WEB_PASSWORD = 0x000000e0
 
   private def getLayoutClass(className: String): Option[JawaClass] = {
-    var ar: Option[JawaClass] = global.tryLoadClass(new JawaType(className))
+    var ar: Option[JawaClass] = global.getClazz(new JawaType(className))
     if(ar.isEmpty || !this.packageName.isEmpty)
-      ar = global.tryLoadClass(new JawaType(packageName + "." + className))
+      ar = global.getClazz(new JawaType(packageName + "." + className))
     if(ar.isEmpty)
-      ar = global.tryLoadClass(new JawaType("android.widget." + className))
+      ar = global.getClazz(new JawaType("android.widget." + className))
     if(ar.isEmpty)
-      ar = global.tryLoadClass(new JawaType("android.webkit." + className))
+      ar = global.getClazz(new JawaType("android.webkit." + className))
     if(ar.isEmpty)
       global.reporter.echo(TITLE, "Could not find layout class " + className)
     ar
@@ -79,9 +80,9 @@ class LayoutFileParser(global: Global, packageName: String, arsc: ARSCFileParser
     // To make sure that nothing all wonky is going on here, we
     // check the hierarchy to find the android view class
     var found = false
-    global.getClassHierarchy.getAllSuperClassesOf(theClass.get).foreach{
+    global.getClassHierarchy.getAllSuperClassesOf(theClass.get.getType).foreach{
       su =>
-        if(su.getName == "android.view.ViewGroup")
+        if(su.name.equals("android.view.ViewGroup"))
           found = true
     }
     found
@@ -92,9 +93,9 @@ class LayoutFileParser(global: Global, packageName: String, arsc: ARSCFileParser
       return false
     // To make sure that nothing all wonky is going on here, we
     // check the hierarchy to find the android view class
-    global.getClassHierarchy.getAllSuperClassesOf(theClass.get).foreach{
+    global.getClassHierarchy.getAllSuperClassesOf(theClass.get.getType).foreach{
       su =>
-      if(su.getName == "android.view.View" || su.getName == "android.webkit.WebView")
+      if(su.name.equals("android.view.View") || su.name.equals("android.webkit.WebView"))
         return true
     }
     global.reporter.echo(TITLE, "Layout class " + theClass + " is not derived from " + "android.view.View")
@@ -141,7 +142,7 @@ class LayoutFileParser(global: Global, packageName: String, arsc: ARSCFileParser
       }
     } catch {
       case ie: InterruptedException => throw ie
-      case e: Exception =>
+      case _: Exception =>
     }
     (id, isSensitive)
   }
@@ -160,7 +161,7 @@ class LayoutFileParser(global: Global, packageName: String, arsc: ARSCFileParser
         case Some(t) =>
           val f = t.getClass.getDeclaredField("mResSpecs")
           f.setAccessible(true)
-          val specs = f.get(t).asInstanceOf[java.util.LinkedHashMap[String, ResResSpec]].toMap
+          val specs = f.get(t).asInstanceOf[java.util.LinkedHashMap[String, ResResSpec]].asScala.toMap
           specs.get(spec) match {
             case Some(s) =>
               return Some(s.getId.id)
@@ -172,7 +173,7 @@ class LayoutFileParser(global: Global, packageName: String, arsc: ARSCFileParser
     None
   }
   
-  def loadLayoutFromTextXml(fileUri: FileResourceUri, layout_in: InputStream) = {
+  def loadLayoutFromTextXml(fileUri: FileResourceUri, layout_in: InputStream): Unit = {
     try {
       val db = DocumentBuilderFactory.newInstance().newDocumentBuilder()
       val doc = db.parse(layout_in)
@@ -188,7 +189,7 @@ class LayoutFileParser(global: Global, packageName: String, arsc: ARSCFileParser
         if (isLayoutClass(theClass) || isViewClass(theClass)) {
           val (id, isSensitive) = visitLayoutNode(fileUri, cn)
           if (id > 0)
-            userControls += (id -> new LayoutControl(id, theClass.get.getType, isSensitive))
+            userControls += (id -> LayoutControl(id, theClass.get.getType, isSensitive))
         }
       }
       

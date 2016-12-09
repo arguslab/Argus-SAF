@@ -20,374 +20,276 @@ class ClassHierarchy(reporter: Reporter) extends JavaKnowledge {
   /**
    * this map is from class to it's sub-classes.
    */
-  protected val classToSubClasses: MMap[JawaClass, MSet[JawaClass]] = mmapEmpty
+  protected val classToSubClasses: MMap[JawaType, MSet[JawaType]] = mmapEmpty
   
   /**
    * this map is from interface to sub-interfaces.
    */
-  protected val interfaceToSubInterfaces: MMap[JawaClass, MSet[JawaClass]] = mmapEmpty
+  protected val interfaceToSubInterfaces: MMap[JawaType, MSet[JawaType]] = mmapEmpty
   
   /**
    * this map is from class to all sub-classes.  Not filled in inside the build()
    */
-  protected val classToAllSubClasses: MMap[JawaClass, MSet[JawaClass]] = mmapEmpty
+  protected val classToAllSubClasses: MMap[JawaType, MSet[JawaType]] = mmapEmpty
   
   /**
    * this map is from interface to all sub-interfaces. Not filled in inside the build()
    */
-  protected val interfaceToAllSubInterfaces: MMap[JawaClass, MSet[JawaClass]] = mmapEmpty
+  protected val interfaceToAllSubInterfaces: MMap[JawaType, MSet[JawaType]] = mmapEmpty
   
   /**
    * this map is from interface to direct implementers
    */
-  protected val interfaceToImplememters: MMap[JawaClass, MSet[JawaClass]] = mmapEmpty
-  
+  protected val interfaceToImplementers: MMap[JawaType, MSet[JawaType]] = mmapEmpty
+
+  protected val classToSuperClass: MMap[JawaType, JawaType] = mmapEmpty
+
+  protected val resolvedTypes: MSet[JawaType] = msetEmpty
+
+  def resolved(typ: JawaType): Boolean = resolvedTypes.contains(typ)
+
   /**
    * construct a hierarchy from the current scene i.e. Global
    */
   def build(global: Global): ClassHierarchy = {
     val allClasses = global.getClassesNeedUpdateInHierarchy
-    allClasses.foreach{
+    allClasses.foreach {
       clazz =>
+        resolvedTypes += clazz.getType
         if(clazz.hasSuperClass){
+          classToSuperClass(clazz.getType) = clazz.getSuperClass
           if(clazz.isInterface){
-            clazz.getInterfaces.foreach{this.interfaceToSubInterfaces.getOrElseUpdate(_, msetEmpty) += clazz}
+            clazz.getInterfaces.foreach{i => this.interfaceToSubInterfaces.getOrElseUpdate(i, msetEmpty) += clazz.getType}
           } else {
-            this.classToSubClasses.getOrElseUpdate(clazz.getSuperClass.get, msetEmpty) += clazz
-            clazz.getInterfaces.foreach{this.interfaceToImplememters.getOrElseUpdate(_, msetEmpty) += clazz}
+            this.classToSubClasses.getOrElseUpdate(clazz.getSuperClass, msetEmpty) += clazz.getType
+            clazz.getInterfaces.foreach{i => this.interfaceToImplementers.getOrElseUpdate(i, msetEmpty) += clazz.getType}
           }
         }
     }
     // fill in the implementers sets with subclasses
-    allClasses.foreach{
+    allClasses.foreach {
       clazz =>
         if(clazz.isInterface){
-          val imps = this.interfaceToImplememters.getOrElseUpdate(clazz, msetEmpty)
-          imps ++= imps.map{getAllSubClassesOfIncluding(_)}.fold(isetEmpty)(_ ++ _)
+          val imps = this.interfaceToImplementers.getOrElseUpdate(clazz.getType, msetEmpty)
+          imps ++= imps.map(getAllSubClassesOfIncluding).fold(isetEmpty)(_ ++ _)
         }
     }
     global.clearClassesNeedUpdateInHierarchy()
     this
   }
-  
+
   /**
    * return a set of all sub-classes of r, including itself
    */
-  def getAllSubClassesOfIncluding(r: JawaClass): ISet[JawaClass] = {
-    if(r.isInterface){
-      reporter.warning(TITLE, "Cannot get sub class for interface " + r)
-      isetEmpty
-    }
-    else getAllSubClassesOf(r) + r
+  def getAllSubClassesOfIncluding(r: JawaType): ISet[JawaType] = {
+    getAllSubClassesOf(r) + r
   }
-  
+
   /**
    * return a set of all sub-classes of r
    */
-  def getAllSubClassesOf(r: JawaClass): ISet[JawaClass] = {
-    if(r.isInterface){
-      reporter.warning(TITLE, "Cannot get sub class for interface " + r)
-      isetEmpty
-    } else {
-      this.classToAllSubClasses.get(r) match{
-        case Some(classes) => classes.toSet //if already cached return the value
-        case None => 
-          val subClasses = this.classToSubClasses.getOrElseUpdate(r, msetEmpty)
-          if(subClasses.nonEmpty){
-            val allSubClasses = subClasses.map{getAllSubClassesOfIncluding(_)}.reduce((s1, s2) => s1 ++ s2)
-            this.classToAllSubClasses.getOrElseUpdate(r, msetEmpty) ++= allSubClasses
-            allSubClasses
-          } else isetEmpty
-      }
+  def getAllSubClassesOf(r: JawaType): ISet[JawaType] = {
+    this.classToAllSubClasses.get(r) match{
+      case Some(classes) => classes.toSet //if already cached return the value
+      case None =>
+        val subClasses = this.classToSubClasses.getOrElseUpdate(r, msetEmpty)
+        if(subClasses.nonEmpty){
+          val allSubClasses = subClasses.map{getAllSubClassesOfIncluding}.reduce((s1, s2) => s1 ++ s2)
+          this.classToAllSubClasses.getOrElseUpdate(r, msetEmpty) ++= allSubClasses
+          allSubClasses
+        } else isetEmpty
     }
   }
-  
+
   /**
    * return a set of all super-classes of r, including itself
    */
-  def getAllSuperClassesOfIncluding(r: JawaClass): ISet[JawaClass] = {
-    if(r.isInterface){
-      reporter.warning(TITLE, "Cannot get super class for interface " + r)
-      isetEmpty
-    }
+  def getAllSuperClassesOfIncluding(r: JawaType): ISet[JawaType] = {
     getAllSuperClassesOf(r) + r
   }
-  
+
   /**
    * return a set of all super-classes of r
    */
-  def getAllSuperClassesOf(r: JawaClass): Set[JawaClass] = {
-    if(r.isInterface) {
-      reporter.warning(TITLE, "Cannot get super class for interface " + r)
-      isetEmpty
-    } else {
-      var rl = r
-      var l: Set[JawaClass] = Set()
-      while(rl.hasSuperClass){
-        l += rl.getSuperClass.get
-        rl = rl.getSuperClass.get
-      }
-      l
+  def getAllSuperClassesOf(r: JawaType): Set[JawaType] = {
+    var rl = r
+    val l: MSet[JawaType] = msetEmpty
+    while(classToSuperClass.contains(rl)){
+      rl = classToSuperClass(rl)
+      l += rl
     }
+    l.toSet
   }
-  
+
   /**
    * return a set of all sub-interfaces of r, including itself
    */
-  def getAllSubInterfacesOfIncluding(r: JawaClass): ISet[JawaClass] = {
-    if(!r.isInterface){
-      reporter.warning(TITLE, "Cannot get sub interface for class " + r)
-      isetEmpty
-    } else {
-      getAllSubInterfacesOf(r) + r
-    }
+  def getAllSubInterfacesOfIncluding(r: JawaType): ISet[JawaType] = {
+    getAllSubInterfacesOf(r) + r
   }
-  
+
   /**
    * return a set of all sub-interfaces of r
    */
-  def getAllSubInterfacesOf(r: JawaClass): Set[JawaClass] = {
-    if(!r.isInterface){
-      reporter.warning(TITLE, "Cannot get sub interface for class " + r)
-      isetEmpty
-    } else {
-      this.interfaceToAllSubInterfaces.get(r) match{
-        case Some(classes) => classes.toSet //if already cached return the value
-        case None => 
-          val subClasses = this.interfaceToSubInterfaces.getOrElseUpdate(r, msetEmpty)
-          if(subClasses.nonEmpty){
-            val allSubClasses = subClasses.map{getAllSubInterfacesOfIncluding(_)}.reduce((s1, s2) => s1 ++ s2)
-            this.interfaceToAllSubInterfaces.getOrElseUpdate(r, msetEmpty) ++= allSubClasses
-            allSubClasses
-          } else Set()
-      }
+  def getAllSubInterfacesOf(r: JawaType): Set[JawaType] = {
+    this.interfaceToAllSubInterfaces.get(r) match{
+      case Some(classes) => classes.toSet //if already cached return the value
+      case None =>
+        val subClasses = this.interfaceToSubInterfaces.getOrElseUpdate(r, msetEmpty)
+        if(subClasses.nonEmpty){
+          val allSubClasses = subClasses.map{getAllSubInterfacesOfIncluding}.reduce((s1, s2) => s1 ++ s2)
+          this.interfaceToAllSubInterfaces.getOrElseUpdate(r, msetEmpty) ++= allSubClasses
+          allSubClasses
+        } else isetEmpty
     }
   }
-  
+
   /**
    * return a set of all super-interfaces of r, including itself
    */
-  def getAllSuperInterfacesOfIncluding(r: JawaClass): Set[JawaClass] = {
-    if(!r.isInterface){
-      reporter.warning(TITLE, "Cannot get super interface for class " + r)
-      isetEmpty
-    } else {
-      getAllSuperInterfacesOf(r) + r
-    }
-  }
-  
+//  def getAllSuperInterfacesOfIncluding(r: JawaType): Set[JawaType] = {
+//    getAllSuperInterfacesOf(r) + r
+//  }
+
   /**
    * return a set of all super-interfaces of r
    */
-  def getAllSuperInterfacesOf(r: JawaClass): Set[JawaClass] = {
-    if(!r.isInterface){
-      reporter.warning(TITLE, "Cannot get super interface for class " + r)
-      isetEmpty
-    } else {
-      val ins = r.getInterfaces
-      ins.map{getAllSuperInterfacesOf(_)}.fold(isetEmpty)(_ ++ _) ++ ins
-    }
-  }
-  
+//  def getAllSuperInterfacesOf(r: JawaType): Set[JawaType] = {
+//    val ins = r.getInterfaces
+//      ins.map{getAllSuperInterfacesOf}.fold(isetEmpty)(_ ++ _) ++ ins
+//    }
+//  }
+
   /**
    * return a set of sub-classes of r, including itself
    */
-  def getSubClassesOfIncluding(r: JawaClass): Set[JawaClass] = {
-    if(r.isInterface){
-      reporter.warning(TITLE, "Cannot get sub class for interface " + r)
-      isetEmpty
-    } else {
-      getSubClassesOf(r) + r
-    }
+  def getSubClassesOfIncluding(r: JawaType): Set[JawaType] = {
+    getSubClassesOf(r) + r
   }
-  
+
   /**
    * return a set of sub-classes of r
    */
-  def getSubClassesOf(r: JawaClass): Set[JawaClass] = {
-    if(r.isInterface){
-      reporter.warning(TITLE, "Cannot get sub class for interface " + r)
-      isetEmpty
-    } else {
-      this.classToSubClasses.getOrElse(r, msetEmpty).toSet
-    }
+  def getSubClassesOf(r: JawaType): Set[JawaType] = {
+    this.classToSubClasses.getOrElse(r, msetEmpty).toSet
   }
-  
+
   /**
    * return super-classe of r
    */
-  def getSuperClassOf(r: JawaClass): Option[JawaClass] = {
-    if(r.isInterface){
-      reporter.warning(TITLE, "Cannot get super class for interface " + r)
-      None
-    } else {
-      r.getSuperClass
-    }
-  }
-  
+  def getSuperClassOf(r: JawaType): Option[JawaType] = classToSuperClass.get(r)
+
   /**
    * return a set of sub-interfaces of r, including itself
    */
-  def getSubInterfacesOfIncluding(r: JawaClass): ISet[JawaClass] = {
-    if(!r.isInterface){
-      reporter.warning(TITLE, "Cannot get sub interface for class " + r)
-      isetEmpty
-    } else {
-      getSubInterfacesOf(r) + r
-    }
+  def getSubInterfacesOfIncluding(r: JawaType): ISet[JawaType] = {
+    getSubInterfacesOf(r) + r
   }
-  
+
   /**
    * return a set of sub-interfaces of r
    */
-  def getSubInterfacesOf(r: JawaClass): ISet[JawaClass] = {
-    if(!r.isInterface) {
-      reporter.warning(TITLE, "Cannot get sub interface for class " + r)
-      isetEmpty
-    } else {
-      this.interfaceToSubInterfaces.getOrElse(r, msetEmpty).toSet
-    }
+  def getSubInterfacesOf(r: JawaType): ISet[JawaType] = {
+    this.interfaceToSubInterfaces.getOrElse(r, msetEmpty).toSet
   }
-  
+
   /**
    * return a set of all super-interfaces of r
    */
-  def getSuperInterfacesOf(r: JawaClass): ISet[JawaClass] = {
-    if(!r.isInterface) {
-      reporter.warning(TITLE, "Cannot get super interface for class " + r)
-      isetEmpty
-    } else {
-      r.getInterfaces
-    }
-  }
-  
+//  def getSuperInterfacesOf(r: JawaType): ISet[JawaType] = {
+//    r.getInterfaces
+//  }
+
   /**
    * get all implementers of r
    */
-  def getAllImplementersOf(r: JawaClass): ISet[JawaClass] = {
-    if(!r.isInterface) {
-      reporter.warning(TITLE, "Cannot get implementer for class " + r)
-      isetEmpty
-    } else {
-      val subI = getSubInterfacesOfIncluding(r)
-      subI.map{getImplementersOf(_)}.fold(isetEmpty)(_ ++ _)
-    }
+  def getAllImplementersOf(r: JawaType): ISet[JawaType] = {
+    val subI = getSubInterfacesOfIncluding(r)
+    subI.map(getImplementersOf).fold(isetEmpty)(_ ++ _)
   }
-  
+
   /**
    * get implementers of r
    */
-  def getImplementersOf(r: JawaClass): ISet[JawaClass] = {
-    if(!r.isInterface){
-      reporter.warning(TITLE, "Cannot get implementer for class " + r)
-      isetEmpty
-    } else {
-      this.interfaceToImplememters.getOrElse(r, msetEmpty).toSet
-    }
+  def getImplementersOf(r: JawaType): ISet[JawaType] = {
+    this.interfaceToImplementers.getOrElse(r, msetEmpty).toSet
   }
-  
+
   /**
    * return true if child is a subclass of given parent recursively
    */
-  def isClassRecursivelySubClassOf(child: JawaClass, parent: JawaClass): Boolean = {
+  def isClassRecursivelySubClassOf(child: JawaType, parent: JawaType): Boolean = {
     getAllSuperClassesOf(child).contains(parent)
   }
-  
+
    /**
    * return true if child is a subclass of given parent recursively
    */
-  def isClassRecursivelySubClassOfIncluding(child: JawaClass, parent: JawaClass): Boolean = {
+  def isClassRecursivelySubClassOfIncluding(child: JawaType, parent: JawaType): Boolean = {
     getAllSuperClassesOfIncluding(child).contains(parent)
   }
-  
+
   /**
    * return true if child is a subclass of given parent
    */
-  def isClassSubClassOf(child: JawaClass, parent: JawaClass): Boolean = {
-    if(child.isInterface){
-      reporter.warning(TITLE, "Cannot get sub class for interface " + child)
-      false
-    } else {
-      getSuperClassOf(child).orNull == parent
-    }
-  }
-  
+  def isClassSubClassOf(child: JawaType, parent: JawaType): Boolean = getSuperClassOf(child).orNull == parent
+
   /**
    * return true if child is a super class of given parent recursively
    */
-  def isClassRecursivelySuperClassOf(parent: JawaClass, child: JawaClass): Boolean = {
+  def isClassRecursivelySuperClassOf(parent: JawaType, child: JawaType): Boolean = {
     getAllSubClassesOf(parent).contains(child)
   }
-  
+
   /**
    * return true if child is a super class of given parent recursively
    */
-  def isClassRecursivelySuperClassOfIncluding(parent: JawaClass, child: JawaClass): Boolean = {
+  def isClassRecursivelySuperClassOfIncluding(parent: JawaType, child: JawaType): Boolean = {
     getAllSubClassesOfIncluding(parent).contains(child)
   }
-  
+
   /**
    * return true if child is a subclass of given parent
    */
-  def isClassSuperClassOf(parent: JawaClass, child: JawaClass): Boolean = {
-    if(parent.isInterface) {
-      reporter.warning(TITLE, "Super class cannot be interface " + parent)
-      false
-    } else {
-      child.getSuperClass.orNull == parent
-    }
+  def isClassSuperClassOf(parent: JawaType, child: JawaType): Boolean = {
+    classToSuperClass.get(child).orNull == parent
   }
-  
+
   /**
    * return true if child is a subinterface of given parent recursively
    */
-  def isClassRecursivelySubInterfaceOf(child: JawaClass, parent: JawaClass): Boolean = {
-    if(!child.isInterface) {
-      reporter.warning(TITLE, "Sub interface cannot be class " + child)
-      false
-    }  else {
-      getAllSuperInterfacesOf(child).contains(parent)
-    }
+  def isClassRecursivelySubInterfaceOf(child: JawaType, parent: JawaType): Boolean = {
+    interfaceToAllSubInterfaces(parent).contains(child)
   }
-  
+
    /**
    * return true if child is a subinterface of given parent recursively
    */
-  def isClassRecursivelySubInterfaceOfIncluding(child: JawaClass, parent: JawaClass): Boolean = {
-    if(!child.isInterface) {
-      reporter.warning(TITLE, "Sub interface cannot be class " + child)
-      false
-    }  else {
-      getAllSuperInterfacesOfIncluding(child).contains(parent)
-    }
+  def isClassRecursivelySubInterfaceOfIncluding(child: JawaType, parent: JawaType): Boolean = {
+    parent == child || isClassRecursivelySubInterfaceOf(child, parent)
   }
-  
+
   /**
    * return true if child is a subinterface of given parent
    */
-  def isClassSubInterfaceOf(child: JawaClass, parent: JawaClass): Boolean = {
-    if(!child.isInterface) {
-      reporter.warning(TITLE, "Sub interface cannot be class " + child)
-      false
-    }  else {
-      getSuperInterfacesOf(child).contains(parent)
-    }
-  }
-  
+//  def isClassSubInterfaceOf(child: JawaType, parent: JawaType): Boolean = {
+//    getSuperInterfacesOf(child).contains(parent)
+//  }
+
   /**
    * return true if the procedure is visible from record from
    */
-  def isMethodVisible(from: JawaClass, method: JawaMethod): Boolean = {
+  def isMethodVisible(from: JawaType, method: JawaMethod): Boolean = {
     if(method.isUnknown) true
     else if(method.isPublic) true
-    else if(method.isPrivate) method.getDeclaringClass == from
-    else if(method.isProtected) isClassRecursivelySubClassOfIncluding(from, method.getDeclaringClass)
+    else if(method.isPrivate) method.getDeclaringClass.getType == from
+    else if(method.isProtected) isClassRecursivelySubClassOfIncluding(from, method.getDeclaringClass.getType)
     /* If none of these access control accesflag been set, means the method has default or package level access
      * which means this method can be accessed within the class or other classes in the same package.
      */
-    else method.getDeclaringClass == from || method.getDeclaringClass.getPackage == from.getPackage
+    else method.getDeclaringClass.getType == from || method.getDeclaringClass.getPackage == from.getPackage
   }
-  
+
   /**
    * Given an object created by o = new R as type R, return the procedure which will be called by o.p()
    */
@@ -400,7 +302,7 @@ class ClassHierarchy(reporter: Reporter) extends JavaKnowledge {
       resolveConcreteDispatch(concreteType, pSubSig)
     }
   }
-  
+
   /**
    * Given an object created by o = new R as type R, return the procedure which will be called by o.p()
    */
@@ -410,23 +312,23 @@ class ClassHierarchy(reporter: Reporter) extends JavaKnowledge {
       None
     } else {
       findMethodThroughHierarchy(concreteType, pSubSig) match {
-        case apOpt @ Some(ap) => 
+        case apOpt @ Some(ap) =>
           if(ap.isAbstract){
             reporter.warning(TITLE, "Target procedure needs to be non-abstract method type: " + ap)
             None
           }
-          else if(!isMethodVisible(concreteType, ap)){
+          else if(!isMethodVisible(concreteType.getType, ap)){
             reporter.warning(TITLE, "Target procedure " + ap + " needs to be visible from: " + concreteType)
             None
           }
           else apOpt
-        case None => 
+        case None =>
           reporter.warning(TITLE, "Cannot resolve concrete dispatch!\n" + "Type:" + concreteType + "\nMethod:" + pSubSig)
           None
       }
     }
   }
-  
+
   private def findMethodThroughHierarchy(clazz: JawaClass, subSig: String): Option[JawaMethod] = {
     if(clazz.isUnknown){
       this.synchronized{
@@ -443,25 +345,24 @@ class ClassHierarchy(reporter: Reporter) extends JavaKnowledge {
       case Some(p) =>
         Some(p)
       case None =>
-        if(clazz.hasSuperClass)
-        findMethodThroughHierarchy(clazz.getSuperClass.get, subSig)
+        if(clazz.hasSuperClass) findMethodThroughHierarchy(clazz.global.getClassOrResolve(clazz.getSuperClass), subSig)
         else None
     }
     }
   }
-  
+
   /**
-   * Given an abstract dispatch to an object of type r and a procedure p, gives a list of possible receiver's methods
+   * Given an abstract dispatch to an object of type r and a subsig p, gives a list of possible receiver's methods
    */
   def resolveAbstractDispatch(r: JawaClass, pSubSig: String): ISet[JawaMethod] = {
     val results: MSet[JawaMethod] = msetEmpty
     val classes: MSet[JawaClass] = msetEmpty
     if(r.isInterface){
-      classes ++= getAllImplementersOf(r)
+      classes ++= getAllImplementersOf(r.getType).map(r.global.getClassOrResolve)
     } else {
-      classes ++= getAllSubClassesOfIncluding(r)
+      classes ++= getAllSubClassesOfIncluding(r.getType).map(r.global.getClassOrResolve)
     }
-    
+
     classes.filter { r => !r.isAbstract }.foreach{
       rec =>
         findMethodThroughHierarchy(rec, pSubSig) match {
@@ -491,7 +392,7 @@ class ClassHierarchy(reporter: Reporter) extends JavaKnowledge {
     }
     results.toSet
   }
-  
+
   /**
    * Given an abstract dispatch to an object of type r and a procedure p, gives a list of possible receiver's methods
    */
@@ -499,23 +400,23 @@ class ClassHierarchy(reporter: Reporter) extends JavaKnowledge {
     val pSubSig = p.getSubSignature
     resolveAbstractDispatch(r, pSubSig)
   }
-  
-  def reset() = {
+
+  def reset(): Unit = {
     this.classToAllSubClasses.clear()
     this.classToSubClasses.clear()
     this.interfaceToAllSubInterfaces.clear()
-    this.interfaceToImplememters.clear()
+    this.interfaceToImplementers.clear()
     this.interfaceToSubInterfaces.clear()
   }
-  
-  def printDetails() = {
+
+  def printDetails(): Unit = {
     println("==================hierarchy==================")
     println("interfaceToSubInterfaces:\n" + this.interfaceToSubInterfaces)
     println("classToSubClasses:\n" + this.classToSubClasses)
-    println("interfaceToImplememters:\n" + this.interfaceToImplememters)
+    println("interfaceToImplementers:\n" + this.interfaceToImplementers)
     println("====================================")
   }
-  
+
   override def toString: String = {
     val sb = new StringBuffer
     sb.append("\ninterface to sub-interfaces:\n")
@@ -524,7 +425,7 @@ class ClassHierarchy(reporter: Reporter) extends JavaKnowledge {
         sb.append(k + "->" + v + "\n")
     }
     sb.append("interface to implementers:\n")
-    this.interfaceToImplememters.foreach{
+    this.interfaceToImplementers.foreach{
       case (k, v) =>
         sb.append(k + "->" + v + "\n")
     }

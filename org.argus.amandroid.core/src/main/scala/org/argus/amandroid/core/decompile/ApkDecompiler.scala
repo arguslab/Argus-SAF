@@ -27,7 +27,7 @@ object ApkDecompiler {
     AmDecoder.decode(apkUri, outputUri, forceDelete, createFolder)
   }
   
-  def decompileDex(pkg: String, dexUri: FileResourceUri, settings: DecompilerSettings) = {
+  def decompileDex(pkg: String, dexUri: FileResourceUri, settings: DecompilerSettings): (String, ISet[String]) = {
     val dependencies: MSet[String] = msetEmpty
     val recordFilter: (JawaType => Boolean) = {
       ot =>

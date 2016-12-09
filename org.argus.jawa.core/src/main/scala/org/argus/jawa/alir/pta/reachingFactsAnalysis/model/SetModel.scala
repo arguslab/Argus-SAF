@@ -24,7 +24,7 @@ object SetModel {
     if(r.isApplicationClass) false
     else {
       val set = r.global.getClassOrResolve(new JawaType("java.util.Set"))
-      r.global.getClassHierarchy.getAllImplementersOf(set).contains(r)  
+      r.global.getClassHierarchy.getAllImplementersOf(set.getType).contains(r.getType)
     }
   }
     

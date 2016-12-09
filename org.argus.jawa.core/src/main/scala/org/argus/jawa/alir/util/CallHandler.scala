@@ -112,10 +112,10 @@ object CallHandler {
       typ match{
         case "interface" =>
           require(rec.isInterface)
-          global.getClassHierarchy.getAllImplementersOf(rec).foreach{
+          global.getClassHierarchy.getAllImplementersOf(rec.getType).foreach{
             record =>
-              if(record.isConcrete){
-                val fromType = record.getType
+              if(global.getClassOrResolve(record).isConcrete){
+                val fromType = record
                 var callee: Option[JawaMethod] = None 
                 try{
                   callee = getVirtualCalleeMethod(global, fromType, subSig)
@@ -131,10 +131,10 @@ object CallHandler {
           }
         case "virtual" =>
           require(!rec.isInterface)
-          global.getClassHierarchy.getAllSubClassesOfIncluding(rec).foreach{
+          global.getClassHierarchy.getAllSubClassesOfIncluding(rec.getType).foreach{
             record =>
-              if(record.isConcrete){
-                val fromType = record.getType
+              if(global.getClassOrResolve(record).isConcrete){
+                val fromType = record
                 var callee: Option[JawaMethod] = None 
                 try{
                   callee = getVirtualCalleeMethod(global, fromType, subSig)

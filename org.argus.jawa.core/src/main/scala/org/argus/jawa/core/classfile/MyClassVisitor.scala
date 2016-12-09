@@ -29,7 +29,7 @@ class MyClassVisitor(api: Int) extends ClassVisitor(api) {
   }
 
   private val classes: MMap[JawaType, MyClass] = mmapEmpty
-  private var currentClass: MyClass = null
+  private var currentClass: MyClass = _
   def getClasses: IMap[JawaType, MyClass] = classes.toMap
 
   private def getClassName(name: String): String = {
@@ -45,9 +45,10 @@ class MyClassVisitor(api: Int) extends ClassVisitor(api) {
     val accessFlag: Int = AccessFlag.getJawaFlags(access, FlagKind.CLASS, isConstructor = false)
     val typ: JawaType = JavaKnowledge.getTypeFromName(getClassName(name))
     val superType: Option[JawaType] = {
-      superName == null match {
-        case true => None
-        case false => Some(JavaKnowledge.getTypeFromName(getClassName(superName)))
+      if (superName == null) {
+        None
+      } else {
+        Some(JavaKnowledge.getTypeFromName(getClassName(superName)))
       }
     }
     val ifs: MList[JawaType] = mlistEmpty

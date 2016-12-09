@@ -24,7 +24,7 @@ object MapModel {
     if(r.isApplicationClass) false
     else {
       val map = r.global.getClassOrResolve(new JawaType("java.util.Map"))
-      val res = r.global.getClassHierarchy.getAllImplementersOf(map).contains(r)
+      val res = r.global.getClassHierarchy.getAllImplementersOf(map.getType).contains(r.getType)
       res
     }
   }

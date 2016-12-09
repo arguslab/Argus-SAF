@@ -38,8 +38,7 @@ final case class JawaBaseType(pkg: Option[JawaPackage], name: String, unknown: B
     if(pkg.isEmpty) ""
     else pkg.get.toPkgString(".")
   def toUnknown: JawaBaseType = JawaBaseType(pkg, name, unknown = true)
-  def removeUnknown(): JawaBaseType = JawaBaseType(pkg, name, unknown = false)
-  override def hashCode: Int = (pkg, name).hashCode
+  def removeUnknown(): JawaBaseType = JawaBaseType(pkg, name)
   override def toString: String = typ
 }
 
@@ -66,10 +65,10 @@ case class JawaType(baseType: JawaBaseType, dimensions: Int) extends JavaKnowled
    * Type is the name of the primitive or class or arrays base class, such as: int -> int, java.lang.Object -> Object,
    * int[] -> int
    */
-  def getType = baseType.typ
-  def isArray = dimensions > 0
-  def isPrimitive = baseType.pkg.isEmpty && isJavaPrimitive(baseType.typ) && dimensions == 0
-  def isObject = !isPrimitive
+  def getType: String = baseType.typ
+  def isArray: Boolean = dimensions > 0
+  def isPrimitive: Boolean = baseType.pkg.isEmpty && isJavaPrimitive(baseType.typ) && dimensions == 0
+  def isObject: Boolean = !isPrimitive
   def toUnknown: JawaType = JawaType(baseType.toUnknown, dimensions)
   def removeUnknown(): JawaType = JawaType(baseType.removeUnknown(), dimensions)
   /**
@@ -111,10 +110,7 @@ case class JawaType(baseType: JawaBaseType, dimensions: Int) extends JavaKnowled
     }
     result.toList
   }
-  
-  override def hashCode: Int = {
-    (baseType, dimensions).hashCode
-  }
+
   override def toString: String = {
     name
   }

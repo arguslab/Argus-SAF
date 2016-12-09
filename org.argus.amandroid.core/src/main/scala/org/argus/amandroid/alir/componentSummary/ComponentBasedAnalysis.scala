@@ -83,7 +83,7 @@ class ComponentBasedAnalysis(global: Global, yard: ApkYard) {
   /**
    * ComponentBasedAnalysis phase1 is doing intra component analysis for one giving apk.
    */
-  def phase1(apk: Apk, parallel: Boolean, idfgs: IMap[JawaType, InterproceduralDataFlowGraph]) = {
+  def phase1(apk: Apk, parallel: Boolean, idfgs: IMap[JawaType, InterproceduralDataFlowGraph]): Unit = {
     println(TITLE + ":" + "-------Phase 1-------")
     
     var components = apk.getComponents
@@ -125,7 +125,7 @@ class ComponentBasedAnalysis(global: Global, yard: ApkYard) {
     val summaryTables = components.flatMap(yard.getSummaryTable)
     val summaryMap = summaryTables.map(st => (st.component, st)).toMap
     val intentChannels = summaryTables.map(_.get[Intent_Summary](CHANNELS.INTENT_CHANNEL))
-    val allIntentCallees = intentChannels.map(_.asCallee).reduceOption{_ ++ _}.getOrElse(imapEmpty)
+    val allIntentCallees = intentChannels.map(_.asCallee).reduceOption{_ ++ _}.getOrElse(isetEmpty)
 //    val rpcChannels = summaryTables.map(_.get[RPC_Summary](CHANNELS.RPC_CHANNEL))
 //    val allRpcCallees = rpcChannels.map(_.asCallee).reduceOption{_ ++ _}.getOrElse(imapEmpty)
     
@@ -149,7 +149,7 @@ class ComponentBasedAnalysis(global: Global, yard: ApkYard) {
             case (callernode, intent_caller) =>
               val icc_callees = allIntentCallees.filter(_._2.matchWith(intent_caller))
               icc_callees foreach {
-                case (calleenode, icc_callee) =>
+                case (calleenode, _) =>
                   println(component + " --icc--> " + calleenode.getOwner.getClassName)
                   val caller_position: Int = 1
                   val callee_position: Int = 0

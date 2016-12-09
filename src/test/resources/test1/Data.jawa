@@ -1,0 +1,73 @@
+record `com.ksu.fieldFlowSentivity.Data` @kind class @AccessFlag PUBLIC extends `android.os.Parcelable` @kind interface {
+  `java.lang.String` `com.ksu.fieldFlowSentivity.Data.mData1` @AccessFlag PRIVATE;
+  `java.lang.String` `com.ksu.fieldFlowSentivity.Data.mData2` @AccessFlag PRIVATE;
+}
+global `android.os.Parcelable$Creator` `@@com.ksu.fieldFlowSentivity.Data.CREATOR` @AccessFlag PUBLIC_STATIC_FINAL;
+procedure `void` `com.ksu.fieldFlowSentivity.Data.<clinit>`() @owner ^`com.ksu.fieldFlowSentivity.Data` @signature `Lcom/ksu/fieldFlowSentivity/Data;.<clinit>:()V` @AccessFlag STATIC_CONSTRUCTOR {
+    `com.ksu.fieldFlowSentivity.Data$1` Data$1_v0;
+
+  #L02c668.  Data$1_v0:= new `com.ksu.fieldFlowSentivity.Data$1`;
+  #L02c66c.  call `com.ksu.fieldFlowSentivity.Data$1.<init>`(Data$1_v0) @signature `Lcom/ksu/fieldFlowSentivity/Data$1;.<init>:()V` @classDescriptor ^`com.ksu.fieldFlowSentivity.Data$1` @kind direct;
+  #L02c672.  `@@com.ksu.fieldFlowSentivity.Data.CREATOR`:= Data$1_v0  @kind object @type ^`android.os.Parcelable$Creator`;
+  #L02c676.  return  @kind void;
+}
+procedure `void` `com.ksu.fieldFlowSentivity.Data.<init>`(`com.ksu.fieldFlowSentivity.Data` Data_v0 @kind this) @owner ^`com.ksu.fieldFlowSentivity.Data` @signature `Lcom/ksu/fieldFlowSentivity/Data;.<init>:()V` @AccessFlag PUBLIC_CONSTRUCTOR {
+
+  #L02c688.  call `java.lang.Object.<init>`(Data_v0) @signature `Ljava/lang/Object;.<init>:()V` @classDescriptor ^`java.lang.Object` @kind direct;
+  #L02c68e.  return  @kind void;
+}
+procedure `void` `com.ksu.fieldFlowSentivity.Data.<init>`(`com.ksu.fieldFlowSentivity.Data` Data_v1 @kind this, `android.os.Parcel` Parcel_v2 @kind object) @owner ^`com.ksu.fieldFlowSentivity.Data` @signature `Lcom/ksu/fieldFlowSentivity/Data;.<init>:(Landroid/os/Parcel;)V` @AccessFlag PRIVATE_CONSTRUCTOR {
+    `java.lang.String` String_v0;
+    `java.lang.String` String_temp;
+
+  #L02c6a0.  call `java.lang.Object.<init>`(Data_v1) @signature `Ljava/lang/Object;.<init>:()V` @classDescriptor ^`java.lang.Object` @kind direct;
+  #L02c6a6.  call String_temp:=  `android.os.Parcel.readString`(Parcel_v2) @signature `Landroid/os/Parcel;.readString:()Ljava/lang/String;` @classDescriptor ^`android.os.Parcel` @kind virtual;
+  #L02c6ac.  String_v0:= String_temp  @kind object;
+  #L02c6ae.  Data_v1.`com.ksu.fieldFlowSentivity.Data.mData1`:= String_v0  @kind object @type ^`java.lang.String`;
+  #L02c6b2.  call String_temp:=  `android.os.Parcel.readString`(Parcel_v2) @signature `Landroid/os/Parcel;.readString:()Ljava/lang/String;` @classDescriptor ^`android.os.Parcel` @kind virtual;
+  #L02c6b8.  String_v0:= String_temp  @kind object;
+  #L02c6ba.  Data_v1.`com.ksu.fieldFlowSentivity.Data.mData2`:= String_v0  @kind object @type ^`java.lang.String`;
+  #L02c6be.  return  @kind void;
+}
+procedure `void` `com.ksu.fieldFlowSentivity.Data.<init>`(`com.ksu.fieldFlowSentivity.Data` Data_v0 @kind this, `android.os.Parcel` Parcel_v1 @kind object, `com.ksu.fieldFlowSentivity.Data` Data_v2 @kind object) @owner ^`com.ksu.fieldFlowSentivity.Data` @signature `Lcom/ksu/fieldFlowSentivity/Data;.<init>:(Landroid/os/Parcel;Lcom/ksu/fieldFlowSentivity/Data;)V` @AccessFlag CONSTRUCTOR {
+
+  #L02c6d0.  call `com.ksu.fieldFlowSentivity.Data.<init>`(Data_v0, Parcel_v1) @signature `Lcom/ksu/fieldFlowSentivity/Data;.<init>:(Landroid/os/Parcel;)V` @classDescriptor ^`com.ksu.fieldFlowSentivity.Data` @kind direct;
+  #L02c6d6.  return  @kind void;
+}
+procedure `int` `com.ksu.fieldFlowSentivity.Data.describeContents`(`com.ksu.fieldFlowSentivity.Data` Data_v1 @kind this) @owner ^`com.ksu.fieldFlowSentivity.Data` @signature `Lcom/ksu/fieldFlowSentivity/Data;.describeContents:()I` @AccessFlag PUBLIC {
+    `int` int_v0;
+
+  #L02c6e8.  int_v0:= 0I;
+  #L02c6ea.  return int_v0;
+}
+procedure `java.lang.String` `com.ksu.fieldFlowSentivity.Data.retrieveData1`(`com.ksu.fieldFlowSentivity.Data` Data_v1 @kind this) @owner ^`com.ksu.fieldFlowSentivity.Data` @signature `Lcom/ksu/fieldFlowSentivity/Data;.retrieveData1:()Ljava/lang/String;` @AccessFlag PUBLIC {
+    `java.lang.String` String_v0;
+
+  #L02c6fc.  String_v0:= Data_v1.`com.ksu.fieldFlowSentivity.Data.mData1`  @kind object @type ^`java.lang.String`;
+  #L02c700.  return String_v0  @kind object;
+}
+procedure `java.lang.String` `com.ksu.fieldFlowSentivity.Data.retrieveData2`(`com.ksu.fieldFlowSentivity.Data` Data_v1 @kind this) @owner ^`com.ksu.fieldFlowSentivity.Data` @signature `Lcom/ksu/fieldFlowSentivity/Data;.retrieveData2:()Ljava/lang/String;` @AccessFlag PUBLIC {
+    `java.lang.String` String_v0;
+
+  #L02c714.  String_v0:= Data_v1.`com.ksu.fieldFlowSentivity.Data.mData2`  @kind object @type ^`java.lang.String`;
+  #L02c718.  return String_v0  @kind object;
+}
+procedure `void` `com.ksu.fieldFlowSentivity.Data.setData1`(`com.ksu.fieldFlowSentivity.Data` Data_v0 @kind this, `java.lang.String` String_v1 @kind object) @owner ^`com.ksu.fieldFlowSentivity.Data` @signature `Lcom/ksu/fieldFlowSentivity/Data;.setData1:(Ljava/lang/String;)V` @AccessFlag PUBLIC {
+
+  #L02c72c.  Data_v0.`com.ksu.fieldFlowSentivity.Data.mData1`:= String_v1  @kind object @type ^`java.lang.String`;
+  #L02c730.  return  @kind void;
+}
+procedure `void` `com.ksu.fieldFlowSentivity.Data.setData2`(`com.ksu.fieldFlowSentivity.Data` Data_v0 @kind this, `java.lang.String` String_v1 @kind object) @owner ^`com.ksu.fieldFlowSentivity.Data` @signature `Lcom/ksu/fieldFlowSentivity/Data;.setData2:(Ljava/lang/String;)V` @AccessFlag PUBLIC {
+
+  #L02c744.  Data_v0.`com.ksu.fieldFlowSentivity.Data.mData2`:= String_v1  @kind object @type ^`java.lang.String`;
+  #L02c748.  return  @kind void;
+}
+procedure `void` `com.ksu.fieldFlowSentivity.Data.writeToParcel`(`com.ksu.fieldFlowSentivity.Data` Data_v1 @kind this, `android.os.Parcel` Parcel_v2 @kind object, `int` int_v3 ) @owner ^`com.ksu.fieldFlowSentivity.Data` @signature `Lcom/ksu/fieldFlowSentivity/Data;.writeToParcel:(Landroid/os/Parcel;I)V` @AccessFlag PUBLIC {
+    `java.lang.String` String_v0;
+
+  #L02c75c.  String_v0:= Data_v1.`com.ksu.fieldFlowSentivity.Data.mData1`  @kind object @type ^`java.lang.String`;
+  #L02c760.  call `android.os.Parcel.writeString`(Parcel_v2, String_v0) @signature `Landroid/os/Parcel;.writeString:(Ljava/lang/String;)V` @classDescriptor ^`android.os.Parcel` @kind virtual;
+  #L02c766.  String_v0:= Data_v1.`com.ksu.fieldFlowSentivity.Data.mData2`  @kind object @type ^`java.lang.String`;
+  #L02c76a.  call `android.os.Parcel.writeString`(Parcel_v2, String_v0) @signature `Landroid/os/Parcel;.writeString:(Ljava/lang/String;)V` @classDescriptor ^`android.os.Parcel` @kind virtual;
+  #L02c770.  return  @kind void;
+}

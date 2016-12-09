@@ -27,7 +27,6 @@ object BackwardCallChain {
   }
   
   def getBackwardCallChain(global: Global, sig: Signature): CallChain = {
-    global.resolveAllApplicationClasses()
     val ps: ISet[JawaMethod] = global.getApplicationClasses.map(_.getDeclaredMethods).fold(isetEmpty)(iunion[JawaMethod]).filter(_.isConcrete)
     val calleeSigMethodMap: MMap[Signature, MSet[Signature]] = mmapEmpty
     ps.foreach {

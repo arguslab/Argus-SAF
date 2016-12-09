@@ -12,8 +12,8 @@ package org.argus.saf
 
 import org.apache.commons.cli._
 import org.argus.amandroid.core.AndroidGlobalConfig
-import org.argus.saf.cli.{ApiMisuse, Decompiler, Staging, TaintAnalysis}
 import org.argus.amandroid.plugin.{ApiMisuseModules, TaintAnalysisModules}
+import org.argus.saf.cli._
 
 /**
   * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
@@ -21,7 +21,6 @@ import org.argus.amandroid.plugin.{ApiMisuseModules, TaintAnalysisModules}
 object Main extends App {
 
   private val version = org.argus.BuildInfo.version
-
 
   object Verbosity extends Enumeration {
     val VERBOSE, NORMAL, QUIET = Value
@@ -110,7 +109,7 @@ object Main extends App {
                   |  t[aint]       Perform taint analysis on Apk(s).""".stripMargin)
         println("")
         formatter.printHelp("<options>", normalOptions)
-        println("For additional info, see: http://amandroid.sireum.org/")
+        println("For additional info, see: http://pag.arguslab.org/argus-saf")
       case Mode.APICHECK =>
         formatter.printHelp("a[picheck] [options] <file_apk/dir>", apiMisuseOptions)
       case Mode.DECOMPILE =>
@@ -125,7 +124,7 @@ object Main extends App {
 
   // create the command line parser
   val parser: CommandLineParser = new DefaultParser()
-  var commandLine: CommandLine = null
+  var commandLine: CommandLine = _
 
   createOptions()
 

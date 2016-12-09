@@ -50,8 +50,8 @@ trait NewObj{def obj: JawaType}
  */
 trait Base{
   def baseName: String
-  private var fieldP: Point with Field = null
-  def setFieldPoint(f: Point with Field) = fieldP = f
+  private var fieldP: Point with Field = _
+  def setFieldPoint(f: Point with Field): Unit = fieldP = f
   def getFieldPoint: Point with Field = fieldP
 }
 
@@ -113,13 +113,13 @@ trait Entry
 trait Exit
 
 trait Call {
-  private var container: Point with Invoke = null
-  def setContainer(c: Point with Invoke) = container = c
+  private var container: Point with Invoke = _
+  def setContainer(c: Point with Invoke): Unit = container = c
   def getContainer: Point with Invoke = container
 }
 
 trait Return {
-  private var container: Point with Invoke = null
-  def setContainer(c: Point with Invoke) = container = c
+  private var container: Point with Invoke = _
+  def setContainer(c: Point with Invoke): Unit = container = c
   def getContainer: Point with Invoke = container
 }

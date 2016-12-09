@@ -19,11 +19,11 @@ trait ResolveLevel {
    * resolving level of current class
    */
   protected var resolvingLevel: ResolveLevel.Value = ResolveLevel.NOT_LOADED
-  
+
   /**
    * check whether we already resolved to desired level
    */
-  def checkLevelAndThrowException(level: ResolveLevel.Value, message: String) = {
+  def checkLevelAndThrowException(level: ResolveLevel.Value, message: String): Unit = {
     if(this.resolvingLevel < level) {
       val msg = "desired level: " + level + ". resolving level: " + this.resolvingLevel + " message: " + message 
       throw new RuntimeException(msg)
@@ -33,12 +33,12 @@ trait ResolveLevel {
   /**
    * check whether we already resolved to desired level
    */
-  def checkLevel(level: ResolveLevel.Value) = this.resolvingLevel >= level
+  def checkLevel(level: ResolveLevel.Value): Boolean = this.resolvingLevel >= level
   
   /**
    * return resolving level
    */
-  def getResolvingLevel = this.resolvingLevel
+  def getResolvingLevel: _root_.org.argus.jawa.core.ResolveLevel.Value = this.resolvingLevel
   
   /**
    * set resolving level
@@ -49,7 +49,6 @@ trait ResolveLevel {
 /**
  * enum of all the valid resolve level of class
  */
-  
 object ResolveLevel extends Enumeration {
   val NOT_LOADED, HIERARCHY, BODY = Value
 }

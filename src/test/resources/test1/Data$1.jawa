@@ -1,0 +1,39 @@
+record `com.ksu.fieldFlowSentivity.Data$1` @kind class @AccessFlag  extends `android.os.Parcelable$Creator` @kind interface {
+}
+procedure `void` `com.ksu.fieldFlowSentivity.Data$1.<init>`(`com.ksu.fieldFlowSentivity.Data$1` Data$1_v0 @kind this) @owner ^`com.ksu.fieldFlowSentivity.Data$1` @signature `Lcom/ksu/fieldFlowSentivity/Data$1;.<init>:()V` @AccessFlag CONSTRUCTOR {
+
+  #L02c5e0.  call `java.lang.Object.<init>`(Data$1_v0) @signature `Ljava/lang/Object;.<init>:()V` @classDescriptor ^`java.lang.Object` @kind direct;
+  #L02c5e6.  return  @kind void;
+}
+procedure `com.ksu.fieldFlowSentivity.Data` `com.ksu.fieldFlowSentivity.Data$1.createFromParcel`(`com.ksu.fieldFlowSentivity.Data$1` Data$1_v2 @kind this, `android.os.Parcel` Parcel_v3 @kind object) @owner ^`com.ksu.fieldFlowSentivity.Data$1` @signature `Lcom/ksu/fieldFlowSentivity/Data$1;.createFromParcel:(Landroid/os/Parcel;)Lcom/ksu/fieldFlowSentivity/Data;` @AccessFlag PUBLIC {
+    `com.ksu.fieldFlowSentivity.Data` Data_v0;
+    `int` int_v1;
+    `java.lang.Object` Object_v1;
+
+  #L02c5f8.  Data_v0:= new `com.ksu.fieldFlowSentivity.Data`;
+  #L02c5fc.  Object_v1:= null  @type ^`java.lang.Object` @kind object;
+  #L02c5fe.  call `com.ksu.fieldFlowSentivity.Data.<init>`(Data_v0, Parcel_v3, Object_v1) @signature `Lcom/ksu/fieldFlowSentivity/Data;.<init>:(Landroid/os/Parcel;Lcom/ksu/fieldFlowSentivity/Data;)V` @classDescriptor ^`com.ksu.fieldFlowSentivity.Data` @kind direct;
+  #L02c604.  return Data_v0  @kind object;
+}
+procedure `java.lang.Object` `com.ksu.fieldFlowSentivity.Data$1.createFromParcel`(`com.ksu.fieldFlowSentivity.Data$1` Data$1_v1 @kind this, `android.os.Parcel` Parcel_v2 @kind object) @owner ^`com.ksu.fieldFlowSentivity.Data$1` @signature `Lcom/ksu/fieldFlowSentivity/Data$1;.createFromParcel:(Landroid/os/Parcel;)Ljava/lang/Object;` @AccessFlag PUBLIC {
+    `com.ksu.fieldFlowSentivity.Data` Data_temp;
+    `com.ksu.fieldFlowSentivity.Data` Data_v0;
+
+  #L02c618.  call Data_temp:=  `com.ksu.fieldFlowSentivity.Data$1.createFromParcel`(Data$1_v1, Parcel_v2) @signature `Lcom/ksu/fieldFlowSentivity/Data$1;.createFromParcel:(Landroid/os/Parcel;)Lcom/ksu/fieldFlowSentivity/Data;` @classDescriptor ^`com.ksu.fieldFlowSentivity.Data$1` @kind virtual;
+  #L02c61e.  Data_v0:= Data_temp  @kind object;
+  #L02c620.  return Data_v0  @kind object;
+}
+procedure `com.ksu.fieldFlowSentivity.Data`[] `com.ksu.fieldFlowSentivity.Data$1.newArray`(`com.ksu.fieldFlowSentivity.Data$1` Data$1_v1 @kind this, `int` int_v2 ) @owner ^`com.ksu.fieldFlowSentivity.Data$1` @signature `Lcom/ksu/fieldFlowSentivity/Data$1;.newArray:(I)[Lcom/ksu/fieldFlowSentivity/Data;` @AccessFlag PUBLIC {
+    `com.ksu.fieldFlowSentivity.Data`[] Data_arr1_v0;
+
+  #L02c634.  Data_arr1_v0:= new `com.ksu.fieldFlowSentivity.Data`[int_v2];
+  #L02c638.  return Data_arr1_v0  @kind object;
+}
+procedure `java.lang.Object`[] `com.ksu.fieldFlowSentivity.Data$1.newArray`(`com.ksu.fieldFlowSentivity.Data$1` Data$1_v1 @kind this, `int` int_v2 ) @owner ^`com.ksu.fieldFlowSentivity.Data$1` @signature `Lcom/ksu/fieldFlowSentivity/Data$1;.newArray:(I)[Ljava/lang/Object;` @AccessFlag PUBLIC {
+    `com.ksu.fieldFlowSentivity.Data`[] Data_arr1_v0;
+    `com.ksu.fieldFlowSentivity.Data`[] Data_arr1_temp;
+
+  #L02c64c.  call Data_arr1_temp:=  `com.ksu.fieldFlowSentivity.Data$1.newArray`(Data$1_v1, int_v2) @signature `Lcom/ksu/fieldFlowSentivity/Data$1;.newArray:(I)[Lcom/ksu/fieldFlowSentivity/Data;` @classDescriptor ^`com.ksu.fieldFlowSentivity.Data$1` @kind virtual;
+  #L02c652.  Data_arr1_v0:= Data_arr1_temp  @kind object;
+  #L02c654.  return Data_arr1_v0  @kind object;
+}

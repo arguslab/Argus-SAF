@@ -19,7 +19,7 @@ object PTAScopeManager extends ScopeManager{
   private var passSystemLibrary = true
   private var passUserLibrary = true
   private var passApplication = false
-  def setMode(passSystemLibrary: Boolean, passUserLibrary: Boolean, passApplication: Boolean) = {
+  def setMode(passSystemLibrary: Boolean, passUserLibrary: Boolean, passApplication: Boolean): Unit = {
     this.passSystemLibrary = passSystemLibrary
     this.passUserLibrary = passUserLibrary
     this.passApplication = passApplication

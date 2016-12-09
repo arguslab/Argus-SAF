@@ -21,7 +21,7 @@ import org.sireum.util._
  */ 
 object ObjectModel {
   val TITLE = "ObjectModel"
-  def isObject(r: JawaClass): Boolean = r.getName == "java.lang.Object"
+  def isObject(r: JawaClass): Boolean = r.getName.equals("java.lang.Object")
     
   def doObjectCall(s: PTAResult, p: JawaMethod, args: List[String], retVars: Seq[String], currentContext: Context)(implicit factory: RFAFactFactory): (ISet[RFAFact], ISet[RFAFact], Boolean) = {
     var newFacts = isetEmpty[RFAFact]

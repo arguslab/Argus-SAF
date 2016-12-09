@@ -148,7 +148,7 @@ trait JavaKnowledge {
    * get outer class name from inner class name. e.g. android.os.Handler$Callback -> android.os.Handler
    */
   def getOuterTypeFrom(innerType: JawaType): JawaType = {
-    if(!isInnerClass(innerType)) throw new InvalidTypeException("wrong innerType: " + innerType)
+    if(!isInnerClass(innerType)) throw InvalidTypeException("wrong innerType: " + innerType)
     new JawaType(innerType.name.substring(0, innerType.name.lastIndexOf("$")))
   }
   
@@ -163,11 +163,11 @@ trait JavaKnowledge {
   protected def assign(str: String, dimension: Int, pattern: String, front: Boolean): String = {
     val sb = new StringBuffer
     if(front){
-      for(d <- 1 to dimension) sb.append(pattern)
+      for(_ <- 1 to dimension) sb.append(pattern)
     }
     sb.append(str)
     if(!front){
-      for(d <- 1 to dimension) sb.append(pattern)
+      for(_ <- 1 to dimension) sb.append(pattern)
     }
     sb.toString.intern()
   }
@@ -192,7 +192,7 @@ trait JavaKnowledge {
   /**
    * check if given string is field signature or not
    */
-  def isFQN(str: String) = isValidFieldFQN(str)
+  def isFQN(str: String): Boolean = isValidFieldFQN(str)
   
   /**
    * generate signature of this field. input: ("java.lang.Throwable", "stackState") output: "java.lang.Throwable.stackState"
@@ -300,14 +300,14 @@ trait JavaKnowledge {
     val returnType: JawaType = signature.getReturnType
     val accessFlags = AccessFlag.getAccessFlags("PUBLIC")
     val method = JawaMethod(declaringClass, name, thisOpt, params, returnType, accessFlags)
-    method.setUnknown
+    method.setUnknown()
     method
   }
   /********************** JawaMethod related op end **************************/
   
   def constructorName: String = "<init>"
   def staticInitializerName: String = "<clinit>"
-  def isJawaConstructor(name: String) = name == constructorName || name == staticInitializerName
+  def isJawaConstructor(name: String): Boolean = name == constructorName || name == staticInitializerName
 }
 
 object JavaKnowledge extends JavaKnowledge

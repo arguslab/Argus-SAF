@@ -23,7 +23,7 @@ import org.sireum.util._
  */ 
 object UriModel {
   final val TITLE = "UriModel"
-  def isUri(r: JawaClass): Boolean = r.getName == "android.net.Uri"
+  def isUri(r: JawaClass): Boolean = r.getName.equals("android.net.Uri")
     
   def doUriCall(s: PTAResult, p: JawaMethod, args: List[String], retVars: Seq[String], currentContext: Context)(implicit factory: RFAFactFactory): (ISet[RFAFact], ISet[RFAFact], Boolean) = {
     var newFacts = isetEmpty[RFAFact]

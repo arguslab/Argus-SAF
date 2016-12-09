@@ -133,7 +133,7 @@ object InterproceduralDataDependenceAnalysis {
               val loc = ownerProc.getBody.location(ln.getLocIndex)
               val irdaFacts = irdaResult(icfgN)
               targetNodes ++= processLocation(global, node, loc, ptaresult, irdaFacts, iddg)
-            case a => 
+            case _ =>
           }
         }
         targetNodes.foreach(tn=>iddg.addEdge(node, tn))
@@ -181,7 +181,7 @@ object InterproceduralDataDependenceAnalysis {
               val position = i
               val fields = readmap.getOrElse(position, Set()) 
               argInss.foreach{
-                case argIns =>
+                argIns =>
                   fields.foreach{
                     f => 
                       val fs = FieldSlot(argIns, f)
@@ -260,15 +260,15 @@ object InterproceduralDataDependenceAnalysis {
       iddg: InterproceduralDataDependenceGraph[Node]): ISet[Node] = {
     var result = isetEmpty[Node]
     lhss.foreach {
-      case ne: NameExp =>
+      case _: NameExp =>
       case ae: AccessExp =>
-        val baseSlot = ae.exp match {
+        ae.exp match {
           case ne: NameExp =>
             result ++= searchRda(global, ne.name.name, node, irdaFacts, iddg)
           case _ => throw new RuntimeException("Wrong exp: " + ae.exp)
         }
       case ie: IndexingExp =>
-        val baseSlot = ie.exp match {
+        ie.exp match {
           case ine: NameExp =>
             result ++= searchRda(global, ine.name.name, node, irdaFacts, iddg)
           case _ => throw new RuntimeException("Wrong exp: " + ie.exp)
@@ -354,7 +354,7 @@ object InterproceduralDataDependenceAnalysis {
                 val defSite = ins.defSite
                 result ++= iddg.findDefSite(defSite)
             }
-          case nle: NewListExp => 
+          case _: NewListExp =>
           case _ => throw new RuntimeException("Wrong exp: " + ce.exp)
         }
       case ce: CallExp =>
@@ -368,9 +368,9 @@ object InterproceduralDataDependenceAnalysis {
               case ne: NameExp =>
                 result ++= searchRda(global, ne.name.name, node, irdaFacts, iddg)
                 VarSlot(ne.name.name, isBase = false, isArg = true)
-              case exp => VarSlot(exp.toString, isBase = false, isArg = true)
+              case _ => VarSlot(exp.toString, isBase = false, isArg = true)
             }
-            calleeSet.foreach{
+            calleeSet.foreach {
               callee =>
                 val calleeSig = callee.callee
                 if(global.isSystemLibraryClasses(calleeSig.getClassType) || global.isUserLibraryClasses(calleeSig.getClassType)) {
@@ -412,7 +412,6 @@ object InterproceduralDataDependenceAnalysis {
                   }
                 }
             }
-            result
           case _ => throw new RuntimeException("wrong exp type: " + ce + "  " + ce.arg)
         }
       case _=>
@@ -451,15 +450,15 @@ object InterproceduralDataDependenceAnalysis {
           defDesc match {
             case pdd: ParamDefDesc =>
               pdd.locUri match{
-                case Some(locU) =>
+                case Some(_) =>
                   result ++= iddg.findVirtualBodyDefSite(tarContext)
                 case None =>
                   throw new RuntimeException("Unexpected ParamDefDesc: " + pdd)
               }
             case ldd: LocDefDesc => 
               ldd.locUri match {
-                case Some(locU) =>
-                  result ++= iddg.findDefSite(tarContext, true)
+                case Some(_) =>
+                  result ++= iddg.findDefSite(tarContext, isRet = true)
                 case None =>
                   throw new RuntimeException("Unexpected LocDefDesc: " + ldd)
               }
@@ -474,7 +473,6 @@ object InterproceduralDataDependenceAnalysis {
                     index += 1
                 }
                 val paramNames = owner.getParamNames
-                val paramTyps = owner.getParamTypes
                 for(i <- paramNames.indices){
                   val paramName = paramNames(i)
                   if(paramName == varName) indexs += index

@@ -1,0 +1,75 @@
+record `com.ksu.fieldFlowSentivity.FooActivity` @kind class @AccessFlag PUBLIC extends `android.app.Activity` @kind class {
+}
+procedure `void` `com.ksu.fieldFlowSentivity.FooActivity.<init>`(`com.ksu.fieldFlowSentivity.FooActivity` FooActivity_v0 @kind this) @owner ^`com.ksu.fieldFlowSentivity.FooActivity` @signature `Lcom/ksu/fieldFlowSentivity/FooActivity;.<init>:()V` @AccessFlag PUBLIC_CONSTRUCTOR {
+
+  #L02c784.  call `android.app.Activity.<init>`(FooActivity_v0) @signature `Landroid/app/Activity;.<init>:()V` @classDescriptor ^`android.app.Activity` @kind direct;
+  #L02c78a.  return  @kind void;
+}
+procedure `void` `com.ksu.fieldFlowSentivity.FooActivity.onCreate`(`com.ksu.fieldFlowSentivity.FooActivity` FooActivity_v5 @kind this, `android.os.Bundle` Bundle_v6 @kind object) @owner ^`com.ksu.fieldFlowSentivity.FooActivity` @signature `Lcom/ksu/fieldFlowSentivity/FooActivity;.onCreate:(Landroid/os/Bundle;)V` @AccessFlag PROTECTED {
+    `android.os.Parcelable` Parcelable_v0;
+    `java.lang.String` String_v4;
+    `com.ksu.fieldFlowSentivity.Data` Data_v0;
+    `android.content.Intent` Intent_temp;
+    `int` int_v4;
+    `android.content.Intent` Intent_v3;
+    `int` int_temp;
+    `android.os.Parcelable` Parcelable_temp;
+    `java.lang.String` String_v2;
+    `java.lang.String` String_temp;
+    `java.lang.String` String_v1;
+
+  #L02c79c.  call `android.app.Activity.onCreate`(FooActivity_v5, Bundle_v6) @signature `Landroid/app/Activity;.onCreate:(Landroid/os/Bundle;)V` @classDescriptor ^`android.app.Activity` @kind super;
+  #L02c7a2.  int_v4:= 2130903040I;
+  #L02c7a6.  call `com.ksu.fieldFlowSentivity.FooActivity.setContentView`(FooActivity_v5, int_v4) @signature `Lcom/ksu/fieldFlowSentivity/FooActivity;.setContentView:(I)V` @classDescriptor ^`com.ksu.fieldFlowSentivity.FooActivity` @kind virtual;
+  #L02c7ac.  call Intent_temp:=  `com.ksu.fieldFlowSentivity.FooActivity.getIntent`(FooActivity_v5) @signature `Lcom/ksu/fieldFlowSentivity/FooActivity;.getIntent:()Landroid/content/Intent;` @classDescriptor ^`com.ksu.fieldFlowSentivity.FooActivity` @kind virtual;
+  #L02c7b2.  Intent_v3:= Intent_temp  @kind object;
+  #L02c7b4.  String_v4:= "data" @kind object;
+  #L02c7b8.  call Parcelable_temp:=  `android.content.Intent.getParcelableExtra`(Intent_v3, String_v4) @signature `Landroid/content/Intent;.getParcelableExtra:(Ljava/lang/String;)Landroid/os/Parcelable;` @classDescriptor ^`android.content.Intent` @kind virtual;
+  #L02c7be.  Parcelable_v0:= Parcelable_temp  @kind object;
+  #L02c7c0.  Data_v0:= (`com.ksu.fieldFlowSentivity.Data`)Parcelable_v0  @kind object;
+  #L02c7c4.  call String_temp:=  `com.ksu.fieldFlowSentivity.Data.retrieveData1`(Data_v0) @signature `Lcom/ksu/fieldFlowSentivity/Data;.retrieveData1:()Ljava/lang/String;` @classDescriptor ^`com.ksu.fieldFlowSentivity.Data` @kind virtual;
+  #L02c7ca.  String_v1:= String_temp  @kind object;
+  #L02c7cc.  String_v4:= "data1" @kind object;
+  #L02c7d0.  call int_temp:=  `android.util.Log.i`(String_v4, String_v1) @signature `Landroid/util/Log;.i:(Ljava/lang/String;Ljava/lang/String;)I` @classDescriptor ^`android.util.Log` @kind static;
+  #L02c7d6.  call String_temp:=  `com.ksu.fieldFlowSentivity.Data.retrieveData2`(Data_v0) @signature `Lcom/ksu/fieldFlowSentivity/Data;.retrieveData2:()Ljava/lang/String;` @classDescriptor ^`com.ksu.fieldFlowSentivity.Data` @kind virtual;
+  #L02c7dc.  String_v2:= String_temp  @kind object;
+  #L02c7de.  call `com.ksu.fieldFlowSentivity.FooActivity.process`(FooActivity_v5, String_v2) @signature `Lcom/ksu/fieldFlowSentivity/FooActivity;.process:(Ljava/lang/String;)V` @classDescriptor ^`com.ksu.fieldFlowSentivity.FooActivity` @kind virtual;
+  #L02c7e4.  return  @kind void;
+}
+procedure `boolean` `com.ksu.fieldFlowSentivity.FooActivity.onCreateOptionsMenu`(`com.ksu.fieldFlowSentivity.FooActivity` FooActivity_v2 @kind this, `android.view.Menu` Menu_v3 @kind object) @owner ^`com.ksu.fieldFlowSentivity.FooActivity` @signature `Lcom/ksu/fieldFlowSentivity/FooActivity;.onCreateOptionsMenu:(Landroid/view/Menu;)Z` @AccessFlag PUBLIC {
+    `android.view.MenuInflater` MenuInflater_v0;
+    `boolean` boolean_v0;
+    `int` int_v0;
+    `int` int_v1;
+    `android.view.MenuInflater` MenuInflater_temp;
+
+  #L02c7f8.  call MenuInflater_temp:=  `com.ksu.fieldFlowSentivity.FooActivity.getMenuInflater`(FooActivity_v2) @signature `Lcom/ksu/fieldFlowSentivity/FooActivity;.getMenuInflater:()Landroid/view/MenuInflater;` @classDescriptor ^`com.ksu.fieldFlowSentivity.FooActivity` @kind virtual;
+  #L02c7fe.  MenuInflater_v0:= MenuInflater_temp  @kind object;
+  #L02c800.  int_v1:= 2131165184I;
+  #L02c804.  call `android.view.MenuInflater.inflate`(MenuInflater_v0, int_v1, Menu_v3) @signature `Landroid/view/MenuInflater;.inflate:(ILandroid/view/Menu;)V` @classDescriptor ^`android.view.MenuInflater` @kind virtual;
+  #L02c80a.  boolean_v0:= 1I;
+  #L02c80c.  return boolean_v0;
+}
+procedure `boolean` `com.ksu.fieldFlowSentivity.FooActivity.onOptionsItemSelected`(`com.ksu.fieldFlowSentivity.FooActivity` FooActivity_v2 @kind this, `android.view.MenuItem` MenuItem_v3 @kind object) @owner ^`com.ksu.fieldFlowSentivity.FooActivity` @signature `Lcom/ksu/fieldFlowSentivity/FooActivity;.onOptionsItemSelected:(Landroid/view/MenuItem;)Z` @AccessFlag PUBLIC {
+    `boolean` boolean_temp;
+    `int` int_v0;
+    `boolean` boolean_v1;
+    `int` int_temp;
+    `int` int_v1;
+
+  #L02c820.  call int_temp:=  `android.view.MenuItem.getItemId`(MenuItem_v3) @signature `Landroid/view/MenuItem;.getItemId:()I` @classDescriptor ^`android.view.MenuItem` @kind interface;
+  #L02c826.  int_v0:= int_temp;
+  #L02c828.  
+  #L02c828_0.  boolean_v1:= 2131230720I;
+  #L02c828_1.  int_v1:= 2131230720I;
+  #L02c82c.  if int_v0 != int_v1 then goto L02c834;
+  #L02c830.  boolean_v1:= 1I;
+  #L02c832.  return boolean_v1;
+  #L02c834.  call boolean_temp:=  `android.app.Activity.onOptionsItemSelected`(FooActivity_v2, MenuItem_v3) @signature `Landroid/app/Activity;.onOptionsItemSelected:(Landroid/view/MenuItem;)Z` @classDescriptor ^`android.app.Activity` @kind super;
+  #L02c83a.  boolean_v1:= boolean_temp;
+  #L02c83c.  goto L02c832;
+}
+procedure `void` `com.ksu.fieldFlowSentivity.FooActivity.process`(`com.ksu.fieldFlowSentivity.FooActivity` FooActivity_v0 @kind this, `java.lang.String` String_v1 @kind object) @owner ^`com.ksu.fieldFlowSentivity.FooActivity` @signature `Lcom/ksu/fieldFlowSentivity/FooActivity;.process:(Ljava/lang/String;)V` @AccessFlag PUBLIC {
+
+  #L02c850.  return  @kind void;
+}

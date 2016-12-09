@@ -75,21 +75,21 @@ trait PackageEntry {
 }
 
 private[jawa] case class ClassFileEntryImpl(file: AbstractFile) extends ClassFileEntry {
-  override def name = FileUtils.stripClassExtension(file.name) // class name
+  override def name: String = FileUtils.stripClassExtension(file.name) // class name
 
   override def binary: Option[AbstractFile] = Some(file)
   override def source: Option[AbstractFile] = None
 }
 
 private[jawa] case class SourceFileEntryImpl(file: AbstractFile) extends SourceFileEntry {
-  override def name = FileUtils.stripSourceExtension(file.name)
+  override def name: String = FileUtils.stripSourceExtension(file.name)
 
   override def binary: Option[AbstractFile] = None
   override def source: Option[AbstractFile] = Some(file)
 }
 
 private[jawa] case class ClassAndSourceFilesEntry(classFile: AbstractFile, srcFile: AbstractFile) extends ClassRepClasspathEntry {
-  override def name = FileUtils.stripClassExtension(classFile.name)
+  override def name: String = FileUtils.stripClassExtension(classFile.name)
 
   override def binary: Option[AbstractFile] = Some(classFile)
   override def source: Option[AbstractFile] = Some(srcFile)

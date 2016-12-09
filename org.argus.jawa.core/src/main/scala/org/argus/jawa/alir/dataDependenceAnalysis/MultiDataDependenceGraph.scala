@@ -21,11 +21,11 @@ import org.sireum.util._
   */
 class MultiDataDependenceGraph[Node <: IDDGNode] extends DataDependenceBaseGraph[Node] {
   val icfg: InterproceduralControlFlowGraph[ICFGNode] = new InterproceduralControlFlowGraph[ICFGNode]
-  val encontext = new Context().setContext(new Signature("LMDDGEntry;.entry:()V"), "L0000")
+  val encontext: Context = new Context().setContext(new Signature("LMDDGEntry;.entry:()V"), "L0000")
   icfg.addEntryNode(icfg.addICFGEntryNode(encontext).asInstanceOf[ICFGEntryNode])
   val entryNode: Node = addIDDGEntryNode(icfg.entryNode.asInstanceOf[ICFGEntryNode])
   
-  private val loadedSet: MSet[IDDGEntryNode] =msetEmpty
+  private val loadedSet: MSet[IDDGEntryNode] = msetEmpty
   
   def isLoaded(iddg: DataDependenceBaseGraph[Node]): Boolean = {
     loadedSet.contains(iddg.entryNode.asInstanceOf[IDDGEntryNode])
@@ -37,8 +37,8 @@ class MultiDataDependenceGraph[Node <: IDDGNode] extends DataDependenceBaseGraph
       loadedSet += iddg.entryNode.asInstanceOf[IDDGEntryNode]
       icfg.merge(iddg.icfg)
       this.pl ++= iddg.pool
-      iddg.nodes.foreach(addNode(_))
-      iddg.edges.foreach(addEdge(_))
+      iddg.nodes.foreach(addNode)
+      iddg.edges.foreach(addEdge)
     }
   }
 }

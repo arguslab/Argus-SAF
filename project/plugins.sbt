@@ -16,6 +16,6 @@ addSbtPlugin("com.github.gseitz" % "sbt-release" % "1.0.3")
 
 resolvers += "Typesafe Repository" at "https://repo.typesafe.com/typesafe/releases/"
 
-addSbtPlugin("org.scoverage" % "sbt-scoverage" % "1.3.5")
+addSbtPlugin("org.scoverage" % "sbt-scoverage" % "1.5.0")
 
 addSbtPlugin("com.codacy" % "sbt-codacy-coverage" % "1.3.0")
