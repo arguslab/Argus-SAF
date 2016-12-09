@@ -23,8 +23,8 @@ object ApkDecompiler {
   final val TITLE = "ApkDecompiler"
   final val DEBUG = false
   
-  def decodeApk(apkUri: FileResourceUri, outputUri: FileResourceUri, forceDelete: Boolean, createFolder: Boolean = true): FileResourceUri = {
-    AmDecoder.decode(apkUri, outputUri, forceDelete, createFolder)
+  def decodeApk(apkUri: FileResourceUri, outputUri: FileResourceUri, forceDelete: Boolean, createFolder: Boolean = true, srcFolder: String): FileResourceUri = {
+    AmDecoder.decode(apkUri, outputUri, forceDelete, createFolder, srcFolder)
   }
   
   def decompileDex(pkg: String, dexUri: FileResourceUri, settings: DecompilerSettings): (String, ISet[String]) = {
@@ -60,7 +60,7 @@ object ApkDecompiler {
   }
   
   def decompile(apkUri: FileResourceUri, settings: DecompilerSettings): (FileResourceUri, ISet[String], ISet[String]) = {
-    val outUri = decodeApk(apkUri, settings.layout.outputUri, settings.forceDelete, settings.layout.createFolder)
+    val outUri = decodeApk(apkUri, settings.layout.outputUri, settings.forceDelete, settings.layout.createFolder, settings.layout.srcFolder)
     settings.layout.outputSrcUri = outUri
     val manifestUri = MyFileUtil.appendFileName(outUri, "AndroidManifest.xml")
     val pkg = ManifestParser.loadPackageName(manifestUri)
