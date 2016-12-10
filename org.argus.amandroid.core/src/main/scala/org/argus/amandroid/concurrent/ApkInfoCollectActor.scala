@@ -52,7 +52,7 @@ class ApkInfoCollectActor extends Actor with ActorLogging {
           Staging.stageApk(apk, outApkUri)
         } catch {
           case e: Exception =>
-            PointsToAnalysisFailResult(apk.nameUri, e)
+            ApkInfoCollectFailResult(apk.nameUri, e)
         }
         res
       } catch {

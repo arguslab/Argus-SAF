@@ -49,12 +49,13 @@ case class PointsToAnalysisData(apk: Apk, outApkUri: FileResourceUri, srcFolders
 // PointsToAnalysisActor's result
 trait PointsToAnalysisResult extends AmandroidData {
   def fileUri: FileResourceUri
+  def time: Long
 }
-case class PointsToAnalysisSuccResult(apk: Apk, ptaresults: IMap[Signature, PTAResult]) extends PointsToAnalysisResult with Success {
+case class PointsToAnalysisSuccResult(apk: Apk, time: Long, ptaresults: IMap[Signature, PTAResult]) extends PointsToAnalysisResult with Success {
   def fileUri: FileResourceUri = apk.nameUri
 }
-case class PointsToAnalysisSuccStageResult(fileUri: FileResourceUri, outApkUri: FileResourceUri) extends PointsToAnalysisResult with Success
-case class PointsToAnalysisFailResult(fileUri: FileResourceUri, e: Exception) extends PointsToAnalysisResult with Failure
+case class PointsToAnalysisSuccStageResult(fileUri: FileResourceUri, time: Long, outApkUri: FileResourceUri) extends PointsToAnalysisResult with Success
+case class PointsToAnalysisFailResult(fileUri: FileResourceUri, time: Long, e: Exception) extends PointsToAnalysisResult with Failure
 
 // SecurityEngineActor's input
 case class SecurityEngineData(ptar: PointsToAnalysisResult with Success, spec: SecSpec)

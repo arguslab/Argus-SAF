@@ -53,6 +53,7 @@ class PointsToAnalysisActor extends Actor with ActorLogging {
     }
     val ptaresults: MMap[Signature, PTAResult] = mmapEmpty
     val succEps: MSet[Signature] = msetEmpty
+    var time = System.currentTimeMillis()
     while(worklist.nonEmpty) {
       val esig = worklist.remove(0)
       try {
@@ -60,24 +61,25 @@ class PointsToAnalysisActor extends Actor with ActorLogging {
         ptaresults(esig) = res.ptaresult
         succEps += esig
       } catch {
-        case te: TimeoutException =>
+        case _: TimeoutException =>
           log.warning("PTA timeout for " + esig)
         case e: Exception =>
           log.error(e, "PTA failed for " + esig)
       }
     }
+    time = (System.currentTimeMillis() - time) / 1000
     if(ptadata.stage) {
       try {
         Staging.stage(apk, ptaresults.toMap, ptadata.outApkUri)
         val outUri = FileUtil.toUri(FileUtil.toFile(ptadata.outApkUri).getParentFile)
         Staging.stageReport(outUri, apk.getAppName)
-        PointsToAnalysisSuccStageResult(apk.nameUri, ptadata.outApkUri)
+        PointsToAnalysisSuccStageResult(apk.nameUri, time, ptadata.outApkUri)
       } catch {
         case e: Exception =>
-          PointsToAnalysisFailResult(apk.nameUri, e)
+          PointsToAnalysisFailResult(apk.nameUri, time, e)
       }
     } else {
-      PointsToAnalysisSuccResult(apk, ptaresults.toMap)
+      PointsToAnalysisSuccResult(apk, time, ptaresults.toMap)
     }
     
   }

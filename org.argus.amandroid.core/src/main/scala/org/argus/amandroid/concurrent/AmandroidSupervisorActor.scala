@@ -18,14 +18,7 @@ import scala.concurrent.duration._
 import com.typesafe.config.Config
 import akka.dispatch.UnboundedPriorityMailbox
 import akka.dispatch.PriorityGenerator
-import com.typesafe.config.ConfigFactory
-
-import scala.concurrent.Future
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Await
-import akka.pattern.ask
 import org.argus.amandroid.concurrent.util.Recorder
-import org.argus.amandroid.plugin.TaintAnalysisModules
 
 class AmandroidSupervisorActor(recorder: Recorder) extends Actor with ActorLogging {
   private val decActor = context.actorOf(FromConfig.props(Props[DecompilerActor]), "DecompilerActor")
@@ -63,12 +56,12 @@ class AmandroidSupervisorActor(recorder: Recorder) extends Actor with ActorLoggi
       ptar match {
         case ptsr: PointsToAnalysisSuccResult =>
           log.info("Points to analysis success for " + ptsr.fileUri)
-          recorder.pta(FileUtil.toFile(ptsr.fileUri).getName, succ = true)
+          recorder.pta(FileUtil.toFile(ptsr.fileUri).getName, ptar.time, succ = true)
         case ptssr: PointsToAnalysisSuccStageResult =>
-          recorder.pta(FileUtil.toFile(ptssr.fileUri).getName, succ = true)
+          recorder.pta(FileUtil.toFile(ptssr.fileUri).getName, ptar.time, succ = true)
           log.info("Points to analysis success staged for " + ptssr.fileUri)
         case ptfr: PointsToAnalysisFailResult =>
-          recorder.pta(FileUtil.toFile(ptfr.fileUri).getName, succ = false)
+          recorder.pta(FileUtil.toFile(ptfr.fileUri).getName, ptar.time, succ = false)
           log.error(ptfr.e, "Points to analysis failed on " + ptfr.fileUri)
       }
       sendership(ptar.fileUri) ! ptar
@@ -100,31 +93,31 @@ class AmandroidSupervisorActorPrioMailbox(settings: ActorSystem.Settings, config
       case _ => 4
     })
 
-object AmandroidTestApplication extends App {
-  val _system = ActorSystem("AmandroidTestApplication", ConfigFactory.load)
-  val fileUris = FileUtil.listFiles(FileUtil.toUri(args(0)), ".apk", recursive = true)
-  val outputUri = FileUtil.toUri(args(1))
-  val supervisor = _system.actorOf(Props(classOf[AmandroidSupervisorActor], Recorder(outputUri)), name = "AmandroidSupervisorActor")
-  val futures = fileUris map {
-    fileUri =>
-      supervisor.ask(AnalysisSpec(fileUri, outputUri, None, removeSupportGen = true, forceDelete = true))(600 minutes).mapTo[PointsToAnalysisResult].recover{
-        case ex: Exception => 
-            PointsToAnalysisFailResult(fileUri, ex)
-        }
-  }
-  val fseq = Future.sequence(futures)
-  val seFutures: MSet[Future[SecurityEngineResult]] = msetEmpty
-  Await.result(fseq, Duration.Inf).foreach {
-    case ptar: PointsToAnalysisResult with Success =>
-      seFutures += supervisor.ask(SecurityEngineData(ptar, TaintAnalysisSpec(TaintAnalysisModules.DATA_LEAKAGE)))(10 minutes).mapTo[SecurityEngineResult].recover {
-        case ex: Exception =>
-          SecurityEngineFailResult(ptar.fileUri, ex)
-      }
-    case _ =>
-  }
-  val sefseq = Future.sequence(seFutures)
-  Await.result(sefseq, Duration.Inf).foreach {
-    sr => println(sr)
-  }
-  _system.terminate()
-}
+//object AmandroidTestApplication extends App {
+//  val _system = ActorSystem("AmandroidTestApplication", ConfigFactory.load)
+//  val fileUris = FileUtil.listFiles(FileUtil.toUri(args(0)), ".apk", recursive = true)
+//  val outputUri = FileUtil.toUri(args(1))
+//  val supervisor = _system.actorOf(Props(classOf[AmandroidSupervisorActor], Recorder(outputUri)), name = "AmandroidSupervisorActor")
+//  val futures = fileUris map {
+//    fileUri =>
+//      supervisor.ask(AnalysisSpec(fileUri, outputUri, None, removeSupportGen = true, forceDelete = true))(600 minutes).mapTo[PointsToAnalysisResult].recover{
+//        case ex: Exception =>
+//            PointsToAnalysisFailResult(fileUri, ex)
+//        }
+//  }
+//  val fseq = Future.sequence(futures)
+//  val seFutures: MSet[Future[SecurityEngineResult]] = msetEmpty
+//  Await.result(fseq, Duration.Inf).foreach {
+//    case ptar: PointsToAnalysisResult with Success =>
+//      seFutures += supervisor.ask(SecurityEngineData(ptar, TaintAnalysisSpec(TaintAnalysisModules.DATA_LEAKAGE)))(10 minutes).mapTo[SecurityEngineResult].recover {
+//        case ex: Exception =>
+//          SecurityEngineFailResult(ptar.fileUri, ex)
+//      }
+//    case _ =>
+//  }
+//  val sefseq = Future.sequence(seFutures)
+//  Await.result(sefseq, Duration.Inf).foreach {
+//    sr => println(sr)
+//  }
+//  _system.terminate()
+//}
