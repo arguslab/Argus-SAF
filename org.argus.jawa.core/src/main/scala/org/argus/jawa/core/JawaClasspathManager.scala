@@ -112,7 +112,7 @@ trait JawaClasspathManager extends JavaKnowledge { self: Global =>
   private def flatClassPath: FlatClasspath = platform.flatClassPath
   
   protected val cachedClassRepresentation: LoadingCache[JawaType, Option[ClassRepresentation]] = CacheBuilder.newBuilder()
-    .maximumSize(300).build(
+    .maximumSize(1000).build(
         new CacheLoader[JawaType, Option[ClassRepresentation]]() {
           def load(typ: JawaType): Option[ClassRepresentation] = {
             classPath.findClass(typ.name)

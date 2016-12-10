@@ -61,10 +61,10 @@ trait JawaClassLoadManager extends JavaKnowledge with JawaResolver { self: Globa
   }
   
   protected val classCache: Cache[JawaType, JawaClass] = CacheBuilder.newBuilder()
-    .maximumSize(1000).build[JawaType, JawaClass]()
+    .maximumSize(3000).build[JawaType, JawaClass]()
         
   protected val methodCache: Cache[Signature, JawaMethod] = CacheBuilder.newBuilder()
-    .maximumSize(100).build[Signature, JawaMethod]()
+    .maximumSize(500).build[Signature, JawaMethod]()
   
   /**
    * get class by type; if it does not exist, return None
