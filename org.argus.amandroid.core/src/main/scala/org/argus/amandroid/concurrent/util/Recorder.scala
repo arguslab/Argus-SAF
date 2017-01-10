@@ -49,12 +49,12 @@ case class Recorder(outUri: FileResourceUri) {
     }
   }
 
-  def pta(apkName: String, succ: Boolean): Unit = {
+  def pta(apkName: String, time: Long, succ: Boolean): Unit = {
     val rp = FileUtil.toFile(MyFileUtil.appendFileName(outUri, "pta_report.txt"))
     this.synchronized {
       val writer = new FileWriter(rp, true)
       try {
-        writer.write(apkName + " " + {if(succ) "success" else "failure"} + "\n")
+        writer.write(apkName + " " + time + "s " + {if(succ) "success" else "failure"} + "\n")
       } catch {
         case e: Exception =>
           throw e

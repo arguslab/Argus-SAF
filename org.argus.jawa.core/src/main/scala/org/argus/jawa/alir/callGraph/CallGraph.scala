@@ -15,6 +15,7 @@ import com.tinkerpop.blueprints.impls.tg.TinkerGraph
 import org.argus.jawa.alir.Context
 import org.argus.jawa.alir.controlFlowGraph._
 import org.argus.jawa.alir.interprocedural.Callee
+import org.argus.jawa.core.util.WorklistAlgorithm
 import org.argus.jawa.core.{JawaType, Signature}
 import org.sireum.util._
 
@@ -31,21 +32,19 @@ class CallGraph {
   def getCallMap: IMap[Signature, ISet[Signature]] = this.callMap.map{case (k, vs) => k -> vs.toSet}.toMap
 
   def getReachableMethods(procs: ISet[Signature]): ISet[Signature] = {
-    calculateReachableMethods(procs, isetEmpty) ++ procs
-  }
-  
-  private def calculateReachableMethods(procs: ISet[Signature], processed: Set[Signature]): ISet[Signature] = {
-    if(procs.isEmpty) Set()
-    else
-      procs.map{
-        proc =>
-          if(processed.contains(proc)){
-            Set[Signature]()
-          } else {
-            val callees = this.callMap.getOrElse(proc, msetEmpty).toSet
-            callees ++ calculateReachableMethods(callees, processed + proc)
-          }
-      }.reduce((s1, s2) => s1 ++ s2)
+    val result: MSet[Signature] = msetEmpty ++ procs
+    val worklistAlgorithm = new WorklistAlgorithm[Signature] {
+      /**
+        * Process the current element from the worklist.
+        */
+      override def processElement(e: Signature): Unit = {
+        if(result.contains(e)) return
+        result += e
+        worklist.pushAll(callMap.getOrElse(e, msetEmpty))
+      }
+    }
+    worklistAlgorithm.run(worklistAlgorithm.worklist.pushAll(procs))
+    result.toSet
   }
   
   private def addNode(header: String, tg: TinkerGraph, node: CGNode): Vertex = {

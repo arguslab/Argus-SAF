@@ -32,17 +32,21 @@ object Decompiler {
           val decs = ApkFileUtil.getDecompileableFiles(FileUtil.toUri(dir))
           val dexs = FileUtil.listFiles(FileUtil.toUri(dir), ".dex", recursive = true)
           println(s"Processing directory which contains ${if(decs.nonEmpty) s"${decs.size} apk/jar${if(decs.size > 1) "s" else ""}" else ""} ${if(dexs.nonEmpty) s"${dexs.size} dex${if(dexs.size > 1) "s" else ""}" else ""}")
+          var i = 0
           decs.foreach {
             apkUri =>
-              println("####" + apkUri + "####")
+              i += 1
+              println(i + ":####" + apkUri + "####")
               val layout = DecompileLayout(outputUri)
               val settings = DecompilerSettings(dpsuri, dexLog = false, debugMode = false, removeSupportGen = true, forceDelete = forceDelete, None, layout)
               ApkDecompiler.decompile(apkUri, settings)
               println("Done!")
           }
+          i = 0
           dexs.foreach {
             dexUri =>
-              println("####" + dexUri + "####")
+              i += 1
+              println(i + ":####" + dexUri + "####")
               val dexname = dexUri.substring(dexUri.lastIndexOf("/") + 1, dexUri.lastIndexOf("."))
               val layout = DecompileLayout(outputUri + "/" + dexname)
               val settings = DecompilerSettings(dpsuri, dexLog = false, debugMode = false, removeSupportGen = true, forceDelete = forceDelete, None, layout)
