@@ -39,7 +39,7 @@ class MySTVisitor {
   def resolveClasses(stp: SymbolTableProducer, level: ResolveLevel.Value) = {
     val classes = stp.tables.recordTable.map{
       case (uri, rd) =>
-        val typ: JawaType = JavaKnowledge.getTypeFromName(rd.name.name)
+        val typ: JawaType = JavaKnowledge.getTypeFromJawaName(rd.name.name)
         val accessFlag: Int = AccessFlag.getAccessFlags(ASTUtil.getAccessFlag(rd))
         var superType: Option[JawaType] = None
         val interfaces: MList[JawaType] = mlistEmpty
@@ -47,10 +47,10 @@ class MySTVisitor {
           ec =>
             val isInterface: Boolean = ASTUtil.getKind(ec) == "interface"
             if(isInterface){
-              interfaces += JavaKnowledge.getTypeFromName(ec.name.name)
+              interfaces += JavaKnowledge.getTypeFromJawaName(ec.name.name)
             } else {
               if(superType.isDefined) throw InheritanceError(ec.name.name + " should be interface")
-              superType = Some(JavaKnowledge.getTypeFromName(ec.name.name))
+              superType = Some(JavaKnowledge.getTypeFromJawaName(ec.name.name))
             }
         }
         var outerType: Option[JawaType] = None

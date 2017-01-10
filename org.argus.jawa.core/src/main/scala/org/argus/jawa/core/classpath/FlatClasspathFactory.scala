@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016. Fengguo Wei and others.
+ * Copyright (c) 2017. Fengguo Wei and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -11,7 +11,7 @@
 package org.argus.jawa.core.classpath
 
 import org.argus.jawa.core.io.AbstractFile
-import FileUtils.AbstractFileOps
+import FileUtils._
 
 /**
  * Provides factory methods for flat classpath. When creating classpath instances for a given path,

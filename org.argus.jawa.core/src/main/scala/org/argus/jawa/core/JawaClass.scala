@@ -259,7 +259,7 @@ case class JawaClass(global: Global, typ: JawaType, accessFlags: Int) extends Ja
     getDeclaredMethods.foreach{
       proc=>
         if(proc.getName == methodName){
-          if(found) throw new RuntimeException("ambiguous method" + methodName)
+          if(found) throw new RuntimeException("ambiguous method " + methodName)
           else {
             found = true
             foundMethod = proc

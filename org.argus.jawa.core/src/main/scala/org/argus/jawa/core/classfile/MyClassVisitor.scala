@@ -43,17 +43,17 @@ class MyClassVisitor(api: Int) extends ClassVisitor(api) {
             superName: String,
             interfaces: scala.Array[String]): Unit = {
     val accessFlag: Int = AccessFlag.getJawaFlags(access, FlagKind.CLASS, isConstructor = false)
-    val typ: JawaType = JavaKnowledge.getTypeFromName(getClassName(name))
+    val typ: JawaType = JavaKnowledge.getTypeFromJawaName(getClassName(name))
     val superType: Option[JawaType] = {
       if (superName == null) {
         None
       } else {
-        Some(JavaKnowledge.getTypeFromName(getClassName(superName)))
+        Some(JavaKnowledge.getTypeFromJawaName(getClassName(superName)))
       }
     }
     val ifs: MList[JawaType] = mlistEmpty
     for(interface <- interfaces) {
-      ifs += JavaKnowledge.getTypeFromName(getClassName(interface))
+      ifs += JavaKnowledge.getTypeFromJawaName(getClassName(interface))
     }
     val c = MyClass(accessFlag, typ, superType, ifs.toList)
     classes(typ) = c
@@ -61,7 +61,7 @@ class MyClassVisitor(api: Int) extends ClassVisitor(api) {
   }
   
   override def visitOuterClass(owner: String, name: String, desc: String): Unit = {
-    val o: JawaType = JavaKnowledge.getTypeFromName(getClassName(name))
+    val o: JawaType = JavaKnowledge.getTypeFromJawaName(getClassName(name))
     currentClass.setOuter(o)
   }
   

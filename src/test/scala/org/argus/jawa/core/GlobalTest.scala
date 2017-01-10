@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016. Fengguo Wei and others.
+ * Copyright (c) 2017. Fengguo Wei and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -8,9 +8,8 @@
  * Detailed contributors are listed in the CONTRIBUTOR.md
  */
 
-package org.argus.jawa
+package org.argus.jawa.core
 
-import org.argus.jawa.core._
 import org.scalatest.{FlatSpec, Matchers}
 import org.sireum.util.FileUtil
 
@@ -60,8 +59,44 @@ class GlobalTest extends FlatSpec with Matchers {
       myClass.typ == new JawaType("java.lang.Object") &&
       myClass.superType.isEmpty &&
       myClass.interfaces.isEmpty &&
-      myClass.outerType.isEmpty
+      myClass.outerType.isEmpty &&
+      myClass.methods.size == 12 &&
+      myClass.fields.isEmpty
     )
+  }
+
+  "MyClass for android.app.Activity" should "have following content" in {
+    val global = new Global("test", new NoReporter)
+    global.setJavaLib(getClass.getResource("/libs/android.jar").getPath)
+    val myClass = global.getMyClass(new JawaType("android.app.Activity")).get
+    assert(
+      AccessFlag.isPublic(myClass.accessFlag) &&
+      myClass.typ == new JawaType("android.app.Activity") &&
+      myClass.superType.isDefined &&
+      myClass.superType.get.equals(new JawaType("android.view.ContextThemeWrapper")) &&
+      myClass.interfaces.size == 5 &&
+      myClass.outerType.isEmpty &&
+      myClass.methods.size == 211 &&
+      myClass.fields.size == 9
+    )
+  }
+
+  "getClazz for java.lang.Object" should "return a JawaClass" in {
+    val global = new Global("test", new NoReporter)
+    global.setJavaLib(getClass.getResource("/libs/android.jar").getPath)
+    assert(global.getClazz(new JawaType("java.lang.Object")).isDefined)
+  }
+
+  "getClazz for java.lang.Object1" should "return None" in {
+    val global = new Global("test", new NoReporter)
+    global.setJavaLib(getClass.getResource("/libs/android.jar").getPath)
+    assert(global.getClazz(new JawaType("java.lang.Object1")).isEmpty)
+  }
+
+  "getClassOrResolve for java.lang.Object1" should "return an unknown JawaClass" in {
+    val global = new Global("test", new NoReporter)
+    global.setJavaLib(getClass.getResource("/libs/android.jar").getPath)
+    assert(global.getClassOrResolve(new JawaType("java.lang.Object1")).isUnknown)
   }
 
 }

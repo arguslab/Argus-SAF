@@ -175,7 +175,7 @@ class ClassHierarchy(reporter: Reporter) extends JavaKnowledge {
   }
 
   /**
-   * return super-classe of r
+   * return super-classes of r
    */
   def getSuperClassOf(r: JawaType): Option[JawaType] = classToSuperClass.get(r)
 
@@ -277,14 +277,14 @@ class ClassHierarchy(reporter: Reporter) extends JavaKnowledge {
 //  }
 
   /**
-   * return true if the procedure is visible from record from
+   * return true if the procedure is visible from type from
    */
   def isMethodVisible(from: JawaType, method: JawaMethod): Boolean = {
     if(method.isUnknown) true
     else if(method.isPublic) true
     else if(method.isPrivate) method.getDeclaringClass.getType == from
     else if(method.isProtected) isClassRecursivelySubClassOfIncluding(from, method.getDeclaringClass.getType)
-    /* If none of these access control accesflag been set, means the method has default or package level access
+    /* If none of these access control access flag been set, means the method has default or package level access
      * which means this method can be accessed within the class or other classes in the same package.
      */
     else method.getDeclaringClass.getType == from || method.getDeclaringClass.getPackage == from.getPackage
@@ -407,6 +407,7 @@ class ClassHierarchy(reporter: Reporter) extends JavaKnowledge {
     this.interfaceToAllSubInterfaces.clear()
     this.interfaceToImplementers.clear()
     this.interfaceToSubInterfaces.clear()
+    this.resolvedTypes.clear()
   }
 
   def printDetails(): Unit = {

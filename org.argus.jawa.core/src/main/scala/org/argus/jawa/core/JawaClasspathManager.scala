@@ -41,7 +41,7 @@ trait JawaClasspathManager extends JavaKnowledge { self: Global =>
           code =>
             try {
               val className = LightWeightPilarParser.getClassName(code)
-              classTypes += JavaKnowledge.getTypeFromName(className)
+              classTypes += JavaKnowledge.getTypeFromJawaName(className)
             } catch {
               case ie: InterruptedException => throw ie
               case e: Exception => reporter.warning(TITLE, e.getMessage)

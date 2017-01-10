@@ -114,7 +114,7 @@ trait JavaKnowledge {
   /**
    * input: "java.lang.String[]"  output: JawaType("java.lang.String", 1)
    */
-  def getTypeFromName(name: String): JawaType = {
+  def getTypeFromJawaName(name: String): JawaType = {
     var d: Int = 0
     var tmp = name
     while(tmp.endsWith("[]")){
@@ -123,7 +123,33 @@ trait JavaKnowledge {
     }
     getType(tmp, d)
   }
-  
+
+  /**
+    * input: "[Ljava.lang.String;"  output: JawaType("java.lang.String", 1)
+    */
+  def getTypeFromName(name: String): JawaType = {
+    var d: Int = 0
+    var tmp = name
+    while(tmp.startsWith("[")){
+      d += 1
+      tmp = tmp.substring(1, tmp.length())
+    }
+    tmp = tmp match{
+      case "B" =>    "byte"
+      case "C" =>    "char"
+      case "F" =>    "float"
+      case "I" =>    "int"
+      case "J" =>    "long"
+      case "S" =>    "short"
+      case "Z" =>    "boolean"
+      case "V" =>    "void"
+      case _ =>
+        if(d > 0) tmp.substring(1, tmp.length - 1)
+        else tmp
+    }
+    getType(tmp, d)
+  }
+
   /**
    * convert type string from signature style to type. [Ljava/lang/Object; -> (java.lang.Object, 1)
    */
@@ -143,7 +169,7 @@ trait JavaKnowledge {
         getType(tmp.substring(1, tmp.length() - 1).replaceAll("\\/", "."), d)
     }
   }
-  
+
   /**
    * get outer class name from inner class name. e.g. android.os.Handler$Callback -> android.os.Handler
    */
@@ -151,12 +177,12 @@ trait JavaKnowledge {
     if(!isInnerClass(innerType)) throw InvalidTypeException("wrong innerType: " + innerType)
     new JawaType(innerType.name.substring(0, innerType.name.lastIndexOf("$")))
   }
-  
+
   /**
    * return true if the given typ is a inner class or not
    */
   def isInnerClass(typ: JawaType): Boolean = !typ.isArray && typ.name.lastIndexOf("$") > 0
-  
+
   /**
    * input ("Ljava/lang/String;", 1, "[", true) output "[Ljava/lang/String;"
    */
@@ -171,11 +197,11 @@ trait JavaKnowledge {
     }
     sb.toString.intern()
   }
-  
+
   def genSignature(classSigPart: String, methodNamePart: String, paramSigPart: String): Signature = {
     new Signature((classSigPart + "." + methodNamePart + ":" + paramSigPart).trim)
   }
-  
+
   def genSignature(classTyp: JawaType, methodName: String, paramTyps: IList[JawaType], retTyp: JawaType): Signature = {
     val paramPartSB = new StringBuilder
     paramTyps foreach{
@@ -186,31 +212,31 @@ trait JavaKnowledge {
     val proto = "(" + paramPartSB.toString + ")" + retPart
     Signature(classTyp, methodName, proto)
   }
-  
+
   /********************** JawaField related op **************************/
-  
+
   /**
    * check if given string is field signature or not
    */
   def isFQN(str: String): Boolean = isValidFieldFQN(str)
-  
+
   /**
    * generate signature of this field. input: ("java.lang.Throwable", "stackState") output: "java.lang.Throwable.stackState"
    */
   def generateFieldFQN(owner: JawaType, name: String, typ: JawaType): FieldFQN = {
     FieldFQN(owner, name, typ)
   }
-  
+
   /**
-   * FQN of the field. e.g. java.lang.Throwable.stackState or @@java:lang:Enum.sharedConstantsCache
+   * FQN of the field. e.g. java.lang.Throwable.stackState or @@java.lang.Enum.sharedConstantsCache
    */
   def isValidFieldFQN(fqn: String): Boolean = !fqn.startsWith("@@") && fqn.lastIndexOf('.') > 0
-  
+
   /**
    * FQN of the field. e.g. java.lang.Throwable.stackState or @@java.lang.Enum.sharedConstantsCache
    */
   def isValidFieldName(name: String): Boolean = !name.contains('.')
-  
+
   /**
    * get field name from field FQN. e.g. java.lang.Throwable.stackState -> stackState
    */
@@ -219,7 +245,7 @@ trait JavaKnowledge {
     else if(!isValidFieldFQN(fqn)) throw new RuntimeException("given field signature is not a valid form: " + fqn)
     else fqn.substring(fqn.lastIndexOf('.') + 1)
   }
-  
+
   /**
    * get class name from field signature. e.g. java.lang.Throwable.stackState -> java.lang.Throwable
    * [Ljava.lang.String;.length -> [Ljava.lang.String;
@@ -228,7 +254,7 @@ trait JavaKnowledge {
     val cn = getClassNameFromFieldFQN(fqn)
     getTypeFromName(cn)
   }
-  
+
   /**
    * get class name from field signature. e.g. java.lang.Throwable.stackState -> java.lang.Throwable
    * [Ljava.lang.String;.length -> [Ljava.lang.String;
@@ -238,22 +264,22 @@ trait JavaKnowledge {
     fqn.substring(0, fqn.lastIndexOf('.'))
   }
   /********************** JawaField related op end **************************/
-  
+
   /********************** JawaMethod related op **************************/
-  
+
   /**
    * e.g. java.lang.Throwable.run
    */
   def isValidMethodFullName(mfn: String): Boolean = mfn.lastIndexOf('.') > 0
-  
+
   def getClassNameFromMethodFullName(mfn: String): String = {
     if(!isValidMethodFullName(mfn)) throw new RuntimeException("given method full name is not a valid form: " + mfn)
     else mfn.substring(mfn.lastIndexOf('.') + 1)
   }
-  
+
   def getClassTypeFromMethodFullName(mfn: String): JawaType = {
     val cn = getClassNameFromMethodFullName(mfn)
-    getTypeFromName(cn)
+    getTypeFromJawaName(cn)
   }
   
   def getMethodNameFromMethodFullName(mfn: String): String = {

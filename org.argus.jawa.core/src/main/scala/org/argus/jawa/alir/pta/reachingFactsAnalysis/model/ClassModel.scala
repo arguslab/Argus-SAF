@@ -183,7 +183,7 @@ object ClassModel {
     val delfacts = isetEmpty[RFAFact]
     clazzNameValue.foreach {
 			case cstr@PTAConcreteStringInstance(text, c) =>
-				val classType = JavaKnowledge.getTypeFromName(text)
+				val classType = JavaKnowledge.getTypeFromJawaName(text)
 				newfacts += new RFAFact(VarSlot(retVar, isBase = false, isArg = false), ClassInstance(classType, currentContext))
 			case pstr@PTAPointStringInstance(c) =>
 			//            System.err.println(TITLE, "Get class use point string: " + pstr)

@@ -1087,7 +1087,7 @@ object IntentModel {
         if(mExtraValue.nonEmpty){
           newfacts ++= mExtraValue.map{mev => new RFAFact(VarSlot(retVar, isBase = false, isArg = false), mev)}
         } else {
-          newfacts += new RFAFact(VarSlot(retVar, isBase = false, isArg = false), PTAInstance(JavaKnowledge.getTypeFromName(AndroidConstants.BUNDLE).toUnknown, currentContext.copy, isNull_ = false))
+          newfacts += new RFAFact(VarSlot(retVar, isBase = false, isArg = false), PTAInstance(JavaKnowledge.getTypeFromJawaName(AndroidConstants.BUNDLE).toUnknown, currentContext.copy, isNull_ = false))
         }
     }
     (newfacts, delfacts)

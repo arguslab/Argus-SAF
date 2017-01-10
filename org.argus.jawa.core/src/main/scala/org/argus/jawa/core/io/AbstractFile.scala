@@ -92,7 +92,7 @@ abstract class AbstractFile extends Iterable[AbstractFile] {
   def canonicalPath: String = if (file == null) path else file.getCanonicalPath
 
   /** Checks extension case insensitively. */
-  def hasExtension(other: String) = extension == other.toLowerCase
+  def hasExtension(other: String): Boolean = extension == other.toLowerCase
   private lazy val extension: String = Path.extension(name)
 
   /** The absolute file, if this is a relative file. */
@@ -113,7 +113,7 @@ abstract class AbstractFile extends Iterable[AbstractFile] {
   }
 
   /** Does this abstract file represent something which can contain classfiles? */
-  def isClassContainer = isDirectory || (file != null && (extension == "jar" || extension == "zip"))
+  def isClassContainer: Boolean = isDirectory || (file != null && (extension == "jar" || extension == "zip"))
 
   /** Create a file on disk, if one does not exist already. */
   def create(): Unit
@@ -149,7 +149,7 @@ abstract class AbstractFile extends Iterable[AbstractFile] {
    *  encoding when converting to the char array.
    */
   @throws(classOf[IOException])
-  def toCharArray = text.toCharArray
+  def toCharArray: Array[Char] = text.toCharArray
   
   @throws(classOf[IOException])
   def text: String = new String(toByteArray)
@@ -285,6 +285,6 @@ object NoAbstractFile extends AbstractFile {
   def name: String = ""
   def output: java.io.OutputStream = null
   def path: String = ""
-  override def toByteArray = Array[Byte]()
+  override def toByteArray: Array[Byte] = Array[Byte]()
   override def toString = "<no file>"
 }

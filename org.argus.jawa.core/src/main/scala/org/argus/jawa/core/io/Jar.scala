@@ -10,39 +10,22 @@
 
 package org.argus.jawa.core.io
 
-import java.io.{ InputStream, OutputStream, IOException, FileNotFoundException, FileInputStream, DataOutputStream }
+import java.io.{DataOutputStream, InputStream, OutputStream}
 import java.util.jar._
+
 import scala.collection.JavaConverters._
 import Attributes.Name
-import scala.language.{ implicitConversions, postfixOps }
 
-// Attributes.Name instances:
-//
-// static Attributes.Name   CLASS_PATH
-// static Attributes.Name   CONTENT_TYPE
-// static Attributes.Name   EXTENSION_INSTALLATION
-// static Attributes.Name   EXTENSION_LIST
-// static Attributes.Name   EXTENSION_NAME
-// static Attributes.Name   IMPLEMENTATION_TITLE
-// static Attributes.Name   IMPLEMENTATION_URL
-// static Attributes.Name   IMPLEMENTATION_VENDOR
-// static Attributes.Name   IMPLEMENTATION_VENDOR_ID
-// static Attributes.Name   IMPLEMENTATION_VERSION
-// static Attributes.Name   MAIN_CLASS
-// static Attributes.Name   MANIFEST_VERSION
-// static Attributes.Name   SEALED
-// static Attributes.Name   SIGNATURE_VERSION
-// static Attributes.Name   SPECIFICATION_TITLE
-// static Attributes.Name   SPECIFICATION_VENDOR
-// static Attributes.Name   SPECIFICATION_VERSION
+import scala.collection.mutable
+import scala.language.{implicitConversions, postfixOps}
 
 class Jar(file: File) extends Iterable[JarEntry] {
   def this(jfile: JFile) = this(File(jfile))
   def this(path: String) = this(File(path))
 
-  lazy val manifest = withJarInput(s => Option(s.getManifest))
+  lazy val manifest: Option[JManifest] = withJarInput(s => Option(s.getManifest))
 
-  def mainClass     = manifest map (f => f(Name.MAIN_CLASS))
+  def mainClass: Option[String] = manifest map (f => f(Name.MAIN_CLASS))
   /** The manifest-defined classpath String if available. */
   def classPathString: Option[String] =
     for (m <- manifest ; cp <- m.attrs get Name.CLASS_PATH) yield cp
@@ -52,7 +35,7 @@ class Jar(file: File) extends Iterable[JarEntry] {
   }
 
   /** Invoke f with input for named jar entry (or None). */
-  def withEntryStream[A](name: String)(f: Option[InputStream] => A) = {
+  def withEntryStream[A](name: String)(f: Option[InputStream] => A): A = {
     val jarFile = new JarFile(file.jfile)
     def apply() =
       jarFile getEntry name match {
@@ -70,15 +53,15 @@ class Jar(file: File) extends Iterable[JarEntry] {
     try f(in)
     finally in.close()
   }
-  def jarWriter(mainAttrs: (Attributes.Name, String)*) = {
+  def jarWriter(mainAttrs: (Attributes.Name, String)*): JarWriter = {
     new JarWriter(file, Jar.WManifest(mainAttrs: _*).underlying)
   }
 
   override def foreach[U](f: JarEntry => U): Unit = withJarInput { in =>
-    Iterator continually in.getNextJarEntry() takeWhile (_ != null) foreach f
+    Iterator continually in.getNextJarEntry takeWhile (_ != null) foreach f
   }
   override def iterator: Iterator[JarEntry] = this.toList.iterator
-  override def toString = "" + file
+  override def toString: String = "" + file
 }
 
 class JarWriter(val file: File, val manifest: Manifest) {
@@ -124,7 +107,7 @@ class JarWriter(val file: File, val manifest: Manifest) {
     loop()
   }
 
-  def close() = out.close()
+  def close(): Unit = out.close()
 }
 
 object Jar {
@@ -144,8 +127,8 @@ object Jar {
     for ((k, v) <- initialMainAttrs)
       this(k) = v
 
-    def underlying = manifest
-    def attrs = manifest.getMainAttributes().asInstanceOf[AttributeMap].asScala withDefaultValue null
+    def underlying: JManifest = manifest
+    def attrs: mutable.Map[Name, String] = manifest.getMainAttributes.asInstanceOf[AttributeMap].asScala withDefaultValue null
     def initialMainAttrs: Map[Attributes.Name, String] = {
       import scala.util.Properties._
       Map(
@@ -155,7 +138,7 @@ object Jar {
     }
 
     def apply(name: Attributes.Name): String        = attrs(name)
-    def update(key: Attributes.Name, value: String) = attrs.put(key, value)
+    def update(key: Attributes.Name, value: String): Option[String] = attrs.put(key, value)
   }
 
   // See http://download.java.net/jdk7/docs/api/java/nio/file/Path.html

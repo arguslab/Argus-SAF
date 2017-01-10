@@ -111,7 +111,7 @@ class PilarStyleCodeGenerator(
     def resolveRecord: JawaType = {
       if(haveStrangeCharacter(s)) {
         val sb: StringBuilder = new StringBuilder
-        val typ = JavaKnowledge.getTypeFromName(s)
+        val typ = JavaKnowledge.getTypeFromJawaName(s)
         val pkgList = typ.baseType.pkg match {
           case Some(p) => p.getPkgList
           case None => ilistEmpty
@@ -138,7 +138,7 @@ class PilarStyleCodeGenerator(
         }
         sb.append(recname)
         new JawaType(sb.toString(), typ.dimensions)
-      } else JavaKnowledge.getTypeFromName(s)
+      } else JavaKnowledge.getTypeFromJawaName(s)
     }
     
     def resolveProcedure: Signature = {

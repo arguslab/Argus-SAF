@@ -19,7 +19,7 @@ object JawaTypeSerializer extends CustomSerializer[JawaType](format => (
       case jv: JValue =>
         implicit val formats = format
         val str = (jv \ "typ").extract[String]
-        JavaKnowledge.getTypeFromName(str)
+        JavaKnowledge.getTypeFromJawaName(str)
     },
     {
       case typ: JawaType =>
@@ -30,7 +30,7 @@ object JawaTypeSerializer extends CustomSerializer[JawaType](format => (
 object JawaTypeKeySerializer extends CustomKeySerializer[JawaType](format => (
     {
       case str: String =>
-        JavaKnowledge.getTypeFromName(str)
+        JavaKnowledge.getTypeFromJawaName(str)
     }, {
       case typ: JawaType =>
         typ.jawaName

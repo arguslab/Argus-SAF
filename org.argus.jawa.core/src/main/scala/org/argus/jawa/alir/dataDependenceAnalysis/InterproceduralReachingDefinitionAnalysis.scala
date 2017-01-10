@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016. Fengguo Wei and others.
+ * Copyright (c) 2017. Fengguo Wei and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -10,15 +10,15 @@
 
 package org.argus.jawa.alir.dataDependenceAnalysis
 
-import org.argus.jawa.alir.{Context, JawaAlirInfoProvider}
 import org.argus.jawa.alir.controlFlowGraph._
-import org.argus.jawa.alir.dataFlowAnalysis.{CallResolver, InterproceduralMonotoneDataFlowAnalysisFramework, InterProceduralMonotonicFunction, PstProvider}
+import org.argus.jawa.alir.dataFlowAnalysis.{CallResolver, InterProceduralMonotonicFunction, InterproceduralMonotoneDataFlowAnalysisFramework, PstProvider}
 import org.argus.jawa.alir.reachingDefinitionAnalysis.JawaReachingDefinitionAnalysis
+import org.argus.jawa.alir.{Context, JawaAlirInfoProvider}
 import org.argus.jawa.core.{Global, Signature}
-import org.sireum.util._
-import org.sireum.pilar.ast.CallJump
 import org.sireum.alir._
+import org.sireum.pilar.ast.CallJump
 import org.sireum.pilar.symbol.ProcedureSymbolTable
+import org.sireum.util._
 
 /**
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>

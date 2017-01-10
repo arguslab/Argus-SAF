@@ -235,7 +235,7 @@ object ComponentNameModel {
         } else {
           param2Value.map {
             case PTAConcreteStringInstance(text, c) =>
-              val recordType = JavaKnowledge.getTypeFromName(text)
+              val recordType = JavaKnowledge.getTypeFromJawaName(text)
               val rec = global.getClassOrResolve(recordType)
               val claStr = PTAConcreteStringInstance(recordType.name, c)
               val packageName = rec.getPackage match {
@@ -282,7 +282,7 @@ object ComponentNameModel {
               } else {
                 param2Value.map {
                   case PTAConcreteStringInstance(`text`, `c`) =>
-                    val recordType = JavaKnowledge.getTypeFromName(text)
+                    val recordType = JavaKnowledge.getTypeFromJawaName(text)
                     val claStr = PTAConcreteStringInstance(recordType.name, c)
                     var facts = isetEmpty[RFAFact]
                     facts += new RFAFact(FieldSlot(tv, JavaKnowledge.getFieldNameFromFieldFQN(AndroidConstants.COMPONENTNAME_PACKAGE)), pv1)
@@ -306,7 +306,7 @@ object ComponentNameModel {
               } else {
                 param2Value.map {
                   case PTAConcreteStringInstance(text, `c`) =>
-                    val recordType = JavaKnowledge.getTypeFromName(text)
+                    val recordType = JavaKnowledge.getTypeFromJawaName(text)
                     val rec = global.getClassOrResolve(recordType)
                     val claStr = PTAConcreteStringInstance(recordType.name, c)
                     val packageName = rec.getPackage match {

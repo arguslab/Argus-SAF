@@ -47,16 +47,16 @@ object PScoutTranslator {
       val retTypStr = m.group(2)
       val methodName = m.group(3)
       val paramTypStrList = m.group(4).split(",")
-      val classTyp = JavaKnowledge.getTypeFromName(classTypStr)
+      val classTyp = JavaKnowledge.getTypeFromJawaName(classTypStr)
       val protosb = new StringBuilder
       protosb.append("(")
       paramTypStrList.foreach{
         paramTypStr =>
           if(!paramTypStr.isEmpty)
-            protosb.append(JavaKnowledge.formatTypeToSignature(JavaKnowledge.getTypeFromName(paramTypStr)))
+            protosb.append(JavaKnowledge.formatTypeToSignature(JavaKnowledge.getTypeFromJawaName(paramTypStr)))
       }
       protosb.append(")")
-      protosb.append(JavaKnowledge.formatTypeToSignature(JavaKnowledge.getTypeFromName(retTypStr)))
+      protosb.append(JavaKnowledge.formatTypeToSignature(JavaKnowledge.getTypeFromJawaName(retTypStr)))
       Some(Signature(classTyp, methodName, protosb.toString()))
     } else {
       System.err.println("PScoutTranslator, does not match: " + sigstr)
