@@ -11,6 +11,7 @@
 package org.argus.jawa.core.symbolResolver
 
 import org.argus.jawa.core.MethodBody
+import org.sireum.pilar.ast.GlobalVarDecl
 import org.sireum.pilar.symbol._
 import org.sireum.util._
 
@@ -20,7 +21,7 @@ import org.sireum.util._
 class JawaSymbolTable extends SymbolTable with SymbolTableProducer {
   st =>
   val tables = SymbolTableData()
-  val tags = marrayEmpty[LocationTag]
+  val tags: MArray[LocationTag] = marrayEmpty[LocationTag]
   var hasErrors = false
 
   val ERROR_TAG_TYPE = MarkerType(
@@ -63,21 +64,22 @@ class JawaSymbolTable extends SymbolTable with SymbolTableProducer {
     tags += Tag.toTag(fileUri, line, column, offset, length, message,
       WARNING_TAG_TYPE)
 
-  val pdMap = mmapEmpty[ResourceUri, MethodBody]
+  val pdMap: MMap[ResourceUri, MethodBody] = mmapEmpty[ResourceUri, MethodBody]
 
-  def globalVars = tables.globalVarTable.keys
-  def globalVar(globalUri: ResourceUri) = tables.globalVarTable(globalUri)
+  def globalVars: Iterable[ResourceUri] = tables.globalVarTable.keys
 
-  def procedures = tables.procedureTable.keys
+  def globalVar(globalUri: ResourceUri): GlobalVarDecl = tables.globalVarTable(globalUri)
 
-  def procedures(procedureUri: ResourceUri) = tables.procedureTable(procedureUri)
+  def procedures: Iterable[ResourceUri] = tables.procedureTable.keys
 
-  def procedureSymbolTables = pdMap.values
+  def procedures(procedureUri: ResourceUri): MBuffer[ResourceUri] = tables.procedureTable(procedureUri)
+
+  def procedureSymbolTables: Iterable[MethodBody] = pdMap.values
 
   def procedureSymbolTable(procedureAbsUri: ResourceUri): ProcedureSymbolTable =
     procedureSymbolTableProducer(procedureAbsUri)
 
-  def procedureSymbolTableProducer(procedureAbsUri: ResourceUri) = {
+  def procedureSymbolTableProducer(procedureAbsUri: ResourceUri): MethodBody = {
     assert(tables.procedureAbsTable.contains(procedureAbsUri))
     pdMap.getOrElseUpdate(procedureAbsUri, new MethodBody(procedureAbsUri, st))
   }

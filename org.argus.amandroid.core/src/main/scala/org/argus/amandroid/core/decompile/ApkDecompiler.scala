@@ -74,14 +74,6 @@ object ApkDecompiler {
           srcFolders += sf
           dependencies ++= dependent
       }
-//      val apkUris = FileUtil.listFiles(outUri, ".apk", true)
-//      apkUris.foreach {
-//        apkUri =>
-//          if(Apk.isValidApk(apkUri)) {
-//            val apkFile = FileUtil.toFile(apkUri)
-//            decompile(apkFile, apkFile.getParentFile, dpsuri, dexLog, debugMode, removeSupportGen, forceDelete, listener, createFolder)
-//          }
-//      }
     }
     (outUri, srcFolders.toSet, dependencies.toSet)
   }

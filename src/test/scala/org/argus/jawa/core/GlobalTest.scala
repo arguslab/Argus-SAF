@@ -99,4 +99,18 @@ class GlobalTest extends FlatSpec with Matchers {
     assert(global.getClassOrResolve(new JawaType("java.lang.Object1")).isUnknown)
   }
 
+  "Get application classes" should "return 4 classes" in {
+    val srcUri = FileUtil.toUri(getClass.getResource("/test1").getPath)
+    val global = new Global("test", new NoReporter)
+    global.load(srcUri ,Constants.JAWA_FILE_EXT, DefaultLibraryAPISummary)
+    assert(global.getApplicationClasses.size == 4)
+  }
+
+  "Get user library classes" should "return empty" in {
+    val srcUri = FileUtil.toUri(getClass.getResource("/test1").getPath)
+    val global = new Global("test", new NoReporter)
+    global.load(srcUri ,Constants.JAWA_FILE_EXT, DefaultLibraryAPISummary)
+    assert(global.getUserLibraryClasses.isEmpty)
+  }
+
 }
