@@ -26,11 +26,11 @@ object AndroidDataDependentTaintAnalysis {
   type Node = InterproceduralDataDependenceAnalysis.Node
   
   case class Tp(path: IList[InterproceduralDataDependenceAnalysis.Edge]) extends TaintPath[Node, InterproceduralDataDependenceAnalysis.Edge] {
-    var srcN: TaintSource[Node] = null
-    var sinN: TaintSink[Node] = null
+    var srcN: TaintSource[Node] = _
+    var sinN: TaintSink[Node] = _
     val typs: MSet[String] = msetEmpty
-    def getSource = srcN
-    def getSink = sinN
+    def getSource: TaintSource[Node] = srcN
+    def getSink: TaintSink[Node] = sinN
     def getTypes: ISet[String] = this.typs.toSet
     def getPath: IList[InterproceduralDataDependenceAnalysis.Edge] = {
       path.reverse.map(edge=> new InterproceduralDataDependenceAnalysis.Edge(edge.owner, edge.target, edge.source))
@@ -127,7 +127,7 @@ object AndroidDataDependentTaintAnalysis {
   def build(global: Global, iddi: InterproceduralDataDependenceInfo, ptaresult: PTAResult, ssm: AndroidSourceAndSinkManager): TaintAnalysisResult[Node, InterproceduralDataDependenceAnalysis.Edge] = {
     var sourceNodes: ISet[TaintSource[Node]] = isetEmpty
     var sinkNodes: ISet[TaintSink[Node]] = isetEmpty
-    
+
     val iddg = iddi.getIddg
     iddg.nodes.foreach{
       node =>
@@ -156,20 +156,19 @@ object AndroidDataDependentTaintAnalysis {
   
   private def extendIDDGForSinkApis(iddg: DataDependenceBaseGraph[InterproceduralDataDependenceAnalysis.Node], callArgNode: IDDGCallArgNode, ptaresult: PTAResult) = {
     val calleeSet = callArgNode.getCalleeSet
-    calleeSet.foreach{
-      callee =>
-        val argSlot = VarSlot(callArgNode.argName, isBase = false, isArg = true)
-        val argValue = ptaresult.pointsToSet(argSlot, callArgNode.getContext)
-        val argRelatedValue = ptaresult.getRelatedHeapInstances(argValue, callArgNode.getContext)
-        argRelatedValue.foreach{
-          ins =>
-            if(ins.defSite != callArgNode.getContext){
-              iddg.findDefSite(ins.defSite) match {
-                case Some(t) => iddg.addEdge(callArgNode.asInstanceOf[Node], t)
-                case None =>
-              }
+    calleeSet.foreach{ _ =>
+      val argSlot = VarSlot(callArgNode.argName, isBase = false, isArg = true)
+      val argValue = ptaresult.pointsToSet(argSlot, callArgNode.getContext)
+      val argRelatedValue = ptaresult.getRelatedHeapInstances(argValue, callArgNode.getContext)
+      argRelatedValue.foreach{
+        ins =>
+          if(ins.defSite != callArgNode.getContext){
+            iddg.findDefSite(ins.defSite) match {
+              case Some(t) => iddg.addEdge(callArgNode.asInstanceOf[Node], t)
+              case None =>
             }
-        }
+          }
+      }
     }
   }
   

@@ -90,7 +90,6 @@ object BuildICFGFromExistingPTAResult {
               }
           }
           var bypassflag = false
-          println(calleeSet)
           calleeSet.foreach{
             callee => 
               icfg.getCallGraph.addCall(icn.getOwner, callee.callee)

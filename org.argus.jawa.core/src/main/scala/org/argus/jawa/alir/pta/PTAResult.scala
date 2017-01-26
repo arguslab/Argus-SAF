@@ -23,8 +23,8 @@ class PTAResult {
   
   private val entryPoints: MSet[Signature] = msetEmpty
   
-  def addEntryPoint(ep: Signature) = this.entryPoints += ep
-  def addEntryPoints(eps: ISet[Signature]) = this.entryPoints ++= eps
+  def addEntryPoint(ep: Signature): Unit = this.entryPoints += ep
+  def addEntryPoints(eps: ISet[Signature]): Unit = this.entryPoints ++= eps
   def getEntryPoints: ISet[Signature] = this.entryPoints.toSet
   
   private val ptMap: MMap[String, MMap[PTASlot, MSet[Instance]]] = mmapEmpty
@@ -38,7 +38,7 @@ class PTAResult {
     }.toMap
   }
   
-  def addPointsToMap(ptMap: IMap[String, PTSMap]) = {
+  def addPointsToMap(ptMap: IMap[String, PTSMap]): Unit = {
     ptMap.foreach {
       case (c, m) =>
         m.foreach {
@@ -54,7 +54,7 @@ class PTAResult {
     this
   }
   
-  def setInstance(s: PTASlot, context: String, i: Instance) = {
+  def setInstance(s: PTASlot, context: String, i: Instance): Unit = {
     ptMap.getOrElseUpdate(context, mmapEmpty).getOrElseUpdate(s, msetEmpty).clear()
     ptMap(context)(s) += i
   }

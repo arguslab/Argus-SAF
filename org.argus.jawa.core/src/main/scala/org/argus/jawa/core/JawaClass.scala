@@ -226,7 +226,6 @@ case class JawaClass(global: Global, typ: JawaType, accessFlags: Int) extends Ja
     this.fields.get(name) match {
       case Some(f) => Some(f)
       case None =>
-        println(this.fields)
         global.reporter.error(TITLE, "No field " + name + " in class " + getName)
         None
     }

@@ -23,12 +23,12 @@ import org.sireum.util.{FileResourceUri, FileUtil}
 object AndroidGlobalConfig {
 
   private val stash_dir = System.getProperty("user.home") + File.separator + ".amandroid_stash"
-  final val amandroid_home = stash_dir + File.separator + "amandroid"
+  final val amandroid_home: FileResourceUri = stash_dir + File.separator + "amandroid"
 
   final val stash_url = "http://fgwei.arguslab.org/resources/"
   final val BUFFER_SIZE = 1024
 
-  val homeReady = checkAmandroidHome
+  val homeReady: Boolean = checkAmandroidHome
   if(!homeReady){
     errPrintln("Failed to install amandroid_stash. Please report the issue at our issue tracker: https://github.com/arguslab/Argus-SAF/issues")
     sys.exit(-1)
@@ -87,10 +87,10 @@ object AndroidGlobalConfig {
 
     print("\r[")
     val dots = (progressPercentage*width.toDouble).toInt
-    for (i <- 0 until dots) {
+    for (_ <- 0 until dots) {
       print(".")
     }
-    for (i <- dots until width) {
+    for (_ <- dots until width) {
       print(" ")
     }
     print(s"]%${(progressPercentage*100).toInt}\t Downloading $filename")
@@ -196,7 +196,7 @@ object AndroidGlobalConfig {
       val in = new BufferedReader(new InputStreamReader(is))
       Some(in.readLine)
     } catch {
-      case e : Throwable =>
+      case _: Throwable =>
         errPrintln("Could not connect to update site.")
         errPrintln()
         None

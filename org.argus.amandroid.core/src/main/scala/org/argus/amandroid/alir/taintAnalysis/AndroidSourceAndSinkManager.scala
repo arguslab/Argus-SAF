@@ -212,9 +212,9 @@ abstract class AndroidSourceAndSinkManager(
       (clazz1.typ == typ2 || clazz1.isChildOf(typ2) || clazz1.isImplementerOf(typ2))
   }
 
-  def isSourceMethod(sig: Signature) = matchs(sig, this.sources.keySet.toSet)
+  def isSourceMethod(sig: Signature): Boolean = matchs(sig, this.sources.keySet.toSet)
 
-  def isSink(sig: Signature) = {
+  def isSink(sig: Signature): Boolean = {
     matchs(sig, this.sinks.keySet.toSet)
   }
 
