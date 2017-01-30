@@ -18,7 +18,7 @@ import org.argus.amandroid.alir.pta.reachingFactsAnalysis.{AndroidRFAConfig, And
 import org.argus.amandroid.alir.taintAnalysis.{AndroidDataDependentTaintAnalysis, AndroidSourceAndSinkManager}
 import org.argus.amandroid.core.Apk
 import org.argus.jawa.alir.Context
-import org.argus.jawa.alir.controlFlowGraph.{ICFGCallNode, ICFGEntryNode}
+import org.argus.jawa.alir.controlFlowGraph.{ICFGCallNode, ICFGEntryNode, ICFGNormalNode}
 import org.argus.jawa.alir.dataDependenceAnalysis._
 import org.argus.jawa.alir.dataFlowAnalysis.InterproceduralDataFlowGraph
 import org.argus.jawa.alir.pta.Instance
@@ -124,10 +124,12 @@ class ComponentBasedAnalysis(global: Global, yard: ApkYard) {
     val mddg = new MultiDataDependenceGraph[IDDGNode]
     val summaryTables = components.flatMap(yard.getSummaryTable)
     val summaryMap = summaryTables.map(st => (st.component, st)).toMap
-    val intentChannels = summaryTables.map(_.get[Intent_Summary](CHANNELS.INTENT_CHANNEL))
-    val allIntentCallees = intentChannels.map(_.asCallee).reduceOption{_ ++ _}.getOrElse(isetEmpty)
+    val iccChannels = summaryTables.map(_.get[ICC_Summary](CHANNELS.ICC))
+    val allICCCallees = iccChannels.map(_.asCallee).reduceOption{_ ++ _}.getOrElse(isetEmpty)
 //    val rpcChannels = summaryTables.map(_.get[RPC_Summary](CHANNELS.RPC_CHANNEL))
 //    val allRpcCallees = rpcChannels.map(_.asCallee).reduceOption{_ ++ _}.getOrElse(imapEmpty)
+    val sfChannels = summaryTables.map(_.get[StaticField_Summary](CHANNELS.STATIC_FIELD))
+    val allSFCallees = sfChannels.map(_.asCallee).reduceOption{_ ++ _}.getOrElse(isetEmpty)
     
     components.foreach{
       component =>
@@ -144,10 +146,10 @@ class ComponentBasedAnalysis(global: Global, yard: ApkYard) {
           val summaryTable = summaryMap.getOrElse(component, throw new RuntimeException("Summary table does not exist for " + component))
           
           // link the icc edges
-          val intent_summary: Intent_Summary = summaryTable.get(CHANNELS.INTENT_CHANNEL)
+          val intent_summary: ICC_Summary = summaryTable.get(CHANNELS.ICC)
           intent_summary.asCaller foreach {
-            case (callernode, intent_caller) =>
-              val icc_callees = allIntentCallees.filter(_._2.matchWith(intent_caller))
+            case (callernode, icc_caller) =>
+              val icc_callees = allICCCallees.filter(_._2.matchWith(icc_caller))
               icc_callees foreach {
                 case (calleenode, _) =>
                   println(component + " --icc--> " + calleenode.getOwner.getClassName)
@@ -158,6 +160,21 @@ class ComponentBasedAnalysis(global: Global, yard: ApkYard) {
                   mddg.addEdge(calleeDDGNode, callerDDGNode)
               }
           }
+
+          // link the static field edges
+          val sf_summary: StaticField_Summary = summaryTable.get(CHANNELS.STATIC_FIELD)
+          sf_summary.asCaller foreach {
+            case (callernode, sf_write) =>
+              val sf_reads = allSFCallees.filter(_._2.matchWith(sf_write))
+              sf_reads foreach {
+                case (calleenode, _) =>
+                  println(component + " --static field--> " + calleenode.getOwner.getClassName)
+                  val callerDDGNode = mddg.getIDDGNormalNode(callernode.asInstanceOf[ICFGNormalNode])
+                  val calleeDDGNode = mddg.getIDDGNormalNode(calleenode.asInstanceOf[ICFGNormalNode])
+                  mddg.addEdge(calleeDDGNode, callerDDGNode)
+              }
+          }
+
         } catch {
           case ex: Exception =>
             if(DEBUG) ex.printStackTrace()
@@ -199,6 +216,6 @@ class ComponentBasedAnalysis(global: Global, yard: ApkYard) {
       def getIntentCaller(idfg: InterproceduralDataFlowGraph, intentValue: ISet[Instance], context: Context): ISet[IntentContent] =
         IntentHelper.getIntentContents(idfg.ptaresult, intentValue, context)
     }
-    ComponentSummaryTable.buildComponentSummaryTable(apk, component, idfg, csp)
+    ComponentSummaryTable.buildComponentSummaryTable(global, apk, component, idfg, csp)
   }
 }

@@ -55,7 +55,6 @@ object BuildICFGFromExistingPTAResult {
       val node = worklist.remove(0)
       node match {
         case icn: ICFGCallNode if !processed.contains(icn) =>
-          val callercontext = icn.context
           val calleesig = icn.getCalleeSig
           val callType = icn.getCallType
           val calleeSet: MSet[Callee] = msetEmpty
@@ -66,7 +65,7 @@ object BuildICFGFromExistingPTAResult {
                 case None =>
               }
             case _ =>
-              val inss = ptaresult.getPTSMap(icn.context).getOrElse(VarSlot(icn.argNames(0), isBase = false, isArg = true), isetEmpty)
+              val inss = ptaresult.getPTSMap(icn.context).getOrElse(VarSlot(icn.argNames.head, isBase = false, isArg = true), isetEmpty)
               callType match {
                 case "direct" =>
                   CallHandler.getDirectCalleeMethod(global, calleesig) match {

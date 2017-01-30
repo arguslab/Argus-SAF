@@ -123,7 +123,7 @@ object InterproceduralMonotoneDataFlowAnalysisFramework {
         extends InterproceduralMonotoneDataFlowAnalysisResult[LatticeElement] {
       type DFF = ISet[LatticeElement]
 
-      override def toString = {
+      override def toString: String = {
         val sb = new StringBuilder
         var i = 1
         breakable{
@@ -156,7 +156,7 @@ object InterproceduralMonotoneDataFlowAnalysisFramework {
       }
 
       
-      protected def next(l: LocationDecl, pst: ProcedureSymbolTable, pSig: Signature, callerContext: Context) = {
+      protected def next(l: LocationDecl, pst: ProcedureSymbolTable, pSig: Signature, callerContext: Context): N = {
         val newLoc = pst.location(l.index + 1)
         val newContext = callerContext.copy
         if(newLoc.name.isEmpty)
@@ -169,7 +169,7 @@ object InterproceduralMonotoneDataFlowAnalysisFramework {
           icfg.getICFGNormalNode(newContext)
       }
 
-      protected def node(l: LocationDecl, context: Context) = {
+      protected def node(l: LocationDecl, context: Context): N = {
         if(icfg.isCall(l))
           icfg.getICFGCallNode(context)
         else
@@ -188,7 +188,7 @@ object InterproceduralMonotoneDataFlowAnalysisFramework {
       protected def fOE(eOpt: Option[Exp], in: DFF, currentNode: ICFGLocNode): DFF =
         if (eOpt.isDefined) fE(eOpt.get, in, currentNode) else in
 
-      protected def actionF(in: DFF, a: Action, currentNode: ICFGLocNode) =
+      protected def actionF(in: DFF, a: Action, currentNode: ICFGLocNode): DFF =
         a match {
           case a: AssignAction => fA(a, in, currentNode)
           case a: AssertAction => fC(a, in, currentNode)
@@ -547,7 +547,7 @@ object InterproceduralMonotoneDataFlowAnalysisFramework {
       }
 
       
-      def entries(n: N, callerContext: Context, esl: EntrySetListener[LatticeElement]) = {
+      def entries(n: N, callerContext: Context, esl: EntrySetListener[LatticeElement]): Unit = {
         n match {
           case cn: ICFGLocNode  =>
             visit(cn, Some(esl))
@@ -557,7 +557,7 @@ object InterproceduralMonotoneDataFlowAnalysisFramework {
 
     }
     
-    val imdaf = new IMdaf(getEntrySet _, initial)
+    val imdaf = new IMdaf(getEntrySet, initial)
     
     def process(n: N): ISet[N] = {
       var result = isetEmpty[N]
@@ -578,7 +578,7 @@ object InterproceduralMonotoneDataFlowAnalysisFramework {
           if (imdaf.visit(cn)){
             result ++= icfg.successors(n)
           }
-        case rn: ICFGReturnNode =>
+        case _: ICFGReturnNode =>
           for (succ <- icfg.successors(n)) {
             if(imdaf.update(getEntrySet(n), succ)){
               result += succ
@@ -657,6 +657,6 @@ object InterproceduralMonotoneDataFlowAnalysisFramework {
       }
       else true
     }
-    def updateNodeCount(n: N) = this.usagemap(n) = this.usagemap.getOrElseUpdate(n, 0) + 1
+    def updateNodeCount(n: N): Unit = this.usagemap(n) = this.usagemap.getOrElseUpdate(n, 0) + 1
   }
 }

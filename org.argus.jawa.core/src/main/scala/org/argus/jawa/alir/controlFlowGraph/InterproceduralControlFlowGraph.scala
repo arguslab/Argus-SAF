@@ -182,53 +182,6 @@ class InterproceduralControlFlowGraph[Node <: ICFGNode] extends InterproceduralG
       }
     }
   }
-  
-  // read the sCfg and build a corresponding DFA/NFA  
-//  def buildAutomata(): Automaton = {
-//    val automata = new Automaton()
-//    // build a map between sCfg-nodes-set and automata-nodes-set
-//    val nodeMap:MMap[Node, State] = mmapEmpty
-//
-//    nodes.foreach(
-//      gNode => {
-//        val state = new State()
-//        state.setAccept(true)  // making each state in the automata an accept state
-//        nodeMap(gNode) = state
-//      }
-//    )
-//    // build a map between Entry-nodes-set (in sCfg) to English characters (assuming Entry-nodes-set is small); note that each call corresponds to an edge to Entry node of callee proc
-//    val calleeMap:MMap[Node, Char] = mmapEmpty
-//    var calleeIndex = 0
-//    nodes.foreach(
-//      gNode => {   // ******* below check the hard-coded path for testing ***********
-//        if(!gNode.toString.contains("pilar:/method/default/%5B%7Cde::mobinauten") && gNode.toString.endsWith(".Entry"))
-//        {
-//          calleeMap(gNode) = ('A' + calleeIndex).toChar
-//          println("in calleeMap: node " + gNode.toString + "  has label = " + calleeMap(gNode))
-//          calleeIndex = calleeIndex + 1
-//        }
-//      }
-//    )
-//    // build the automata from the sCfg
-//
-//    nodes.foreach(
-//      gNode => {
-//        val automataNode = nodeMap(gNode)   // automataNode = automata state
-//        val gSuccs = successors(gNode)
-//        var label: Char = 'x'  // default label of automata transition
-//        gSuccs.foreach(
-//          gSucc => {
-//            val automataSucc = nodeMap(gSucc)
-//            if(calleeMap.contains(gSucc))
-//              label = calleeMap(gSucc)
-//            val tr = new Transition(label, automataSucc)
-//            automataNode.addTransition(tr)
-//          }
-//        )
-//      }
-//    )
-//   automata
-//  }
    
   def isCall(l: LocationDecl): Boolean = l.isInstanceOf[JumpLocation] && l.asInstanceOf[JumpLocation].jump.isInstanceOf[CallJump]
    
@@ -272,7 +225,7 @@ class InterproceduralControlFlowGraph[Node <: ICFGNode] extends InterproceduralG
           }
         case ln: AlirLocationUriNode =>
           val l = body.location(ln.locIndex)
-          //              val code = codes.find(_.contains("#" + ln.locUri + ".")).getOrElse(throw new RuntimeException("Could not find " + ln.locUri + " from \n" + rawcode))
+          //val code = codes.find(_.contains("#" + ln.locUri + ".")).getOrElse(throw new RuntimeException("Could not find " + ln.locUri + " from \n" + rawcode))
           if (isCall(l)) {
             val cj = l.asInstanceOf[JumpLocation].jump.asInstanceOf[CallJump]
             val sig = ASTUtil.getSignature(cj).get
@@ -594,18 +547,10 @@ class InterproceduralControlFlowGraph[Node <: ICFGNode] extends InterproceduralG
 sealed abstract class ICFGNode(context: Context) extends InterproceduralNode(context){
   protected var owner: Signature = _
   protected var loadedClassBitSet: BitSet = BitSet.empty
-//  protected var code: String = null
   def setOwner(owner: Signature): Unit = this.owner = owner
   def getOwner: Signature = this.owner
-//  def setCode(code: String) = this.code = code
-//  def getCode: String = this.code
   def setLoadedClassBitSet(bitset: BitSet): Unit = this.loadedClassBitSet = bitset
   def getLoadedClassBitSet: IBitSet = this.loadedClassBitSet
-  
-//  def updateLoadedClassBitSet(bitset: BitSet) = {
-//    if(getLoadedClassBitSet == BitSet.empty) setLoadedClassBitSet(bitset)
-//    else setLoadedClassBitSet(bitset.intersect(getLoadedClassBitSet))
-//  }
 }
 
 abstract class ICFGVirtualNode(context: Context) extends ICFGNode(context) {
@@ -620,12 +565,10 @@ final case class ICFGEntryNode(context: Context) extends ICFGVirtualNode(context
 }
 
 final case class ICFGExitNode(context: Context) extends ICFGVirtualNode(context){
-//  this.code = "Exit: " + context.getMethodSig
   def getVirtualLabel: String = "Exit"
 }
 
 final case class ICFGCenterNode(context: Context) extends ICFGVirtualNode(context){
-//  this.code = "L0000: Center;"
   def getVirtualLabel: String = "Center"
 }
 

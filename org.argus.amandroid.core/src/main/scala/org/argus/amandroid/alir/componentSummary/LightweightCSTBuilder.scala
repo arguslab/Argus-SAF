@@ -34,11 +34,11 @@ class LightweightCSTBuilder(global: Global) {
   
   def getSummaryTables: IMap[JawaType, ComponentSummaryTable] = summaryTables.toMap
   
-  def build(yard: ApkYard, apk: Apk, comps: ISet[(JawaType, ComponentType.Value)]) = {
+  def build(yard: ApkYard, apk: Apk, comps: ISet[(JawaType, ComponentType.Value)]): Unit = {
     println("Total components: " + comps.size)
     var i = 0
     comps foreach {
-      case (compTyp, typ) =>
+      case (compTyp, _) =>
         val comp = global.getClassOrResolve(compTyp)
         val methods = comp.getDeclaredMethods.filter(m => m.isConcrete && !m.isPrivate)
         println("methods: " + methods.size)
@@ -267,7 +267,7 @@ class LightweightCSTBuilder(global: Global) {
                   case (intent, ds) =>
                     if (ds.intersect(retValue).nonEmpty) {
                       strValue.foreach {
-                        case cstr@PTAConcreteStringInstance(text, c) =>
+                        case PTAConcreteStringInstance(text, _) =>
                           val data = new UriData
                           IntentHelper.populateByUri(data, text)
                           datas.getOrElseUpdate(intent, msetEmpty) += data
@@ -301,7 +301,7 @@ class LightweightCSTBuilder(global: Global) {
                   case (intent, comps) =>
                     if (comps.intersect(thisValue).nonEmpty) {
                       componentValue.foreach {
-                        case cstr@PTAConcreteStringInstance(text, c) =>
+                        case PTAConcreteStringInstance(text, _) =>
                           val component = text
                           componentNames.getOrElseUpdate(intent, msetEmpty) += component
                         case _ => impreciseImplicit += intent
@@ -341,7 +341,7 @@ class LightweightCSTBuilder(global: Global) {
         result.toSet
       }
     }
-    val summaryTable = ComponentSummaryTable.buildComponentSummaryTable(apk, componentType, idfg, csp)
+    val summaryTable = ComponentSummaryTable.buildComponentSummaryTable(global, apk, componentType, idfg, csp)
     summaryTables(componentType) = summaryTable
   }
 }
