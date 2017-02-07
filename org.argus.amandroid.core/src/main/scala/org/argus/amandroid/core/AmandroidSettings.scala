@@ -22,7 +22,7 @@ import org.sireum.util.FileUtil
 class AmandroidSettings(amandroid_home: String, iniPathOpt: Option[String]) {
   private val amandroid_home_url = FileUtil.toUri(amandroid_home)
   private def defaultLibFiles =
-    amandroid_home + "/androidSdk/android-21/android.jar" + java.io.File.pathSeparator +
+    amandroid_home + "/androidSdk/android-25/android.jar" + java.io.File.pathSeparator +
     amandroid_home + "/androidSdk/support/v4/android-support-v4.jar" + java.io.File.pathSeparator +
     amandroid_home + "/androidSdk/support/v13/android-support-v13.jar" + java.io.File.pathSeparator +
     amandroid_home + "/androidSdk/support/v7/android-support-v7-appcompat.jar"
