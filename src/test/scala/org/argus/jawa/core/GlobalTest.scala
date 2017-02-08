@@ -60,7 +60,6 @@ class GlobalTest extends FlatSpec with Matchers {
       myClass.superType.isEmpty &&
       myClass.interfaces.isEmpty &&
       myClass.outerType.isEmpty &&
-      myClass.methods.size == 12 &&
       myClass.fields.isEmpty
     )
   }
@@ -75,9 +74,7 @@ class GlobalTest extends FlatSpec with Matchers {
       myClass.superType.isDefined &&
       myClass.superType.get.equals(new JawaType("android.view.ContextThemeWrapper")) &&
       myClass.interfaces.size == 5 &&
-      myClass.outerType.isEmpty &&
-      myClass.methods.size == 211 &&
-      myClass.fields.size == 9
+      myClass.outerType.isEmpty
     )
   }
 
