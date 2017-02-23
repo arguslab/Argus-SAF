@@ -7,6 +7,9 @@
 
 This is official reporitory for the [Argus-SAF](http://pag.arguslab.org/argus-saf).
 
+For test and play with Argus-SAF, you can fork from our [Argus-SAF-playground](https://github.com/arguslab/Argus-SAF-playground)
+project, which have the basic setup for a Argus-SAF enhanced project with demo codes of how to perform different kind of analysis.
+
 ## Repository structure
 
 ```
