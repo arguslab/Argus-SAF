@@ -94,7 +94,18 @@ abstract class MethodGenerator(global: Global) {
    * element.
    */
   def setCallbackFunctions(callbackFunctions: IMap[JawaType, ISet[Signature]]) {
-    this.callbackFunctions = callbackFunctions
+    if(this.callbackFunctions.isEmpty)
+      this.callbackFunctions = callbackFunctions
+    else {
+      val funcs: MMap[JawaType, MSet[Signature]] = mmapEmpty
+      this.callbackFunctions.foreach {
+        case (k, v) => funcs.getOrElseUpdate(k, msetEmpty) ++= v
+      }
+      callbackFunctions.foreach {
+        case (k, v) => funcs.getOrElseUpdate(k, msetEmpty) ++= v
+      }
+      this.callbackFunctions = funcs.map{case (k, v) => k -> v.toSet}.toMap
+    }
   }
   
   def generate(name: String): (JawaMethod, String) = {
@@ -227,11 +238,12 @@ abstract class MethodGenerator(global: Global) {
           else if(r.isAbstract) global.getClassHierarchy.getAllSubClassesOf(r.getType).foreach(s => if(global.getClassOrResolve(s).isConcrete && constructionStack.contains(s)) r = global.getClassOrResolve(s))
         }
         // to protect from going into dead constructor create loop
-        if(!r.isConcrete){
+        if(localVarsForClasses.contains(r.getType)) paramVars += (i -> localVarsForClasses(r.getType))
+        else if(!r.isConcrete){
           val va = varGen.generate(r.getType)
           localVarsForClasses += (r.getType -> va)
           paramVars += (i -> va)
-          global.reporter.warning(TITLE, "Cannot create valid constructer for " + r + ", because it is " + r.getAccessFlagsStr + " and cannot find substitute.")
+          global.reporter.warning(TITLE, "Cannot create valid constructor for " + r + ", because it is " + r.getAccessFlagsStr + " and cannot find substitute.")
         } else if(!constructionStack.contains(r.getType)){
           val va = generateInstanceCreation(r.getType, codefg)
           localVarsForClasses += (r.getType -> va)

@@ -137,6 +137,7 @@ object AppInfoCollector {
     dmGen.setComponentInfos(apk.getComponentInfos)
     dmGen.setCodeCounter(apk.getCodeLineCounter)
     dmGen.setCallbackFunctions(apk.getCallbackMethodMapping)
+    dmGen.setCallbackFunctions(apk.getRpcMethodMapping)
     val (proc, code) = dmGen.generateWithParam(List(new JawaType(AndroidEntryPointConstants.INTENT_NAME)), envName)
     apk.addEnvMap(record.getType, proc.getSignature, code)
     dmGen.getCodeCounter
@@ -193,24 +194,19 @@ object AppInfoCollector {
     callbacks foreach {
       case (typ, sigs) => apk.addCallbackMethods(typ, sigs)
     }
-    val components = msetEmpty[(JawaClass, ComponentType.Value)]
     mfp.getComponentInfos.foreach {
       f =>
         if(f.enabled){
           val comp = global.getClassOrResolve(f.compType)
           if(!comp.isUnknown && comp.isApplicationClass){
-            components += ((comp, f.typ))
+            apk.addComponent(comp.getType, f.typ)
+            val rpcs = getRpcMethods(apk, comp)
+            apk.addRpcMethods(comp.getType, rpcs.map(_.getSignature))
             val clCounter = generateEnvironment(apk, comp, if(f.exported)AndroidConstants.MAINCOMP_ENV else AndroidConstants.COMP_ENV, global.reporter)
             apk.setCodeLineCounter(clCounter)
           }
         }
     }
-    components.foreach {
-      comp =>
-        val rpcs = getRpcMethods(apk, comp._1)
-        apk.addRpcMethods(comp._1.getType, rpcs.map(_.getSignature))
-    }
-    apk.setComponents(components.map{case (a, b) => (a.getType, b)}.toSet)
     global.reporter.echo(TITLE, "Entry point calculation done.")
   }
 }

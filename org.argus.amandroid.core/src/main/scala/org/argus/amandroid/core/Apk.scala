@@ -141,20 +141,24 @@ case class Apk(nameUri: FileResourceUri, outApkUri: FileResourceUri, srcs: ISet[
     else if(providers.contains(comp)) Some(AndroidConstants.CompType.PROVIDER)
     else None
   }
+
+  def addComponent(comp: JawaType, typ: ComponentType.Value) = {
+    typ match {
+      case ComponentType.ACTIVITY =>
+        this.addActivity(comp)
+      case ComponentType.SERVICE =>
+        this.addService(comp)
+      case ComponentType.RECEIVER =>
+        this.addReceiver(comp)
+      case ComponentType.PROVIDER =>
+        this.addProvider(comp)
+    }
+  }
   
 	def setComponents(comps: ISet[(JawaType, ComponentType.Value)]) = this.synchronized{
     comps.foreach{
-      case (ac, typ) => 
-        typ match {
-          case ComponentType.ACTIVITY =>
-            this.addActivity(ac)
-          case ComponentType.SERVICE =>
-            this.addService(ac)
-          case ComponentType.RECEIVER =>
-            this.addReceiver(ac)
-          case ComponentType.PROVIDER =>
-            this.addProvider(ac)
-        }
+      case (ac, typ) =>
+        addComponent(ac, typ)
     }
   }
 	

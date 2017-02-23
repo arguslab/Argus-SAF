@@ -126,8 +126,8 @@ class ComponentBasedAnalysis(global: Global, yard: ApkYard) {
     val summaryMap = summaryTables.map(st => (st.component, st)).toMap
     val iccChannels = summaryTables.map(_.get[ICC_Summary](CHANNELS.ICC))
     val allICCCallees = iccChannels.map(_.asCallee).reduceOption{_ ++ _}.getOrElse(isetEmpty)
-//    val rpcChannels = summaryTables.map(_.get[RPC_Summary](CHANNELS.RPC_CHANNEL))
-//    val allRpcCallees = rpcChannels.map(_.asCallee).reduceOption{_ ++ _}.getOrElse(imapEmpty)
+    val rpcChannels = summaryTables.map(_.get[RPC_Summary](CHANNELS.RPC))
+    val allRpcCallees = rpcChannels.map(_.asCallee).reduceOption{_ ++ _}.getOrElse(imapEmpty)
     val sfChannels = summaryTables.map(_.get[StaticField_Summary](CHANNELS.STATIC_FIELD))
     val allSFCallees = sfChannels.map(_.asCallee).reduceOption{_ ++ _}.getOrElse(isetEmpty)
     
@@ -145,9 +145,9 @@ class ComponentBasedAnalysis(global: Global, yard: ApkYard) {
         try {
           val summaryTable = summaryMap.getOrElse(component, throw new RuntimeException("Summary table does not exist for " + component))
           
-          // link the icc edges
-          val intent_summary: ICC_Summary = summaryTable.get(CHANNELS.ICC)
-          intent_summary.asCaller foreach {
+          // link the intent edges
+          val icc_summary: ICC_Summary = summaryTable.get(CHANNELS.ICC)
+          icc_summary.asCaller foreach {
             case (callernode, icc_caller) =>
               val icc_callees = allICCCallees.filter(_._2.matchWith(icc_caller))
               icc_callees foreach {
@@ -161,6 +161,17 @@ class ComponentBasedAnalysis(global: Global, yard: ApkYard) {
               }
           }
 
+          // link the rpc edges
+          val rpc_summary: RPC_Summary = summaryTable.get(CHANNELS.RPC)
+          rpc_summary.asCaller foreach {
+            case (callernode, rpc_caller) =>
+              val rpc_callees = allRpcCallees.filter(_._2.matchWith(rpc_caller))
+              rpc_callees foreach {
+                case (calleenode, rpc_callee) =>
+                  println(component + " --rpc: " + rpc_callee.asInstanceOf[RPCCallee]. + "--> " + calleenode.getOwner.getClassName)
+              }
+          }
+
           // link the static field edges
           val sf_summary: StaticField_Summary = summaryTable.get(CHANNELS.STATIC_FIELD)
           sf_summary.asCaller foreach {
@@ -168,7 +179,7 @@ class ComponentBasedAnalysis(global: Global, yard: ApkYard) {
               val sf_reads = allSFCallees.filter(_._2.matchWith(sf_write))
               sf_reads foreach {
                 case (calleenode, _) =>
-                  println(component + " --static field--> " + calleenode.getOwner.getClassName)
+                  println(component + " --static field: " + sf_write.asInstanceOf[StaticFieldWrite].fqn + "--> " + calleenode.getOwner.getClassName)
                   val callerDDGNode = mddg.getIDDGNormalNode(callernode.asInstanceOf[ICFGNormalNode])
                   val calleeDDGNode = mddg.getIDDGNormalNode(calleenode.asInstanceOf[ICFGNormalNode])
                   mddg.addEdge(calleeDDGNode, callerDDGNode)

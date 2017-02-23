@@ -350,6 +350,10 @@ class DataLeakageAndroidSourceAndSinkManager(
   private def sensitiveData: ISet[String] = Set("android.location.Location", "android.content.Intent")
   
   override def isCallbackSource(sig: Signature): Boolean = {
+    apk.getComponentInfos foreach {
+      info =>
+        if(info.compType == sig.getClassType && !info.exported) return false
+    }
     if(this.callbackSigs.contains(sig)){
       if(sig.getParameterTypes.exists { pt => sensitiveData.contains(pt.name) }) true
       else false

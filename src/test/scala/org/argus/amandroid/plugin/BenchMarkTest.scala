@@ -23,15 +23,6 @@ import org.sireum.util.FileUtil
   * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
   */
 class BenchMarkTest extends FlatSpec with Matchers {
-  "AndroidSpecific_PrivateDataLeak3" should "have 1 taint path" in {
-    val res = taintAnalyze(getClass.getResource("/icc-bench/AndroidSpecific/AndroidSpecific_PrivateDataLeak3.apk").getPath)
-    assert(res.isDefined && res.get.getTaintedPaths.size == 1)
-  }
-
-//  "FieldAndObjectSensitivity_FieldFlowSensitivity1" should "have 0 taint paths" in {
-//    val res = taintAnalyze(getClass.getResource("/icc-bench/FieldAndObjectSensitivity/FieldAndObjectSensitivity_FieldFlowSensitivity1.apk").getPath)
-//    assert(res.isDefined && res.get.getTaintedPaths.isEmpty)
-//  }
 
   "ICC_Explicit_NoSrc_NoSink" should "have 0 taint paths" in {
     val res = taintAnalyze(getClass.getResource("/icc-bench/IccHandling/icc_explicit_nosrc_nosink.apk").getPath)
@@ -71,6 +62,11 @@ class BenchMarkTest extends FlatSpec with Matchers {
   "ICC_Implicit_Src_Sink" should "have 2 taint paths" in {
     val res = taintAnalyze(getClass.getResource("/icc-bench/IccHandling/icc_implicit_src_sink.apk").getPath)
     assert(res.isDefined && res.get.getTaintedPaths.size == 2)
+  }
+
+  "ICC_IntentService" should "have 1 taint paths" in {
+    val res = taintAnalyze(getClass.getResource("/icc-bench/IccHandling/icc_intentservice.apk").getPath)
+    assert(res.isDefined && res.get.getTaintedPaths.size == 1)
   }
 
   "ICC_DynRegister1" should "have 2 taint paths" in {
@@ -117,6 +113,26 @@ class BenchMarkTest extends FlatSpec with Matchers {
     val res = taintAnalyze(getClass.getResource("/icc-bench/IccTargetFinding/icc_implicit_mix2.apk").getPath)
     assert(res.isDefined && res.get.getTaintedPaths.size == 2)
   }
+
+//  "ICC_RPC_Comprehensive" should "have 2 taint paths" in {
+//    val res = taintAnalyze(getClass.getResource("/icc-bench/Mixed/icc_rpc_comprehensive.apk").getPath)
+//    assert(res.isDefined && res.get.getTaintedPaths.size == 2)
+//  }
+//
+//  "RPC_LocalService" should "have 1 taint paths" in {
+//    val res = taintAnalyze(getClass.getResource("/icc-bench/RpcHandling/rpc_localservice.apk").getPath)
+//    assert(res.isDefined && res.get.getTaintedPaths.size == 1)
+//  }
+//
+//  "RPC_MessengerService" should "have 1 taint paths" in {
+//    val res = taintAnalyze(getClass.getResource("/icc-bench/RpcHandling/rpc_messengerservice.apk").getPath)
+//    assert(res.isDefined && res.get.getTaintedPaths.size == 1)
+//  }
+//
+//  "RPC_RemoteService" should "have 1 taint paths" in {
+//    val res = taintAnalyze(getClass.getResource("/icc-bench/RpcHandling/rpc_remoteservice.apk").getPath)
+//    assert(res.isDefined && res.get.getTaintedPaths.size == 1)
+//  }
 
   "ActivityCommunication1" should "have 1 taint paths" in {
     val res = taintAnalyze(getClass.getResource("/droid-bench/InterComponentCommunication/ActivityCommunication1.apk").getPath)

@@ -31,8 +31,7 @@ class AndroidEnvironmentGenerator(global: Global) extends MethodGenerator(global
         val clazz = method.getClassType
         classMap.getOrElseUpdate(clazz, mlistEmpty) += method
     }
-    if(!classMap.contains(this.currentComponent))
-    classMap.getOrElseUpdate(this.currentComponent, mlistEmpty)
+    if(!classMap.contains(this.currentComponent)) classMap.getOrElseUpdate(this.currentComponent, mlistEmpty)
 //    val intVar = template.getInstanceOf("LocalVar")
     val outerStartFragment = new CodeFragmentGenerator
     outerStartFragment.addLabel()
@@ -233,7 +232,7 @@ class AndroidEnvironmentGenerator(global: Global) extends MethodGenerator(global
     searchAndBuildMethodCall(AndroidEntryPointConstants.SERVICE_ONSTART1, clazz, entryPoints, constructionStack, onCreateFragment)
     searchAndBuildMethodCall(AndroidEntryPointConstants.SERVICE_ONSTART2, clazz, entryPoints, constructionStack, onCreateFragment)
     //all other entry points of this class can be called in arbitary order
-    generateAllCallbacks(entryPoints, clazz, classLocalVar)
+//    generateAllCallbacks(entryPoints, clazz, classLocalVar)
     // lifecycle 1 end.
   
     // lifecycle 2:
