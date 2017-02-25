@@ -168,7 +168,7 @@ class ComponentBasedAnalysis(global: Global, yard: ApkYard) {
               val rpc_callees = allRpcCallees.filter(_._2.matchWith(rpc_caller))
               rpc_callees foreach {
                 case (calleenode, rpc_callee) =>
-                  println(component + " --rpc: " + rpc_callee.asInstanceOf[RPCCallee]. + "--> " + calleenode.getOwner.getClassName)
+                  println(component + " --rpc: " + rpc_callee.asInstanceOf[RPCCallee].sig + "--> " + calleenode.getOwner.getClassName)
               }
           }
 
