@@ -28,7 +28,7 @@ by editing
 `build.sbt`:
 
 ```
-libraryDependencies += "com.github.arguslab" %% "jawa-core" % "1.1.5"
+libraryDependencies += "com.github.arguslab" %% "jawa-core" % "1.1.6"
 ```
 
 Depend on Amandroid
@@ -37,7 +37,7 @@ by editing
 `build.sbt`:
 
 ```
-libraryDependencies += "com.github.arguslab" %% "amandroid-core" % "1.1.5"
+libraryDependencies += "com.github.arguslab" %% "amandroid-core" % "1.1.6"
 ```
 
 > Note that: Depend on Amandroid will automatically add Jawa as dependency. If you use Maven or Gradle, you should translate it to corresponding format.
