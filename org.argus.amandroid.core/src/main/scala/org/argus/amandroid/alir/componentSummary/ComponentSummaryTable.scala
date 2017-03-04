@@ -48,7 +48,7 @@ object ComponentSummaryTable {
     val sf_summary: StaticField_Summary = summaryTable.get(CHANNELS.STATIC_FIELD)
 
     // Collect info from idfg for component as icc caller or rpc caller or others
-    idfg.icfg.nodes foreach {
+    idfg.icfg.nodes.filter(n => apk.getEnvMap(component)._1 != n.getOwner) foreach {
       case nn: ICFGNormalNode =>
         val method = global.getMethod(nn.getOwner).get
         method.getBody.location(nn.context.getLocUri) match {
@@ -96,10 +96,14 @@ object ComponentSummaryTable {
               }
             }
 
-            if (apk.getRpcMethods.contains(calleeSig)) {
-              // add component as rpc caller
-              val rpc_summary: RPC_Summary = summaryTable.get(CHANNELS.RPC)
-              rpc_summary.addCaller(cn, RPCCaller(calleeSig, ptsmap))
+            apk.getRpcMethods.foreach { sig =>
+              if(sig.getSubSignature == calleeSig.getSubSignature) {
+                val ch = global.getClassOrResolve(calleeSig.classTyp)
+                if(ch.isChildOf(sig.classTyp)) {
+                  val rpc_summary: RPC_Summary = summaryTable.get(CHANNELS.RPC)
+                  rpc_summary.addCaller(cn, RPCCaller(calleeSig, ptsmap))
+                }
+              }
             }
         }
       case _ =>

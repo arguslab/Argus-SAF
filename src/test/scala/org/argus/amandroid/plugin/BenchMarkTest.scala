@@ -119,10 +119,10 @@ class BenchMarkTest extends FlatSpec with Matchers {
 //    assert(res.isDefined && res.get.getTaintedPaths.size == 2)
 //  }
 //
-//  "RPC_LocalService" should "have 1 taint paths" in {
-//    val res = taintAnalyze(getClass.getResource("/icc-bench/RpcHandling/rpc_localservice.apk").getPath)
-//    assert(res.isDefined && res.get.getTaintedPaths.size == 1)
-//  }
+  "RPC_LocalService" should "have 1 taint paths" in {
+    val res = taintAnalyze(getClass.getResource("/icc-bench/RpcHandling/rpc_localservice.apk").getPath)
+    assert(res.isDefined && res.get.getTaintedPaths.size == 1)
+  }
 //
 //  "RPC_MessengerService" should "have 1 taint paths" in {
 //    val res = taintAnalyze(getClass.getResource("/icc-bench/RpcHandling/rpc_messengerservice.apk").getPath)
