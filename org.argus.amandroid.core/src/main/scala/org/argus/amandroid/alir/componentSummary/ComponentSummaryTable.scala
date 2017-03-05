@@ -95,16 +95,21 @@ object ComponentSummaryTable {
                   icc_summary.addCaller(cn, ICCCaller(callTyp, intentcontent))
               }
             }
-
-            apk.getRpcMethods.foreach { sig =>
-              if(sig.getSubSignature == calleeSig.getSubSignature) {
-                val ch = global.getClassOrResolve(calleeSig.classTyp)
-                if(ch.isChildOf(sig.classTyp)) {
-                  val rpc_summary: RPC_Summary = summaryTable.get(CHANNELS.RPC)
-                  rpc_summary.addCaller(cn, RPCCaller(calleeSig, ptsmap))
+            if(calleeSig.getClassType.baseType.unknown) {
+              apk.getRpcMethods.foreach { sig =>
+                if(sig.getSubSignature == calleeSig.getSubSignature) {
+                  val ch = global.getClassOrResolve(calleeSig.classTyp)
+                  if(ch.isChildOf(sig.classTyp)) {
+                    val rpc_summary: RPC_Summary = summaryTable.get(CHANNELS.RPC)
+                    rpc_summary.addCaller(cn, RPCCaller(sig, ptsmap))
+                  }
                 }
               }
+            } else {
+              if(apk.getRpcMethods.contains(calleeSig))
+                rpc_summary.addCaller(cn, RPCCaller(calleeSig, ptsmap))
             }
+
         }
       case _ =>
     }

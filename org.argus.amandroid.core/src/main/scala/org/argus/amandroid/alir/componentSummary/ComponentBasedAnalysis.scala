@@ -169,6 +169,11 @@ class ComponentBasedAnalysis(global: Global, yard: ApkYard) {
               rpc_callees foreach {
                 case (calleenode, rpc_callee) =>
                   println(component + " --rpc: " + rpc_callee.asInstanceOf[RPCCallee].sig + "--> " + calleenode.getOwner.getClassName)
+                  for(i <- callernode.asInstanceOf[ICFGCallNode].argNames.indices) {
+                    val callerDDGNode = mddg.getIDDGCallArgNode(callernode.asInstanceOf[ICFGCallNode], i)
+                    val calleeDDGNode = mddg.getIDDGEntryParamNode(calleenode.asInstanceOf[ICFGEntryNode], i)
+                    mddg.addEdge(calleeDDGNode, callerDDGNode)
+                  }
               }
           }
 
