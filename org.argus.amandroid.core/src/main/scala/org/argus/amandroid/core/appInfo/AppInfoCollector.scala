@@ -167,14 +167,27 @@ object AppInfoCollector {
    * Get rpc method list for Android component
    * originally designed by Sankardas Roy, modified by Fengguo Wei
    */
-  def getRpcMethods(apk: Apk, comp: JawaClass): ISet[JawaMethod] = {
-    if(apk.getServices.contains(comp.getType)){
-      comp.getDeclaredMethods.filter { 
-        method => 
-          !(method.isConstructor || AndroidEntryPointConstants.getServiceLifecycleMethods.contains(method.getSubSignature)
-              || method.getName == AndroidConstants.MAINCOMP_ENV || method.getName == AndroidConstants.COMP_ENV) 
+  private def getRpcMethods(apk: Apk, comp: JawaClass, ra: ReachableInfoCollector): ISet[Signature] = {
+    val global = comp.global
+    val methods = ra.getReachableMap.getOrElse(comp.getType, isetEmpty)
+    val iinterfaceImpls = global.getClassHierarchy.getAllImplementersOf(new JawaType("android.os.IInterface"))
+    val result: MSet[Signature] = msetEmpty
+    methods.foreach { method =>
+      /* This is the remote service case. */
+      if(iinterfaceImpls.contains(method.classTyp)) {
+        result ++= global.getClassOrResolve(method.classTyp).getMethods.filter(m => m.getDeclaringClass.isApplicationClass && !m.isConstructor).map(_.getSignature)
       }
-    } else isetEmpty
+      /* This is the messenger service case. */
+      if(global.getClassHierarchy.isClassRecursivelySubClassOf(method.classTyp, new JawaType("android.os.Handler"))) {
+        result ++= global.getClassOrResolve(method.classTyp).getMethod("handleMessage:(Landroid/os/Message;)V").map(_.getSignature)
+      }
+    }
+    /* This is the local service case. */
+    result ++= comp.getDeclaredMethods.filter { method =>
+      !(method.isConstructor || AndroidEntryPointConstants.getServiceLifecycleMethods.contains(method.getSubSignature)
+          || method.getName == AndroidConstants.MAINCOMP_ENV || method.getName == AndroidConstants.COMP_ENV)
+    }.map(_.getSignature)
+    result.toSet
   }
 
   def collectInfo(apk: Apk, global: Global, outUri: FileResourceUri): Unit = {
@@ -200,8 +213,10 @@ object AppInfoCollector {
           val comp = global.getClassOrResolve(f.compType)
           if(!comp.isUnknown && comp.isApplicationClass){
             apk.addComponent(comp.getType, f.typ)
-            val rpcs = getRpcMethods(apk, comp)
-            apk.addRpcMethods(comp.getType, rpcs.map(_.getSignature))
+            if(f.typ == ComponentType.SERVICE) {
+              val rpcs = getRpcMethods(apk, comp, ra)
+              apk.addRpcMethods(comp.getType, rpcs)
+            }
             val clCounter = generateEnvironment(apk, comp, if(f.exported)AndroidConstants.MAINCOMP_ENV else AndroidConstants.COMP_ENV, global.reporter)
             apk.setCodeLineCounter(clCounter)
           }

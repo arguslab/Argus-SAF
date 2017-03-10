@@ -123,16 +123,16 @@ class BenchMarkTest extends FlatSpec with Matchers {
     val res = taintAnalyze(getClass.getResource("/icc-bench/RpcHandling/rpc_localservice.apk").getPath)
     assert(res.isDefined && res.get.getTaintedPaths.size == 1)
   }
-//
-//  "RPC_MessengerService" should "have 1 taint paths" in {
-//    val res = taintAnalyze(getClass.getResource("/icc-bench/RpcHandling/rpc_messengerservice.apk").getPath)
-//    assert(res.isDefined && res.get.getTaintedPaths.size == 1)
-//  }
-//
-//  "RPC_RemoteService" should "have 1 taint paths" in {
-//    val res = taintAnalyze(getClass.getResource("/icc-bench/RpcHandling/rpc_remoteservice.apk").getPath)
-//    assert(res.isDefined && res.get.getTaintedPaths.size == 1)
-//  }
+
+  "RPC_MessengerService" should "have 1 taint paths" in {
+    val res = taintAnalyze(getClass.getResource("/icc-bench/RpcHandling/rpc_messengerservice.apk").getPath)
+    assert(res.isDefined && res.get.getTaintedPaths.size == 1)
+  }
+
+  "RPC_RemoteService" should "have 1 taint paths" in {
+    val res = taintAnalyze(getClass.getResource("/icc-bench/RpcHandling/rpc_remoteservice.apk").getPath)
+    assert(res.isDefined && res.get.getTaintedPaths.size == 1)
+  }
 
   "ActivityCommunication1" should "have 1 taint paths" in {
     val res = taintAnalyze(getClass.getResource("/droid-bench/InterComponentCommunication/ActivityCommunication1.apk").getPath)
@@ -204,10 +204,10 @@ class BenchMarkTest extends FlatSpec with Matchers {
     assert(res.isDefined && res.get.getTaintedPaths.size == 2)
   }
 
-//  "ServiceCommunication1" should "have 1 taint paths" in {
-//    val res = taintAnalyze(getClass.getResource("/droid-bench/InterComponentCommunication/ServiceCommunication1.apk").getPath)
-//    assert(res.isDefined && res.get.getTaintedPaths.size == 1)
-//  }
+  "ServiceCommunication1" should "have 1 taint paths" in {
+    val res = taintAnalyze(getClass.getResource("/droid-bench/InterComponentCommunication/ServiceCommunication1.apk").getPath)
+    assert(res.isDefined && res.get.getTaintedPaths.size == 1)
+  }
 
   "SharedPreferences1" should "have 1 taint path" in {
     val res = taintAnalyze(getClass.getResource("/droid-bench/InterComponentCommunication/SharedPreferences1.apk").getPath)

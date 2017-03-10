@@ -17,7 +17,7 @@ import org.argus.amandroid.core.{AndroidConstants, Apk}
 import org.argus.jawa.alir.Context
 import org.argus.jawa.alir.controlFlowGraph.{ICFGCallNode, ICFGEntryNode, ICFGNode, ICFGNormalNode}
 import org.argus.jawa.alir.dataFlowAnalysis.InterproceduralDataFlowGraph
-import org.argus.jawa.alir.pta.{Instance, PTAResult, VarSlot}
+import org.argus.jawa.alir.pta.{Instance, VarSlot}
 import org.argus.jawa.core._
 import org.argus.jawa.core.util.ASTUtil
 import org.sireum.pilar.ast.{ActionLocation, AssignAction, NameExp}
@@ -76,7 +76,12 @@ object ComponentSummaryTable {
         rpcs.filter(rpc => rpc == en.context.getMethodSig).foreach {
           rpc =>
             // Add component as rpc callee
-            rpc_summary.addCallee(en, RPCCallee(rpc))
+            if(global.getClassHierarchy.isClassRecursivelySubClassOf(rpc.classTyp, new JawaType("android.os.Handler"))
+              && rpc.getSubSignature == "handleMessage:(Landroid/os/Message;)V") {
+              rpc_summary.addCallee(en, MessengerCallee(component, rpc))
+            } else {
+              rpc_summary.addCallee(en, BoundServiceCallee(rpc))
+            }
         }
       case cn: ICFGCallNode =>
         val callees = cn.getCalleeSet
@@ -95,19 +100,25 @@ object ComponentSummaryTable {
                   icc_summary.addCaller(cn, ICCCaller(callTyp, intentcontent))
               }
             }
-            if(calleeSig.getClassType.baseType.unknown) {
+            if(global.getClassHierarchy.isClassRecursivelySubClassOfIncluding(calleeSig.getClassType, new JawaType("android.os.Messenger"))
+              && calleeSig.getSubSignature == "send:(Landroid/os/Message;)V") {
+              val rpc_summary: RPC_Summary = summaryTable.get(CHANNELS.RPC)
+              rpc_summary.addCaller(cn, MessengerCaller(calleeSig))
+            } else if(calleeSig.getClassType.baseType.unknown) {
               apk.getRpcMethods.foreach { sig =>
                 if(sig.getSubSignature == calleeSig.getSubSignature) {
-                  val ch = global.getClassOrResolve(calleeSig.classTyp)
-                  if(ch.isChildOf(sig.classTyp)) {
+                  val calleeTyp = calleeSig.classTyp.removeUnknown()
+                  val calleeCls = global.getClassOrResolve(calleeTyp)
+                  if((calleeCls.isInterface && global.getClassHierarchy.getAllImplementersOf(calleeTyp).contains(sig.classTyp))
+                    || (!calleeCls.isInterface && global.getClassHierarchy.isClassRecursivelySubClassOfIncluding(sig.classTyp, calleeTyp))) {
                     val rpc_summary: RPC_Summary = summaryTable.get(CHANNELS.RPC)
-                    rpc_summary.addCaller(cn, RPCCaller(sig, ptsmap))
+                    rpc_summary.addCaller(cn, BoundServiceCaller(sig))
                   }
                 }
               }
             } else {
               if(apk.getRpcMethods.contains(calleeSig))
-                rpc_summary.addCaller(cn, RPCCaller(calleeSig, ptsmap))
+                rpc_summary.addCaller(cn, BoundServiceCaller(calleeSig))
             }
 
         }
@@ -184,13 +195,33 @@ class RPC_Summary extends CSTContent {
   def asCallee: ISet[(ICFGNode, CSTCallee)] = callees.toSet
 }
 
-case class RPCCaller(sig: Signature, pts: PTAResult.PTSMap) extends CSTCaller
+trait RPCCaller extends CSTCaller {
+  private val bindServices: MSet[JawaType] = msetEmpty
+  def addBindServices(s: ISet[JawaType]): Unit = bindServices ++= s
+  def getBindServices: ISet[JawaType] = bindServices.toSet
+}
 
-case class RPCCallee(sig: Signature) extends CSTCallee {
+trait RPCCallee extends CSTCallee
+
+case class BoundServiceCaller(sig: Signature) extends RPCCaller
+
+case class BoundServiceCallee(sig: Signature) extends RPCCallee {
   def matchWith(caller: CSTCaller): Boolean = {
     caller match {
-      case rpc_caller: RPCCaller =>
+      case rpc_caller: BoundServiceCaller =>
         sig == rpc_caller.sig
+      case _ => false
+    }
+  }
+}
+
+case class MessengerCaller(sig: Signature) extends RPCCaller
+
+case class MessengerCallee(owner: JawaType, sig: Signature) extends RPCCallee {
+  def matchWith(caller: CSTCaller): Boolean = {
+    caller match {
+      case rpc_caller: MessengerCaller =>
+        rpc_caller.getBindServices.contains(owner)
       case _ => false
     }
   }

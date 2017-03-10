@@ -32,7 +32,7 @@ class CallGraph {
   def getCallMap: IMap[Signature, ISet[Signature]] = this.callMap.map{case (k, vs) => k -> vs.toSet}.toMap
 
   def getReachableMethods(procs: ISet[Signature]): ISet[Signature] = {
-    val result: MSet[Signature] = msetEmpty ++ procs
+    val result: MSet[Signature] = msetEmpty
     val worklistAlgorithm = new WorklistAlgorithm[Signature] {
       /**
         * Process the current element from the worklist.

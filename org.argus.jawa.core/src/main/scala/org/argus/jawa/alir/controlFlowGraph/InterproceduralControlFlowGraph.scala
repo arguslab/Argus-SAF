@@ -70,7 +70,7 @@ class InterproceduralControlFlowGraph[Node <: ICFGNode] extends InterproceduralG
   def getProcessed: MMap[(Signature, Context), ISet[Node]] = this.processed
   
   def entryNode(proc: Signature, callerContext: Context): Node = {
-    require(isProcessed(proc, callerContext))
+    require(isProcessed(proc, callerContext), "ICFG EntryNode: " + proc + " should already be processed.")
     processed(proc, callerContext).foreach{
       n => if(n.isInstanceOf[ICFGEntryNode]) return n
     }

@@ -40,7 +40,7 @@ trait PilarStyleCodeGeneratorListener {
 }
 
 object PilarStyleCodeGenerator {
-  def outputCode(recType: JawaType, code: String, outputUri: Option[FileResourceUri]) = {
+  def outputCode(recType: JawaType, code: String, outputUri: Option[FileResourceUri]): Unit = {
     val classPath = recType.jawaName.replaceAll("\\.", "/")
     val outputStream = outputUri match {
       case Some(od) =>
@@ -59,7 +59,7 @@ object PilarStyleCodeGenerator {
     }
     outputStream.println(code)
     outputUri match {
-      case Some(t) => outputStream.close()
+      case Some(_) => outputStream.close()
       case _ =>
     }
   }
@@ -227,7 +227,7 @@ class PilarStyleCodeGenerator(
     val typTemplate = template.getInstanceOf("Type")
     typTemplate.add("baseTyp", typ.baseTyp)
     val dimensions: util.ArrayList[String] = new util.ArrayList[String]
-    for(i <- 0 until typ.dimensions) dimensions.add("[]")
+    for(_ <- 0 until typ.dimensions) dimensions.add("[]")
     typTemplate.add("dimensions", dimensions)
     typTemplate
   }
@@ -552,7 +552,7 @@ class PilarStyleCodeGenerator(
                     "; haveBeenHere: 0x" + java.lang.Long.toHexString(filePos) +
                     "; regmap: [" + savedUndeterminedRegMap + "]")
               val currentUndeterminedRegMap: IMap[Int, DedexUndeterminedType] = instructionParser.getRegisterMap.filter{
-                case (reg, typ) => typ.isInstanceOf[DedexUndeterminedType]
+                case (_, typ) => typ.isInstanceOf[DedexUndeterminedType]
               }.map{case (reg, ut) => (reg, ut.asInstanceOf[DedexUndeterminedType])}
               // No undetermined reg, stop.
               if(!currentUndeterminedRegMap.exists(!_._2.mergepos.contains(posObj))) {
@@ -582,7 +582,7 @@ class PilarStyleCodeGenerator(
             try {
               instructionParser.doparse(startPos, endPos)
             } catch {
-              case ex: Exception =>
+              case _: Exception =>
                 if(DEBUG_FLOW)
                   println("Flow: hit unknown instruction")
                 break
@@ -981,7 +981,7 @@ class PilarStyleCodeGenerator(
     }
   }
   
-  def writeByteArray(element: String) = {
+  def writeByteArray(element: String): Unit = {
     if(dump.isDefined)
       dump.get.println("\t\t" + element)
   }

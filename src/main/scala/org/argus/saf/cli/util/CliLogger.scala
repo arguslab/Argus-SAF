@@ -19,7 +19,7 @@ import java.util.Date
  */ 
 object CliLogger {
   
-  def timeStamp = new SimpleDateFormat("yyyyMMdd-HHmmss").format(new Date)
+  def timeStamp: String = new SimpleDateFormat("yyyyMMdd-HHmmss").format(new Date)
   
   def outPrint(s : String) {
     scala.Console.out.print(s)
@@ -54,7 +54,7 @@ object CliLogger {
     val fw = new FileWriter(f)
     try {
       val pw = new PrintWriter(fw)
-      pw.println("An error occured on " + timeStamp)
+      pw.println("An error occurred on " + timeStamp)
       e.printStackTrace(pw)
       fw.close()
       outPrintln("Written: " + f.getAbsolutePath)

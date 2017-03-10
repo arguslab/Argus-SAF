@@ -103,8 +103,11 @@ object ReachingFactsAnalysisHelper {
         def handleUnknown(typ: JawaType) = {
 //          val ps = CallHandler.getUnknownVirtualCalleeMethods(global, typ, subSig)
           try{
-            val c = global.getClassOrResolve(typ)
-            calleeSet ++= c.getMethod(subSig).map(m => UnknownCallee(m.getSignature))
+            val unknown = global.getClassOrResolve(typ)
+            val unknown_base = global.getClassOrResolve(typ.removeUnknown())
+            val c2 = global.getClassOrResolve(sig.classTyp)
+            val actc = if(c2.isInterface || unknown_base.isChildOf(c2.getType)) unknown else c2
+            calleeSet ++= actc.getMethod(subSig).map(m => UnknownCallee(m.getSignature))
           } catch {
             case ie: InterruptedException => throw ie
             case e: Exception =>

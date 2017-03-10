@@ -20,19 +20,19 @@ import org.sireum.util.FileUtil
   * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
   */
 class AmandroidSettings(amandroid_home: String, iniPathOpt: Option[String]) {
-  private val amandroid_home_url = FileUtil.toUri(amandroid_home)
+  private val amandroid_home_uri = FileUtil.toUri(amandroid_home)
   private def defaultLibFiles =
     amandroid_home + "/androidSdk/android-25/android.jar" + java.io.File.pathSeparator +
     amandroid_home + "/androidSdk/support/v4/android-support-v4.jar" + java.io.File.pathSeparator +
     amandroid_home + "/androidSdk/support/v13/android-support-v13.jar" + java.io.File.pathSeparator +
     amandroid_home + "/androidSdk/support/v7/android-support-v7-appcompat.jar"
-  private val iniUrl = {
+  private val iniUri = {
     iniPathOpt match {
       case Some(path) => FileUtil.toUri(path)
-      case None => MyFileUtil.appendFileName(amandroid_home_url, "config.ini")
+      case None => MyFileUtil.appendFileName(amandroid_home_uri, "config.ini")
     }
   }
-  private val ini = new Wini(FileUtil.toFile(iniUrl))
+  private val ini = new Wini(FileUtil.toFile(iniUri))
   def timeout: Int = Option(ini.get("analysis", "timeout", classOf[Int])).getOrElse(10)
   def dependence_dir: Option[String] = Option(ini.get("general", "dependence_dir", classOf[String]))
   def debug: Boolean = ini.get("general", "debug", classOf[Boolean])

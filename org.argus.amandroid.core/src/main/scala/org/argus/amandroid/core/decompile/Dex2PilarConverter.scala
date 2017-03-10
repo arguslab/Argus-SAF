@@ -44,7 +44,7 @@ object Dex2PilarConverter {
       case spe: SAXParseException =>
       case ie: InterruptedException => throw ie
       case ex: Exception =>
-        System.err.println("Given file is not a decompilable file: " + f)
+        System.err.println("Given file is not decompilable: " + f)
     }
     targetDirUri
   }

@@ -110,7 +110,7 @@ class LayoutFileParser(global: Global, packageName: String, arsc: ARSCFileParser
    * @return True if the given attribute name corresponds to a listener,
    * otherwise false.
    */
-  private def isActionListener(name: String): Boolean = name.equals("onClick")
+  private def isActionListener(name: String): Boolean = name.endsWith("onClick")
   
   private def visitLayoutNode(fileUri: FileResourceUri, n: Node): (Int, Boolean) = {
     var id: Int = -1
@@ -132,7 +132,7 @@ class LayoutFileParser(global: Global, packageName: String, arsc: ARSCFileParser
         else if(!isSensitive && n.endsWith(":inputType")) {
           val tp = nobj.asInstanceOf[String]
           isSensitive = tp.contains("Password")
-        } else if(isActionListener(n) && ntyp == AxmlVisitor.TYPE_STRING && nobj.isInstanceOf[String]) {
+        } else if(isActionListener(n) && nobj.isInstanceOf[String]) {
           callbackMethods.getOrElseUpdate(fileUri, msetEmpty) += nobj.asInstanceOf[String]
         } else if(n.endsWith(":layout") && ntyp == AxmlVisitor.TYPE_REFERENCE) {
           this.includes.getOrElseUpdate(fileUri, msetEmpty) += nobj.asInstanceOf[Int]

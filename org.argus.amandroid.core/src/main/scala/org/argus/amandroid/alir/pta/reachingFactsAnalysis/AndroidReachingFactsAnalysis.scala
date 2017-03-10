@@ -38,11 +38,14 @@ class AndroidReachingFactsAnalysisBuilder(global: Global, apk: Apk, clm: ClassLo
   val ptaresult = new PTAResult
   val needtoremove: MSet[(Context, RFAFact)] = msetEmpty
 
+  var currentComponent: JawaClass = _
+
   def build (
       entryPointProc: JawaMethod,
       initialFacts: ISet[RFAFact] = isetEmpty,
       initContext: Context,
       switchAsOrderedMatch: Boolean): InterproceduralDataFlowGraph = {
+    currentComponent = entryPointProc.getDeclaringClass
     val gen = new Gen
     val kill = new Kill
     val callr = new Callr
@@ -313,7 +316,7 @@ class AndroidReachingFactsAnalysisBuilder(global: Global, apk: Apk, clm: ClassLo
         callee =>
           val calleeSig = callee.callee
           val calleep = global.getMethod(calleeSig).get
-          if(AndroidReachingFactsAnalysisHelper.isICCCall(calleeSig) || AndroidReachingFactsAnalysisHelper.isModelCall(calleep)){
+          if(AndroidReachingFactsAnalysisHelper.isICCCall(calleeSig) || AndroidReachingFactsAnalysisHelper.isRPCCall(apk, global, currentComponent.getType, calleeSig) || AndroidReachingFactsAnalysisHelper.isModelCall(calleep)) {
             pureNormalFlag = false
             if(AndroidReachingFactsAnalysisHelper.isICCCall(calleeSig)) {
               if(AndroidReachingFactsAnalysisConfig.resolve_icc){
@@ -331,7 +334,9 @@ class AndroidReachingFactsAnalysisBuilder(global: Global, apk: Apk, clm: ClassLo
                     calleeFactsMap += (icfg.entryNode(target.getSignature, callerContext) -> mapFactsToICCTarget(factsForCallee, cj, target.getBody.procedure))
                 }
               }
-            } else { // for non-ICC model call
+            } else if (AndroidReachingFactsAnalysisHelper.isRPCCall(apk, global, currentComponent.getType, calleeSig)) {
+              // don't do anything for the RPC call now.
+            } else { // for non-ICC-RPC model call
               val (g, k) = AndroidReachingFactsAnalysisHelper.doModelCall(ptaresult, calleep, args, cj.lhss.map(lhs=>lhs.name.name), callerContext, apk)
               genSet ++= g
               killSet ++= k
@@ -461,7 +466,7 @@ class AndroidReachingFactsAnalysisBuilder(global: Global, apk: Apk, clm: ClassLo
         }
         if(tmpRec == recCallee) true
         else {
-          global.reporter.echo(TITLE, "Given recvIns: " + recvIns + " and calleeProc: " + calleeProc + " is not in the Same hierachy.")
+          global.reporter.echo(TITLE, "Given recvIns: " + recvIns + " and calleeProc: " + calleeProc + " is not in the Same hierarchy.")
           false
         }
       }

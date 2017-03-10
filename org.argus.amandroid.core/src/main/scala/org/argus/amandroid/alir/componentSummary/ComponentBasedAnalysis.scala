@@ -16,7 +16,7 @@ import java.util.concurrent.TimeoutException
 import org.argus.amandroid.alir.pta.reachingFactsAnalysis.IntentHelper.IntentContent
 import org.argus.amandroid.alir.pta.reachingFactsAnalysis.{AndroidRFAConfig, AndroidReachingFactsAnalysis, AndroidReachingFactsAnalysisConfig, IntentHelper}
 import org.argus.amandroid.alir.taintAnalysis.{AndroidDataDependentTaintAnalysis, AndroidSourceAndSinkManager}
-import org.argus.amandroid.core.Apk
+import org.argus.amandroid.core.{AndroidConstants, Apk}
 import org.argus.jawa.alir.Context
 import org.argus.jawa.alir.controlFlowGraph.{ICFGCallNode, ICFGEntryNode, ICFGNormalNode}
 import org.argus.jawa.alir.dataDependenceAnalysis._
@@ -27,6 +27,7 @@ import org.argus.jawa.alir.taintAnalysis.TaintAnalysisResult
 import org.argus.jawa.core.util.MyTimeout
 import org.argus.jawa.core.{ClassLoadManager, Global, JawaType}
 
+import scala.compat.Platform.EOL
 import scala.concurrent.duration._
 
 /**
@@ -60,7 +61,7 @@ object ComponentBasedAnalysis {
           global.reporter.error(TITLE, component + " " + te.getMessage)
         case ex: Exception =>
           if(DEBUG) ex.printStackTrace()
-          global.reporter.error(TITLE, "Analyzing component " + component + " has error: " + ex.getMessage)
+          global.reporter.error(TITLE, "Analyzing component " + component + " has error: " + ex.getMessage + "\n" + ex.getStackTrace.mkString("", EOL, EOL))
       } finally {
         System.gc()
       }
@@ -144,7 +145,7 @@ class ComponentBasedAnalysis(global: Global, yard: ApkYard) {
         println("-------Link data dependence for component " + component + "--------------")
         try {
           val summaryTable = summaryMap.getOrElse(component, throw new RuntimeException("Summary table does not exist for " + component))
-          
+          val bindServices: MSet[JawaType] = msetEmpty
           // link the intent edges
           val icc_summary: ICC_Summary = summaryTable.get(CHANNELS.ICC)
           icc_summary.asCaller foreach {
@@ -158,6 +159,9 @@ class ComponentBasedAnalysis(global: Global, yard: ApkYard) {
                   val callerDDGNode = mddg.getIDDGCallArgNode(callernode.asInstanceOf[ICFGCallNode], caller_position)
                   val calleeDDGNode = mddg.getIDDGEntryParamNode(calleenode.asInstanceOf[ICFGEntryNode], callee_position)
                   mddg.addEdge(calleeDDGNode, callerDDGNode)
+                  if(callernode.asInstanceOf[ICFGCallNode].getCalleeSig.getSubSignature == AndroidConstants.BIND_SERVICE) {
+                    bindServices += calleenode.getOwner.getClassType
+                  }
               }
           }
 
@@ -165,14 +169,24 @@ class ComponentBasedAnalysis(global: Global, yard: ApkYard) {
           val rpc_summary: RPC_Summary = summaryTable.get(CHANNELS.RPC)
           rpc_summary.asCaller foreach {
             case (callernode, rpc_caller) =>
+              rpc_caller.asInstanceOf[RPCCaller].addBindServices(bindServices.toSet)
               val rpc_callees = allRpcCallees.filter(_._2.matchWith(rpc_caller))
               rpc_callees foreach {
                 case (calleenode, rpc_callee) =>
-                  println(component + " --rpc: " + rpc_callee.asInstanceOf[RPCCallee].sig + "--> " + calleenode.getOwner.getClassName)
-                  for(i <- callernode.asInstanceOf[ICFGCallNode].argNames.indices) {
-                    val callerDDGNode = mddg.getIDDGCallArgNode(callernode.asInstanceOf[ICFGCallNode], i)
-                    val calleeDDGNode = mddg.getIDDGEntryParamNode(calleenode.asInstanceOf[ICFGEntryNode], i)
-                    mddg.addEdge(calleeDDGNode, callerDDGNode)
+                  rpc_callee match {
+                    case hc: MessengerCallee =>
+                      println(component + " --rpc: Messenger.send to Handler.handleMessage--> " + calleenode.getOwner.getClassName)
+                      val callerDDGNode = mddg.getIDDGCallArgNode(callernode.asInstanceOf[ICFGCallNode], 1)
+                      val calleeDDGNode = mddg.getIDDGEntryParamNode(calleenode.asInstanceOf[ICFGEntryNode], 1)
+                      mddg.addEdge(calleeDDGNode, callerDDGNode)
+                    case bsc: BoundServiceCallee =>
+                      println(component + " --rpc: " + bsc.sig + "--> " + calleenode.getOwner.getClassName)
+                      for (i <- callernode.asInstanceOf[ICFGCallNode].argNames.indices) {
+                        val callerDDGNode = mddg.getIDDGCallArgNode(callernode.asInstanceOf[ICFGCallNode], i)
+                        val calleeDDGNode = mddg.getIDDGEntryParamNode(calleenode.asInstanceOf[ICFGEntryNode], i)
+                        mddg.addEdge(calleeDDGNode, callerDDGNode)
+                      }
+                    case _ =>
                   }
               }
           }

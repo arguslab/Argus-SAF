@@ -34,6 +34,7 @@ object AndroidConstants {
 	  
 	//following are android ICC calls
 	final val START_SERVICE = "startService:(Landroid/content/Intent;)Landroid/content/ComponentName;"
+	final val BIND_SERVICE = "bindService:(Landroid/content/Intent;Landroid/content/ServiceConnection;I)Z"
 	final val START_ACTIVITY = "startActivity:(Landroid/content/Intent;)V"
 	final val START_ACTIVITY_BUND = "startActivity:(Landroid/content/Intent;Landroid/os/Bundle;)V"
 	final val START_ACTIVITY_RESULT = "startActivityForResult:(Landroid/content/Intent;I)V"
@@ -54,7 +55,7 @@ object AndroidConstants {
 	  
   private final val iccMethods_activity = List(START_ACTIVITY, START_ACTIVITY_BUND, START_ACTIVITY_RESULT,
       START_ACTIVITY_RESULT_BUND)
-  private final val iccMethods_service = List(START_SERVICE)
+  private final val iccMethods_service = List(START_SERVICE, BIND_SERVICE)
   private final val iccMethods_receiver = List(SEND_BROADCAST, SEND_BROADCAST_PERM, SEND_BROADCAST_AS_USER, SEND_BROADCAST_AS_USER_PERM,
       SEND_ORDERED_BROADCAST, SEND_ORDERED_BROADCAST_SEVEN_PARM, SEND_ORDERED_BROADCAST_AS_USER,
       SEND_STICKY_BROADCAST, SEND_STICKY_BROADCAST_AS_USER, SEND_STICKY_ORDERED_BROADCAST,

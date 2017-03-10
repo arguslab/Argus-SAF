@@ -295,6 +295,21 @@ case class JawaClass(global: Global, typ: JawaType, accessFlags: Int) extends Ja
   def getMethodSize: Int = this.methods.size
 
   /**
+    * get all the methods accessible from the class
+    */
+  def getMethods: ISet[JawaMethod] = {
+    var results = getDeclaredMethods
+    var rec = this
+    while(rec.hasSuperClass){
+      val parent = global.getClassOrResolve(rec.getSuperClass)
+      val fields = parent.getDeclaredMethods.filter(f => !f.isPrivate && !results.exists(_.getName == f.getName))
+      results ++= fields
+      rec = parent
+    }
+    results
+  }
+
+  /**
    * get methods of this class
    */
   def getDeclaredMethods: ISet[JawaMethod] = this.methods.values.toSet

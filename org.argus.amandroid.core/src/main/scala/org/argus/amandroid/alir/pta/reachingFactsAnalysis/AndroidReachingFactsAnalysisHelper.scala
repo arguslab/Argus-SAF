@@ -15,7 +15,7 @@ import org.argus.amandroid.core.Apk
 import org.argus.jawa.alir.Context
 import org.argus.jawa.alir.pta.PTAResult
 import org.argus.jawa.alir.pta.reachingFactsAnalysis.{RFAFact, RFAFactFactory}
-import org.argus.jawa.core.{Global, JawaMethod, Signature}
+import org.argus.jawa.core.{Global, JawaMethod, JawaType, Signature}
 import org.sireum.util._
 
 /**
@@ -34,6 +34,11 @@ object AndroidReachingFactsAnalysisHelper {
   
   def isICCCall(calleeSig: Signature): Boolean = {
     AndroidModelCallHandler.isICCCall(calleeSig)
+  }
+
+  def isRPCCall(apk: Apk, global: Global, currentComp: JawaType, calleeSig: Signature): Boolean = {
+    (global.getClassHierarchy.isClassRecursivelySubClassOfIncluding(calleeSig.getClassType, new JawaType("android.os.Messenger"))
+      && calleeSig.getSubSignature == "send:(Landroid/os/Message;)V") || apk.getRpcMethodMapping.exists{ case (typ, sigs) => currentComp != typ && sigs.contains(calleeSig)}
   }
   
   def doICCCall(global: Global, apk: Apk, s: PTAResult, calleeSig: Signature, args: List[String], retVars: Seq[String], currentContext: Context): (ISet[RFAFact], ISet[JawaMethod]) = {
