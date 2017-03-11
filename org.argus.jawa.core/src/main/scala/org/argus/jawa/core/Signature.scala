@@ -98,7 +98,7 @@ case class Signature(classTyp: JawaType, methodName: String, proto: String) exte
       result.toString()
     }
 
-    def remove() = {
+    def remove(): Nothing = {
         throw new UnsupportedOperationException()
     }
   }

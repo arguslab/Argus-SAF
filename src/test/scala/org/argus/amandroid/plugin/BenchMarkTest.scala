@@ -15,7 +15,7 @@ import org.argus.amandroid.alir.taintAnalysis.AndroidDataDependentTaintAnalysis
 import org.argus.amandroid.core.decompile.ConverterUtil
 import org.argus.jawa.alir.dataDependenceAnalysis.InterproceduralDataDependenceAnalysis
 import org.argus.jawa.alir.taintAnalysis.TaintAnalysisResult
-import org.argus.jawa.core.{Global, NoReporter}
+import org.argus.jawa.core.{Global, MsgLevel, NoReporter, PrintReporter}
 import org.scalatest.{FlatSpec, Matchers}
 import org.sireum.util.FileUtil
 
@@ -23,6 +23,7 @@ import org.sireum.util.FileUtil
   * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
   */
 class BenchMarkTest extends FlatSpec with Matchers {
+  private final val debug = false
 
   "ICC_Explicit_NoSrc_NoSink" should "have 0 taint paths" in {
     val res = taintAnalyze(getClass.getResource("/icc-bench/IccHandling/icc_explicit_nosrc_nosink.apk").getPath)
@@ -64,9 +65,14 @@ class BenchMarkTest extends FlatSpec with Matchers {
     assert(res.isDefined && res.get.getTaintedPaths.size == 2)
   }
 
-  "ICC_IntentService" should "have 1 taint paths" in {
+  "ICC_IntentService" should "have 1 taint path" in {
     val res = taintAnalyze(getClass.getResource("/icc-bench/IccHandling/icc_intentservice.apk").getPath)
     assert(res.isDefined && res.get.getTaintedPaths.size == 1)
+  }
+
+  "ICC_Stateful" should "have 3 taint paths" in {
+    val res = taintAnalyze(getClass.getResource("/icc-bench/IccHandling/icc_stateful.apk").getPath)
+    assert(res.isDefined && res.get.getTaintedPaths.size == 3)
   }
 
   "ICC_DynRegister1" should "have 2 taint paths" in {
@@ -114,27 +120,32 @@ class BenchMarkTest extends FlatSpec with Matchers {
     assert(res.isDefined && res.get.getTaintedPaths.size == 2)
   }
 
-//  "ICC_RPC_Comprehensive" should "have 2 taint paths" in {
-//    val res = taintAnalyze(getClass.getResource("/icc-bench/Mixed/icc_rpc_comprehensive.apk").getPath)
-//    assert(res.isDefined && res.get.getTaintedPaths.size == 2)
-//  }
-//
-  "RPC_LocalService" should "have 1 taint paths" in {
+  "ICC_RPC_Comprehensive" should "have 3 taint path" in {
+    val res = taintAnalyze(getClass.getResource("/icc-bench/Mixed/icc_rpc_comprehensive.apk").getPath)
+    assert(res.isDefined && res.get.getTaintedPaths.size == 3)
+  }
+
+  "RPC_LocalService" should "have 1 taint path" in {
     val res = taintAnalyze(getClass.getResource("/icc-bench/RpcHandling/rpc_localservice.apk").getPath)
     assert(res.isDefined && res.get.getTaintedPaths.size == 1)
   }
 
-  "RPC_MessengerService" should "have 1 taint paths" in {
+  "RPC_MessengerService" should "have 1 taint path" in {
     val res = taintAnalyze(getClass.getResource("/icc-bench/RpcHandling/rpc_messengerservice.apk").getPath)
     assert(res.isDefined && res.get.getTaintedPaths.size == 1)
   }
 
-  "RPC_RemoteService" should "have 1 taint paths" in {
+  "RPC_RemoteService" should "have 1 taint path" in {
     val res = taintAnalyze(getClass.getResource("/icc-bench/RpcHandling/rpc_remoteservice.apk").getPath)
     assert(res.isDefined && res.get.getTaintedPaths.size == 1)
   }
 
-  "ActivityCommunication1" should "have 1 taint paths" in {
+  "RPC_ReturnSensitive" should "have 1 taint path" in {
+    val res = taintAnalyze(getClass.getResource("/icc-bench/RpcHandling/rpc_returnsensitive.apk").getPath)
+    assert(res.isDefined && res.get.getTaintedPaths.size == 1)
+  }
+
+  "ActivityCommunication1" should "have 1 taint path" in {
     val res = taintAnalyze(getClass.getResource("/droid-bench/InterComponentCommunication/ActivityCommunication1.apk").getPath)
     assert(res.isDefined && res.get.getTaintedPaths.size == 1)
   }
@@ -204,7 +215,7 @@ class BenchMarkTest extends FlatSpec with Matchers {
     assert(res.isDefined && res.get.getTaintedPaths.size == 2)
   }
 
-  "ServiceCommunication1" should "have 1 taint paths" in {
+  "ServiceCommunication1" should "have 1 taint path" in {
     val res = taintAnalyze(getClass.getResource("/droid-bench/InterComponentCommunication/ServiceCommunication1.apk").getPath)
     assert(res.isDefined && res.get.getTaintedPaths.size == 1)
   }
@@ -228,7 +239,7 @@ class BenchMarkTest extends FlatSpec with Matchers {
     val fileUri = FileUtil.toUri(apkFile)
     val outputUri = FileUtil.toUri(apkFile.substring(0, apkFile.length - 4))
 
-    val reporter = new NoReporter
+    val reporter = if(debug) new PrintReporter(MsgLevel.INFO) else new NoReporter
     val global = new Global(fileUri, reporter)
     global.setJavaLib(getClass.getResource("/libs/android.jar").getPath)
     AndroidReachingFactsAnalysisConfig.resolve_static_init = true

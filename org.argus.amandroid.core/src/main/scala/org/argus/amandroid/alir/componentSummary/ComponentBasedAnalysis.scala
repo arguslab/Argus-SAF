@@ -18,7 +18,7 @@ import org.argus.amandroid.alir.pta.reachingFactsAnalysis.{AndroidRFAConfig, And
 import org.argus.amandroid.alir.taintAnalysis.{AndroidDataDependentTaintAnalysis, AndroidSourceAndSinkManager}
 import org.argus.amandroid.core.{AndroidConstants, Apk}
 import org.argus.jawa.alir.Context
-import org.argus.jawa.alir.controlFlowGraph.{ICFGCallNode, ICFGEntryNode, ICFGNormalNode}
+import org.argus.jawa.alir.controlFlowGraph._
 import org.argus.jawa.alir.dataDependenceAnalysis._
 import org.argus.jawa.alir.dataFlowAnalysis.InterproceduralDataFlowGraph
 import org.argus.jawa.alir.pta.Instance
@@ -146,22 +146,47 @@ class ComponentBasedAnalysis(global: Global, yard: ApkYard) {
         try {
           val summaryTable = summaryMap.getOrElse(component, throw new RuntimeException("Summary table does not exist for " + component))
           val bindServices: MSet[JawaType] = msetEmpty
+          val forResultTargets: MSet[JawaType] = msetEmpty
           // link the intent edges
           val icc_summary: ICC_Summary = summaryTable.get(CHANNELS.ICC)
           icc_summary.asCaller foreach {
             case (callernode, icc_caller) =>
               val icc_callees = allICCCallees.filter(_._2.matchWith(icc_caller))
-              icc_callees foreach {
-                case (calleenode, _) =>
-                  println(component + " --icc--> " + calleenode.getOwner.getClassName)
-                  val caller_position: Int = 1
-                  val callee_position: Int = 0
-                  val callerDDGNode = mddg.getIDDGCallArgNode(callernode.asInstanceOf[ICFGCallNode], caller_position)
-                  val calleeDDGNode = mddg.getIDDGEntryParamNode(calleenode.asInstanceOf[ICFGEntryNode], callee_position)
-                  mddg.addEdge(calleeDDGNode, callerDDGNode)
-                  if(callernode.asInstanceOf[ICFGCallNode].getCalleeSig.getSubSignature == AndroidConstants.BIND_SERVICE) {
-                    bindServices += calleenode.getOwner.getClassType
+              icc_callees foreach { case (calleeNode, icc_callee) =>
+                icc_callee match {
+                  case _: IntentCallee =>
+                    println(component + " --icc--> " + calleeNode.getOwner.getClassName)
+                    val caller_position: Int = 1
+                    val callee_position: Int = 0
+                    val callerDDGNode = mddg.getIDDGCallArgNode(callernode.asInstanceOf[ICFGCallNode], caller_position)
+                    val calleeDDGNode = mddg.getIDDGEntryParamNode(calleeNode.asInstanceOf[ICFGEntryNode], callee_position)
+                    mddg.addEdge(calleeDDGNode, callerDDGNode)
+                    if(callernode.asInstanceOf[ICFGCallNode].getCalleeSig.getSubSignature == AndroidConstants.BIND_SERVICE) {
+                      bindServices += calleeNode.getOwner.getClassType
+                    } else if(AndroidConstants.isStartActivityForResultMethod(callernode.asInstanceOf[ICFGCallNode].getCalleeSig.getSubSignature)) {
+                      forResultTargets += calleeNode.getOwner.getClassType
+                    }
+                  case _ =>
+                }
+              }
+              allICCCallees.foreach{
+                case (_, callee) =>
+                  callee match {
+                    case irc: IntentResultCallee => irc.addTargets(forResultTargets.toSet)
+                    case _ =>
                   }
+              }
+              allICCCallees.filter(_._2.matchWith(icc_caller)) foreach { case (calleeNode, icc_callee) =>
+                icc_callee match {
+                  case irc: IntentResultCallee =>
+                    println(component + " --icc: setResult--> " + calleeNode.getOwner.getClassName)
+                    val caller_position: Int = 2
+                    val callee_position: Int = 3
+                    val callerDDGNode = mddg.getIDDGCallArgNode(callernode.asInstanceOf[ICFGCallNode], caller_position)
+                    val calleeDDGNode = mddg.getIDDGEntryParamNode(calleeNode.asInstanceOf[ICFGEntryNode], callee_position)
+                    mddg.addEdge(calleeDDGNode, callerDDGNode)
+                  case _ =>
+                }
               }
           }
 
@@ -185,6 +210,24 @@ class ComponentBasedAnalysis(global: Global, yard: ApkYard) {
                         val callerDDGNode = mddg.getIDDGCallArgNode(callernode.asInstanceOf[ICFGCallNode], i)
                         val calleeDDGNode = mddg.getIDDGEntryParamNode(calleenode.asInstanceOf[ICFGEntryNode], i)
                         mddg.addEdge(calleeDDGNode, callerDDGNode)
+                      }
+                    case bsrc: BoundServiceReturnCallee =>
+                      println(component + " --rpc return: " + bsrc.callee_sig + "--> " + calleenode.getOwner.getClassName)
+                      for (i <- calleenode.asInstanceOf[ICFGReturnNode].argNames.indices) {
+                        val callerDDGNode = mddg.getIDDGExitParamNode(callernode.asInstanceOf[ICFGExitNode], i)
+                        val calleeDDGNode = mddg.getIDDGReturnArgNode(calleenode.asInstanceOf[ICFGReturnNode], i)
+                        mddg.addEdge(calleeDDGNode, callerDDGNode)
+                      }
+                      yard.getIDFG(component) match {
+                        case Some(idfg) =>
+                          val calleeDDGNode = mddg.getIDDGReturnVarNode(calleenode.asInstanceOf[ICFGReturnNode])
+                          idfg.icfg.predecessors(callernode) foreach {
+                            case nn: ICFGNormalNode =>
+                              val callerDDGNode = mddg.getIDDGNormalNode(nn)
+                              mddg.addEdge(calleeDDGNode, callerDDGNode)
+                            case _ =>
+                          }
+                        case None =>
                       }
                     case _ =>
                   }

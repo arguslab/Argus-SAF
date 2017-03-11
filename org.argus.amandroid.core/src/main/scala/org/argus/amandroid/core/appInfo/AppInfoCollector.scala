@@ -175,7 +175,7 @@ object AppInfoCollector {
     methods.foreach { method =>
       /* This is the remote service case. */
       if(iinterfaceImpls.contains(method.classTyp)) {
-        result ++= global.getClassOrResolve(method.classTyp).getMethods.filter(m => m.getDeclaringClass.isApplicationClass && !m.isConstructor).map(_.getSignature)
+        result ++= global.getClassOrResolve(method.classTyp).getMethods.filter(m => m.getDeclaringClass.isApplicationClass && !m.isConstructor && !m.isStatic).map(_.getSignature)
       }
       /* This is the messenger service case. */
       if(global.getClassHierarchy.isClassRecursivelySubClassOf(method.classTyp, new JawaType("android.os.Handler"))) {
@@ -184,7 +184,7 @@ object AppInfoCollector {
     }
     /* This is the local service case. */
     result ++= comp.getDeclaredMethods.filter { method =>
-      !(method.isConstructor || AndroidEntryPointConstants.getServiceLifecycleMethods.contains(method.getSubSignature)
+      !(method.isConstructor || method.isStatic || AndroidEntryPointConstants.getServiceLifecycleMethods.contains(method.getSubSignature)
           || method.getName == AndroidConstants.MAINCOMP_ENV || method.getName == AndroidConstants.COMP_ENV)
     }.map(_.getSignature)
     result.toSet

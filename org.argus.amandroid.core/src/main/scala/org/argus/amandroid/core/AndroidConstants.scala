@@ -52,22 +52,29 @@ object AndroidConstants {
 	final val SEND_STICKY_ORDERED_BROADCAST_AS_USER = "sendStickyOrderedBroadcastAsUser:(Landroid/content/Intent;Landroid/os/UserHandle;Landroid/content/BroadcastReceiver;Landroid/os/Handler;ILjava/lang/String;Landroid/os/Bundle;)V"
 	final val REGISTER_RECEIVER1 = "registerReceiver:(Landroid/content/BroadcastReceiver;Landroid/content/IntentFilter;)Landroid/content/Intent;"
 	final val	REGISTER_RECEIVER2 = "registerReceiver:(Landroid/content/BroadcastReceiver;Landroid/content/IntentFilter;Ljava/lang/String;Landroid/os/Handler;)Landroid/content/Intent;"
-	  
-  private final val iccMethods_activity = List(START_ACTIVITY, START_ACTIVITY_BUND, START_ACTIVITY_RESULT,
-      START_ACTIVITY_RESULT_BUND)
-  private final val iccMethods_service = List(START_SERVICE, BIND_SERVICE)
-  private final val iccMethods_receiver = List(SEND_BROADCAST, SEND_BROADCAST_PERM, SEND_BROADCAST_AS_USER, SEND_BROADCAST_AS_USER_PERM,
+
+	private final def iccMethods_forResult = Set(START_ACTIVITY_RESULT, START_ACTIVITY_RESULT_BUND)
+  private final def iccMethods_activity = Set(START_ACTIVITY, START_ACTIVITY_BUND) ++ iccMethods_forResult
+  private final def iccMethods_service = Set(START_SERVICE, BIND_SERVICE)
+  private final def iccMethods_receiver = Set(SEND_BROADCAST, SEND_BROADCAST_PERM, SEND_BROADCAST_AS_USER, SEND_BROADCAST_AS_USER_PERM,
       SEND_ORDERED_BROADCAST, SEND_ORDERED_BROADCAST_SEVEN_PARM, SEND_ORDERED_BROADCAST_AS_USER,
       SEND_STICKY_BROADCAST, SEND_STICKY_BROADCAST_AS_USER, SEND_STICKY_ORDERED_BROADCAST,
       SEND_STICKY_ORDERED_BROADCAST_AS_USER)
   
-	private final val iccMethods = iccMethods_activity ++ iccMethods_service ++ iccMethods_receiver
-	def getIccMethods: IList[String] = iccMethods
+	private final def iccMethods = iccMethods_activity ++ iccMethods_service ++ iccMethods_receiver
+	def getIccMethods: Set[String] = iccMethods
+	def isStartActivityForResultMethod(subSig: String): Boolean = iccMethods_forResult.contains(subSig)
   def isActivityIccMethod(subSig: String): Boolean = iccMethods_activity.contains(subSig)
   def isServiceIccMethod(subSig: String): Boolean = iccMethods_service.contains(subSig)
   def isReceiverIccMethod(subSig: String): Boolean = iccMethods_receiver.contains(subSig)
   def isProviderIccMethod(subSig: String): Boolean = false
   def isIccMethod(subSig: String): Boolean = iccMethods.contains(subSig)
+
+	final val SET_RESULT = "setResult:(I)V"
+	final val SET_RESULT_INTENT = "setResult:(ILandroid/content/Intent;)V"
+
+	private final def activitySetResultMethods = Set(SET_RESULT, SET_RESULT_INTENT)
+	def isSetResult(subSig: String): Boolean = activitySetResultMethods.contains(subSig)
 
   def getIccCallType(calleeSubsig: String): AndroidConstants.CompType.Value = calleeSubsig match {
     case m if AndroidConstants.isActivityIccMethod(m) => AndroidConstants.CompType.ACTIVITY
@@ -210,7 +217,7 @@ object AndroidConstants {
 		  WIFI_SERVICE,
 		  WINDOW_SERVICE  
     )
-	def getSystemServiceStrings = this.systemServiceStrings
+	def getSystemServiceStrings: List[String] = this.systemServiceStrings
 	
   // dependency libs
   final val MAVEN_SUPPORT_V4 = "support-v4"   //$NON-NLS-1$

@@ -94,7 +94,7 @@ object InterproceduralDataDependenceAnalysis {
                 case cn: ICFGCallNode =>
                   val retSlot = VarSlot(rn.retVarName, isBase = false, isArg = false)
                   val retInss = ptaresult.pointsToSet(retSlot, rn.getContext)
-                  val idEntNs = iddg.getIDDGCallArgNodes(rn.icfgN).map(_.asInstanceOf[IDDGCallArgNode])
+                  val idEntNs = iddg.getIDDGCallArgNodes(cn).map(_.asInstanceOf[IDDGCallArgNode])
                   if (retInss.isEmpty) targetNodes ++= idEntNs
                   else {
                     val argInss =
@@ -235,15 +235,15 @@ object InterproceduralDataDependenceAnalysis {
           case gj: GotoJump =>
           case rj: ReturnJump =>
             if (rj.exp.isDefined) {
-              processExp(global, node, rj.exp.get, None, ptaresult, irdaFacts, iddg)
+              result ++= processExp(global, node, rj.exp.get, None, ptaresult, irdaFacts, iddg)
             }
           case ifj: IfJump =>
             for (ifThen <- ifj.ifThens) {
-              processCondition(global, node, ifThen.cond, ptaresult, irdaFacts, iddg)
+              result ++= processCondition(global, node, ifThen.cond, ptaresult, irdaFacts, iddg)
             }
           case sj: SwitchJump =>
             for (switchCase <- sj.cases) {
-              processCondition(global, node, switchCase.cond, ptaresult, irdaFacts, iddg)
+              result ++= processCondition(global, node, switchCase.cond, ptaresult, irdaFacts, iddg)
             }
         }
       case _ =>
@@ -300,8 +300,14 @@ object InterproceduralDataDependenceAnalysis {
       ptaresult: PTAResult, 
       irdaFacts: ISet[InterproceduralReachingDefinitionAnalysis.IRDFact], 
       iddg: InterproceduralDataDependenceGraph[Node]): ISet[Node] = {
-    var result = isetEmpty[Node]
+    val result = msetEmpty[Node]
     exp match {
+      case te: TupleExp =>
+        te.exps.foreach {
+          case ne: NameExp =>
+            result ++= processExp(global, node, ne, typ, ptaresult, irdaFacts, iddg)
+          case _ =>
+        }
       case ne: NameExp =>
         result ++= searchRda(global, ne.name.name, node, irdaFacts, iddg)
         val slot = VarSlot(ne.name.name, isBase = false, isArg = false)
@@ -363,7 +369,7 @@ object InterproceduralDataDependenceAnalysis {
           case _ => Set[Callee]()
         }
         ce.arg match {
-          case te: TupleExp => 
+          case te: TupleExp =>
             val argSlots = te.exps.map {
               case ne: NameExp =>
                 result ++= searchRda(global, ne.name.name, node, irdaFacts, iddg)
@@ -416,7 +422,7 @@ object InterproceduralDataDependenceAnalysis {
         }
       case _=>
     }
-    result
+    result.toSet
   }
 
   def processCondition(

@@ -12,9 +12,6 @@ package org.argus.jawa.alir.dataDependenceAnalysis
 
 import org.argus.jawa.alir.controlFlowGraph._
 import org.argus.jawa.core.Global
-import org.argus.jawa.core.util.ASTUtil
-import org.sireum.pilar.ast._
-import org.sireum.util._
 
 /**
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
@@ -25,12 +22,12 @@ class InterproceduralDataDependenceGraph[Node <: IDDGNode] extends DataDependenc
 //  protected var centerN: IDDGCenterNode = null
 //  def centerNode: Node = this.centerN.asInstanceOf[Node]
   
-  protected var entryN: IDDGEntryNode = null
+  protected var entryN: IDDGEntryNode = _
   def entryNode: Node = this.entryN.asInstanceOf[Node]
   
-  var icfg: InterproceduralControlFlowGraph[ICFGNode] = null
+  var icfg: InterproceduralControlFlowGraph[ICFGNode] = _
   
-	def initGraph(global: Global, icfg: InterproceduralControlFlowGraph[ICFGNode]) = {
+	def initGraph(global: Global, icfg: InterproceduralControlFlowGraph[ICFGNode]): Unit = {
     this.icfg = icfg
 	  icfg.nodes.foreach {
 			case en: ICFGEntryNode =>
@@ -65,17 +62,12 @@ class InterproceduralDataDependenceGraph[Node <: IDDGNode] extends DataDependenc
 					n.asInstanceOf[IDDGExitParamNode].paramName = pnames(i)
 					position += 1
 				}
-			case en: ICFGCenterNode =>
+			case _: ICFGCenterNode =>
 			case cn: ICFGCallNode =>
 				for (i <- cn.argNames.indices) {
 					val argName = cn.argNames(i)
 					val n = addIDDGCallArgNode(cn, i)
 					n.asInstanceOf[IDDGCallArgNode].argName = argName
-				}
-				for (i <- cn.retNames.indices) {
-					val retName = cn.retNames(i)
-					val rn = addIDDGReturnVarNode(cn)
-					rn.asInstanceOf[IDDGReturnVarNode].retVarName = retName
 				}
 				val succs = icfg.successors(cn)
 				if (succs.exists { succ => succ.isInstanceOf[ICFGReturnNode] }) {
@@ -83,15 +75,13 @@ class InterproceduralDataDependenceGraph[Node <: IDDGNode] extends DataDependenc
 					vn.asInstanceOf[IDDGVirtualBodyNode].argNames = cn.argNames
 				}
 			case rn: ICFGReturnNode =>
-				val loc = global.getMethod(rn.getOwner).get.getBody.location(rn.getLocIndex)
-				val argNames: MList[String] = mlistEmpty
-				loc match {
-					case jumploc: JumpLocation =>
-						argNames ++= ASTUtil.getCallArgs(jumploc)
-					case _ =>
+				for (i <- rn.retNames.indices) {
+					val retName = rn.retNames(i)
+					val rvn = addIDDGReturnVarNode(rn)
+					rvn.asInstanceOf[IDDGReturnVarNode].retVarName = retName
 				}
-				for (i <- argNames.indices) {
-					val argName = argNames(i)
+				for (i <- rn.argNames.indices) {
+					val argName = rn.argNames(i)
 					val n = addIDDGReturnArgNode(rn, i)
 					n.asInstanceOf[IDDGReturnArgNode].argName = argName
 				}

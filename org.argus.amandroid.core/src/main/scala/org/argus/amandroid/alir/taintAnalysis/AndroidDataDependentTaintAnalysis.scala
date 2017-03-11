@@ -10,6 +10,8 @@
 
 package org.argus.amandroid.alir.taintAnalysis
 
+import java.io.PrintWriter
+
 import org.argus.amandroid.core.security.AndroidProblemCategories
 import org.argus.jawa.alir.dataDependenceAnalysis.{DataDependenceBaseGraph, IDDGCallArgNode, InterproceduralDataDependenceAnalysis, InterproceduralDataDependenceInfo}
 import org.argus.jawa.alir.pta.{PTAResult, VarSlot}

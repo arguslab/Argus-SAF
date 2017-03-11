@@ -15,7 +15,7 @@ import org.argus.amandroid.alir.pta.reachingFactsAnalysis.IntentHelper.IntentCon
 import org.argus.amandroid.core.parser.IntentFilter
 import org.argus.amandroid.core.{AndroidConstants, Apk}
 import org.argus.jawa.alir.Context
-import org.argus.jawa.alir.controlFlowGraph.{ICFGCallNode, ICFGEntryNode, ICFGNode, ICFGNormalNode}
+import org.argus.jawa.alir.controlFlowGraph._
 import org.argus.jawa.alir.dataFlowAnalysis.InterproceduralDataFlowGraph
 import org.argus.jawa.alir.pta.{Instance, VarSlot}
 import org.argus.jawa.core._
@@ -40,7 +40,7 @@ object ComponentSummaryTable {
     // Add component as icc callee
     val filters = apk.getIntentFilterDB.getIntentFilters(component)
     val icc_summary: ICC_Summary = summaryTable.get(CHANNELS.ICC)
-    icc_summary.addCallee(idfg.icfg.entryNode, ICCCallee(apk, component, apk.getComponentType(component).get, filters))
+    icc_summary.addCallee(idfg.icfg.entryNode, IntentCallee(apk, component, apk.getComponentType(component).get, filters))
     
     val rpcs = apk.getRpcMethods(component)
     val rpc_summary: RPC_Summary = summaryTable.get(CHANNELS.RPC)
@@ -73,9 +73,14 @@ object ComponentSummaryTable {
           case _ =>
         }
       case en: ICFGEntryNode =>
+        // Add onActivityResult as icc callee
+        if(global.getClassHierarchy.isClassRecursivelySubClassOfIncluding(en.getOwner.getClassType, new JawaType("android.app.Activity"))
+          && en.getOwner.getSubSignature == "onActivityResult:(IILandroid/content/Intent;)V") {
+          icc_summary.addCallee(en, IntentResultCallee(en.getOwner.getClassType))
+        }
         rpcs.filter(rpc => rpc == en.context.getMethodSig).foreach {
           rpc =>
-            // Add component as rpc callee
+            // Add handleMessage as rpc callee
             if(global.getClassHierarchy.isClassRecursivelySubClassOf(rpc.classTyp, new JawaType("android.os.Handler"))
               && rpc.getSubSignature == "handleMessage:(Landroid/os/Message;)V") {
               rpc_summary.addCallee(en, MessengerCallee(component, rpc))
@@ -90,15 +95,20 @@ object ComponentSummaryTable {
             val calleeSig = callee.callee
             val ptsmap = idfg.ptaresult.getPTSMap(cn.context)
             if (AndroidConstants.isIccMethod(calleeSig.getSubSignature)) {
-              // add component as icc caller
+              // add icc call as icc caller
               val callTyp = AndroidConstants.getIccCallType(calleeSig.getSubSignature)
               val intentSlot = VarSlot(cn.argNames(1), isBase = false, isArg = true) // FIXME later
               val intentValue: ISet[Instance] = ptsmap.getOrElse(intentSlot, isetEmpty)
               val intentcontents = csp.getIntentCaller(idfg, intentValue, cn.context)
               intentcontents foreach {
                 intentcontent =>
-                  icc_summary.addCaller(cn, ICCCaller(callTyp, intentcontent))
+                  icc_summary.addCaller(cn, IntentCaller(callTyp, intentcontent))
               }
+            }
+            if(global.getClassHierarchy.isClassRecursivelySubClassOfIncluding(calleeSig.getClassType, new JawaType("android.app.Activity"))
+              && AndroidConstants.isSetResult(calleeSig.getSubSignature)) {
+              // add setResult as icc caller
+              icc_summary.addCaller(cn, IntentResultCaller(component))
             }
             if(global.getClassHierarchy.isClassRecursivelySubClassOfIncluding(calleeSig.getClassType, new JawaType("android.os.Messenger"))
               && calleeSig.getSubSignature == "send:(Landroid/os/Message;)V") {
@@ -119,6 +129,37 @@ object ComponentSummaryTable {
             } else {
               if(apk.getRpcMethods.contains(calleeSig))
                 rpc_summary.addCaller(cn, BoundServiceCaller(calleeSig))
+            }
+
+        }
+      case en: ICFGExitNode =>
+        rpcs.filter(rpc => rpc == en.context.getMethodSig).foreach {
+          rpc =>
+            if(rpc.getReturnType != new JawaType("void")) {
+              // Add return node as rpc callee
+              rpc_summary.addCaller(en, BoundServiceReturnCaller(rpc))
+            }
+        }
+      case rn: ICFGReturnNode =>
+        val callees = rn.getCalleeSet
+        callees foreach {
+          callee =>
+            val calleeSig = callee.callee
+            if(calleeSig.getClassType.baseType.unknown) {
+              apk.getRpcMethods.foreach { sig =>
+                if(sig.getSubSignature == calleeSig.getSubSignature) {
+                  val calleeTyp = calleeSig.classTyp.removeUnknown()
+                  val calleeCls = global.getClassOrResolve(calleeTyp)
+                  if((calleeCls.isInterface && global.getClassHierarchy.getAllImplementersOf(calleeTyp).contains(sig.classTyp))
+                    || (!calleeCls.isInterface && global.getClassHierarchy.isClassRecursivelySubClassOfIncluding(sig.classTyp, calleeTyp))) {
+                    val rpc_summary: RPC_Summary = summaryTable.get(CHANNELS.RPC)
+                    rpc_summary.addCallee(rn, BoundServiceReturnCallee(sig))
+                  }
+                }
+              }
+            } else {
+              if(apk.getRpcMethods.contains(calleeSig))
+                rpc_summary.addCallee(rn, BoundServiceReturnCallee(calleeSig))
             }
 
         }
@@ -163,24 +204,43 @@ class ICC_Summary extends CSTContent {
   def asCallee: ISet[(ICFGNode, CSTCallee)] = callees.toSet
 }
 
-case class ICCCaller(compTyp: AndroidConstants.CompType.Value, intent: IntentContent) extends CSTCaller
+trait ICCCaller extends CSTCaller
 
-case class ICCCallee(apk: Apk, component: JawaType, compTyp: AndroidConstants.CompType.Value, filter: ISet[IntentFilter]) extends CSTCallee {
+trait ICCCallee extends CSTCallee
+
+case class IntentCaller(compTyp: AndroidConstants.CompType.Value, intent: IntentContent) extends ICCCaller
+
+case class IntentCallee(apk: Apk, component: JawaType, compTyp: AndroidConstants.CompType.Value, filter: ISet[IntentFilter]) extends ICCCallee {
   def matchWith(caller: CSTCaller): Boolean = {
     caller match {
-      case icc_caller: ICCCaller =>
-        if(compTyp == icc_caller.compTyp){
-          if (!icc_caller.intent.preciseExplicit) true
-          else if (!icc_caller.intent.preciseImplicit && filter.nonEmpty) true
-          else if (icc_caller.intent.componentNames.contains(component.name)) true
+      case intent_caller: IntentCaller =>
+        if(compTyp == intent_caller.compTyp){
+          if (!intent_caller.intent.preciseExplicit) true
+          else if (!intent_caller.intent.preciseImplicit && filter.nonEmpty) true
+          else if (intent_caller.intent.componentNames.contains(component.name)) true
           else if (IntentHelper.findComponents(
               apk, 
-              icc_caller.intent.actions, 
-              icc_caller.intent.categories, 
-              icc_caller.intent.datas, 
-              icc_caller.intent.types).contains(component)) true
+              intent_caller.intent.actions,
+              intent_caller.intent.categories,
+              intent_caller.intent.datas,
+              intent_caller.intent.types).contains(component)) true
           else false
         } else false
+      case _ => false
+    }
+  }
+}
+
+case class IntentResultCaller(component: JawaType) extends ICCCaller
+
+case class IntentResultCallee(component: JawaType) extends ICCCallee {
+  private val targetComponents: MSet[JawaType] = msetEmpty
+  def addTargets(comps: ISet[JawaType]): Unit = targetComponents ++= comps
+  def getTargets: ISet[JawaType] = targetComponents.toSet
+  override def matchWith(caller: CSTCaller): Boolean = {
+    caller match {
+      case ir_caller: IntentResultCaller =>
+        targetComponents.contains(ir_caller.component)
       case _ => false
     }
   }
@@ -210,6 +270,17 @@ case class BoundServiceCallee(sig: Signature) extends RPCCallee {
     caller match {
       case rpc_caller: BoundServiceCaller =>
         sig == rpc_caller.sig
+      case _ => false
+    }
+  }
+}
+
+case class BoundServiceReturnCaller(owner_sig: Signature) extends RPCCaller
+case class BoundServiceReturnCallee(callee_sig: Signature) extends RPCCallee {
+  override def matchWith(caller: CSTCaller): Boolean = {
+    caller match {
+      case rpc_caller: BoundServiceReturnCaller =>
+        callee_sig == rpc_caller.owner_sig
       case _ => false
     }
   }

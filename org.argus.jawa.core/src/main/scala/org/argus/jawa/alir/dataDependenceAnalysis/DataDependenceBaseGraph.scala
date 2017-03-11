@@ -26,13 +26,14 @@ trait DataDependenceBaseGraph[Node <: IDDGNode] extends InterproceduralGraph[Nod
   def findDefSite(defSite: Context, isRet: Boolean = false): Option[Node] = {
     val icfgN = {
       if(this.icfg.icfgNormalNodeExists(defSite)) this.icfg.getICFGNormalNode(defSite)
+      else if(isRet && this.icfg.icfgReturnNodeExists(defSite)) this.icfg.getICFGReturnNode(defSite)
       else if(this.icfg.icfgCallNodeExists(defSite)) this.icfg.getICFGCallNode(defSite)
       else if(defSite.getLocUri == "L0000") this.icfg.entryNode
       else throw new RuntimeException("Cannot find node: " + defSite)
     }
     icfgN match {
       case node: ICFGNormalNode if iddgNormalNodeExists(node) => Some(getIDDGNormalNode(node))
-      case icfgN1: ICFGCallNode if isRet && iddgReturnVarNodeExists(icfgN1) => Some(getIDDGReturnVarNode(icfgN1))
+      case icfgN1: ICFGReturnNode if isRet && iddgReturnVarNodeExists(icfgN1) => Some(getIDDGReturnVarNode(icfgN1))
       case icfgN1: ICFGCallNode if iddgVirtualBodyNodeExists(icfgN1) => Some(getIDDGVirtualBodyNode(icfgN1))
       case _ => if (icfgN == this.icfg.entryNode) Some(this.entryNode)
       else None
@@ -63,7 +64,7 @@ trait DataDependenceBaseGraph[Node <: IDDGNode] extends InterproceduralGraph[Nod
       case icfgN1: ICFGReturnNode if iddgReturnArgNodeExists(icfgN1, position) => getIDDGReturnArgNode(icfgN1, position)
       case icfgN1: ICFGEntryNode if iddgEntryParamNodeExists(icfgN1, position) => getIDDGEntryParamNode(icfgN1, position)
       case icfgN1: ICFGExitNode if iddgExitParamNodeExists(icfgN1, position) => getIDDGExitParamNode(icfgN1, position)
-      case _ => throw new RuntimeException("Cannot find node: " + defSite + ":" + position)
+      case _ => throw new RuntimeException("Cannot find node: " + icfgN + ":" + position)
     }
   }
   
@@ -163,11 +164,11 @@ trait DataDependenceBaseGraph[Node <: IDDGNode] extends InterproceduralGraph[Nod
     
   protected def newIDDGReturnArgNode(icfgN: ICFGReturnNode, position: Int) = IDDGReturnArgNode(icfgN, position)
     
-  def iddgReturnVarNodeExists(icfgN: ICFGCallNode): Boolean = {
+  def iddgReturnVarNodeExists(icfgN: ICFGReturnNode): Boolean = {
     graph.containsVertex(newIDDGReturnVarNode(icfgN).asInstanceOf[Node])
   }
 
-  def addIDDGReturnVarNode(icfgN: ICFGCallNode): Node = {
+  def addIDDGReturnVarNode(icfgN: ICFGReturnNode): Node = {
     val node = newIDDGReturnVarNode(icfgN).asInstanceOf[Node]
     val n =
       if (pool.contains(node)) pool(node)
@@ -179,10 +180,10 @@ trait DataDependenceBaseGraph[Node <: IDDGNode] extends InterproceduralGraph[Nod
     n
   }
 
-  def getIDDGReturnVarNode(icfgN: ICFGCallNode): Node =
+  def getIDDGReturnVarNode(icfgN: ICFGReturnNode): Node =
     pool(newIDDGReturnVarNode(icfgN))
     
-  protected def newIDDGReturnVarNode(icfgN: ICFGCallNode) =
+  protected def newIDDGReturnVarNode(icfgN: ICFGReturnNode) =
     IDDGReturnVarNode(icfgN)
     
   def iddgVirtualBodyNodeExists(icfgN: ICFGCallNode): Boolean = {
@@ -391,7 +392,7 @@ final case class IDDGReturnArgNode(icfgN: ICFGReturnNode, position: Int) extends
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
  * @author <a href="mailto:sroy@k-state.edu">Sankardas Roy</a>
  */ 
-final case class IDDGReturnVarNode(icfgN: ICFGCallNode) extends IDDGInvokeNode(icfgN){
+final case class IDDGReturnVarNode(icfgN: ICFGReturnNode) extends IDDGInvokeNode(icfgN){
   var retVarName: String = _
   def getInvokeLabel: String = "ReturnVar"
   override def toString: String = getInvokeLabel + "@" + icfgN.context
