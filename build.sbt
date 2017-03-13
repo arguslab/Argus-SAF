@@ -37,6 +37,7 @@ val buildInfoSettings = Seq(
 )
 
 val assemblySettings = Seq(
+  test in assembly := {},
   assemblyJarName in assembly := s"${name.value}-${version.value}-assembly.jar",
   mainClass in assembly := Some("org.argus.saf.Main")
 )
