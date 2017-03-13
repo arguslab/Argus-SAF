@@ -10,7 +10,6 @@
 package org.argus.amandroid.core.parser
 
 import org.sireum.util.FileResourceUri
-import brut.androlib.res.util.ExtFile
 import brut.androlib.res.decoder.ARSCDecoder
 import brut.androlib.res.decoder.ARSCDecoder.ARSCData
 import brut.androlib.res.data.ResID
@@ -21,8 +20,8 @@ import org.sireum.util._
 import java.util.zip.ZipFile
 
 class ARSCFileParser_apktool {
-  final private val TITLE = "ARSCFileParser_apktool"
-  private var data: ARSCData = null
+//  final private val TITLE = "ARSCFileParser_apktool"
+  private var data: ARSCData = _
   
   def parse(apkUri: FileResourceUri): Unit = {
     val apkFile = FileUtil.toFilePath(apkUri)
@@ -62,9 +61,9 @@ class ARSCFileParser_apktool {
   
   def getGlobalStringPool: Map[Int, String] = {
     val matches: MMap[Int, String] = mmapEmpty
-    getPackages.map{
+    getPackages.foreach{
       pkg =>
-        val str = pkg.getResTable.toString()
+        val str = pkg.getResTable.toString
         val strs = str.substring(1, str.length() - 1).split(", ")
         val p = Pattern.compile("(.+)\\sstring\\/(.+)") 
         var matches: Map[Int, String] = Map()

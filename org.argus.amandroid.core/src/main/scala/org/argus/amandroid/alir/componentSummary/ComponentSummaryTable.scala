@@ -178,17 +178,11 @@ object ComponentSummaryTable {
     val summaryTables = components.flatMap(component => component.apk.getSummaryTable(component.typ))
     val summaryMap = summaryTables.map(st => (st.component, st)).toMap
     val iccChannels = summaryTables.map(_.get[ICC_Summary](CHANNELS.ICC))
-    val allICCCallees = iccChannels.map(_.asCallee).reduceOption {
-      _ ++ _
-    }.getOrElse(isetEmpty)
+    val allICCCallees: ISet[(ICFGNode, CSTCallee)] = iccChannels.flatMap(_.asCallee)
     val rpcChannels = summaryTables.map(_.get[RPC_Summary](CHANNELS.RPC))
-    val allRpcCallees = rpcChannels.map(_.asCallee).reduceOption {
-      _ ++ _
-    }.getOrElse(imapEmpty)
+    val allRpcCallees: ISet[(ICFGNode, CSTCallee)] = rpcChannels.flatMap(_.asCallee)
     val sfChannels = summaryTables.map(_.get[StaticField_Summary](CHANNELS.STATIC_FIELD))
-    val allSFCallees = sfChannels.map(_.asCallee).reduceOption {
-      _ ++ _
-    }.getOrElse(isetEmpty)
+    val allSFCallees: ISet[(ICFGNode, CSTCallee)] = sfChannels.flatMap(_.asCallee)
 
     components.foreach {
       component =>

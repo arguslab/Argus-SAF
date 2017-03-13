@@ -48,7 +48,7 @@ case class ApkModel(nameUri: FileResourceUri, outApkUri: FileResourceUri, srcs: 
   def addRpcMethod(comp: JawaType, rpc: Signature, allow_remote: Boolean): Unit = this.rpcMethods.getOrElseUpdate(comp, mmapEmpty) += (rpc -> allow_remote)
   def addRpcMethods(comp: JawaType, rpcs: IMap[Signature, Boolean]): Unit = this.rpcMethods.getOrElseUpdate(comp, mmapEmpty) ++= rpcs
   def addRpcMethods(map: IMap[JawaType, IMap[Signature, Boolean]]): Unit = map.foreach{case (k, vs) => this.rpcMethods.getOrElseUpdate(k, mmapEmpty) ++= vs}
-  def getRpcMethods(comp: JawaType): IMap[Signature, Boolean] = this.rpcMethods.getOrElse(comp, msetEmpty).toMap
+  def getRpcMethods(comp: JawaType): IMap[Signature, Boolean] = this.rpcMethods.getOrElse(comp, mmapEmpty).toMap
   def getRpcMethods: IMap[Signature, Boolean] = this.rpcMethods.flatMap(_._2).toMap
   def getRpcMethodMapping: IMap[JawaType, IMap[Signature, Boolean]] = this.rpcMethods.map {
     case (k, vs) => k -> vs.toMap

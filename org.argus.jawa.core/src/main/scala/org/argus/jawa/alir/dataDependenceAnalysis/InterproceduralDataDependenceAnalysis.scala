@@ -194,11 +194,11 @@ object InterproceduralDataDependenceAnalysis {
               if(calleep.isDefined) calleep.get.isConcrete
               else false
             }) {
-              val argRelatedValue = ptaresult.getRelatedHeapInstances(argInss, virtualBodyNode.getContext)
-              argRelatedValue.foreach{
-                ins => 
-                  result ++= iddg.findDefSite(ins.defSite)
-              }
+//              val argRelatedValue = ptaresult.getRelatedHeapInstances(argInss, virtualBodyNode.getContext)
+//              argRelatedValue.foreach{
+//                ins =>
+//                  result ++= iddg.findDefSite(ins.defSite)
+//              }
             }
           }
         }

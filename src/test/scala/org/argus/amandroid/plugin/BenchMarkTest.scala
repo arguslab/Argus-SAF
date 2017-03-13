@@ -24,7 +24,7 @@ import org.sireum.util.FileUtil
   * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
   */
 class BenchMarkTest extends FlatSpec with Matchers {
-  private final val DEBUG = true
+  private final val DEBUG = false
 
   "ICC_Explicit_NoSrc_NoSink" should "have 0 taint paths" in {
     val res = taintAnalysis(getClass.getResource("/icc-bench/IccHandling/icc_explicit_nosrc_nosink.apk").getPath)
@@ -236,12 +236,12 @@ class BenchMarkTest extends FlatSpec with Matchers {
     assert(res.isDefined && res.get.getTaintedPaths.size == 3)
   }
 
-  "InterAppCommunication" should "have 44 taint paths" in {
+  "InterAppCommunication" should "have 19 taint paths" in {
     val echoer_path = getClass.getResource("/droid-bench/InterAppCommunication/Echoer.apk").getPath
     val sendsms_path = getClass.getResource("/droid-bench/InterAppCommunication/SendSMS.apk").getPath
     val forresult_path = getClass.getResource("/droid-bench/InterAppCommunication/StartActivityForResult1.apk").getPath
     val res = taintAnalysis(Set(echoer_path, sendsms_path, forresult_path))
-    assert(res.isDefined && res.get.getTaintedPaths.size == 44)
+    assert(res.isDefined && res.get.getTaintedPaths.size == 19)
   }
 
   private def taintAnalysis(apkFile: String): Option[TaintAnalysisResult[AndroidDataDependentTaintAnalysis.Node, InterproceduralDataDependenceAnalysis.Edge]] = {
