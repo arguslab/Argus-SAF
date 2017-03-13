@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016. Fengguo Wei and others.
+ * Copyright (c) 2017. Fengguo Wei and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -11,10 +11,9 @@
 package org.argus.amandroid.alir.componentSummary
 
 import org.sireum.util._
-
 import org.argus.amandroid.alir.pta.reachingFactsAnalysis.IntentHelper
 import org.argus.amandroid.alir.pta.reachingFactsAnalysis.IntentHelper.IntentContent
-import org.argus.amandroid.core.Apk
+import org.argus.amandroid.core.ApkGlobal
 import org.argus.amandroid.core.parser.{ComponentType, UriData}
 import org.argus.jawa.alir.Context
 import org.argus.jawa.alir.controlFlowGraph.{ICFGCallNode, ICFGEntryNode, ICFGExitNode}
@@ -34,7 +33,7 @@ class LightweightCSTBuilder(global: Global) {
   
   def getSummaryTables: IMap[JawaType, ComponentSummaryTable] = summaryTables.toMap
   
-  def build(yard: ApkYard, apk: Apk, comps: ISet[(JawaType, ComponentType.Value)]): Unit = {
+  def build(yard: ApkYard, apk: ApkGlobal, comps: ISet[(JawaType, ComponentType.Value)]): Unit = {
     println("Total components: " + comps.size)
     var i = 0
     comps foreach {
@@ -43,7 +42,7 @@ class LightweightCSTBuilder(global: Global) {
         val methods = comp.getDeclaredMethods.filter(m => m.isConcrete && !m.isPrivate)
         println("methods: " + methods.size)
         val idfg = InterproceduralSuperSpark(global, methods.map(_.getSignature))
-        val context = new Context
+        val context = new Context(apk.nameUri)
         val sig = new Signature(JavaKnowledge.formatTypeToSignature(comp.getType) + ".ent:()V")
         context.setContext(sig, compTyp.name)
         val entryNode = ICFGEntryNode(context)
@@ -52,7 +51,7 @@ class LightweightCSTBuilder(global: Global) {
         val exitNode = ICFGExitNode(context)
         exitNode.setOwner(sig)
         idfg.icfg.addExitNode(exitNode)
-        yard.addIDFG(compTyp, idfg)
+        apk.addIDFG(compTyp, idfg)
         collectIntentContent(compTyp, idfg)
         buildCSTFromIDFG(apk, compTyp, idfg)
         i += 1
@@ -329,19 +328,8 @@ class LightweightCSTBuilder(global: Global) {
     }
   }
   
-  private def buildCSTFromIDFG(apk: Apk, componentType: JawaType, idfg: InterproceduralDataFlowGraph) = {
-    val csp = new ComponentSummaryProvider {
-      def getIntentCaller(idfg: InterproceduralDataFlowGraph, intentValue: ISet[Instance], context: Context): ISet[IntentContent] = {
-        val result = msetEmpty[IntentContent]
-        val cpIntentmap = intentContents.getOrElse(componentType, mmapEmpty)
-        intentValue.foreach {
-          intent =>
-            result ++= cpIntentmap.getOrElse(intent, msetEmpty)
-        }
-        result.toSet
-      }
-    }
-    val summaryTable = ComponentSummaryTable.buildComponentSummaryTable(global, apk, componentType, idfg, csp)
+  private def buildCSTFromIDFG(apk: ApkGlobal, componentType: JawaType, idfg: InterproceduralDataFlowGraph) = {
+    val summaryTable = ComponentSummaryTable.buildComponentSummaryTable(Component(apk, componentType), idfg)
     summaryTables(componentType) = summaryTable
   }
 }

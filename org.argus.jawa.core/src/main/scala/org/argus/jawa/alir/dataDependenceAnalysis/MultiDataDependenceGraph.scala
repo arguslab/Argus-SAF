@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016. Fengguo Wei and others.
+ * Copyright (c) 2017. Fengguo Wei and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -17,11 +17,10 @@ import org.sireum.util._
 
 /**
   * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
-  * @author <a href="mailto:sroy@k-state.edu">Sankardas Roy</a>
   */
 class MultiDataDependenceGraph[Node <: IDDGNode] extends DataDependenceBaseGraph[Node] {
   val icfg: InterproceduralControlFlowGraph[ICFGNode] = new InterproceduralControlFlowGraph[ICFGNode]
-  val encontext: Context = new Context().setContext(new Signature("LMDDGEntry;.entry:()V"), "L0000")
+  val encontext: Context = new Context("MultiDataDependenceGraph").setContext(new Signature("LMDDGEntry;.entry:()V"), "L0000")
   icfg.addEntryNode(icfg.addICFGEntryNode(encontext).asInstanceOf[ICFGEntryNode])
   val entryNode: Node = addIDDGEntryNode(icfg.entryNode.asInstanceOf[ICFGEntryNode])
   

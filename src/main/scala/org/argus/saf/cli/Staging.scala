@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016. Fengguo Wei and others.
+ * Copyright (c) 2017. Fengguo Wei and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -20,7 +20,7 @@ import org.argus.amandroid.concurrent.util.Recorder
 import org.argus.saf.cli.util.CliLogger
 import org.argus.amandroid.concurrent.{AmandroidSupervisorActor, AnalysisSpec, PointsToAnalysisResult}
 import org.argus.amandroid.core.util.ApkFileUtil
-import org.argus.amandroid.core.{AndroidGlobalConfig, Apk}
+import org.argus.amandroid.core.{AndroidGlobalConfig, ApkGlobal}
 import org.sireum.util._
 
 import scala.concurrent.ExecutionContext.Implicits._
@@ -42,7 +42,7 @@ object Staging {
       case dir if dir.isDirectory =>
         apkFileUris ++= ApkFileUtil.getApks(FileUtil.toUri(dir))
       case file =>
-        if(Apk.isValidApk(FileUtil.toUri(file)))
+        if(ApkGlobal.isValidApk(FileUtil.toUri(file)))
           apkFileUris += FileUtil.toUri(file)
         else println(file + " is not decompilable.")
     }

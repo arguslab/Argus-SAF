@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016. Fengguo Wei and others.
+ * Copyright (c) 2017. Fengguo Wei and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -19,7 +19,7 @@ import java.io.FileInputStream
 import java.util.zip.ZipInputStream
 import java.io.FileOutputStream
 
-import org.argus.amandroid.core.Apk
+import org.argus.amandroid.core.ApkGlobal
 import org.argus.jawa.core.util.MyFileUtil
 
 /**
@@ -28,14 +28,14 @@ import org.argus.jawa.core.util.MyFileUtil
 object ApkFileUtil {
   def getApkName(apkUri: FileResourceUri): String = FileUtil.toFile(apkUri).getName
   def getDecompileableFiles(dirUri: FileResourceUri, recursive: Boolean = true): ISeq[FileResourceUri] = {
-    FileUtil.listFiles(dirUri, "", recursive).filter(Apk.isDecompilable)
+    FileUtil.listFiles(dirUri, "", recursive).filter(ApkGlobal.isDecompilable)
   }
   def getApks(dirUri: FileResourceUri, recursive: Boolean = true): ISeq[FileResourceUri] = {
-    FileUtil.listFiles(dirUri, "", recursive).filter(Apk.isValidApk)
+    FileUtil.listFiles(dirUri, "", recursive).filter(ApkGlobal.isValidApk)
   }
   def getOutputUri(apkUri: FileResourceUri, outputUri: FileResourceUri): FileResourceUri = {
     val apkFile = FileUtil.toFile(apkUri)
-    val dirName = try{apkFile.getName.substring(0, apkFile.getName.lastIndexOf("."))} catch {case e: IndexOutOfBoundsException => apkFile.getName}
+    val dirName = try{apkFile.getName.substring(0, apkFile.getName.lastIndexOf("."))} catch {case _: IndexOutOfBoundsException => apkFile.getName}
     MyFileUtil.appendFileName(outputUri, dirName)
   }
   
@@ -89,7 +89,7 @@ object ApkFileUtil {
     FileUtil.toUri(outputFile)
   }
   
-  def deleteOutputs(apkUri: FileResourceUri, outputUri: FileResourceUri) = {
+  def deleteOutputs(apkUri: FileResourceUri, outputUri: FileResourceUri): Unit = {
     val outputDir = FileUtil.toFile(getOutputUri(apkUri, outputUri))
     if(outputDir.exists()){
       MyFileUtil.deleteDir(outputDir)

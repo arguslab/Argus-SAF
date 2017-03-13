@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016. Fengguo Wei and others.
+ * Copyright (c) 2017. Fengguo Wei and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -27,8 +27,8 @@ class PTAResult {
   def addEntryPoints(eps: ISet[Signature]): Unit = this.entryPoints ++= eps
   def getEntryPoints: ISet[Signature] = this.entryPoints.toSet
   
-  private val ptMap: MMap[String, MMap[PTASlot, MSet[Instance]]] = mmapEmpty
-  def pointsToMap: IMap[String, PTSMap] = {
+  private val ptMap: MMap[Context, MMap[PTASlot, MSet[Instance]]] = mmapEmpty
+  def pointsToMap: IMap[Context, PTSMap] = {
     ptMap.map{
       case (c, m) =>
         (c, m.map{
@@ -38,7 +38,7 @@ class PTAResult {
     }.toMap
   }
   
-  def addPointsToMap(ptMap: IMap[String, PTSMap]): Unit = {
+  def addPointsToMap(ptMap: IMap[Context, PTSMap]): Unit = {
     ptMap.foreach {
       case (c, m) =>
         m.foreach {
@@ -54,58 +54,37 @@ class PTAResult {
     this
   }
   
-  def setInstance(s: PTASlot, context: String, i: Instance): Unit = {
+  def setInstance(s: PTASlot, context: Context, i: Instance): Unit = {
     ptMap.getOrElseUpdate(context, mmapEmpty).getOrElseUpdate(s, msetEmpty).clear()
     ptMap(context)(s) += i
   }
-  def setInstances(s: PTASlot, context: String, is: ISet[Instance]): Unit = {
+  def setInstances(s: PTASlot, context: Context, is: ISet[Instance]): Unit = {
     ptMap.getOrElseUpdate(context, mmapEmpty).getOrElseUpdate(s, msetEmpty).clear()
     ptMap(context)(s) ++= is
   }
-  def setInstances(s: PTASlot, context: Context, is: ISet[Instance]): Unit = {
-    setInstances(s, context.toFullString, is)
-  }
-  def addInstance(s: PTASlot, context: String, i: Instance): Unit = ptMap.getOrElseUpdate(context, mmapEmpty).getOrElseUpdate(s, msetEmpty) += i
-  def addInstances(s: PTASlot, context: String, is: ISet[Instance]): Unit = ptMap.getOrElseUpdate(context, mmapEmpty).getOrElseUpdate(s, msetEmpty) ++= is
-  def addInstance(s: PTASlot, context: Context, i: Instance): Unit = addInstance(s, context.toFullString, i)
-  def addInstances(s: PTASlot, context: Context, is: ISet[Instance]): Unit = addInstances(s, context.toFullString, is)
-  def removeInstance(s: PTASlot, context: String, i: Instance): Unit = {
+  def addInstance(s: PTASlot, context: Context, i: Instance): Unit = ptMap.getOrElseUpdate(context, mmapEmpty).getOrElseUpdate(s, msetEmpty) += i
+  def addInstances(s: PTASlot, context: Context, is: ISet[Instance]): Unit = ptMap.getOrElseUpdate(context, mmapEmpty).getOrElseUpdate(s, msetEmpty) ++= is
+  def removeInstance(s: PTASlot, context: Context, i: Instance): Unit = {
     ptMap.getOrElseUpdate(context, mmapEmpty).getOrElseUpdate(s, msetEmpty) -= i
   }
-  def removeInstances(s: PTASlot, context: String, is: ISet[Instance]): Unit = ptMap.getOrElseUpdate(context, mmapEmpty).getOrElseUpdate(s, msetEmpty) --= is
-  def removeInstance(s: PTASlot, context: Context, i: Instance): Unit = {
-    removeInstance(s, context.toFullString, i)
-  }
-  def removeInstances(s: PTASlot, context: Context, is: ISet[Instance]): Unit = removeInstances(s, context.toFullString, is)
+  def removeInstances(s: PTASlot, context: Context, is: ISet[Instance]): Unit = ptMap.getOrElseUpdate(context, mmapEmpty).getOrElseUpdate(s, msetEmpty) --= is
   
-  def pointsToSet(s: PTASlot, context: String): ISet[Instance] = {
+  def pointsToSet(s: PTASlot, context: Context): ISet[Instance] = {
     ptMap.getOrElse(context, mmapEmpty).getOrElse(s, msetEmpty).toSet
   }
-  def pointsToSet(s: PTASlot, context: Context): ISet[Instance] = {
-    ptMap.getOrElse(context.toFullString, mmapEmpty).getOrElse(s, msetEmpty).toSet
-  }
-  def getPTSMap(context: String): PTSMap = {
+  def getPTSMap(context: Context): PTSMap = {
     ptMap.getOrElseUpdate(context, mmapEmpty).map{
       case (str, s) =>
         (str, s.toSet)
     }.toMap
   }
-  def getPTSMap(context: Context): PTSMap = {
-    getPTSMap(context.toFullString)
-  }
+
   def getRelatedInstances(s: PTASlot, context: Context): ISet[Instance] = {
-    getRelatedInstances(s, context.toFullString)
-  }
-  
-  def getRelatedInstances(s: PTASlot, context: String): ISet[Instance] = {
     val bValue = pointsToSet(s, context)
     val rhValue = getRelatedHeapInstances(bValue, context)
     bValue ++ rhValue
   }
   def getRelatedHeapInstances(insts: ISet[Instance], context: Context): ISet[Instance] = {
-    getRelatedHeapInstances(insts, context.toFullString)
-  }
-  def getRelatedHeapInstances(insts: ISet[Instance], context: String): ISet[Instance] = {
     val worklist: MList[Instance] = mlistEmpty ++ insts
     val processed: MSet[Instance] = msetEmpty
     val result: MSet[Instance] = msetEmpty

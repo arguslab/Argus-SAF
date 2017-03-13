@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016. Fengguo Wei and others.
+ * Copyright (c) 2017. Fengguo Wei and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -232,7 +232,7 @@ object InterproceduralDataDependenceAnalysis {
             val rhss = PilarAstHelper.getRHSs(t)
             result ++= processLHSs(global, node, lhss, ptaresult, irdaFacts, iddg)
             result ++= processRHSs(global, node, rhss, None, ptaresult, irdaFacts, iddg)
-          case gj: GotoJump =>
+          case _: GotoJump =>
           case rj: ReturnJump =>
             if (rj.exp.isDefined) {
               result ++= processExp(global, node, rj.exp.get, None, ptaresult, irdaFacts, iddg)

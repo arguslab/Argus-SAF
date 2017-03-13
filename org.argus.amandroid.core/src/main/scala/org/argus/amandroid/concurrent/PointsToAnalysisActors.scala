@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016. Fengguo Wei and others.
+ * Copyright (c) 2017. Fengguo Wei and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -15,8 +15,9 @@ import java.util.concurrent.TimeoutException
 import akka.actor._
 import org.argus.amandroid.alir.pta.reachingFactsAnalysis.{AndroidRFAConfig, AndroidReachingFactsAnalysis}
 import org.argus.amandroid.concurrent.util.GlobalUtil
-import org.argus.amandroid.core.Apk
+import org.argus.amandroid.core.ApkGlobal
 import org.argus.amandroid.serialization.stage.Staging
+import org.argus.jawa.alir.Context
 import org.argus.jawa.alir.dataFlowAnalysis.InterproceduralDataFlowGraph
 import org.argus.jawa.alir.pta.PTAResult
 import org.argus.jawa.alir.pta.reachingFactsAnalysis.RFAFactFactory
@@ -38,13 +39,14 @@ class PointsToAnalysisActor extends Actor with ActorLogging {
   }
   
   private def pta(ptadata: PointsToAnalysisData): PointsToAnalysisResult = {
-    log.info("Start points to analysis for " + ptadata.apk.nameUri)
-    val apk = ptadata.apk
-    val components = apk.getComponents
+    log.info("Start points to analysis for " + ptadata.model.nameUri)
+    val model = ptadata.model
+    val apk = new ApkGlobal(model, new PrintReporter(MsgLevel.ERROR))
+    val components = model.getComponents
     val worklist: MList[Signature] = mlistEmpty
     components foreach {
       compTyp =>
-        apk.getEnvMap.get(compTyp) match {
+        model.getEnvMap.get(compTyp) match {
           case Some((esig, _)) =>
             worklist += esig
           case None =>
@@ -70,28 +72,27 @@ class PointsToAnalysisActor extends Actor with ActorLogging {
     time = (System.currentTimeMillis() - time) / 1000
     if(ptadata.stage) {
       try {
-        Staging.stage(apk, ptaresults.toMap, ptadata.outApkUri)
+        Staging.stage(model, ptaresults.toMap, ptadata.outApkUri)
         val outUri = FileUtil.toUri(FileUtil.toFile(ptadata.outApkUri).getParentFile)
-        Staging.stageReport(outUri, apk.getAppName)
-        PointsToAnalysisSuccStageResult(apk.nameUri, time, ptadata.outApkUri)
+        Staging.stageReport(outUri, model.getAppName)
+        PointsToAnalysisSuccStageResult(model.nameUri, time, ptadata.outApkUri)
       } catch {
         case e: Exception =>
-          PointsToAnalysisFailResult(apk.nameUri, time, e)
+          PointsToAnalysisFailResult(model.nameUri, time, e)
       }
     } else {
-      PointsToAnalysisSuccResult(apk, time, ptaresults.toMap)
+      PointsToAnalysisSuccResult(model, time, ptaresults.toMap)
     }
     
   }
   
-  private def rfa(ep: Signature, apk: Apk, outApkUri: FileResourceUri, srcs: ISet[String], timeout: Duration): InterproceduralDataFlowGraph = {
+  private def rfa(ep: Signature, apk: ApkGlobal, outApkUri: FileResourceUri, srcs: ISet[String], timeout: Duration): InterproceduralDataFlowGraph = {
     log.info("Start rfa for " + ep)
-    val reporter = new PrintReporter(MsgLevel.ERROR)
-    val global = GlobalUtil.buildGlobal(apk.nameUri, reporter, outApkUri, srcs)
-    val m = global.resolveMethodCode(ep, apk.getEnvMap(ep.classTyp)._2)
+    GlobalUtil.buildGlobal(apk, outApkUri, srcs)
+    val m = apk.resolveMethodCode(ep, apk.model.getEnvMap(ep.classTyp)._2)
     implicit val factory = new RFAFactFactory
     val initialfacts = AndroidRFAConfig.getInitialFactsForMainEnvironment(m)
-    val idfg = AndroidReachingFactsAnalysis(global, apk, m, initialfacts, new ClassLoadManager, timeout = timeout match{case fd: FiniteDuration => Some(new MyTimeout(fd)) case _ => None })
+    val idfg = AndroidReachingFactsAnalysis(apk, m, initialfacts, new ClassLoadManager, new Context(apk.projectName), timeout = timeout match{case fd: FiniteDuration => Some(new MyTimeout(fd)) case _ => None })
     idfg
   }
   

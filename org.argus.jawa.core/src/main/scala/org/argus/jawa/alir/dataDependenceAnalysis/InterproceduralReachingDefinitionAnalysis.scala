@@ -33,13 +33,13 @@ object InterproceduralReachingDefinitionAnalysis {
       global: Global,
       cg: InterproceduralControlFlowGraph[Node],
       parallel: Boolean = false,
-      switchAsOrderedMatch: Boolean = false) = build(global, cg, parallel, switchAsOrderedMatch)
+      switchAsOrderedMatch: Boolean = false): MIdMap[InterproceduralReachingDefinitionAnalysis#Node, ISet[((Slot, DefDesc), Context)]] = build(global, cg, parallel, switchAsOrderedMatch)
   
   def build(
       global: Global,
       cg: InterproceduralControlFlowGraph[Node],
       parallel: Boolean = false,
-      switchAsOrderedMatch: Boolean = false) = {
+      switchAsOrderedMatch: Boolean = false): MIdMap[InterproceduralReachingDefinitionAnalysis#Node, ISet[((Slot, DefDesc), Context)]] = {
     new InterproceduralReachingDefinitionAnalysis().build(global, cg, parallel, switchAsOrderedMatch)
   }
 }
@@ -53,14 +53,14 @@ class InterproceduralReachingDefinitionAnalysis {
   type IRDFact = InterproceduralReachingDefinitionAnalysis.IRDFact
   type Node = InterproceduralReachingDefinitionAnalysis.Node
   
-  var cg: InterproceduralControlFlowGraph[Node] = null
-  var factSet = idmapEmpty[Node, ISet[IRDFact]]
+  var cg: InterproceduralControlFlowGraph[Node] = _
+  var factSet: MIdMap[Node, ISet[((Slot, DefDesc), Context)]] = idmapEmpty[Node, ISet[IRDFact]]
   
   def build(
       global: Global,
       cg: InterproceduralControlFlowGraph[Node],
       parallel: Boolean,
-      switchAsOrderedMatch: Boolean) = {
+      switchAsOrderedMatch: Boolean): MIdMap[Node, ISet[((Slot, DefDesc), Context)]] = {
     val gen = new Gen
     val kill = new Kill
     val callr = new Callr
@@ -83,7 +83,7 @@ class InterproceduralReachingDefinitionAnalysis {
           }
         }
     }
-    val initialContext: Context = new Context
+    val initialContext: Context = new Context(global.projectName)
     val iota: ISet[IRDFact] = isetEmpty + (((VarSlot("@@IRDA"), InitDefDesc), initialContext))
     val initial: ISet[IRDFact] = isetEmpty
     InterproceduralMonotoneDataFlowAnalysisFramework[IRDFact](cg,
@@ -127,7 +127,7 @@ class InterproceduralReachingDefinitionAnalysis {
   
   private def isDef(defDesc: DefDesc): Boolean =
     defDesc match{
-      case ldd: LocDefDesc => true
+      case _: LocDefDesc => true
       case _ => false
     }
   

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016. Fengguo Wei and others.
+ * Copyright (c) 2017. Fengguo Wei and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -13,35 +13,29 @@ package org.argus.amandroid.plugin.communication
 import org.argus.amandroid.alir.pta.reachingFactsAnalysis.IntentHelper
 import org.argus.amandroid.alir.pta.reachingFactsAnalysis.model.InterComponentCommunicationModel
 import org.argus.amandroid.alir.taintAnalysis.AndroidSourceAndSinkManager
-import org.argus.amandroid.core.parser.LayoutControl
-import org.argus.amandroid.core.{AndroidConstants, Apk}
+import org.argus.amandroid.core.{AndroidConstants, ApkGlobal}
 import org.argus.jawa.alir.controlFlowGraph.{ICFGInvokeNode, ICFGNode}
 import org.argus.jawa.alir.pta.{PTAResult, VarSlot}
-import org.sireum.pilar.ast.{JumpLocation, _}
+import org.sireum.pilar.ast._
 import org.sireum.util._
 import org.argus.jawa.core._
 
 /**
  * @author Fengchi Lin
  */
-class CommunicationSourceAndSinkManager(
-    global: Global,
-    apk: Apk, 
-    layoutControls: Map[Int, LayoutControl], 
-    callbackSigs: ISet[Signature], 
-    sasFilePath: String) extends AndroidSourceAndSinkManager(global, apk, layoutControls, callbackSigs, sasFilePath){
+class CommunicationSourceAndSinkManager(sasFilePath: String) extends AndroidSourceAndSinkManager(sasFilePath){
   
 //  private final val TITLE = "CommunicationSourceAndSinkManager"
     
-  override def isSource(calleeSig: Signature, callerSig: Signature, callerLoc: JumpLocation) = false
+  override def isSource(apk: ApkGlobal, calleeSig: Signature, callerSig: Signature, callerLoc: JumpLocation) = false
     
-  override def isCallbackSource(sig: Signature): Boolean = false
+  override def isCallbackSource(apk: ApkGlobal, sig: Signature): Boolean = false
   
-  override def isUISource(calleeSig: Signature, callerSig: Signature, callerLoc: JumpLocation): Boolean = {
+  override def isUISource(apk: ApkGlobal, calleeSig: Signature, callerSig: Signature, callerLoc: JumpLocation): Boolean = {
     false
   }
 
-  override def isSource(loc: LocationDecl, ptaresult: PTAResult): Boolean = {
+  override def isSource(apk: ApkGlobal, loc: LocationDecl, ptaresult: PTAResult): Boolean = {
     var flag = false
     val visitor = Visitor.build({
       case as: AssignAction =>
@@ -68,14 +62,14 @@ class CommunicationSourceAndSinkManager(
     flag
   }
 
-  def isIccSink(invNode: ICFGInvokeNode, ptaresult: PTAResult): Boolean = {
+  def isIccSink(apk: ApkGlobal, invNode: ICFGInvokeNode, ptaResult: PTAResult): Boolean = {
     var sinkflag = false
     val calleeSet = invNode.getCalleeSet
     calleeSet.foreach{
       callee =>
         if(InterComponentCommunicationModel.isIccOperation(callee.callee)){
           sinkflag = true
-          val args = global.getMethod(invNode.getOwner).get.getBody.location(invNode.getLocIndex).asInstanceOf[JumpLocation].jump.asInstanceOf[CallJump].callExp.arg match{
+          val args = apk.getMethod(invNode.getOwner).get.getBody.location(invNode.getLocIndex).asInstanceOf[JumpLocation].jump.asInstanceOf[CallJump].callExp.arg match{
               case te: TupleExp =>
                 te.exps.map {
                   case ne: NameExp => ne.name.name
@@ -84,10 +78,10 @@ class CommunicationSourceAndSinkManager(
               case a => throw new RuntimeException("wrong exp type: " + a)
           }
           val intentSlot = VarSlot(args(1), isBase = false, isArg = true)
-          val intentValues = ptaresult.pointsToSet(intentSlot, invNode.getContext)
-          val intentContents = IntentHelper.getIntentContents(ptaresult, intentValues, invNode.getContext)
+          val intentValues = ptaResult.pointsToSet(intentSlot, invNode.getContext)
+          val intentContents = IntentHelper.getIntentContents(ptaResult, intentValues, invNode.getContext)
           val compType = AndroidConstants.getIccCallType(callee.callee.getSubSignature)
-          val comMap = IntentHelper.mappingIntents(global, apk, intentContents, compType)
+          val comMap = IntentHelper.mappingIntents(apk, intentContents, compType)
           comMap.foreach{
             case (_, coms) =>
               if(coms.isEmpty) sinkflag = true
@@ -95,9 +89,8 @@ class CommunicationSourceAndSinkManager(
                 case (com, typ) =>
                   typ match {
                     case IntentHelper.IntentType.EXPLICIT =>
-                      val clazz = global.getClassOrResolve(com)
+                      val clazz = apk.getClassOrResolve(com)
                       if(clazz.isUnknown) sinkflag = true
-//                    case IntentHelper.IntentType.EXPLICIT => sinkflag = true
                     case IntentHelper.IntentType.IMPLICIT => sinkflag = true
                   }
               }
@@ -107,7 +100,7 @@ class CommunicationSourceAndSinkManager(
     sinkflag
   }
 
-	def isIccSource(entNode: ICFGNode, iddgEntNode: ICFGNode): Boolean = {
+	def isIccSource(apk: ApkGlobal, entNode: ICFGNode, iddgEntNode: ICFGNode): Boolean = {
 	  false
 	}
 	

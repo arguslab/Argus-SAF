@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016. Fengguo Wei and others.
+ * Copyright (c) 2017. Fengguo Wei and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -23,7 +23,8 @@ import org.w3c.dom.Node
 import brut.androlib.res.data.ResTypeSpec
 import brut.androlib.res.data.ResResSpec
 import brut.androlib.res.decoder.ARSCDecoder.ARSCData
-import org.argus.jawa.core.{Global, JawaClass, JawaType}
+import org.argus.amandroid.core.ApkGlobal
+import org.argus.jawa.core.{JawaClass, JawaType}
 
 /**
  * Parser for analyzing the layout XML files inside an android application
@@ -33,7 +34,7 @@ import org.argus.jawa.core.{Global, JawaClass, JawaType}
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
  * @author <a href="mailto:sroy@k-state.edu">Sankardas Roy</a>
  */
-class LayoutFileParser(global: Global, packageName: String, arsc: ARSCFileParser_apktool) {
+class LayoutFileParser(apk: ApkGlobal, packageName: String, arsc: ARSCFileParser_apktool) {
   final val TITLE = "LayoutFileParser"
   private final val DEBUG = false
 
@@ -62,15 +63,15 @@ class LayoutFileParser(global: Global, packageName: String, arsc: ARSCFileParser
 //  private final val TYPE_TEXT_VARIATION_WEB_PASSWORD = 0x000000e0
 
   private def getLayoutClass(className: String): Option[JawaClass] = {
-    var ar: Option[JawaClass] = global.getClazz(new JawaType(className))
+    var ar: Option[JawaClass] = apk.getClazz(new JawaType(className))
     if(ar.isEmpty || !this.packageName.isEmpty)
-      ar = global.getClazz(new JawaType(packageName + "." + className))
+      ar = apk.getClazz(new JawaType(packageName + "." + className))
     if(ar.isEmpty)
-      ar = global.getClazz(new JawaType("android.widget." + className))
+      ar = apk.getClazz(new JawaType("android.widget." + className))
     if(ar.isEmpty)
-      ar = global.getClazz(new JawaType("android.webkit." + className))
+      ar = apk.getClazz(new JawaType("android.webkit." + className))
     if(ar.isEmpty)
-      global.reporter.echo(TITLE, "Could not find layout class " + className)
+      apk.reporter.echo(TITLE, "Could not find layout class " + className)
     ar
   }
 
@@ -80,7 +81,7 @@ class LayoutFileParser(global: Global, packageName: String, arsc: ARSCFileParser
     // To make sure that nothing all wonky is going on here, we
     // check the hierarchy to find the android view class
     var found = false
-    global.getClassHierarchy.getAllSuperClassesOf(theClass.get.getType).foreach{
+    apk.getClassHierarchy.getAllSuperClassesOf(theClass.get.getType).foreach{
       su =>
         if(su.name.equals("android.view.ViewGroup"))
           found = true
@@ -93,12 +94,12 @@ class LayoutFileParser(global: Global, packageName: String, arsc: ARSCFileParser
       return false
     // To make sure that nothing all wonky is going on here, we
     // check the hierarchy to find the android view class
-    global.getClassHierarchy.getAllSuperClassesOf(theClass.get.getType).foreach{
+    apk.getClassHierarchy.getAllSuperClassesOf(theClass.get.getType).foreach{
       su =>
       if(su.name.equals("android.view.View") || su.name.equals("android.webkit.WebView"))
         return true
     }
-    global.reporter.echo(TITLE, "Layout class " + theClass + " is not derived from " + "android.view.View")
+    apk.reporter.echo(TITLE, "Layout class " + theClass + " is not derived from " + "android.view.View")
     false
   }
   

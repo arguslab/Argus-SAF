@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016. Fengguo Wei and others.
+ * Copyright (c) 2017. Fengguo Wei and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -30,7 +30,7 @@ object AndroidRFAConfig {
     require(dm.getName == AndroidConstants.MAINCOMP_ENV || dm.getName == AndroidConstants.COMP_ENV)
     var result = isetEmpty[RFAFact]
     val intentSlot = VarSlot(dm.getParamName(0), isBase = false, isArg = false)
-    val context: Context = new Context
+    val context: Context = new Context(dm.getDeclaringClass.global.projectName)
     context.setContext(dm.getSignature, "L0000")
     val intentValue = PTAInstance(new JawaType(AndroidConstants.INTENT), context.copy, isNull_ = false)
     result += new RFAFact(intentSlot, intentValue)

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016. Fengguo Wei and others.
+ * Copyright (c) 2017. Fengguo Wei and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -12,10 +12,9 @@ package org.argus.amandroid.alir.dataRecorder
 
 import java.util
 
-import org.argus.amandroid.alir.componentSummary.ApkYard
 import org.argus.amandroid.alir.pta.reachingFactsAnalysis.IntentHelper
 import org.argus.amandroid.alir.pta.reachingFactsAnalysis.model.InterComponentCommunicationModel
-import org.argus.amandroid.core.{AndroidConstants, Apk}
+import org.argus.amandroid.core.{AndroidConstants, ApkGlobal}
 import org.sireum.util._
 import org.stringtemplate.v4.STGroupString
 import org.argus.amandroid.core.parser.{ComponentType, IntentFilter, UriData}
@@ -25,7 +24,7 @@ import org.argus.jawa.alir.dataFlowAnalysis.InterproceduralDataFlowGraph
 import org.argus.jawa.alir.interprocedural.InterproceduralNode
 import org.argus.jawa.alir.pta.VarSlot
 import org.argus.jawa.alir.taintAnalysis.TaintAnalysisResult
-import org.argus.jawa.core.{Global, Signature}
+import org.argus.jawa.core.Signature
 import org.sireum.pilar.ast._
 import org.sireum.alir.AlirEdge
 
@@ -313,15 +312,15 @@ object DataCollector {
     }
   }
   
-  def collect(global: Global, yard: ApkYard, apk: Apk) = {
-    val appName = apk.getAppName
-    val uses_permissions = apk.getUsesPermissions
-    val compInfos = apk.getComponentInfos
-    val intentFDB = apk.getIntentFilterDB
+  def collect(apk: ApkGlobal): AppData = {
+    val appName = apk.model.getAppName
+    val uses_permissions = apk.model.getUsesPermissions
+    val compInfos = apk.model.getComponentInfos
+    val intentFDB = apk.model.getIntentFilterDB
     val compDatas = compInfos.map{
       comp =>
         val compTyp = comp.compType
-        val compRec = global.getClassOrResolve(compTyp)
+        val compRec = apk.getClassOrResolve(compTyp)
         val typ = comp.typ
         val exported = comp.exported
         val protectPermission = comp.permission
@@ -329,8 +328,8 @@ object DataCollector {
         var iccInfos = isetEmpty[IccInfo]
 //        var taintResult: Option[TaintAnalysisResult[InterproceduralNode, AlirEdge[InterproceduralNode]]] = None
         if(!compRec.isUnknown){
-          if(yard.hasIDFG(compTyp)) {
-            val InterproceduralDataFlowGraph(icfg, ptaresult) = yard.getIDFG(compTyp).get
+          if(apk.hasIDFG(compTyp)) {
+            val InterproceduralDataFlowGraph(icfg, ptaresult) = apk.getIDFG(compTyp).get
             val iccNodes = icfg.nodes.filter{
               node =>
                 node.isInstanceOf[ICFGCallNode] && node.asInstanceOf[ICFGCallNode].getCalleeSet.exists(c => InterComponentCommunicationModel.isIccOperation(c.callee))
@@ -338,7 +337,7 @@ object DataCollector {
             iccInfos =
               iccNodes.map{
                 iccNode =>
-                  val iccMethod = global.getMethod(iccNode.getOwner).get
+                  val iccMethod = apk.getMethod(iccNode.getOwner).get
                   val args = iccMethod.getBody.location(iccNode.getLocIndex).asInstanceOf[JumpLocation].jump.asInstanceOf[CallJump].callExp.arg match{
                     case te: TupleExp =>
                       te.exps.map {
@@ -351,18 +350,18 @@ object DataCollector {
                   val intentValues = ptaresult.pointsToSet(intentSlot, iccNode.context)
                   val intentcontents = IntentHelper.getIntentContents(ptaresult, intentValues, iccNode.getContext)
                   val compType = AndroidConstants.getIccCallType(iccNode.getCalleeSet.head.callee.getSubSignature)
-                  val comMap = IntentHelper.mappingIntents(global, apk, intentcontents, compType)
+                  val comMap = IntentHelper.mappingIntents(apk, intentcontents, compType)
                   val intents = intentcontents.map(ic=>Intent(ic.componentNames, ic.actions, ic.categories, ic.datas, ic.types, ic.preciseExplicit, ic.preciseImplicit, comMap(ic).map(c=>(c._1.name, c._2.toString))))
                   IccInfo(iccNode.getCalleeSet.map(_.callee), iccNode.getContext, intents)
               }.toSet
           }
       }
-      val dynamicReg = apk.getDynamicRegisteredReceivers.contains(compTyp)
+      val dynamicReg = apk.model.getDynamicRegisteredReceivers.contains(compTyp)
       ComponentData(compTyp.jawaName, typ, exported, dynamicReg, protectPermission, intentFilters, iccInfos)
     }
-    val taintResult = yard.getTaintAnalysisResult[InterproceduralNode, AlirEdge[InterproceduralNode]](apk.nameUri) match {
+    val taintResult: Option[TaintAnalysisResult[InterproceduralNode, AlirEdge[InterproceduralNode]]] = apk.getTaintAnalysisResult[InterproceduralNode, AlirEdge[InterproceduralNode]](apk.nameUri) match {
       case a @ Some(_) => a
-      case None => yard.getInterAppTaintAnalysisResult[InterproceduralNode, AlirEdge[InterproceduralNode]]
+      case None => None
     }
     AppData(appName, uses_permissions, compDatas, taintResult)
   }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016. Fengguo Wei and others.
+ * Copyright (c) 2017. Fengguo Wei and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -10,7 +10,7 @@
 
 package org.argus.amandroid.concurrent
 
-import org.argus.amandroid.core.Apk
+import org.argus.amandroid.core.model.ApkModel
 import org.argus.jawa.alir.pta.PTAResult
 import org.argus.jawa.core.Signature
 import org.sireum.util._
@@ -39,20 +39,20 @@ case class ApkInfoCollectData(fileUri: FileResourceUri, outApkUri: FileResourceU
 trait ApkInfoCollectResult extends AmandroidData {
   def fileUri: FileResourceUri
 }
-case class ApkInfoCollectSuccResult(apk: Apk, outApkUri: FileResourceUri, srcFolders: ISet[String]) extends ApkInfoCollectResult with Success {
-  def fileUri: FileResourceUri = apk.nameUri
+case class ApkInfoCollectSuccResult(model: ApkModel, outApkUri: FileResourceUri, srcFolders: ISet[String]) extends ApkInfoCollectResult with Success {
+  def fileUri: FileResourceUri = model.nameUri
 }
 case class ApkInfoCollectFailResult(fileUri: FileResourceUri, e: Exception) extends ApkInfoCollectResult with Failure
 
 // PointsToAnalysisActor's input
-case class PointsToAnalysisData(apk: Apk, outApkUri: FileResourceUri, srcFolders: ISet[String], algos: PTAAlgorithms.Value, stage: Boolean, timeoutForeachComponent: Duration) extends AmandroidData
+case class PointsToAnalysisData(model: ApkModel, outApkUri: FileResourceUri, srcFolders: ISet[String], algos: PTAAlgorithms.Value, stage: Boolean, timeoutForeachComponent: Duration) extends AmandroidData
 // PointsToAnalysisActor's result
 trait PointsToAnalysisResult extends AmandroidData {
   def fileUri: FileResourceUri
   def time: Long
 }
-case class PointsToAnalysisSuccResult(apk: Apk, time: Long, ptaresults: IMap[Signature, PTAResult]) extends PointsToAnalysisResult with Success {
-  def fileUri: FileResourceUri = apk.nameUri
+case class PointsToAnalysisSuccResult(model: ApkModel, time: Long, ptaresults: IMap[Signature, PTAResult]) extends PointsToAnalysisResult with Success {
+  def fileUri: FileResourceUri = model.nameUri
 }
 case class PointsToAnalysisSuccStageResult(fileUri: FileResourceUri, time: Long, outApkUri: FileResourceUri) extends PointsToAnalysisResult with Success
 case class PointsToAnalysisFailResult(fileUri: FileResourceUri, time: Long, e: Exception) extends PointsToAnalysisResult with Failure

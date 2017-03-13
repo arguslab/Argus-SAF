@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016. Fengguo Wei and others.
+ * Copyright (c) 2017. Fengguo Wei and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -14,7 +14,7 @@ import java.io.File
 
 import org.argus.amandroid.core.decompile.{ApkDecompiler, DecompileLayout, DecompilerSettings}
 import org.argus.amandroid.core.util.ApkFileUtil
-import org.argus.amandroid.core.{AndroidGlobalConfig, Apk}
+import org.argus.amandroid.core.{AndroidGlobalConfig, ApkGlobal}
 import org.argus.saf.cli.util.CliLogger
 import org.sireum.util._
 
@@ -55,7 +55,7 @@ object Decompiler {
           }
         case file =>
           println("Processing " + file)
-          if(Apk.isValidApk(FileUtil.toUri(file))) {
+          if(ApkGlobal.isValidApk(FileUtil.toUri(file))) {
             val layout = DecompileLayout(outputUri)
             val settings = DecompilerSettings(dpsuri, dexLog = false, debugMode = false, removeSupportGen = true, forceDelete = forceDelete, None, layout)
             ApkDecompiler.decompile(FileUtil.toUri(file), settings)

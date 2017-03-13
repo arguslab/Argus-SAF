@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016. Fengguo Wei and others.
+ * Copyright (c) 2017. Fengguo Wei and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -18,16 +18,6 @@ import org.sireum.util._
  * @author <a href="mailto:sroy@k-state.edu">Sankardas Roy</a>
  */ 
 object CallHandler {
-  /**
-   * get callee procedure from Center. Input: .equals:(Ljava/lang/Object;)Z
-   */
-  //def getCalleeMethod(from: JawaClass, pSubSig: String): JawaMethod = {
-  //  Center.getClassHierarchy.resolveConcreteDispatch(from, pSubSig) match{
-  //    case Some(ap) => ap
-  //    case None => Center.getMethodWithoutFailing(Center.UNKNOWN_PROCEDURE_SIG)
-  //  }
-  //}
-
   /**
    * check and get virtual callee procedure from Center. Input: equals:(Ljava/lang/Object;)Z
    */

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016. Fengguo Wei and others.
+ * Copyright (c) 2017. Fengguo Wei and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -20,14 +20,16 @@ object ContextSerializer extends CustomSerializer[Context](format => (
     {
       case jv: JValue =>
         implicit val formats = format + SignatureSerializer
+        val application = (jv \ "application").extract[String]
         val callStack = (jv \ "callStack").extract[IList[(Signature, String)]]
-        val c = new Context
+        val c = new Context(application)
         c.setContext(callStack)
         c
     },
     {
       case c: Context =>
         implicit val formats = format + SignatureSerializer
-        "callStack" -> Extraction.decompose(c.getContext)
+        ("application" -> c.application) ~
+        ("callStack" -> Extraction.decompose(c.getContext))
     }
 ))

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016. Fengguo Wei and others.
+ * Copyright (c) 2017. Fengguo Wei and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -51,4 +51,16 @@ object PilarAstHelper {
     }
     result
   }
+
+  def getCallArgs(body: MethodBody, locationIndex: Int): List[String] = {
+    body.location(locationIndex).asInstanceOf[JumpLocation].jump.asInstanceOf[CallJump].callExp.arg match {
+      case te: TupleExp =>
+        te.exps.map {
+          case ne: NameExp => ne.name.name
+          case exp => exp.toString
+        }.toList
+      case a => throw new RuntimeException("wrong exp type: " + a)
+    }
+  }
+
 }

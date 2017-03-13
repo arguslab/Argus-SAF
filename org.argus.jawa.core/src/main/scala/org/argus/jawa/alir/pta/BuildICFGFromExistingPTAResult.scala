@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016. Fengguo Wei and others.
+ * Copyright (c) 2017. Fengguo Wei and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -47,7 +47,7 @@ object BuildICFGFromExistingPTAResult {
       ep: JawaMethod,
       icfg: InterproceduralControlFlowGraph[N], 
       ptaresult: PTAResult): Unit = {
-    val context: Context = new Context
+    val context: Context = new Context(global.projectName)
     val nodes = icfg.collectCfgToBaseGraph(ep, context.copy, isFirst = true)
     val worklist: MList[N] = mlistEmpty ++ nodes
     val processed: MSet[N] = msetEmpty

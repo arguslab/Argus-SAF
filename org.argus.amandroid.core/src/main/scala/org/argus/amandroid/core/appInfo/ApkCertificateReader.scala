@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016. Fengguo Wei and others.
+ * Copyright (c) 2017. Fengguo Wei and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -22,7 +22,7 @@ import java.security.cert.Certificate
 import java.security.MessageDigest
 import java.security.interfaces.RSAPublicKey
 
-import org.argus.amandroid.core.Apk
+import org.argus.amandroid.core.ApkGlobal
 
 case class ApkCertificate(
     typ: String,
@@ -99,7 +99,7 @@ object ApkCertificateReader {
   
   def apply(fileUri: FileResourceUri): ISet[ApkCertificate] = {
     val apkcerts: MSet[ApkCertificate] = msetEmpty
-    if(Apk.isValidApk(fileUri)) {
+    if(ApkGlobal.isValidApk(fileUri)) {
       val jf = new JarFile(FileUtil.toFile(fileUri), true)
       for(ent <- jf.entries()) {
         if(ent.getName.startsWith("META-INF/") && ent.getName.endsWith(".RSA")) {

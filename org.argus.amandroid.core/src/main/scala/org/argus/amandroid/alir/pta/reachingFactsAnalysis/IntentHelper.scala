@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016. Fengguo Wei and others.
+ * Copyright (c) 2017. Fengguo Wei and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -14,11 +14,11 @@ import org.sireum.util._
 import java.net.URI
 import java.net.URLEncoder
 
-import org.argus.amandroid.core.{AndroidConstants, Apk}
+import org.argus.amandroid.core.{AndroidConstants, ApkGlobal}
 import org.argus.amandroid.core.parser.UriData
 import org.argus.jawa.alir.Context
 import org.argus.jawa.alir.pta.{FieldSlot, Instance, PTAConcreteStringInstance, PTAResult}
-import org.argus.jawa.core.{Global, JavaKnowledge, JawaType}
+import org.argus.jawa.core.{JavaKnowledge, JawaType}
 
 /**
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
@@ -106,7 +106,7 @@ object IntentHelper {
     result
   }
 
-  def populateByUri(data: UriData, uriData: String) = {
+  def populateByUri(data: UriData, uriData: String): Unit = {
     var scheme:String = null
     var host:String = null
     var port:String = null
@@ -126,7 +126,7 @@ object IntentHelper {
           path = if(uri.getPath != "") uri.getPath else null
           data.set(scheme, host, port, path, null, null)
         } catch {
-          case e: IllegalArgumentException => // err_msg_normal(TITLE, "Unexpected uri: " + legalUriStr)
+          case _: IllegalArgumentException => // err_msg_normal(TITLE, "Unexpected uri: " + legalUriStr)
         }
       } else if(uriData.contains(":")){  // because e.g. app code can have intent.setdata("http:") instead of intent.setdata("http://xyz:200/pqr/abc")
         scheme = uriData.split(":")(0)
@@ -136,36 +136,36 @@ object IntentHelper {
     }
   }
 
-  def mappingIntents(global: Global, apk: Apk, intentContents: ISet[IntentContent], compType: AndroidConstants.CompType.Value): IMap[IntentContent, ISet[(JawaType, IntentType.Value)]] = {
+  def mappingIntents(apk: ApkGlobal, intentContents: ISet[IntentContent], compType: AndroidConstants.CompType.Value): IMap[IntentContent, ISet[(JawaType, IntentType.Value)]] = {
     intentContents.map{
       ic =>
         val components: MSet[(JawaType, IntentType.Value)] = msetEmpty
         if(!ic.preciseExplicit){
           compType match {
             case AndroidConstants.CompType.ACTIVITY =>
-              components ++= apk.getActivities.map((_, IntentType.EXPLICIT))
+              components ++= apk.model.getActivities.map((_, IntentType.EXPLICIT))
             case AndroidConstants.CompType.SERVICE =>
-              components ++= apk.getServices.map((_, IntentType.EXPLICIT))
+              components ++= apk.model.getServices.map((_, IntentType.EXPLICIT))
             case AndroidConstants.CompType.RECEIVER =>
-              components ++= apk.getReceivers.map((_, IntentType.EXPLICIT))
+              components ++= apk.model.getReceivers.map((_, IntentType.EXPLICIT))
             case AndroidConstants.CompType.PROVIDER =>
-              components ++= apk.getProviders.map((_, IntentType.EXPLICIT))
+              components ++= apk.model.getProviders.map((_, IntentType.EXPLICIT))
           }
         } else if(!ic.preciseImplicit) {
           compType match {
             case AndroidConstants.CompType.ACTIVITY =>
-              components ++= apk.getActivities.filter(ep => apk.getIntentFilterDB.getIntentFilters(ep).nonEmpty).map((_, IntentType.IMPLICIT))
+              components ++= apk.model.getActivities.filter(ep => apk.model.getIntentFilterDB.getIntentFilters(ep).nonEmpty).map((_, IntentType.IMPLICIT))
             case AndroidConstants.CompType.SERVICE =>
-              components ++= apk.getServices.filter(ep => apk.getIntentFilterDB.getIntentFilters(ep).nonEmpty).map((_, IntentType.IMPLICIT))
+              components ++= apk.model.getServices.filter(ep => apk.model.getIntentFilterDB.getIntentFilters(ep).nonEmpty).map((_, IntentType.IMPLICIT))
             case AndroidConstants.CompType.RECEIVER =>
-              components ++= apk.getReceivers.filter(ep => apk.getIntentFilterDB.getIntentFilters(ep).nonEmpty).map((_, IntentType.IMPLICIT))
+              components ++= apk.model.getReceivers.filter(ep => apk.model.getIntentFilterDB.getIntentFilters(ep).nonEmpty).map((_, IntentType.IMPLICIT))
             case AndroidConstants.CompType.PROVIDER =>
-              components ++= apk.getProviders.filter(ep => apk.getIntentFilterDB.getIntentFilters(ep).nonEmpty).map((_, IntentType.IMPLICIT))
+              components ++= apk.model.getProviders.filter(ep => apk.model.getIntentFilterDB.getIntentFilters(ep).nonEmpty).map((_, IntentType.IMPLICIT))
           }
         }
         ic.componentNames.foreach{
           targetRecName =>
-            val targetRec = global.getClassOrResolve(new JawaType(targetRecName))
+            val targetRec = apk.getClassOrResolve(new JawaType(targetRecName))
             components += ((targetRec.getType, IntentType.EXPLICIT))
         }
         components ++= findComponents(apk, ic.actions, ic.categories, ic.datas, ic.types).map((_, IntentType.IMPLICIT))
@@ -173,7 +173,7 @@ object IntentHelper {
     }.toMap
   }
 
-  def findComponents(apk: Apk, actions: Set[String], categories: Set[String], datas: Set[UriData], mTypes:Set[String]): ISet[JawaType] = {
+  def findComponents(apk: ApkGlobal, actions: Set[String], categories: Set[String], datas: Set[UriData], mTypes:Set[String]): ISet[JawaType] = {
     val components: MSet[JawaType] = msetEmpty
     if(actions.isEmpty){
       if(datas.isEmpty){
@@ -204,11 +204,11 @@ object IntentHelper {
     components.toSet
   }
   
-  private def findComps(apk: Apk, action:String, categories: Set[String], data:UriData, mType:String): ISet[JawaType] = {
+  private def findComps(apk: ApkGlobal, action:String, categories: Set[String], data:UriData, mType:String): ISet[JawaType] = {
     val components: MSet[JawaType] = msetEmpty
-    apk.getComponents.foreach {
+    apk.model.getComponents.foreach {
       ep =>
-        val iFilters = apk.getIntentFilterDB.getIntentFilters(ep)
+        val iFilters = apk.model.getIntentFilterDB.getIntentFilters(ep)
         if(iFilters.nonEmpty){
           val matchedFilters = iFilters.filter(iFilter => iFilter.isMatchWith(action, categories, data, mType))
           if(matchedFilters.nonEmpty)

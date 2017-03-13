@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016. Fengguo Wei and others.
+ * Copyright (c) 2017. Fengguo Wei and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -18,6 +18,7 @@ import org.jgrapht.alg.DijkstraShortestPath
 import org.jgrapht.ext._
 import org.jgrapht.graph.DirectedPseudograph
 import org.sireum.alir._
+import org.sireum.util.Property.Key
 import org.sireum.util._
 
 import scala.collection.mutable
@@ -55,14 +56,14 @@ trait InterproceduralGraph[Node <: InterproceduralNode]
   def deleteEdge(source: Node, target: Node): Edge =
     graph.removeEdge(getNode(source), getNode(target))
 
-  def deleteEdge(e: Edge) = graph.removeEdge(e)
+  def deleteEdge(e: Edge): Boolean = graph.removeEdge(e)
 
   protected val pl: MMap[InterproceduralNode, Node] = new mutable.HashMap[InterproceduralNode, Node] with mutable.SynchronizedMap[InterproceduralNode, Node]
 
   def pool: MMap[InterproceduralNode, Node] = pl
 
   protected val vIDProvider = new VertexNameProvider[Node]() {
-    def filterLabel(uri: String) = {
+    def filterLabel(uri: String): String = {
 		  uri.filter(_.isUnicodeIdentifierPart)  // filters out the special characters like '/', '.', '%', etc.
 		}
 
@@ -72,7 +73,7 @@ trait InterproceduralGraph[Node <: InterproceduralNode]
   }
 
   protected val vLDProvider = new VertexNameProvider[Node]() {
-    def filterLabel(uri: String) = {
+    def filterLabel(uri: String): String = {
       uri.filter(_.isUnicodeIdentifierPart)  // filters out the special characters like '/', '.', '%', etc.
     }
 
@@ -82,7 +83,7 @@ trait InterproceduralGraph[Node <: InterproceduralNode]
   }
 
   protected val eIDProvider = new EdgeNameProvider[Edge]() {
-    def filterLabel(uri: String) = {
+    def filterLabel(uri: String): String = {
       uri.filter(_.isUnicodeIdentifierPart)  // filters out the special characters like '/', '.', '%', etc.
     }
 
@@ -91,17 +92,17 @@ trait InterproceduralGraph[Node <: InterproceduralNode]
     }
   }
 
-  def toDot(w: Writer, vlp: VertexNameProvider[Node] = vIDProvider) = {
+  def toDot(w: Writer, vlp: VertexNameProvider[Node] = vIDProvider): Unit = {
     val de = new DOTExporter[Node, Edge](vlp, vlp, null)
     de.export(w, graph)
   }
 
-  def toGraphML(w: Writer, vip: VertexNameProvider[Node] = vIDProvider, vlp: VertexNameProvider[Node] = vLDProvider, eip: EdgeNameProvider[Edge] = eIDProvider, elp: EdgeNameProvider[Edge] = null) = {
+  def toGraphML(w: Writer, vip: VertexNameProvider[Node] = vIDProvider, vlp: VertexNameProvider[Node] = vLDProvider, eip: EdgeNameProvider[Edge] = eIDProvider, elp: EdgeNameProvider[Edge] = null): Unit = {
     val graphml = new GraphMLExporter[Node, Edge](vip, vlp, eip, elp)
     graphml.export(w, graph)
   }
 
-  def toGML(w: Writer, vip: VertexNameProvider[Node] = vIDProvider, vlp: VertexNameProvider[Node] = vLDProvider, eip: EdgeNameProvider[Edge] = eIDProvider, elp: EdgeNameProvider[Edge] = null) = {
+  def toGML(w: Writer, vip: VertexNameProvider[Node] = vIDProvider, vlp: VertexNameProvider[Node] = vLDProvider, eip: EdgeNameProvider[Edge] = eIDProvider, elp: EdgeNameProvider[Edge] = null): Unit = {
     val gml = new GmlExporter[Node, Edge](vip, vlp, eip, elp)
     gml.export(w, graph)
   }
@@ -119,6 +120,6 @@ trait InterproceduralGraph[Node <: InterproceduralNode]
  * @author <a href="mailto:sroy@k-state.edu">Sankardas Roy</a>
  */
 abstract class InterproceduralNode(context: Context) extends PropertyProvider with Serializable {
-  val propertyMap = mlinkedMapEmpty[Property.Key, Any]
-  def getContext = this.context
+  val propertyMap: MLinkedMap[Key, Any] = mlinkedMapEmpty[Property.Key, Any]
+  def getContext: Context = this.context
 }

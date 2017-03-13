@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016. Fengguo Wei and others.
+ * Copyright (c) 2017. Fengguo Wei and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -14,7 +14,7 @@ import org.sireum.util._
 import scala.util.control.Breaks._
 import java.io.FileInputStream
 
-import org.argus.amandroid.core.{AndroidConstants, Apk}
+import org.argus.amandroid.core.{AndroidConstants, ApkGlobal}
 import org.argus.amandroid.core.parser._
 import org.argus.amandroid.core.pilarCodeGenerator.{AndroidEntryPointConstants, AndroidEnvironmentGenerator, AndroidSubstituteClassMap}
 import org.argus.jawa.core._
@@ -52,9 +52,9 @@ object AppInfoCollector {
     afp
   }
 
-  def analyzeLayouts(global: Global, outputUri: FileResourceUri, mfp: ManifestParser, afp: ARSCFileParser_apktool): LayoutFileParser = {
+  def analyzeLayouts(apk: ApkGlobal, outputUri: FileResourceUri, mfp: ManifestParser, afp: ARSCFileParser_apktool): LayoutFileParser = {
     // Find the user-defined sources in the layout XML files
-    val lfp = new LayoutFileParser(global, mfp.getPackageName, afp)
+    val lfp = new LayoutFileParser(apk, mfp.getPackageName, afp)
     FileUtil.listFiles(outputUri, ".xml", recursive = true).foreach {
       u =>
         if(u.contains("/res/layout")) {
@@ -63,8 +63,8 @@ object AppInfoCollector {
           lfp.loadLayoutFromTextXml(file.getName, layout_in)
         }
     }
-    global.reporter.echo(TITLE, "layoutcallback--->" + lfp.getCallbackMethods)
-    global.reporter.echo(TITLE, "layoutuser--->" + lfp.getUserControls)
+    apk.reporter.echo(TITLE, "layoutcallback--->" + lfp.getCallbackMethods)
+    apk.reporter.echo(TITLE, "layoutuser--->" + lfp.getUserControls)
     lfp
   }
 
@@ -127,38 +127,38 @@ object AppInfoCollector {
     analysisHelper
   }
 
-  def generateEnvironment(apk: Apk, record: JawaClass, envName: String, reporter: Reporter): Int = {
+  def generateEnvironment(apk: ApkGlobal, record: JawaClass, envName: String): Int = {
     if(record == null) return 0
     //generate env main method
-    reporter.echo(TITLE, "Generate environment for " + record)
+    apk.reporter.echo(TITLE, "Generate environment for " + record)
     val dmGen = new AndroidEnvironmentGenerator(record.global)
     dmGen.setSubstituteClassMap(AndroidSubstituteClassMap.getSubstituteClassMap)
     dmGen.setCurrentComponent(record.getType)
-    dmGen.setComponentInfos(apk.getComponentInfos)
-    dmGen.setCodeCounter(apk.getCodeLineCounter)
-    dmGen.setCallbackFunctions(apk.getCallbackMethodMapping)
-    dmGen.setCallbackFunctions(apk.getRpcMethodMapping)
+    dmGen.setComponentInfos(apk.model.getComponentInfos)
+    dmGen.setCodeCounter(apk.model.getCodeLineCounter)
+    dmGen.setCallbackFunctions(apk.model.getCallbackMethodMapping)
+    dmGen.setCallbackFunctions(apk.model.getRpcMethodMappingWithoutRemoteFlag)
     val (proc, code) = dmGen.generateWithParam(List(new JawaType(AndroidEntryPointConstants.INTENT_NAME)), envName)
-    apk.addEnvMap(record.getType, proc.getSignature, code)
+    apk.model.addEnvMap(record.getType, proc.getSignature, code)
     dmGen.getCodeCounter
   }
 
-  def dynamicRegisterReceiver(apk: Apk, comRec: JawaClass, iDB: IntentFilterDataBase, permission: ISet[String], reporter: Reporter): Unit = {
+  def dynamicRegisterReceiver(apk: ApkGlobal, comRec: JawaClass, iDB: IntentFilterDataBase, permission: ISet[String]): Unit = {
     this.synchronized{
       if(!comRec.declaresMethodByName(AndroidConstants.COMP_ENV)){
-        reporter.echo(TITLE, "*************Dynamically Register Component**************")
-        reporter.echo(TITLE, "Component name: " + comRec)
-        apk.updateIntentFilterDB(iDB)
+        apk.reporter.echo(TITLE, "*************Dynamically Register Component**************")
+        apk.reporter.echo(TITLE, "Component name: " + comRec)
+        apk.model.updateIntentFilterDB(iDB)
         AppInfoCollector.reachabilityAnalysis(comRec.global, Set(comRec.getType)).getCallbackMethods foreach {
-          case (typ, sigs) => apk.addCallbackMethods(typ, sigs)
+          case (typ, sigs) => apk.model.addCallbackMethods(typ, sigs)
         }
-        reporter.echo(TITLE, "Found " + apk.getCallbackMethods.size + " callback methods")
-        val clCounter = generateEnvironment(apk, comRec, AndroidConstants.COMP_ENV, reporter)
-        apk.setCodeLineCounter(clCounter)
-        apk.addComponentInfo(ComponentInfo(comRec.getType, ComponentType.RECEIVER, exported = true, enabled = true, permission))
-        apk.addDynamicRegisteredReceiver(comRec.getType)
-        apk.updateIntentFilterDB(iDB)
-        reporter.echo(TITLE, "~~~~~~~~~~~~~~~~~~~~~~~~~Done~~~~~~~~~~~~~~~~~~~~~~~~~~")
+        apk.reporter.echo(TITLE, "Found " + apk.model.getCallbackMethods.size + " callback methods")
+        val clCounter = generateEnvironment(apk, comRec, AndroidConstants.COMP_ENV)
+        apk.model.setCodeLineCounter(clCounter)
+        apk.model.addComponentInfo(ComponentInfo(comRec.getType, ComponentType.RECEIVER, exported = true, enabled = true, permission))
+        apk.model.addDynamicRegisteredReceiver(comRec.getType)
+        apk.model.updateIntentFilterDB(iDB)
+        apk.reporter.echo(TITLE, "~~~~~~~~~~~~~~~~~~~~~~~~~Done~~~~~~~~~~~~~~~~~~~~~~~~~~")
       }
     }
   }
@@ -167,61 +167,61 @@ object AppInfoCollector {
    * Get rpc method list for Android component
    * originally designed by Sankardas Roy, modified by Fengguo Wei
    */
-  private def getRpcMethods(apk: Apk, comp: JawaClass, ra: ReachableInfoCollector): ISet[Signature] = {
+  private def getRpcMethods(apk: ApkGlobal, comp: JawaClass, ra: ReachableInfoCollector): IMap[Signature, Boolean] = {
     val global = comp.global
     val methods = ra.getReachableMap.getOrElse(comp.getType, isetEmpty)
     val iinterfaceImpls = global.getClassHierarchy.getAllImplementersOf(new JawaType("android.os.IInterface"))
-    val result: MSet[Signature] = msetEmpty
+    val result: MMap[Signature, Boolean] = mmapEmpty
     methods.foreach { method =>
       /* This is the remote service case. */
       if(iinterfaceImpls.contains(method.classTyp)) {
-        result ++= global.getClassOrResolve(method.classTyp).getMethods.filter(m => m.getDeclaringClass.isApplicationClass && !m.isConstructor && !m.isStatic).map(_.getSignature)
+        result ++= global.getClassOrResolve(method.classTyp).getMethods.filter(m => m.getDeclaringClass.isApplicationClass && !m.isConstructor && !m.isStatic).map(_.getSignature -> true)
       }
       /* This is the messenger service case. */
       if(global.getClassHierarchy.isClassRecursivelySubClassOf(method.classTyp, new JawaType("android.os.Handler"))) {
-        result ++= global.getClassOrResolve(method.classTyp).getMethod("handleMessage:(Landroid/os/Message;)V").map(_.getSignature)
+        result ++= global.getClassOrResolve(method.classTyp).getMethod("handleMessage:(Landroid/os/Message;)V").map(_.getSignature -> true)
       }
     }
     /* This is the local service case. */
     result ++= comp.getDeclaredMethods.filter { method =>
       !(method.isConstructor || method.isStatic || AndroidEntryPointConstants.getServiceLifecycleMethods.contains(method.getSubSignature)
           || method.getName == AndroidConstants.MAINCOMP_ENV || method.getName == AndroidConstants.COMP_ENV)
-    }.map(_.getSignature)
-    result.toSet
+    }.map(_.getSignature -> false)
+    result.toMap
   }
 
-  def collectInfo(apk: Apk, global: Global, outUri: FileResourceUri): Unit = {
+  def collectInfo(apk: ApkGlobal, outUri: FileResourceUri): Unit = {
     val certs = AppInfoCollector.readCertificates(apk.nameUri)
     val manifestUri = MyFileUtil.appendFileName(outUri, "AndroidManifest.xml")
-    val mfp = AppInfoCollector.analyzeManifest(global.reporter, manifestUri)
-    val afp = AppInfoCollector.analyzeARSC(global.reporter, apk.nameUri)
-    val lfp = AppInfoCollector.analyzeLayouts(global, outUri, mfp, afp)
-    val ra = AppInfoCollector.reachabilityAnalysis(global, mfp.getComponentInfos.map(_.compType))
-    val callbacks = AppInfoCollector.analyzeCallback(global.reporter, afp, lfp, ra)
-    apk.addCertificates(certs)
-    apk.setPackageName(mfp.getPackageName)
-    apk.addComponentInfos(mfp.getComponentInfos)
-    apk.addUsesPermissions(mfp.getPermissions)
-    apk.updateIntentFilterDB(mfp.getIntentDB)
-    apk.addLayoutControls(lfp.getUserControls)
+    val mfp = AppInfoCollector.analyzeManifest(apk.reporter, manifestUri)
+    val afp = AppInfoCollector.analyzeARSC(apk.reporter, apk.nameUri)
+    val lfp = AppInfoCollector.analyzeLayouts(apk, outUri, mfp, afp)
+    val ra = AppInfoCollector.reachabilityAnalysis(apk, mfp.getComponentInfos.map(_.compType))
+    val callbacks = AppInfoCollector.analyzeCallback(apk.reporter, afp, lfp, ra)
+    apk.model.addCertificates(certs)
+    apk.model.setPackageName(mfp.getPackageName)
+    apk.model.addComponentInfos(mfp.getComponentInfos)
+    apk.model.addUsesPermissions(mfp.getPermissions)
+    apk.model.updateIntentFilterDB(mfp.getIntentDB)
+    apk.model.addLayoutControls(lfp.getUserControls)
     callbacks foreach {
-      case (typ, sigs) => apk.addCallbackMethods(typ, sigs)
+      case (typ, sigs) => apk.model.addCallbackMethods(typ, sigs)
     }
     mfp.getComponentInfos.foreach {
       f =>
         if(f.enabled){
-          val comp = global.getClassOrResolve(f.compType)
+          val comp = apk.getClassOrResolve(f.compType)
           if(!comp.isUnknown && comp.isApplicationClass){
-            apk.addComponent(comp.getType, f.typ)
+            apk.model.addComponent(comp.getType, f.typ)
             if(f.typ == ComponentType.SERVICE) {
               val rpcs = getRpcMethods(apk, comp, ra)
-              apk.addRpcMethods(comp.getType, rpcs)
+              apk.model.addRpcMethods(comp.getType, rpcs)
             }
-            val clCounter = generateEnvironment(apk, comp, if(f.exported)AndroidConstants.MAINCOMP_ENV else AndroidConstants.COMP_ENV, global.reporter)
-            apk.setCodeLineCounter(clCounter)
+            val clCounter = generateEnvironment(apk, comp, if(f.exported)AndroidConstants.MAINCOMP_ENV else AndroidConstants.COMP_ENV)
+            apk.model.setCodeLineCounter(clCounter)
           }
         }
     }
-    global.reporter.echo(TITLE, "Entry point calculation done.")
+    apk.reporter.echo(TITLE, "Entry point calculation done.")
   }
 }

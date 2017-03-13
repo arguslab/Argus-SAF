@@ -23,227 +23,236 @@ import org.sireum.util.FileUtil
   * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
   */
 class BenchMarkTest extends FlatSpec with Matchers {
-  private final val debug = false
+  private final val DEBUG = false
 
   "ICC_Explicit_NoSrc_NoSink" should "have 0 taint paths" in {
-    val res = taintAnalyze(getClass.getResource("/icc-bench/IccHandling/icc_explicit_nosrc_nosink.apk").getPath)
+    val res = taintAnalysis(getClass.getResource("/icc-bench/IccHandling/icc_explicit_nosrc_nosink.apk").getPath)
     assert(res.isDefined && res.get.getTaintedPaths.isEmpty)
   }
 
   "ICC_Explicit_NoSrc_Sink" should "have 0 taint paths" in {
-    val res = taintAnalyze(getClass.getResource("/icc-bench/IccHandling/icc_explicit_nosrc_sink.apk").getPath)
+    val res = taintAnalysis(getClass.getResource("/icc-bench/IccHandling/icc_explicit_nosrc_sink.apk").getPath)
     assert(res.isDefined && res.get.getTaintedPaths.isEmpty)
   }
 
   "ICC_Explicit_Src_NoSink" should "have 0 taint paths" in {
-    val res = taintAnalyze(getClass.getResource("/icc-bench/IccHandling/icc_explicit_src_nosink.apk").getPath)
+    val res = taintAnalysis(getClass.getResource("/icc-bench/IccHandling/icc_explicit_src_nosink.apk").getPath)
     assert(res.isDefined && res.get.getTaintedPaths.isEmpty)
   }
 
   "ICC_Explicit_Src_Sink" should "have 1 taint path" in {
-    val res = taintAnalyze(getClass.getResource("/icc-bench/IccHandling/icc_explicit_src_sink.apk").getPath)
+    val res = taintAnalysis(getClass.getResource("/icc-bench/IccHandling/icc_explicit_src_sink.apk").getPath)
     assert(res.isDefined && res.get.getTaintedPaths.size == 1)
   }
 
   "ICC_Implicit_NoSrc_NoSink" should "have 0 taint paths" in {
-    val res = taintAnalyze(getClass.getResource("/icc-bench/IccHandling/icc_implicit_nosrc_nosink.apk").getPath)
+    val res = taintAnalysis(getClass.getResource("/icc-bench/IccHandling/icc_implicit_nosrc_nosink.apk").getPath)
     assert(res.isDefined && res.get.getTaintedPaths.isEmpty)
   }
 
   "ICC_Implicit_NoSrc_Sink" should "have 0 taint paths" in {
-    val res = taintAnalyze(getClass.getResource("/icc-bench/IccHandling/icc_implicit_nosrc_sink.apk").getPath)
+    val res = taintAnalysis(getClass.getResource("/icc-bench/IccHandling/icc_implicit_nosrc_sink.apk").getPath)
     assert(res.isDefined && res.get.getTaintedPaths.isEmpty)
   }
 
   "ICC_Implicit_Src_NoSink" should "have 1 taint path" in {
-    val res = taintAnalyze(getClass.getResource("/icc-bench/IccHandling/icc_implicit_src_nosink.apk").getPath)
+    val res = taintAnalysis(getClass.getResource("/icc-bench/IccHandling/icc_implicit_src_nosink.apk").getPath)
     assert(res.isDefined && res.get.getTaintedPaths.size == 1)
   }
 
   "ICC_Implicit_Src_Sink" should "have 2 taint paths" in {
-    val res = taintAnalyze(getClass.getResource("/icc-bench/IccHandling/icc_implicit_src_sink.apk").getPath)
+    val res = taintAnalysis(getClass.getResource("/icc-bench/IccHandling/icc_implicit_src_sink.apk").getPath)
     assert(res.isDefined && res.get.getTaintedPaths.size == 2)
   }
 
   "ICC_IntentService" should "have 1 taint path" in {
-    val res = taintAnalyze(getClass.getResource("/icc-bench/IccHandling/icc_intentservice.apk").getPath)
+    val res = taintAnalysis(getClass.getResource("/icc-bench/IccHandling/icc_intentservice.apk").getPath)
     assert(res.isDefined && res.get.getTaintedPaths.size == 1)
   }
 
   "ICC_Stateful" should "have 3 taint paths" in {
-    val res = taintAnalyze(getClass.getResource("/icc-bench/IccHandling/icc_stateful.apk").getPath)
+    val res = taintAnalysis(getClass.getResource("/icc-bench/IccHandling/icc_stateful.apk").getPath)
     assert(res.isDefined && res.get.getTaintedPaths.size == 3)
   }
 
   "ICC_DynRegister1" should "have 2 taint paths" in {
-    val res = taintAnalyze(getClass.getResource("/icc-bench/IccTargetFinding/icc_dynregister1.apk").getPath)
+    val res = taintAnalysis(getClass.getResource("/icc-bench/IccTargetFinding/icc_dynregister1.apk").getPath)
     assert(res.isDefined && res.get.getTaintedPaths.size == 2)
   }
 
   "ICC_DynRegister2" should "have 3 taint paths" in {
-    val res = taintAnalyze(getClass.getResource("/icc-bench/IccTargetFinding/icc_dynregister2.apk").getPath)
+    val res = taintAnalysis(getClass.getResource("/icc-bench/IccTargetFinding/icc_dynregister2.apk").getPath)
     assert(res.isDefined && res.get.getTaintedPaths.size == 3)
   }
 
   "ICC_Explicit1" should "have 1 taint path" in {
-    val res = taintAnalyze(getClass.getResource("/icc-bench/IccTargetFinding/icc_explicit1.apk").getPath)
+    val res = taintAnalysis(getClass.getResource("/icc-bench/IccTargetFinding/icc_explicit1.apk").getPath)
     assert(res.isDefined && res.get.getTaintedPaths.size == 1)
   }
 
   "ICC_Implicit1" should "have 2 taint paths" in {
-    val res = taintAnalyze(getClass.getResource("/icc-bench/IccTargetFinding/icc_implicit_action.apk").getPath)
+    val res = taintAnalysis(getClass.getResource("/icc-bench/IccTargetFinding/icc_implicit_action.apk").getPath)
     assert(res.isDefined && res.get.getTaintedPaths.size == 2)
   }
 
   "ICC_Implicit2" should "have 2 taint paths" in {
-    val res = taintAnalyze(getClass.getResource("/icc-bench/IccTargetFinding/icc_implicit_category.apk").getPath)
+    val res = taintAnalysis(getClass.getResource("/icc-bench/IccTargetFinding/icc_implicit_category.apk").getPath)
     assert(res.isDefined && res.get.getTaintedPaths.size == 2)
   }
 
   "ICC_Implicit3" should "have 2 taint paths" in {
-    val res = taintAnalyze(getClass.getResource("/icc-bench/IccTargetFinding/icc_implicit_data1.apk").getPath)
+    val res = taintAnalysis(getClass.getResource("/icc-bench/IccTargetFinding/icc_implicit_data1.apk").getPath)
     assert(res.isDefined && res.get.getTaintedPaths.size == 2)
   }
 
   "ICC_Implicit4" should "have 2 taint paths" in {
-    val res = taintAnalyze(getClass.getResource("/icc-bench/IccTargetFinding/icc_implicit_data2.apk").getPath)
+    val res = taintAnalysis(getClass.getResource("/icc-bench/IccTargetFinding/icc_implicit_data2.apk").getPath)
     assert(res.isDefined && res.get.getTaintedPaths.size == 2)
   }
 
   "ICC_Implicit5" should "have 3 taint paths" in {
-    val res = taintAnalyze(getClass.getResource("/icc-bench/IccTargetFinding/icc_implicit_mix1.apk").getPath)
+    val res = taintAnalysis(getClass.getResource("/icc-bench/IccTargetFinding/icc_implicit_mix1.apk").getPath)
     assert(res.isDefined && res.get.getTaintedPaths.size == 3)
   }
 
   "ICC_Implicit6" should "have 2 taint paths" in {
-    val res = taintAnalyze(getClass.getResource("/icc-bench/IccTargetFinding/icc_implicit_mix2.apk").getPath)
+    val res = taintAnalysis(getClass.getResource("/icc-bench/IccTargetFinding/icc_implicit_mix2.apk").getPath)
     assert(res.isDefined && res.get.getTaintedPaths.size == 2)
   }
 
   "ICC_RPC_Comprehensive" should "have 3 taint path" in {
-    val res = taintAnalyze(getClass.getResource("/icc-bench/Mixed/icc_rpc_comprehensive.apk").getPath)
+    val res = taintAnalysis(getClass.getResource("/icc-bench/Mixed/icc_rpc_comprehensive.apk").getPath)
     assert(res.isDefined && res.get.getTaintedPaths.size == 3)
   }
 
   "RPC_LocalService" should "have 1 taint path" in {
-    val res = taintAnalyze(getClass.getResource("/icc-bench/RpcHandling/rpc_localservice.apk").getPath)
+    val res = taintAnalysis(getClass.getResource("/icc-bench/RpcHandling/rpc_localservice.apk").getPath)
     assert(res.isDefined && res.get.getTaintedPaths.size == 1)
   }
 
   "RPC_MessengerService" should "have 1 taint path" in {
-    val res = taintAnalyze(getClass.getResource("/icc-bench/RpcHandling/rpc_messengerservice.apk").getPath)
+    val res = taintAnalysis(getClass.getResource("/icc-bench/RpcHandling/rpc_messengerservice.apk").getPath)
     assert(res.isDefined && res.get.getTaintedPaths.size == 1)
   }
 
   "RPC_RemoteService" should "have 1 taint path" in {
-    val res = taintAnalyze(getClass.getResource("/icc-bench/RpcHandling/rpc_remoteservice.apk").getPath)
+    val res = taintAnalysis(getClass.getResource("/icc-bench/RpcHandling/rpc_remoteservice.apk").getPath)
     assert(res.isDefined && res.get.getTaintedPaths.size == 1)
   }
 
   "RPC_ReturnSensitive" should "have 1 taint path" in {
-    val res = taintAnalyze(getClass.getResource("/icc-bench/RpcHandling/rpc_returnsensitive.apk").getPath)
+    val res = taintAnalysis(getClass.getResource("/icc-bench/RpcHandling/rpc_returnsensitive.apk").getPath)
     assert(res.isDefined && res.get.getTaintedPaths.size == 1)
   }
 
   "ActivityCommunication1" should "have 1 taint path" in {
-    val res = taintAnalyze(getClass.getResource("/droid-bench/InterComponentCommunication/ActivityCommunication1.apk").getPath)
+    val res = taintAnalysis(getClass.getResource("/droid-bench/InterComponentCommunication/ActivityCommunication1.apk").getPath)
     assert(res.isDefined && res.get.getTaintedPaths.size == 1)
   }
 
   "ActivityCommunication2" should "have 3 taint paths" in {
-    val res = taintAnalyze(getClass.getResource("/droid-bench/InterComponentCommunication/ActivityCommunication2.apk").getPath)
+    val res = taintAnalysis(getClass.getResource("/droid-bench/InterComponentCommunication/ActivityCommunication2.apk").getPath)
     assert(res.isDefined && res.get.getTaintedPaths.size == 3)
   }
 
   "ActivityCommunication3" should "have 1 taint path" in {
-    val res = taintAnalyze(getClass.getResource("/droid-bench/InterComponentCommunication/ActivityCommunication3.apk").getPath)
+    val res = taintAnalysis(getClass.getResource("/droid-bench/InterComponentCommunication/ActivityCommunication3.apk").getPath)
     assert(res.isDefined && res.get.getTaintedPaths.size == 1)
   }
 
   "ActivityCommunication4" should "have 2 taint paths" in {
-    val res = taintAnalyze(getClass.getResource("/droid-bench/InterComponentCommunication/ActivityCommunication4.apk").getPath)
+    val res = taintAnalysis(getClass.getResource("/droid-bench/InterComponentCommunication/ActivityCommunication4.apk").getPath)
     assert(res.isDefined && res.get.getTaintedPaths.size == 2)
   }
 
   "ActivityCommunication5" should "have 1 taint path" in {
-    val res = taintAnalyze(getClass.getResource("/droid-bench/InterComponentCommunication/ActivityCommunication5.apk").getPath)
+    val res = taintAnalysis(getClass.getResource("/droid-bench/InterComponentCommunication/ActivityCommunication5.apk").getPath)
     assert(res.isDefined && res.get.getTaintedPaths.size == 1)
   }
 
   "ActivityCommunication6" should "have 1 taint path" in {
-    val res = taintAnalyze(getClass.getResource("/droid-bench/InterComponentCommunication/ActivityCommunication6.apk").getPath)
+    val res = taintAnalysis(getClass.getResource("/droid-bench/InterComponentCommunication/ActivityCommunication6.apk").getPath)
     assert(res.isDefined && res.get.getTaintedPaths.size == 1)
   }
 
   "ActivityCommunication7" should "have 1 taint path" in {
-    val res = taintAnalyze(getClass.getResource("/droid-bench/InterComponentCommunication/ActivityCommunication7.apk").getPath)
+    val res = taintAnalysis(getClass.getResource("/droid-bench/InterComponentCommunication/ActivityCommunication7.apk").getPath)
     assert(res.isDefined && res.get.getTaintedPaths.size == 1)
   }
 
   "ActivityCommunication8" should "have 2 taint paths" in {
-    val res = taintAnalyze(getClass.getResource("/droid-bench/InterComponentCommunication/ActivityCommunication8.apk").getPath)
+    val res = taintAnalysis(getClass.getResource("/droid-bench/InterComponentCommunication/ActivityCommunication8.apk").getPath)
     assert(res.isDefined && res.get.getTaintedPaths.size == 2)
   }
 
   "BroadcastTaintAndLeak1" should "have 2 taint paths" in {
-    val res = taintAnalyze(getClass.getResource("/droid-bench/InterComponentCommunication/BroadcastTaintAndLeak1.apk").getPath)
+    val res = taintAnalysis(getClass.getResource("/droid-bench/InterComponentCommunication/BroadcastTaintAndLeak1.apk").getPath)
     assert(res.isDefined && res.get.getTaintedPaths.size == 2)
   }
 
   "ComponentNotInManifest1" should "have 0 taint paths" in {
-    val res = taintAnalyze(getClass.getResource("/droid-bench/InterComponentCommunication/ComponentNotInManifest1.apk").getPath)
+    val res = taintAnalysis(getClass.getResource("/droid-bench/InterComponentCommunication/ComponentNotInManifest1.apk").getPath)
     assert(res.isDefined && res.get.getTaintedPaths.isEmpty)
   }
 
   "EventOrdering1" should "have 1 taint path" in {
-    val res = taintAnalyze(getClass.getResource("/droid-bench/InterComponentCommunication/EventOrdering1.apk").getPath)
+    val res = taintAnalysis(getClass.getResource("/droid-bench/InterComponentCommunication/EventOrdering1.apk").getPath)
     assert(res.isDefined && res.get.getTaintedPaths.size == 1)
   }
 
   "IntentSink1" should "have 1 taint path" in {
-    val res = taintAnalyze(getClass.getResource("/droid-bench/InterComponentCommunication/IntentSink1.apk").getPath)
+    val res = taintAnalysis(getClass.getResource("/droid-bench/InterComponentCommunication/IntentSink1.apk").getPath)
     assert(res.isDefined && res.get.getTaintedPaths.size == 1)
   }
 
   "IntentSink2" should "have 0 taint paths" in {
-    val res = taintAnalyze(getClass.getResource("/droid-bench/InterComponentCommunication/IntentSink2.apk").getPath)
+    val res = taintAnalysis(getClass.getResource("/droid-bench/InterComponentCommunication/IntentSink2.apk").getPath)
     assert(res.isDefined && res.get.getTaintedPaths.isEmpty)
   }
 
   "IntentSource1" should "have 2 taint path" in {
-    val res = taintAnalyze(getClass.getResource("/droid-bench/InterComponentCommunication/IntentSource1.apk").getPath)
+    val res = taintAnalysis(getClass.getResource("/droid-bench/InterComponentCommunication/IntentSource1.apk").getPath)
     assert(res.isDefined && res.get.getTaintedPaths.size == 2)
   }
 
   "ServiceCommunication1" should "have 1 taint path" in {
-    val res = taintAnalyze(getClass.getResource("/droid-bench/InterComponentCommunication/ServiceCommunication1.apk").getPath)
+    val res = taintAnalysis(getClass.getResource("/droid-bench/InterComponentCommunication/ServiceCommunication1.apk").getPath)
     assert(res.isDefined && res.get.getTaintedPaths.size == 1)
   }
 
   "SharedPreferences1" should "have 1 taint path" in {
-    val res = taintAnalyze(getClass.getResource("/droid-bench/InterComponentCommunication/SharedPreferences1.apk").getPath)
+    val res = taintAnalysis(getClass.getResource("/droid-bench/InterComponentCommunication/SharedPreferences1.apk").getPath)
     assert(res.isDefined && res.get.getTaintedPaths.size == 1)
   }
 
   "Singletons1" should "have 0 taint paths" in {
-    val res = taintAnalyze(getClass.getResource("/droid-bench/InterComponentCommunication/Singletons1.apk").getPath)
+    val res = taintAnalysis(getClass.getResource("/droid-bench/InterComponentCommunication/Singletons1.apk").getPath)
     assert(res.isDefined && res.get.getTaintedPaths.isEmpty)
   }
 
   "UnresolvableIntent1" should "have 3 taint paths" in {
-    val res = taintAnalyze(getClass.getResource("/droid-bench/InterComponentCommunication/UnresolvableIntent1.apk").getPath)
+    val res = taintAnalysis(getClass.getResource("/droid-bench/InterComponentCommunication/UnresolvableIntent1.apk").getPath)
     assert(res.isDefined && res.get.getTaintedPaths.size == 3)
   }
 
-  def taintAnalyze(apkFile: String): Option[TaintAnalysisResult[AndroidDataDependentTaintAnalysis.Node, InterproceduralDataDependenceAnalysis.Edge]] = {
-    val fileUri = FileUtil.toUri(apkFile)
-    val outputUri = FileUtil.toUri(apkFile.substring(0, apkFile.length - 4))
+  "InterAppCommunication" should "have 3 taint paths" in {
+    val echoer_path = getClass.getResource("/droid-bench/InterAppCommunication/Echoer.apk").getPath
+    val sendsms_path = getClass.getResource("/droid-bench/InterAppCommunication/SendSMS.apk").getPath
+    val forresult_path = getClass.getResource("/droid-bench/InterAppCommunication/StartActivityForResult1.apk").getPath
+    val res = taintAnalysis(Set(echoer_path, sendsms_path, forresult_path))
+    assert(res.isDefined && res.get.getTaintedPaths.size == 3)
+  }
 
-    val reporter = if(debug) new PrintReporter(MsgLevel.INFO) else new NoReporter
-    val global = new Global(fileUri, reporter)
-    global.setJavaLib(getClass.getResource("/libs/android.jar").getPath)
+  private def taintAnalysis(apkFile: String): Option[TaintAnalysisResult[AndroidDataDependentTaintAnalysis.Node, InterproceduralDataDependenceAnalysis.Edge]] = {
+    taintAnalysis(Set(apkFile))
+  }
+
+  private def taintAnalysis(apkFiles: Set[String]): Option[TaintAnalysisResult[AndroidDataDependentTaintAnalysis.Node, InterproceduralDataDependenceAnalysis.Edge]] = {
+    val fileUris = apkFiles.map(FileUtil.toUri)
+    val outputUri = FileUtil.toUri(apkFiles.head.substring(0, apkFiles.head.length - 4))
+    val reporter = if(DEBUG) new PrintReporter(MsgLevel.INFO) else new NoReporter
     AndroidReachingFactsAnalysisConfig.resolve_static_init = true
-    val res = TaintAnalysisTask(global, TaintAnalysisModules.DATA_LEAKAGE, fileUri, outputUri, None, forceDelete = true).run
+    val res = TaintAnalysisTask(TaintAnalysisModules.DATA_LEAKAGE, fileUris, outputUri, forceDelete = true, reporter).run
     ConverterUtil.cleanDir(outputUri)
     res
   }

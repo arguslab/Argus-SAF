@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016. Fengguo Wei and others.
+ * Copyright (c) 2017. Fengguo Wei and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -17,8 +17,7 @@ import org.argus.jawa.core.{Constants, Global, Reporter}
 import org.sireum.util._
 
 object GlobalUtil {
-  def buildGlobal(fileUri: FileResourceUri, reporter: Reporter, outApkUri: FileResourceUri, srcs: ISet[String]): Global = {
-    val global = new Global(fileUri, reporter)
+  def buildGlobal(global: Global, outApkUri: FileResourceUri, srcs: ISet[String]): Unit = {
     global.setJavaLib(AndroidGlobalConfig.settings.lib_files)
     srcs foreach {
       src =>
@@ -28,6 +27,5 @@ object GlobalUtil {
           global.load(fileUri, Constants.JAWA_FILE_EXT, AndroidLibraryAPISummary)
         }
     }
-    global
   }
 }

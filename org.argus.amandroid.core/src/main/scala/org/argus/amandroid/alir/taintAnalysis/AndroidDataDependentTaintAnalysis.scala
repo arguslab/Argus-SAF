@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016. Fengguo Wei and others.
+ * Copyright (c) 2017. Fengguo Wei and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -10,13 +10,11 @@
 
 package org.argus.amandroid.alir.taintAnalysis
 
-import java.io.PrintWriter
-
+import org.argus.amandroid.alir.componentSummary.ApkYard
 import org.argus.amandroid.core.security.AndroidProblemCategories
 import org.argus.jawa.alir.dataDependenceAnalysis.{DataDependenceBaseGraph, IDDGCallArgNode, InterproceduralDataDependenceAnalysis, InterproceduralDataDependenceInfo}
 import org.argus.jawa.alir.pta.{PTAResult, VarSlot}
 import org.argus.jawa.alir.taintAnalysis._
-import org.argus.jawa.core.Global
 import org.sireum.util._
 
 /**
@@ -123,24 +121,27 @@ object AndroidDataDependentTaintAnalysis {
     }
   }
     
-  def apply(global: Global, iddi: InterproceduralDataDependenceInfo, ptaresult: PTAResult, ssm: AndroidSourceAndSinkManager): TaintAnalysisResult[Node, InterproceduralDataDependenceAnalysis.Edge]
-    = build(global, iddi, ptaresult, ssm)
+  def apply(yard: ApkYard, iddi: InterproceduralDataDependenceInfo, ptaResult: PTAResult, ssm: AndroidSourceAndSinkManager): TaintAnalysisResult[Node, InterproceduralDataDependenceAnalysis.Edge]
+    = build(yard, iddi, ptaResult, ssm)
   
-  def build(global: Global, iddi: InterproceduralDataDependenceInfo, ptaresult: PTAResult, ssm: AndroidSourceAndSinkManager): TaintAnalysisResult[Node, InterproceduralDataDependenceAnalysis.Edge] = {
+  def build(yard: ApkYard, iddi: InterproceduralDataDependenceInfo, ptaResult: PTAResult, ssm: AndroidSourceAndSinkManager): TaintAnalysisResult[Node, InterproceduralDataDependenceAnalysis.Edge] = {
     var sourceNodes: ISet[TaintSource[Node]] = isetEmpty
     var sinkNodes: ISet[TaintSink[Node]] = isetEmpty
 
     val iddg = iddi.getIddg
-    iddg.nodes.foreach{
-      node =>
-        val (src, sin) = ssm.getSourceAndSinkNode(node, ptaresult)
-        sourceNodes ++= src
-        sinkNodes ++= sin
+    iddg.nodes.foreach{ node =>
+      yard.getApk(node.getContext.application) match {
+        case Some(apk) =>
+          val (src, sin) = ssm.getSourceAndSinkNode(apk, node, ptaResult)
+          sourceNodes ++= src
+          sinkNodes ++= sin
+        case _ =>
+      }
     }
     sinkNodes foreach {
       sinN =>
         sinN.node match {
-          case node: IDDGCallArgNode => extendIDDGForSinkApis(iddg, node, ptaresult)
+          case node: IDDGCallArgNode => extendIDDGForSinkApis(iddg, node, ptaResult)
           case _ =>
         }
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016. Fengguo Wei and others.
+ * Copyright (c) 2017. Fengguo Wei and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -19,6 +19,8 @@ import com.typesafe.config.Config
 import akka.dispatch.UnboundedPriorityMailbox
 import akka.dispatch.PriorityGenerator
 import org.argus.amandroid.concurrent.util.Recorder
+
+import scala.language.postfixOps
 
 class AmandroidSupervisorActor(recorder: Recorder) extends Actor with ActorLogging {
   private val decActor = context.actorOf(FromConfig.props(Props[DecompilerActor]), "DecompilerActor")
@@ -45,7 +47,7 @@ class AmandroidSupervisorActor(recorder: Recorder) extends Actor with ActorLoggi
       aicr match {
         case aicsr: ApkInfoCollectSuccResult =>
           recorder.infocollect(FileUtil.toFile(aicsr.fileUri).getName, succ = true)
-          ptaActor ! PointsToAnalysisData(aicsr.apk, aicsr.outApkUri, aicsr.srcFolders, PTAAlgorithms.RFA, stage = true, timeoutForeachComponent = 5 minutes)
+          ptaActor ! PointsToAnalysisData(aicsr.model, aicsr.outApkUri, aicsr.srcFolders, PTAAlgorithms.RFA, stage = true, timeoutForeachComponent = 5 minutes)
         case aicfr: ApkInfoCollectFailResult =>
           recorder.infocollect(FileUtil.toFile(aicfr.fileUri).getName, succ = false)
           log.error(aicfr.e, "Information collect failed on " + aicfr.fileUri)

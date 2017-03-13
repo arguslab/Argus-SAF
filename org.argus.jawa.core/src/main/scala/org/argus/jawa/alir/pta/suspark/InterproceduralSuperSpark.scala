@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016. Fengguo Wei and others.
+ * Copyright (c) 2017. Fengguo Wei and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -43,7 +43,7 @@ object InterproceduralSuperSpark {
       global: Global,
       pag: PointerAssignmentGraph[PtaNode],
       icfg: InterproceduralControlFlowGraph[N],
-      entryPoints: ISet[Signature]) = {
+      entryPoints: ISet[Signature]): Unit = {
     entryPoints.foreach{
       ep =>
         val epmopt = global.getMethod(ep)
@@ -62,7 +62,7 @@ object InterproceduralSuperSpark {
       pag: PointerAssignmentGraph[PtaNode],
       icfg: InterproceduralControlFlowGraph[N]): Unit = {
     val points = new PointsCollector().points(ep.getSignature, ep.getBody)
-    val context: Context = new Context
+    val context: Context = new Context(global.projectName)
     pag.constructGraph(ep, points, context.copy, entryPoint = true)
     icfg.collectCfgToBaseGraph(ep, context.copy)
     workListPropagation(global, pag, icfg)
@@ -246,7 +246,7 @@ object InterproceduralSuperSpark {
       node: PtaNode,
       d: ISet[Instance],
       pag: PointerAssignmentGraph[PtaNode],
-      icfg: InterproceduralControlFlowGraph[N]) = {
+      icfg: InterproceduralControlFlowGraph[N]): Unit = {
     val piOpt = pag.recvInverse(node)
     piOpt match {
       case Some(pi) =>
@@ -289,7 +289,7 @@ object InterproceduralSuperSpark {
       pi: Point with Invoke, 
       callerContext: Context,
       pag: PointerAssignmentGraph[PtaNode], 
-      icfg: InterproceduralControlFlowGraph[N]) = {
+      icfg: InterproceduralControlFlowGraph[N]): Unit = {
     val calleeSig = calleeProc.getSignature
     if(!pag.isProcessed(calleeSig, callerContext)){
       val points = new PointsCollector().points(calleeSig, calleeProc.getBody)

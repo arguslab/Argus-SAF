@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016. Fengguo Wei and others.
+ * Copyright (c) 2017. Fengguo Wei and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -16,7 +16,8 @@ import java.io._
 import org.json4s._
 import org.json4s.native.Serialization
 import org.json4s.native.Serialization.{read, write}
-import org.argus.amandroid.core.Apk
+import org.argus.amandroid.core.ApkGlobal
+import org.argus.amandroid.core.model.ApkModel
 import org.argus.amandroid.plugin.ApiMisuseResult
 import org.argus.amandroid.serialization.{ApkSerializer, ContextSerializer, PTAResultSerializer, SignatureKeySerializer}
 import org.argus.jawa.alir.pta.PTAResult
@@ -26,7 +27,7 @@ import org.argus.jawa.core.util.MyFileUtil
 
 object Staging {
   
-  def stageApk(apk: Apk, outApkUri: FileResourceUri): Unit = {
+  def stageApk(apk: ApkModel, outApkUri: FileResourceUri): Unit = {
     val outStageUri = MyFileUtil.appendFileName(outApkUri, "stage")
     val outStageDir = FileUtil.toFile(outStageUri)
     if(!outStageDir.exists()) outStageDir.mkdirs()
@@ -64,7 +65,7 @@ object Staging {
     }
   }
   
-  def stage(apk: Apk, ptaresults: IMap[Signature, PTAResult], outApkUri: FileResourceUri): Unit = {
+  def stage(apk: ApkModel, ptaresults: IMap[Signature, PTAResult], outApkUri: FileResourceUri): Unit = {
     stageApk(apk, outApkUri)
     stagePTAResult(ptaresults, outApkUri)
   }
@@ -107,7 +108,7 @@ object Staging {
     }
   }
   
-  def recoverApk(outApkUri: FileResourceUri): Apk = {
+  def recoverApk(outApkUri: FileResourceUri): ApkModel = {
     val outStageUri = MyFileUtil.appendFileName(outApkUri, "stage")
     val outStageDir = FileUtil.toFile(outStageUri)
     if(!outStageDir.exists()) throw new RuntimeException("Did not have stage folder!")
@@ -115,7 +116,7 @@ object Staging {
     val rapk = new FileReader(apkRes)
     implicit val formats = Serialization.formats(NoTypeHints) + ApkSerializer
     try {
-      val apk = read[Apk](rapk)
+      val apk = read[ApkModel](rapk)
       apk
     } catch {
       case e: Exception =>
@@ -143,7 +144,7 @@ object Staging {
     }
   }
   
-  def recoverStage(outApkUri: FileResourceUri): (Apk, IMap[Signature, PTAResult]) = {
+  def recoverStage(outApkUri: FileResourceUri): (ApkModel, IMap[Signature, PTAResult]) = {
     (recoverApk(outApkUri), recoverPTAResult(outApkUri))
   }
   
@@ -203,7 +204,7 @@ object Staging {
     } else false
   }
 
-  def stageReport(outUri: FileResourceUri, apkName: String) = {
+  def stageReport(outUri: FileResourceUri, apkName: String): Unit = {
     val stageRp = FileUtil.toFile(MyFileUtil.appendFileName(outUri, "stage_report.txt"))
     this.synchronized {
       val writer = new FileWriter(stageRp, true)

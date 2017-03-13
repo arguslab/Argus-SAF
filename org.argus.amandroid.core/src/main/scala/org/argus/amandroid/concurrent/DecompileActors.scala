@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016. Fengguo Wei and others.
+ * Copyright (c) 2017. Fengguo Wei and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -17,7 +17,7 @@ import akka.pattern.{AskTimeoutException, ask}
 import com.typesafe.config.ConfigFactory
 import org.argus.amandroid.core.decompile.{ApkDecompiler, DecompileLayout, DecompilerSettings}
 import org.argus.amandroid.core.dedex.{PilarStyleCodeGenerator, PilarStyleCodeGeneratorListener}
-import org.argus.amandroid.core.{Apk, InvalidApk}
+import org.argus.amandroid.core.{ApkGlobal, InvalidApk}
 import org.argus.jawa.core.JawaType
 import org.argus.jawa.core.util.{FutureUtil, MyFileUtil}
 import org.sireum.util._
@@ -41,7 +41,7 @@ class DecompilerActor extends Actor with ActorLogging {
   
   def decompile(ddata: DecompileData): DecompilerResult = {
     log.info("Start decompile " + ddata.fileUri)
-    if(Apk.isValidApk(ddata.fileUri)) {
+    if(ApkGlobal.isValidApk(ddata.fileUri)) {
         var opUri: Option[FileResourceUri] = None
         val codes: MMap[JawaType, String] = mmapEmpty
         val listener = new PilarStyleCodeGeneratorListener {

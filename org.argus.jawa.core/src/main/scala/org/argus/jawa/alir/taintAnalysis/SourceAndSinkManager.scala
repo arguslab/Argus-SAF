@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016. Fengguo Wei and others.
+ * Copyright (c) 2017. Fengguo Wei and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -20,13 +20,13 @@ import java.util.regex.Matcher
 
 import org.argus.jawa.alir.interprocedural.InterproceduralNode
 import org.argus.jawa.alir.pta.PTAResult
-import org.argus.jawa.core.Signature
+import org.argus.jawa.core.{Global, Signature}
 
 /**
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
  * @author <a href="mailto:sroy@k-state.edu">Sankardas Roy</a>
  */ 
-trait SourceAndSinkManager {
+trait SourceAndSinkManager[T<: Global] {
   def sasFilePath: String
   /**
    * it's a map from source API sig to it's category
@@ -37,7 +37,7 @@ trait SourceAndSinkManager {
    */
   protected val sinks: MMap[Signature, (ISet[Int], ISet[String])] = mmapEmpty
 
-  def parse() =
+  def parse(): Unit =
     SSParser.parse(sasFilePath) match {
       case (srcs, sins) =>
         srcs.foreach{
@@ -52,20 +52,20 @@ trait SourceAndSinkManager {
     }
   
   
-  def addSource(source: Signature, tags: ISet[String]) = {
+  def addSource(source: Signature, tags: ISet[String]): Unit = {
     this.sources += (source -> tags)
   }
 
-  def addSink(sink: Signature, positions: ISet[Int], tags: ISet[String]) = {
+  def addSink(sink: Signature, positions: ISet[Int], tags: ISet[String]): Unit = {
     this.sinks += (sink -> (positions, tags))
   }
   
-  def getSourceAndSinkNode[N <: InterproceduralNode](node: N, ptaresult: PTAResult): (ISet[TaintSource[N]], ISet[TaintSink[N]])
-  def isSource(loc: LocationDecl, ptaresult: PTAResult): Boolean
-  def isSource(calleeSig: Signature, callerSig: Signature, callerLoc: JumpLocation): Boolean
-  def isSourceMethod(procedureSig: Signature): Boolean
-  def isSink(loc: LocationDecl, ptaresult: PTAResult): Boolean
-  def isSink(procedureSig: Signature): Boolean
+  def getSourceAndSinkNode[N <: InterproceduralNode](global: T, node: N, ptaResult: PTAResult): (ISet[TaintSource[N]], ISet[TaintSink[N]])
+  def isSource(global: T, loc: LocationDecl, ptaresult: PTAResult): Boolean
+  def isSource(global: T, calleeSig: Signature, callerSig: Signature, callerLoc: JumpLocation): Boolean
+  def isSourceMethod(global: T, procedureSig: Signature): Boolean
+  def isSink(global: T, loc: LocationDecl, ptaresult: PTAResult): Boolean
+  def isSink(global: T, procedureSig: Signature): Boolean
 }
 
 /**

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016. Fengguo Wei and others.
+ * Copyright (c) 2017. Fengguo Wei and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -15,22 +15,22 @@ import org.sireum.util._
 
 object Context {
   private var k: Int = 1
-  def init_context_length(k: Int) = this.k = k
+  def init_context_length(k: Int): Unit = this.k = k
 }
 
 /**
  * @author @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
  * @author <a href="mailto:sroy@k-state.edu">Sankardas Roy</a>
  */ 
-class Context {
+class Context(val application: FileResourceUri) {
   import Context._
   def copy: Context = {
-    val clone = new Context
+    val clone = new Context(application)
     clone.callStack ++= this.callStack
     clone
   }
 //  def copy(c: Context) = this.callStack = c.getContext
-  def setContext(callStack2: IList[(Signature, String)]) = {
+  def setContext(callStack2: IList[(Signature, String)]): Unit = {
     callStack.prependAll(callStack2)
     val size = length
     if(size > k + 1) {
@@ -39,7 +39,7 @@ class Context {
   }
   private val callStack: MList[(Signature, String)] = mlistEmpty
   def length: Int = this.callStack.size
-  def setContext(pSig: Signature, loc: String) = {
+  def setContext(pSig: Signature, loc: String): Context = {
     if(length <= k){
       callStack.prepend((pSig, loc))
     } else {
@@ -57,7 +57,7 @@ class Context {
   /**
    * update current context using another context.
    */
-  def updateContext(context2: Context) = {
+  def updateContext(context2: Context): Unit = {
     val callStack2 = context2.getContext
     callStack.prependAll(callStack2)
     val size = length
@@ -69,7 +69,7 @@ class Context {
   /**
    * remove current top context
    */
-  def removeTopContext() = {
+  def removeTopContext(): Context = {
     if(callStack.nonEmpty)
     	  callStack.remove(0)
     this
@@ -77,7 +77,7 @@ class Context {
   
   def getContext: IList[(Signature, String)] = this.callStack.toList
   def getLocUri: String = getContext.head._2
-  def getMethodSig = getContext.head._1
+  def getMethodSig: Signature = getContext.head._1
   def isDiff(c: Context): Boolean = this != c
   override def equals(a: Any): Boolean = {
     a match {
@@ -85,8 +85,8 @@ class Context {
       case _ => false
     }
   }
-  override def hashCode() = if (this.callStack == null) 0 else this.callStack.hashCode
-  override def toString = {
+  override def hashCode(): Int = (application, this.callStack).hashCode()
+  override def toString: String = {
     val sb = new StringBuilder
     this.callStack.foreach{
       case(sig, str) =>
@@ -98,12 +98,11 @@ class Context {
     }
     sb.toString.intern()
   }
-  def toFullString = {
+  def toFullString: String = {
     val sb = new StringBuilder
     this.callStack.foreach{
       case(sig, str) =>
-        sb.append("(" + sig)
-        sb.append("," + str + ")")
+        sb.append("(" + application + "," + sig + "," + str + ")")
     }
     sb.toString.intern()
   }

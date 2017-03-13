@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016. Fengguo Wei and others.
+ * Copyright (c) 2017. Fengguo Wei and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -75,23 +75,23 @@ class CallGraph {
     e
   }
   
-  def storeSimpleCallGraph(header: String, outpath: String, format: String): Unit = {
+  def storeSimpleCallGraph(projectName: String, header: String, outPath: String, format: String): Unit = {
     val fm = format match {
       case "GraphML" => TinkerGraph.FileType.GRAPHML
       case "GML" => TinkerGraph.FileType.GML
       case _ => throw new RuntimeException("Given format " + format + " does not supported!")
     }
-    val scg = new TinkerGraph(outpath, fm)
+    val scg = new TinkerGraph(outPath, fm)
     
     this.callMap.foreach {
       case (caller, callees) =>
-        val callerContext = new Context
+        val callerContext = new Context(projectName)
         callerContext.setContext(caller, caller.signature)
         val callerNode = CGSimpleCallNode(callerContext)
         val callerV = addNode(header, scg, callerNode)
         callees foreach {
           callee =>
-            val calleeContext = new Context
+            val calleeContext = new Context(projectName)
             calleeContext.setContext(callee, callee.signature)
             val calleeNode = CGSimpleCallNode(calleeContext)
             val calleeV = addNode(header, scg, calleeNode)

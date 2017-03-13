@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016. Fengguo Wei and others.
+ * Copyright (c) 2017. Fengguo Wei and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -10,23 +10,16 @@
 
 package org.argus.amandroid.serialization
 
-import org.json4s.native.Serialization.{read, write}
 import org.sireum.util._
-import java.io.FileReader
-import java.io.FileWriter
 
-import org.argus.amandroid.alir.componentSummary.ApkYard
-import org.argus.amandroid.core.{AndroidGlobalConfig, Apk}
+import org.argus.amandroid.core.model.ApkModel
 import org.argus.amandroid.core.appInfo.ApkCertificate
-import org.argus.amandroid.core.decompile.{DecompileLayout, DecompilerSettings}
 import org.argus.amandroid.core.parser.{ComponentInfo, ComponentType, IntentFilterDataBase, LayoutControl}
 import org.argus.jawa.core._
-import org.argus.jawa.core.util.MyFileUtil
-import org.json4s.native.Serialization
-import org.json4s.{CustomSerializer, Extraction, JValue, NoTypeHints}
+import org.json4s.{CustomSerializer, Extraction, JValue}
 import org.json4s.JsonDSL._
 
-object ApkSerializer extends CustomSerializer[Apk](format => (
+object ApkSerializer extends CustomSerializer[ApkModel](format => (
   {
     case jv: JValue =>
       implicit val formats = format + JawaTypeSerializer + JawaTypeKeySerializer + SignatureSerializer + IntentFilterDataBaseSerializer + new org.json4s.ext.EnumNameSerializer(ComponentType)
@@ -39,7 +32,7 @@ object ApkSerializer extends CustomSerializer[Apk](format => (
       val receivers = (jv \ "receivers").extract[ISet[JawaType]]
       val providers = (jv \ "provider").extract[ISet[JawaType]]
       val drReceivers = (jv \ "drReceivers").extract[ISet[JawaType]]
-      val rpcMethods = (jv \ "rpcMethods").extract[IMap[JawaType, ISet[Signature]]]
+      val rpcMethods = (jv \ "rpcMethods").extract[IMap[JawaType, IMap[Signature, Boolean]]]
       val uses_permissions = (jv \ "uses_permissions").extract[ISet[String]]
       val callbackMethods = (jv \ "callbackMethods").extract[IMap[JawaType, ISet[Signature]]]
       val componentInfos = (jv \ "componentInfos").extract[ISet[ComponentInfo]]
@@ -48,7 +41,7 @@ object ApkSerializer extends CustomSerializer[Apk](format => (
       val intentFdb = (jv \ "intentFdb").extract[IntentFilterDataBase]
       val codeLineCounter = (jv \ "codeLineCounter").extract[Int]
       val envMap = (jv \ "envMap").extract[IMap[JawaType, (Signature, String)]]
-      val apk = new Apk(nameUri, outApkUri, srcs)
+      val apk = ApkModel(nameUri, outApkUri, srcs)
       apk.addCertificates(certificates)
       apk.addActivities(activities)
       apk.addServices(services)
@@ -67,26 +60,26 @@ object ApkSerializer extends CustomSerializer[Apk](format => (
       apk
   },
   {
-    case apk: Apk =>
+    case model: ApkModel =>
       implicit val formats = format + JawaTypeSerializer + JawaTypeKeySerializer + SignatureSerializer + IntentFilterDataBaseSerializer + new org.json4s.ext.EnumNameSerializer(ComponentType)
-      val nameUri: FileResourceUri = apk.nameUri
-      val outApkUri: FileResourceUri = apk.outApkUri
-      val srcs: ISet[String] = apk.srcs
-      val certificates: ISet[ApkCertificate] = apk.getCertificates
-      val activities: ISet[JawaType] = apk.getActivities
-      val services: ISet[JawaType] = apk.getServices
-      val receivers: ISet[JawaType] = apk.getReceivers
-      val providers: ISet[JawaType] = apk.getProviders
-      val drReceivers: ISet[JawaType] = apk.getDynamicRegisteredReceivers
-      val rpcMethods: IMap[JawaType, ISet[Signature]] = apk.getRpcMethodMapping
-      val uses_permissions: ISet[String] = apk.getUsesPermissions
-      val callbackMethods: IMap[JawaType, ISet[Signature]] = apk.getCallbackMethodMapping
-      val componentInfos: ISet[ComponentInfo] = apk.getComponentInfos
-      val layoutControls: IMap[Int, LayoutControl] = apk.getLayoutControls
-      val appPackageName: String = apk.getPackageName
-      val intentFdb: IntentFilterDataBase = apk.getIntentFilterDB
-      val codeLineCounter: Int = apk.getCodeLineCounter
-      val envMap: IMap[JawaType, (Signature, String)] = apk.getEnvMap
+      val nameUri: FileResourceUri = model.nameUri
+      val outApkUri: FileResourceUri = model.outApkUri
+      val srcs: ISet[String] = model.srcs
+      val certificates: ISet[ApkCertificate] = model.getCertificates
+      val activities: ISet[JawaType] = model.getActivities
+      val services: ISet[JawaType] = model.getServices
+      val receivers: ISet[JawaType] = model.getReceivers
+      val providers: ISet[JawaType] = model.getProviders
+      val drReceivers: ISet[JawaType] = model.getDynamicRegisteredReceivers
+      val rpcMethods: IMap[JawaType, IMap[Signature, Boolean]] = model.getRpcMethodMapping
+      val uses_permissions: ISet[String] = model.getUsesPermissions
+      val callbackMethods: IMap[JawaType, ISet[Signature]] = model.getCallbackMethodMapping
+      val componentInfos: ISet[ComponentInfo] = model.getComponentInfos
+      val layoutControls: IMap[Int, LayoutControl] = model.getLayoutControls
+      val appPackageName: String = model.getPackageName
+      val intentFdb: IntentFilterDataBase = model.getIntentFilterDB
+      val codeLineCounter: Int = model.getCodeLineCounter
+      val envMap: IMap[JawaType, (Signature, String)] = model.getEnvMap
       ("nameUri" -> nameUri) ~
       ("outApkUri" -> outApkUri) ~
       ("srcs" -> srcs) ~
@@ -108,41 +101,41 @@ object ApkSerializer extends CustomSerializer[Apk](format => (
   }
 ))
 
-object ApkSerTest {
-  def main(args: scala.Array[String]): Unit = {
-    val apkPath = args(0)
-    val outputPath = args(1)
-    val apkUri = FileUtil.toUri(apkPath)
-    val outputUri = FileUtil.toUri(outputPath)
-    val reporter = new PrintReporter(MsgLevel.ERROR)
-    val global = new Global(apkUri, reporter)
-    global.setJavaLib(AndroidGlobalConfig.settings.lib_files)
-    val yard = new ApkYard(global)
-    val layout = DecompileLayout(outputUri)
-    val settings = DecompilerSettings(None, dexLog = false, debugMode = false, removeSupportGen = true, forceDelete = true, None, layout)
-    val apk = yard.loadApk(apkUri, settings)
-    println(apk.getCertificates)
-    implicit val formats = Serialization.formats(NoTypeHints) + ApkSerializer
-    val apkRes = FileUtil.toFile(MyFileUtil.appendFileName(outputUri, "apk.json"))
-    val oapk = new FileWriter(apkRes)
-    try {
-      write(apk, oapk)
-    } catch {
-      case e: Exception =>
-        e.printStackTrace()
-    } finally {
-      oapk.flush()
-      oapk.close()
-    }
-    val iapk = new FileReader(apkRes)
-    try {
-      val apk = read[Apk](iapk)
-      println(apk.getCertificates)
-    } catch {
-      case e: Exception =>
-        e.printStackTrace()
-    } finally {
-      iapk.close()
-    }
-  }
-}
+//object ApkSerTest {
+//  def main(args: scala.Array[String]): Unit = {
+//    val apkPath = args(0)
+//    val outputPath = args(1)
+//    val apkUri = FileUtil.toUri(apkPath)
+//    val outputUri = FileUtil.toUri(outputPath)
+//    val reporter = new PrintReporter(MsgLevel.ERROR)
+//    val global = new Global(apkUri, reporter)
+//    global.setJavaLib(AndroidGlobalConfig.settings.lib_files)
+//    val yard = new ApkYard(global)
+//    val layout = DecompileLayout(outputUri)
+//    val settings = DecompilerSettings(None, dexLog = false, debugMode = false, removeSupportGen = true, forceDelete = true, None, layout)
+//    val apk = yard.loadApk(apkUri, settings)
+//    println(apk.getCertificates)
+//    implicit val formats = Serialization.formats(NoTypeHints) + ApkSerializer
+//    val apkRes = FileUtil.toFile(MyFileUtil.appendFileName(outputUri, "apk.json"))
+//    val oapk = new FileWriter(apkRes)
+//    try {
+//      write(apk, oapk)
+//    } catch {
+//      case e: Exception =>
+//        e.printStackTrace()
+//    } finally {
+//      oapk.flush()
+//      oapk.close()
+//    }
+//    val iapk = new FileReader(apkRes)
+//    try {
+//      val apk = read[ApkGlobal](iapk)
+//      println(apk.getCertificates)
+//    } catch {
+//      case e: Exception =>
+//        e.printStackTrace()
+//    } finally {
+//      iapk.close()
+//    }
+//  }
+//}
