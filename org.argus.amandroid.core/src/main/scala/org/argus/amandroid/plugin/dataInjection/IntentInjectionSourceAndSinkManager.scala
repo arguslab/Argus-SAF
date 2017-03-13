@@ -27,14 +27,6 @@ class IntentInjectionSourceAndSinkManager(sasFilePath: String) extends AndroidSo
   override def isSource(apk: ApkGlobal, calleeSig: Signature, callerSig: Signature, callerLoc: JumpLocation): Boolean = {
     false
   }
-  
-  override def isCallbackSource(apk: ApkGlobal, sig: Signature): Boolean = {
-    false
-  }
-  
-  override def isUISource(apk: ApkGlobal, calleeSig: Signature, callerSig: Signature, callerLoc: JumpLocation): Boolean = {
-    false
-  }
 
   override def isIccSink(apk: ApkGlobal, invNode: ICFGInvokeNode, ptaResult: PTAResult): Boolean = {
     var sinkFlag = false

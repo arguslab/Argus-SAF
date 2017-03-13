@@ -26,12 +26,8 @@ import org.argus.jawa.core._
  */ 
 class PasswordSourceAndSinkManager(sasFilePath: String) extends AndroidSourceAndSinkManager(sasFilePath){
   private final val TITLE = "PasswordSourceAndSinkManager"
-    
-  def isCallbackSource(apk: ApkGlobal, sig: Signature): Boolean = {
-    false
-  }
   
-  def isUISource(apk: ApkGlobal, calleeSig: Signature, callerSig: Signature, callerLoc: JumpLocation): Boolean = {
+  override def isUISource(apk: ApkGlobal, calleeSig: Signature, callerSig: Signature, callerLoc: JumpLocation): Boolean = {
     if(calleeSig.signature == AndroidConstants.ACTIVITY_FINDVIEWBYID || calleeSig.signature == AndroidConstants.VIEW_FINDVIEWBYID){
       val callerMethod = apk.getMethod(callerSig).get
       val nums = ExplicitValueFinder.findExplicitIntValueForArgs(callerMethod, callerLoc, 1)

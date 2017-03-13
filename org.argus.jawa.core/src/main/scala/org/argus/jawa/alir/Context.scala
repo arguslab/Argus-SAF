@@ -29,7 +29,6 @@ class Context(val application: FileResourceUri) {
     clone.callStack ++= this.callStack
     clone
   }
-//  def copy(c: Context) = this.callStack = c.getContext
   def setContext(callStack2: IList[(Signature, String)]): Unit = {
     callStack.prependAll(callStack2)
     val size = length
@@ -90,7 +89,7 @@ class Context(val application: FileResourceUri) {
     val sb = new StringBuilder
     this.callStack.foreach{
       case(sig, str) =>
-        sb.append("(" + sig.methodName)
+        sb.append("(" + FileUtil.toFile(application).getName + ":" + sig.methodName)
           
         if(str.lastIndexOf('.') > 0)
           sb.append("," + str.substring(str.lastIndexOf('.') + 1, str.lastIndexOf(':')) + ")")

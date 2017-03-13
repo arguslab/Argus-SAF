@@ -315,25 +315,12 @@ class AndroidReachingFactsAnalysisBuilder(apk: ApkGlobal, clm: ClassLoadManager,
       calleeSet.foreach{
         callee =>
           val calleeSig = callee.callee
+          icfg.getCallGraph.addCall(callerNode.getOwner, calleeSig)
           val calleep = apk.getMethod(calleeSig).get
           if(AndroidReachingFactsAnalysisHelper.isICCCall(calleeSig) || AndroidReachingFactsAnalysisHelper.isRPCCall(apk, currentComponent.getType, calleeSig) || AndroidReachingFactsAnalysisHelper.isModelCall(calleep)) {
             pureNormalFlag = false
             if(AndroidReachingFactsAnalysisHelper.isICCCall(calleeSig)) {
-//              if(AndroidReachingFactsAnalysisConfig.resolve_icc){
-//                val factsForCallee = getFactsForICCTarget(s, cj, callerContext)
-//                killSet ++= factsForCallee -- ReachingFactsAnalysisHelper.getGlobalFacts(s) // don't remove global facts for ICC call
-//                val (retFacts, targets) = AndroidReachingFactsAnalysisHelper.doICCCall(apk, ptaresult, calleeSig, args, cj.lhss.map(lhs=>lhs.name.name), callerContext)
-//                genSet ++= retFacts
-//                targets.foreach{
-//                  target =>
-//                    if(!icfg.isProcessed(target.getSignature, callerContext)){
-//                      icfg.collectCfgToBaseGraph[String](target, callerContext, isFirst = false)
-//                      icfg.extendGraphOneWay(target.getSignature, callerContext, AndroidReachingFactsAnalysis.ICC_EDGE)
-//                    }
-//                    apk.reporter.echo(TITLE, target.getDeclaringClass + " started!")
-//                    calleeFactsMap += (icfg.entryNode(target.getSignature, callerContext) -> mapFactsToICCTarget(factsForCallee, cj, target.getBody.procedure))
-//                }
-//              }
+              // don't do anything for the ICC call now.
             } else if (AndroidReachingFactsAnalysisHelper.isRPCCall(apk, currentComponent.getType, calleeSig)) {
               // don't do anything for the RPC call now.
             } else { // for non-ICC-RPC model call

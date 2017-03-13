@@ -198,43 +198,65 @@ object ComponentSummaryTable {
         }
     }
 
+    println("--Link inter-component data dependence")
+    components.foreach { component =>
+      try {
+        val summaryTable = summaryMap.getOrElse(component, throw new RuntimeException("Summary table does not exist for " + component))
+        val bindServices: MSet[Component] = msetEmpty
+        val forResultTargets: MSet[Component] = msetEmpty
+        // link the intent edges
+        val icc_summary: ICC_Summary = summaryTable.get(CHANNELS.ICC)
+        icc_summary.asCaller foreach {
+          case (callernode, icc_caller) =>
+            val icc_callees = allICCCallees.filter(_._2.matchWith(icc_caller))
+            icc_callees foreach { case (calleeNode, icc_callee) =>
+              icc_callee match {
+                case ic_callee: IntentCallee =>
+                  println(component + " --icc--> " + icc_callee.asInstanceOf[IntentCallee].component)
+                  val caller_position: Int = 1
+                  val callee_position: Int = 0
+                  val callerDDGNode = mddg.getIDDGCallArgNode(callernode.asInstanceOf[ICFGCallNode], caller_position)
+                  val calleeDDGNode = mddg.getIDDGEntryParamNode(calleeNode.asInstanceOf[ICFGEntryNode], callee_position)
+                  mddg.addEdge(calleeDDGNode, callerDDGNode)
+                  if (callernode.asInstanceOf[ICFGCallNode].getCalleeSig.getSubSignature == AndroidConstants.BIND_SERVICE) {
+                    bindServices += Component(ic_callee.component.apk, calleeNode.getOwner.getClassType)
+                  } else if (AndroidConstants.isStartActivityForResultMethod(callernode.asInstanceOf[ICFGCallNode].getCalleeSig.getSubSignature)) {
+                    forResultTargets += Component(ic_callee.component.apk, calleeNode.getOwner.getClassType)
+                  }
+                case _ =>
+              }
+            }
+            icc_summary.asCallee.foreach {
+              case (_, callee) =>
+                callee match {
+                  case irc: IntentResultCallee => irc.addTargets(forResultTargets.toSet)
+                  case _ =>
+                }
+            }
+            val rpc_summary: RPC_Summary = summaryTable.get(CHANNELS.RPC)
+            rpc_summary.asCaller.foreach {
+              case (_, caller) =>
+                caller match {
+                  case rpc: RPCCaller => rpc.addBindServices(bindServices.toSet)
+                  case _ =>
+                }
+            }
+        }
+      } catch {
+        case ex: Exception =>
+          if (DEBUG) ex.printStackTrace()
+          component.apk.reporter.error(TITLE, ex.getMessage)
+      }
+    }
+
     components.foreach {
       component =>
-        println("--Link data dependence for component: " + component)
         try {
           val summaryTable = summaryMap.getOrElse(component, throw new RuntimeException("Summary table does not exist for " + component))
-          val bindServices: MSet[Component] = msetEmpty
-          val forResultTargets: MSet[Component] = msetEmpty
-          // link the intent edges
           val icc_summary: ICC_Summary = summaryTable.get(CHANNELS.ICC)
           icc_summary.asCaller foreach {
             case (callernode, icc_caller) =>
-              val icc_callees = allICCCallees.filter(_._2.matchWith(icc_caller))
-              icc_callees foreach { case (calleeNode, icc_callee) =>
-                icc_callee match {
-                  case ic_callee: IntentCallee =>
-                    println(component + " --icc--> " + icc_callee.asInstanceOf[IntentCallee].component)
-                    val caller_position: Int = 1
-                    val callee_position: Int = 0
-                    val callerDDGNode = mddg.getIDDGCallArgNode(callernode.asInstanceOf[ICFGCallNode], caller_position)
-                    val calleeDDGNode = mddg.getIDDGEntryParamNode(calleeNode.asInstanceOf[ICFGEntryNode], callee_position)
-                    mddg.addEdge(calleeDDGNode, callerDDGNode)
-                    if (callernode.asInstanceOf[ICFGCallNode].getCalleeSig.getSubSignature == AndroidConstants.BIND_SERVICE) {
-                      bindServices += Component(ic_callee.component.apk, calleeNode.getOwner.getClassType)
-                    } else if (AndroidConstants.isStartActivityForResultMethod(callernode.asInstanceOf[ICFGCallNode].getCalleeSig.getSubSignature)) {
-                      forResultTargets += Component(ic_callee.component.apk, calleeNode.getOwner.getClassType)
-                    }
-                  case _ =>
-                }
-              }
-              allICCCallees.foreach {
-                case (_, callee) =>
-                  callee match {
-                    case irc: IntentResultCallee => irc.addTargets(forResultTargets.toSet)
-                    case _ =>
-                  }
-              }
-              allICCCallees.filter(_._2.matchWith(icc_caller)) foreach { case (calleeNode, icc_callee) =>
+              allICCCallees.filter(_._2.isInstanceOf[IntentResultCallee]).filter(_._2.matchWith(icc_caller)) foreach { case (calleeNode, icc_callee) =>
                 icc_callee match {
                   case _: IntentResultCallee =>
                     println(component + " --icc: setResult--> " + icc_callee.asInstanceOf[IntentResultCallee].component)
@@ -252,7 +274,6 @@ object ComponentSummaryTable {
           val rpc_summary: RPC_Summary = summaryTable.get(CHANNELS.RPC)
           rpc_summary.asCaller foreach {
             case (callernode, rpc_caller) =>
-              rpc_caller.asInstanceOf[RPCCaller].addBindServices(bindServices.toSet)
               val rpc_callees = allRpcCallees.filter(_._2.matchWith(rpc_caller))
               rpc_callees foreach {
                 case (calleenode, rpc_callee) =>

@@ -13,9 +13,10 @@ package org.argus.amandroid.plugin
 import org.argus.amandroid.alir.pta.reachingFactsAnalysis.AndroidReachingFactsAnalysisConfig
 import org.argus.amandroid.alir.taintAnalysis.AndroidDataDependentTaintAnalysis
 import org.argus.amandroid.core.decompile.ConverterUtil
+import org.argus.jawa.alir.Context
 import org.argus.jawa.alir.dataDependenceAnalysis.InterproceduralDataDependenceAnalysis
 import org.argus.jawa.alir.taintAnalysis.TaintAnalysisResult
-import org.argus.jawa.core.{Global, MsgLevel, NoReporter, PrintReporter}
+import org.argus.jawa.core.{MsgLevel, NoReporter, PrintReporter}
 import org.scalatest.{FlatSpec, Matchers}
 import org.sireum.util.FileUtil
 
@@ -23,7 +24,7 @@ import org.sireum.util.FileUtil
   * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
   */
 class BenchMarkTest extends FlatSpec with Matchers {
-  private final val DEBUG = false
+  private final val DEBUG = true
 
   "ICC_Explicit_NoSrc_NoSink" should "have 0 taint paths" in {
     val res = taintAnalysis(getClass.getResource("/icc-bench/IccHandling/icc_explicit_nosrc_nosink.apk").getPath)
@@ -235,12 +236,12 @@ class BenchMarkTest extends FlatSpec with Matchers {
     assert(res.isDefined && res.get.getTaintedPaths.size == 3)
   }
 
-  "InterAppCommunication" should "have 3 taint paths" in {
+  "InterAppCommunication" should "have 44 taint paths" in {
     val echoer_path = getClass.getResource("/droid-bench/InterAppCommunication/Echoer.apk").getPath
     val sendsms_path = getClass.getResource("/droid-bench/InterAppCommunication/SendSMS.apk").getPath
     val forresult_path = getClass.getResource("/droid-bench/InterAppCommunication/StartActivityForResult1.apk").getPath
     val res = taintAnalysis(Set(echoer_path, sendsms_path, forresult_path))
-    assert(res.isDefined && res.get.getTaintedPaths.size == 3)
+    assert(res.isDefined && res.get.getTaintedPaths.size == 44)
   }
 
   private def taintAnalysis(apkFile: String): Option[TaintAnalysisResult[AndroidDataDependentTaintAnalysis.Node, InterproceduralDataDependenceAnalysis.Edge]] = {
@@ -252,6 +253,7 @@ class BenchMarkTest extends FlatSpec with Matchers {
     val outputUri = FileUtil.toUri(apkFiles.head.substring(0, apkFiles.head.length - 4))
     val reporter = if(DEBUG) new PrintReporter(MsgLevel.INFO) else new NoReporter
     AndroidReachingFactsAnalysisConfig.resolve_static_init = true
+    Context.init_context_length(0)
     val res = TaintAnalysisTask(TaintAnalysisModules.DATA_LEAKAGE, fileUris, outputUri, forceDelete = true, reporter).run
     ConverterUtil.cleanDir(outputUri)
     res

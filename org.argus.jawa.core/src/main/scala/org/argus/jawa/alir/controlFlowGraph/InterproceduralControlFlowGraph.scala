@@ -385,7 +385,6 @@ class InterproceduralControlFlowGraph[Node <: ICFGNode] extends InterproceduralG
     calleeEntryContext.setContext(calleeSig, "Entry")
     val targetNode = getICFGEntryNode(calleeEntryContext)
     this.synchronized{
-      this.cg.addCall(callNode.getOwner, targetNode.getOwner)
       if(!hasEdge(callNode, targetNode))
         addEdge(callNode, targetNode, typ)
     }

@@ -28,12 +28,6 @@ class CommunicationSourceAndSinkManager(sasFilePath: String) extends AndroidSour
 //  private final val TITLE = "CommunicationSourceAndSinkManager"
     
   override def isSource(apk: ApkGlobal, calleeSig: Signature, callerSig: Signature, callerLoc: JumpLocation) = false
-    
-  override def isCallbackSource(apk: ApkGlobal, sig: Signature): Boolean = false
-  
-  override def isUISource(apk: ApkGlobal, calleeSig: Signature, callerSig: Signature, callerLoc: JumpLocation): Boolean = {
-    false
-  }
 
   override def isSource(apk: ApkGlobal, loc: LocationDecl, ptaresult: PTAResult): Boolean = {
     var flag = false

@@ -104,7 +104,7 @@ abstract class AndroidSourceAndSinkManager(val sasFilePath: String) extends Sour
           val tn = TaintSource(gNode, TagTaintDescriptor(entNode.getOwner.signature, isetEmpty, SourceAndSinkCategory.ICC_SOURCE, Set("ICC")))
           sources += tn
         }
-        if(this.isCallbackSource(apk, entNode.getOwner)){
+        if(this.isCallbackSource(apk, entNode.getOwner, 0)){
           apk.reporter.echo(TITLE, "found callback source: " + entNode)
           val tn = TaintSource(gNode, TagTaintDescriptor(entNode.getOwner.signature, isetEmpty, SourceAndSinkCategory.CALLBACK_SOURCE, Set("CALL_BACK")))
           sources += tn
@@ -168,7 +168,7 @@ abstract class AndroidSourceAndSinkManager(val sasFilePath: String) extends Sour
           val tn = TaintSource(gNode, TypeTaintDescriptor(entNode.getOwner.signature, None, SourceAndSinkCategory.ICC_SOURCE))
           sources += tn
         }
-        if(entNode.position > 0 && this.isCallbackSource(apk, entNode.getOwner)){
+        if(entNode.position > 0 && this.isCallbackSource(apk, entNode.getOwner, entNode.position - 1)){
           apk.reporter.echo(TITLE, "found callback source: " + entNode)
           val tn = TaintSource(gNode, TypeTaintDescriptor(entNode.getOwner.signature, None, SourceAndSinkCategory.CALLBACK_SOURCE))
           sources += tn
@@ -222,8 +222,8 @@ abstract class AndroidSourceAndSinkManager(val sasFilePath: String) extends Sour
 
   def isSink(apk: ApkGlobal, loc: LocationDecl, ptaResult: PTAResult): Boolean = false
 
-  def isCallbackSource(apk: ApkGlobal, sig: Signature): Boolean
-  def isUISource(apk: ApkGlobal, calleeSig: Signature, callerSig: Signature, callerLoc: JumpLocation): Boolean
+  def isCallbackSource(apk: ApkGlobal, sig: Signature, pos: Int): Boolean = false
+  def isUISource(apk: ApkGlobal, calleeSig: Signature, callerSig: Signature, callerLoc: JumpLocation): Boolean = false
   def isIccSink(apk: ApkGlobal, invNode: ICFGInvokeNode, s: PTAResult): Boolean
   def isIccSource(apk: ApkGlobal, entNode: ICFGNode, iddgEntNode: ICFGNode): Boolean
 
@@ -240,13 +240,8 @@ abstract class AndroidSourceAndSinkManager(val sasFilePath: String) extends Sour
 class DefaultAndroidSourceAndSinkManager(sasFilePath: String) extends AndroidSourceAndSinkManager(sasFilePath){
 
   private final val TITLE = "DefaultSourceAndSinkManager"
-  
-  def isCallbackSource(apk: ApkGlobal, sig: Signature): Boolean = {
-    if(apk.model.getCallbackMethods.contains(sig) && sig.getParameterNum > 1) true
-    else false
-  }
 
-  def isUISource(apk: ApkGlobal, calleeSig: Signature, callerSig: Signature, callerLoc: JumpLocation): Boolean = {
+  override def isUISource(apk: ApkGlobal, calleeSig: Signature, callerSig: Signature, callerLoc: JumpLocation): Boolean = {
     if(calleeSig.signature == AndroidConstants.ACTIVITY_FINDVIEWBYID || calleeSig.signature == AndroidConstants.VIEW_FINDVIEWBYID){
       val callerProc = apk.getMethod(callerSig).get
       val nums = ExplicitValueFinder.findExplicitIntValueForArgs(callerProc, callerLoc, 1)
@@ -303,15 +298,13 @@ class DataLeakageAndroidSourceAndSinkManager(sasFilePath: String) extends Defaul
 
   private def sensitiveData: ISet[String] = Set("android.location.Location", "android.content.Intent")
   
-  override def isCallbackSource(apk: ApkGlobal, sig: Signature): Boolean = {
+  override def isCallbackSource(apk: ApkGlobal, sig: Signature, pos: Int): Boolean = {
     apk.model.getComponentInfos foreach {
       info =>
         if(info.compType == sig.getClassType && !info.exported) return false
     }
     if(apk.model.getCallbackMethods.contains(sig)){
-      if(sig.getParameterTypes.exists { pt => sensitiveData.contains(pt.name) }) true
-      else false
-    }
-    else false
+      sig.getParameterTypes.isDefinedAt(pos) && sensitiveData.contains(sig.getParameterTypes(pos).name)
+    } else false
   }
 }

@@ -232,9 +232,23 @@ case class JawaClass(global: Global, typ: JawaType, accessFlags: Int) extends Ja
   }
 
   /**
+    * get method from this class by the given subsignature
+    */
+  def getMethod(subSig: String): Option[JawaMethod] = {
+    getMethods.find(_.getSubSignature == subSig) match{
+      case Some(p) => Some(p)
+      case None =>
+        if(isUnknown){
+          val signature = generateSignatureFromOwnerAndMethodSubSignature(this, subSig)
+          Some(generateUnknownJawaMethod(this, signature))
+        } else None
+    }
+  }
+
+  /**
    * get method from this class by the given subsignature
    */
-  def getMethod(subSig: String): Option[JawaMethod] = {
+  def getDeclaredMethod(subSig: String): Option[JawaMethod] = {
     this.methods.get(subSig) match{
       case Some(p) => Some(p)
       case None => 

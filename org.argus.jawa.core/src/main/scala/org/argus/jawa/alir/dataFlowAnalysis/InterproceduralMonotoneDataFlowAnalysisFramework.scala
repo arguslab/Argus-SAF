@@ -599,26 +599,13 @@ object InterproceduralMonotoneDataFlowAnalysisFramework {
     val ensurer = new ConvergeEnsurer
     while(workList.nonEmpty){
       while (workList.nonEmpty) {
-        if(false){
-          val newworkList = workList.map{
-            n =>
-              ensurer.updateNodeCount(n)
-                if(nl.isDefined) nl.get.onPreVisitNode(n, icfg.predecessors(n))
-                val newnodes = process(n)
-                if(nl.isDefined) nl.get.onPostVisitNode(n, icfg.successors(n))
-                newnodes
-          }.reduce(iunion[N])
-          workList.clear
-          workList ++= newworkList.filter(ensurer.checkNode)
-        } else {
-          val n = workList.remove(0)
-          if(ensurer.checkNode(n)) {
-            ensurer.updateNodeCount(n)
-            if(nl.isDefined) nl.get.onPreVisitNode(n, icfg.predecessors(n))
-            val newWorks = process(n)
-            workList ++= {newWorks -- workList}
-            if(nl.isDefined) nl.get.onPostVisitNode(n, icfg.successors(n))
-          }
+        val n = workList.remove(0)
+        if(ensurer.checkNode(n)) {
+          ensurer.updateNodeCount(n)
+          if(nl.isDefined) nl.get.onPreVisitNode(n, icfg.predecessors(n))
+          val newWorks = process(n)
+          workList ++= {newWorks -- workList}
+          if(nl.isDefined) nl.get.onPostVisitNode(n, icfg.successors(n))
         }
       }
       val nodes = if(false) icfg.nodes.par else icfg.nodes

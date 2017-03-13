@@ -32,7 +32,7 @@ import scala.concurrent.duration._
 object ComponentBasedAnalysis {
   private final val TITLE = "ComponentBasedAnalysis"
   private final val DEBUG = false
-  def prepare(apks: ISet[ApkGlobal], parallel: Boolean)(implicit timeout: FiniteDuration): Unit = {
+  def prepare(apks: ISet[ApkGlobal])(implicit timeout: FiniteDuration): Unit = {
     AndroidReachingFactsAnalysisConfig.resolve_icc = false // We don't want to resolve ICC at this phase
     apks.foreach { apk =>
       println("Prepare IDFGs for: " + apk.model.getAppName)
@@ -44,7 +44,6 @@ object ComponentBasedAnalysis {
             apk.model.getEnvMap.get(component) match {
               case Some((esig, _)) =>
                 val ep = apk.getMethod(esig).get
-                // need to double check
                 implicit val factory = new RFAFactFactory
                 val initialfacts = AndroidRFAConfig.getInitialFactsForMainEnvironment(ep)
                 val idfg = AndroidReachingFactsAnalysis(apk, ep, initialfacts, new ClassLoadManager, new Context(apk.nameUri), timeout = Some(new MyTimeout(timeout)))
@@ -119,7 +118,7 @@ class ComponentBasedAnalysis(yard: ApkYard, reporter: Reporter) {
     }
     println(TITLE + ":" + " Phase 2-------" + apks.size + s" apk${if (apks.size > 1) "s" else ""} " + components.size + s" component${if (components.size > 1) "s" else ""}-------")
     val mddg = ComponentSummaryTable.buildMultiDataDependentGraph(components)
-//    mddg.toDot(new PrintWriter(System.out))
+//    mddg.toDot(new java.io.PrintWriter(System.out))
     (apks, new DefaultInterproceduralDataDependenceInfo(mddg))
   }
   
