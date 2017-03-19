@@ -46,8 +46,6 @@ object Dependencies {
 
   val akka_actor: ModuleID = "com.typesafe.akka" %% "akka-actor" % "2.4.14"
 
-  val junitInterface: ModuleID = "com.novocode" % "junit-interface" % "0.11" % "test"
-
   val json4s_native: ModuleID = "org.json4s" %% "json4s-native" % "3.5.0"
   val json4s_ext: ModuleID = "org.json4s" %% "json4s-ext" % "3.5.0"
 
@@ -64,7 +62,6 @@ object DependencyGroups {
     scalatest,
     asm_all,
     guava,
-//    antlr4_runtime,
     st4,
     jgrapht_core,
     jgrapht_ext,

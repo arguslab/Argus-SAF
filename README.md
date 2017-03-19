@@ -1,4 +1,4 @@
-#Argus-SAF: Argus static analysis framework
+# Argus-SAF: Argus static analysis framework
 [![License](https://img.shields.io/badge/License-EPL%201.0-red.svg)](https://opensource.org/licenses/EPL-1.0) 
 [![Download](https://api.bintray.com/packages/arguslab/maven/argus-saf/images/download.svg)](https://bintray.com/arguslab/maven/argus-saf/_latestVersion)
 [![Build Status](https://travis-ci.org/arguslab/Argus-SAF.svg?branch=master)](https://travis-ci.org/arguslab/Argus-SAF)
@@ -82,16 +82,16 @@ the directory where Scala plugin repository is and then import it as SBT project
 
 5. [Optional] To build Argus-SAF more smooth you should give 2GB of the heap size to the compiler process.
    - if you use Scala Compile Server (default):
-   ```Settings > Languages & Frameworks > Scala Compile Server > JVM maximum heap size```
+   `Settings > Languages & Frameworks > Scala Compile Server > JVM maximum heap size`
 
    - if Scala Compile Server is disabled:
-   ```Settings > Build, Execution, Deployment > Compiler > Build process heap size```
+   `Settings > Build, Execution, Deployment > Compiler > Build process heap size`
    
 6. If you want to build Argus-SAF from command line, go to Argus-SAF repo directory and run
 
-   ```
-   $ tools/bin/sbt clean compile test
-   ```
+  ```
+  $ tools/bin/sbt clean compile test
+  ```
 
 ## How to contribute
 
