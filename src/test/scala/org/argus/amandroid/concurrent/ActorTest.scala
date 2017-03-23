@@ -30,8 +30,8 @@ import scala.language.postfixOps
   */
 class ActorTest extends FlatSpec with Matchers {
 
-  "ICC_Explicit_Src_Sink" should "successfully resolved" in {
-    val res = runActor(getClass.getResource("/icc-bench/IccHandling/icc_explicit_src_sink.apk").getPath)
+  "ICC_Implicit_Src_Sink" should "successfully resolved" in {
+    val res = runActor(getClass.getResource("/icc-bench/IccHandling/icc_implicit_src_sink.apk").getPath)
     assert(
       res.isDefined &&
       res.get.isInstanceOf[Success] &&

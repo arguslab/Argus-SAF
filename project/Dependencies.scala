@@ -44,18 +44,19 @@ object Dependencies {
 
   val commons_lang3: ModuleID = "org.apache.commons" % "commons-lang3" % "3.4"
 
-  val akka_actor: ModuleID = ("com.typesafe.akka" %% "akka-actor" % "2.4.17")
+  val akka_actor: ModuleID = "com.typesafe.akka" %% "akka-actor" % "2.4.17"
 
   val json4s_native: ModuleID = "org.json4s" %% "json4s-native" % "3.5.0"
   val json4s_ext: ModuleID = "org.json4s" %% "json4s-ext" % "3.5.0"
 
   val scalatest: ModuleID = "org.scalatest" %% "scalatest" % "3.0.1" % "test"
+  val findbug: ModuleID = "com.google.code.findbugs" % "jsr305" % "1.3.+" % "compile"
 }
 
 object DependencyGroups {
   import Dependencies._
 
-  val saf_library = Seq(commons_lang3)
+  val saf_library = Seq(findbug, commons_lang3)
 
   val jawa_core: Seq[ModuleID] = Seq(
     scala_reflect,
