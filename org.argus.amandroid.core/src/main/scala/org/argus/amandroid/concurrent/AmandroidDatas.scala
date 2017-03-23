@@ -50,12 +50,13 @@ case class PointsToAnalysisData(model: ApkModel, outApkUri: FileResourceUri, src
 trait PointsToAnalysisResult extends AmandroidData {
   def fileUri: FileResourceUri
   def time: Long
+  def componentNum: Int
 }
-case class PointsToAnalysisSuccResult(model: ApkModel, time: Long, ptaresults: IMap[Signature, PTAResult]) extends PointsToAnalysisResult with Success {
+case class PointsToAnalysisSuccResult(model: ApkModel, time: Long, componentNum: Int, ptaresults: IMap[Signature, PTAResult]) extends PointsToAnalysisResult with Success {
   def fileUri: FileResourceUri = model.nameUri
 }
-case class PointsToAnalysisSuccStageResult(fileUri: FileResourceUri, time: Long, outApkUri: FileResourceUri) extends PointsToAnalysisResult with Success
-case class PointsToAnalysisFailResult(fileUri: FileResourceUri, time: Long, e: Exception) extends PointsToAnalysisResult with Failure
+case class PointsToAnalysisSuccStageResult(fileUri: FileResourceUri, time: Long, componentNum: Int, outApkUri: FileResourceUri) extends PointsToAnalysisResult with Success
+case class PointsToAnalysisFailResult(fileUri: FileResourceUri, time: Long, componentNum: Int, e: Exception) extends PointsToAnalysisResult with Failure
 
 // SecurityEngineActor's input
 case class SecurityEngineData(ptar: PointsToAnalysisResult with Success, spec: SecSpec)

@@ -58,12 +58,12 @@ class AmandroidSupervisorActor(recorder: Recorder) extends Actor with ActorLoggi
       ptar match {
         case ptsr: PointsToAnalysisSuccResult =>
           log.info("Points to analysis success for " + ptsr.fileUri)
-          recorder.pta(FileUtil.toFile(ptsr.fileUri).getName, ptar.time, succ = true)
+          recorder.pta(FileUtil.toFile(ptsr.fileUri).getName, ptar.time, ptar.componentNum, succ = true)
         case ptssr: PointsToAnalysisSuccStageResult =>
-          recorder.pta(FileUtil.toFile(ptssr.fileUri).getName, ptar.time, succ = true)
+          recorder.pta(FileUtil.toFile(ptssr.fileUri).getName, ptar.time, ptar.componentNum, succ = true)
           log.info("Points to analysis success staged for " + ptssr.fileUri)
         case ptfr: PointsToAnalysisFailResult =>
-          recorder.pta(FileUtil.toFile(ptfr.fileUri).getName, ptar.time, succ = false)
+          recorder.pta(FileUtil.toFile(ptfr.fileUri).getName, ptar.time, ptar.componentNum, succ = false)
           log.error(ptfr.e, "Points to analysis failed on " + ptfr.fileUri)
       }
       sendership(ptar.fileUri) ! ptar
