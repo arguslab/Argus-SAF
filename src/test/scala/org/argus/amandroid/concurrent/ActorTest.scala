@@ -46,7 +46,7 @@ class ActorTest extends FlatSpec with Matchers {
     val supervisor = _system.actorOf(Props(classOf[AmandroidSupervisorActor], Recorder(outputUri)), name = "AmandroidSupervisorActor")
     val future = supervisor.ask(AnalysisSpec(apkUri, outputUri, None, removeSupportGen = true, forceDelete = true))(2 minutes).mapTo[PointsToAnalysisResult].recover{
       case ex: Exception =>
-        PointsToAnalysisFailResult(apkUri, 2, ex)
+        PointsToAnalysisFailResult(apkUri, 2, 1, ex)
     }
     val ptr = Await.result(future, 3 minutes)
     var result: Option[SecurityEngineResult] = None
