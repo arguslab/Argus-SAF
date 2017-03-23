@@ -13,7 +13,7 @@ package org.argus.amandroid.concurrent.util
 import org.argus.amandroid.core.AndroidGlobalConfig
 import org.argus.amandroid.core.util.AndroidLibraryAPISummary
 import org.argus.jawa.core.util.MyFileUtil
-import org.argus.jawa.core.{Constants, Global, Reporter}
+import org.argus.jawa.core.{Constants, Global}
 import org.sireum.util._
 
 object GlobalUtil {

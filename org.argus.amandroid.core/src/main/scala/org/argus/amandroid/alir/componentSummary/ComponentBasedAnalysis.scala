@@ -21,7 +21,7 @@ import org.argus.jawa.alir.dataDependenceAnalysis._
 import org.argus.jawa.alir.pta.reachingFactsAnalysis.RFAFactFactory
 import org.argus.jawa.alir.taintAnalysis.TaintAnalysisResult
 import org.argus.jawa.core.util.{MyTimeout, WorklistAlgorithm}
-import org.argus.jawa.core.{ClassLoadManager, JawaType, Reporter}
+import org.argus.jawa.core.{ClassLoadManager, JawaType}
 
 import scala.compat.Platform.EOL
 import scala.concurrent.duration._
@@ -72,7 +72,7 @@ object ComponentBasedAnalysis {
 /**
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
  */
-class ComponentBasedAnalysis(yard: ApkYard, reporter: Reporter) {
+class ComponentBasedAnalysis(yard: ApkYard) {
   import ComponentBasedAnalysis._
   
   val problematicComp: MMap[FileResourceUri, MSet[JawaType]] = mmapEmpty
@@ -106,7 +106,7 @@ class ComponentBasedAnalysis(yard: ApkYard, reporter: Reporter) {
             case ex: Exception =>
               problematicComp(apk.nameUri) += component
               if (DEBUG) ex.printStackTrace()
-              reporter.error(TITLE, "Collect Info for Component " + component + " has error: " + ex.getMessage)
+              yard.reporter.error(TITLE, "Collect Info for Component " + component + " has error: " + ex.getMessage)
           }
       }
     }
@@ -138,7 +138,7 @@ class ComponentBasedAnalysis(yard: ApkYard, reporter: Reporter) {
       } catch {
         case ex: Exception =>
           if(DEBUG) ex.printStackTrace()
-          reporter.error(TITLE, ex.getMessage)
+          yard.reporter.error(TITLE, ex.getMessage)
           None
       }
     } else None

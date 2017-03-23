@@ -94,32 +94,3 @@ class AmandroidSupervisorActorPrioMailbox(settings: ActorSystem.Settings, config
       case _: SecurityEngineResult => 0
       case _ => 4
     })
-
-//object AmandroidTestApplication extends App {
-//  val _system = ActorSystem("AmandroidTestApplication", ConfigFactory.load)
-//  val fileUris = FileUtil.listFiles(FileUtil.toUri(args(0)), ".apk", recursive = true)
-//  val outputUri = FileUtil.toUri(args(1))
-//  val supervisor = _system.actorOf(Props(classOf[AmandroidSupervisorActor], Recorder(outputUri)), name = "AmandroidSupervisorActor")
-//  val futures = fileUris map {
-//    fileUri =>
-//      supervisor.ask(AnalysisSpec(fileUri, outputUri, None, removeSupportGen = true, forceDelete = true))(600 minutes).mapTo[PointsToAnalysisResult].recover{
-//        case ex: Exception =>
-//            PointsToAnalysisFailResult(fileUri, ex)
-//        }
-//  }
-//  val fseq = Future.sequence(futures)
-//  val seFutures: MSet[Future[SecurityEngineResult]] = msetEmpty
-//  Await.result(fseq, Duration.Inf).foreach {
-//    case ptar: PointsToAnalysisResult with Success =>
-//      seFutures += supervisor.ask(SecurityEngineData(ptar, TaintAnalysisSpec(TaintAnalysisModules.DATA_LEAKAGE)))(10 minutes).mapTo[SecurityEngineResult].recover {
-//        case ex: Exception =>
-//          SecurityEngineFailResult(ptar.fileUri, ex)
-//      }
-//    case _ =>
-//  }
-//  val sefseq = Future.sequence(seFutures)
-//  Await.result(sefseq, Duration.Inf).foreach {
-//    sr => println(sr)
-//  }
-//  _system.terminate()
-//}

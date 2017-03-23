@@ -50,7 +50,7 @@ class ApkInfoCollectActor extends Actor with ActorLogging {
       try {
         val res = Await.result(f, acdata.timeout)
         try {
-          Staging.stageApk(apk.model, outApkUri)
+          Staging.stageApkModel(apk.model, outApkUri)
         } catch {
           case e: Exception =>
             ApkInfoCollectFailResult(apk.nameUri, e)

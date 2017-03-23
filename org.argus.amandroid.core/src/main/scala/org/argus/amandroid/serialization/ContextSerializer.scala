@@ -14,13 +14,14 @@ import org.argus.jawa.alir.Context
 import org.argus.jawa.core.Signature
 import org.json4s._
 import org.json4s.JsonDSL._
-import org.sireum.util._
+import org.json4s.native.JsonMethods._
+import org.sireum.util.{FileResourceUri, IList}
 
 object ContextSerializer extends CustomSerializer[Context](format => (
     {
       case jv: JValue =>
         implicit val formats = format + SignatureSerializer
-        val application = (jv \ "application").extract[String]
+        val application = (jv \ "application").extract[FileResourceUri]
         val callStack = (jv \ "callStack").extract[IList[(Signature, String)]]
         val c = new Context(application)
         c.setContext(callStack)
@@ -32,4 +33,19 @@ object ContextSerializer extends CustomSerializer[Context](format => (
         ("application" -> c.application) ~
         ("callStack" -> Extraction.decompose(c.getContext))
     }
+))
+
+object ContextKeySerializer extends CustomKeySerializer[Context](format => (
+  {
+    case str: String =>
+      implicit val formats = format + ContextSerializer
+      val jv = parse(str)
+      jv match {
+        case JObject(List(JField("Context", v))) => Extraction.extract[Context](v)
+      }
+  }, {
+  case c: Context =>
+    implicit val formats = format + ContextSerializer
+    compact(render("Context" -> Extraction.decompose(c)))
+}
 ))

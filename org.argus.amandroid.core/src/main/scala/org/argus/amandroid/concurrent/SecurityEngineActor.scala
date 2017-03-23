@@ -31,18 +31,18 @@ case class APIMisconfigureSpec(checker: ApiMisuseChecker) extends SecSpec
 
 trait SecResult
 case class TaintAnalysisResult(outApkUri: FileResourceUri) extends SecResult
-case class APIMisconfigureResult(outApkUri: FileResourceUri) extends SecResult
+case class APIMisConfigureResult(outApkUri: FileResourceUri) extends SecResult
 
 class SecurityEngineActor extends Actor with ActorLogging {
   def receive: Receive = {
     case secdata: SecurityEngineData =>
       sender ! sec(secdata)
   }
-  
+
   def sec(secdata: SecurityEngineData): SecurityEngineResult = {
     var res: SecurityEngineResult = null
     try {
-      val (model, ptaresults) =
+      val (model, pta_results) =
         secdata.ptar match {
           case ptas: PointsToAnalysisSuccResult =>
             (ptas.model, ptas.ptaresults)
@@ -53,7 +53,10 @@ class SecurityEngineActor extends Actor with ActorLogging {
       val apk = new ApkGlobal(model, reporter)
       GlobalUtil.buildGlobal(apk, apk.model.outApkUri, apk.model.srcs)
       apk.resolveEnvInGlobal()
-      val idfgs = BuildICFGFromExistingPTAResult(apk, ptaresults)
+      val idfgs = BuildICFGFromExistingPTAResult(apk, pta_results)
+      idfgs.foreach { case (typ, idfg) =>
+        apk.addIDFG(typ, idfg)
+      }
       secdata.spec match {
         case ta: TaintAnalysisSpec =>
           val ssm = ta.module match {
@@ -63,19 +66,19 @@ class SecurityEngineActor extends Actor with ActorLogging {
               new PasswordSourceAndSinkManager(AndroidGlobalConfig.settings.sas_file)
             case TaintAnalysisModules.OAUTH_TOKEN_TRACKING =>
               new OAuthSourceAndSinkManager(AndroidGlobalConfig.settings.sas_file)
-            case TaintAnalysisModules.DATA_LEAKAGE => 
+            case TaintAnalysisModules.DATA_LEAKAGE =>
               new DataLeakageAndroidSourceAndSinkManager(AndroidGlobalConfig.settings.sas_file)
             case TaintAnalysisModules.COMMUNICATION_LEAKAGE =>
               new CommunicationSourceAndSinkManager(AndroidGlobalConfig.settings.sas_file)
           }
           val yard = new ApkYard(reporter)
           yard.addApk(apk)
-          val cba = new ComponentBasedAnalysis(yard, reporter)
+          val cba = new ComponentBasedAnalysis(yard)
           cba.phase1(Set(apk))
           val iddResult = cba.phase2(Set(apk))
           val tar = cba.phase3(iddResult, ssm)
           tar match {
-            case Some(tres) => 
+            case Some(tres) =>
               Staging.stageTaintAnalysisResult(tres.toTaintAnalysisSimpleResult, apk.model.outApkUri)
               res = SecurityEngineSuccResult(secdata.ptar.fileUri, Some(TaintAnalysisResult(apk.model.outApkUri)))
             case None =>
@@ -89,7 +92,7 @@ class SecurityEngineActor extends Actor with ActorLogging {
               misusedApis ++= result.misusedApis
           }
           Staging.stageAPIMisuseResult(ApiMisuseResult(misusedApis.toMap), apk.model.outApkUri)
-          res = SecurityEngineSuccResult(secdata.ptar.fileUri, Some(APIMisconfigureResult(apk.model.outApkUri)))
+          res = SecurityEngineSuccResult(secdata.ptar.fileUri, Some(APIMisConfigureResult(apk.model.outApkUri)))
       }
       
     } catch {

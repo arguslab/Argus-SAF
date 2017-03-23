@@ -16,10 +16,9 @@ import java.io._
 import org.json4s._
 import org.json4s.native.Serialization
 import org.json4s.native.Serialization.{read, write}
-import org.argus.amandroid.core.ApkGlobal
 import org.argus.amandroid.core.model.ApkModel
 import org.argus.amandroid.plugin.ApiMisuseResult
-import org.argus.amandroid.serialization.{ApkSerializer, ContextSerializer, PTAResultSerializer, SignatureKeySerializer}
+import org.argus.amandroid.serialization.{ApkModelSerializer, ContextSerializer, PTAResultSerializer, SignatureKeySerializer}
 import org.argus.jawa.alir.pta.PTAResult
 import org.argus.jawa.alir.taintAnalysis.TaintAnalysisSimpleResult
 import org.argus.jawa.core.Signature
@@ -27,13 +26,13 @@ import org.argus.jawa.core.util.MyFileUtil
 
 object Staging {
   
-  def stageApk(apk: ApkModel, outApkUri: FileResourceUri): Unit = {
+  def stageApkModel(apk: ApkModel, outApkUri: FileResourceUri): Unit = {
     val outStageUri = MyFileUtil.appendFileName(outApkUri, "stage")
     val outStageDir = FileUtil.toFile(outStageUri)
     if(!outStageDir.exists()) outStageDir.mkdirs()
     val apkRes = FileUtil.toFile(MyFileUtil.appendFileName(outStageUri, "apk.json"))
     val oapk = new PrintWriter(apkRes)
-    implicit val formats = Serialization.formats(NoTypeHints) + ApkSerializer + PTAResultSerializer
+    implicit val formats = Serialization.formats(NoTypeHints) + ApkModelSerializer + PTAResultSerializer
     try {
       write(apk, oapk)
     } catch {
@@ -66,7 +65,7 @@ object Staging {
   }
   
   def stage(apk: ApkModel, ptaresults: IMap[Signature, PTAResult], outApkUri: FileResourceUri): Unit = {
-    stageApk(apk, outApkUri)
+    stageApkModel(apk, outApkUri)
     stagePTAResult(ptaresults, outApkUri)
   }
   
@@ -108,13 +107,13 @@ object Staging {
     }
   }
   
-  def recoverApk(outApkUri: FileResourceUri): ApkModel = {
+  def recoverApkModel(outApkUri: FileResourceUri): ApkModel = {
     val outStageUri = MyFileUtil.appendFileName(outApkUri, "stage")
     val outStageDir = FileUtil.toFile(outStageUri)
     if(!outStageDir.exists()) throw new RuntimeException("Did not have stage folder!")
     val apkRes = FileUtil.toFile(MyFileUtil.appendFileName(outStageUri, "apk.json"))
     val rapk = new FileReader(apkRes)
-    implicit val formats = Serialization.formats(NoTypeHints) + ApkSerializer
+    implicit val formats = Serialization.formats(NoTypeHints) + ApkModelSerializer
     try {
       val apk = read[ApkModel](rapk)
       apk
@@ -145,7 +144,7 @@ object Staging {
   }
   
   def recoverStage(outApkUri: FileResourceUri): (ApkModel, IMap[Signature, PTAResult]) = {
-    (recoverApk(outApkUri), recoverPTAResult(outApkUri))
+    (recoverApkModel(outApkUri), recoverPTAResult(outApkUri))
   }
   
   def recoverTaintAnalysisResult(outApkUri: FileResourceUri): TaintAnalysisSimpleResult = {

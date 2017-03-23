@@ -19,7 +19,7 @@ import org.argus.jawa.core._
 import org.json4s.{CustomSerializer, Extraction, JValue}
 import org.json4s.JsonDSL._
 
-object ApkSerializer extends CustomSerializer[ApkModel](format => (
+object ApkModelSerializer extends CustomSerializer[ApkModel](format => (
   {
     case jv: JValue =>
       implicit val formats = format + JawaTypeSerializer + JawaTypeKeySerializer + SignatureSerializer + IntentFilterDataBaseSerializer + new org.json4s.ext.EnumNameSerializer(ComponentType)
@@ -100,42 +100,3 @@ object ApkSerializer extends CustomSerializer[ApkModel](format => (
       ("envMap" -> Extraction.decompose(envMap))
   }
 ))
-
-//object ApkSerTest {
-//  def main(args: scala.Array[String]): Unit = {
-//    val apkPath = args(0)
-//    val outputPath = args(1)
-//    val apkUri = FileUtil.toUri(apkPath)
-//    val outputUri = FileUtil.toUri(outputPath)
-//    val reporter = new PrintReporter(MsgLevel.ERROR)
-//    val global = new Global(apkUri, reporter)
-//    global.setJavaLib(AndroidGlobalConfig.settings.lib_files)
-//    val yard = new ApkYard(global)
-//    val layout = DecompileLayout(outputUri)
-//    val settings = DecompilerSettings(None, dexLog = false, debugMode = false, removeSupportGen = true, forceDelete = true, None, layout)
-//    val apk = yard.loadApk(apkUri, settings)
-//    println(apk.getCertificates)
-//    implicit val formats = Serialization.formats(NoTypeHints) + ApkSerializer
-//    val apkRes = FileUtil.toFile(MyFileUtil.appendFileName(outputUri, "apk.json"))
-//    val oapk = new FileWriter(apkRes)
-//    try {
-//      write(apk, oapk)
-//    } catch {
-//      case e: Exception =>
-//        e.printStackTrace()
-//    } finally {
-//      oapk.flush()
-//      oapk.close()
-//    }
-//    val iapk = new FileReader(apkRes)
-//    try {
-//      val apk = read[ApkGlobal](iapk)
-//      println(apk.getCertificates)
-//    } catch {
-//      case e: Exception =>
-//        e.printStackTrace()
-//    } finally {
-//      iapk.close()
-//    }
-//  }
-//}

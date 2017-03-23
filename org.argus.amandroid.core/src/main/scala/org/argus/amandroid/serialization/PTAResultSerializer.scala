@@ -21,17 +21,17 @@ import org.sireum.util._
 object PTAResultSerializer extends CustomSerializer[PTAResult](format => (
     {
       case jv: JValue =>
-        implicit val formats = format + PTASlotKeySerializer + InstanceSerializer + SignatureSerializer + ContextSerializer
+        implicit val formats = format + PTASlotKeySerializer + InstanceSerializer + SignatureSerializer + ContextSerializer + ContextKeySerializer
         val entryPoints = (jv \ "entryPoints").extract[ISet[Signature]]
         val pointsToMap = (jv \ "pointsToMap").extract[IMap[Context, PTSMap]]
-        val ptaresult = new PTAResult
-        ptaresult.addEntryPoints(entryPoints)
-        ptaresult.addPointsToMap(pointsToMap)
-        ptaresult
+        val pta_result = new PTAResult
+        pta_result.addEntryPoints(entryPoints)
+        pta_result.addPointsToMap(pointsToMap)
+        pta_result
     }, {
-      case ptaresult: PTAResult =>
-        implicit val formats = format + PTASlotKeySerializer + InstanceSerializer + SignatureSerializer + ContextSerializer
-        ("entryPoints" -> Extraction.decompose(ptaresult.getEntryPoints)) ~
-        ("pointsToMap" -> Extraction.decompose(ptaresult.pointsToMap))
+      case pta_result: PTAResult =>
+        implicit val formats = format + PTASlotKeySerializer + InstanceSerializer + SignatureSerializer + ContextSerializer + ContextKeySerializer
+        ("entryPoints" -> Extraction.decompose(pta_result.getEntryPoints)) ~
+        ("pointsToMap" -> Extraction.decompose(pta_result.pointsToMap))
     }
 ))

@@ -20,21 +20,21 @@ import org.sireum.util._
 
 object BuildICFGFromExistingPTAResult {
   
-  def apply(global: Global, ptaresults: IMap[Signature, PTAResult]): IMap[JawaType, InterproceduralDataFlowGraph] = build(global, ptaresults)
+  def apply(global: Global, pta_results: IMap[Signature, PTAResult]): IMap[JawaType, InterproceduralDataFlowGraph] = build(global, pta_results)
   
   type N = ICFGNode
   
-  private def build(global: Global, ptaresults: IMap[Signature, PTAResult]): IMap[JawaType, InterproceduralDataFlowGraph] = {
+  private def build(global: Global, pta_results: IMap[Signature, PTAResult]): IMap[JawaType, InterproceduralDataFlowGraph] = {
     val result: MMap[JawaType, InterproceduralDataFlowGraph] = mmapEmpty
-    ptaresults foreach {
-      case (ep, ptaresult) =>
+    pta_results foreach {
+      case (ep, pta_result) =>
         val icfg = new InterproceduralControlFlowGraph[N]
         val epmopt = global.getMethodOrResolve(ep)
         epmopt match {
           case Some(epm) => 
             if(epm.isConcrete) {
-              doBuild(global, epm, icfg, ptaresult)
-              result(ep.getClassType) = InterproceduralDataFlowGraph(icfg, ptaresult)
+              doBuild(global, epm, icfg, pta_result)
+              result(ep.getClassType) = InterproceduralDataFlowGraph(icfg, pta_result)
             }
           case None =>
         }
@@ -46,7 +46,7 @@ object BuildICFGFromExistingPTAResult {
       global: Global,
       ep: JawaMethod,
       icfg: InterproceduralControlFlowGraph[N], 
-      ptaresult: PTAResult): Unit = {
+      pta_result: PTAResult): Unit = {
     val context: Context = new Context(global.projectName)
     val nodes = icfg.collectCfgToBaseGraph(ep, context.copy, isFirst = true)
     val worklist: MList[N] = mlistEmpty ++ nodes
@@ -65,7 +65,7 @@ object BuildICFGFromExistingPTAResult {
                 case None =>
               }
             case _ =>
-              val inss = ptaresult.getPTSMap(icn.context).getOrElse(VarSlot(icn.argNames.head, isBase = false, isArg = true), isetEmpty)
+              val inss = pta_result.getPTSMap(icn.context).getOrElse(VarSlot(icn.argNames.head, isBase = false, isArg = true), isetEmpty)
               callType match {
                 case "direct" =>
                   CallHandler.getDirectCalleeMethod(global, calleesig) match {
