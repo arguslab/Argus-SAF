@@ -35,10 +35,10 @@ class PilarDeDex {
   private var recordNameMapping: IMap[JawaType, String] = imapEmpty
   private var procedureNameMapping: IMap[String, String] = imapEmpty
   private var attributeNameMapping: IMap[(String, JawaType), String] = imapEmpty
-  def getPkgNameMapping = pkgNameMapping
-  def getRecordNameMapping = recordNameMapping
-  def getProcedureNameMapping = procedureNameMapping
-  def getAttributeNameMapping = attributeNameMapping
+  def getPkgNameMapping: IMap[JawaPackage, String] = pkgNameMapping
+  def getRecordNameMapping: IMap[JawaType, String] = recordNameMapping
+  def getProcedureNameMapping: IMap[String, String] = procedureNameMapping
+  def getAttributeNameMapping: IMap[(String, JawaType), String] = attributeNameMapping
   def haveRenamedElements: Boolean = pkgNameMapping.nonEmpty || recordNameMapping.nonEmpty || procedureNameMapping.nonEmpty || attributeNameMapping.nonEmpty
   def mapPackage(pkg: String): String = {
     val pkglist: MList[String] = mlistEmpty
@@ -225,7 +225,7 @@ class PilarDeDex {
         depFiles += depFile
         raf.close()
       } catch {
-          case ex: IOException =>
+          case _: IOException =>
             System.err.println("Cannot open dependency file: " + f +
                 " (derived from ODEX file dependency " + dependencyFileName + ")")
             error = true

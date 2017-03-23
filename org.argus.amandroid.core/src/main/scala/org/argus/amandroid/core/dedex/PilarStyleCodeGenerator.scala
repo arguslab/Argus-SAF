@@ -23,9 +23,10 @@ import org.apache.commons.lang.StringEscapeUtils
 import org.argus.amandroid.core.dedex.DedexTypeResolver.{DedexJawaType, DedexType, DedexUndeterminedType}
 import org.argus.amandroid.core.dedex.DexInstructionToPilarParser.ForkStatus
 import org.argus.jawa.core._
-import org.argus.jawa.core.util.MyFileUtil
+import org.argus.jawa.core.util.{MyFileUtil, MyTimeout}
 import org.stringtemplate.v4.{ST, STGroupString}
 
+import scala.concurrent.duration.FiniteDuration
 import scala.util.control.Breaks._
 
 /**
@@ -35,8 +36,17 @@ import scala.util.control.Breaks._
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
  */
 trait PilarStyleCodeGeneratorListener {
-  def onRecordGenerated(recType: JawaType, code: String, outputUri: Option[FileResourceUri])
-  def onGenerateEnd(recordCount: Int)
+  def onRecordGenerated(recType: JawaType, code: String, outputUri: Option[FileResourceUri]): Unit = {}
+  def onProcedureGenerated(sig: Signature): Unit = {}
+  def onInstructionGenerated(round: Int): Unit = {}
+  def onGenerateEnd(recordCount: Int): Unit = {}
+}
+
+class DecompileTimer(time: FiniteDuration) extends PilarStyleCodeGeneratorListener {
+  val timer = new MyTimeout(time)
+  override def onInstructionGenerated(round: Int): Unit = {
+    timer.isTimeoutThrow()
+  }
 }
 
 object PilarStyleCodeGenerator {
@@ -207,10 +217,9 @@ class PilarStyleCodeGenerator(
           dump.get.println("--------------------------------------")
           dump.get.println("Class: " + recType)
         }
-        val code = generateRecord(classIdx)
+        val code = generateRecord(classIdx, listener)
         result(recType) = code
-        if(listener.isDefined) listener.get.onRecordGenerated(recType, code, outputUri)
-        else outputCode(recType, code, outputUri)
+        outputCode(recType, code, outputUri)
       }
     }
     if(listener.isDefined) listener.get.onGenerateEnd(result.size)
@@ -232,7 +241,7 @@ class PilarStyleCodeGenerator(
     typTemplate
   }
   
-  private def generateRecord(classIdx: Int): String = {
+  private def generateRecord(classIdx: Int, listener: Option[PilarStyleCodeGeneratorListener]): String = {
     val recTemplate = template.getInstanceOf("RecordDecl")
     val recTyp: JawaType = toPilarRecordName(dexClassDefsBlock.getClassNameOnly(classIdx)).resolveRecord
     val isInterface: Boolean = dexClassDefsBlock.isInterface(classIdx)
@@ -271,8 +280,10 @@ class PilarStyleCodeGenerator(
     recTemplate.add("extends", extendsList)
     recTemplate.add("attributes", generateAttributes(classIdx))
     recTemplate.add("globals", generateGlobals(classIdx))
-    recTemplate.add("procedures", generateProcedures(classIdx))
-    recTemplate.render()
+    recTemplate.add("procedures", generateProcedures(classIdx, listener))
+    val code = recTemplate.render()
+    if(listener.isDefined) listener.get.onRecordGenerated(recTyp, code, outputUri)
+    code
   }
   
   private def generateAttributes(classIdx: Int): util.ArrayList[ST] = {
@@ -313,14 +324,14 @@ class PilarStyleCodeGenerator(
     globals
   }
   
-  private def generateProcedures(classIdx: Int): util.ArrayList[ST] = {
+  private def generateProcedures(classIdx: Int, listener: Option[PilarStyleCodeGeneratorListener]): util.ArrayList[ST] = {
     val procedures: util.ArrayList[ST] = new util.ArrayList[ST]
     
     for(methodIdx <- 0 until dexClassDefsBlock.getDirectMethodsFieldsSize(classIdx)) {
-      procedures.add(generateProcedure(classIdx, methodIdx, isDirect = true))
+      procedures.add(generateProcedure(classIdx, methodIdx, isDirect = true, listener))
     }
     for(methodIdx <- 0 until dexClassDefsBlock.getVirtualMethodsFieldsSize(classIdx)) {
-      procedures.add(generateProcedure(classIdx, methodIdx, isDirect = false))
+      procedures.add(generateProcedure(classIdx, methodIdx, isDirect = false, listener))
     }
     procedures
   }
@@ -352,7 +363,7 @@ class PilarStyleCodeGenerator(
     (newSig, paramRegNumbers.toList)
   }
   
-  private def generateProcedure(classIdx: Int, methodIdx: Int, isDirect: Boolean): ST = {
+  private def generateProcedure(classIdx: Int, methodIdx: Int, isDirect: Boolean, listener: Option[PilarStyleCodeGeneratorListener]): ST = {
     val pos: Long = 
       if(isDirect) dexClassDefsBlock.getDirectMethodOffset(classIdx, methodIdx)
       else dexClassDefsBlock.getVirtualMethodOffset(classIdx, methodIdx)
@@ -401,7 +412,6 @@ class PilarStyleCodeGenerator(
     }
     
     val procTemplate = template.getInstanceOf("ProcedureDecl")
-//    if(sig.signature == "Lavm;.a:([B)[B") {
     procTemplate.add("retTyp", generateType(retTyp))
     procTemplate.add("procedureName", procName)
     val params: util.ArrayList[ST] = new util.ArrayList[ST]
@@ -437,14 +447,14 @@ class PilarStyleCodeGenerator(
     procTemplate.add("annotations", procAnnotations)
     if(!AccessFlag.isAbstract(AccessFlag.getAccessFlags(accessFlags)) &&
         !AccessFlag.isNative(AccessFlag.getAccessFlags(accessFlags))) {
-      val (body, tryCatch) = generateBody(sig, procName, dexMethodHeadParser, initRegMap, localvars)
+      val (body, tryCatch) = generateBody(sig, procName, dexMethodHeadParser, initRegMap, localvars, listener)
       procTemplate.add("localVars", generateLocalVars(localvars.toMap))
       procTemplate.add("body", body)
       procTemplate.add("catchClauses", tryCatch)
     } else {
       procTemplate.add("body", "#. return;")
     }
-//    }
+    if(listener.isDefined) listener.get.onProcedureGenerated(sig)
     procTemplate
   }
   
@@ -462,7 +472,7 @@ class PilarStyleCodeGenerator(
     localVarsTemplate
   }
   
-  private def generateBody(sig: Signature, procName: String, dexMethodHeadParser: DexMethodHeadParser, initRegMap: MMap[Int, DedexType], localvars: MMap[String, (JawaType, Boolean)]): (ST, ST) = {    
+  private def generateBody(sig: Signature, procName: String, dexMethodHeadParser: DexMethodHeadParser, initRegMap: MMap[Int, DedexType], localvars: MMap[String, (JawaType, Boolean)], listener: Option[PilarStyleCodeGeneratorListener]): (ST, ST) = {
     val bodyTemplate: ST = template.getInstanceOf("Body")
     val startPos: Long = dexMethodHeadParser.getInstructionBase
     val endPos: Long = dexMethodHeadParser.getInstructionEnd
@@ -581,6 +591,7 @@ class PilarStyleCodeGenerator(
               println("Flow: before parse")
             try {
               instructionParser.doparse(startPos, endPos)
+              if(listener.isDefined) listener.get.onInstructionGenerated(1)
             } catch {
               case _: Exception =>
                 if(DEBUG_FLOW)
@@ -671,6 +682,7 @@ class PilarStyleCodeGenerator(
         var visitOffset: Int = (actualPosition - startPos).asInstanceOf[Int]
         if(visitSet.get(visitOffset)) {
           val code = instructionParser.doparse(startPos, endPos)
+          if(listener.isDefined) listener.get.onInstructionGenerated(2)
           codes ++= code
         } else {
           if(dump.isDefined)

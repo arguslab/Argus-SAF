@@ -10,16 +10,13 @@
 
 package org.argus.amandroid.concurrent
 
-import java.util.concurrent.TimeoutException
-
 import akka.actor._
 import akka.pattern.{AskTimeoutException, ask}
 import com.typesafe.config.ConfigFactory
 import org.argus.amandroid.core.decompile.{ApkDecompiler, DecompileLayout, DecompilerSettings}
-import org.argus.amandroid.core.dedex.{PilarStyleCodeGenerator, PilarStyleCodeGeneratorListener}
+import org.argus.amandroid.core.dedex.DecompileTimer
 import org.argus.amandroid.core.{ApkGlobal, InvalidApk}
-import org.argus.jawa.core.JawaType
-import org.argus.jawa.core.util.{FutureUtil, MyFileUtil}
+import org.argus.jawa.core.util.MyFileUtil
 import org.sireum.util._
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -42,36 +39,19 @@ class DecompilerActor extends Actor with ActorLogging {
   def decompile(ddata: DecompileData): DecompilerResult = {
     log.info("Start decompile " + ddata.fileUri)
     if(ApkGlobal.isValidApk(ddata.fileUri)) {
-        var opUri: Option[FileResourceUri] = None
-        val codes: MMap[JawaType, String] = mmapEmpty
-        val listener = new PilarStyleCodeGeneratorListener {
-          def onRecordGenerated(recType: JawaType, code: String, outputUri: Option[FileResourceUri]): Unit = {
-            opUri = outputUri
-            codes(recType) = code
-          }
-          def onGenerateEnd(recordCount: Int): Unit = {}
+        val listener = ddata.timeout match {
+          case fd: FiniteDuration => Some(new DecompileTimer(fd))
+          case _ => None
         }
         val apkFile = FileUtil.toFile(ddata.fileUri)
-        val (f, cancel) = FutureUtil.interruptableFuture[DecompilerResult] { () =>
-          val res = 
-            try {
-              val layout = DecompileLayout(ddata.outputUri)
-              val settings = DecompilerSettings(ddata.dpsuri, dexLog = false, debugMode = false, removeSupportGen = ddata.removeSupportGen, forceDelete = ddata.forceDelete, Some(listener), layout)
-              val (outApkUri, srcs, deps) = ApkDecompiler.decompile(ddata.fileUri, settings)
-              DecompileSuccResult(ddata.fileUri, outApkUri, srcs, deps)
-            } catch {
-              case e: Throwable =>
-                DecompileFailResult(ddata.fileUri, e)
-            }
-          res
-        }
         val res = try {
-          Await.result(f, ddata.timeout)
+          val layout = DecompileLayout(ddata.outputUri)
+          val settings = DecompilerSettings(ddata.dpsuri, dexLog = false, debugMode = false, removeSupportGen = ddata.removeSupportGen, forceDelete = ddata.forceDelete, listener, layout)
+          val (outApkUri, srcs, deps) = ApkDecompiler.decompile(ddata.fileUri, settings)
+          DecompileSuccResult(ddata.fileUri, outApkUri, srcs, deps)
         } catch {
-          case te: TimeoutException =>
-            cancel()
-            log.warning("Decompile timeout for " + ddata.fileUri)
-            DecompileFailResult(ddata.fileUri, te)
+          case e: Throwable =>
+            DecompileFailResult(ddata.fileUri, e)
         }
         res match {
           case _: DecompileFailResult =>
@@ -79,10 +59,6 @@ class DecompilerActor extends Actor with ActorLogging {
             val outDir = FileUtil.toFile(MyFileUtil.appendFileName(ddata.outputUri, dirName))
             MyFileUtil.deleteDir(outDir)
           case _ =>
-            codes.foreach {
-              case (typ, code) =>
-                PilarStyleCodeGenerator.outputCode(typ, code, opUri)
-            }
         }
         res
       } else {

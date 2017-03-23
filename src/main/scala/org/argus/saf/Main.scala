@@ -200,7 +200,7 @@ object Main extends App {
     try {
       sourcePath = cli.getArgList.get(1)
     } catch {
-      case e: Exception =>
+      case _: Exception =>
         usage(Mode.DECOMPILE)
         System.exit(0)
     }
@@ -235,7 +235,7 @@ object Main extends App {
     try {
       sourcePath = cli.getArgList.get(1)
     } catch {
-      case e: Exception =>
+      case _: Exception =>
         usage(Mode.TAINT)
         System.exit(0)
     }
@@ -267,7 +267,7 @@ object Main extends App {
     try {
       sourcePath = cli.getArgList.get(1)
     } catch {
-      case e: Exception =>
+      case _: Exception =>
         usage(Mode.APICHECK)
         System.exit(0)
     }
@@ -292,7 +292,7 @@ object Main extends App {
     try {
       sourcePath = cli.getArgList.get(1)
     } catch {
-      case e: Exception =>
+      case _: Exception =>
         usage(Mode.STAGE)
         System.exit(0)
     }
