@@ -50,7 +50,7 @@ object Dependencies {
   val json4s_ext: ModuleID = "org.json4s" %% "json4s-ext" % "3.5.0"
 
   val scalatest: ModuleID = "org.scalatest" %% "scalatest" % "3.0.1" % "test"
-  val findbug: ModuleID = "com.google.code.findbugs" % "jsr305" % "1.3.+" % "compile"
+  val findbug: ModuleID = "com.google.code.findbugs" % "jsr305" % "3.0.+" % "compile"
 }
 
 object DependencyGroups {
