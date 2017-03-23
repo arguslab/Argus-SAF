@@ -14,21 +14,10 @@ bintrayReleaseOnPublish in ThisBuild := false
 bintrayRepository in ThisBuild := "maven"
 bintrayPackage in ThisBuild := "argus-saf"
 
-dependencyOverrides in ThisBuild += "org.scala-lang.modules" %% "scala-xml" % "1.0.5"
-
-
 val argusSafSettings = Defaults.coreDefaultSettings ++ Seq(
   libraryDependencies += "org.scala-lang" % "scala-compiler" % ArgusVersions.scalaVersion,
   scalacOptions ++= Seq("-unchecked", "-deprecation", "-feature")
 )
-
-val myUnidocSettings = unidocSettings ++
-  Seq(
-    // unidoc
-    scalacOptions in (Compile, doc) ++= Opts.doc.title("Argus-SAF-Api-Doc"),
-    scalacOptions in (Compile, doc) ++= Seq("-doc-root-content", baseDirectory.value+"/root-doc.txt"),
-    autoAPIMappings := true
-  )
 
 val buildInfoSettings = Seq(
   // build info
@@ -78,11 +67,10 @@ val publishSettings = Seq(
 
 lazy val argus_saf: Project =
   newProject("argus-saf", file("."))
-  .enablePlugins(BuildInfoPlugin, BintrayPlugin)
+  .enablePlugins(BuildInfoPlugin, BintrayPlugin, ScalaUnidocPlugin)
   .settings(libraryDependencies ++= DependencyGroups.argus_saf)
   .dependsOn(amandroid_core)
   .settings(argusSafSettings)
-  .settings(myUnidocSettings)
   .settings(buildInfoSettings)
   .settings(assemblySettings)
   .aggregate(

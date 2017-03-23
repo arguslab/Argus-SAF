@@ -19,7 +19,7 @@ import org.argus.jawa.core.{JawaType, LibraryAPISummary}
  */ 
 object AndroidLibraryAPISummary extends LibraryAPISummary{
   
-  val andoirdPackages: Set[String] =
+  val androidPackages: Set[String] =
     Set(
     "android.",
     "dalvik.",
@@ -70,14 +70,14 @@ object AndroidLibraryAPISummary extends LibraryAPISummary{
    * check given API name is present in library
    */
   def isLibraryAPI(apiName: String): Boolean = {
-    andoirdPackages.exists{
+    androidPackages.exists{
       prefix => 
         apiName.startsWith(prefix)
     }
   }
   
   def isLibraryClass(typ: JawaType): Boolean = {
-    andoirdPackages.exists{
+    androidPackages.exists{
       prefix => 
         typ.name.startsWith(prefix)
     }

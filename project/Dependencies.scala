@@ -44,7 +44,7 @@ object Dependencies {
 
   val commons_lang3: ModuleID = "org.apache.commons" % "commons-lang3" % "3.4"
 
-  val akka_actor: ModuleID = "com.typesafe.akka" %% "akka-actor" % "2.4.14"
+  val akka_actor: ModuleID = ("com.typesafe.akka" %% "akka-actor" % "2.4.17")
 
   val json4s_native: ModuleID = "org.json4s" %% "json4s-native" % "3.5.0"
   val json4s_ext: ModuleID = "org.json4s" %% "json4s-ext" % "3.5.0"
