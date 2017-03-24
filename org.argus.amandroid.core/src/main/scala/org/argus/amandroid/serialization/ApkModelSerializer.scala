@@ -22,7 +22,7 @@ import org.json4s.JsonDSL._
 object ApkModelSerializer extends CustomSerializer[ApkModel](format => (
   {
     case jv: JValue =>
-      implicit val formats = format + JawaTypeSerializer + JawaTypeKeySerializer + SignatureSerializer + IntentFilterDataBaseSerializer + new org.json4s.ext.EnumNameSerializer(ComponentType)
+      implicit val formats = format + JawaTypeSerializer + JawaTypeKeySerializer + SignatureSerializer + SignatureKeySerializer + IntentFilterDataBaseSerializer + new org.json4s.ext.EnumNameSerializer(ComponentType)
       val nameUri  = (jv \ "nameUri").extract[FileResourceUri]
       val outApkUri = (jv \ "outApkUri").extract[FileResourceUri]
       val srcs = (jv \ "srcs").extract[ISet[String]]
@@ -61,7 +61,7 @@ object ApkModelSerializer extends CustomSerializer[ApkModel](format => (
   },
   {
     case model: ApkModel =>
-      implicit val formats = format + JawaTypeSerializer + JawaTypeKeySerializer + SignatureSerializer + IntentFilterDataBaseSerializer + new org.json4s.ext.EnumNameSerializer(ComponentType)
+      implicit val formats = format + JawaTypeSerializer + JawaTypeKeySerializer + SignatureSerializer + SignatureKeySerializer + IntentFilterDataBaseSerializer + new org.json4s.ext.EnumNameSerializer(ComponentType)
       val nameUri: FileResourceUri = model.nameUri
       val outApkUri: FileResourceUri = model.outApkUri
       val srcs: ISet[String] = model.srcs
