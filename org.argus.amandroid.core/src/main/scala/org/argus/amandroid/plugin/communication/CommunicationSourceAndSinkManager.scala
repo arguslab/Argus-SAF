@@ -22,6 +22,7 @@ import org.argus.jawa.core._
 
 /**
  * @author Fengchi Lin
+ * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
  */
 class CommunicationSourceAndSinkManager(sasFilePath: String) extends AndroidSourceAndSinkManager(sasFilePath){
   

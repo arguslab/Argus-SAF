@@ -17,7 +17,7 @@ import org.argus.amandroid.alir.pta.reachingFactsAnalysis.AndroidReachingFactsAn
 import org.argus.amandroid.core.decompile.{DecompileLayout, DecompilerSettings}
 import org.argus.amandroid.core.util.ApkFileUtil
 import org.argus.amandroid.core.{AndroidGlobalConfig, ApkGlobal}
-import org.argus.amandroid.plugin.apiMisuse.{CryptographicMisuse, HideIcon}
+import org.argus.amandroid.plugin.apiMisuse.{CryptographicMisuse, HideIcon, SSLTLSMisuse}
 import org.argus.amandroid.plugin.{ApiMisuseChecker, ApiMisuseModules}
 import org.argus.jawa.alir.Context
 import org.argus.jawa.alir.pta.suspark.InterproceduralSuperSpark
@@ -47,6 +47,7 @@ object ApiMisuse {
     val (checker, buildIDFG) = module match {
       case ApiMisuseModules.CRYPTO_MISUSE => (new CryptographicMisuse, true)
       case ApiMisuseModules.HIDE_ICON => (new HideIcon, false)
+      case ApiMisuseModules.SSLTLS_MISUSE => (new SSLTLSMisuse, false)
     }
     apiMisuse(apkFileUris.toSet, outputPath, checker, buildIDFG, debug, forceDelete)
   }

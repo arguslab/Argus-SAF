@@ -22,7 +22,7 @@ import org.argus.amandroid.plugin.password.PasswordSourceAndSinkManager
 import org.argus.amandroid.plugin.{ApiMisuseChecker, ApiMisuseResult, TaintAnalysisModules}
 import org.argus.amandroid.serialization.stage.Staging
 import org.argus.jawa.alir.pta.BuildICFGFromExistingPTAResult
-import org.argus.jawa.core.{MsgLevel, PrintReporter, Signature}
+import org.argus.jawa.core.{MsgLevel, PrintReporter}
 import org.sireum.util._
 
 trait SecSpec
@@ -85,13 +85,13 @@ class SecurityEngineActor extends Actor with ActorLogging {
               res = SecurityEngineSuccResult(secdata.ptar.fileUri, None)
           }
         case am: APIMisconfigureSpec =>
-          val misusedApis: MMap[(Signature, String), String] = mmapEmpty
+          val misusedApis: MMap[(String, String), String] = mmapEmpty
           idfgs foreach {
             case (_, idfg) =>
               val result = am.checker.check(apk, Some(idfg))
               misusedApis ++= result.misusedApis
           }
-          Staging.stageAPIMisuseResult(ApiMisuseResult(misusedApis.toMap), apk.model.outApkUri)
+          Staging.stageAPIMisuseResult(ApiMisuseResult(am.checker.name, misusedApis.toMap), apk.model.outApkUri)
           res = SecurityEngineSuccResult(secdata.ptar.fileUri, Some(APIMisConfigureResult(apk.model.outApkUri)))
       }
       

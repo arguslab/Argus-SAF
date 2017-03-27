@@ -12,18 +12,23 @@ package org.argus.amandroid.plugin
 
 import org.argus.jawa.alir.dataFlowAnalysis.InterproceduralDataFlowGraph
 import org.sireum.util.IMap
-import org.argus.jawa.core.{Global, Signature}
+import org.argus.jawa.core.Global
 
 object ApiMisuseModules extends Enumeration {
-  val CRYPTO_MISUSE, HIDE_ICON = Value
+  val CRYPTO_MISUSE, HIDE_ICON, SSLTLS_MISUSE = Value
 }
 
 trait ApiMisuseChecker {
+  def name: String
   def check(global: Global, idfgOpt: Option[InterproceduralDataFlowGraph]): ApiMisuseResult
 }
 
-case class ApiMisuseResult(misusedApis: IMap[(Signature, String), String]) {
-  def print(): Unit = misusedApis.foreach {
-    case ((sig, line), des) => println(sig + " " + line + " : " + des)
+case class ApiMisuseResult(checkerName: String, misusedApis: IMap[(String, String), String]) {
+  def print(): Unit = {
+    println(checkerName + ":")
+    if(misusedApis.isEmpty) println("  No misuse.")
+    misusedApis.foreach {
+      case ((sig, line), des) => println("  " + sig + " " + line + " : " + des)
+    }
   }
 }

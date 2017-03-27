@@ -58,7 +58,7 @@ object Main extends App {
       .hasArg(true).argName("name").build()
 
     val apimoduleOption: Option = Option.builder("c")
-      .longOpt("checker").desc("Api checker to use. [Default: HIDE_ICON, Choices: (CRYPTO_MISUSE, HIDE_ICON)]")
+      .longOpt("checker").desc("Api checker to use. [Default: HIDE_ICON, Choices: (CRYPTO_MISUSE, HIDE_ICON, SSLTLS_MISUSE)]")
       .hasArg(true).argName("name").build()
 
 //    generalOptionGroup.addOption(verboseOption)
@@ -260,6 +260,7 @@ object Main extends App {
       module = cli.getOptionValue("c") match {
         case "CRYPTO_MISUSE" => ApiMisuseModules.CRYPTO_MISUSE
         case "HIDE_ICON" => ApiMisuseModules.HIDE_ICON
+        case "SSLTLS_MISUSE" => ApiMisuseModules.SSLTLS_MISUSE
       }
     }
     var sourcePath: String = null

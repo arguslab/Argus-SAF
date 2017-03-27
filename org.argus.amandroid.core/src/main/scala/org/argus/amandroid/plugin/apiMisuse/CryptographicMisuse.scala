@@ -25,6 +25,8 @@ import org.sireum.util._
  */ 
 class CryptographicMisuse extends ApiMisuseChecker {
 
+  val name = "CryptographicMisuse"
+
   def check(global: Global, idfgOpt: Option[InterproceduralDataFlowGraph]): ApiMisuseResult = {
     val idfg = idfgOpt.get
     val icfg = idfg.icfg
@@ -38,22 +40,22 @@ class CryptographicMisuse extends ApiMisuseChecker {
             nodeMap.getOrElseUpdate(r._1, msetEmpty) += r._2
         }
     }
-    val misusedApis: MMap[(Signature, String), String] = mmapEmpty
+    val misusedApis: MMap[(String, String), String] = mmapEmpty
     val rule1Res = ECBCheck(global, nodeMap, ptaresult)
     rule1Res.foreach{
       case (n, b) =>
         if(!b){
-          misusedApis((n.getContext.getMethodSig, n.getContext.getCurrentLocUri)) = "Using ECB mode!"
+          misusedApis((n.getContext.getMethodSig.signature, n.getContext.getCurrentLocUri)) = "Using ECB mode!"
         }
     }
     val rule2Res = IVCheck(global, nodeMap, ptaresult)
     rule2Res.foreach {
       case (n, r) =>
         if(r.isDefined) {
-          misusedApis((n.getContext.getMethodSig, n.getContext.getCurrentLocUri)) = r.get
+          misusedApis((n.getContext.getMethodSig.signature, n.getContext.getCurrentLocUri)) = r.get
         }
     }
-    ApiMisuseResult(misusedApis.toMap)
+    ApiMisuseResult(name, misusedApis.toMap)
   }
 
   def getCryptoNode(global: Global, node: ICFGNode): Set[(String, ICFGCallNode)] = {
