@@ -15,9 +15,7 @@ import java.io.FileInputStream
 import java.util.zip.ZipEntry
 
 import org.argus.amandroid.alir.componentSummary.ComponentSummaryTable
-import org.argus.amandroid.alir.pta.reachingFactsAnalysis.AndroidReachingFactsAnalysisConfig
 import org.argus.amandroid.core.model.ApkModel
-import org.argus.jawa.alir.Context
 import org.argus.jawa.alir.dataDependenceAnalysis.InterproceduralDataDependenceInfo
 import org.argus.jawa.alir.dataFlowAnalysis.InterproceduralDataFlowGraph
 import org.argus.jawa.alir.interprocedural.InterproceduralNode
@@ -139,11 +137,11 @@ class ApkGlobal(val model: ApkModel, reporter: Reporter) extends Global(model.na
   def getSummaryTable(key: JawaType): Option[ComponentSummaryTable] = this.synchronized(this.summaryTables.get(key))
   def getSummaryTables: Map[JawaType, ComponentSummaryTable] = this.summaryTables.toMap
 
-  private val apkTaintResult: MMap[FileResourceUri, Any] = mmapEmpty
+  private var apkTaintResult: Option[Any] = None
 
-  def addTaintAnalysisResult[N <: InterproceduralNode, E <: AlirEdge[N]](fileUri: FileResourceUri, tar: TaintAnalysisResult[N, E]): Unit = this.synchronized(this.apkTaintResult(fileUri) = tar)
+  def addTaintAnalysisResult[N <: InterproceduralNode, E <: AlirEdge[N]](tar: TaintAnalysisResult[N, E]): Unit = this.synchronized(this.apkTaintResult = Some(tar))
   def hasTaintAnalysisResult(fileUri: FileResourceUri): Boolean = this.apkTaintResult.contains(fileUri)
-  def getTaintAnalysisResult[N <: InterproceduralNode, E <: AlirEdge[N]](fileUri: FileResourceUri): Option[TaintAnalysisResult[N, E]] = this.apkTaintResult.get(fileUri).map(_.asInstanceOf[TaintAnalysisResult[N, E]])
+  def getTaintAnalysisResult[N <: InterproceduralNode, E <: AlirEdge[N]](fileUri: FileResourceUri): Option[TaintAnalysisResult[N, E]] = this.apkTaintResult.map(_.asInstanceOf[TaintAnalysisResult[N, E]])
 
 
   override def reset(removeCode: Boolean = true): Unit = {
@@ -152,7 +150,7 @@ class ApkGlobal(val model: ApkModel, reporter: Reporter) extends Global(model.na
     this.idfgResults.clear()
     this.iddaResults.clear()
     this.summaryTables.clear()
-    this.apkTaintResult.clear()
+    this.apkTaintResult = None
   }
 
   override def toString: String = FileUtil.toFile(nameUri).getName

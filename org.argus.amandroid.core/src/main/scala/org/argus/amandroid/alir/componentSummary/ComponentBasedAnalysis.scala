@@ -134,6 +134,7 @@ class ComponentBasedAnalysis(yard: ApkYard) {
         val ptaresult = idfgs.map(_.ptaresult).reduce(_.merge(_))
         val tar = AndroidDataDependentTaintAnalysis(yard, iddResult._2, ptaresult, ssm)
         yard.setInterAppTaintAnalysisResult(tar)
+        apks.foreach(_.addTaintAnalysisResult(tar))
         Some(tar)
       } catch {
         case ex: Exception =>
