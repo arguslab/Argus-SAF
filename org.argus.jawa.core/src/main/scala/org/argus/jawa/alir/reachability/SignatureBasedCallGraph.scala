@@ -14,7 +14,11 @@ import org.argus.jawa.alir.callGraph.CallGraph
 import org.argus.jawa.alir.pta.PTAScopeManager
 import org.argus.jawa.core._
 import org.argus.jawa.alir.util.CallHandler
+import org.argus.jawa.core.util.MyTimeout
 import org.sireum.util._
+
+import scala.language.postfixOps
+import scala.concurrent.duration._
 
 /**
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
@@ -24,31 +28,37 @@ object SignatureBasedCallGraph {
   
   def apply(
       global: Global, 
-      entryPoints: ISet[Signature]): CallGraph = build(global, entryPoints)
+      entryPoints: ISet[Signature],
+      timer: Option[MyTimeout] = Some(new MyTimeout(1 minutes))): CallGraph = build(global, entryPoints, timer)
       
   def build(
       global: Global, 
-      entryPoints: ISet[Signature]): CallGraph = {
+      entryPoints: ISet[Signature],
+      timer: Option[MyTimeout]): CallGraph = {
+    global.reporter.echo(TITLE, s"Building SignatureBasedCallGraph with ${entryPoints.size} entry points...")
     val cg = new CallGraph
     entryPoints.foreach{
       ep =>
+        if(timer.isDefined) timer.get.refresh()
         val epmopt = global.getMethodOrResolve(ep)
         epmopt match {
-          case Some(epm) => 
+          case Some(epm) =>
             if(!PTAScopeManager.shouldBypass(epm.getDeclaringClass) && epm.isConcrete) {
-              sbcg(global, epm, cg)
+              sbcg(global, epm, cg, timer)
             }
           case None =>
         }
     }
+    global.reporter.echo(TITLE, s"SignatureBasedCallGraph Done with call size ${cg.getCallMap.size}.")
     cg
   }
   
-  private def sbcg(global: Global, ep: JawaMethod, cg: CallGraph) = {
+  private def sbcg(global: Global, ep: JawaMethod, cg: CallGraph, timer: Option[MyTimeout]) = {
     val worklist: MList[JawaMethod] = mlistEmpty // Make sure that all the method in the worklist are concrete.
     val processed: MSet[String] = msetEmpty
     worklist += ep
     while(worklist.nonEmpty) {
+      if(timer.isDefined) timer.get.isTimeoutThrow()
       val m = worklist.remove(0)
       processed += m.getSignature.signature
       try {
@@ -85,7 +95,7 @@ object SignatureBasedCallGraph {
           case _ =>
         }
       } catch {
-        case e: Throwable => global.reporter.error(TITLE, e.getMessage)
+        case e: Throwable => global.reporter.warning(TITLE, e.getMessage)
       }
     }
   }

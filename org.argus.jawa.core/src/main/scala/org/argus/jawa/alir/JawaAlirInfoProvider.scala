@@ -98,7 +98,7 @@ object JawaAlirInfoProvider {
 	}
 	
 	private def doGetIntraMethodResult(model: Model, global: Global): Map[ResourceUri, TransformIntraMethodResult] = {
-	  val result = JawaSymbolTableBuilder(List(model), JawaResolver.fst, parallel = true)
+	  val result = JawaSymbolTableBuilder(List(model), JawaResolver.fst, parallel = false)
 	  result.procedureSymbolTables.map{
 	    pst=>
 	      val (_, cfg) = buildCfg(pst, global)

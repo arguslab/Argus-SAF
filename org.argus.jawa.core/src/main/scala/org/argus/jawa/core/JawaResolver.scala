@@ -13,7 +13,7 @@ package org.argus.jawa.core
 import org.argus.jawa.core.io.AbstractFile
 import org.argus.jawa.core.sourcefile.{MySTVisitor, SourcefileParser}
 import org.argus.jawa.core.symbolResolver.{JawaSymbolTable, JawaSymbolTableBuilder}
-import org.argus.jawa.core.util.{MyFileUtil, WorklistAlgorithm}
+import org.argus.jawa.core.util.WorklistAlgorithm
 import org.sireum.pilar.symbol.SymbolTableProducer
 import org.sireum.pilar.ast._
 import org.sireum.util._
@@ -175,18 +175,6 @@ trait JawaResolver extends JavaKnowledge { self: Global =>
   }
   
   /**
-   * escalate resolving level
-   */
-//  private def escalateReolvingLevel(clazz: JawaClass, desiredLevel: ResolveLevel.Value): JawaClass = {
-//    require(clazz.getResolvingLevel < desiredLevel)
-//    if(desiredLevel == ResolveLevel.BODY){
-//      clazz.getDeclaredMethods.foreach(m => m.getBody)
-//      clazz.setResolvingLevel(ResolveLevel.BODY)
-//    }
-//    clazz
-//  }
-  
-  /**
    * force resolve the given class to body level
    */
   private def forceResolveToBody(classType: JawaType): JawaClass = {
@@ -287,13 +275,6 @@ object JawaResolver{
   
   def getSymbolResolveResult(codes: Set[String]): SymbolTable = {
     val newModel = parseCodes(codes)
-    JawaSymbolTableBuilder(List(newModel), fst, parallel = true)
-  }
-}
-
-object JawaResolverRun {
-  def main(args: Array[String]) {
-    val file = args(0)
-    JawaResolver.parseCodes(Set(MyFileUtil.readFileContent(FileUtil.toUri(file))))
+    JawaSymbolTableBuilder(List(newModel), fst, parallel = false)
   }
 }

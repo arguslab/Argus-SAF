@@ -24,11 +24,13 @@ trait ApiMisuseChecker {
 }
 
 case class ApiMisuseResult(checkerName: String, misusedApis: IMap[(String, String), String]) {
-  def print(): Unit = {
-    println(checkerName + ":")
-    if(misusedApis.isEmpty) println("  No misuse.")
+  override def toString: String = {
+    val sb = new StringBuilder
+    sb.append(checkerName + ":\n")
+    if(misusedApis.isEmpty) sb.append("  No misuse.\n")
     misusedApis.foreach {
-      case ((sig, line), des) => println("  " + sig + " " + line + " : " + des)
+      case ((sig, line), des) => sb.append("  " + sig + " " + line + " : " + des + "\n")
     }
+    sb.toString().intern()
   }
 }

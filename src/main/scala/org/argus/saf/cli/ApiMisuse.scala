@@ -79,11 +79,11 @@ object ApiMisuse {
                   val clazz = apk.getClassOrResolve(comp)
                   val idfg = InterproceduralSuperSpark(apk, clazz.getDeclaredMethods.map(_.getSignature))
                   val res = checker.check(apk, Some(idfg))
-                  res.print()
+                  println(res.toString)
               }
             } else {
               val res = checker.check(apk, None)
-              res.print()
+              println(res.toString)
             }
             if(debug) println("Debug info write into " + reporter.asInstanceOf[FileReporter].f)
           } catch {

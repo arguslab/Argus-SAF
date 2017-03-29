@@ -36,9 +36,9 @@ class MySTVisitor {
   /**
    * collect class info from symbol table
    */
-  def resolveClasses(stp: SymbolTableProducer, level: ResolveLevel.Value) = {
+  def resolveClasses(stp: SymbolTableProducer, level: ResolveLevel.Value): Unit = {
     val classes = stp.tables.recordTable.map{
-      case (uri, rd) =>
+      case (_, rd) =>
         val typ: JawaType = JavaKnowledge.getTypeFromJawaName(rd.name.name)
         val accessFlag: Int = AccessFlag.getAccessFlags(ASTUtil.getAccessFlag(rd))
         var superType: Option[JawaType] = None
@@ -82,9 +82,9 @@ class MySTVisitor {
   /**
    * collect global variables info from the symbol table
    */
-  def resolveGlobalVars(stp: SymbolTableProducer, level: ResolveLevel.Value) = {
+  def resolveGlobalVars(stp: SymbolTableProducer, level: ResolveLevel.Value): Unit = {
     stp.tables.globalVarTable.foreach{
-      case (uri, gvd) =>
+      case (_, gvd) =>
         require(gvd.typeSpec.isDefined)
         val globalVarType: JawaType = ASTUtil.getTypeFromTypeSpec(gvd.typeSpec.get)
         val FQN = new FieldFQN(gvd.name.name.replaceAll("@@", ""), globalVarType) // e.g. @@java.lang.Enum.serialVersionUID
@@ -99,7 +99,7 @@ class MySTVisitor {
   /**
    * collect method info from symbol table
    */
-  def resolveMethods(stp: SymbolTableProducer, level: ResolveLevel.Value) = {
+  def resolveMethods(stp: SymbolTableProducer, level: ResolveLevel.Value): Unit = {
     val ms = resolveMethodOnly(stp, level)
     ms foreach {
       m =>

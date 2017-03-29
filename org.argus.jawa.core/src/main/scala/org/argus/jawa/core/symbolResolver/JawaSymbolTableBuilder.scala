@@ -22,7 +22,7 @@ import org.sireum.pilar.symbol._
 object JawaSymbolTableBuilder {
   def apply(models: ISeq[Model],
             stpConstructor: Unit => SymbolTableProducer,
-            parallel: Boolean) =
+            parallel: Boolean): SymbolTable =
     buildSymbolTable(models, stpConstructor, parallel)
 
   def apply[P <: SymbolTableProducer] //
@@ -30,7 +30,7 @@ object JawaSymbolTableBuilder {
    changedOrDeletedModelFiles: Set[FileResourceUri],
    changedOrAddedModels: ISeq[Model],
    stpConstructor: Unit => P,
-   parallel: Boolean) =
+   parallel: Boolean): (SymbolTable, CSet[ResourceUri]) =
     fixSymbolTable(stp, stModels, changedOrDeletedModelFiles,
       changedOrAddedModels, stpConstructor, parallel)
 
@@ -82,9 +82,9 @@ object JawaSymbolTableBuilder {
       val pstp = stp.procedureSymbolTableProducer(procedureUri)
       val pd = stp.tables.procedureAbsTable(procedureUri)
       pd.body match {
-        case body: ImplementedBody =>
+        case _: ImplementedBody =>
           pstp.tables.bodyTables = Some(BodySymbolTableData())
-        case body: EmptyBody =>
+        case _: EmptyBody =>
       }
       val pmr = new H.ProcedureMinerResolver(pstp)
       pmr.procMiner(pd)
@@ -94,7 +94,7 @@ object JawaSymbolTableBuilder {
   
   def buildSymbolTable(models: ISeq[Model],
                        stpConstructor: Unit => SymbolTableProducer,
-                       parallel: Boolean) = {
+                       parallel: Boolean): SymbolTable = {
     val stp = minePackageElements(models, stpConstructor, parallel)
     resolvePackageElements(models, stp, parallel)
     buildProcedureSymbolTables(stp, parallel)
@@ -120,7 +120,7 @@ object JawaSymbolTableBuilder {
    changedOrDeletedModelFiles: Set[FileResourceUri],
    changedOrAddedModels: ISeq[Model],
    stpConstructor: Unit => P,
-   parallel: Boolean) = {
+   parallel: Boolean): (SymbolTable, CSet[ResourceUri]) = {
 
     val models = mlistEmpty[Model]
     stModels.foreach { m =>

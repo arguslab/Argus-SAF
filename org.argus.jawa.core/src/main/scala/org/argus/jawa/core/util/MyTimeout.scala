@@ -15,7 +15,7 @@ import java.util.concurrent.TimeoutException
 
 class MyTimeout(time: FiniteDuration) {
   private final var startTime: Long = System.currentTimeMillis()
-  def refresh() = this.startTime = System.currentTimeMillis()
+  def refresh(): Unit = this.startTime = System.currentTimeMillis()
   def isTimeout: Boolean = {
     val currentTime = System.currentTimeMillis()
     (currentTime - startTime) >= time.toMillis

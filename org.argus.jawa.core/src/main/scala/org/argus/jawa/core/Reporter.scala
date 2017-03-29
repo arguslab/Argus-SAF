@@ -11,9 +11,7 @@
 package org.argus.jawa.core
 
 import org.sireum.util._
-import java.io.FileWriter
-import java.io.PrintWriter
-import java.io.BufferedWriter
+import java.io.{BufferedWriter, File, FileWriter, PrintWriter}
 
 import org.argus.jawa.core.io.{AbstractFile, NoPosition, Position}
 
@@ -79,7 +77,7 @@ trait ReporterImpl extends Reporter {
     cancelled = false
   }
 
-  class Severity(val id: Int)(name: String) { var count: Int = 0 ; override def toString = name}
+  class Severity(val id: Int)(name: String) { var count: Int = 0 ; override def toString: String = name}
   object INFO    extends Severity(0)("INFO")
   object WARNING extends Severity(1)("WARNING")
   lazy val ERROR = new Severity(2)("ERROR")
@@ -92,8 +90,8 @@ case class Problem(pos: Position, msg: String, sev: Int)
 case class Problem1(title: String, msg: String, sev: Int)
 
 class DefaultReporter extends ReporterImpl {
-  val problems = mmapEmpty[AbstractFile, MSet[Problem]]
-  val problems1 = mmapEmpty[String, MSet[Problem1]]
+  val problems: MMap[AbstractFile, MSet[Problem]] = mmapEmpty[AbstractFile, MSet[Problem]]
+  val problems1: MMap[String, MSet[Problem1]] = mmapEmpty[String, MSet[Problem1]]
   def info0(pos: Position, msg: String, severity: Severity, force: Boolean): Unit = {
     severity.count += 1
     problems.getOrElseUpdate(pos.source.file, msetEmpty) += Problem(pos, msg, severity.id)
@@ -127,6 +125,25 @@ class PrintReporter(msglevel: MsgLevel.Value) extends ReporterImpl {
   }
 }
 
+class EchoReporter extends ReporterImpl {
+  def info0(pos: Position, msg: String, severity: Severity, force: Boolean): Unit = {
+    severity.count += 1
+    severity match {
+      case INFO    => println(msg)
+      case WARNING =>
+      case ERROR   =>
+    }
+  }
+  def info1(title: String, msg: String, severity: Severity, force: Boolean): Unit = {
+    severity.count += 1
+    severity match {
+      case INFO    => println(msg)
+      case WARNING =>
+      case ERROR   =>
+    }
+  }
+}
+
 class NoReporter() extends ReporterImpl {
   
   def info0(pos: Position, msg: String, severity: Severity, force: Boolean): Unit = {
@@ -138,7 +155,7 @@ class NoReporter() extends ReporterImpl {
 }
 
 class FileReporter(outputUri: FileResourceUri, msglevel: MsgLevel.Value) extends ReporterImpl {
-  val f = FileUtil.toFile(outputUri + "/.report")
+  val f: File = FileUtil.toFile(outputUri + "/.report")
   f.getParentFile.mkdirs
   f.delete()
   
