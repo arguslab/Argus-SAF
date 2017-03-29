@@ -35,7 +35,7 @@ object SignatureBasedCallGraph {
       global: Global, 
       entryPoints: ISet[Signature],
       timer: Option[MyTimeout]): CallGraph = {
-    global.reporter.echo(TITLE, s"Building SignatureBasedCallGraph with ${entryPoints.size} entry points...")
+    global.reporter.println(s"Building SignatureBasedCallGraph with ${entryPoints.size} entry points...")
     val cg = new CallGraph
     entryPoints.foreach{
       ep =>
@@ -49,7 +49,7 @@ object SignatureBasedCallGraph {
           case None =>
         }
     }
-    global.reporter.echo(TITLE, s"SignatureBasedCallGraph Done with call size ${cg.getCallMap.size}.")
+    global.reporter.println(s"SignatureBasedCallGraph done with call size ${cg.getCallMap.size}.")
     cg
   }
   

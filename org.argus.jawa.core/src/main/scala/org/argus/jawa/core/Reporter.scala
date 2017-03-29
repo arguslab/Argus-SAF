@@ -31,6 +31,8 @@ trait Reporter {
   def warning(title: String, msg: String): Unit = info1(title, msg, WARNING, force = false)
   def error(title: String, msg: String): Unit   = info1(title, msg, ERROR, force = false)
 
+  def println(msg: String): Unit = System.out.println(msg)
+
   type Severity
   val INFO: Severity
   val WARNING: Severity
@@ -125,33 +127,10 @@ class PrintReporter(msglevel: MsgLevel.Value) extends ReporterImpl {
   }
 }
 
-class EchoReporter extends ReporterImpl {
-  def info0(pos: Position, msg: String, severity: Severity, force: Boolean): Unit = {
-    severity.count += 1
-    severity match {
-      case INFO    => println(msg)
-      case WARNING =>
-      case ERROR   =>
-    }
-  }
-  def info1(title: String, msg: String, severity: Severity, force: Boolean): Unit = {
-    severity.count += 1
-    severity match {
-      case INFO    => println(msg)
-      case WARNING =>
-      case ERROR   =>
-    }
-  }
-}
-
 class NoReporter() extends ReporterImpl {
-  
-  def info0(pos: Position, msg: String, severity: Severity, force: Boolean): Unit = {
-    
-  }
-  def info1(title: String, msg: String, severity: Severity, force: Boolean): Unit = {
-    
-  }
+  def info0(pos: Position, msg: String, severity: Severity, force: Boolean): Unit = {}
+  def info1(title: String, msg: String, severity: Severity, force: Boolean): Unit = {}
+  override def println(msg: String): Unit = {}
 }
 
 class FileReporter(outputUri: FileResourceUri, msglevel: MsgLevel.Value) extends ReporterImpl {

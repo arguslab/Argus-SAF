@@ -222,6 +222,6 @@ object AppInfoCollector {
           }
         }
     }
-    apk.reporter.echo(TITLE, "Entry point calculation done.")
+    apk.reporter.println("Entry point calculation done.")
   }
 }
