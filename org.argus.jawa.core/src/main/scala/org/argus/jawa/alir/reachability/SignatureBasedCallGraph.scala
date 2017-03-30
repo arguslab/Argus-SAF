@@ -10,6 +10,8 @@
 
 package org.argus.jawa.alir.reachability
 
+import java.util.concurrent.TimeoutException
+
 import org.argus.jawa.alir.callGraph.CallGraph
 import org.argus.jawa.alir.pta.PTAScopeManager
 import org.argus.jawa.core._
@@ -40,13 +42,18 @@ object SignatureBasedCallGraph {
     entryPoints.foreach{
       ep =>
         if(timer.isDefined) timer.get.refresh()
-        val epmopt = global.getMethodOrResolve(ep)
-        epmopt match {
-          case Some(epm) =>
-            if(!PTAScopeManager.shouldBypass(epm.getDeclaringClass) && epm.isConcrete) {
-              sbcg(global, epm, cg, timer)
-            }
-          case None =>
+        try {
+          val epmopt = global.getMethodOrResolve(ep)
+          epmopt match {
+            case Some(epm) =>
+              if (!PTAScopeManager.shouldBypass(epm.getDeclaringClass) && epm.isConcrete) {
+                sbcg(global, epm, cg, timer)
+              }
+            case None =>
+          }
+        } catch {
+          case te: TimeoutException =>
+            global.reporter.error(TITLE, ep + ": " + te.getMessage)
         }
     }
     global.reporter.println(s"SignatureBasedCallGraph done with call size ${cg.getCallMap.size}.")

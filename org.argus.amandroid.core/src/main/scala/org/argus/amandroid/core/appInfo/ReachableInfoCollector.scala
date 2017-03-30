@@ -66,7 +66,7 @@ class ReachableInfoCollector(val global: Global, entryPointTypes: ISet[JawaType]
   initAndroidCallbacks
   
   def init(): Unit = {
-    (if(false) entryPointTypes.par else entryPointTypes).foreach {
+    entryPointTypes.foreach {
       compTyp =>
         val comp = global.getClassOrResolve(compTyp)
         val reachableMethods = ReachabilityAnalysis.getReachableMethodsBySBCG(global, comp.getDeclaredMethods.map(_.getSignature))

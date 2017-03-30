@@ -32,6 +32,7 @@ object AppInfoCollector {
   }
   
   def analyzeManifest(reporter: Reporter, manifestUri: FileResourceUri): ManifestParser = {
+    reporter.println("Read AndroidManifest.")
     val manifestIS = new FileInputStream(FileUtil.toFile(manifestUri))
     val mfp = new ManifestParser
     mfp.loadClassesFromTextManifest(manifestIS)
@@ -44,6 +45,7 @@ object AppInfoCollector {
   }
 
   def analyzeARSC(reporter: Reporter, apkUri: FileResourceUri): ARSCFileParser_apktool = {
+    reporter.println("Read ARSC.")
     // Parse the resource file
     val afp = new ARSCFileParser_apktool()
     afp.parse(apkUri)
@@ -53,6 +55,7 @@ object AppInfoCollector {
   }
 
   def analyzeLayouts(apk: ApkGlobal, outputUri: FileResourceUri, mfp: ManifestParser, afp: ARSCFileParser_apktool): LayoutFileParser = {
+    apk.reporter.println(s"Read Layout files.")
     // Find the user-defined sources in the layout XML files
     val lfp = new LayoutFileParser(apk, mfp.getPackageName, afp)
     FileUtil.listFiles(outputUri, ".xml", recursive = true).foreach {
@@ -69,6 +72,7 @@ object AppInfoCollector {
   }
 
   def analyzeCallback(reporter: Reporter, afp: ARSCFileParser_apktool, lfp: LayoutFileParser, analysisHelper: ReachableInfoCollector): IMap[JawaType, ISet[Signature]] = {
+    reporter.println(s"Analyzing callbacks...")
     val callbackMethods: MMap[JawaType, MSet[Signature]] = mmapEmpty
     analysisHelper.collectCallbackMethods()
     reporter.echo(TITLE, "LayoutClasses --> " + analysisHelper.getLayoutClasses)
@@ -113,6 +117,7 @@ object AppInfoCollector {
           }
       }
     }
+    reporter.println(s"Callback collection done.")
     callbackMethods.map{
       case (c, ms) => 
         c -> ms.toSet
@@ -120,17 +125,18 @@ object AppInfoCollector {
   }
 
   def reachabilityAnalysis(global: Global, typs: ISet[JawaType]): ReachableInfoCollector = {
+    global.reporter.println(s"Start reachabilityAnalysis for ${typs.mkString(", ")}...")
     // Collect the callback interfaces implemented in the app's source code
     val analysisHelper = new ReachableInfoCollector(global, typs) 
     analysisHelper.init()
-    //  this.sensitiveLayoutContainers = analysisHelper.getSensitiveLayoutContainer(this.layoutControls)
+    global.reporter.println("ReachabilityAnalysis done.")
     analysisHelper
   }
 
   def generateEnvironment(apk: ApkGlobal, record: JawaClass, envName: String): Int = {
     if(record == null) return 0
     //generate env main method
-    apk.reporter.echo(TITLE, "Generate environment for " + record)
+    apk.reporter.println("Generate environment for " + record)
     val dmGen = new AndroidEnvironmentGenerator(record.global)
     dmGen.setSubstituteClassMap(AndroidSubstituteClassMap.getSubstituteClassMap)
     dmGen.setCurrentComponent(record.getType)
@@ -146,6 +152,7 @@ object AppInfoCollector {
   def dynamicRegisterReceiver(apk: ApkGlobal, comRec: JawaClass, iDB: IntentFilterDataBase, permission: ISet[String]): Unit = {
     this.synchronized{
       if(!comRec.declaresMethodByName(AndroidConstants.COMP_ENV)){
+        apk.reporter.println(s"Register receiver ${comRec.getName}")
         apk.reporter.echo(TITLE, "*************Dynamically Register Component**************")
         apk.reporter.echo(TITLE, "Component name: " + comRec)
         apk.model.updateIntentFilterDB(iDB)
@@ -191,6 +198,7 @@ object AppInfoCollector {
   }
 
   def collectInfo(apk: ApkGlobal, outUri: FileResourceUri): Unit = {
+    apk.reporter.println(s"Collecting information from ${apk.model.getAppName}...")
     val certs = AppInfoCollector.readCertificates(apk.nameUri)
     val manifestUri = MyFileUtil.appendFileName(outUri, "AndroidManifest.xml")
     val mfp = AppInfoCollector.analyzeManifest(apk.reporter, manifestUri)
@@ -222,6 +230,6 @@ object AppInfoCollector {
           }
         }
     }
-    apk.reporter.println("Entry point calculation done.")
+    apk.reporter.println("Info collection done.")
   }
 }
