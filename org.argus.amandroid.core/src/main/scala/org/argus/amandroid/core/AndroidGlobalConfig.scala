@@ -25,7 +25,7 @@ object AndroidGlobalConfig {
   private val stash_dir = System.getProperty("user.home") + File.separator + ".amandroid_stash"
   final val amandroid_home: FileResourceUri = stash_dir + File.separator + "amandroid"
 
-  final val stash_url = "http://fgwei.arguslab.org/resources/"
+  final val stash_url = "http://www.fengguow.com/resources/"
   final val BUFFER_SIZE = 1024
 
   val homeReady: Boolean = checkAmandroidHome

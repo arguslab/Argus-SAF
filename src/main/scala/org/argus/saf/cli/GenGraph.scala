@@ -72,7 +72,7 @@ object GenGraph {
             else new NoReporter
           val yard = new ApkYard(reporter)
           val layout = DecompileLayout(outputUri)
-          val settings = DecompilerSettings(AndroidGlobalConfig.settings.dependence_dir, dexLog = false, debugMode = false, removeSupportGen = true, forceDelete = true, None, layout)
+          val settings = DecompilerSettings(AndroidGlobalConfig.settings.dependence_dir, dexLog = false, debugMode = false, removeSupportGen = true, forceDelete = true, layout)
           val apk = yard.loadApk(apkFileUri, settings)
           val pros = apk.model.getEntryPoints.flatMap{ compName =>
             val comp = apk.resolveToBody(compName)

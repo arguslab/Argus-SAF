@@ -40,7 +40,7 @@ case class TaintAnalysisTask(module: TaintAnalysisModules.Value, fileUris: ISet[
   def run: Option[TaintAnalysisResult[AndroidDataDependentTaintAnalysis.Node, InterproceduralDataDependenceAnalysis.Edge]] = {
     val yard = new ApkYard(reporter)
     val layout = DecompileLayout(outputUri)
-    val settings = DecompilerSettings(AndroidGlobalConfig.settings.dependence_dir, dexLog = false, debugMode = false, removeSupportGen = true, forceDelete = forceDelete, None, layout)
+    val settings = DecompilerSettings(AndroidGlobalConfig.settings.dependence_dir, dexLog = false, debugMode = false, removeSupportGen = true, forceDelete = forceDelete, layout)
     val apks = fileUris.map(yard.loadApk(_, settings))
     val ssm = module match {
       case INTENT_INJECTION =>

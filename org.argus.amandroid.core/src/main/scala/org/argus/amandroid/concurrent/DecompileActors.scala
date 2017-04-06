@@ -46,7 +46,7 @@ class DecompilerActor extends Actor with ActorLogging {
         val apkFile = FileUtil.toFile(ddata.fileUri)
         val res = try {
           val layout = DecompileLayout(ddata.outputUri)
-          val settings = DecompilerSettings(ddata.dpsuri, dexLog = false, debugMode = false, removeSupportGen = ddata.removeSupportGen, forceDelete = ddata.forceDelete, listener, layout)
+          val settings = DecompilerSettings(ddata.dpsuri, dexLog = false, debugMode = false, removeSupportGen = ddata.removeSupportGen, forceDelete = ddata.forceDelete, layout, listener)
           val (outApkUri, srcs, deps) = ApkDecompiler.decompile(ddata.fileUri, settings)
           DecompileSuccResult(ddata.fileUri, outApkUri, srcs, deps)
         } catch {

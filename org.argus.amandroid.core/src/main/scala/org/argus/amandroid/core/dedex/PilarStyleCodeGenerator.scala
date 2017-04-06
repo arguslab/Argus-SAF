@@ -204,7 +204,7 @@ class PilarStyleCodeGenerator(
     }
   }
   
-  def generate(listener: Option[PilarStyleCodeGeneratorListener] = None): IMap[JawaType, String] = {
+  def generate(listener: Option[PilarStyleCodeGeneratorListener] = None, genBody: Boolean): IMap[JawaType, String] = {
     val result: MMap[JawaType, String] = mmapEmpty
     val classreader = dexClassDefsBlock.getClassIterator
     while(classreader.hasNext) {
@@ -217,7 +217,7 @@ class PilarStyleCodeGenerator(
           dump.get.println("--------------------------------------")
           dump.get.println("Class: " + recType)
         }
-        val code = generateRecord(classIdx, listener)
+        val code = generateRecord(classIdx, listener, genBody)
         result(recType) = code
         outputCode(recType, code, outputUri)
       }
@@ -241,7 +241,7 @@ class PilarStyleCodeGenerator(
     typTemplate
   }
   
-  private def generateRecord(classIdx: Int, listener: Option[PilarStyleCodeGeneratorListener]): String = {
+  private def generateRecord(classIdx: Int, listener: Option[PilarStyleCodeGeneratorListener], genBody: Boolean): String = {
     val recTemplate = template.getInstanceOf("RecordDecl")
     val recTyp: JawaType = toPilarRecordName(dexClassDefsBlock.getClassNameOnly(classIdx)).resolveRecord
     val isInterface: Boolean = dexClassDefsBlock.isInterface(classIdx)
@@ -280,7 +280,7 @@ class PilarStyleCodeGenerator(
     recTemplate.add("extends", extendsList)
     recTemplate.add("attributes", generateAttributes(classIdx))
     recTemplate.add("globals", generateGlobals(classIdx))
-    recTemplate.add("procedures", generateProcedures(classIdx, listener))
+    recTemplate.add("procedures", generateProcedures(classIdx, listener, genBody))
     val code = recTemplate.render()
     if(listener.isDefined) listener.get.onRecordGenerated(recTyp, code, outputUri)
     code
@@ -324,14 +324,14 @@ class PilarStyleCodeGenerator(
     globals
   }
   
-  private def generateProcedures(classIdx: Int, listener: Option[PilarStyleCodeGeneratorListener]): util.ArrayList[ST] = {
+  private def generateProcedures(classIdx: Int, listener: Option[PilarStyleCodeGeneratorListener], genBody: Boolean): util.ArrayList[ST] = {
     val procedures: util.ArrayList[ST] = new util.ArrayList[ST]
     
     for(methodIdx <- 0 until dexClassDefsBlock.getDirectMethodsFieldsSize(classIdx)) {
-      procedures.add(generateProcedure(classIdx, methodIdx, isDirect = true, listener))
+      procedures.add(generateProcedure(classIdx, methodIdx, isDirect = true, listener, genBody))
     }
     for(methodIdx <- 0 until dexClassDefsBlock.getVirtualMethodsFieldsSize(classIdx)) {
-      procedures.add(generateProcedure(classIdx, methodIdx, isDirect = false, listener))
+      procedures.add(generateProcedure(classIdx, methodIdx, isDirect = false, listener, genBody))
     }
     procedures
   }
@@ -363,7 +363,7 @@ class PilarStyleCodeGenerator(
     (newSig, paramRegNumbers.toList)
   }
   
-  private def generateProcedure(classIdx: Int, methodIdx: Int, isDirect: Boolean, listener: Option[PilarStyleCodeGeneratorListener]): ST = {
+  private def generateProcedure(classIdx: Int, methodIdx: Int, isDirect: Boolean, listener: Option[PilarStyleCodeGeneratorListener], genBody: Boolean): ST = {
     val pos: Long = 
       if(isDirect) dexClassDefsBlock.getDirectMethodOffset(classIdx, methodIdx)
       else dexClassDefsBlock.getVirtualMethodOffset(classIdx, methodIdx)
@@ -445,7 +445,7 @@ class PilarStyleCodeGenerator(
     procAnnotations.add(generateAnnotation("signature", "`" + sig.signature + "`"))
     procAnnotations.add(generateAnnotation("AccessFlag", accessFlags))
     procTemplate.add("annotations", procAnnotations)
-    if(!AccessFlag.isAbstract(AccessFlag.getAccessFlags(accessFlags)) &&
+    if(genBody && !AccessFlag.isAbstract(AccessFlag.getAccessFlags(accessFlags)) &&
         !AccessFlag.isNative(AccessFlag.getAccessFlags(accessFlags))) {
       val (body, tryCatch) = generateBody(sig, procName, dexMethodHeadParser, initRegMap, localvars, listener)
       procTemplate.add("localVars", generateLocalVars(localvars.toMap))

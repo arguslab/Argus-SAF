@@ -57,12 +57,12 @@ case class DexInstructionToPilarParser(
   val pstTasks: MMap[Long, PackedSwitchTask] = mmapEmpty
   val sstTasks: MMap[Long, SparseSwitchTask] = mmapEmpty
   
-  def initializePass(secondPass: Boolean) = {
+  def initializePass(secondPass: Boolean): Unit = {
     this.secondPass = secondPass
     tasks.clear()
   }
   
-  def setPass(secondPass: Boolean) = {
+  def setPass(secondPass: Boolean): Unit = {
     this.secondPass = secondPass
   }
   
@@ -73,7 +73,7 @@ case class DexInstructionToPilarParser(
   /**
    * Processes the task queue after the execution of a task
    */
-  def postPassProcessing(secondPass: Boolean) = {
+  def postPassProcessing(secondPass: Boolean): Unit = {
     for(i <- tasks.indices) {
       val task = tasks(i)
       try {
@@ -318,7 +318,7 @@ case class DexInstructionToPilarParser(
             try{
               dexStringIdsBlock.getString(stringidx)
             } catch {
-              case e: Exception => ""
+              case _: Exception => ""
             }
           val string = escapeJavaStyleString(rawstring)
           val lines = string.lines.size
@@ -342,7 +342,7 @@ case class DexInstructionToPilarParser(
             try{
               dexStringIdsBlock.getString(stringidx)
             } catch {
-              case e: Exception => ""
+              case _: Exception => ""
             }
           val string = escapeJavaStyleString(rawstring)
           val lines = string.lines.size
@@ -1160,7 +1160,7 @@ case class DexInstructionToPilarParser(
           }
           val arrayType = resolveRegType(reg2pos, reg2, defaultType, isLeft = false, isHolder = true)
           val reg1typ: DedexType = arrayType match {
-            case ut: DedexUndeterminedType =>
+            case _: DedexUndeterminedType =>
               resolveRegType(reg1pos, reg1, JawaType.addDimensions(defaultType, -1), isLeft = true)
             // should mostly come here
             case DedexJawaType(typ) if typ.isArray => 
@@ -1206,7 +1206,7 @@ case class DexInstructionToPilarParser(
           }
           val arrayType = resolveRegType(reg1pos, reg1, defaultType, isLeft = false)
           val elementType: JawaType = arrayType match {
-            case ut: DedexUndeterminedType =>
+            case _: DedexUndeterminedType =>
               JawaType.generateType(defaultType.baseTyp, defaultType.dimensions - 1)
             // should mostly come here
             case DedexJawaType(typ) if typ.dimensions > 0 => JawaType.generateType(typ.baseTyp, typ.dimensions - 1)
@@ -1387,7 +1387,7 @@ case class DexInstructionToPilarParser(
             try{
               dexTypeIdsBlock.getClassName(typeidx)
             } catch {
-              case e: Exception => "java/lang/Object"
+              case _: Exception => "java/lang/Object"
             }
           if(!newtyp.startsWith("["))
             newtyp = "L" + newtyp + ";"
@@ -1533,7 +1533,7 @@ case class DexInstructionToPilarParser(
           } else {
             reg2typ match {
               case jt: DedexJawaType => resolveRegType(reg1pos, reg1, jt.typ, isLeft = true)
-              case ut: DedexUndeterminedType => defaultTyp.undetermined(reg1pos, objectable = true)
+              case _: DedexUndeterminedType => defaultTyp.undetermined(reg1pos, objectable = true)
             }
           }
           val reg1Name = genRegName(reg1, reg1typ)
@@ -1781,7 +1781,7 @@ case class DexInstructionToPilarParser(
             try{
               dexTypeIdsBlock.getClassName(typeidx)
             } catch {
-              case e: Exception => "java/lang/Object"
+              case _: Exception => "java/lang/Object"
             }
           if(!classtyp.startsWith("["))
             classtyp = "L" + classtyp + ";"
@@ -1851,7 +1851,7 @@ case class DexInstructionToPilarParser(
           } else {
             reg2typ match {
               case jt: DedexJawaType => resolveRegType(reg1pos, reg1, jt.typ, isLeft = true)
-              case ut: DedexUndeterminedType => JavaKnowledge.JAVA_TOPLEVEL_OBJECT_TYPE.undetermined(reg1pos, objectable = true)
+              case _: DedexUndeterminedType => JavaKnowledge.JAVA_TOPLEVEL_OBJECT_TYPE.undetermined(reg1pos, objectable = true)
             }
           }
           val reg1Name = genRegName(reg1, reg1typ)
@@ -1899,7 +1899,7 @@ case class DexInstructionToPilarParser(
           } else {
             reg2typ match {
               case jt: DedexJawaType => resolveRegType(reg1pos, reg1, jt.typ, isLeft = true)
-              case ut: DedexUndeterminedType => JavaKnowledge.JAVA_TOPLEVEL_OBJECT_TYPE.undetermined(reg1pos, objectable = true)
+              case _: DedexUndeterminedType => JavaKnowledge.JAVA_TOPLEVEL_OBJECT_TYPE.undetermined(reg1pos, objectable = true)
             }
           }
           val reg1Name = genRegName(reg1, reg1typ)

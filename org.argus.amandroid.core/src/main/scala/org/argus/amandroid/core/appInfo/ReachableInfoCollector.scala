@@ -115,7 +115,9 @@ class ReachableInfoCollector(val global: Global, entryPointTypes: ISet[JawaType]
    *
    */
   def collectCallbackMethods(): Unit = {
+    global.reporter.println("Collecting callback methods in layout mappings...")
     findClassLayoutMappings()
+    global.reporter.println("Collecting callback methods in app source...")
     // worklist is a list of tuples of the format (a reachable proc's declaring class, app-entrypoint-component)
     this.reachableMap.foreach{
       case(comp, procs) => 

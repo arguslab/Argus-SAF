@@ -18,8 +18,15 @@ import java.io.PrintStream
 import hu.uw.pallergabor.dedexer._
 import java.io.File
 import java.io.IOException
+import java.util.concurrent.TimeoutException
 
+import org.argus.jawa.core.util.FutureUtil
 import org.argus.jawa.core.{JavaKnowledge, JawaPackage, JawaType}
+
+import scala.concurrent.Await
+import scala.concurrent.duration._
+import scala.concurrent.ExecutionContext.Implicits.{global => sc}
+import scala.language.postfixOps
 
 /**
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
@@ -76,111 +83,23 @@ class PilarDeDex {
       recordFilter: (JawaType => Boolean),
       dexlog: Boolean,
       debugMode: Boolean,
-      listener: Option[PilarStyleCodeGeneratorListener] = None): Unit = {
-    try{
-      val raf = new RandomAccessFile(FileUtil.toFilePath(sourceFileUri), "r")
-      if(dexlog){ 
-        if(targetDirUri.isDefined) {
-          dexLogStream = Some(new PrintStream(FileUtil.toFilePath(targetDirUri.get) + File.separator + "dex.log"))
-        } else {
-          System.err.println("If want dexlog please specify the target dir")
-          return
-        }
+      listener: Option[PilarStyleCodeGeneratorListener] = None,
+      genBody: Boolean): Unit = {
+    val raf = new RandomAccessFile(FileUtil.toFilePath(sourceFileUri), "r")
+    if(dexlog){
+      if(targetDirUri.isDefined) {
+        dexLogStream = Some(new PrintStream(FileUtil.toFilePath(targetDirUri.get) + File.separator + "dex.log"))
+      } else {
+        System.err.println("If want dexlog please specify the target dir.")
+        return
       }
-  
-      val dexSignatureBlock = new DexSignatureBlock()
-      dexSignatureBlock.setRandomAccessFile(raf)
-      dexSignatureBlock.setDumpFile(dexLogStream.orNull)
-      dexSignatureBlock.parse()
-  
-      var depsParser: DexDependencyParser = null
-      val dexOffsetResolver: DexOffsetResolver = new DexOffsetResolver()
-      if(depsDirUri.isDefined &&
-          dexSignatureBlock.getDexOptimizationData != null &&
-          dexSignatureBlock.getDexOptimizationData.isOptimized) {
-        depsParser = new DexDependencyParser()
-        depsParser.setDexSignatureBlock(dexSignatureBlock)
-        depsParser.setRandomAccessFile(raf)
-        depsParser.setDumpFile(dexLogStream.orNull)
-        depsParser.parse()
-        dexOffsetResolver.setDumpFile(dexLogStream.orNull)
-        if(handleDependencies(depsDirUri.get, depsParser, dexOffsetResolver)) {
-          close()
-          return
-        }
-      }
-      val dexPointerBlock = new DexPointerBlock()
-      dexPointerBlock.setRandomAccessFile(raf)
-      dexPointerBlock.setDumpFile(dexLogStream.orNull)
-      dexPointerBlock.setDexSignatureBlock(dexSignatureBlock)
-      dexPointerBlock.parse()
-  
-      val dexStringIdsBlock = new DexStringIdsBlock()
-      dexStringIdsBlock.setRandomAccessFile(raf)
-      dexStringIdsBlock.setDumpFile(dexLogStream.orNull)
-      dexStringIdsBlock.setDexPointerBlock(dexPointerBlock)
-      dexStringIdsBlock.setDexSignatureBlock(dexSignatureBlock)
-      dexStringIdsBlock.parse()
-  
-      val dexTypeIdsBlock = new DexTypeIdsBlock()
-      dexTypeIdsBlock.setRandomAccessFile(raf)
-      dexTypeIdsBlock.setDumpFile(dexLogStream.orNull)
-      dexTypeIdsBlock.setDexPointerBlock(dexPointerBlock)
-      dexTypeIdsBlock.setDexStringIdsBlock(dexStringIdsBlock)
-      dexTypeIdsBlock.parse()
-  
-      val dexProtoIdsBlock = new DexProtoIdsBlock()
-      dexProtoIdsBlock.setRandomAccessFile(raf)
-      dexProtoIdsBlock.setDumpFile(dexLogStream.orNull)
-      dexProtoIdsBlock.setDexPointerBlock(dexPointerBlock)
-      dexProtoIdsBlock.setDexStringIdsBlock(dexStringIdsBlock)
-      dexProtoIdsBlock.setDexTypeIdsBlock(dexTypeIdsBlock)
-      dexProtoIdsBlock.setDexSignatureBlock(dexSignatureBlock)
-      dexProtoIdsBlock.parse()
-  
-      val dexFieldIdsBlock = new DexFieldIdsBlock()
-      dexFieldIdsBlock.setRandomAccessFile(raf)
-      dexFieldIdsBlock.setDumpFile(dexLogStream.orNull)
-      dexFieldIdsBlock.setDexPointerBlock(dexPointerBlock)
-      dexFieldIdsBlock.setDexStringIdsBlock(dexStringIdsBlock)
-      dexFieldIdsBlock.setDexTypeIdsBlock(dexTypeIdsBlock)
-      dexFieldIdsBlock.parse()
-  
-      val dexMethodIdsBlock = new DexMethodIdsBlock()
-      dexMethodIdsBlock.setRandomAccessFile(raf)
-      dexMethodIdsBlock.setDumpFile(dexLogStream.orNull)
-      dexMethodIdsBlock.setDexPointerBlock(dexPointerBlock)
-      dexMethodIdsBlock.setDexStringIdsBlock(dexStringIdsBlock)
-      dexMethodIdsBlock.setDexTypeIdsBlock(dexTypeIdsBlock)
-      dexMethodIdsBlock.setDexProtoIdsBlock(dexProtoIdsBlock)
-      dexMethodIdsBlock.parse()
-  
-      val dexClassDefsBlock = new DexClassDefsBlock()
-      dexClassDefsBlock.setRandomAccessFile(raf)
-      dexClassDefsBlock.setDumpFile(dexLogStream.orNull)
-      dexClassDefsBlock.setDexPointerBlock(dexPointerBlock)
-      dexClassDefsBlock.setDexStringIdsBlock(dexStringIdsBlock)
-      dexClassDefsBlock.setDexTypeIdsBlock(dexTypeIdsBlock)
-      dexClassDefsBlock.setDexFieldIdsBlock(dexFieldIdsBlock)
-      dexClassDefsBlock.setDexMethodIdsBlock(dexMethodIdsBlock)
-      dexClassDefsBlock.setDexSignatureBlock(dexSignatureBlock)
-      dexClassDefsBlock.parse()
-      if(dexOffsetResolver != null)
-        dexOffsetResolver.addToOffsetResolver(dexClassDefsBlock)
-        
-      val pscg = new PilarStyleCodeGenerator(
-          dexSignatureBlock,
-          dexStringIdsBlock,
-          dexTypeIdsBlock,
-          dexFieldIdsBlock,
-          dexMethodIdsBlock,
-          dexClassDefsBlock,
-          dexOffsetResolver,
-          raf,
-          targetDirUri,
-          dexLogStream,
-          recordFilter)
-      pscg.generate(listener)
+    }
+    val (f, cancel) = FutureUtil.interruptableFuture[PilarStyleCodeGenerator] { () =>
+        prepare(raf, sourceFileUri, targetDirUri, depsDirUri, recordFilter, dexlog, debugMode)
+    }
+    try {
+      val pscg = Await.result(f, 20 seconds)
+      pscg.generate(listener, genBody)
       raf.close()
       this.pkgNameMapping = pscg.pkgNameMapping.toMap
       this.recordNameMapping = pscg.recordNameMapping.toMap
@@ -188,16 +107,118 @@ class PilarDeDex {
       this.attributeNameMapping = pscg.attributeNameMapping.toMap
     } catch {
       case ex: IOException =>
-        System.err.println("I/O error: "+ex.getMessage)
+        System.err.println("I/O error: " + ex.getMessage)
         if(debugMode)
           ex.printStackTrace()
       case ex: UnknownInstructionException =>
         System.err.println(ex.getMessage)
+      case _: TimeoutException =>
+        System.err.println("Dedex time out.")
+        cancel()
       case ex: Exception =>
         if(debugMode)
           ex.printStackTrace()
     }
     close()
+  }
+
+  private def prepare(
+      raf: RandomAccessFile,
+      sourceFileUri: FileResourceUri,
+      targetDirUri: Option[FileResourceUri],
+      depsDirUri: Option[FileResourceUri],
+      recordFilter: (JawaType => Boolean),
+      dexlog: Boolean,
+      debugMode: Boolean): PilarStyleCodeGenerator = {
+    val dexSignatureBlock = new DexSignatureBlock()
+    dexSignatureBlock.setRandomAccessFile(raf)
+    dexSignatureBlock.setDumpFile(dexLogStream.orNull)
+    dexSignatureBlock.parse()
+
+    var depsParser: DexDependencyParser = null
+    val dexOffsetResolver: DexOffsetResolver = new DexOffsetResolver()
+    if(depsDirUri.isDefined &&
+      dexSignatureBlock.getDexOptimizationData != null &&
+      dexSignatureBlock.getDexOptimizationData.isOptimized) {
+      depsParser = new DexDependencyParser()
+      depsParser.setDexSignatureBlock(dexSignatureBlock)
+      depsParser.setRandomAccessFile(raf)
+      depsParser.setDumpFile(dexLogStream.orNull)
+      depsParser.parse()
+      dexOffsetResolver.setDumpFile(dexLogStream.orNull)
+      handleDependencies(depsDirUri.get, depsParser, dexOffsetResolver)
+    }
+    val dexPointerBlock = new DexPointerBlock()
+    dexPointerBlock.setRandomAccessFile(raf)
+    dexPointerBlock.setDumpFile(dexLogStream.orNull)
+    dexPointerBlock.setDexSignatureBlock(dexSignatureBlock)
+    dexPointerBlock.parse()
+
+    val dexStringIdsBlock = new DexStringIdsBlock()
+    dexStringIdsBlock.setRandomAccessFile(raf)
+    dexStringIdsBlock.setDumpFile(dexLogStream.orNull)
+    dexStringIdsBlock.setDexPointerBlock(dexPointerBlock)
+    dexStringIdsBlock.setDexSignatureBlock(dexSignatureBlock)
+    dexStringIdsBlock.parse()
+
+    val dexTypeIdsBlock = new DexTypeIdsBlock()
+    dexTypeIdsBlock.setRandomAccessFile(raf)
+    dexTypeIdsBlock.setDumpFile(dexLogStream.orNull)
+    dexTypeIdsBlock.setDexPointerBlock(dexPointerBlock)
+    dexTypeIdsBlock.setDexStringIdsBlock(dexStringIdsBlock)
+    dexTypeIdsBlock.parse()
+
+    val dexProtoIdsBlock = new DexProtoIdsBlock()
+    dexProtoIdsBlock.setRandomAccessFile(raf)
+    dexProtoIdsBlock.setDumpFile(dexLogStream.orNull)
+    dexProtoIdsBlock.setDexPointerBlock(dexPointerBlock)
+    dexProtoIdsBlock.setDexStringIdsBlock(dexStringIdsBlock)
+    dexProtoIdsBlock.setDexTypeIdsBlock(dexTypeIdsBlock)
+    dexProtoIdsBlock.setDexSignatureBlock(dexSignatureBlock)
+    dexProtoIdsBlock.parse()
+
+    val dexFieldIdsBlock = new DexFieldIdsBlock()
+    dexFieldIdsBlock.setRandomAccessFile(raf)
+    dexFieldIdsBlock.setDumpFile(dexLogStream.orNull)
+    dexFieldIdsBlock.setDexPointerBlock(dexPointerBlock)
+    dexFieldIdsBlock.setDexStringIdsBlock(dexStringIdsBlock)
+    dexFieldIdsBlock.setDexTypeIdsBlock(dexTypeIdsBlock)
+    dexFieldIdsBlock.parse()
+
+    val dexMethodIdsBlock = new DexMethodIdsBlock()
+    dexMethodIdsBlock.setRandomAccessFile(raf)
+    dexMethodIdsBlock.setDumpFile(dexLogStream.orNull)
+    dexMethodIdsBlock.setDexPointerBlock(dexPointerBlock)
+    dexMethodIdsBlock.setDexStringIdsBlock(dexStringIdsBlock)
+    dexMethodIdsBlock.setDexTypeIdsBlock(dexTypeIdsBlock)
+    dexMethodIdsBlock.setDexProtoIdsBlock(dexProtoIdsBlock)
+    dexMethodIdsBlock.parse()
+
+    val dexClassDefsBlock = new DexClassDefsBlock()
+    dexClassDefsBlock.setRandomAccessFile(raf)
+    dexClassDefsBlock.setDumpFile(dexLogStream.orNull)
+    dexClassDefsBlock.setDexPointerBlock(dexPointerBlock)
+    dexClassDefsBlock.setDexStringIdsBlock(dexStringIdsBlock)
+    dexClassDefsBlock.setDexTypeIdsBlock(dexTypeIdsBlock)
+    dexClassDefsBlock.setDexFieldIdsBlock(dexFieldIdsBlock)
+    dexClassDefsBlock.setDexMethodIdsBlock(dexMethodIdsBlock)
+    dexClassDefsBlock.setDexSignatureBlock(dexSignatureBlock)
+    dexClassDefsBlock.parse()
+    if(dexOffsetResolver != null)
+      dexOffsetResolver.addToOffsetResolver(dexClassDefsBlock)
+
+    new PilarStyleCodeGenerator(
+      dexSignatureBlock,
+      dexStringIdsBlock,
+      dexTypeIdsBlock,
+      dexFieldIdsBlock,
+      dexMethodIdsBlock,
+      dexClassDefsBlock,
+      dexOffsetResolver,
+      raf,
+      targetDirUri,
+      dexLogStream,
+      recordFilter)
   }
   
   private def handleDependencies(
@@ -237,20 +258,5 @@ class PilarDeDex {
   private def close() = {
     if(dexLogStream.isDefined)
       dexLogStream.get.close()
-  }
-}
-
-object PilarDeDex {
-  def main(args: Array[String]): Unit = {
-    val srcRes = args(0)
-    val dpsPath = args.lift(1)
-    val srcResUri = FileUtil.toUri(srcRes)
-    val pdd = new PilarDeDex
-    val dpsuri = dpsPath map FileUtil.toUri
-    val rf = {
-      typ: JawaType =>
-        typ.jawaName == "com.likeapp.game.bubbleshooter.arcade.ArcadeGame"
-    }
-    pdd.decompile(srcResUri, None, dpsuri, rf, dexlog = false, debugMode = true)
   }
 }

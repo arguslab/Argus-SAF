@@ -23,8 +23,9 @@ case class DecompilerSettings(dpsuri: Option[FileResourceUri],
                               debugMode: Boolean,
                               removeSupportGen: Boolean,
                               forceDelete: Boolean,
+                              layout: DecompileLayout,
                               listener: Option[PilarStyleCodeGeneratorListener] = None,
-                              layout: DecompileLayout)
+                              genBody: Boolean = true)
 
 case class DecompileLayout(outputUri: FileResourceUri,
                            createFolder: Boolean = true,

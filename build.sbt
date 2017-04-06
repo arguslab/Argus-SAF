@@ -60,7 +60,7 @@ val publishSettings = Seq(
       <developer>
         <id>fgwei</id>
         <name>Fengguo Wei</name>
-        <url>http://fgwei.arguslab.org</url>
+        <url>http://www.fengguow.com</url>
       </developer>
     </developers>
   )

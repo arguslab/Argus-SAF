@@ -72,7 +72,7 @@ object AppInfoCollector {
   }
 
   def analyzeCallback(reporter: Reporter, afp: ARSCFileParser_apktool, lfp: LayoutFileParser, analysisHelper: ReachableInfoCollector): IMap[JawaType, ISet[Signature]] = {
-    reporter.println(s"Analyzing callbacks...")
+    reporter.println("Analyzing callbacks...")
     val callbackMethods: MMap[JawaType, MSet[Signature]] = mmapEmpty
     analysisHelper.collectCallbackMethods()
     reporter.echo(TITLE, "LayoutClasses --> " + analysisHelper.getLayoutClasses)
@@ -81,6 +81,7 @@ object AppInfoCollector {
       case(k, v) =>
         callbackMethods.getOrElseUpdate(k, msetEmpty) ++= v
     }
+    reporter.println("Collecting XML based callback methods...")
     // Collect the XML-based callback methods
     analysisHelper.getLayoutClasses.foreach {
       case (k, v) =>
@@ -117,7 +118,7 @@ object AppInfoCollector {
           }
       }
     }
-    reporter.println(s"Callback collection done.")
+    reporter.println("Callback collection done.")
     callbackMethods.map{
       case (c, ms) => 
         c -> ms.toSet

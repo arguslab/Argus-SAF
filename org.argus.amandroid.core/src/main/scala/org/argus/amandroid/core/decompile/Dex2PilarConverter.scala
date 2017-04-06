@@ -14,7 +14,7 @@ import java.io._
 import org.sireum.util._
 import java.net.URI
 
-import org.argus.amandroid.core.dedex.{PilarDeDex, PilarStyleCodeGeneratorListener}
+import org.argus.amandroid.core.dedex.PilarDeDex
 import org.argus.amandroid.core.util.FixResources
 import org.argus.jawa.core.JawaType
 import org.xml.sax.SAXParseException
@@ -25,25 +25,19 @@ import org.xml.sax.SAXParseException
  */ 
 object Dex2PilarConverter {
   def convert(
-      f: FileResourceUri, 
-      targetDirUri: FileResourceUri, 
-      out: FileResourceUri, 
-      dpsuri: Option[FileResourceUri], 
-      recordFilter: (JawaType => Boolean), 
-      dexLog: Boolean, 
-      debugMode: Boolean, 
-      forceDelete: Boolean,
-      listener: Option[PilarStyleCodeGeneratorListener] = None): FileResourceUri = {
-    if(!forceDelete && FileUtil.toFile(targetDirUri).exists()) return targetDirUri
+      f: FileResourceUri,
+      targetDirUri: FileResourceUri,
+      recordFilter: (JawaType => Boolean),
+      settings: DecompilerSettings): FileResourceUri = {
+    if(!settings.forceDelete && FileUtil.toFile(targetDirUri).exists()) return targetDirUri
     ConverterUtil.cleanDir(targetDirUri)
     try {
       val pdd = new PilarDeDex
-      pdd.decompile(f, Some(targetDirUri), dpsuri, recordFilter, dexLog, debugMode, listener)
-      FixResources.fix(out, pdd)
+      pdd.decompile(f, Some(targetDirUri), settings.dpsuri, recordFilter, settings.dexLog, settings.debugMode, settings.listener, settings.genBody)
+      FixResources.fix(settings.layout.outputUri, pdd)
     } catch {
-      case spe: SAXParseException =>
-      case ie: InterruptedException => throw ie
-      case ex: Exception =>
+      case _: SAXParseException =>
+      case _: Exception =>
         System.err.println("Given file is not decompilable: " + f)
     }
     targetDirUri

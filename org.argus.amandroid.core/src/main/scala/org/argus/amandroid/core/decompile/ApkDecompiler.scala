@@ -51,11 +51,11 @@ object ApkDecompiler {
         } else true
     }
     val srcFolder: String = settings.layout.sourceFolder(dexUri)
-    val pilarOutUri = {
+    val jawaOutUri = {
       val outPath = FileUtil.toFilePath(settings.layout.outputSrcUri)
       FileUtil.toUri(outPath + File.separator + srcFolder)
     }
-    Dex2PilarConverter.convert(dexUri, pilarOutUri, settings.layout.outputUri, settings.dpsuri, recordFilter, settings.dexLog, settings.debugMode, settings.forceDelete, settings.listener)
+    Dex2PilarConverter.convert(dexUri, jawaOutUri, recordFilter, settings)
     (srcFolder, dependencies.toSet)
   }
   
