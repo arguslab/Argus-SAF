@@ -23,7 +23,10 @@ object SourcefileParser {
   final val TITLE = "SourcefileParser"
   final val debug = false
   def parse(file: SourceFile, level: ResolveLevel.Value, reporter: Reporter): IMap[JawaType, MyClass] = {
-    var code = file.code
+    parse(file.code, level, reporter)
+  }
+  def parse(str: String, level: ResolveLevel.Value, reporter: Reporter): IMap[JawaType, MyClass] = {
+    var code = str
     if(level < ResolveLevel.BODY) {
       code = LightWeightPilarParser.getEmptyBodyCode(code)
     }

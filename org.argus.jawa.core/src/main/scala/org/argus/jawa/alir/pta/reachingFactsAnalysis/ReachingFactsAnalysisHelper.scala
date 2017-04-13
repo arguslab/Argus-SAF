@@ -102,7 +102,6 @@ object ReachingFactsAnalysisHelper {
       case "virtual" | "interface" | "super" | "direct" =>
         val recvValue: ISet[Instance] = getInstancesOfArg(cj.callExp, 0, callerContext, ptaresult)
         def handleUnknown(typ: JawaType) = {
-//          val ps = CallHandler.getUnknownVirtualCalleeMethods(global, typ, subSig)
           try{
             val unknown = global.getClassOrResolve(typ)
             val unknown_base = global.getClassOrResolve(typ.removeUnknown())
@@ -111,7 +110,7 @@ object ReachingFactsAnalysisHelper {
             calleeSet ++= actc.getMethod(subSig).map(m => UnknownCallee(m.getSignature))
           } catch {
             case ie: InterruptedException => throw ie
-            case e: Exception =>
+            case _: Exception =>
           }
         }
         recvValue.foreach{
@@ -128,7 +127,7 @@ object ReachingFactsAnalysisHelper {
                   CallHandler.getVirtualCalleeMethod(global, ins.typ, subSig).map(m => InstanceCallee(m.getSignature, ins)) match {
                     case Some(c) => calleeSet += c
                     case None =>
-                      handleUnknown(ins.typ)
+                      handleUnknown(ins.typ.toUnknown)
                   }
                 }
               }
@@ -469,6 +468,13 @@ object ReachingFactsAnalysisHelper {
               val ins = PTAInstance(inst, currentContext, isNull_ = true)
               val value: ISet[Instance] = Set(ins)
               result(i) = value
+            } else if(le.typ.name.equals("INT")){
+              if(le.literal == 0) {
+                val inst = JavaKnowledge.JAVA_TOPLEVEL_OBJECT_TYPE.toUnknown
+                val ins = PTAInstance(inst, currentContext, isNull_ = true)
+                val value: ISet[Instance] = Set(ins)
+                result(i) = value
+              }
             }
           case ne: NewExp =>
             var name: ResourceUri = ""

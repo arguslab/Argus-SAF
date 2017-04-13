@@ -41,6 +41,15 @@ object ApkDecompiler {
           } else if (ot.name.startsWith("android.support.v7")){
             dependencies += AndroidConstants.MAVEN_APPCOMPAT
             false
+          } else if (ot.name.startsWith("android.support.design")) {
+            dependencies += AndroidConstants.MAVEN_DESIGN
+            false
+          } else if (ot.name.startsWith("android.support.annotation")) {
+            dependencies += AndroidConstants.MAVEN_SUPPORT_ANNOTATIONS
+            false
+          } else if (ot.name.startsWith("android.support.constraint")) {
+            dependencies += AndroidConstants.MAVEN_CONSTRAINT_LAYOUT
+            false
           } else if(ot.name.endsWith(pkg + ".BuildConfig") ||
               ot.name.endsWith(pkg + ".Manifest") ||
               ot.name.contains(pkg + ".Manifest$") ||
@@ -67,7 +76,7 @@ object ApkDecompiler {
     val srcFolders: MSet[String] = msetEmpty
     val dependencies: MSet[String] = msetEmpty
     if(FileUtil.toFile(outUri).exists()) {
-      val dexUris = FileUtil.listFiles(outUri, ".dex", recursive = true)
+      val dexUris = FileUtil.listFiles(outUri, ".dex", recursive = true) ++ FileUtil.listFiles(outUri, ".odex", recursive = true)
       dexUris.foreach {
         dexUri =>
           val (sf, dependent) = decompileDex(pkg, dexUri, settings)

@@ -10,10 +10,10 @@
 
 package org.argus.jawa.core.pilarCodeGenerator
 
-object PilarCodeModelProvider {
-  def getPilarCodeModel: String = 
+object JawaCodeModelProvider {
+  def getJawaCodeModel: String =
 """
-group PilarCodeGenerator;
+group JawaCodeGenerator;
 
 delimiters "$", "$"
 

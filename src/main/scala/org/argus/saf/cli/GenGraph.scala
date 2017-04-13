@@ -16,7 +16,7 @@ import org.argus.amandroid.alir.componentSummary.ApkYard
 import org.argus.saf.cli.util.CliLogger
 import org.argus.amandroid.core.decompile.{DecompileLayout, DecompilerSettings}
 import org.argus.amandroid.core.util.ApkFileUtil
-import org.argus.amandroid.core.{AndroidConstants, AndroidGlobalConfig, ApkGlobal}
+import org.argus.amandroid.core.{AndroidConstants, ApkGlobal}
 import org.argus.jawa.alir.pta.suspark.InterproceduralSuperSpark
 import org.argus.jawa.core._
 import org.sireum.util._
@@ -72,7 +72,7 @@ object GenGraph {
             else new NoReporter
           val yard = new ApkYard(reporter)
           val layout = DecompileLayout(outputUri)
-          val settings = DecompilerSettings(AndroidGlobalConfig.settings.dependence_dir, dexLog = false, debugMode = false, removeSupportGen = true, forceDelete = true, layout)
+          val settings = DecompilerSettings(debugMode = false, removeSupportGen = true, forceDelete = true, layout)
           val apk = yard.loadApk(apkFileUri, settings)
           val pros = apk.model.getEntryPoints.flatMap{ compName =>
             val comp = apk.resolveToBody(compName)

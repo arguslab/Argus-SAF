@@ -71,7 +71,7 @@ object ApiMisuse {
             val yard = new ApkYard(reporter)
             val outputUri = FileUtil.toUri(outputPath)
             val layout = DecompileLayout(outputUri)
-            val settings = DecompilerSettings(AndroidGlobalConfig.settings.dependence_dir.map(FileUtil.toUri), dexLog = false, debugMode = false, removeSupportGen = true, forceDelete = forceDelete, layout)
+            val settings = DecompilerSettings(debugMode = false, removeSupportGen = true, forceDelete = forceDelete, layout)
             val apk = yard.loadApk(fileUri, settings)
             if(buildIDFG) {
               apk.model.getComponents foreach {

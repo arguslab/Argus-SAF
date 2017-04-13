@@ -12,7 +12,7 @@ package org.argus.amandroid.core.util
 import org.sireum.util._
 import java.io.PrintWriter
 
-import org.argus.amandroid.core.dedex.PilarDeDex
+import org.argus.amandroid.core.dedex.JawaDeDex
 import org.argus.amandroid.core.parser.ManifestParser
 import org.argus.jawa.core.util.MyFileUtil
 
@@ -20,7 +20,7 @@ import org.argus.jawa.core.util.MyFileUtil
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
  */
 object FixResources {
-  def fix(decFolder: FileResourceUri, dedex: PilarDeDex): Unit = {
+  def fix(decFolder: FileResourceUri, dedex: JawaDeDex): Unit = {
     val xml = MyFileUtil.appendFileName(decFolder, "AndroidManifest.xml")
     if(dedex.haveRenamedElements) {
       var filestr = MyFileUtil.readFileContent(xml)

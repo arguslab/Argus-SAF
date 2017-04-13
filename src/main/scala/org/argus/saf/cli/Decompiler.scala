@@ -23,7 +23,6 @@ import org.sireum.util._
  */ 
 object Decompiler {
   def apply(debug: Boolean, sourcePath: String, outputPath: String, forceDelete: Boolean) {
-    val dpsuri = AndroidGlobalConfig.settings.dependence_dir.map(FileUtil.toUri)
     val outputUri = FileUtil.toUri(outputPath)
     try {
       val fileOrDir = new File(sourcePath)
@@ -38,9 +37,15 @@ object Decompiler {
               i += 1
               println(i + ":####" + apkUri + "####")
               val layout = DecompileLayout(outputUri)
-              val settings = DecompilerSettings(dpsuri, dexLog = false, debugMode = false, removeSupportGen = true, forceDelete = forceDelete, layout)
-              ApkDecompiler.decompile(apkUri, settings)
-              println("Done!")
+              val settings = DecompilerSettings(debugMode = false, removeSupportGen = true, forceDelete = forceDelete, layout)
+              try {
+                ApkDecompiler.decompile(apkUri, settings)
+                println("Done!")
+              } catch {
+                case e: Exception =>
+                  println("Fail to decompile " + apkUri + " with error: " + e.getMessage)
+                  CliLogger.logError(new File(outputPath), "Error: " , e)
+              }
           }
           i = 0
           dexs.foreach {
@@ -49,19 +54,25 @@ object Decompiler {
               println(i + ":####" + dexUri + "####")
               val dexname = dexUri.substring(dexUri.lastIndexOf("/") + 1, dexUri.lastIndexOf("."))
               val layout = DecompileLayout(outputUri + "/" + dexname)
-              val settings = DecompilerSettings(dpsuri, dexLog = false, debugMode = false, removeSupportGen = true, forceDelete = forceDelete, layout)
-              ApkDecompiler.decompileDex("", dexUri, settings)
-              println("Done!")
+              val settings = DecompilerSettings(debugMode = false, removeSupportGen = true, forceDelete = forceDelete, layout)
+              try {
+                ApkDecompiler.decompileDex("", dexUri, settings)
+                println("Done!")
+              } catch {
+                case e: Exception =>
+                  println("Fail to decompile " + dexUri + " with error: " + e.getMessage)
+                  CliLogger.logError(new File(outputPath), "Error: " , e)
+              }
           }
         case file =>
           println("Processing " + file)
           if(ApkGlobal.isValidApk(FileUtil.toUri(file))) {
             val layout = DecompileLayout(outputUri)
-            val settings = DecompilerSettings(dpsuri, dexLog = false, debugMode = false, removeSupportGen = true, forceDelete = forceDelete, layout)
+            val settings = DecompilerSettings(debugMode = false, removeSupportGen = true, forceDelete = forceDelete, layout)
             ApkDecompiler.decompile(FileUtil.toUri(file), settings)
           } else if(file.getName.endsWith(".dex")) {
             val layout = DecompileLayout(outputUri)
-            val settings = DecompilerSettings(dpsuri, dexLog = false, debugMode = false, removeSupportGen = true, forceDelete = forceDelete, layout)
+            val settings = DecompilerSettings(debugMode = false, removeSupportGen = true, forceDelete = forceDelete, layout)
             ApkDecompiler.decompileDex("", FileUtil.toUri(file), settings)
           } else println(file + " is not decompilable.")
       }

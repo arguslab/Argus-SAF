@@ -68,6 +68,7 @@ case class JawaType(baseType: JawaBaseType, dimensions: Int) extends JavaKnowled
   def getType: String = baseType.typ
   def isArray: Boolean = dimensions > 0
   def isPrimitive: Boolean = baseType.pkg.isEmpty && isJavaPrimitive(baseType.typ) && dimensions == 0
+  def isDWordPrimitive: Boolean = isPrimitive && JAVA_DWORD_PRIMITIVES.contains(baseType.typ)
   def isObject: Boolean = !isPrimitive
   def toUnknown: JawaType = JawaType(baseType.toUnknown, dimensions)
   def removeUnknown(): JawaType = JawaType(baseType.removeUnknown(), dimensions)

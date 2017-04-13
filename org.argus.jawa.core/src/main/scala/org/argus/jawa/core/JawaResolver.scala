@@ -87,7 +87,13 @@ trait JawaResolver extends JavaKnowledge { self: Global =>
         rec.setUnknown()
         rec.setResolvingLevel(desiredLevel)
         if(classType.baseType.unknown) {
-          rec.setSuperClass(classType.removeUnknown())
+          val baseCls = getClassOrResolve(classType.removeUnknown())
+          if(baseCls.isInterface) {
+            rec.setSuperClass(JAVA_TOPLEVEL_OBJECT_TYPE)
+            rec.addInterface(baseCls.getType)
+          } else {
+            rec.setSuperClass(classType.removeUnknown())
+          }
         } else {
           rec.setSuperClass(JAVA_TOPLEVEL_OBJECT_TYPE)
           reporter.echo(TITLE, "Add phantom class " + rec)

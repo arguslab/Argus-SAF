@@ -10,10 +10,10 @@
 
 package org.argus.amandroid.core.dedex
 
-object PilarModelProvider {
-  val pilarModel =
+object JawaModelProvider {
+  val jawaModel =
 """
-group PilarModelGenerator;
+group JawaModelGenerator;
 
 delimiters "$", "$"
 
@@ -25,7 +25,7 @@ $globals ; separator="\n"$
 $procedures ; separator="\n"$
 >>
 
-ExtendsAndImpliments(recName, annotations) ::= <<
+ExtendsAndImplements(recName, annotations) ::= <<
 `$recName$` $annotations ; separator=" "$
 >>
 
@@ -127,8 +127,8 @@ FilledNewArray(baseTyp, args) ::= <<
 temp:= new $baseTyp$[$args ; separator=", "$]
 >>
 
-CatchClauses(catchs) ::= <<
-$catchs ; separator="\n"$
+CatchClauses(catches) ::= <<
+$catches ; separator="\n"$
 >>
 
 Catch(catchTyp, fromLoc, toLoc, targetLoc) ::= <<

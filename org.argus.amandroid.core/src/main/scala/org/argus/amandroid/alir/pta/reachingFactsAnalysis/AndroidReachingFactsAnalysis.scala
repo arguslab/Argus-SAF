@@ -329,7 +329,8 @@ class AndroidReachingFactsAnalysisBuilder(apk: ApkGlobal, clm: ClassLoadManager,
               killSet ++= k
             }
           } else { // for normal call
-            if(calleep.isConcrete && !icfg.isProcessed(calleeSig, callerContext)){
+            require(calleep.isConcrete)
+            if(!icfg.isProcessed(calleeSig, callerContext)){
               icfg.collectCfgToBaseGraph[String](calleep, callerContext, isFirst = false)
               icfg.extendGraph(calleeSig, callerContext)
             }

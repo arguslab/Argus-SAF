@@ -34,7 +34,7 @@ abstract class MethodGenerator(global: Global) {
   protected var callbackFunctions: IMap[JawaType, ISet[Signature]] = imapEmpty
   protected var conditionCounter: Int = 0
   protected var codeCounter: Int = 0
-  protected val template = new STGroupString(PilarCodeModelProvider.getPilarCodeModel)
+  protected val template = new STGroupString(JawaCodeModelProvider.getJawaCodeModel)
   protected val procDeclTemplate: ST = template.getInstanceOf("ProcedureDecl")
   protected val localVarsTemplate: ST = template.getInstanceOf("LocalVars")
   protected val bodyTemplate: ST = template.getInstanceOf("Body")

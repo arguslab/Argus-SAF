@@ -15,7 +15,8 @@ import org.sireum.util._
 trait JavaKnowledge {
   def JAVA_TOPLEVEL_OBJECT: String = "java.lang.Object"
   def JAVA_TOPLEVEL_OBJECT_TYPE: JawaType = new JawaType(JAVA_TOPLEVEL_OBJECT)
-  def JAVA_PRIMITIVES = Set("byte", "short", "int", "long", "float", "double", "boolean", "char", "void")
+  def JAVA_PRIMITIVES: ISet[String] = Set("byte", "short", "int", "float", "boolean", "char", "void") ++ JAVA_DWORD_PRIMITIVES
+  def JAVA_DWORD_PRIMITIVES = Set("long", "double")
   /**
    * return whether given type is java primitive type
    */

@@ -12,25 +12,26 @@ package org.argus.amandroid.core.decompile
 
 import java.io.File
 
-import org.argus.amandroid.core.dedex.PilarStyleCodeGeneratorListener
+import org.argus.amandroid.core.dedex.JawaStyleCodeGeneratorListener
 import org.sireum.util._
 
 /**
   * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
   */
-case class DecompilerSettings(dpsuri: Option[FileResourceUri],
-                              dexLog: Boolean,
-                              debugMode: Boolean,
-                              removeSupportGen: Boolean,
-                              forceDelete: Boolean,
-                              layout: DecompileLayout,
-                              listener: Option[PilarStyleCodeGeneratorListener] = None,
-                              genBody: Boolean = true)
+case class DecompilerSettings(
+    debugMode: Boolean,
+    removeSupportGen: Boolean,
+    forceDelete: Boolean,
+    layout: DecompileLayout,
+    listener: Option[JawaStyleCodeGeneratorListener] = None,
+    api: Int = 15,
+    genBody: Boolean = true)
 
-case class DecompileLayout(outputUri: FileResourceUri,
-                           createFolder: Boolean = true,
-                           srcFolder: String = "src",
-                           createSeparateFolderForDexes: Boolean = true) {
+case class DecompileLayout(
+    outputUri: FileResourceUri,
+    createFolder: Boolean = true,
+    srcFolder: String = "src",
+    createSeparateFolderForDexes: Boolean = true) {
   def outputFolder: File = FileUtil.toFile(outputUri)
   def sourceFolder(dexUri: FileResourceUri): String = {
     srcFolder + {

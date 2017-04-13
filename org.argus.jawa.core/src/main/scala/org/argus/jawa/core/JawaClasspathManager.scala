@@ -28,8 +28,8 @@ trait JawaClasspathManager extends JavaKnowledge { self: Global =>
   private final val TITLE = "JawaClasspathManager"
   
   /**
-   * load code from given root dir
-   */
+    * load code from given root dir
+    */
   def load(fileRootUri: FileResourceUri, ext: String, summary: LibraryAPISummary): Unit = {
     val fileUris = FileUtil.listFiles(fileRootUri, ext, recursive = true)
     fileUris.foreach{
@@ -71,13 +71,13 @@ trait JawaClasspathManager extends JavaKnowledge { self: Global =>
   }
   
   /**
-   * map from class name to jawa code of library. E.g. class type java.lang.Object to its file
-   */
+    * map from class name to jawa code of library. E.g. class type java.lang.Object to its file
+    */
   protected val userLibraryClassCodes: MMap[JawaType, SourceFile] = mmapEmpty
   
   /**
-   * map from class name to jawa code of app. E.g. record name java.lang.MyObject to its file
-   */
+    * map from class name to jawa code of app. E.g. record name java.lang.MyObject to its file
+    */
   protected val applicationClassCodes: MMap[JawaType, SourceFile] = mmapEmpty
   
   def getUserLibraryClassCodes: IMap[JawaType, SourceFile] = this.userLibraryClassCodes.toMap

@@ -13,8 +13,9 @@ import java.io._
 
 import org.sireum.util._
 import java.net.URI
+import java.util.concurrent.TimeoutException
 
-import org.argus.amandroid.core.dedex.PilarDeDex
+import org.argus.amandroid.core.dedex.JawaDeDex
 import org.argus.amandroid.core.util.FixResources
 import org.argus.jawa.core.JawaType
 import org.xml.sax.SAXParseException
@@ -32,11 +33,13 @@ object Dex2PilarConverter {
     if(!settings.forceDelete && FileUtil.toFile(targetDirUri).exists()) return targetDirUri
     ConverterUtil.cleanDir(targetDirUri)
     try {
-      val pdd = new PilarDeDex
-      pdd.decompile(f, Some(targetDirUri), settings.dpsuri, recordFilter, settings.dexLog, settings.debugMode, settings.listener, settings.genBody)
-      FixResources.fix(settings.layout.outputUri, pdd)
+      val pdd = new JawaDeDex
+      pdd.decompile(f, Some(targetDirUri), recordFilter, settings)
+      FixResources.fix(settings.layout.outputSrcUri, pdd)
     } catch {
       case _: SAXParseException =>
+      case te: TimeoutException =>
+        throw te
       case _: Exception =>
         System.err.println("Given file is not decompilable: " + f)
     }

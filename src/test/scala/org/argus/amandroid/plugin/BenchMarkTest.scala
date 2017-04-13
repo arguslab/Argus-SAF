@@ -24,7 +24,7 @@ import org.sireum.util.FileUtil
   * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
   */
 class BenchMarkTest extends FlatSpec with Matchers {
-  private final val DEBUG = false
+  private final val DEBUG = true
 
   "ICC_Explicit_NoSrc_NoSink" should "have 0 taint paths" in {
     val res = taintAnalysis(getClass.getResource("/icc-bench/IccHandling/icc_explicit_nosrc_nosink.apk").getPath)
@@ -255,7 +255,7 @@ class BenchMarkTest extends FlatSpec with Matchers {
     AndroidReachingFactsAnalysisConfig.resolve_static_init = true
     Context.init_context_length(0)
     val res = TaintAnalysisTask(TaintAnalysisModules.DATA_LEAKAGE, fileUris, outputUri, forceDelete = true, reporter).run
-    ConverterUtil.cleanDir(outputUri)
+//    ConverterUtil.cleanDir(outputUri)
     res
   }
 }
