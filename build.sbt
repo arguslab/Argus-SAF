@@ -103,13 +103,13 @@ lazy val saf_library: Project =
     .settings(publishSettings)
 
 lazy val jawa_core: Project =
-  newProject("jawa-core", file("org.argus.jawa.core"))
+  newProject("jawa", file("org.argus.jawa"))
   .dependsOn(saf_library)
   .settings(libraryDependencies ++= DependencyGroups.jawa_core)
   .settings(publishSettings)
 
 lazy val amandroid_core: Project =
-  newProject("amandroid-core", file("org.argus.amandroid.core"))
+  newProject("amandroid", file("org.argus.amandroid"))
   .dependsOn(jawa_core)
   .settings(libraryDependencies ++= DependencyGroups.amandroid_core)
   .settings(publishSettings)

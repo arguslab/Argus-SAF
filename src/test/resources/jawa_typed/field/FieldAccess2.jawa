@@ -1,0 +1,39 @@
+record `com.fgwei.FieldAccess2`  @kind class @AccessFlag PUBLIC {
+      `java.lang.String` `com.fgwei.FieldAccess2.i1`    @AccessFlag PRIVATE;
+   }
+   
+    procedure `void` `com.fgwei.FieldAccess2.<init>` (`com.fgwei.FieldAccess2` FieldAccess2_v0 @kind this) @owner ^`com.fgwei.FieldAccess2` @signature `Lcom/fgwei/FieldAccess2;.<init>:()V` @AccessFlag CONSTRUCTOR {
+
+#L00e344.   call `java.lang.Object.<init>`(FieldAccess2_v0) @signature `Ljava/lang/Object;.<init>:()V` @classDescriptor ^`java.lang.Object` @kind direct;
+#L00e34a.   return  @kind void;
+
+   }
+   
+    procedure `java.lang.String` `com.fgwei.FieldAccess2.getTaint` (`com.fgwei.FieldAccess2` FieldAccess2_v6 @kind this) @owner ^`com.fgwei.FieldAccess2` @signature `Lcom/fgwei/FieldAccess2;.getTaint:()Ljava/lang/String;` @AccessFlag PRIVATE {
+      `java.lang.String` String_v3;
+
+#L026fc6.   String_v3:= FieldAccess2_v6.`com.fgwei.FieldAccess2.i1` @kind object @type ^`java.lang.String`;
+#L026fdc.   return String_v3 @kind object;
+
+   }
+    procedure `void` `com.fgwei.FieldAccess2.setTaint` (`com.fgwei.FieldAccess2` FieldAccess2_v2 @kind this, `java.lang.String` String_v3) @owner ^`com.fgwei.FieldAccess2` @signature `Lcom/fgwei/FieldAccess2;.setTaint:(Ljava/lang/String;)V` @AccessFlag PRIVATE {
+      
+#L026ff0.   FieldAccess2_v2.`com.fgwei.FieldAccess2.i1`:= String_v3 @kind object @type ^`java.lang.String`;
+#L027022.   return @kind void;
+
+   }
+    procedure `java.lang.String` `com.fgwei.FieldAccess2.main` () @owner ^`com.fgwei.FieldAccess2` @signature `Lcom/fgwei/FieldAccess2;.main:()Ljava/lang/String;` @AccessFlag PUBLIC_STATIC {
+      `java.lang.String` String_temp ;
+      `java.lang.String` String_v0;
+      `com.fgwei.FieldAccess2` FieldAccess2_v1;
+      `java.lang.String` String_v2;
+      
+#L027040.   FieldAccess2_v1:= new `com.fgwei.FieldAccess2`;
+#L027041.   call `com.fgwei.FieldAccess2.<init>`(FieldAccess2_v1) @signature `Lcom/fgwei/FieldAccess2;.<init>:()V` @classDescriptor ^`com.fgwei.FieldAccess2` @kind direct;
+#L027044.   String_v0:= "test"   @kind object;
+#L027048.   call `com.fgwei.FieldAccess2.setTaint`(FieldAccess2_v1, String_v0) @signature `Lcom/fgwei/FieldAccess2;.setTaint:(Ljava/lang/String;)V` @classDescriptor ^`com.fgwei.FieldAccess2` @kind direct;
+#L027054.   call String_temp:=  `com.fgwei.FieldAccess2.getTaint`(FieldAccess2_v1) @signature `Lcom/fgwei/FieldAccess2;.getTaint:()Ljava/lang/String;` @classDescriptor ^`com.fgwei.FieldAccess2` @kind direct;
+#L027055.   String_v2:= String_temp @kind object;
+#L02705a.   return String_v2 @kind object;
+
+   }

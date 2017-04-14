@@ -1,0 +1,25 @@
+record `com.fgwei.DoubleLong1`  @kind class @AccessFlag PUBLIC {
+   }
+    procedure `float` `com.fgwei.DoubleLong1.main` () @owner ^`com.fgwei.DoubleLong1` @signature `Lcom/fgwei/DoubleLong1;.main:()F` @AccessFlag PUBLIC_STATIC {
+      `double` double_temp ;
+      `int` int_v0;
+      `float` float_v0;
+      `double` double_v0;
+      `double` double_v2;
+      `float` float_v3;
+      `float` float_v5;
+      
+#L021c84.   int_v0:= 1056964608I;
+#L021c85.   float_v5:= 1111111111.00F;
+#L021c88.   float_v3:= float_v5 - int_v0  @kind float;
+#L021c8a.   double_v0:= (`double`)float_v5  @kind f2d;
+#L021c8c.   double_v2:= 0.471239D  @kind double;
+#L021c96.   double_v0:= double_v0 * double_v2  @kind double;
+#L021c98.   float_v5:= (`float`)double_v0  @kind d2f;
+#L021c9a.   double_v0:= (`double`)float_v5  @kind f2d;
+#L021c9c.   call double_temp:=  `java.lang.Math.sin`(double_v0) @signature `Ljava/lang/Math;.sin:(D)D` @classDescriptor ^`java.lang.Math` @kind static;
+#L021ca2.   double_v0:= double_temp  @kind double;
+#L021ca4.   float_v0:= (`float`)double_v0  @kind d2f;
+#L021ca6.   return float_v0;
+
+   }
