@@ -11,7 +11,7 @@ package org.argus.amandroid.core.decompile
 
 import java.io.File
 
-import org.sireum.util._
+import org.argus.jawa.core.util._
 import java.util.logging.Logger
 import java.util.logging.LogManager
 

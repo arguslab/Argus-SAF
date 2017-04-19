@@ -16,8 +16,8 @@ import org.argus.amandroid.alir.taintAnalysis.AndroidSourceAndSinkManager
 import org.argus.amandroid.core.{AndroidConstants, ApkGlobal}
 import org.argus.jawa.alir.controlFlowGraph.{ICFGInvokeNode, ICFGNode}
 import org.argus.jawa.alir.pta.{PTAResult, VarSlot}
-import org.sireum.pilar.ast._
-import org.sireum.util._
+import org.argus.jawa.compiler.parser.{AssignmentStatement, CallStatement, LiteralExpression, Location}
+import org.argus.jawa.core.util._
 import org.argus.jawa.core._
 
 /**
@@ -28,22 +28,22 @@ class CommunicationSourceAndSinkManager(sasFilePath: String) extends AndroidSour
   
 //  private final val TITLE = "CommunicationSourceAndSinkManager"
     
-  override def isSource(apk: ApkGlobal, calleeSig: Signature, callerSig: Signature, callerLoc: JumpLocation) = false
+  override def isSource(apk: ApkGlobal, calleeSig: Signature, callerSig: Signature, callerLoc: Location) = false
 
-  override def isSource(apk: ApkGlobal, loc: LocationDecl, ptaresult: PTAResult): Boolean = {
+  override def isSource(apk: ApkGlobal, loc: Location, ptaresult: PTAResult): Boolean = {
     var flag = false
     val visitor = Visitor.build({
-      case as: AssignAction =>
+      case as: AssignmentStatement =>
         as.rhs match {
-          case le: LiteralExp =>
-            if(le.typ.name.equals("STRING")){
-              if(le.text.contains("call_log") && le.text.contains("calls")) {
+          case le: LiteralExpression =>
+            if(le.isString){
+              if(le.getString.contains("call_log") && le.getString.contains("calls")) {
                 flag = true
-              } else if(le.text.contains("icc") && le.text.contains("adn")) {
+              } else if(le.getString.contains("icc") && le.getString.contains("adn")) {
                 flag =true
-              } else if(le.text.contains("com.android.contacts")) {
+              } else if(le.getString.contains("com.android.contacts")) {
                 flag =true
-              } else if(le.text.contains("sms/")) {
+              } else if(le.getString.contains("sms/")) {
                 flag = true
               }
             }
@@ -64,15 +64,8 @@ class CommunicationSourceAndSinkManager(sasFilePath: String) extends AndroidSour
       callee =>
         if(InterComponentCommunicationModel.isIccOperation(callee.callee)){
           sinkflag = true
-          val args = apk.getMethod(invNode.getOwner).get.getBody.location(invNode.getLocIndex).asInstanceOf[JumpLocation].jump.asInstanceOf[CallJump].callExp.arg match{
-              case te: TupleExp =>
-                te.exps.map {
-                  case ne: NameExp => ne.name.name
-                  case exp => exp.toString
-                }.toList
-              case a => throw new RuntimeException("wrong exp type: " + a)
-          }
-          val intentSlot = VarSlot(args(1), isBase = false, isArg = true)
+          val args = apk.getMethod(invNode.getOwner).get.getBody.resolvedBody.locations(invNode.locIndex).statement.asInstanceOf[CallStatement].args
+          val intentSlot = VarSlot(args.head, isBase = false, isArg = true)
           val intentValues = ptaResult.pointsToSet(intentSlot, invNode.getContext)
           val intentContents = IntentHelper.getIntentContents(ptaResult, intentValues, invNode.getContext)
           val compType = AndroidConstants.getIccCallType(callee.callee.getSubSignature)

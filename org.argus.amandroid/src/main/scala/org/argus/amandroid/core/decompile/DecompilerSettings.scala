@@ -13,7 +13,7 @@ package org.argus.amandroid.core.decompile
 import java.io.File
 
 import org.argus.amandroid.core.dedex.JawaStyleCodeGeneratorListener
-import org.sireum.util._
+import org.argus.jawa.core.util._
 
 /**
   * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>

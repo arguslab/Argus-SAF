@@ -14,10 +14,10 @@ import org.argus.jawa.alir.Context
 import org.argus.jawa.alir.pta.PTAResult
 import org.argus.jawa.alir.pta.reachingFactsAnalysis.RFAFact
 import org.argus.jawa.core.JawaMethod
-import org.sireum.util._
+import org.argus.jawa.core.util._
 
 object BypassedModel {
-  def handleBypass(s: PTAResult, calleeMethod: JawaMethod, args: List[String], retVars: Seq[String], currentContext: Context): (ISet[RFAFact], ISet[RFAFact], Boolean) = {
+  def handleBypass(s: PTAResult, calleeMethod: JawaMethod, args: List[String], retVar: String, currentContext: Context): (ISet[RFAFact], ISet[RFAFact], Boolean) = {
     (isetEmpty, isetEmpty, true)
   }
 }

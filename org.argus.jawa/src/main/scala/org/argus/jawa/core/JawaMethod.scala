@@ -10,7 +10,8 @@
 
 package org.argus.jawa.core
 
-import org.sireum.util._
+import org.argus.jawa.compiler.parser.MethodDeclaration
+import org.argus.jawa.core.util._
 
 /**
  * This class is an jawa representation of a jawa method. It can belong to JawaClass.
@@ -32,7 +33,7 @@ case class JawaMethod(declaringClass: JawaClass,
     thisOpt: Option[String],
     params: ISeq[(String, JawaType)],
     returnType: JawaType,
-    accessFlags: Int) extends JawaElement with JavaKnowledge with ResolveLevel {
+    accessFlags: Int) extends JawaElement with JavaKnowledge {
 
   final val TITLE = "JawaMethod"
   var DEBUG: Boolean = false
@@ -45,7 +46,7 @@ case class JawaMethod(declaringClass: JawaClass,
           this.accessFlags >= 0) // NON-NIL
   
   require(!this.name.isEmpty)
-  require((isStatic || isNative || isAbstract) || this.thisOpt.isDefined, getName + " " + getResolvingLevel + " not has this.")
+  require((isStatic || isNative || isAbstract) || this.thisOpt.isDefined, getName + " not has this.")
   
   private val signature: Signature = generateSignature(this)
   
@@ -167,51 +168,22 @@ case class JawaMethod(declaringClass: JawaClass,
   /**
    * retrieve code belong to this method
    */
-  def retrieveCode: Option[String] = getDeclaringClass.global.getMethodCode(getSignature)
-
-  /**
-   * Jawa AST node for this JawaMethod. Unless unknown, it should not be null.
-   */
-//  private var methodDeclaration: MethodDeclaration = null //NON-NIL
-//  
-//  def setAST(md: MethodDeclaration) = this.methodDeclaration = md
-//  
-//  def getAST: MethodDeclaration = {
-//    if(isUnknown) throw new RuntimeException(getSignature + " is unknown method, so cannot get the AST")
-//    require(this.methodDeclaration != null)
-//    this.methodDeclaration
-//  }
-//  
+  def retrieveCode: Option[String] = try{Some(getBody.toCode)} catch {case _: Exception => None}
   
-  final val BODY = "body"
+  private var md: Option[MethodDeclaration] = None
   
-  def setBody(md: MethodBody): Unit = {
-    setProperty(BODY, md)
-    setResolvingLevel(ResolveLevel.BODY)
-    getDeclaringClass.updateResolvingLevel()
+  def setBody(md: MethodDeclaration): Unit = {
+    this.md = Some(md)
   }
-  
+
   /**
    * resolve current method to body level
    */
-  def getBody: MethodBody = {
-//    if(getDeclaringClass.getResolvingLevel >= ResolveLevel.BODY) throw new RuntimeException(getSignature +" is already resolved to " + this.resolvingLevel)
-    if(isUnknown) throw new RuntimeException(getSignature + " is an unknown method so cannot be resolved to body.")
-    if(!(this ? BODY)) {
-      val global = getDeclaringClass.global
-      global.resolveMethodBody(getDeclaringClass)
-    }
-    this.getProperty(BODY)
+  def getBody: MethodDeclaration = {
+    if(isUnknown) throw new RuntimeException(getSignature + " is an unknown method.")
+    this.md.get.resolvedBody
+    this.md.get
   }
-  
-  /**
-   * set resolving level
-   */
-  def setResolvingLevel(level: ResolveLevel.Value): Unit = {
-    this.resolvingLevel = level
-    getDeclaringClass.updateResolvingLevel()
-  }
-
   
   /**
    * Adds exception which can be thrown by this method

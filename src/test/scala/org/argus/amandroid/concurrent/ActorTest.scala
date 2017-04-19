@@ -11,7 +11,7 @@
 package org.argus.amandroid.concurrent
 
 import org.scalatest.{FlatSpec, Matchers}
-import org.sireum.util._
+import org.argus.jawa.core.util._
 import akka.actor._
 import akka.pattern.ask
 

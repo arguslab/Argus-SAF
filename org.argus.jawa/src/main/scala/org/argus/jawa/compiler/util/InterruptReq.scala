@@ -11,7 +11,6 @@
 package org.argus.jawa.compiler.util
 
 /** A class of work items to be used in interrupt requests.
- *  Todo: we should replace the Eithers by Futures or Try's.
  */
 abstract class InterruptReq {
   /** The result type of the operation

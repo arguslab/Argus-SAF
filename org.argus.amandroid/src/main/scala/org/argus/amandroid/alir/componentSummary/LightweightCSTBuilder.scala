@@ -10,7 +10,7 @@
 
 package org.argus.amandroid.alir.componentSummary
 
-import org.sireum.util._
+import org.argus.jawa.core.util._
 import org.argus.amandroid.alir.pta.reachingFactsAnalysis.IntentHelper
 import org.argus.amandroid.alir.pta.reachingFactsAnalysis.IntentHelper.IntentContent
 import org.argus.amandroid.core.ApkGlobal
@@ -252,8 +252,8 @@ class LightweightCSTBuilder(global: Global) {
       case cn: ICFGCallNode =>
         val callees = cn.getCalleeSet
         val args = cn.argNames
-        val rets = cn.retNames ++ List("hack") // for safety
-      val currentContext = cn.context
+        val rets = cn.retNameOpt ++ List("hack") // for safety
+        val currentContext = cn.context
         callees foreach {
           callee =>
             callee.callee.signature match {

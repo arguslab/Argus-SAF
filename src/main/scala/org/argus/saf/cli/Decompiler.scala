@@ -16,7 +16,7 @@ import org.argus.amandroid.core.decompile.{ApkDecompiler, DecompileLayout, Decom
 import org.argus.amandroid.core.util.ApkFileUtil
 import org.argus.amandroid.core.{AndroidGlobalConfig, ApkGlobal}
 import org.argus.saf.cli.util.CliLogger
-import org.sireum.util._
+import org.argus.jawa.core.util._
 
 /**
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>

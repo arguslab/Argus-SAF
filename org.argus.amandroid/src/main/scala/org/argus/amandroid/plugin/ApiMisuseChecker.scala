@@ -11,7 +11,7 @@
 package org.argus.amandroid.plugin
 
 import org.argus.jawa.alir.dataFlowAnalysis.InterproceduralDataFlowGraph
-import org.sireum.util.IMap
+import org.argus.jawa.core.util.IMap
 import org.argus.jawa.core.Global
 
 object ApiMisuseModules extends Enumeration {

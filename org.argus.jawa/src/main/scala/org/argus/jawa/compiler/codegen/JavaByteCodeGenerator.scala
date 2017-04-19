@@ -10,7 +10,7 @@
 
 package org.argus.jawa.compiler.codegen
 
-import org.sireum.util._
+import org.argus.jawa.core.util._
 import org.argus.jawa.compiler.parser.{CompilationUnit => JawaCompilationUnit, Declaration => JawaDeclaration, Field => JawaField, Location => JawaLocation, _}
 import org.objectweb.asm.{Type, _}
 import java.io.PrintWriter
@@ -125,17 +125,17 @@ class JavaByteCodeGenerator(javaVersion: Int) {
         locals(t.name) = LocalIndex("this", t.typ.typ, i)
         i += 1
     }
-    md.paramlist.foreach{
+    md.paramList.foreach{
       param =>
         locals(param.name) = LocalIndex(param.name, param.typ.typ, i)
-        if(param.typ.typ.name == "long" || param.typ.typ.name == "double") i += 2
-        else i += 1
+        if(param.typ.typ.name == "long" || param.typ.typ.name == "double") i += 1
+        i += 1
     }
     body.locals.foreach{
       local =>
         locals(local.varSymbol.varName) = LocalIndex(local.varSymbol.varName, local.typ, i)
-        if(local.typ.name == "long" || local.typ.name == "double") i += 2
-        else i += 1
+        if(local.typ.name == "long" || local.typ.name == "double") i += 1
+        i += 1
     }
     this.maxLocals = this.locals.size
     body.locations foreach {

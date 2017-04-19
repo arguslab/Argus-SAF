@@ -11,15 +11,15 @@
 package org.argus.jawa.alir.dataDependenceAnalysis
 
 import org.argus.jawa.alir.Context
-import org.argus.jawa.alir.controlFlowGraph.{ICFGEntryNode, ICFGNode, InterproceduralControlFlowGraph}
+import org.argus.jawa.alir.controlFlowGraph.{ICFGEntryNode, ICFGNode, InterProceduralControlFlowGraph}
 import org.argus.jawa.core.Signature
-import org.sireum.util._
+import org.argus.jawa.core.util._
 
 /**
   * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
   */
 class MultiDataDependenceGraph[Node <: IDDGNode] extends DataDependenceBaseGraph[Node] {
-  val icfg: InterproceduralControlFlowGraph[ICFGNode] = new InterproceduralControlFlowGraph[ICFGNode]
+  val icfg: InterProceduralControlFlowGraph[ICFGNode] = new InterProceduralControlFlowGraph[ICFGNode]
   val encontext: Context = new Context("MultiDataDependenceGraph").setContext(new Signature("LMDDGEntry;.entry:()V"), "L0000")
   icfg.addEntryNode(icfg.addICFGEntryNode(encontext).asInstanceOf[ICFGEntryNode])
   val entryNode: Node = addIDDGEntryNode(icfg.entryNode.asInstanceOf[ICFGEntryNode])

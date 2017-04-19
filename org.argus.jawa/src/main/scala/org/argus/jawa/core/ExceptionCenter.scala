@@ -10,10 +10,8 @@
 
 package org.argus.jawa.core
 
-import org.argus.jawa.core.util.ASTUtil
-import org.sireum.pilar.ast._
-import org.sireum.util._
-import org.sireum.pilar.symbol.ProcedureSymbolTable
+import org.argus.jawa.compiler.parser._
+import org.argus.jawa.core.util._
 
 /**
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
@@ -27,65 +25,50 @@ object ExceptionCenter {
   final val EXCEPTION = new JawaType("java.lang.Exception")
   final val RUNTIME_EXCEPTION = new JawaType("java.lang.RuntimeException")
   final val ARITHMETIC_EXCEPTION = new JawaType("java.lang.ArithmeticException")
-  final val ARRAYINDEXOUTOFBOUNDS_EXCEPTION = new JawaType("java.lang.ArrayIndexOutOfBoundsException")
-  final val CLASSCAST_EXCEPTION = new JawaType("java.lang.ClassCastException")
+  final val ARRAY_INDEX_OUT_OF_BOUNDS_EXCEPTION = new JawaType("java.lang.ArrayIndexOutOfBoundsException")
+  final val CLASS_CAST_EXCEPTION = new JawaType("java.lang.ClassCastException")
   
   final val EXCEPTION_VAR_NAME = "Exception"  
   
   
-  def getExceptionsMayThrow(pst: ProcedureSymbolTable, loc: LocationDecl, catchclauses: ISet[CatchClause]): ISet[JawaType] = {
+  def getExceptionsMayThrow(body: ResolvedBody, loc: Location, catchClauses: ISet[CatchClause]): ISet[JawaType] = {
     val result = msetEmpty[JawaType]
-    loc match{
-      case l: ComplexLocation =>
-      case l: ActionLocation =>
-        result ++= getExceptionMayThrowFromAction(l.action)
-      case l: JumpLocation =>
-      case l: EmptyLocation =>
-    }
-    catchclauses.foreach {
-      cc => 
-        try {
-          val from = pst.location(cc.fromTarget.name)
-          val to = pst.location(cc.toTarget.name)
-          if(loc.index >= from.index && loc.index <= to.index) result += ASTUtil.getTypeFromTypeSpec(cc.typeSpec.get)
-        } catch {
-          case ex: Exception =>
-            System.err.println("ExceptionCenter:" + ex.getMessage)
-        }
+    getExceptionMayThrowFromStatement(loc.statement)
+    catchClauses.foreach { cc =>
+      try {
+        val from = body.locations(cc.range.fromLocation.locationIndex)
+        val to = body.locations(cc.range.toLocation.locationIndex)
+        if(loc.locationIndex >= from.locationIndex && loc.locationIndex <= to.locationIndex) result += cc.typ.typ
+      } catch {
+        case ex: Exception =>
+          System.err.println("ExceptionCenter:" + ex.getMessage)
+      }
     }
     result.toSet
   }
   
-  def getExceptionMayThrowFromAssignment(a: Assignment): ISet[JawaType] = {
+  def getExceptionMayThrowFromStatement(s: Statement): ISet[JawaType] = {
     val result = msetEmpty[JawaType]
-    a match{
-      case aa: AssignAction =>
-        result ++= getExceptionMayThrowFromAction(aa)
-      case cj: CallJump =>
-      case _ =>
-    }
-    result.toSet
-  }
-  
-  def getExceptionMayThrowFromAction(a: Action): ISet[JawaType] = {
-    val result = msetEmpty[JawaType]
-    a match{
-      case aa: AssignAction =>
-        aa.op match{
+    s match{
+      case aa: AssignmentStatement =>
+        aa.assignOP.text match{
           case "%" | "/" =>
             result += ARITHMETIC_EXCEPTION
           case _ =>
         }
-        val lhss = PilarAstHelper.getLHSs(aa)
-        val rhss = PilarAstHelper.getRHSs(aa)
-        (lhss ++ rhss).foreach {
-          case ie: IndexingExp =>
-            result += ARRAYINDEXOUTOFBOUNDS_EXCEPTION
-          case ce: CastExp =>
-            result += CLASSCAST_EXCEPTION
+        aa.lhs match {
+          case _: IndexingExpression =>
+            result += ARRAY_INDEX_OUT_OF_BOUNDS_EXCEPTION
           case _ =>
         }
-      case ta: ThrowAction =>
+        aa.rhs match {
+          case _: IndexingExpression =>
+            result += ARRAY_INDEX_OUT_OF_BOUNDS_EXCEPTION
+          case _: CastExpression =>
+            result += CLASS_CAST_EXCEPTION
+          case _ =>
+        }
+      case _: ThrowStatement =>
         result += THROWABLE
       case _ =>
     }

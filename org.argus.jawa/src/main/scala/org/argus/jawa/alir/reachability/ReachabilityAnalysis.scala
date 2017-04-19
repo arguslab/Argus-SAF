@@ -12,7 +12,7 @@ package org.argus.jawa.alir.reachability
 
 import org.argus.jawa.alir.pta.suspark.InterproceduralSuperSpark
 import org.argus.jawa.core.{Global, Signature}
-import org.sireum.util.ISet
+import org.argus.jawa.core.util.ISet
 
 
 /**

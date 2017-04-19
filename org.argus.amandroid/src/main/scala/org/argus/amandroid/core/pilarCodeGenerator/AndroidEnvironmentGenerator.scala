@@ -9,7 +9,7 @@
  */
 package org.argus.amandroid.core.pilarCodeGenerator
 
-import org.sireum.util._
+import org.argus.jawa.core.util._
 import org.argus.amandroid.core.parser.{ComponentInfo, ComponentType}
 import org.argus.jawa.core._
 import org.argus.jawa.core.pilarCodeGenerator.MethodGenerator

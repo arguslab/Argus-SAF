@@ -9,7 +9,7 @@
  */
 package org.argus.amandroid.core.parser
 
-import org.sireum.util._
+import org.argus.jawa.core.util._
 import javax.xml.parsers.DocumentBuilderFactory
 
 import org.w3c.dom.Element

@@ -12,7 +12,7 @@ package org.argus.amandroid.plugin.report
 
 import org.argus.amandroid.core.parser.Data
 import org.argus.jawa.core.JawaType
-import org.sireum.util._
+import org.argus.jawa.core.util._
 
 class ReportGen(apk_name: String) {
   

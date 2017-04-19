@@ -15,7 +15,7 @@ import org.argus.jawa.alir.Context
 import org.argus.jawa.alir.pta._
 import org.argus.jawa.alir.pta.reachingFactsAnalysis.{RFAFact, RFAFactFactory}
 import org.argus.jawa.core.{JavaKnowledge, JawaClass, JawaMethod, JawaType}
-import org.sireum.util._
+import org.argus.jawa.core.util._
 
 /**
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
@@ -25,7 +25,7 @@ object UriModel {
   final val TITLE = "UriModel"
   def isUri(r: JawaClass): Boolean = r.getName.equals("android.net.Uri")
     
-  def doUriCall(s: PTAResult, p: JawaMethod, args: List[String], retVars: Seq[String], currentContext: Context)(implicit factory: RFAFactFactory): (ISet[RFAFact], ISet[RFAFact], Boolean) = {
+  def doUriCall(s: PTAResult, p: JawaMethod, args: List[String], retVar: String, currentContext: Context)(implicit factory: RFAFactFactory): (ISet[RFAFact], ISet[RFAFact], Boolean) = {
     var newFacts = isetEmpty[RFAFact]
     var delFacts = isetEmpty[RFAFact]
     var byPassFlag = true
@@ -74,8 +74,7 @@ object UriModel {
       case "Landroid/net/Uri;.isRelative:()Z" =>  //public abstract
       case "Landroid/net/Uri;.normalizeScheme:()Landroid/net/Uri;" =>  //public
       case "Landroid/net/Uri;.parse:(Ljava/lang/String;)Landroid/net/Uri;" =>  //public static
-        require(retVars.size == 1)
-        uriParse(s, args, retVars.head, currentContext) match{case (n, d) => newFacts ++= n; delFacts ++= d}
+        uriParse(s, args, retVar, currentContext) match{case (n, d) => newFacts ++= n; delFacts ++= d}
         byPassFlag = false
       case "Landroid/net/Uri;.toSafeString:()Ljava/lang/String;" =>  //public
       case "Landroid/net/Uri;.toString:()Ljava/lang/String;" =>  //public abstract

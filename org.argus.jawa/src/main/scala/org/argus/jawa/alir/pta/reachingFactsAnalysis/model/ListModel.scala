@@ -14,7 +14,7 @@ import org.argus.jawa.alir.Context
 import org.argus.jawa.alir.pta.{FieldSlot, PTAResult, VarSlot}
 import org.argus.jawa.alir.pta.reachingFactsAnalysis.{RFAFact, RFAFactFactory}
 import org.argus.jawa.core.{JawaClass, JawaMethod, JawaType}
-import org.sireum.util._
+import org.argus.jawa.core.util._
 
 /**
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
@@ -62,7 +62,7 @@ object ListModel {
     thisValue.map{s => new RFAFact(VarSlot(retVar, isBase = false, isArg = false), s.clone(currentContext))}
   }
   
-  def doListCall(s: PTAResult, p: JawaMethod, args: List[String], retVars: Seq[String], currentContext: Context)(implicit factory: RFAFactFactory): (ISet[RFAFact], ISet[RFAFact], Boolean) = {
+  def doListCall(s: PTAResult, p: JawaMethod, args: List[String], retVar: String, currentContext: Context)(implicit factory: RFAFactFactory): (ISet[RFAFact], ISet[RFAFact], Boolean) = {
     var newFacts = isetEmpty[RFAFact]
     val delFacts = isetEmpty[RFAFact]
     var byPassFlag = true
@@ -87,10 +87,10 @@ object ListModel {
       case "retainAll:(Ljava/util/Collection;)Z" =>
       case "iterator:()Ljava/util/Iterator;" =>
       case "get:(I)Ljava/lang/Object;" =>
-        newFacts ++= getListToRet(s, args, retVars.head, currentContext)
+        newFacts ++= getListToRet(s, args, retVar, currentContext)
         byPassFlag = false
       case "subList:(II)Ljava/util/List;" =>
-        newFacts ++= cloneListToRet(s, args, retVars.head, currentContext)
+        newFacts ++= cloneListToRet(s, args, retVar, currentContext)
         byPassFlag = false
       case "listIterator:(I)Ljava/util/ListIterator;" =>
       case "isEmpty:()Z" =>

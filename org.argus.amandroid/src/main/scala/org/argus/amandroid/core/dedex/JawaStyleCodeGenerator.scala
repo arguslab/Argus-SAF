@@ -10,17 +10,16 @@
 
 package org.argus.amandroid.core.dedex
 
-import org.sireum.util._
+import org.argus.jawa.core.util._
 import java.io.PrintStream
 
-import collection.JavaConversions._
+import collection.JavaConverters._
 import java.util
 
 import org.apache.commons.lang.StringEscapeUtils
 import org.argus.jawa.core.AccessFlag.FlagKind
 import org.argus.jawa.core._
-import org.argus.jawa.core.util.MyFileUtil
-import org.jf.dexlib2.analysis.InlineMethodResolver
+import org.argus.jawa.core.util.FileUtil
 import org.jf.dexlib2.dexbacked.instruction.DexBackedInstruction
 import org.jf.dexlib2.dexbacked.{DexBackedCatchAllExceptionHandler, DexBackedClassDef, DexBackedDexFile, DexBackedField, DexBackedMethod, DexBackedTryBlock, DexBackedTypedExceptionHandler}
 import org.stringtemplate.v4.{ST, STGroupString}
@@ -43,11 +42,11 @@ object JawaStyleCodeGenerator {
     val classPath = recType.jawaName.replaceAll("\\.", "/")
     val outputStream = outputUri match {
       case Some(od) =>
-        var targetFile = FileUtil.toFile(MyFileUtil.appendFileName(od, classPath + ".jawa"))
+        var targetFile = FileUtil.toFile(FileUtil.appendFileName(od, classPath + ".jawa"))
         var i = 0
         while(targetFile.exists()){
           i += 1
-          targetFile = FileUtil.toFile(MyFileUtil.appendFileName(od, classPath + "." + i + ".jawa"))
+          targetFile = FileUtil.toFile(FileUtil.appendFileName(od, classPath + "." + i + ".jawa"))
         }
         val parent = targetFile.getParentFile
         if(parent != null)
@@ -175,7 +174,7 @@ class JawaStyleCodeGenerator(ddFile: DexBackedDexFile, outputUri: Option[FileRes
 
   def generate(listener: Option[JawaStyleCodeGeneratorListener] = None, genBody: Boolean): IMap[JawaType, String] = {
     val result: MMap[JawaType, String] = mmapEmpty
-    val dexClasses = ddFile.getClasses
+    val dexClasses = ddFile.getClasses.asScala
     var errorOccurred = false
     dexClasses.foreach { dexClass =>
       val recType: JawaType = JavaKnowledge.formatSignatureToType(dexClass.getType).jawaName.resolveRecord
@@ -230,7 +229,7 @@ class JawaStyleCodeGenerator(ddFile: DexBackedDexFile, outputUri: Option[FileRes
     val isInterface: Boolean = AccessFlag.isInterface(accessFlagInt)
     val accessFlag: String = getAccessString(AccessFlag.toString(accessFlagInt))
     val superClass: Option[JawaType] = Option(dexClass.getSuperclass).map(s => JavaKnowledge.formatSignatureToType(s).jawaName.resolveRecord)
-    val interfaceClasses: IList[JawaType] = dexClass.getInterfaces.map { interface =>
+    val interfaceClasses: IList[JawaType] = dexClass.getInterfaces.asScala.map { interface =>
       JavaKnowledge.formatSignatureToType(interface).jawaName.resolveRecord
     }.toList
     recTemplate.add("recName", recTyp.jawaName)
@@ -261,9 +260,9 @@ class JawaStyleCodeGenerator(ddFile: DexBackedDexFile, outputUri: Option[FileRes
         extendsList.add(extOrImpTemplate)
     }
     recTemplate.add("extends", extendsList)
-    recTemplate.add("attributes", generateAttributes(recTyp, dexClass.getInstanceFields.toList, template))
-    recTemplate.add("globals", generateGlobals(recTyp, dexClass.getStaticFields.toList, template))
-    recTemplate.add("procedures", generateProcedures(recTyp, dexClass.getMethods.toList, listener, genBody, template))
+    recTemplate.add("attributes", generateAttributes(recTyp, dexClass.getInstanceFields.asScala.toList, template))
+    recTemplate.add("globals", generateGlobals(recTyp, dexClass.getStaticFields.asScala.toList, template))
+    recTemplate.add("procedures", generateProcedures(recTyp, dexClass.getMethods.asScala.toList, listener, genBody, template))
     val code = recTemplate.render()
     if(listener.isDefined) listener.get.onRecordGenerated(recTyp, code, outputUri)
     code
@@ -317,7 +316,7 @@ class JawaStyleCodeGenerator(ddFile: DexBackedDexFile, outputUri: Option[FileRes
 
   private def getSignature(classTyp: JawaType, dexMethod: DexBackedMethod): Signature = {
     val retTyp: JawaType = JavaKnowledge.formatSignatureToType(dexMethod.getReturnType).jawaName.resolveRecord
-    val paramList: IList[JawaType] = dexMethod.getParameterTypes.map(JavaKnowledge.formatSignatureToType(_).jawaName.resolveRecord).toList
+    val paramList: IList[JawaType] = dexMethod.getParameterTypes.asScala.map(JavaKnowledge.formatSignatureToType(_).jawaName.resolveRecord).toList
     JavaKnowledge.genSignature(classTyp, dexMethod.getName, paramList, retTyp).signature.resolveProcedure
   }
 
@@ -340,7 +339,7 @@ class JawaStyleCodeGenerator(ddFile: DexBackedDexFile, outputUri: Option[FileRes
       baseReg -= 1
       thisOpt = Some(("v" + baseReg, classType))
     }
-    val paramList: IList[(String, String, JawaType)] = dexMethod.getParameters.map { dexParam =>
+    val paramList: IList[(String, String, JawaType)] = dexMethod.getParameters.asScala.map { dexParam =>
       val paramTyp: JawaType = JavaKnowledge.formatSignatureToType(dexParam.getType).jawaName.resolveRecord
       val regName = "v" + paramReg
       val paramName = dexParam.getName
@@ -398,11 +397,11 @@ class JawaStyleCodeGenerator(ddFile: DexBackedDexFile, outputUri: Option[FileRes
   private def generateLocalVars(baseReg: Int, template: STGroupString): ST = {
     val localVarsTemplate: ST = template.getInstanceOf("LocalVars")
     val locals: util.ArrayList[String] = new util.ArrayList[String]
-    locals += "temp;"
+    locals.add("temp;")
     (0 until baseReg).foreach {
       reg =>
         val regName = "v" + reg + ";"
-        locals += regName
+        locals.add(regName)
     }
     localVarsTemplate.add("locals", locals)
     localVarsTemplate
@@ -411,13 +410,13 @@ class JawaStyleCodeGenerator(ddFile: DexBackedDexFile, outputUri: Option[FileRes
   private def generateBody(dexMethod: DexBackedMethod, listener: Option[JawaStyleCodeGeneratorListener], template: STGroupString): (ST, ST) = {
     val bodyTemplate: ST = template.getInstanceOf("Body")
     val catchesTemplate: ST = template.getInstanceOf("CatchClauses")
-    val instructions = dexMethod.getImplementation.getInstructions.map(_.asInstanceOf[DexBackedInstruction])
+    val instructions = dexMethod.getImplementation.getInstructions.asScala.map(_.asInstanceOf[DexBackedInstruction])
 
     val start: Long = instructions.head.instructionStart
     val end: Long = instructions.last.instructionStart + instructions.last.getCodeUnits * 2L
 
     val tryBlocks = dexMethod.getImplementation.getTryBlocks
-    val (exceptionTypeMap, labels) = processTryCatchBlock(catchesTemplate, tryBlocks.toList, start, template)
+    val (exceptionTypeMap, labels) = processTryCatchBlock(catchesTemplate, tryBlocks.asScala.toList, start, template)
 
     val codes: util.ArrayList[String] = new util.ArrayList[String]
     val instructionParser = DexInstructionToJawaParser(dexMethod, this, exceptionTypeMap, template)
@@ -425,14 +424,14 @@ class JawaStyleCodeGenerator(ddFile: DexBackedDexFile, outputUri: Option[FileRes
     instructions.foreach { inst =>
       labels.get(inst.instructionStart) match {
         case Some(label) =>
-          label.foreach(l => codes += "#%s.  ".format(l))
+          label.foreach(l => codes.add("#%s.  ".format(l)))
         case None =>
       }
-      codes += instructionParser.parse(inst, start, end)
+      codes.add(instructionParser.parse(inst, start, end))
     }
     labels.get(end) match {
       case Some(label) =>
-        label.foreach(l => codes += "#%s.  ".format(l))
+        label.foreach(l => codes.add("#%s.  ".format(l)))
       case None =>
     }
     bodyTemplate.add("codeFragments", codes)
@@ -464,7 +463,7 @@ class JawaStyleCodeGenerator(ddFile: DexBackedDexFile, outputUri: Option[FileRes
       val endLabel: String = "Try_end" + i
       labels.getOrElseUpdate(start, mlistEmpty) += startLabel
       labels.getOrElseUpdate(end, mlistEmpty) += endLabel
-      for(handler <- tryBlock.getExceptionHandlers) {
+      for(handler <- tryBlock.getExceptionHandlers.asScala) {
         val catchTemplate: ST = template.getInstanceOf("Catch")
         val exceptionType: JawaType = handler match {
           case dbteh: DexBackedTypedExceptionHandler => JavaKnowledge.formatSignatureToType(dbteh.getExceptionType).jawaName.resolveRecord

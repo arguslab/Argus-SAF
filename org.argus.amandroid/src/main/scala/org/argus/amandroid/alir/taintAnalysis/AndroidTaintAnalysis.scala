@@ -11,7 +11,7 @@
 //package org.sireum.amandroid.alir.taintAnalysis
 //
 //import org.sireum.jawa._
-//import org.sireum.util._
+//import org.argus.jawa.core.util._
 //import org.sireum.jawa.alir.taintAnalysis.TaintFact
 //import org.sireum.jawa.alir.controlFlowGraph._
 //import org.sireum.jawa.alir.interProcedural._

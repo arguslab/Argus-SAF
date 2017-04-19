@@ -19,10 +19,9 @@ import org.argus.jawa.alir.controlFlowGraph._
 import org.argus.jawa.alir.dataDependenceAnalysis.{IDDGNode, MultiDataDependenceGraph}
 import org.argus.jawa.alir.dataFlowAnalysis.InterproceduralDataFlowGraph
 import org.argus.jawa.alir.pta.{Instance, VarSlot}
+import org.argus.jawa.compiler.parser.{AssignmentStatement, NameExpression}
 import org.argus.jawa.core._
-import org.argus.jawa.core.util.ASTUtil
-import org.sireum.pilar.ast.{ActionLocation, AssignAction, NameExp}
-import org.sireum.util._
+import org.argus.jawa.core.util._
 
 trait ComponentSummaryProvider {
   def getIntentCaller(idfg: InterproceduralDataFlowGraph, intentValue: ISet[Instance], context: Context): ISet[IntentContent]
@@ -56,22 +55,22 @@ object ComponentSummaryTable {
     idfg.icfg.nodes.filter(n => apk.model.getEnvMap(component.typ)._1 != n.getOwner) foreach {
       case nn: ICFGNormalNode =>
         val method = apk.getMethod(nn.getOwner).get
-        method.getBody.location(nn.context.getLocUri) match {
-          case loc: ActionLocation if loc.action.isInstanceOf[AssignAction] =>
-            val typ = ASTUtil.getType(loc.action.asInstanceOf[AssignAction])
-            val lhss = PilarAstHelper.getLHSs(loc.action.asInstanceOf[AssignAction])
-            val rhss = PilarAstHelper.getRHSs(loc.action.asInstanceOf[AssignAction])
-            lhss.head match {
-              case ne: NameExp =>
-                if (ne.name.name.startsWith("@@")) {
-                  sf_summary.addCaller(nn, StaticFieldWrite(component, new FieldFQN(ne.name.name.replace("@@", ""), typ.get)))
+        method.getBody.resolvedBody.locations(nn.locIndex).statement match {
+          case as: AssignmentStatement =>
+            val typ = as.typOpt
+            val lhs = as.lhs
+            val rhs = as.rhs
+            lhs match {
+              case ne: NameExpression =>
+                if (ne.isStatic) {
+                  sf_summary.addCaller(nn, StaticFieldWrite(component, new FieldFQN(ne.name, typ.get)))
                 }
               case _ =>
             }
-            rhss.head match {
-              case ne: NameExp =>
-                if (ne.name.name.startsWith("@@")) {
-                  sf_summary.addCallee(nn, StaticFieldRead(component, new FieldFQN(ne.name.name.replace("@@", ""), typ.get)))
+            rhs match {
+              case ne: NameExpression =>
+                if (ne.isStatic) {
+                  sf_summary.addCallee(nn, StaticFieldRead(component, new FieldFQN(ne.name, typ.get)))
                 }
               case _ =>
             }
@@ -102,7 +101,7 @@ object ComponentSummaryTable {
             if (AndroidConstants.isIccMethod(calleeSig.getSubSignature)) {
               // add icc call as icc caller
               val callTyp = AndroidConstants.getIccCallType(calleeSig.getSubSignature)
-              val intentSlot = VarSlot(cn.argNames(1), isBase = false, isArg = true) // FIXME later
+              val intentSlot = VarSlot(cn.argNames(1), isBase = false, isArg = true)
               val intentValue: ISet[Instance] = ptsmap.getOrElse(intentSlot, isetEmpty)
               val intentContents = IntentHelper.getIntentContents(idfg.ptaresult, intentValue, cn.context)
               intentContents foreach {

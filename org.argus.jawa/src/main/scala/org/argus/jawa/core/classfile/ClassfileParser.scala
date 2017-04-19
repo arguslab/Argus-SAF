@@ -12,7 +12,7 @@ package org.argus.jawa.core.classfile
 
 import org.argus.jawa.core.{JawaType, MyClass}
 import org.argus.jawa.core.io.AbstractFile
-import org.sireum.util._
+import org.argus.jawa.core.util._
 import org.objectweb.asm.ClassReader
 import org.objectweb.asm.Opcodes
 

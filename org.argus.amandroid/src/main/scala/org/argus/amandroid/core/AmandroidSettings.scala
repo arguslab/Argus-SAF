@@ -12,9 +12,9 @@ package org.argus.amandroid.core
 
 import java.io.{File, FileInputStream, InputStream}
 
-import org.argus.jawa.core.util.MyFileUtil
+import org.argus.jawa.core.util.FileUtil
 import org.ini4j.Wini
-import org.sireum.util.FileUtil
+import org.argus.jawa.core.util.FileUtil
 
 /**
   * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
@@ -29,7 +29,7 @@ class AmandroidSettings(amandroid_home: String, iniPathOpt: Option[String]) {
   private val iniUri = {
     iniPathOpt match {
       case Some(path) => FileUtil.toUri(path)
-      case None => MyFileUtil.appendFileName(amandroid_home_uri, "config.ini")
+      case None => FileUtil.appendFileName(amandroid_home_uri, "config.ini")
     }
   }
   private val ini = new Wini(FileUtil.toFile(iniUri))

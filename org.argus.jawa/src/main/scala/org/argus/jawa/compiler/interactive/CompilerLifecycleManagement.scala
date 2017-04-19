@@ -12,13 +12,13 @@ package org.argus.jawa.compiler.interactive
 
 import org.argus.jawa.compiler.parser.CompilationUnit
 import org.argus.jawa.core.io.{AbstractFile, NoPosition, Position, SourceFile}
-import org.sireum.util._
+import org.argus.jawa.core.util._
 
 import scala.util.control.Breaks._
 import scala.annotation.elidable
 import scala.collection.mutable
 
-trait CompilerLifecycleManagement {global: Global =>
+trait CompilerLifecycleManagement { global: Global =>
   private final val SleepTime = 10
   /** A list giving all files to be resolved in the order they should be checked.
    */
@@ -267,7 +267,7 @@ trait CompilerLifecycleManagement {global: Global =>
 
     
     // move units removable after this run to the "to-be-removed" buffer
-    toBeRemoved ++= toBeRemovedAfterRun
+    toBeRemoved.addAll(toBeRemovedAfterRun)
     
     // clean out stale waiting responses
     cleanAllResponses()

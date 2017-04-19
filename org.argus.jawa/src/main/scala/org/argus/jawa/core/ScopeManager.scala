@@ -27,6 +27,6 @@ class DefaultScopeManager extends ScopeManager {
 
 object ScopeManager{
   private var currentScopeManager: ScopeManager = new DefaultScopeManager
-  def setScopeManager(manager: ScopeManager) = this.synchronized(this.currentScopeManager = manager)
+  def setScopeManager(manager: ScopeManager): Unit = this.synchronized(this.currentScopeManager = manager)
   def getCurrentScopeManager: ScopeManager = this.currentScopeManager
 }

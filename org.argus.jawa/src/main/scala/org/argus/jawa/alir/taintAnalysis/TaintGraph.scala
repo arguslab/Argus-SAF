@@ -10,15 +10,20 @@
 
 package org.argus.jawa.alir.taintAnalysis
 
-import org.argus.jawa.alir.interprocedural.{InterproceduralGraph, InterproceduralNode}
-import org.sireum.util._
+import org.argus.jawa.alir.{AlirEdgeAccesses, AlirGraphImpl, AlirSuccPredAccesses, InterProceduralNode}
+import org.argus.jawa.core.util._
 
 /**
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
  */
-class TaintGraph extends InterproceduralGraph[TaintNode]{
+class TaintGraph
+    extends AlirGraphImpl[TaintNode]
+    with AlirSuccPredAccesses[TaintNode]
+    with AlirEdgeAccesses[TaintNode] {
+
   private val sources: MSet[TaintNode] = msetEmpty
-  def addSource(src: TaintNode) = {
+
+  def addSource(src: TaintNode): Unit = {
     addNode(src)
     sources += src
   }
@@ -45,15 +50,15 @@ class TaintGraph extends InterproceduralGraph[TaintNode]{
     n
   }
   
-  def addTaintEdge(srcSlot: TaintSlot, tarSlot: TaintSlot) = {
+  def addTaintEdge(srcSlot: TaintSlot, tarSlot: TaintSlot): Unit = {
     if(!taintNodeExists(srcSlot)) addTaintNode(srcSlot)
     if(!taintNodeExists(tarSlot)) addTaintNode(tarSlot)
     addEdge(getTaintNode(srcSlot), getTaintNode(tarSlot))
   }
   
-  def getSources = this.sources.toSet
+  def getSources: ISet[TaintNode] = this.sources.toSet
 }
 
-case class TaintNode(tf: TaintSlot) extends InterproceduralNode(tf.context){
+case class TaintNode(tf: TaintSlot) extends InterProceduralNode(tf.context){
   
 }

@@ -13,16 +13,15 @@ package org.argus.amandroid.alir.taintAnalysis
 import org.argus.amandroid.alir.pta.reachingFactsAnalysis.IntentHelper
 import org.argus.amandroid.alir.pta.reachingFactsAnalysis.model.InterComponentCommunicationModel
 import org.argus.amandroid.core.{AndroidConstants, ApkGlobal}
+import org.argus.jawa.alir.InterProceduralNode
 import org.argus.jawa.alir.controlFlowGraph._
 import org.argus.jawa.alir.dataDependenceAnalysis._
-import org.argus.jawa.alir.interprocedural.InterproceduralNode
 import org.argus.jawa.alir.pta.{PTAResult, VarSlot}
 import org.argus.jawa.alir.taintAnalysis._
 import org.argus.jawa.alir.util.ExplicitValueFinder
-import org.argus.jawa.core.{PilarAstHelper, Signature}
-import org.sireum.util._
-import org.sireum.pilar.ast.LocationDecl
-import org.sireum.pilar.ast.JumpLocation
+import org.argus.jawa.compiler.parser.{CallStatement, Location}
+import org.argus.jawa.core.Signature
+import org.argus.jawa.core.util._
 
 /**
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
@@ -47,7 +46,7 @@ abstract class AndroidSourceAndSinkManager(val sasFilePath: String) extends Sour
   private final val TITLE = "AndroidSourceAndSinkManager"
   parse()
 
-  def getSourceAndSinkNode[N <: InterproceduralNode](apk: ApkGlobal, node: N, ptaResult: PTAResult): (ISet[TaintSource[N]], ISet[TaintSink[N]]) = {
+  def getSourceAndSinkNode[N <: InterProceduralNode](apk: ApkGlobal, node: N, ptaResult: PTAResult): (ISet[TaintSource[N]], ISet[TaintSink[N]]) = {
     node match {
       case icfgN: ICFGNode => handleICFGNode(apk, icfgN, ptaResult)
       case iddgN: IDDGNode => handleIDDGNode(apk, iddgN, ptaResult)
@@ -63,7 +62,7 @@ abstract class AndroidSourceAndSinkManager(val sasFilePath: String) extends Sour
     this.sinks.filter(sink => matches(apk, calleeSig, sink._1)).map(_._2._2).fold(isetEmpty)(iunion)
   }
   
-  private def handleICFGNode[N <: InterproceduralNode](apk: ApkGlobal, icfgN: ICFGNode, ptaResult: PTAResult): (ISet[TaintSource[N]], ISet[TaintSink[N]]) = {
+  private def handleICFGNode[N <: InterProceduralNode](apk: ApkGlobal, icfgN: ICFGNode, ptaResult: PTAResult): (ISet[TaintSource[N]], ISet[TaintSink[N]]) = {
     val sources = msetEmpty[TaintSource[N]]
     val sinks = msetEmpty[TaintSink[N]]
     val gNode = icfgN.asInstanceOf[N]
@@ -74,7 +73,7 @@ abstract class AndroidSourceAndSinkManager(val sasFilePath: String) extends Sour
           callee =>
             val calleeSig = callee.callee
             val caller = apk.getMethod(invNode.getOwner).get
-            val jumpLoc = caller.getBody.location(invNode.getLocIndex).asInstanceOf[JumpLocation]
+            val jumpLoc = caller.getBody.resolvedBody.locations(invNode.locIndex)
             if(this.isSource(apk, calleeSig, invNode.getOwner, jumpLoc)) {
               var tags = getSourceTags(apk, calleeSig)
               if(tags.isEmpty) tags += "ANY"
@@ -93,7 +92,7 @@ abstract class AndroidSourceAndSinkManager(val sasFilePath: String) extends Sour
             invNode match {
               case invNode1: ICFGCallNode if this.isIccSink(apk, invNode1, ptaResult) =>
                 apk.reporter.echo(TITLE, "found icc sink: " + invNode)
-                val tn = TaintSink(gNode, TagTaintDescriptor(invNode.getLocUri, Set(1), SourceAndSinkCategory.ICC_SINK, Set("ICC")))
+                val tn = TaintSink(gNode, TagTaintDescriptor(invNode.locUri, Set(1), SourceAndSinkCategory.ICC_SINK, Set("ICC")))
                 sinks += tn
               case _ =>
             }
@@ -111,7 +110,7 @@ abstract class AndroidSourceAndSinkManager(val sasFilePath: String) extends Sour
         }
       case normalNode: ICFGNormalNode =>
         val owner = apk.getMethod(normalNode.getOwner).get
-        val loc = owner.getBody.location(normalNode.getLocIndex)
+        val loc = owner.getBody.resolvedBody.locations(normalNode.locIndex)
         if(this.isSource(apk, loc, ptaResult)){
           apk.reporter.echo(TITLE, "found simple statement source: " + normalNode)
           val tn = TaintSource(gNode, TagTaintDescriptor(normalNode.getOwner.signature, isetEmpty, SourceAndSinkCategory.STMT_SOURCE, isetEmpty + "ANY"))
@@ -127,40 +126,39 @@ abstract class AndroidSourceAndSinkManager(val sasFilePath: String) extends Sour
     (sources.toSet, sinks.toSet)
   }
   
-  private def handleIDDGNode[N <: InterproceduralNode](apk: ApkGlobal, iddgN: IDDGNode, ptaresult: PTAResult): (ISet[TaintSource[N]], ISet[TaintSink[N]]) = {
+  private def handleIDDGNode[N <: InterProceduralNode](apk: ApkGlobal, iddgN: IDDGNode, ptaresult: PTAResult): (ISet[TaintSource[N]], ISet[TaintSink[N]]) = {
     val sources = msetEmpty[TaintSource[N]]
     val sinks = msetEmpty[TaintSink[N]]
     val gNode = iddgN.asInstanceOf[N]
     iddgN match {
       case invNode: IDDGInvokeNode =>
         val calleeSet = invNode.getCalleeSet
-        calleeSet.foreach{
-          callee =>
-            val calleeSig = callee.callee
-            val caller = apk.getMethod(invNode.getOwner).get
-            val jumpLoc = caller.getBody.location(invNode.getLocIndex).asInstanceOf[JumpLocation]
-            if(invNode.isInstanceOf[IDDGVirtualBodyNode] && this.isSource(apk, calleeSig, invNode.getOwner, jumpLoc)){
-              apk.reporter.echo(TITLE, "found source: " + calleeSig + "@" + invNode.getContext)
-              val tn = TaintSource(gNode, TypeTaintDescriptor(calleeSig.signature, None, SourceAndSinkCategory.API_SOURCE))
-              sources += tn
-            }
-            invNode match {
-              case node: IDDGCallArgNode if this.isSink(apk, calleeSig) =>
-                val poss = this.sinks.filter(sink => matches(apk, calleeSig, sink._1)).map(_._2._1).fold(isetEmpty)(iunion)
-                if (poss.isEmpty || poss.contains(node.position)) {
-                  apk.reporter.echo(TITLE, "found sink: " + calleeSig + "@" + invNode.getContext + " " + node.position)
-                  val tn = TaintSink(gNode, TypeTaintDescriptor(calleeSig.signature, Some(node.position), SourceAndSinkCategory.API_SINK))
-                  sinks += tn
-                }
-              case _ =>
-            }
-            invNode match {
-              case node: IDDGCallArgNode if node.position == 1 && this.isIccSink(apk, invNode.getICFGNode.asInstanceOf[ICFGCallNode], ptaresult) =>
-                apk.reporter.echo(TITLE, "found icc sink: " + invNode)
-                val tn = TaintSink(gNode, TypeTaintDescriptor(invNode.getLocUri, Some(1), SourceAndSinkCategory.ICC_SINK))
+        calleeSet.foreach{ callee =>
+          val calleeSig = callee.callee
+          val caller = apk.getMethod(invNode.getOwner).get
+          val jumpLoc = caller.getBody.resolvedBody.locations(invNode.getLocIndex)
+          if(invNode.isInstanceOf[IDDGVirtualBodyNode] && this.isSource(apk, calleeSig, invNode.getOwner, jumpLoc)){
+            apk.reporter.echo(TITLE, "found source: " + calleeSig + "@" + invNode.getContext)
+            val tn = TaintSource(gNode, TypeTaintDescriptor(calleeSig.signature, None, SourceAndSinkCategory.API_SOURCE))
+            sources += tn
+          }
+          invNode match {
+            case node: IDDGCallArgNode if this.isSink(apk, calleeSig) =>
+              val poss = this.sinks.filter(sink => matches(apk, calleeSig, sink._1)).map(_._2._1).fold(isetEmpty)(iunion)
+              if (poss.isEmpty || poss.contains(node.position)) {
+                apk.reporter.echo(TITLE, "found sink: " + calleeSig + "@" + invNode.getContext + " " + node.position)
+                val tn = TaintSink(gNode, TypeTaintDescriptor(calleeSig.signature, Some(node.position), SourceAndSinkCategory.API_SINK))
                 sinks += tn
-              case _ =>
-            }
+              }
+            case _ =>
+          }
+          invNode match {
+            case node: IDDGCallArgNode if node.position == 1 && this.isIccSink(apk, invNode.getICFGNode.asInstanceOf[ICFGCallNode], ptaresult) =>
+              apk.reporter.echo(TITLE, "found icc sink: " + invNode)
+              val tn = TaintSink(gNode, TypeTaintDescriptor(invNode.getLocUri, Some(1), SourceAndSinkCategory.ICC_SINK))
+              sinks += tn
+            case _ =>
+          }
         }
       case entNode: IDDGEntryParamNode =>
         if(this.isIccSource(apk, entNode.getICFGNode, entNode.getICFGNode)){
@@ -175,7 +173,7 @@ abstract class AndroidSourceAndSinkManager(val sasFilePath: String) extends Sour
         }
       case normalNode: IDDGNormalNode =>
         val owner = apk.getMethod(normalNode.getOwner).get
-        val loc = owner.getBody.location(normalNode.getLocIndex)
+        val loc = owner.getBody.resolvedBody.locations(normalNode.getLocIndex)
         if(this.isSource(apk, loc, ptaresult)){
           apk.reporter.echo(TITLE, "found simple statement source: " + normalNode)
           val tn = TaintSource(gNode, TypeTaintDescriptor(normalNode.getOwner.signature, None, SourceAndSinkCategory.STMT_SOURCE))
@@ -212,18 +210,17 @@ abstract class AndroidSourceAndSinkManager(val sasFilePath: String) extends Sour
     matches(apk, sig, this.sinks.keySet.toSet)
   }
 
-  def isSource(apk: ApkGlobal, calleeSig: Signature, callerSig: Signature, callerLoc: JumpLocation): Boolean = {
-    if(isSourceMethod(apk, calleeSig)) return true
-    if(isUISource(apk, calleeSig, callerSig, callerLoc)) return true
-    false
+  def isSource(apk: ApkGlobal, calleeSig: Signature, callerSig: Signature, callerLoc: Location): Boolean = {
+    isSourceMethod(apk, calleeSig) ||
+    isUISource(apk, calleeSig, callerSig, callerLoc)
   }
 
-  def isSource(apk: ApkGlobal, loc: LocationDecl, ptaResult: PTAResult): Boolean = false
+  def isSource(apk: ApkGlobal, loc: Location, ptaResult: PTAResult): Boolean = false
 
-  def isSink(apk: ApkGlobal, loc: LocationDecl, ptaResult: PTAResult): Boolean = false
+  def isSink(apk: ApkGlobal, loc: Location, ptaResult: PTAResult): Boolean = false
 
   def isCallbackSource(apk: ApkGlobal, sig: Signature, pos: Int): Boolean = false
-  def isUISource(apk: ApkGlobal, calleeSig: Signature, callerSig: Signature, callerLoc: JumpLocation): Boolean = false
+  def isUISource(apk: ApkGlobal, calleeSig: Signature, callerSig: Signature, callerLoc: Location): Boolean = false
   def isIccSink(apk: ApkGlobal, invNode: ICFGInvokeNode, s: PTAResult): Boolean
   def isIccSource(apk: ApkGlobal, entNode: ICFGNode, iddgEntNode: ICFGNode): Boolean
 
@@ -241,10 +238,11 @@ class DefaultAndroidSourceAndSinkManager(sasFilePath: String) extends AndroidSou
 
   private final val TITLE = "DefaultSourceAndSinkManager"
 
-  override def isUISource(apk: ApkGlobal, calleeSig: Signature, callerSig: Signature, callerLoc: JumpLocation): Boolean = {
+  override def isUISource(apk: ApkGlobal, calleeSig: Signature, callerSig: Signature, callerLoc: Location): Boolean = {
     if(calleeSig.signature == AndroidConstants.ACTIVITY_FINDVIEWBYID || calleeSig.signature == AndroidConstants.VIEW_FINDVIEWBYID){
       val callerProc = apk.getMethod(callerSig).get
-      val nums = ExplicitValueFinder.findExplicitIntValueForArgs(callerProc, callerLoc, 1)
+      val cs = callerLoc.statement.asInstanceOf[CallStatement]
+      val nums = ExplicitValueFinder.findExplicitIntValueForArgs(callerProc, cs, callerLoc, 1)
       nums.foreach{
         num =>
           apk.model.getLayoutControls.get(num) match{
@@ -264,7 +262,7 @@ class DefaultAndroidSourceAndSinkManager(sasFilePath: String) extends AndroidSou
     calleeSet.foreach{
       callee =>
         if(InterComponentCommunicationModel.isIccOperation(callee.callee)){
-          val args = PilarAstHelper.getCallArgs(apk.getMethod(invNode.getOwner).get.getBody, invNode.getLocIndex)
+          val args = invNode.argNames
           val intentSlot = VarSlot(args(1), isBase = false, isArg = true)
           val intentValues = s.pointsToSet(intentSlot, invNode.getContext)
           val intentContents = IntentHelper.getIntentContents(s, intentValues, invNode.getContext)

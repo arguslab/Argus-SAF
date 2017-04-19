@@ -10,7 +10,7 @@
 
 package org.argus.amandroid.alir.componentSummary
 
-import org.sireum.util._
+import org.argus.jawa.core.util._
 import java.util.concurrent.TimeoutException
 
 import org.argus.amandroid.alir.pta.reachingFactsAnalysis.{AndroidRFAConfig, AndroidReachingFactsAnalysis, AndroidReachingFactsAnalysisConfig}
@@ -60,11 +60,11 @@ object ComponentBasedAnalysis {
           } finally {
             System.gc()
           }
-          worklist.pushAll(apk.model.getComponents -- components)
+          worklist = (apk.model.getComponents -- components) ++: worklist
           components = apk.model.getComponents
         }
       }
-      worklist.run(worklist.worklist.pushAll(components))
+      worklist.run(worklist.worklist = components.toList)
     }
   }
 }
@@ -88,7 +88,7 @@ class ComponentBasedAnalysis(yard: ApkYard) {
       idfgs foreach {
         case (comp, idfg) =>
           // do dda on this component
-          val iddResult = InterproceduralDataDependenceAnalysis(apk, idfg)
+          val iddResult = InterProceduralDataDependenceAnalysis(apk, idfg)
           apk.addIDDG(comp, iddResult)
       }
       var components = apk.model.getComponents
@@ -112,17 +112,17 @@ class ComponentBasedAnalysis(yard: ApkYard) {
     }
   }
   
-  def phase2(apks: ISet[ApkGlobal]): (ISet[ApkGlobal], InterproceduralDataDependenceInfo) = {
+  def phase2(apks: ISet[ApkGlobal]): (ISet[ApkGlobal], InterProceduralDataDependenceInfo) = {
     val components: ISet[Component] = apks.flatMap { apk =>
       (apk.model.getComponents -- problematicComp(apk.nameUri)).map(Component(apk, _))
     }
     println(TITLE + ":" + " Phase 2-------" + apks.size + s" apk${if (apks.size > 1) "s" else ""} " + components.size + s" component${if (components.size > 1) "s" else ""}-------")
     val mddg = ComponentSummaryTable.buildMultiDataDependentGraph(components)
 //    mddg.toDot(new java.io.PrintWriter(System.out))
-    (apks, new DefaultInterproceduralDataDependenceInfo(mddg))
+    (apks, new DefaultInterProceduralDataDependenceInfo(mddg))
   }
   
-  def phase3(iddResult: (ISet[ApkGlobal], InterproceduralDataDependenceInfo), ssm: AndroidSourceAndSinkManager): Option[TaintAnalysisResult[AndroidDataDependentTaintAnalysis.Node, InterproceduralDataDependenceAnalysis.Edge]] = {
+  def phase3(iddResult: (ISet[ApkGlobal], InterProceduralDataDependenceInfo), ssm: AndroidSourceAndSinkManager): Option[TaintAnalysisResult[AndroidDataDependentTaintAnalysis.Node, InterProceduralDataDependenceAnalysis.Edge]] = {
     val apks = iddResult._1
     val components: ISet[Component] = apks.flatMap { apk =>
       (apk.model.getComponents -- problematicComp(apk.nameUri)).map(Component(apk, _))

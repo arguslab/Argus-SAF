@@ -11,20 +11,22 @@
 package org.argus.jawa.alir.pta.reachingFactsAnalysis
 
 import org.argus.jawa.alir.pta.{Instance, PTASlot}
-import org.sireum.util._
+import org.argus.jawa.core.util._
 
 /**
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
  * @author <a href="mailto:sroy@k-state.edu">Sankardas Roy</a>
  */ 
-final case class RFAFact(slot: Int, ins: Int) {
+final case class RFAFact(slot: Int, ins: Int)(implicit factory: RFAFactFactory) {
   def this(s: PTASlot, v: Instance)(implicit factory: RFAFactFactory) = this(factory.getSlotNum(s), factory.getInstanceNum(v))
-  def s(implicit factory: RFAFactFactory): PTASlot = {
+  def s: PTASlot = {
     factory.getSlot(slot)
   }
-  def v(implicit factory: RFAFactFactory): Instance = {
+  def v: Instance = {
     factory.getInstance(ins)
   }
+
+  override def toString: String = (s, v).toString()
 }
 
 class RFAFactFactory {

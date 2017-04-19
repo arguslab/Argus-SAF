@@ -14,7 +14,7 @@ import org.argus.jawa.alir.Context
 import org.argus.jawa.alir.pta._
 import org.argus.jawa.alir.pta.reachingFactsAnalysis.{RFAFact, RFAFactFactory, ReachingFactsAnalysisHelper}
 import org.argus.jawa.core.{JawaClass, JawaMethod, JawaType}
-import org.sireum.util._
+import org.argus.jawa.core.util._
 
 /**
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
@@ -148,27 +148,23 @@ object MapModel {
     result
   }
   
-  def doMapCall(s: PTAResult, p: JawaMethod, args: List[String], retVars: Seq[String], currentContext: Context)(implicit factory: RFAFactFactory): (ISet[RFAFact], ISet[RFAFact], Boolean) = {
+  def doMapCall(s: PTAResult, p: JawaMethod, args: List[String], retVar: String, currentContext: Context)(implicit factory: RFAFactFactory): (ISet[RFAFact], ISet[RFAFact], Boolean) = {
     var newFacts = isetEmpty[RFAFact]
     val delFacts = isetEmpty[RFAFact]
     var byPassFlag = true
     p.getSignature.getSubSignature match{
       case "clear:()V" =>
       case "clone:()Ljava/lang/Object;" =>
-        require(retVars.size == 1)
-        newFacts ++= cloneMap(s, args, retVars.head, currentContext)
+        newFacts ++= cloneMap(s, args, retVar, currentContext)
         byPassFlag = false
       case "entrySet:()Ljava/util/Set;" =>
-        require(retVars.size == 1)
-        newFacts ++= getMapEntrySetFactToRet(s, args, retVars.head, currentContext)
+        newFacts ++= getMapEntrySetFactToRet(s, args, retVar, currentContext)
         byPassFlag = false
       case "get:(Ljava/lang/Object;)Ljava/lang/Object;" =>
-        require(retVars.size == 1)
-        newFacts ++= getMapValue(s, args, retVars.head, currentContext)
+        newFacts ++= getMapValue(s, args, retVar, currentContext)
         byPassFlag = false
       case "keySet:()Ljava/util/Set;" =>
-        require(retVars.size == 1)
-        newFacts ++= getMapKeySetToRet(s, args, retVars.head, currentContext)
+        newFacts ++= getMapKeySetToRet(s, args, retVar, currentContext)
         byPassFlag = false
       case "put:(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;" =>
         newFacts ++= putMapValue(s, args, currentContext)
@@ -177,12 +173,10 @@ object MapModel {
         newFacts ++= putAllMapValues(s, args, currentContext)
         byPassFlag = false
       case "remove:(Ljava/lang/Object;)Ljava/lang/Object;" =>
-        require(retVars.size == 1)
-        newFacts ++= getMapValue(s, args, retVars.head, currentContext)
+        newFacts ++= getMapValue(s, args, retVar, currentContext)
         byPassFlag = false
       case "values:()Ljava/util/Collection;" =>
-        require(retVars.size == 1)
-        newFacts ++= getMapValuesToRet(s, args, retVars.head, currentContext)
+        newFacts ++= getMapValuesToRet(s, args, retVar, currentContext)
         byPassFlag = false
       case _ =>
     }

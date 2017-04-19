@@ -14,17 +14,17 @@ import org.argus.amandroid.alir.pta.reachingFactsAnalysis.AndroidReachingFactsAn
 import org.argus.amandroid.alir.taintAnalysis.AndroidDataDependentTaintAnalysis
 import org.argus.amandroid.core.decompile.ConverterUtil
 import org.argus.jawa.alir.Context
-import org.argus.jawa.alir.dataDependenceAnalysis.InterproceduralDataDependenceAnalysis
+import org.argus.jawa.alir.dataDependenceAnalysis.InterProceduralDataDependenceAnalysis
 import org.argus.jawa.alir.taintAnalysis.TaintAnalysisResult
 import org.argus.jawa.core.{MsgLevel, NoReporter, PrintReporter}
 import org.scalatest.{FlatSpec, Matchers}
-import org.sireum.util.FileUtil
+import org.argus.jawa.core.util.FileUtil
 
 /**
   * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
   */
 class BenchMarkTest extends FlatSpec with Matchers {
-  private final val DEBUG = true
+  private final val DEBUG = false
 
   "ICC_Explicit_NoSrc_NoSink" should "have 0 taint paths" in {
     val res = taintAnalysis(getClass.getResource("/icc-bench/IccHandling/icc_explicit_nosrc_nosink.apk").getPath)
@@ -244,18 +244,18 @@ class BenchMarkTest extends FlatSpec with Matchers {
     assert(res.isDefined && res.get.getTaintedPaths.size == 19)
   }
 
-  private def taintAnalysis(apkFile: String): Option[TaintAnalysisResult[AndroidDataDependentTaintAnalysis.Node, InterproceduralDataDependenceAnalysis.Edge]] = {
+  private def taintAnalysis(apkFile: String): Option[TaintAnalysisResult[AndroidDataDependentTaintAnalysis.Node, InterProceduralDataDependenceAnalysis.Edge]] = {
     taintAnalysis(Set(apkFile))
   }
 
-  private def taintAnalysis(apkFiles: Set[String]): Option[TaintAnalysisResult[AndroidDataDependentTaintAnalysis.Node, InterproceduralDataDependenceAnalysis.Edge]] = {
+  private def taintAnalysis(apkFiles: Set[String]): Option[TaintAnalysisResult[AndroidDataDependentTaintAnalysis.Node, InterProceduralDataDependenceAnalysis.Edge]] = {
     val fileUris = apkFiles.map(FileUtil.toUri)
     val outputUri = FileUtil.toUri(apkFiles.head.substring(0, apkFiles.head.length - 4))
     val reporter = if(DEBUG) new PrintReporter(MsgLevel.INFO) else new NoReporter
     AndroidReachingFactsAnalysisConfig.resolve_static_init = true
     Context.init_context_length(0)
     val res = TaintAnalysisTask(TaintAnalysisModules.DATA_LEAKAGE, fileUris, outputUri, forceDelete = true, reporter).run
-//    ConverterUtil.cleanDir(outputUri)
+    ConverterUtil.cleanDir(outputUri)
     res
   }
 }

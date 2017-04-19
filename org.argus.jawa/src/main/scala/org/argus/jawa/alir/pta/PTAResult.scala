@@ -12,7 +12,7 @@ package org.argus.jawa.alir.pta
 
 import org.argus.jawa.alir.Context
 import org.argus.jawa.core.Signature
-import org.sireum.util._
+import org.argus.jawa.core.util._
 
 object PTAResult {
   type PTSMap = IMap[PTASlot, ISet[Instance]]

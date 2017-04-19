@@ -24,7 +24,7 @@ import org.argus.jawa.alir.pta.suspark.InterproceduralSuperSpark
 import org.argus.jawa.core.util.IgnoreException
 import org.argus.jawa.core.{FileReporter, MsgLevel, NoReporter}
 import org.argus.saf.cli.util.CliLogger
-import org.sireum.util._
+import org.argus.jawa.core.util._
 
 /**
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>

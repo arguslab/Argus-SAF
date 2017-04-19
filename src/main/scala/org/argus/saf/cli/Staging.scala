@@ -21,7 +21,7 @@ import org.argus.saf.cli.util.CliLogger
 import org.argus.amandroid.concurrent.{AmandroidSupervisorActor, AnalysisSpec, PointsToAnalysisResult}
 import org.argus.amandroid.core.util.ApkFileUtil
 import org.argus.amandroid.core.{AndroidGlobalConfig, ApkGlobal}
-import org.sireum.util._
+import org.argus.jawa.core.util._
 
 import scala.concurrent.ExecutionContext.Implicits._
 import scala.concurrent.{Await, Future}

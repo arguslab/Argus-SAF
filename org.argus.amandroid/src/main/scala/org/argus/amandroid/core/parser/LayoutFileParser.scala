@@ -11,7 +11,7 @@ package org.argus.amandroid.core.parser
 
 import java.io.InputStream
 
-import org.sireum.util._
+import org.argus.jawa.core.util._
 import java.io.IOException
 import javax.xml.parsers.ParserConfigurationException
 
@@ -93,8 +93,7 @@ class LayoutFileParser(apk: ApkGlobal, packageName: String, arsc: ARSCFileParser
       return false
     // To make sure that nothing all wonky is going on here, we
     // check the hierarchy to find the android view class
-    apk.getClassHierarchy.getAllSuperClassesOf(theClass.get.getType).foreach{
-      su =>
+    apk.getClassHierarchy.getAllSuperClassesOf(theClass.get.getType).foreach{ su =>
       if(su.name.equals("android.view.View") || su.name.equals("android.webkit.WebView"))
         return true
     }

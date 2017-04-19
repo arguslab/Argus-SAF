@@ -14,6 +14,8 @@ import org.argus.jawa.compiler.lexer.Tokens._
 import org.argus.jawa.core.DefaultReporter
 import org.scalatest.{FlatSpec, Matchers}
 
+import scala.language.implicitConversions
+
 /**
  * Test full tokeniser.
  */

@@ -12,8 +12,6 @@ package org.argus.jawa.core.util
 
 import java.util.regex.Pattern
 
-import org.sireum.util._
-
 /**
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
  * @author <a href="mailto:sroy@k-state.edu">Sankardas Roy</a>

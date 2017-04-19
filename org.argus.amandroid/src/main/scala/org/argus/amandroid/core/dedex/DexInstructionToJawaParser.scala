@@ -20,10 +20,10 @@ import org.jf.dexlib2.dexbacked.instruction._
 import org.jf.dexlib2.dexbacked.reference.{DexBackedFieldReference, DexBackedMethodReference}
 import org.jf.dexlib2.iface.instruction.{FiveRegisterInstruction, NarrowLiteralInstruction, RegisterRangeInstruction, WideLiteralInstruction}
 import org.jf.util.{NibbleUtils, NumberUtils}
-import org.sireum.util._
+import org.argus.jawa.core.util._
 import org.stringtemplate.v4.STGroupString
 
-import collection.JavaConversions._
+import collection.JavaConverters._
 import scala.language.postfixOps
 
 /**
@@ -51,7 +51,7 @@ case class DexInstructionToJawaParser(
   private def getSignature(ref: DexBackedMethodReference): Signature = {
     val classPart: String = ref.getDefiningClass
     val methodNamePart: String = ref.getName
-    val paramSigPart: String = "(" + ref.getParameterTypes.mkString("") + ")" + ref.getReturnType
+    val paramSigPart: String = "(" + ref.getParameterTypes.asScala.mkString("") + ")" + ref.getReturnType
     val sig = new Signature(classPart + "." + methodNamePart + ":" + paramSigPart)
     sig.signature.resolveProcedure
   }
@@ -284,7 +284,7 @@ case class DexInstructionToJawaParser(
           moveResultObject(i11x.getRegisterA.toVar, "temp")
         case Opcode.MOVE_EXCEPTION => // 13
           val i11x = inst.asInstanceOf[DexBackedInstruction11x]
-          moveExc(i11x.getRegisterA.toVar, generator.generateType(exceptionTypeMap.getOrDefault(instrBase, new JawaType("java.lang.Exception")), template).render())
+          moveExc(i11x.getRegisterA.toVar, generator.generateType(exceptionTypeMap.getOrElse(instrBase, new JawaType("java.lang.Exception")), template).render())
         case Opcode.RETURN_VOID => // 14
           returnVoid
         case Opcode.RETURN => // 15
@@ -1182,7 +1182,7 @@ case class DexInstructionToJawaParser(
             case Some((base, default, v)) =>
               val code: StringBuilder = new StringBuilder
               code.append("switch %s\n".format(v))
-              for(elem <- payload.getSwitchElements) {
+              payload.getSwitchElements.forEach { elem =>
                 code.append("                | %d => goto L%06x\n".format(elem.getKey, calculateTarget(base, elem.getOffset)))
               }
               code.append("                | else => goto L%06x;".format(default))
@@ -1195,7 +1195,7 @@ case class DexInstructionToJawaParser(
             case Some((base, default, v)) =>
               val code: StringBuilder = new StringBuilder
               code.append("switch %s\n".format(v))
-              for(elem <- payload.getSwitchElements) {
+              payload.getSwitchElements.forEach { elem =>
                 code.append("                | %d => goto L%06x\n".format(elem.getKey, calculateTarget(base, elem.getOffset)))
               }
               code.append("                | else => goto L%06x;".format(default))
@@ -1207,7 +1207,7 @@ case class DexInstructionToJawaParser(
           val elementWidth = payload.getElementWidth
           fillArrayMapping.get(instrBase) match {
             case Some((target, v)) =>
-              val elems = if(elementWidth == 8) payload.getArrayElements.map(_.longValue() + "L") else payload.getArrayElements.map(_.intValue() + "I")
+              val elems = if(elementWidth == 8) payload.getArrayElements.asScala.map(_.longValue() + "L") else payload.getArrayElements.asScala.map(_.intValue() + "I")
               val code: StringBuilder = new StringBuilder
               code.append("%s:= (%s) @kind object;\n".format(v, elems.mkString(", ")))
               code.append("#L%06x.  goto L%06x;".format(calculateTarget(instrBase, payload.getCodeUnits) - 1, target))

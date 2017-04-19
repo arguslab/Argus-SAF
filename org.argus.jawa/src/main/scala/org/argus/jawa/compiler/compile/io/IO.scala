@@ -41,9 +41,9 @@ object IO
   private[this] val FileScheme = "file"
 
   /** The newline string for this system, as obtained by the line.separator system property. */
-  val Newline = System.getProperty("line.separator")
+  val Newline: String = System.getProperty("line.separator")
 
-  val utf8 = Charset.forName("UTF-8")
+  val utf8: Charset = Charset.forName("UTF-8")
 
   /** Returns a URL for the directory or jar containing the the class file `cl`.
   * If the location cannot be determined, an error is generated.
@@ -222,7 +222,7 @@ object IO
           {
             set += target
             translate("Error extracting zip entry '" + name + "' to '" + target + "': ") {
-              fileOutputStream(false)(target) { out => transfer(from, out) }
+              fileOutputStream()(target) { out => transfer(from, out) }
             }
           }
           if(preserveLastModified)
@@ -241,7 +241,7 @@ object IO
   }
 
   /** Retrieves the content of the given URL and writes it to the given JavaFile. */
-  def download(url: URL, to: JavaFile) =
+  def download(url: URL, to: JavaFile): Unit =
     Using.urlInputStream(url) { inputStream =>
       transfer(inputStream, to)
     }
@@ -304,7 +304,7 @@ object IO
         val f = new JavaFile(baseDirectory, randomName)
 
         try { createDirectory(f); f }
-        catch { case e: Exception => create(tries + 1) }
+        catch { case _: Exception => create(tries + 1) }
       }
     }
     create(0)
@@ -457,20 +457,15 @@ object IO
 
   // produce a sorted list of all the subdirectories of all provided files
   private def allDirectoryPaths(files: Iterable[(JavaFile,String)]) =
-    TreeSet[String]() ++ (files flatMap { case (file, name) => directoryPaths(name) })
+    TreeSet[String]() ++ (files flatMap { case (_, name) => directoryPaths(name) })
 
-//  private def normalizeDirName(name: String) =
-//  {
-//    val norm1 = normalizeName(name)
-//    if(norm1.endsWith("/")) norm1 else norm1 + "/"
-//  }
   private def normalizeName(name: String) = {
     val sep = JavaFile.separatorChar
     if(sep == '/') name else name.replace(sep, '/')
   }
 
   private def withZipOutput(file: JavaFile, manifest: Option[Manifest])(f: ZipOutputStream => Unit) {
-    fileOutputStream(false)(file) { fileOut =>
+    fileOutputStream()(file) { fileOut =>
       val (zipOut, _) =
         manifest match
         {
@@ -579,14 +574,14 @@ object IO
       copyLastModified(sourceFile, targetFile)
   }
   /** Transfers the last modified time of `sourceFile` to `targetFile`. */
-  def copyLastModified(sourceFile: JavaFile, targetFile: JavaFile) = {
+  def copyLastModified(sourceFile: JavaFile, targetFile: JavaFile): Boolean = {
     val last = sourceFile.lastModified
     // lastModified can return a negative number, but setLastModified doesn't accept it
     // see Java bug #6791812
     targetFile.setLastModified( math.max(last, 0L) )
   }
   /** The default Charset used when not specified: UTF-8. */
-  def defaultCharset = utf8
+  def defaultCharset: Charset = utf8
 
   /** Writes `content` to `file` using `charset` or UTF-8 if `charset` is not explicitly specified.
   * If `append` is `false`, the existing contents of `file` are overwritten.
@@ -693,7 +688,7 @@ object IO
   
   /** Writes `properties` to the JavaFile `to`, using `label` as the comment on the first line.
   * If any parent directories of `to` do not exist, they are first created. */
-  def write(properties: Properties, label: String, to: JavaFile) =
+  def write(properties: Properties, label: String, to: JavaFile): Unit =
     fileOutputStream()(to) { output => properties.store(output, label) }
 
   /** Reads the properties in `from` into `properties`.  If `from` does not exist, `properties` is left unchanged.*/
@@ -705,7 +700,7 @@ object IO
   private val PathSeparatorPattern = java.util.regex.Pattern.compile(JavaFile.pathSeparator)
 
   /** Splits a String around the platform's path separator characters. */
-  def pathSplit(s: String) = PathSeparatorPattern.split(s)
+  def pathSplit(s: String): Array[String] = PathSeparatorPattern.split(s)
 
   /** Move the provided files to a temporary location.
   *   If 'f' returns normally, delete the files.
@@ -717,7 +712,7 @@ object IO
 
       try { f } catch { case e: Exception =>
         try { move(stashed.map(_.swap)); throw e }
-        catch { case NonFatal(exc) => throw e }
+        catch { case NonFatal(_) => throw e }
       }
     }
 
@@ -799,8 +794,8 @@ object IO
     assertAbsolute(fabs)
     fabs
   }
-  def assertAbsolute(f: JavaFile) = assert(f.isAbsolute, "Not absolute: " + f)
-  def assertAbsolute(uri: URI) = assert(uri.isAbsolute, "Not absolute: " + uri)
+  def assertAbsolute(f: JavaFile): Unit = assert(f.isAbsolute, "Not absolute: " + f)
+  def assertAbsolute(uri: URI): Unit = assert(uri.isAbsolute, "Not absolute: " + uri)
 
   /** Parses a classpath String into JavaFile entries according to the current platform's path separator.*/
   def parseClasspath(s: String): Seq[JavaFile] = IO.pathSplit(s).map(new JavaFile(_)).toSeq

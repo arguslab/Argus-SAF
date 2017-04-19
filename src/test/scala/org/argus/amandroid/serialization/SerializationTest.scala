@@ -16,12 +16,11 @@ import org.argus.amandroid.alir.componentSummary.ApkYard
 import org.argus.amandroid.core.decompile.{ConverterUtil, DecompileLayout, DecompilerSettings}
 import org.argus.amandroid.core.model.ApkModel
 import org.argus.jawa.core.DefaultReporter
-import org.argus.jawa.core.util.MyFileUtil
 import org.json4s.NoTypeHints
 import org.json4s.native.Serialization
 import org.json4s.native.Serialization.{read, write}
 import org.scalatest.{FlatSpec, Matchers}
-import org.sireum.util.FileUtil
+import org.argus.jawa.core.util.FileUtil
 
 /**
   * Created by fgwei on 3/23/17.
@@ -38,7 +37,7 @@ class SerializationTest extends FlatSpec with Matchers {
     val apk = yard.loadApk(apkUri, settings)
     val model = apk.model
     implicit val formats = Serialization.formats(NoTypeHints) + ApkModelSerializer
-    val apkRes = FileUtil.toFile(MyFileUtil.appendFileName(outputUri, "apk.json"))
+    val apkRes = FileUtil.toFile(FileUtil.appendFileName(outputUri, "apk.json"))
     val oapk = new FileWriter(apkRes)
     try {
       write(model, oapk)

@@ -10,7 +10,7 @@
 
 package org.argus.jawa.core
 
-import org.sireum.util._
+import org.argus.jawa.core.util._
 import org.argus.jawa.core.backend.JavaPlatform
 import org.argus.jawa.core.classpath._
 import org.argus.jawa.core.io._
@@ -125,34 +125,14 @@ trait JawaClasspathManager extends JavaKnowledge { self: Global =>
     cachedClassRepresentation.get(typ).isDefined
   }
   
-  /**
-   * get procedure's containing record's code
-   */
-  def getMethodCode(sig: Signature): Option[String] = {
-    val typ = sig.getClassType
-    this.applicationClassCodes.get(typ) match {
-      case Some(asrc) =>
-        val recordCode = getClassCode(asrc.file, ResolveLevel.BODY)
-        LightWeightPilarParser.getCode(recordCode, sig.signature)
-      case None =>
-        this.userLibraryClassCodes.get(typ) match {
-          case Some(usrc) =>
-            val recordCode = getClassCode(usrc.file, ResolveLevel.BODY)
-            LightWeightPilarParser.getCode(recordCode, sig.signature)
-          case None =>
-            None
-        }
-    }
-  }
-  
   def getMyClass(typ: JawaType): Option[MyClass] = {
     this.applicationClassCodes.get(typ) match {
       case Some(asrc) =>
-        SourcefileParser.parse(asrc, ResolveLevel.HIERARCHY, reporter).get(typ)
+        SourcefileParser.parse(asrc, reporter).get(typ)
       case None =>
         this.userLibraryClassCodes.get(typ) match {
           case Some(usrc) =>
-            SourcefileParser.parse(usrc, ResolveLevel.HIERARCHY, reporter).get(typ)
+            SourcefileParser.parse(usrc, reporter).get(typ)
           case None =>
             cachedClassRepresentation.get(typ) match {
               case Some(cs) =>

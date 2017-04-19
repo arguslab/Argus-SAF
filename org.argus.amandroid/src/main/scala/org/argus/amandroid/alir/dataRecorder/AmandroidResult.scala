@@ -10,7 +10,7 @@
 
 package org.argus.amandroid.alir.dataRecorder
 
-import org.argus.jawa.alir.dataDependenceAnalysis.InterproceduralDataDependenceInfo
+import org.argus.jawa.alir.dataDependenceAnalysis.InterProceduralDataDependenceInfo
 import org.argus.jawa.alir.dataFlowAnalysis.InterproceduralDataFlowGraph
 
 
@@ -18,4 +18,4 @@ import org.argus.jawa.alir.dataFlowAnalysis.InterproceduralDataFlowGraph
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
  * @author <a href="mailto:sroy@k-state.edu">Sankardas Roy</a>
  */ 
-case class AmandroidResult(idfg: InterproceduralDataFlowGraph, ddg: InterproceduralDataDependenceInfo)
+case class AmandroidResult(idfg: InterproceduralDataFlowGraph, ddg: InterProceduralDataDependenceInfo)

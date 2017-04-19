@@ -14,10 +14,9 @@ import org.argus.amandroid.core.parser.LayoutControl
 import org.argus.amandroid.core.pilarCodeGenerator.AndroidEntryPointConstants
 import org.argus.jawa.alir.reachability.ReachabilityAnalysis
 import org.argus.jawa.alir.util.ExplicitValueFinder
-import org.argus.jawa.core.util.ASTUtil
+import org.argus.jawa.compiler.parser.CallStatement
 import org.argus.jawa.core._
-import org.sireum.util._
-import org.sireum.pilar.ast._
+import org.argus.jawa.core.util._
 
 
 /**
@@ -81,7 +80,7 @@ class ReachableInfoCollector(val global: Global, entryPointTypes: ISet[JawaType]
         if(lc.isSensitive){
           reachableMap.foreach{
             case (r, ps) =>
-              if(ps.exists(p => global.getMethodCode(p).getOrElse("").contains(i.toString)))
+              if(ps.exists(p => global.getMethodOrResolve(p).exists(_.retrieveCode.contains(i.toString))))
                 result += r
           }
         }
@@ -93,7 +92,7 @@ class ReachableInfoCollector(val global: Global, entryPointTypes: ISet[JawaType]
     val result: MSet[JawaType] = msetEmpty
       reachableMap.foreach{
         case (r, ps) =>
-          if(ps.exists(p => global.getMethodCode(p).getOrElse("").contains(apiSig)))
+          if(ps.exists(p => global.getMethodOrResolve(p).exists(_.retrieveCode.contains(apiSig))))
             result += r
       }
     result.toSet
@@ -103,7 +102,7 @@ class ReachableInfoCollector(val global: Global, entryPointTypes: ISet[JawaType]
     val result: MSet[JawaType] = msetEmpty
     reachableMap.foreach{
       case (r, ps) =>
-        if(ps.exists(p => global.getMethodCode(p).getOrElse("").contains(str)))
+        if(ps.exists(p => global.getMethodOrResolve(p).exists(_.retrieveCode.contains(str))))
           result += r
     }
     result.toSet
@@ -144,19 +143,17 @@ class ReachableInfoCollector(val global: Global, entryPointTypes: ISet[JawaType]
       procedure =>
         if(procedure.isConcrete){
           try {
-            procedure.getBody.locations foreach {
-              case j: JumpLocation =>
-                j.jump match {
-                  case t: CallJump if t.jump.isEmpty =>
-                    val sig = ASTUtil.getSignature(t).get
-                    if (sig.getSubSignature == AndroidConstants.SETCONTENTVIEW) {
-                      val nums = ExplicitValueFinder.findExplicitIntValueForArgs(procedure, j, 1)
-                      val declType = sig.getClassType
-                      this.layoutClasses.getOrElseUpdate(declType, msetEmpty) ++= nums
-                    }
-                  case _ =>
-                }
-              case _ =>
+            procedure.getBody.resolvedBody.locations foreach { l =>
+              l.statement match {
+                case j: CallStatement =>
+                  val sig = j.signature
+                  if (sig.getSubSignature == AndroidConstants.SETCONTENTVIEW) {
+                    val nums = ExplicitValueFinder.findExplicitIntValueForArgs(procedure, j, l, 1)
+                    val declType = sig.getClassType
+                    this.layoutClasses.getOrElseUpdate(declType, msetEmpty) ++= nums
+                  }
+                case _ =>
+              }
             }
           } catch {
             case e: Throwable =>
@@ -164,7 +161,6 @@ class ReachableInfoCollector(val global: Global, entryPointTypes: ISet[JawaType]
           }
         }
     }
-
   }
 
   /**
@@ -377,20 +373,6 @@ class ReachableInfoCollector(val global: Global, entryPointTypes: ISet[JawaType]
     if(ar.getInterfaceSize == 0) Set()
     else ar.getInterfaces ++ ar.getInterfaces.map{i => collectAllInterfaces(global.getClassOrResolve(i))}.reduce((s1, s2) => s1 ++ s2)
   }
-
-//  private def getMethodsFromHierarchyByShortName(r :JawaClass, procShortName: String): Set[JawaMethod] = {
-//    val tmp =
-//      if(r.declaresMethodByName(procShortName)) r.getDeclaredMethodsByName(procShortName)
-//      else if(r.hasSuperClass) getMethodsFromHierarchyByShortName(r.getSuperClass.get, procShortName)
-//      else throw new RuntimeException("Could not find procedure: " + procShortName)
-//    tmp.filter(!_.isStatic)
-//  }
-//
-//  private def getMethodFromHierarchyByName(r :JawaClass, procName: String): JawaMethod = {
-//    if(r.declaresMethodByName(procName)) r.getDeclaredMethodByName(procName).get
-//    else if(r.hasSuperClass) getMethodFromHierarchyByName(r.getSuperClass.get, procName)
-//    else throw new RuntimeException("Could not find procedure: " + procName)
-//  }
 
   private def getMethodFromHierarchy(r :JawaClass, subSig: String): JawaMethod = {
     if(r.declaresMethod(subSig)) r.getMethod(subSig).get

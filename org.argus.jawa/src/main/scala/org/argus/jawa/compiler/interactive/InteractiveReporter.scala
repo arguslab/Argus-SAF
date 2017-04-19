@@ -12,7 +12,7 @@ package org.argus.jawa.compiler.interactive
 
 import org.argus.jawa.core.{Problem, ReporterImpl}
 import org.argus.jawa.core.io.Position
-import org.sireum.util._
+import org.argus.jawa.core.util._
 
 abstract class InteractiveReporter extends ReporterImpl {
 

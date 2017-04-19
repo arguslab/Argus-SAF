@@ -15,18 +15,16 @@ import java.util
 import org.argus.amandroid.alir.pta.reachingFactsAnalysis.IntentHelper
 import org.argus.amandroid.alir.pta.reachingFactsAnalysis.model.InterComponentCommunicationModel
 import org.argus.amandroid.core.{AndroidConstants, ApkGlobal}
-import org.sireum.util._
+import org.argus.jawa.core.util._
 import org.stringtemplate.v4.STGroupString
 import org.argus.amandroid.core.parser.{ComponentType, IntentFilter, UriData}
-import org.argus.jawa.alir.Context
+import org.argus.jawa.alir.{AlirEdge, Context, InterProceduralNode}
 import org.argus.jawa.alir.controlFlowGraph.ICFGCallNode
 import org.argus.jawa.alir.dataFlowAnalysis.InterproceduralDataFlowGraph
-import org.argus.jawa.alir.interprocedural.InterproceduralNode
 import org.argus.jawa.alir.pta.VarSlot
 import org.argus.jawa.alir.taintAnalysis.TaintAnalysisResult
+import org.argus.jawa.compiler.parser.CallStatement
 import org.argus.jawa.core.Signature
-import org.sireum.pilar.ast._
-import org.sireum.alir.AlirEdge
 
 /**
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
@@ -105,7 +103,7 @@ object DataCollector {
       name: String, 
       uses_permissions: ISet[String],
       components: ISet[ComponentData],
-      taintResultOpt: Option[TaintAnalysisResult[InterproceduralNode, AlirEdge[InterproceduralNode]]]){
+      taintResultOpt: Option[TaintAnalysisResult[InterProceduralNode, AlirEdge[InterProceduralNode]]]){
     override def toString: String = {
       val appData = template.getInstanceOf("AppData")
       appData.add("name", name)
@@ -301,8 +299,8 @@ object DataCollector {
       compData.add("exported", exported)
       compData.add("dynamicReg", dynamicReg)
       val permissions = new util.ArrayList[String]
-      import collection.JavaConversions._
-      permissions ++= protectPermission
+      import collection.JavaConverters._
+      permissions.asScala ++= protectPermission
       compData.add("protectPermission", permissions)
       compData.add("intentFilters", getIntentFilterStrings(intentFilters))
       val iccInfoStrings = new util.ArrayList[String]
@@ -338,15 +336,8 @@ object DataCollector {
               iccNodes.map{
                 iccNode =>
                   val iccMethod = apk.getMethod(iccNode.getOwner).get
-                  val args = iccMethod.getBody.location(iccNode.getLocIndex).asInstanceOf[JumpLocation].jump.asInstanceOf[CallJump].callExp.arg match{
-                    case te: TupleExp =>
-                      te.exps.map {
-                        case ne: NameExp => ne.name.name
-                        case exp => exp.toString
-                      }.toList
-                    case a => throw new RuntimeException("wrong exp type: " + a)
-                  }
-                  val intentSlot = VarSlot(args(1), isBase = false, isArg = true)
+                  val args = iccMethod.getBody.resolvedBody.locations(iccNode.locIndex).statement.asInstanceOf[CallStatement].args
+                  val intentSlot = VarSlot(args.head, isBase = false, isArg = true)
                   val intentValues = ptaresult.pointsToSet(intentSlot, iccNode.context)
                   val intentcontents = IntentHelper.getIntentContents(ptaresult, intentValues, iccNode.getContext)
                   val compType = AndroidConstants.getIccCallType(iccNode.getCalleeSet.head.callee.getSubSignature)
@@ -359,7 +350,7 @@ object DataCollector {
       val dynamicReg = apk.model.getDynamicRegisteredReceivers.contains(compTyp)
       ComponentData(compTyp.jawaName, typ, exported, dynamicReg, protectPermission, intentFilters, iccInfos)
     }
-    val taintResult: Option[TaintAnalysisResult[InterproceduralNode, AlirEdge[InterproceduralNode]]] = apk.getTaintAnalysisResult[InterproceduralNode, AlirEdge[InterproceduralNode]](apk.nameUri) match {
+    val taintResult: Option[TaintAnalysisResult[InterProceduralNode, AlirEdge[InterProceduralNode]]] = apk.getTaintAnalysisResult[InterProceduralNode, AlirEdge[InterProceduralNode]](apk.nameUri) match {
       case a @ Some(_) => a
       case None => None
     }

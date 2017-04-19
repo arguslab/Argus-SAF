@@ -16,7 +16,7 @@ import org.argus.jawa.alir.pta.PTAResult.PTSMap
 import org.argus.jawa.core.Signature
 import org.json4s._
 import org.json4s.JsonDSL._
-import org.sireum.util._
+import org.argus.jawa.core.util._
 
 object PTAResultSerializer extends CustomSerializer[PTAResult](format => (
     {

@@ -9,7 +9,7 @@
  */
 package org.argus.amandroid.core.util
 
-import org.sireum.util.FileUtil
+import org.argus.jawa.core.util.FileUtil
 
 /**
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>

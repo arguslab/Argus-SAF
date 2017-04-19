@@ -11,7 +11,7 @@
 package org.argus.jawa.core.pilarCodeGenerator
 
 import org.argus.jawa.core.JawaType
-import org.sireum.util._
+import org.argus.jawa.core.util._
 
 /**
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>

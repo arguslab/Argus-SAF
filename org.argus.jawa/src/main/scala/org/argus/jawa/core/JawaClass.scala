@@ -10,7 +10,7 @@
 
 package org.argus.jawa.core
 
-import org.sireum.util._
+import org.argus.jawa.core.util._
 
 /**
  * This class is an jawa class representation of a jawa record. A JawaClass corresponds to a class or an interface of the source code. They are usually created by jawa Resolver.
@@ -22,7 +22,7 @@ import org.sireum.util._
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
  * @author <a href="mailto:sroy@k-state.edu">Sankardas Roy</a>
  */
-case class JawaClass(global: Global, typ: JawaType, accessFlags: Int) extends JawaElement with JavaKnowledge with ResolveLevel {
+case class JawaClass(global: Global, typ: JawaType, accessFlags: Int) extends JawaElement with JavaKnowledge {
   
   final val TITLE = "JawaClass"
   
@@ -50,11 +50,6 @@ case class JawaClass(global: Global, typ: JawaType, accessFlags: Int) extends Ja
    * package name of this class: java.lang
    */
   def getPackage: Option[JawaPackage] = getType.getPackage
-  
-  /**
-   * is this class loaded or not
-   */
-  def isLoaded: Boolean = resolvingLevel <= ResolveLevel.NOT_LOADED
   
   /**
    * set of fields which declared in this class. map from field name to JawaField
@@ -495,20 +490,6 @@ case class JawaClass(global: Global, typ: JawaType, accessFlags: Int) extends Ja
     packageName.startsWith("org.xml.")
   }
 
-  /**
-   * set resolving level. Don't set by yourself.
-   */
-  def setResolvingLevel(level: ResolveLevel.Value): Unit = {
-    this.resolvingLevel = level
-  }
-  
-  /**
-   * update resolving level for current class
-   */
-  def updateResolvingLevel(): Unit = {
-    setResolvingLevel(getDeclaredMethods.map(_.getResolvingLevel).reduceLeft((x, y) => if(x < y) x else y))
-  }
-
   def printDetail(): Unit = {
     println("++++++++++++++++JawaClass++++++++++++++++")
     println("recName: " + getName)
@@ -519,7 +500,6 @@ case class JawaClass(global: Global, typ: JawaType, accessFlags: Int) extends Ja
     println("outerClass: " + getOuterClass)
     println("interfaces: " + getInterfaces)
     println("accessFlags: " + getAccessFlagsStr)
-    println("isLoaded: " + isLoaded)
     println("fields: " + getDeclaredFields)
     println("methods: " + getDeclaredMethods)
     println("++++++++++++++++++++++++++++++++")

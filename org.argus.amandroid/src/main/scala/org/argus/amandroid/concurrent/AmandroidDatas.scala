@@ -13,7 +13,7 @@ package org.argus.amandroid.concurrent
 import org.argus.amandroid.core.model.ApkModel
 import org.argus.jawa.alir.pta.PTAResult
 import org.argus.jawa.core.Signature
-import org.sireum.util._
+import org.argus.jawa.core.util._
 
 import scala.concurrent.duration.Duration
 

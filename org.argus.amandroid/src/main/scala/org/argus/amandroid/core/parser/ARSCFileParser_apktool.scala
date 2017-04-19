@@ -9,14 +9,14 @@
  */
 package org.argus.amandroid.core.parser
 
-import org.sireum.util.FileResourceUri
+import org.argus.jawa.core.util.FileResourceUri
 import brut.androlib.res.decoder.ARSCDecoder
 import brut.androlib.res.decoder.ARSCDecoder.ARSCData
 import brut.androlib.res.data.ResID
 import brut.androlib.res.data.ResResSpec
 import brut.androlib.res.data.ResPackage
 import java.util.regex.Pattern
-import org.sireum.util._
+import org.argus.jawa.core.util._
 import java.util.zip.ZipFile
 
 class ARSCFileParser_apktool {

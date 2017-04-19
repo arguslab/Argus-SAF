@@ -9,7 +9,7 @@
  */
 package org.argus.amandroid.core
 
-import org.sireum.util.IList
+import org.argus.jawa.core.util.IList
 
 /**
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>

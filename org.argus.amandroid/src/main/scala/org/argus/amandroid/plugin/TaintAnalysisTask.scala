@@ -21,11 +21,11 @@ import org.argus.amandroid.plugin.communication.CommunicationSourceAndSinkManage
 import org.argus.amandroid.plugin.dataInjection.IntentInjectionSourceAndSinkManager
 import org.argus.amandroid.plugin.oauth.OAuthSourceAndSinkManager
 import org.argus.amandroid.plugin.password.PasswordSourceAndSinkManager
-import org.argus.jawa.alir.dataDependenceAnalysis.InterproceduralDataDependenceAnalysis
+import org.argus.jawa.alir.dataDependenceAnalysis.InterProceduralDataDependenceAnalysis
 import org.argus.jawa.alir.taintAnalysis.TaintAnalysisResult
 import org.argus.jawa.core.Reporter
-import org.argus.jawa.core.util.MyFileUtil
-import org.sireum.util._
+import org.argus.jawa.core.util.FileUtil
+import org.argus.jawa.core.util._
 
 import scala.concurrent.duration._
 import scala.language.postfixOps
@@ -37,7 +37,7 @@ object TaintAnalysisModules extends Enumeration {
 case class TaintAnalysisTask(module: TaintAnalysisModules.Value, fileUris: ISet[FileResourceUri], outputUri: FileResourceUri, forceDelete: Boolean, reporter: Reporter) {
   import TaintAnalysisModules._
 //  private final val TITLE = "TaintAnalysisTask"
-  def run: Option[TaintAnalysisResult[AndroidDataDependentTaintAnalysis.Node, InterproceduralDataDependenceAnalysis.Edge]] = {
+  def run: Option[TaintAnalysisResult[AndroidDataDependentTaintAnalysis.Node, InterProceduralDataDependenceAnalysis.Edge]] = {
     val yard = new ApkYard(reporter)
     val layout = DecompileLayout(outputUri)
     val settings = DecompilerSettings(debugMode = false, removeSupportGen = true, forceDelete = forceDelete, layout)
@@ -61,10 +61,10 @@ case class TaintAnalysisTask(module: TaintAnalysisModules.Value, fileUris: ISet[
     val tar = cba.phase3(iddResult, ssm)
     apks.foreach { apk =>
       val appData = DataCollector.collect(apk)
-      val outputDirUri = MyFileUtil.appendFileName(apk.model.outApkUri, "result")
+      val outputDirUri = FileUtil.appendFileName(apk.model.outApkUri, "result")
       val outputDir = FileUtil.toFile(outputDirUri)
       if (!outputDir.exists()) outputDir.mkdirs()
-      val out = new PrintWriter(FileUtil.toFile(MyFileUtil.appendFileName(outputDirUri, "AppData.txt")))
+      val out = new PrintWriter(FileUtil.toFile(FileUtil.appendFileName(outputDirUri, "AppData.txt")))
       out.print(appData.toString)
       out.close()
     }

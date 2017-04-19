@@ -14,7 +14,7 @@ import org.argus.amandroid.core.parser.{Authority, Data, IntentFilter, IntentFil
 import org.argus.jawa.core.JawaType
 import org.json4s._
 import org.json4s.JsonDSL._
-import org.sireum.util._
+import org.argus.jawa.core.util._
 
 object IntentFilterDataBaseSerializer extends CustomSerializer[IntentFilterDataBase](format => (
     {

@@ -10,8 +10,8 @@
 
 package org.argus.jawa.alir.pta.suspark
 
-import org.sireum.util._
-import org.argus.jawa.alir.{Context, JawaAlirInfoProvider}
+import org.argus.jawa.core.util._
+import org.argus.jawa.alir._
 import org.argus.jawa.alir.interprocedural._
 import org.argus.jawa.alir.pta._
 import org.argus.jawa.core._
@@ -92,10 +92,12 @@ class PointsToMap extends PTAResult {
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
  */
 class PointerAssignmentGraph[Node <: PtaNode]
-  extends InterproceduralGraph[Node]
-  with PAGConstraint{
+    extends AlirGraphImpl[Node]
+    with AlirSuccPredAccesses[Node]
+    with AlirEdgeAccesses[Node]
+    with PAGConstraint{
   self=>
-//  private final val TITLE = "PointerAssignmentGraph"
+
   val pointsToMap = new PointsToMap
   
   private val processed: MMap[(Signature, Context), Point with Method] = new mutable.HashMap[(Signature, Context), Point with Method]
@@ -227,7 +229,7 @@ class PointerAssignmentGraph[Node <: PtaNode]
     val pSig = ap.getSignature
     val context = callerContext.copy
     p match {
-      case lp: Point with Loc => context.setContext(pSig, lp.loc)
+      case lp: Point with Loc => context.setContext(pSig, lp.locUri)
       case _ => context.setContext(pSig, p.ownerSig.signature)
     }
     
@@ -358,7 +360,7 @@ class PointerAssignmentGraph[Node <: PtaNode]
           case(src, dsts) =>
             val s = context.copy
             src match {
-              case lp: Point with Loc => s.setContext(pSig, lp.loc)
+              case lp: Point with Loc => s.setContext(pSig, lp.locUri)
               case _ => s.setContext(pSig, src.ownerSig.signature)
             }
             val srcNode = getNode(src, s)
@@ -366,7 +368,7 @@ class PointerAssignmentGraph[Node <: PtaNode]
               dst => 
                 val t = context.copy
                 dst match {
-                  case lp: Point with Loc => t.setContext(pSig, lp.loc)
+                  case lp: Point with Loc => t.setContext(pSig, lp.locUri)
                   case _ => t.setContext(pSig, dst.ownerSig.signature)
                 }
                 val targetNode = getNode(dst, t)
@@ -575,7 +577,7 @@ class PointerAssignmentGraph[Node <: PtaNode]
   }
 }
 
-final case class PtaNode(point: Point, context: Context) extends InterproceduralNode(context) {
+final case class PtaNode(point: Point, context: Context) extends InterProceduralNode(context) {
   def getSlots(ptaResult: PTAResult): ISet[PTASlot] = {
     point match {
       case po: PointO =>

@@ -10,53 +10,131 @@
 
 package org.argus.jawa.alir.controlFlowGraph
 
-import org.sireum.alir._
-import org.sireum.pilar.ast._
-import org.sireum.pilar.symbol._
-import org.sireum.util._
-import org.sireum.alir.{ControlFlowGraph => OrigControlFlowGraph}
+import org.argus.jawa.alir._
+import org.argus.jawa.compiler.parser._
+import org.argus.jawa.core.util._
+import org.jgrapht.ext.VertexNameProvider
+
+trait ControlFlowGraph[N <: AlirNode]
+    extends AlirGraphImpl[N]
+    with AlirSuccPredAccesses[N]
+    with AlirEdgeAccesses[N] {
+
+  def entryNode: N
+  def exitNode: N
+  def reverse: ControlFlowGraph[N]
+}
+
+abstract class IntraProceduralControlFlowGraph[N <: CFGNode]
+    extends ControlFlowGraph[N] {
+
+  def getNode(locUri: ResourceUri, locIndex: Int): N =
+    pool(newNode(locUri, locIndex))
+
+  def getNode(l: Location): N =
+    getNode(l.locationUri, l.locationIndex)
+
+  def getVirtualNode(vlabel: String): N =
+    pool(newVirtualNode(vlabel))
+
+  protected def newNode(locUri: ResourceUri, locIndex: Int): CFGLocationNode =
+    CFGLocationNode(locUri, locIndex)
+
+  protected def newVirtualNode(vlabel: String) =
+    CFGVirtualNode(vlabel)
+
+  def addNode(locUri: ResourceUri, locIndex: Int): N = {
+    val node = newNode(locUri, locIndex).asInstanceOf[N]
+    val n =
+      if (pool.contains(node)) pool(node)
+      else {
+        pool(node) = node
+        node
+      }
+    graph.addVertex(n)
+    n
+  }
+
+  def addVirtualNode(vlabel: String): N = {
+    val node = newVirtualNode(vlabel).asInstanceOf[N]
+    val n =
+      if (pool.contains(node)) pool(node)
+      else {
+        pool(node) = node
+        node
+      }
+    graph.addVertex(n)
+    n
+  }
+
+  override protected val vIDProvider = new VertexNameProvider[N]() {
+    def filterLabel(uri: String): String = {
+      uri.filter(_.isUnicodeIdentifierPart)  // filters out the special characters like '/', '.', '%', etc.
+    }
+    def getVertexName(v: N): String = {
+      val str = v match {
+        case CFGLocationNode(locUri, _) => UriUtil.lastPath(locUri)
+        case CFGVirtualNode(vlabel)        => vlabel.toString
+      }
+      filterLabel(str)
+    }
+  }
+}
+
+trait CFGNode extends AlirNode
 
 /**
- * @author <a href="mailto:robby@k-state.edu">Robby</a>
- * Modified by Fengguo Wei
- */
+  * @author <a href="mailto:robby@k-state.edu">Robby</a>
+  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
+  */
+final case class CFGLocationNode(locUri: ResourceUri, locIndex: Int) extends CFGNode with AlirLoc {
+  override def toString: String = locUri
+}
+
+/**
+  * @author <a href="mailto:robby@k-state.edu">Robby</a>
+  */
+final case class CFGVirtualNode(label: String) extends CFGNode {
+  override def toString: String = label.toString
+}
+
 object ControlFlowGraph {
-  val BRANCH_PROPERTY_KEY = OrigControlFlowGraph.BRANCH_PROPERTY_KEY
-  type Node = OrigControlFlowGraph.Node
-  type Edge = OrigControlFlowGraph.Edge
-  type ShouldIncludeFlowFunction = OrigControlFlowGraph.ShouldIncludeFlowFunction
-  val defaultSiff: ShouldIncludeFlowFunction = { (_, _) => (Array.empty[CatchClause], false) }
+  type Node = CFGNode
+  type ShouldIncludeFlowFunction = (Location, Iterable[CatchClause]) => (Iterable[CatchClause], Boolean)
 
-  def apply[VirtualLabel] = build[VirtualLabel] _
+  val defaultSiff: ShouldIncludeFlowFunction = { (_, catchClauses) =>
+    (catchClauses, false)
+  }
+  
+  def apply(
+    body: Body,
+    entryLabel: String, exitLabel: String,
+    shouldIncludeFlow: ShouldIncludeFlowFunction = defaultSiff): IntraProceduralControlFlowGraph[Node] = build(body, entryLabel, exitLabel, shouldIncludeFlow)
 
-  def build[VirtualLabel] //
-  (pst: ProcedureSymbolTable,
-   entryLabel: VirtualLabel, exitLabel: VirtualLabel,
-   pool: AlirIntraProceduralGraph.NodePool,
-   shouldIncludeFlow: ShouldIncludeFlowFunction = defaultSiff): ControlFlowGraph[VirtualLabel] = {
+  def build(
+    body: Body,
+    entryLabel: String, exitLabel: String,
+    shouldIncludeFlow: ShouldIncludeFlowFunction): IntraProceduralControlFlowGraph[Node] = {
 
-    val locationDecls = pst.locations
-    val result = new Cfg[VirtualLabel](pool)
+    val resolvedBody = body match {
+      case rb: ResolvedBody => rb
+      case ub: UnresolvedBody => ub.resolve
+    }
+    val locationDecls = resolvedBody.locations
+    val result = new Cfg()
     if (locationDecls.isEmpty) return result
 
-      def getLocUriIndex(l: LocationDecl) =
-        if (l.name.isEmpty)
-          (None, l.index)
-        else
-          (Some(l.name.get.uri), l.index)
+    def getLocUriIndex(l: Location) =
+      (l.locationUri, l.locationIndex)
 
-      def getNode(l: LocationDecl) =
-        if (l.name.isEmpty)
-          result.getNode(None, l.index)
-        else
-          result.getNode(Some(l.name.get.uri), l.index)
+    def getNode(l: Location) =
+      result.getNode(l.locationUri, l.locationIndex)
 
     val verticesMap = mmapEmpty[ResourceUri, Node]
     for (ld <- locationDecls) {
       val lui = getLocUriIndex(ld)
       val n = result.addNode(lui._1, lui._2)
-      if (ld.name.isDefined)
-        verticesMap(lui._1.get) = n
+      verticesMap(lui._1) = n
     }
 
     val exitNode = result.addVirtualNode(exitLabel)
@@ -65,142 +143,61 @@ object ControlFlowGraph {
     result.exitNode = exitNode
     var source: Node = null
     var next: Node = null
-      def addGotoEdge(gj: GotoJump) = {
-        val target = verticesMap(gj.target.uri)
-        result.addEdge(source, target)
-      }
-    var transIndex = -1
-    val visitor = Visitor.build({
-      case al: ActionLocation =>
-        al.action match {
-          case ta: ThrowAction =>
-          case _                => result.addEdge(source, next)
-        }
-        false
-      case el: EmptyLocation =>
-        if(next != null)
-          result.addEdge(source, next)
-        false
-      case jl: JumpLocation =>
-        transIndex = 0
-        true
-      case t: Transformation =>
-        transIndex += 1
-        if (t.actions.exists(_.isInstanceOf[ThrowAction])) {
-          result.addEdge(source, exitNode)
-          false
-        } else if (t.jump.isEmpty) {
-          result.addEdge(source, next)
-          false
-        } else {
-          true
-        }
-      case t: CallJump if t.jump.isEmpty =>
-        result.addEdge(source, next)
-        false
-      case gj: GotoJump =>
-        addGotoEdge(gj)
-        false
-      case rj: ReturnJump =>
-        result.addEdge(source, exitNode)
-        false
-      case ifj: IfJump =>
-        var i = 1
-        for (iftj <- ifj.ifThens) {
-          val target = verticesMap(iftj.target.uri)
-          val e = result.addEdge(source, target)
-          putBranchOnEdge(transIndex, i, e)
-          i += 1
-        }
-        if (ifj.ifElse.isEmpty)
-          result.addEdge(source, next)
-        else {
-          val gj = ifj.ifElse.get
-          putBranchOnEdge(transIndex, 0, addGotoEdge(gj))
-        }
-        false
-      case sj: SwitchJump =>
-        var i = 1
-        for (scj <- sj.cases) {
-          val target = verticesMap(scj.target.uri)
-          val e = result.addEdge(source, target)
-          putBranchOnEdge(transIndex, i, e)
-          i += 1
-        }
-        if (sj.defaultCase.isEmpty)
-          result.addEdge(source, next)
-        else {
-          val gj = sj.defaultCase.get
-          putBranchOnEdge(transIndex, 0, addGotoEdge(gj))
-        }
-        false
-    })
+    
     val size = locationDecls.size
     for (i <- 0 until size) {
       val l = locationDecls(i)
       source = getNode(l)
-      next = if (i != size - 1) getNode(locationDecls(i + 1)) else null
-      visitor(l)
-      transIndex = -1
-      if (shouldIncludeFlow ne defaultSiff) {
-        val (ccs, toExit) = shouldIncludeFlow(l, pst.catchClauses(l.index))
-        ccs.foreach { cc =>
-          result.addEdge(source, verticesMap(cc.jump.target.uri))
-        }
-        if (toExit) result.addEdge(source, exitNode)
+      next = if (i != size - 1) getNode(locationDecls(i + 1)) else exitNode
+      l.statement match {
+        case _: CallStatement =>
+          result.addEdge(source, next)
+        case _: AssignmentStatement =>
+          result.addEdge(source, next)
+        case _: ThrowStatement =>
+          result.addEdge(source, exitNode)
+        case is: IfStatement =>
+          result.addEdge(source, next)
+          next = verticesMap.getOrElse(is.targetLocation.location, exitNode)
+          result.addEdge(source, next)
+        case gs: GotoStatement =>
+          next = verticesMap.getOrElse(gs.targetLocation.location, exitNode)
+          result.addEdge(source, next)
+        case ss: SwitchStatement =>
+          ss.cases foreach {
+            c =>
+              next = verticesMap.getOrElse(c.targetLocation.location, exitNode)
+              result.addEdge(source, next)
+          }
+          ss.defaultCaseOpt match {
+            case Some(d) =>
+              next = verticesMap.getOrElse(d.targetLocation.location, exitNode)
+              result.addEdge(source, next)
+            case None => result.addEdge(source, next)
+          }
+        case _: ReturnStatement =>
+          result.addEdge(source, exitNode)
+        case _ =>
+          result.addEdge(source, next)
       }
+      val (ccs, toExit) = shouldIncludeFlow(l, resolvedBody.getCatchClauses(l.locationSymbol.locationIndex))
+      ccs.foreach { cc =>
+        result.addEdge(source, verticesMap.getOrElse(cc.targetLocation.location, exitNode))
+      }
+      if (toExit) result.addEdge(source, exitNode)
     }
-
-//    print(result)
-    //result.useBranch(pst) {}
-
     result
   }
 
-  private def putBranchOnEdge(trans: Int, branch: Int, e: Edge) = {
-    e(BRANCH_PROPERTY_KEY) = (trans, branch)
-  }
+  private class Cfg
+      extends IntraProceduralControlFlowGraph[Node] {
 
-  private def getBranch(pst: ProcedureSymbolTable, e: Edge): Option[Branch] = {
-    if (e ? BRANCH_PROPERTY_KEY) {
-      val p: (Int, Int) = e(BRANCH_PROPERTY_KEY)
-      var j =
-        PilarAstUtil.getJumps(pst.location(
-          e.source.asInstanceOf[AlirLocationNode].locIndex))(first2(p)).get
-      val i = second2(p)
+    var entryNode: Node = _
 
-      j match {
-        case jump: CallJump => j = jump.jump.get
-        case _ =>
-      }
+    var exitNode: Node = _
 
-      (j: @unchecked) match {
-        case gj: GotoJump   => Some(gj)
-        case rj: ReturnJump => Some(rj)
-        case ifj: IfJump =>
-          if (i == 0) ifj.ifElse
-          else Some(ifj.ifThens(i - 1))
-        case sj: SwitchJump =>
-          if (i == 0) sj.defaultCase
-          else Some(sj.cases(i - 1))
-      }
-    } else None
-  }
-
-  private class Cfg[VirtualLabel] //
-  (val pool: AlirIntraProceduralGraph.NodePool)
-      extends ControlFlowGraph[VirtualLabel]
-      with AlirEdgeAccesses[Node] {
-
-    private var succBranchMap: MMap[(Node, Option[Branch]), Node] = null
-    private var predBranchMap: MMap[(Node, Option[Branch]), Node] = null
-
-    var entryNode: Node = null
-
-    var exitNode: Node = null
-
-    def reverse: Cfg[VirtualLabel] = {
-      val result = new Cfg[VirtualLabel](pool)
+    def reverse: Cfg = {
+      val result = new Cfg()
       for (n <- nodes) result.addNode(n)
       for (e <- edges) result.addEdge(e.target, e.source)
       result.entryNode = exitNode
@@ -208,51 +205,15 @@ object ControlFlowGraph {
       result
     }
 
-    def useBranch[T](pst: ProcedureSymbolTable)(f: => T): T = {
-      succBranchMap = mmapEmpty
-      predBranchMap = mmapEmpty
-      for (node <- this.nodes) {
-        for (succEdge <- successorEdges(node)) {
-          val b = getBranch(pst, succEdge)
-          val s = edgeSource(succEdge)
-          val t = edgeTarget(succEdge)
-          succBranchMap((node, b)) = t
-          predBranchMap((t, b)) = s
-        }
-      }
-      val result = f
-      succBranchMap = null
-      predBranchMap = null
-      result
-    }
-
-    def successor(node: Node, branch: Option[Branch]): Node = {
-      assert(succBranchMap != null,
-        "The successor method needs useBranch as enclosing context")
-      succBranchMap((node, branch))
-    }
-
-    def predecessor(node: Node, branch: Option[Branch]): Node = {
-      assert(predBranchMap != null,
-        "The successor method needs useBranch as enclosing context")
-      predBranchMap((node, branch))
-    }
-
-    override def toString = {
+    override def toString: String = {
       val sb = new StringBuilder("CFG\n")
-
       for (n <- nodes)
         for (m <- successors(n)) {
-          for (e <- getEdges(n, m)) {
-            val branch = if (e ? ControlFlowGraph.BRANCH_PROPERTY_KEY)
-              e(ControlFlowGraph.BRANCH_PROPERTY_KEY).toString
-            else ""
-            sb.append("%s -> %s %s\n".format(n, m, branch))
+          for (_ <- getEdges(n, m)) {
+            sb.append(s"${n.toString} -> ${m.toString} %\n")
           }
         }
-
       sb.append("\n")
-
       sb.toString
     }
   }

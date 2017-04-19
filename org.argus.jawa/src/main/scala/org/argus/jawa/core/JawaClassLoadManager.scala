@@ -10,7 +10,7 @@
 
 package org.argus.jawa.core
 
-import org.sireum.util._
+import org.argus.jawa.core.util._
 import com.google.common.cache.CacheBuilder
 import com.google.common.cache.Cache
 import org.argus.jawa.core.io.SourceFile
@@ -74,7 +74,7 @@ trait JawaClassLoadManager extends JavaKnowledge with JawaResolver { self: Globa
       case a @ Some(_) => a
       case None =>
         try {
-          val c = resolveToHierarchy(typ, allowUnknown = false)
+          val c = resolveClass(typ, allowUnknown = false)
           classCache.put(typ, c)
           Some(c)
         }
@@ -91,7 +91,7 @@ trait JawaClassLoadManager extends JavaKnowledge with JawaResolver { self: Globa
     Option(classCache.getIfPresent(typ)) match {
       case Some(a) => a
       case None =>
-        val c = resolveToHierarchy(typ)
+        val c = resolveClass(typ, allowUnknown = true)
         classCache.put(typ, c)
         c
     }
@@ -112,7 +112,6 @@ trait JawaClassLoadManager extends JavaKnowledge with JawaResolver { self: Globa
 
   /**
     * remove class from Global
-    * Todo: Update hierarchy accordingly.
     */
   def removeClass(typ: JawaType): Unit = {
     classCache.invalidate(typ)

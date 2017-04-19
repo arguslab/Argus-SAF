@@ -9,7 +9,7 @@
  */
 package org.argus.amandroid.core.util
 
-import org.sireum.util._
+import org.argus.jawa.core.util._
 import java.util.regex.Pattern
 
 import org.argus.jawa.core.{JavaKnowledge, Signature}

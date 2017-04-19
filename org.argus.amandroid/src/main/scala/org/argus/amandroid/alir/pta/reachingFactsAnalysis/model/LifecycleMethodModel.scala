@@ -13,7 +13,7 @@ package org.argus.amandroid.alir.pta.reachingFactsAnalysis.model
 import org.argus.jawa.alir.Context
 import org.argus.jawa.alir.pta.reachingFactsAnalysis.RFAFact
 import org.argus.jawa.core.JawaMethod
-import org.sireum.util._
+import org.argus.jawa.core.util._
 
 /**
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>

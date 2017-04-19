@@ -10,7 +10,7 @@
 
 package org.argus.jawa.compiler.compile
 
-import org.sireum.util._
+import org.argus.jawa.core.util._
 import java.io.File
 
 /**

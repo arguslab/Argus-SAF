@@ -11,7 +11,7 @@
 //package org.sireum.jawa.alir.taintAnalysis
 //
 //import org.sireum.jawa.alir.controlFlowGraph.InterproceduralControlFlowGraph
-//import org.sireum.util._
+//import org.argus.jawa.core.util._
 //import org.sireum.jawa.alir.interProcedural._
 //import org.sireum.pilar.ast._
 //import org.sireum.jawa.alir.controlFlowGraph._

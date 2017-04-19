@@ -10,8 +10,8 @@
 
 package org.argus.jawa.alir.pta
 
-import org.argus.jawa.core.{FieldFQN, JawaType, Signature}
-import org.sireum.alir.Slot
+import org.argus.jawa.alir.reachingDefinitionAnalysis.Slot
+import org.argus.jawa.core.{FieldFQN, Signature}
 
 /**
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
@@ -22,7 +22,7 @@ abstract class PTASlot(id: Any) extends Slot {
 }
 
 abstract class NameSlot(name: String) extends PTASlot(name) {
-  override def toString = name
+  override def toString: String = name
 }
 
 /**
@@ -30,7 +30,7 @@ abstract class NameSlot(name: String) extends PTASlot(name) {
  * @author <a href="mailto:sroy@k-state.edu">Sankardas Roy</a>
  */
 final case class VarSlot(varName: String, isBase: Boolean, isArg: Boolean) extends NameSlot(varName) {
-  override def toString = {
+  override def toString: String = {
     val sb = new StringBuilder
     if(isBase) sb.append("base:")
     if(isArg) sb.append("arg:")
@@ -43,7 +43,7 @@ final case class VarSlot(varName: String, isBase: Boolean, isArg: Boolean) exten
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
  * @author <a href="mailto:sroy@k-state.edu">Sankardas Roy</a>
  */
-final case class ClassSlot(classtyp: JawaType) extends NameSlot(classtyp.jawaName)
+//final case class ClassSlot(classtyp: JawaType) extends NameSlot(classtyp.jawaName)
 
 /**
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
@@ -64,7 +64,7 @@ abstract class HeapSlot(ins: Instance) extends PTASlot(ins){
  * @author <a href="mailto:sroy@k-state.edu">Sankardas Roy</a>
  */ 
 final case class FieldSlot(ins: Instance, fieldName: String) extends HeapSlot(ins){
-  override def toString = ins.toString + "." + fieldName
+  override def toString: String = ins.toString + "." + fieldName
 }
 
 /**
@@ -72,7 +72,7 @@ final case class FieldSlot(ins: Instance, fieldName: String) extends HeapSlot(in
  * @author <a href="mailto:sroy@k-state.edu">Sankardas Roy</a>
  */ 
 final case class ArraySlot(ins: Instance) extends HeapSlot(ins){
-  override def toString = ins.toString
+  override def toString: String = ins.toString
 }
 
 /**
@@ -80,7 +80,7 @@ final case class ArraySlot(ins: Instance) extends HeapSlot(ins){
  * @author <a href="mailto:sroy@k-state.edu">Sankardas Roy</a>
  */ 
 final case class InstanceSlot(ins: Instance) extends PTASlot(ins){
-  override def toString = ins.toString
+  override def toString: String = ins.toString
 }
 
 /**
@@ -88,5 +88,5 @@ final case class InstanceSlot(ins: Instance) extends PTASlot(ins){
  * @author <a href="mailto:sroy@k-state.edu">Sankardas Roy</a>
  */ 
 final case class InvokeSlot(sig: Signature, invTyp: String) extends PTASlot(sig){
-  override def toString = "Invoke: " + invTyp + " " + sig
+  override def toString: String = "Invoke: " + invTyp + " " + sig
 }

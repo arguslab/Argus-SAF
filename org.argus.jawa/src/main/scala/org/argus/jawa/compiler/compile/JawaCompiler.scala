@@ -18,7 +18,7 @@ import org.argus.jawa.compiler.log.Logger
 import org.argus.jawa.compiler.parser.JawaParser
 import org.argus.jawa.core.{DefaultReporter, Reporter}
 import org.argus.jawa.core.io.{FgSourceFile, PlainFile}
-import org.sireum.util._
+import org.argus.jawa.core.util._
 
 import scala.language.postfixOps
 
@@ -46,12 +46,10 @@ final class JawaCompiler(javaVersionStr: String) {
   }
 }
 
-object JawaCompiler
-{
+object JawaCompiler {
   import io.IO.{copy, zip, unzip, withTemporaryDirectory}
 
-  def compileSources(sourceJars: Iterable[File], targetJar: File, id: String, compiler: RawCompiler)
-  {
+  def compileSources(sourceJars: Iterable[File], targetJar: File, id: String, compiler: RawCompiler) {
     val isSource = (f: File) => isSourceName(f.getName)
     def keepIfSource(files: Set[File]): Set[File] = if(files.exists(isSource)) files else Set()
 

@@ -11,41 +11,33 @@
 package org.argus.jawa.alir.util
 
 import org.argus.jawa.alir.JawaAlirInfoProvider
+import org.argus.jawa.alir.controlFlowGraph.{CFGNode, IntraProceduralControlFlowGraph}
+import org.argus.jawa.alir.reachingDefinitionAnalysis.{DefDesc, LocDefDesc, ReachingDefinitionAnalysis, Slot}
+import org.argus.jawa.compiler.parser._
 import org.argus.jawa.core.JawaMethod
-import org.sireum.alir.{ControlFlowGraph, LocDefDesc, ReachingDefinitionAnalysis}
-import org.sireum.pilar.ast._
-import org.sireum.util._
+import org.argus.jawa.core.util._
 
 /**
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
  * @author <a href="mailto:sroy@k-state.edu">Sankardas Roy</a>
  */ 
 object ExplicitValueFinder {
-  def findExplicitIntValueForArgs(procedure: JawaMethod, loc: JumpLocation, argNum: Int): ISet[Int] = {
-    loc.jump match{
-      case t: CallJump if t.jump.isEmpty =>
-        val cfg = JawaAlirInfoProvider.getCfg(procedure)
-        val rda = JawaAlirInfoProvider.getRda(procedure, cfg)
-        val params = t.callExp.arg match {
-          case te: TupleExp =>
-            te.exps.map{exp=>exp.asInstanceOf[NameExp].name.name}
-          case a =>
-            throw new RuntimeException("wrong call exp type: " + a)
-        }
-        traverseRdaToFindIntger(procedure, params(argNum), loc, cfg, rda)
-      case _ => throw new RuntimeException("Unexpected jump type: " + loc.jump)
-    }
+  def findExplicitIntValueForArgs(procedure: JawaMethod, cs: CallStatement, l: Location, argNum: Int): ISet[Int] = {
+    val cfg = JawaAlirInfoProvider.getCfg(procedure)
+    val rda = JawaAlirInfoProvider.getRda(procedure, cfg)
+    val params = (cs.recvOpt ++ cs.args).toList
+    traverseRdaToFindIntger(procedure, params(argNum), l, cfg, rda)
   }
   
-  def traverseRdaToFindIntger(procedure: JawaMethod, varName: String, loc: LocationDecl, cfg: ControlFlowGraph[String], rda: ReachingDefinitionAnalysis.Result, resolvedStack: ISet[(org.sireum.alir.Slot, org.sireum.alir.DefDesc)] = isetEmpty): ISet[Int] = {
-    val slots = rda.entrySet(cfg.getNode(Some(loc.name.get.uri), loc.index)) -- resolvedStack
+  private def traverseRdaToFindIntger(procedure: JawaMethod, varName: String, loc: Location, cfg: IntraProceduralControlFlowGraph[CFGNode], rda: ReachingDefinitionAnalysis.Result, resolvedStack: ISet[(Slot, DefDesc)] = isetEmpty): ISet[Int] = {
+    val slots = rda.entrySet(cfg.getNode(loc.locationUri, loc.locationIndex)) -- resolvedStack
     var nums: ISet[Int] = isetEmpty
     slots.foreach{
       case(slot, defDesc) =>
         if(varName.equals(slot.toString)){
           defDesc match {
             case ldd: LocDefDesc => 
-              val locDecl = procedure.getBody.location(ldd.locIndex)
+              val locDecl = procedure.getBody.resolvedBody.locations(ldd.locIndex)
               findIntegerFromLocationDecl(varName, locDecl) match{
                 case Left(num) => nums += num
                 case Right(varn) => nums ++= traverseRdaToFindIntger(procedure, varn, locDecl, cfg, rda, resolvedStack ++ slots)
@@ -57,19 +49,15 @@ object ExplicitValueFinder {
     nums
   }
   
-  private def findIntegerFromLocationDecl(varName: String, locDecl: LocationDecl): Either[Int, String] = {
+  private def findIntegerFromLocationDecl(varName: String, locDecl: Location): Either[Int, String] = {
     var result: Either[Int, String] = Right(varName)
-    locDecl match{
-      case aLoc: ActionLocation =>
-        aLoc.action match{
-          case assignAction: AssignAction =>
-            assignAction.rhs match{
-              case lExp: LiteralExp =>
-                if(lExp.typ == LiteralType.INT) result = Left(lExp.literal.asInstanceOf[Int])
-              case ne: NameExp =>
-                result = Right(ne.name.name)
-              case a =>
-            }
+    locDecl.statement match{
+      case as: AssignmentStatement =>
+        as.rhs match{
+          case lExp: LiteralExpression =>
+            if(lExp.isInt) result = Left(lExp.getInt)
+          case ne: NameExpression =>
+            result = Right(ne.name)
           case _ =>
         }
       case _ =>
@@ -78,51 +66,36 @@ object ExplicitValueFinder {
   }
   
   
-  def findExplicitStringValueForArgs(procedure: JawaMethod, loc: JumpLocation, argNum: Int): ISet[String] = {
-    loc.jump match{
-      case t: CallJump if t.jump.isEmpty =>
-        val cfg = JawaAlirInfoProvider.getCfg(procedure)
-        val rda = JawaAlirInfoProvider.getRda(procedure, cfg)
-        val slots = rda.entrySet(cfg.getNode(Some(loc.name.get.uri), loc.index))
-        val params = t.callExp.arg match {
-          case te: TupleExp =>
-            te.exps.map{exp=>exp.asInstanceOf[NameExp].name.name}
-          case a =>
-            throw new RuntimeException("wrong call exp type: " + a)
-        }
-        var strs: ISet[String] = isetEmpty
-        slots.foreach{
-          case(slot, defDesc) =>
-            val varName = params(argNum)
-            if(varName.equals(slot.toString)){
-              defDesc match {
-                case ldd: LocDefDesc => 
-//                  val node = cfg.getNode(ldd.locUri, ldd.locIndex)
-                  val locDecl = procedure.getBody.location(ldd.locIndex)
-                  getStringFromLocationDecl(locDecl) match{
-                    case Some(str) => strs += str
-                    case None => throw new RuntimeException("Cannot find intgerNumber for: " + varName + ".in:" + loc.name.get.uri)
-                  }
-                case _ =>
-              }
+  def findExplicitStringValueForArgs(procedure: JawaMethod, cs: CallStatement, l: Location, argNum: Int): ISet[String] = {
+      val cfg = JawaAlirInfoProvider.getCfg(procedure)
+      val rda = JawaAlirInfoProvider.getRda(procedure, cfg)
+      val slots = rda.entrySet(cfg.getNode(l.locationUri, l.locationIndex))
+      val strs: MSet[String] = msetEmpty
+      slots.foreach{
+        case(slot, defDesc) =>
+          val varName = cs.arg(argNum)
+          if(varName.equals(slot.toString)){
+            defDesc match {
+              case ldd: LocDefDesc =>
+                val locDecl = procedure.getBody.resolvedBody.locations(ldd.locIndex)
+                getStringFromLocationDecl(locDecl) match{
+                  case Some(str) => strs += str
+                  case None => throw new RuntimeException("Cannot find string for: " + varName + ".in:" + l.locationUri)
+                }
+              case _ =>
             }
-        }
-        strs
-      case _ => throw new RuntimeException("Unexpected jump type: " + loc.jump)
-    }
+          }
+      }
+      strs.toSet
     
   }
   
-  def getStringFromLocationDecl(locDecl: LocationDecl): Option[String] = {
-    locDecl match{
-      case aLoc: ActionLocation =>
-        aLoc.action match{
-          case assignAction: AssignAction =>
-            assignAction.rhs match{
-              case lExp: LiteralExp =>
-                if(lExp.typ == LiteralType.STRING) return Some(lExp.text)
-              case _ =>
-            }
+  def getStringFromLocationDecl(locDecl: Location): Option[String] = {
+    locDecl.statement match{
+      case as: AssignmentStatement =>
+        as.rhs match{
+          case lExp: LiteralExpression =>
+            if(lExp.isString) return Some(lExp.getString)
           case _ =>
         }
       case _ =>

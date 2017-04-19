@@ -15,7 +15,7 @@ import org.argus.jawa.alir.Context
 import org.argus.jawa.alir.pta.{FieldSlot, PTAResult, VarSlot}
 import org.argus.jawa.alir.pta.reachingFactsAnalysis.{RFAFact, RFAFactFactory}
 import org.argus.jawa.core.{JavaKnowledge, JawaClass, JawaMethod}
-import org.sireum.util._
+import org.argus.jawa.core.util._
 
 /**
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
@@ -24,7 +24,7 @@ import org.sireum.util._
 object ActivityModel {
   def isActivity(r: JawaClass): Boolean = r.getName.equals(AndroidConstants.ACTIVITY)
   
-  def doActivityCall(s: PTAResult, p: JawaMethod, args: List[String], retVar: Seq[String], currentContext: Context)(implicit factory: RFAFactFactory): (ISet[RFAFact], ISet[RFAFact], Boolean) = {
+  def doActivityCall(s: PTAResult, p: JawaMethod, args: List[String], retVar: String, currentContext: Context)(implicit factory: RFAFactFactory): (ISet[RFAFact], ISet[RFAFact], Boolean) = {
     var newFacts = isetEmpty[RFAFact]
     var delFacts = isetEmpty[RFAFact]
     var byPassFlag = true
@@ -66,8 +66,7 @@ object ActivityModel {
       case "Landroid/app/Activity;.getCurrentFocus:()Landroid/view/View;" =>  //public
       case "Landroid/app/Activity;.getFragmentManager:()Landroid/app/FragmentManager;" =>  //public
       case "Landroid/app/Activity;.getIntent:()Landroid/content/Intent;" =>  //public
-        require(retVar.size == 1)
-        getIntent(s, args, retVar.head, currentContext) match{case (n, d) => newFacts ++= n; delFacts ++= d}
+        getIntent(s, args, retVar, currentContext) match{case (n, d) => newFacts ++= n; delFacts ++= d}
         byPassFlag = false
       case "Landroid/app/Activity;.getLastNonConfigurationChildInstances:()Ljava/util/HashMap;" =>  //
       case "Landroid/app/Activity;.getLastNonConfigurationInstance:()Ljava/lang/Object;" =>  //public

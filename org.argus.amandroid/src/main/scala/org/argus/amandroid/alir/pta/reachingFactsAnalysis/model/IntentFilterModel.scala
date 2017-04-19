@@ -15,7 +15,7 @@ import org.argus.jawa.alir.Context
 import org.argus.jawa.alir.pta._
 import org.argus.jawa.alir.pta.reachingFactsAnalysis.{RFAFact, RFAFactFactory}
 import org.argus.jawa.core.{JavaKnowledge, JawaClass, JawaMethod}
-import org.sireum.util._
+import org.argus.jawa.core.util._
 
 /**
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
@@ -27,7 +27,7 @@ object IntentFilterModel {
   
   def isIntentFilter(r: JawaClass): Boolean = r.getName.equals(AndroidConstants.INTENTFILTER)
     
-  def doIntentFilterCall(s: PTAResult, p: JawaMethod, args: List[String], retVars: Seq[String], currentContext: Context)(implicit factory: RFAFactFactory): (ISet[RFAFact], ISet[RFAFact], Boolean) = {
+  def doIntentFilterCall(s: PTAResult, p: JawaMethod, args: List[String], retVar: String, currentContext: Context)(implicit factory: RFAFactFactory): (ISet[RFAFact], ISet[RFAFact], Boolean) = {
     var newFacts = isetEmpty[RFAFact]
     var delFacts = isetEmpty[RFAFact]
     var byPassFlag = true
@@ -114,9 +114,9 @@ object IntentFilterModel {
           }
         }
         actionValue.foreach {
-          case cstr@PTAConcreteStringInstance(text, c) =>
+          case cstr@PTAConcreteStringInstance(_, _) =>
             newfacts += new RFAFact(FieldSlot(tv, JavaKnowledge.getFieldNameFromFieldFQN(AndroidConstants.INTENTFILTER_ACTIONS)), cstr)
-          case pstr@PTAPointStringInstance(c) =>
+          case pstr@PTAPointStringInstance(_) =>
             newfacts += new RFAFact(FieldSlot(tv, JavaKnowledge.getFieldNameFromFieldFQN(AndroidConstants.INTENTFILTER_ACTIONS)), pstr)
           case ustr if ustr.isUnknown =>
           case acStr => System.err.println(TITLE + ": unexpected instance type: " + acStr)

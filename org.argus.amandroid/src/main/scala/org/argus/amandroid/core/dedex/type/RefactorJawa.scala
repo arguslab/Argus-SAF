@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016. Fengguo Wei and others.
+ * Copyright (c) 2017. Fengguo Wei and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -10,7 +10,7 @@
 //package org.sireum.jawa.sjc.refactoring
 //
 //import org.sireum.jawa.DefaultReporter
-//import org.sireum.util._
+//import org.argus.jawa.core.util._
 //import org.sireum.alir.AlirLocationNode
 //import org.sireum.jawa.sjc.parser._
 //import org.sireum.jawa.JawaType

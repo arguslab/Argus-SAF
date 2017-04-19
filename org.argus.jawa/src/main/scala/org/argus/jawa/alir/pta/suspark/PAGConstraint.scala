@@ -10,10 +10,10 @@
 
 package org.argus.jawa.alir.pta.suspark
 
-import org.argus.jawa.alir.reachingDefinitionAnalysis.JawaReachingDefinitionAnalysis
+import org.argus.jawa.alir.controlFlowGraph.{ControlFlowGraph, IntraProceduralControlFlowGraph}
+import org.argus.jawa.alir.reachingDefinitionAnalysis._
 import org.argus.jawa.core._
-import org.sireum.alir._
-import org.sireum.util._
+import org.argus.jawa.core.util._
 
 /**
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
@@ -24,10 +24,11 @@ trait PAGConstraint{
     val ALLOCATION, ASSIGNMENT, FIELD_STORE, FIELD_LOAD, ARRAY_STORE, ARRAY_LOAD, STATIC_FIELD_STORE, STATIC_FIELD_LOAD, TRANSFER, THIS_TRANSFER = Value
   }
   
-  def applyConstraint(p: Point,
-                      ps: Set[Point],
-                      cfg: ControlFlowGraph[String],
-                      rda: JawaReachingDefinitionAnalysis.Result): MMap[EdgeType.Value, MMap[Point, MSet[Point]]] = {
+  def applyConstraint(
+      p: Point,
+      ps: Set[Point],
+      cfg: IntraProceduralControlFlowGraph[ControlFlowGraph.Node],
+      rda: ReachingDefinitionAnalysis.Result): MMap[EdgeType.Value, MMap[Point, MSet[Point]]] = {
     //contains the edge list related to point p
     val flowMap: MMap[EdgeType.Value, MMap[Point, MSet[Point]]] = mmapEmpty
     p match {
@@ -93,13 +94,13 @@ trait PAGConstraint{
                 )
               case pgr: PointStaticFieldR =>
                 flowMap.getOrElseUpdate(EdgeType.STATIC_FIELD_LOAD, mmapEmpty).getOrElseUpdate(pgr, msetEmpty) += lhs
-              case per: PointExceptionR =>
+              case _: PointExceptionR =>
                 flowMap.getOrElseUpdate(EdgeType.ALLOCATION, mmapEmpty).getOrElseUpdate(rhs, msetEmpty) += lhs
-              case po: Point with Right with NewObj =>
+              case _: Point with Right with NewObj =>
                 flowMap.getOrElseUpdate(EdgeType.ALLOCATION, mmapEmpty).getOrElseUpdate(rhs, msetEmpty) += lhs
               case pr: Point with Loc with Right =>
                 flowMap.getOrElseUpdate(EdgeType.ASSIGNMENT, mmapEmpty).getOrElseUpdate(pr, msetEmpty) += lhs
-                udChain(pr, ps, cfg, rda, avoidMode = true).foreach {
+                udChain(pr, ps, cfg, rda).foreach {
                   point =>
                     flowMap.getOrElseUpdate(EdgeType.TRANSFER, mmapEmpty).getOrElseUpdate(point, msetEmpty) += pr
                 }
@@ -116,21 +117,21 @@ trait PAGConstraint{
           case psi: PointStaticI =>
             psi.argPsCall.foreach{
               case (i, cp) =>
-                udChain(cp, ps, cfg, rda, avoidMode = true).foreach {
+                udChain(cp, ps, cfg, rda).foreach {
                   point =>
                     flowMap.getOrElseUpdate(EdgeType.TRANSFER, mmapEmpty).getOrElseUpdate(point, msetEmpty) += cp
                 }
                 flowMap.getOrElseUpdate(EdgeType.TRANSFER, mmapEmpty).getOrElseUpdate(cp, msetEmpty) += psi.argPsReturn(i)
             }
           case pi: PointI =>
-            udChain(pi.recvPCall, ps, cfg, rda, avoidMode = true).foreach {
+            udChain(pi.recvPCall, ps, cfg, rda).foreach {
               point =>
                 flowMap.getOrElseUpdate(EdgeType.TRANSFER, mmapEmpty).getOrElseUpdate(point, msetEmpty) += pi.recvPCall
             }
             flowMap.getOrElseUpdate(EdgeType.TRANSFER, mmapEmpty).getOrElseUpdate(pi.recvPCall, msetEmpty) += pi.recvPReturn
             pi.argPsCall.foreach{
               case (i, cp) => 
-                udChain(cp, ps, cfg, rda, avoidMode = true).foreach(
+                udChain(cp, ps, cfg, rda).foreach(
                   point => {
                     flowMap.getOrElseUpdate(EdgeType.TRANSFER, mmapEmpty).getOrElseUpdate(point, msetEmpty) += cp
                   }
@@ -141,19 +142,19 @@ trait PAGConstraint{
       case procP: PointMethod =>
         val t_exit = procP.thisPExit
         val ps_exit = procP.paramPsExit
-        udChainForMethodExit(t_exit, ps, cfg, rda, avoidMode = true).foreach{
+        udChainForMethodExit(t_exit, ps, cfg, rda).foreach{
           point =>
             flowMap.getOrElseUpdate(EdgeType.TRANSFER, mmapEmpty).getOrElseUpdate(point, msetEmpty) += t_exit
         }
         ps_exit.foreach{
-          case (i, p_exit) =>
-            udChainForMethodExit(p_exit, ps, cfg, rda, avoidMode = true).foreach{
+          case (_, p_exit) =>
+            udChainForMethodExit(p_exit, ps, cfg, rda).foreach{
               point =>
                 flowMap.getOrElseUpdate(EdgeType.TRANSFER, mmapEmpty).getOrElseUpdate(point, msetEmpty) += p_exit
             }
         }
       case retP: PointRet =>
-        udChain(retP, ps, cfg, rda, avoidMode = true).foreach(
+        udChain(retP, ps, cfg, rda).foreach(
           point => {
             flowMap.getOrElseUpdate(EdgeType.TRANSFER, mmapEmpty).getOrElseUpdate(point, msetEmpty) += retP
           }
@@ -170,11 +171,11 @@ trait PAGConstraint{
   }
   
   def udChainForMethodExit(
-      p: Point with Param with Exit,
-      points: Set[Point],
-      cfg: ControlFlowGraph[String],
-      rda: JawaReachingDefinitionAnalysis.Result,
-      avoidMode: Boolean = true): Set[Point] = {
+                            p: Point with Param with Exit,
+                            points: Set[Point],
+                            cfg: IntraProceduralControlFlowGraph[ControlFlowGraph.Node],
+                            rda: ReachingDefinitionAnalysis.Result,
+                            avoidMode: Boolean = true): Set[Point] = {
     val slots = rda.entrySet(cfg.exitNode)
     searchRda(p, points, slots, avoidMode)
   }
@@ -190,10 +191,10 @@ trait PAGConstraint{
   
   def udChain(p: Point with Loc,
               points: Set[Point],
-              cfg: ControlFlowGraph[String],
-              rda: JawaReachingDefinitionAnalysis.Result,
+              cfg: IntraProceduralControlFlowGraph[ControlFlowGraph.Node],
+              rda: ReachingDefinitionAnalysis.Result,
               avoidMode: Boolean = true): Set[Point] = {
-    val slots = rda.entrySet(cfg.getNode(Some(p.loc), p.locIndex))
+    val slots = rda.entrySet(cfg.getNode(p.locUri, p.locIndex))
     searchRda(p, points, slots, avoidMode)
   }
   
@@ -225,21 +226,13 @@ trait PAGConstraint{
           } else {
             defDesc match {
               case pdd: ParamDefDesc =>
-                pdd.locUri match {
-                  case Some(locU) =>
-                    val tp = getParamPoint_Return(varName, pdd.paramIndex, locU, pdd.locIndex, points, avoidMode)
-                    if(tp!=null)
-                      ps += tp
-                  case None =>
-                }
+                val tp = getParamPoint_Return(varName, pdd.paramIndex, pdd.locUri, pdd.locIndex, points, avoidMode)
+                if(tp != null)
+                  ps += tp
               case ldd: LocDefDesc => 
-                ldd.locUri match {
-                  case Some(locU) =>
-                    val tp = getPoint(varName, locU, ldd.locIndex, points, avoidMode)
-                    if(tp != null)
-                      ps += tp
-                  case None =>
-                }
+                val tp = getPoint(varName, ldd.locUri, ldd.locIndex, points, avoidMode)
+                if(tp != null)
+                  ps += tp
               case _ =>
             }
           }
@@ -256,7 +249,7 @@ trait PAGConstraint{
           case Some(lhs) =>
             lhs match {
               case iP: PointL =>
-                val locationUri = iP.loc
+                val locationUri = iP.locUri
                 val locationIndex = iP.locIndex
                 if (iP.varname.equals(uri) && locUri.equals(locationUri) && locIndex == locationIndex)
                   point = lhs
@@ -269,18 +262,18 @@ trait PAGConstraint{
         lhs match {
           case flP: PointFieldL =>
             val baseP = flP.baseP
-            val locationUri = baseP.loc
+            val locationUri = baseP.locUri
             val locationIndex = baseP.locIndex
             if (baseP.baseName.equals(uri) && locUri.equals(locationUri) && locIndex == locationIndex)
               point = baseP
           case gl: Point with Loc with Static_Field with Left =>
-            if (gl.staticFieldFQN.toString().equals(uri) && locUri.equals(gl.loc) && locIndex == gl.locIndex)
+            if (gl.staticFieldFQN.toString().equals(uri) && locUri.equals(gl.locUri) && locIndex == gl.locIndex)
               point = lhs
           case ar: PointMyArrayL =>
-            if (ar.arrayname.equals(uri) && locUri.equals(ar.loc) && locIndex == ar.locIndex)
+            if (ar.arrayname.equals(uri) && locUri.equals(ar.locUri) && locIndex == ar.locIndex)
               point = lhs
           case iP: PointL =>
-            val locationUri = iP.loc
+            val locationUri = iP.locUri
             val locationIndex = iP.locIndex
             if (iP.varname.equals(uri) && locUri.equals(locationUri) && locIndex == locationIndex)
               point = lhs
@@ -300,12 +293,12 @@ trait PAGConstraint{
         pc.rhs match {
           case psi: PointStaticI =>
             val candidateP = psi.argPsReturn.get(paramIndex)
-            if (candidateP.isDefined && candidateP.get.argName == uri && candidateP.get.loc == locUri && candidateP.get.locIndex == locIndex) point = candidateP.get
+            if (candidateP.isDefined && candidateP.get.argName == uri && candidateP.get.locUri == locUri && candidateP.get.locIndex == locIndex) point = candidateP.get
           case pi: PointI =>
             val candidateP =
               if (paramIndex == 0) Some(pi.recvPReturn)
               else pi.argPsReturn.get(paramIndex)
-            if (candidateP.isDefined && candidateP.get.argName == uri && candidateP.get.loc == locUri && candidateP.get.locIndex == locIndex) point = candidateP.get
+            if (candidateP.isDefined && candidateP.get.argName == uri && candidateP.get.locUri == locUri && candidateP.get.locIndex == locIndex) point = candidateP.get
         }
       case _ =>
     }
@@ -340,32 +333,4 @@ trait PAGConstraint{
       require(point != null)
     point
   }
-  
-//  private def getPointFromExit(uri: ResourceUri, ps: MList[Point], avoidMode: Boolean): Point = {
-//    var point: Point = null
-//    ps.foreach {
-//      case psp: PointStaticMethod =>
-//        psp.paramPsExit.foreach {
-//          case (_, pa) =>
-//            if (pa.paramName.equals(uri)) {
-//              point = pa
-//            }
-//        }
-//      case pp: PointMethod =>
-//        if (pp.thisPExit.paramName.equals(uri)) {
-//          point = pp.thisPExit
-//        }
-//        pp.paramPsExit.foreach {
-//          case (_, pa) =>
-//            if (pa.paramName.equals(uri)) {
-//              point = pa
-//            }
-//        }
-//      case _ =>
-//    }
-//    if(!avoidMode)
-//      require(point != null)
-//    point
-//  }
-  
 }

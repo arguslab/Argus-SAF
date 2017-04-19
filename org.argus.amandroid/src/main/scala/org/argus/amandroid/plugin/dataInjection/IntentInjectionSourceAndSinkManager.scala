@@ -15,7 +15,7 @@ import org.argus.amandroid.alir.taintAnalysis.AndroidSourceAndSinkManager
 import org.argus.amandroid.core.ApkGlobal
 import org.argus.jawa.alir.controlFlowGraph.{ICFGInvokeNode, ICFGNode}
 import org.argus.jawa.alir.pta.PTAResult
-import org.sireum.pilar.ast._
+import org.argus.jawa.compiler.parser.Location
 import org.argus.jawa.core._
 
 /**
@@ -24,7 +24,7 @@ import org.argus.jawa.core._
  */ 
 class IntentInjectionSourceAndSinkManager(sasFilePath: String) extends AndroidSourceAndSinkManager(sasFilePath){
   
-  override def isSource(apk: ApkGlobal, calleeSig: Signature, callerSig: Signature, callerLoc: JumpLocation): Boolean = {
+  override def isSource(apk: ApkGlobal, calleeSig: Signature, callerSig: Signature, callerLoc: Location): Boolean = {
     false
   }
 

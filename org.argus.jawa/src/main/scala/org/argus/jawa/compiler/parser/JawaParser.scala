@@ -14,7 +14,7 @@ import org.argus.jawa.compiler.lexer._
 import org.argus.jawa.compiler.lexer.Tokens._
 import org.argus.jawa.core.io.SourceFile
 import org.argus.jawa.core.{JavaKnowledge, Reporter}
-import org.sireum.util._
+import org.argus.jawa.core.util._
 
 class JawaParser(tokens: Array[Token], reporter: Reporter) extends JavaKnowledge {
 
@@ -384,11 +384,10 @@ class JawaParser(tokens: Array[Token], reporter: Reporter) extends JavaKnowledge
         Some(callLhs())
       case _ => None
     }
-    val nameSymbol: MethodNameSymbol = methodNameSymbol()
-    val argClause_ : ArgClause = argClause()
+    val rhs: CallRhs = callRhs()
     val annotations_ : IList[Annotation] = annotations()
-    val cs = CallStatement(callToken, lhsOpt, nameSymbol, argClause_, annotations_)
-    nameSymbol.signature = cs.signature
+    val cs = CallStatement(callToken, lhsOpt, rhs, annotations_)
+    rhs.methodNameSymbol.signature = cs.signature
     cs
   }
   
@@ -396,6 +395,12 @@ class JawaParser(tokens: Array[Token], reporter: Reporter) extends JavaKnowledge
     val lhs: VarSymbol = varSymbol()
     val assignmentOP: Token = accept(ASSIGN_OP)
     CallLhs(lhs, assignmentOP)
+  }
+
+  private def callRhs(): CallRhs = {
+    val nameSymbol: MethodNameSymbol = methodNameSymbol()
+    val argClause_ : ArgClause = argClause()
+    CallRhs(nameSymbol, argClause_)
   }
   
   private def argClause(): ArgClause = {
@@ -894,14 +899,12 @@ object JawaParser {
   /**
    * parse the given source as a parsable ast node
    */
-  def parse[T <: ParsableAstNode : ru.TypeTag](source: Either[String, SourceFile], resolveBody: Boolean, reporter: Reporter): Option[T] = {
+  def parse[T <: ParsableAstNode : ru.TypeTag](source: Either[String, SourceFile], resolveBody: Boolean, reporter: Reporter): Either[T, JawaParserException] = {
       val tokens = JawaLexer.tokenise(source, reporter)
-      val res = parse(tokens, resolveBody, reporter)
-      if(res.isEmpty) println(source)
-      res
+      parse(tokens, resolveBody, reporter)
   }
   
-  def parse[T <: ParsableAstNode : ru.TypeTag](tokens: IList[Token], resolveBody: Boolean, reporter: Reporter): Option[T] = {
+  def parse[T <: ParsableAstNode : ru.TypeTag](tokens: IList[Token], resolveBody: Boolean, reporter: Reporter): Either[T, JawaParserException] = {
     val parser = new JawaParser(tokens.toArray, reporter)
     try{
       val pasable: T =
@@ -917,12 +920,11 @@ object JawaParser {
             case t if t=:= LOCATION_TYPE =>
               parser.location
         }).asInstanceOf[T]
-      Some(pasable)
+      Left(pasable)
     } catch {
       case e: JawaParserException =>
         reporter.error(e.pos, e.message)
-//        e.printStackTrace()
-        None
+        Right(e)
     }
   }
 }

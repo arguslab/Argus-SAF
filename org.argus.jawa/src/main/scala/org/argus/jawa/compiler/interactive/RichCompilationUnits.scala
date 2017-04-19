@@ -10,36 +10,24 @@
 
 package org.argus.jawa.compiler.interactive
 
+import java.util.concurrent.ConcurrentLinkedQueue
+
 import org.argus.jawa.compiler.parser.CompilationUnit
 import org.argus.jawa.core.Problem
 import org.argus.jawa.core.io.AbstractFile
-import org.sireum.util._
-
-import scala.collection.mutable
+import org.argus.jawa.core.util._
 
 trait RichCompilationUnits { self: Global =>
-  private val unitOfFile = new mutable.LinkedHashMap[AbstractFile, RichCompilationUnit] with
-                       mutable.SynchronizedMap[AbstractFile, RichCompilationUnit] {
-    override def put(key: AbstractFile, value: RichCompilationUnit): Option[RichCompilationUnit] = {
-      val r = super.put(key, value)
-      r
-    }
-    override def remove(key: AbstractFile): Option[RichCompilationUnit] = {
-      val r = super.remove(key)
-      r
-    }
-  }
+  private val unitOfFile: MMap[AbstractFile, RichCompilationUnit] = cmapEmpty
   
   /** A set containing all those files that need to be removed
    *  Units are removed by getUnit, typically once a unit is finished compiled.
    */
-  protected val toBeRemoved: MSet[AbstractFile] =
-    new mutable.HashSet[AbstractFile] with mutable.SynchronizedSet[AbstractFile]
+  protected val toBeRemoved: ConcurrentLinkedQueue[AbstractFile] = new ConcurrentLinkedQueue[AbstractFile]()
 
   /** A set containing all those files that need to be removed after a full background compiler run
    */
-  protected val toBeRemovedAfterRun: MSet[AbstractFile] =
-    new mutable.HashSet[AbstractFile] with mutable.SynchronizedSet[AbstractFile]
+  protected val toBeRemovedAfterRun: ConcurrentLinkedQueue[AbstractFile] = new ConcurrentLinkedQueue[AbstractFile]()
   
   def addCompilationUnit(file: AbstractFile, rcu: RichCompilationUnit): Option[RichCompilationUnit] = this.unitOfFile.put(file, rcu)
   def addCompilationUnits(rcus: ISeq[RichCompilationUnit]): Unit = {
@@ -48,13 +36,11 @@ trait RichCompilationUnits { self: Global =>
   def removeCompilationUnit(file: AbstractFile): Option[RichCompilationUnit] = this.unitOfFile.remove(file)
   def getCompilationUnits: IMap[AbstractFile, RichCompilationUnit] = this.unitOfFile.toMap
   def getCompilationUnit(file: AbstractFile): Option[RichCompilationUnit] ={
-    toBeRemoved.synchronized{
-      for(f <- toBeRemoved) {
-        informIDE("removed: " + file)
-        unitOfFile -= file
-      }
-      toBeRemoved.clear()
+    toBeRemoved.forEach { t =>
+      informIDE("removed: " + t)
+      unitOfFile -= t
     }
+    toBeRemoved.clear()
     this.unitOfFile.get(file)
   }
   def hasCompilationUnit(file: AbstractFile): Boolean = this.unitOfFile.contains(file)

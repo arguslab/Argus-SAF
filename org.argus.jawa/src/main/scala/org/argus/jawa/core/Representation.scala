@@ -10,7 +10,8 @@
 
 package org.argus.jawa.core
 
-import org.sireum.util._
+import org.argus.jawa.compiler.parser.MethodDeclaration
+import org.argus.jawa.core.util._
 
 
 case class MyClass(
@@ -33,8 +34,9 @@ case class MyField(accessFlag: Int, FQN: FieldFQN) {
 case class MyMethod(
             accessFlag: Int, 
             signature: Signature,
+            thisParam: Option[String],
             var params: IList[String] = ilistEmpty,
-            var body: Option[MethodBody] = None) {
+            var body: Option[MethodDeclaration] = None) {
   protected[jawa] def addParam(name: String): Unit = this.params :+= name
-  protected[jawa] def setBody(b: MethodBody): Unit = this.body = Some(b)
+  protected[jawa] def setBody(b: MethodDeclaration): Unit = this.body = Some(b)
 }

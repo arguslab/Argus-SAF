@@ -11,7 +11,7 @@ package org.argus.amandroid.core.decompile
 
 import java.io._
 
-import org.sireum.util._
+import org.argus.jawa.core.util._
 import java.net.URI
 import java.util.concurrent.TimeoutException
 

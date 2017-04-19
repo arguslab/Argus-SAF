@@ -10,56 +10,42 @@
 
 package org.argus.jawa.core
 
-import org.argus.jawa.core.util.ASTUtil
-import org.sireum.pilar.symbol.ProcedureSymbolTable
-import org.sireum.util._
-import org.sireum.pilar.ast._
+import org.argus.jawa.compiler.parser._
+import org.argus.jawa.core.util._
 
 /**
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
  */ 
 class PointsCollector {
   
-  def collectMethodPoint(ownerSig: Signature, pst: ProcedureSymbolTable): Point with Method = {
-    val methodSig = ASTUtil.getSignature(pst.procedure).get
-    
+  def collectMethodPoint(ownerSig: Signature, md: MethodDeclaration): Point with Method = {
+    val methodSig = md.signature
     val types = methodSig.getParameterTypes
     val thisTyp = methodSig.getClassType
-    
-    val accessTyp = pst.procedure.getValueAnnotation("AccessFlag") match{
-      case Some(acc) =>
-        acc match {
-          case ne: NameExp =>
-            ne.name.name
-          case _ => ""
-        }
-      case None => ""
-    }
 
     var thisPEntry: PointThisEntry = null
     var thisPExit: PointThisExit = null
     val paramPsEntry: MMap[Int, PointParamEntry] = mmapEmpty
     val paramPsExit: MMap[Int, PointParamExit] = mmapEmpty
+    md.thisParam.foreach{ t =>
+      thisPEntry = PointThisEntry(t.name, thisTyp, ownerSig)
+      thisPExit = PointThisExit(t.name, thisTyp, ownerSig)
+    }
     var j = 0 // control type traversal
-    pst.procedure.params.foreach(
-      param => {
-        if(is("this", param.annotations)){
-          thisPEntry = PointThisEntry(param.name.name, thisTyp, ownerSig)
-          thisPExit = PointThisExit(param.name.name, thisTyp, ownerSig)
-          j -= 1
-        } else if(is("object", param.annotations)){
-          paramPsEntry += (j -> PointParamEntry(param.name.name, types(j), j, ownerSig))
-          paramPsExit += (j -> PointParamExit(param.name.name, types(j), j, ownerSig))
-        }
-        j += 1
+    md.paramList.foreach { param =>
+      if (param.isObject) {
+        paramPsEntry += (j -> PointParamEntry(param.name, types(j), j, ownerSig))
+        paramPsExit += (j -> PointParamExit(param.name, types(j), j, ownerSig))
       }
-    )
+      j += 1
+    }
     
     var retP: Option[PointMethodRet] = None
     if(methodSig.isReturnObject){
       retP = Some(PointMethodRet(methodSig))
     }
-    
+
+    val accessTyp = md.accessModifier
     if(AccessFlag.isStatic(AccessFlag.getAccessFlags(accessTyp))){
       PointStaticMethod(methodSig, accessTyp, paramPsEntry.toMap, paramPsExit.toMap, retP, ownerSig)
     } else {
@@ -68,275 +54,189 @@ class PointsCollector {
     }
   }
   
-  /**
-   * Resolve native method node collect
-   */
-//  def resolveNativeMethod(pst: ProcedureSymbolTable, pMethod: PointMethod) = {
-//    val thisP = PointThis("native", pst.procedureUri)
-//    pMethod.setThisParam(thisP)
-//  }
-  
-  /**
-   * get type from annotations, if it is an object type return true else false
-   */
-  def is(typ: String, annots: ISeq[Annotation]): Boolean = {
-    annots.exists{
-      annot =>
-        annot.params.exists{
-          param =>{
-            param match {
-              case ExpAnnotationParam(_, NameExp(name)) =>
-                name.name.equals(typ)
-              case _ => false
-            }
-          }
-        }
-    }
-  }
-  
-  def points(ownerSig: Signature, pst: ProcedureSymbolTable): Set[Point] = {
+  def points(ownerSig: Signature, md: MethodDeclaration): Set[Point] = {
     val points: MSet[Point] = msetEmpty
-    var loc: ResourceUri = ""
+    var locUri: String = ""
     var locIndex = 0
 
-    val procPoint = collectMethodPoint(ownerSig, pst)
+    val procPoint = collectMethodPoint(ownerSig, md)
     points += procPoint
     
-    def getLocUri(l: LocationDecl) =
-      if (l.name.isEmpty)
-        ""
-      else
-        l.name.get.uri
-          
-    def isStaticField(name: String): Boolean = {
-      name.startsWith("@@")
-    }
-    
-    def processLHS(e: Exp, typ: Option[JawaType]): Point with Left = {
+    def processLHS(e: Expression with LHS, typ: Option[JawaType]): Point with Left = {
       e match {
-        case n: NameExp =>
-          if(isStaticField(n.name.name)){
-            val fqn = new FieldFQN(n.name.name.replace("@@", ""), typ.get)
-            PointStaticFieldL(fqn, loc, locIndex, ownerSig)
+        case ne: NameExpression =>
+          if(ne.isStatic){
+            val fqn = new FieldFQN(ne.name, typ.get)
+            PointStaticFieldL(fqn, locUri, locIndex, ownerSig)
           } else {
-            PointL(n.name.name, loc, locIndex, ownerSig)
+            PointL(ne.name, locUri, locIndex, ownerSig)
           }
-        case ie: IndexingExp =>
-          ie.exp match {
-            case n: NameExp =>
-              val dimensions = ie.indices.size
-              if(isStaticField(n.name.name)){
-                val fqn = new FieldFQN(n.name.name.replace("@@", ""), typ.get)
-                PointStaticFieldMyArrayL(fqn, dimensions, loc, locIndex, ownerSig)
-              } else {
-                PointMyArrayL(n.name.name, dimensions, loc, locIndex, ownerSig)
-              }
-            case _ => null
-          }
-        case ae: AccessExp =>
-          val baseName = ae.exp match {
-            case ne: NameExp => ne.name.name
-            case _ => ""
-          }
-          val pBase = PointBaseL(baseName, loc, locIndex, ownerSig)
-          val fqn = new FieldFQN(ae.attributeName.name, typ.get)
-          val pfl = PointFieldL(pBase, fqn, loc, locIndex, ownerSig)
+        case ie: IndexingExpression =>
+          val dimensions = ie.dimentions
+          PointMyArrayL(ie.base, dimensions, locUri, locIndex, ownerSig)
+        case ae: AccessExpression =>
+          val baseName = ae.base
+          val pBase = PointBaseL(baseName, locUri, locIndex, ownerSig)
+          val fqn = new FieldFQN(ae.fieldSym.FQN, typ.get)
+          val pfl = PointFieldL(pBase, fqn, locUri, locIndex, ownerSig)
           pBase.setFieldPoint(pfl)
           pfl
-        case _ => null
+        case cl: CallLhs =>
+          PointL(cl.lhs.varName, locUri, locIndex, ownerSig)
       }
     }
     
-    def processRHS(e: Exp, typ: Option[JawaType]): Point with Right = {
+    def processRHS(e: Expression with RHS, typ: Option[JawaType]): Point with Right = {
       e match {
-        case n: NameExp =>
-          if(n.name.name == Constants.CONST_CLASS){
-            PointClassO(new JawaType("java.lang.Class"), typ.get, loc, locIndex, ownerSig)
-          } else if (n.name.name == Constants.LENGTH) {
-            val varname: String = e.getValueAnnotation("variable") match {
-              case Some(NameExp(name)) =>
-                name.name
-              case _ => ""
-            }
-            PointLengthR(varname, loc, locIndex, ownerSig)
-          } else if (n.name.name == Constants.INSTANCEOF) {
-            val varname: String = e.getValueAnnotation("variable") match {
-              case Some(NameExp(name)) =>
-                name.name
-              case _ => ""
-            }
-            val typ: JawaType = ASTUtil.getType(e).get
-            PointInstanceOfR(varname, typ, loc, locIndex, ownerSig)
-          } else if (n.name.name.equals(Constants.EXCEPTION)) {
-            PointExceptionR(typ.get.toUnknown, loc, locIndex, ownerSig)
-          } else if(isStaticField(n.name.name)){
-            val fqn = new FieldFQN(n.name.name.replace("@@", ""), typ.get)
-            PointStaticFieldR(fqn, loc, locIndex, ownerSig)
-          } else {
-            PointR(n.name.name, loc, locIndex, ownerSig)
-          }
-        case ie: IndexingExp =>
-          val dimensions = ie.indices.size
-          ie.exp match {
-            case n: NameExp =>
-              if(isStaticField(n.name.name)){
-                val fqn = new FieldFQN(n.name.name.replace("@@", ""), typ.get)
-                PointStaticFieldMyArrayR(fqn, dimensions, loc, locIndex, ownerSig)
-              } else {
-                PointMyArrayR(n.name.name, dimensions, loc, locIndex, ownerSig)
-              }
-            case _ => null
-          }
-        case ae: AccessExp =>
-          val baseName = ae.exp match {
-            case ne: NameExp => ne.name.name
-            case _ => ""
-          }
-          val pBase = PointBaseR(baseName, loc, locIndex, ownerSig)
-          val fqn = new FieldFQN(ae.attributeName.name, typ.get)
-          val pfr = PointFieldR(pBase, fqn, loc, locIndex, ownerSig)
+        case ae: AccessExpression =>
+          val baseName = ae.base
+          val pBase = PointBaseR(baseName, locUri, locIndex, ownerSig)
+          val fqn = new FieldFQN(ae.fieldSym.FQN, typ.get)
+          val pfr = PointFieldR(pBase, fqn, locUri, locIndex, ownerSig)
           pBase.setFieldPoint(pfr)
           pfr
-        case ce: CastExp =>
-          val name = ce.exp match {
-            case ne: NameExp => ne.name.name
-            case _ => ""
+//        case be: BinaryExpression =>
+//        case cr: CallRhs =>
+        case ce: CastExpression =>
+          val name = ce.varName
+          PointCastR(ce.typ.typ, name, locUri, locIndex, ownerSig)
+//        case ce: CmpExpression =>
+        case ce: ConstClassExpression =>
+          PointClassO(new JawaType("java.lang.Class"), ce.typExp.typ, locUri, locIndex, ownerSig)
+        case _: ExceptionExpression =>
+          PointExceptionR(typ.get.toUnknown, locUri, locIndex, ownerSig)
+        case ie: IndexingExpression =>
+          val dimensions = ie.dimentions
+          PointMyArrayR(ie.base, dimensions, locUri, locIndex, ownerSig)
+        case ie: InstanceofExpression =>
+          PointInstanceOfR(ie.varSymbol.varName, ie.typExp.typ, locUri, locIndex, ownerSig)
+        case le: LengthExpression =>
+          PointLengthR(le.varSymbol.varName, locUri, locIndex, ownerSig)
+        case le: LiteralExpression =>
+          PointStringO(new JawaType("java.lang.String"), le.getString , locUri, locIndex, ownerSig)
+        case ne: NameExpression =>
+          if(ne.isStatic){
+            val fqn = new FieldFQN(ne.name, typ.get)
+            PointStaticFieldR(fqn, locUri, locIndex, ownerSig)
+          } else {
+            PointR(ne.name, locUri, locIndex, ownerSig)
           }
-          val typ = ASTUtil.getTypeFromTypeSpec(ce.typeSpec)
-          PointCastR(typ, name, loc, locIndex, ownerSig)
-        case _ => null
+        case ne: NewExpression =>
+          PointO(ne.typ, locUri, locIndex, ownerSig)
+        case _: NullExpression =>
+          PointO(JavaKnowledge.JAVA_TOPLEVEL_OBJECT_TYPE, locUri, locIndex, ownerSig)
+//        case te: TupleExpression =>
+//        case _: UnaryExpression =>
+        case _ => throw new RuntimeException("Unexpected rhs expression: " + e)
       }
     }
       
     val visitor = Visitor.build({
-      case ld: LocationDecl => 
-        loc = getLocUri(ld)
-        locIndex = ld.index
+      case l: Location =>
+        locUri = l.locationUri
+        locIndex = l.locationIndex
         true
-      case _: Transformation =>
-        true
-      case as: AssignAction =>
-        var pl: Point with Left = null
-        var pr: Point with Right = null
-        val typ: Option[JawaType] = ASTUtil.getType(as)
+      case as: AssignmentStatement =>
+        var pl: Option[Point with Left] = None
+        var pr: Option[Point with Right] = None
+        val typ = as.typOpt
         
-        as.rhs match {
-          case le: LiteralExp =>
-            if(le.typ.name.equals("STRING")){
-              pl = processLHS(as.lhs, typ)
-              pr = PointStringO(new JawaType("java.lang.String"), le.text , loc, locIndex, ownerSig)
+        as.getRhs match {
+          case ae: AccessExpression =>
+            if(as.kind == "object"){
+              pl = Some(processLHS(as.lhs, typ))
+              pr = Some(processRHS(ae, typ))
             }
-            if(le.typ.name.equals("null")) {
-              pl = processLHS(as.lhs, typ)
-              pr = PointO(JavaKnowledge.JAVA_TOPLEVEL_OBJECT_TYPE, loc, locIndex, ownerSig)
+          case _: BinaryExpression =>
+          case _: CallRhs =>
+          case ce: CastExpression =>
+            pl = Some(processLHS(as.lhs, typ))
+            pr = Some(processRHS(ce, typ))
+          case _: CmpExpression =>
+          case ce: ConstClassExpression =>
+            pl = Some(processLHS(as.lhs, typ))
+            pr = Some(processRHS(ce, typ))
+          case ee: ExceptionExpression =>
+            pl = Some(processLHS(as.lhs, typ))
+            pr = Some(processRHS(ee, typ))
+          case ie: IndexingExpression =>
+            pl = Some(processLHS(as.lhs, typ))
+            pr = Some(processRHS(ie, typ))
+          case ie: InstanceofExpression =>
+            pl = Some(processLHS(as.lhs, typ))
+            pr = Some(processRHS(ie, typ))
+          case le: LengthExpression =>
+            pl = Some(processLHS(as.lhs, typ))
+            pr = Some(processRHS(le, typ))
+          case le: LiteralExpression =>
+            if(le.isString){
+              pl = Some(processLHS(as.lhs, typ))
+              pr = Some(processRHS(le, typ))
             }
-          case n: NewExp =>
-            pl = processLHS(as.lhs, typ)
-            var name: ResourceUri = ""
-            var dimensions = 0
-            n.typeSpec match {
-              case nt: NamedTypeSpec => 
-                dimensions = n.dims.size + n.typeFragments.size
-                name = nt.name.name
-              case _ =>
+          case ne: NameExpression =>
+            if(as.kind == "object"){
+              pl = Some(processLHS(as.lhs, typ))
+              pr = Some(processRHS(ne, typ))
             }
-            pr = PointO(new JawaType(name, dimensions), loc, locIndex, ownerSig)
-          case n: NameExp =>
-            if(is("object", as.annotations)){
-              pl = processLHS(as.lhs, typ)
-              pr = processRHS(n, typ)
-            }
-          case ae: AccessExp =>
-            if(is("object", as.annotations)){
-              pl = processLHS(as.lhs, typ)
-              pr = processRHS(ae, typ)
-            }
-          case ie: IndexingExp =>
-            pl = processLHS(as.lhs, typ)
-            pr = processRHS(ie, typ)
-          case ce: CastExp =>
-            pl = processLHS(as.lhs, typ)
-            pr = processRHS(ce, typ)
-          case _ =>
+          case ne: NewExpression =>
+            pl = Some(processLHS(as.lhs, typ))
+            pr = Some(processRHS(ne, typ))
+          case ne: NullExpression =>
+            pl = Some(processLHS(as.lhs, typ))
+            pr = Some(processRHS(ne, typ))
+          case _: TupleExpression =>
+          case _: UnaryExpression =>
         }
-        if(pl != null && pr != null){
-          val assignmentPoint: PointAsmt = PointAsmt(pl, pr, loc, locIndex, ownerSig)
+        if(pl.isDefined && pr.isDefined){
+          val assignmentPoint: PointAsmt = PointAsmt(pl.get, pr.get, locUri, locIndex, ownerSig)
           points += assignmentPoint
         }
         false
-      case t: CallJump if t.jump.isEmpty =>
-        var pl: Option[PointL] = None
-        val sig = ASTUtil.getSignature(t).get
-        val invokeTyp = ASTUtil.getKind(t)
-        val retTyp = sig.getReturnType
-        
-        var recvPCall: PointRecvCall = null
-        var recvPReturn: PointRecvReturn = null
+      case cs: CallStatement =>
+        var recvPCall: Option[PointRecvCall] = None
+        var recvPReturn: Option[PointRecvReturn] = None
         val argPsCall: MMap[Int, PointArgCall] = mmapEmpty
         val argPsReturn: MMap[Int, PointArgReturn] = mmapEmpty
-
-        t.callExp.arg match {
-          case te: TupleExp =>
-            val exps = te.exps
-            var i = 0
-            exps foreach {
-              exp =>
-                require(exp.isInstanceOf[NameExp])
-                val ne = exp.asInstanceOf[NameExp]
-                if (i == 0 && !invokeTyp.contains("static")) {
-                  recvPCall = PointRecvCall(ne.name.name, i, loc, locIndex, ownerSig)
-                  recvPReturn = PointRecvReturn(ne.name.name, i, loc, locIndex, ownerSig)
-                } else {
-                  argPsCall += (i -> PointArgCall(ne.name.name, i, loc, locIndex, ownerSig))
-                  argPsReturn += (i -> PointArgReturn(ne.name.name, i, loc, locIndex, ownerSig))
-                }
-                i += 1
-            }
-          case _ =>
+        var i = 0
+        cs.recvOpt.foreach { recv =>
+          recvPCall = Some(PointRecvCall(recv, i, locUri, locIndex, ownerSig))
+          recvPReturn = Some(PointRecvReturn(recv, i, locUri, locIndex, ownerSig))
+          i += 1
+        }
+        cs.args.foreach { arg =>
+          argPsCall += (i -> PointArgCall(arg, i, locUri, locIndex, ownerSig))
+          argPsReturn += (i -> PointArgReturn(arg, i, locUri, locIndex, ownerSig))
+          i += 1
         }
         val pi: Point with Right with Invoke = 
-          if(invokeTyp.contains("static")){
-            PointStaticI(sig, invokeTyp, retTyp, argPsCall.toMap, argPsReturn.toMap, loc, locIndex, ownerSig)
+          if(cs.isStatic){
+            PointStaticI(cs.signature, cs.kind, cs.signature.getReturnType, argPsCall.toMap, argPsReturn.toMap, locUri, locIndex, ownerSig)
           } else {
-            if(recvPCall == null) throw new RuntimeException("Dynamic method invokation does not have 'recv' param.")
-            val p = PointI(sig, invokeTyp, retTyp, recvPCall, recvPReturn, argPsCall.toMap, argPsReturn.toMap, loc, locIndex, ownerSig)
-            recvPCall.setContainer(p)
-            recvPReturn.setContainer(p)
+            val p = PointI(cs.signature, cs.kind, cs.signature.getReturnType, recvPCall.get, recvPReturn.get, argPsCall.toMap, argPsReturn.toMap, locUri, locIndex, ownerSig)
+            recvPCall.get.setContainer(p)
+            recvPReturn.get.setContainer(p)
             p
           }
         argPsCall foreach {case (_, p) => p.setContainer(pi)}
         argPsReturn foreach {case (_, p) => p.setContainer(pi)}
-//        points += pi
-        require(t.lhss.size<=1)
-        if(t.lhss.size == 1){
-          pl = Some(PointL(t.lhss.head.name.name, loc, locIndex, ownerSig))
-        }
-        val callPoint: PointCall = PointCall(pl, pi, loc, locIndex, ownerSig)
+        val pl = cs.lhsOpt.map{lhs => processLHS(lhs, None)}
+        val callPoint: PointCall = PointCall(pl, pi, locUri, locIndex, ownerSig)
         points += callPoint
         false
-      case rj: ReturnJump =>
-        if(is("object", rj.annotations)){
-          rj.exp match {
-            case Some(ne) =>
-              ne match {
-                case exp: NameExp =>
-                  val p = PointRet(exp.name.name, procPoint, loc, locIndex, ownerSig)
-                  points += p
-                case _ =>
-              }
-            case None =>
-          }
+      case rj: ReturnStatement =>
+        if(rj.kind == "object"){
+          val p = PointRet(rj.varOpt.get.varName, procPoint, locUri, locIndex, ownerSig)
+          points += p
         }
         false
     }) 
     
-    val locationDecls = pst.locations
+    val locationDecls = md.resolvedBody.locations
     val size = locationDecls.size
     for (i <- 0 until size) {
       val l = locationDecls(i)
       visitor(l)
     }
-//    println("points---> " + points)
     points.toSet
   }
 }
@@ -344,154 +244,154 @@ class PointsCollector {
 /**
  * Set of program points corresponding to assignment expression. 
  */
-final case class PointAsmt(lhs: Point with Left, rhs: Point with Right, loc: ResourceUri, locIndex: Int, ownerSig: Signature) extends Point with Loc
+final case class PointAsmt(lhs: Point with Left, rhs: Point with Right, locUri: String, locIndex: Int, ownerSig: Signature) extends Point with Loc
 
 /**
  * Set of program points corresponding to call expression
  */
-final case class PointCall(lhsOpt: Option[Point with Left], rhs: Point with Right with Invoke, loc: ResourceUri, locIndex: Int, ownerSig: Signature) extends Point with Loc
+final case class PointCall(lhsOpt: Option[Point with Left], rhs: Point with Right with Invoke, locUri: String, locIndex: Int, ownerSig: Signature) extends Point with Loc
 
 /**
  * Set of program points corresponding to object creating expressions. 
  * An object creating program point abstracts all the objects created
  * at that particular program point.
  */
-final case class PointO(obj: JawaType, loc: ResourceUri, locIndex: Int, ownerSig: Signature) extends Point with Loc with Right with NewObj
+final case class PointO(obj: JawaType, locUri: String, locIndex: Int, ownerSig: Signature) extends Point with Loc with Right with NewObj
 
 /**
  * Set of program points corresponding to array object creating expressions. 
  * An array object creating program point abstracts all the objects created
  * at that particular program point.
  */
-//final case class PointArrayO(obj: ObjectType, loc: ResourceUri, locIndex: Int, ownerSig: Signature) extends Point with Loc with Right with NewObj with Array
+//final case class PointArrayO(obj: ObjectType, locUri: String, locIndex: Int, ownerSig: Signature) extends Point with Loc with Right with NewObj with Array
 
 /**
  * Set of program points corresponding to string object creating expressions. 
  * An string object creating program point abstracts all the objects created
  * at that particular program point.
  */
-final case class PointStringO(obj: JawaType, text: String, loc: ResourceUri, locIndex: Int, ownerSig: Signature) extends Point with Loc with Right with NewObj
+final case class PointStringO(obj: JawaType, text: String, locUri: String, locIndex: Int, ownerSig: Signature) extends Point with Loc with Right with NewObj
 
 /**
  * Set of program points corresponding to l-value. 
  */
-final case class PointL(varname: String, loc: ResourceUri, locIndex: Int, ownerSig: Signature) extends Point with Loc with Left
+final case class PointL(varname: String, locUri: String, locIndex: Int, ownerSig: Signature) extends Point with Loc with Left
 
 /**
  * Set of program points corresponding to r-value. 
  */
-final case class PointR(varname: String, loc: ResourceUri, locIndex: Int, ownerSig: Signature) extends Point with Loc with Right
+final case class PointR(varname: String, locUri: String, locIndex: Int, ownerSig: Signature) extends Point with Loc with Right
 
 /**
  * Set of program points corresponding to const class value. 
  */
-final case class PointClassO(obj: JawaType, classtyp: JawaType, loc: ResourceUri, locIndex: Int, ownerSig: Signature) extends Point with Loc with Right with NewObj
+final case class PointClassO(obj: JawaType, classtyp: JawaType, locUri: String, locIndex: Int, ownerSig: Signature) extends Point with Loc with Right with NewObj
 
 /**
- * Set of program points corresponding to const class value. 
+ * Set of program points corresponding to cast.
  */
-final case class PointCastR(casttyp: JawaType, varname: String, loc: ResourceUri, locIndex: Int, ownerSig: Signature) extends Point with Loc with Right
-
-/**
- * Set of program points corresponding to length. 
- */
-final case class PointLengthR(varname: String, loc: ResourceUri, locIndex: Int, ownerSig: Signature) extends Point with Loc with Right
+final case class PointCastR(casttyp: JawaType, varname: String, locUri: String, locIndex: Int, ownerSig: Signature) extends Point with Loc with Right
 
 /**
  * Set of program points corresponding to length. 
  */
-final case class PointInstanceOfR(varname: String, typ: JawaType, loc: ResourceUri, locIndex: Int, ownerSig: Signature) extends Point with Loc with Right
+final case class PointLengthR(varname: String, locUri: String, locIndex: Int, ownerSig: Signature) extends Point with Loc with Right
 
 /**
- * Set of program points corresponding to length. 
+ * Set of program points corresponding to instanceOf.
  */
-final case class PointExceptionR(typ: JawaType, loc: ResourceUri, locIndex: Int, ownerSig: Signature) extends Point with Loc with Right
+final case class PointInstanceOfR(varname: String, typ: JawaType, locUri: String, locIndex: Int, ownerSig: Signature) extends Point with Loc with Right
+
+/**
+ * Set of program points corresponding to exception.
+ */
+final case class PointExceptionR(typ: JawaType, locUri: String, locIndex: Int, ownerSig: Signature) extends Point with Loc with Right
 
 /**
  * Set of program points corresponding to l-value field access expressions. 
  */
-final case class PointFieldL(baseP: PointBaseL, fqn: FieldFQN, loc: ResourceUri, locIndex: Int, ownerSig: Signature) extends Point with Loc with Left with Field
+final case class PointFieldL(baseP: PointBaseL, fqn: FieldFQN, locUri: String, locIndex: Int, ownerSig: Signature) extends Point with Loc with Left with Field
 
 /**
  * Set of program points corresponding to R-value field access expressions. 
  */
-final case class PointFieldR(baseP: PointBaseR, fqn: FieldFQN, loc: ResourceUri, locIndex: Int, ownerSig: Signature) extends Point with Loc with Right with Field
+final case class PointFieldR(baseP: PointBaseR, fqn: FieldFQN, locUri: String, locIndex: Int, ownerSig: Signature) extends Point with Loc with Right with Field
 
 /**
  * Set of program points corresponding to l-value array variable. 
  */
-final case class PointMyArrayL(arrayname: String, dimensions: Int, loc: ResourceUri, locIndex: Int, ownerSig: Signature) extends Point with Loc with Left with MyArray
+final case class PointMyArrayL(arrayname: String, dimensions: Int, locUri: String, locIndex: Int, ownerSig: Signature) extends Point with Loc with Left with MyArray
 
 /**
  * Set of program points corresponding to R-value array variable. 
  */
-final case class PointMyArrayR(arrayname: String, dimensions: Int, loc: ResourceUri, locIndex: Int, ownerSig: Signature) extends Point with Loc with Right with MyArray
+final case class PointMyArrayR(arrayname: String, dimensions: Int, locUri: String, locIndex: Int, ownerSig: Signature) extends Point with Loc with Right with MyArray
 
 /**
  * Set of program points corresponding to l-value static field variable. 
  */
-final case class PointStaticFieldL(staticFieldFQN: FieldFQN, loc: ResourceUri, locIndex: Int, ownerSig: Signature) extends Point with Loc with Left with Static_Field
+final case class PointStaticFieldL(staticFieldFQN: FieldFQN, locUri: String, locIndex: Int, ownerSig: Signature) extends Point with Loc with Left with Static_Field
 
 /**
  * Set of program points corresponding to R-value static field variable. 
  */
-final case class PointStaticFieldR(staticFieldFQN: FieldFQN, loc: ResourceUri, locIndex: Int, ownerSig: Signature) extends Point with Loc with Right with Static_Field
+final case class PointStaticFieldR(staticFieldFQN: FieldFQN, locUri: String, locIndex: Int, ownerSig: Signature) extends Point with Loc with Right with Static_Field
 
 /**
  * Set of program points corresponding to l-value static field array variable. 
  */
-final case class PointStaticFieldMyArrayL(staticFieldFQN: FieldFQN, dimensions: Int, loc: ResourceUri, locIndex: Int, ownerSig: Signature) extends Point with Loc with Left with Static_Field with MyArray
+final case class PointStaticFieldMyArrayL(staticFieldFQN: FieldFQN, dimensions: Int, locUri: String, locIndex: Int, ownerSig: Signature) extends Point with Loc with Left with Static_Field with MyArray
 
 /**
  * Set of program points corresponding to R-value static field array variable. 
  */
-final case class PointStaticFieldMyArrayR(staticFieldFQN: FieldFQN, dimensions: Int, loc: ResourceUri, locIndex: Int, ownerSig: Signature) extends Point with Loc with Right with Static_Field with MyArray
+final case class PointStaticFieldMyArrayR(staticFieldFQN: FieldFQN, dimensions: Int, locUri: String, locIndex: Int, ownerSig: Signature) extends Point with Loc with Right with Static_Field with MyArray
 
 /**
  * Set of program points corresponding to base part of field access expressions in the LHS. 
  */
-final case class PointBaseL(baseName: String, loc: ResourceUri, locIndex: Int, ownerSig: Signature) extends Point with Loc with Left with Base
+final case class PointBaseL(baseName: String, locUri: String, locIndex: Int, ownerSig: Signature) extends Point with Loc with Left with Base
 
 /**
  * Set of program points corresponding to base part of field access expressions in the RHS. 
  */
-final case class PointBaseR(baseName: String, loc: ResourceUri, locIndex: Int, ownerSig: Signature) extends Point with Loc with Right with Base
+final case class PointBaseR(baseName: String, locUri: String, locIndex: Int, ownerSig: Signature) extends Point with Loc with Right with Base
 
 /**
  * Set of program points corresponding to method recv variable.
  * pi represents an element in this set.
  */
-final case class PointRecvCall(argName: String, index: Int, loc: ResourceUri, locIndex: Int, ownerSig: Signature) extends Point with Loc with Right with Arg with Call
+final case class PointRecvCall(argName: String, index: Int, locUri: String, locIndex: Int, ownerSig: Signature) extends Point with Loc with Right with Arg with Call
 
 /**
  * Set of program points corresponding to method arg variable.
  * pi represents an element in this set.
  */
-final case class PointArgCall(argName: String, index: Int, loc: ResourceUri, locIndex: Int, ownerSig: Signature) extends Point with Loc with Right with Arg with Call
+final case class PointArgCall(argName: String, index: Int, locUri: String, locIndex: Int, ownerSig: Signature) extends Point with Loc with Right with Arg with Call
 
 /**
  * Set of program points corresponding to method recv variable.
  * pi represents an element in this set.
  */
-final case class PointRecvReturn(argName: String, index: Int, loc: ResourceUri, locIndex: Int, ownerSig: Signature) extends Point with Loc with Right with Arg with Return
+final case class PointRecvReturn(argName: String, index: Int, locUri: String, locIndex: Int, ownerSig: Signature) extends Point with Loc with Right with Arg with Return
 
 /**
  * Set of program points corresponding to method arg variable.
  * pi represents an element in this set.
  */
-final case class PointArgReturn(argName: String, index: Int, loc: ResourceUri, locIndex: Int, ownerSig: Signature) extends Point with Loc with Right with Arg with Return
+final case class PointArgReturn(argName: String, index: Int, locUri: String, locIndex: Int, ownerSig: Signature) extends Point with Loc with Right with Arg with Return
 
 /**
  * Set of program points corresponding to method invocation expressions.
  * pi represents an element in this set.
  */
-final case class PointI(sig: Signature, invokeTyp: String, retTyp: JawaType, recvPCall: PointRecvCall, recvPReturn: PointRecvReturn, argPsCall: IMap[Int, PointArgCall], argPsReturn: IMap[Int, PointArgReturn], loc: ResourceUri, locIndex: Int, ownerSig: Signature) extends Point with Loc with Right with Invoke with Dynamic
+final case class PointI(sig: Signature, invokeTyp: String, retTyp: JawaType, recvPCall: PointRecvCall, recvPReturn: PointRecvReturn, argPsCall: IMap[Int, PointArgCall], argPsReturn: IMap[Int, PointArgReturn], locUri: String, locIndex: Int, ownerSig: Signature) extends Point with Loc with Right with Invoke with Dynamic
 
 /**
  * Set of program points corresponding to static method invocation expressions.
  * pi represents an element in this set.
  */
-final case class PointStaticI(sig: Signature, invokeTyp: String, retTyp: JawaType, argPsCall: IMap[Int, PointArgCall], argPsReturn: IMap[Int, PointArgReturn], loc: ResourceUri, locIndex: Int, ownerSig: Signature) extends Point with Loc with Right with Invoke
+final case class PointStaticI(sig: Signature, invokeTyp: String, retTyp: JawaType, argPsCall: IMap[Int, PointArgCall], argPsReturn: IMap[Int, PointArgReturn], locUri: String, locIndex: Int, ownerSig: Signature) extends Point with Loc with Right with Invoke
 
 /**
  * Set of program points corresponding to this variable .
@@ -520,7 +420,7 @@ final case class PointParamExit(paramName: String, paramTyp: JawaType, index: In
 /**
  * Set of program points corresponding to return variable.
  */
-final case class PointRet(retname: String, procPoint: Point with Method, loc: ResourceUri, locIndex: Int, ownerSig: Signature) extends Point with Loc
+final case class PointRet(retname: String, procPoint: Point with Method, locUri: String, locIndex: Int, ownerSig: Signature) extends Point with Loc
 
 /**
  * Set of program points corresponding to return variable (fake one).
@@ -535,4 +435,4 @@ final case class PointMethod(methodSig: Signature, accessTyp: String, thisPEntry
 /**
  * Set of program points corresponding to static methods. 
  */
-final case class PointStaticMethod(methodSig: Signature, accessTyp: String, paramPsEntry: IMap[Int, PointParamEntry], paramPsExit: IMap[Int, PointParamExit], retVar: Option[PointMethodRet], ownerSig: Signature) extends Point with Method 
+final case class PointStaticMethod(methodSig: Signature, accessTyp: String, paramPsEntry: IMap[Int, PointParamEntry], paramPsExit: IMap[Int, PointParamExit], retVar: Option[PointMethodRet], ownerSig: Signature) extends Point with Method

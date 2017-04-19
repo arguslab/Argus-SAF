@@ -9,11 +9,11 @@
  */
 package org.argus.amandroid.core.appInfo
 
-import org.sireum.util._
+import org.argus.jawa.core.util._
 import java.io.FileInputStream
 import java.util.jar.JarFile
 
-import collection.JavaConversions._
+import collection.JavaConverters._
 import java.security.cert.X509Certificate
 import java.io.InputStream
 import java.security.cert.CertificateFactory
@@ -101,7 +101,7 @@ object ApkCertificateReader {
     val apkcerts: MSet[ApkCertificate] = msetEmpty
     if(ApkGlobal.isValidApk(fileUri)) {
       val jf = new JarFile(FileUtil.toFile(fileUri), true)
-      for(ent <- jf.entries()) {
+      for(ent <- jf.entries().asScala) {
         if(ent.getName.startsWith("META-INF/") && ent.getName.endsWith(".RSA")) {
           val is = jf.getInputStream(ent)
           apkcerts ++= getCertFromStream(is)
@@ -120,7 +120,7 @@ object ApkCertificateReader {
     val cf = CertificateFactory.getInstance("X509")
     try {
       val c = cf.generateCertificates(is)
-      for(cert <- c) {
+      c.forEach { cert =>
         val x509cert = cert.asInstanceOf[X509Certificate]
         val md5fp = getCertFingerPrint("MD5", cert)
         val sha1fp = getCertFingerPrint("SHA1", cert)

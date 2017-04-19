@@ -14,7 +14,7 @@ import org.argus.jawa.alir.Context
 import org.argus.jawa.alir.pta._
 import org.argus.jawa.alir.pta.reachingFactsAnalysis.{RFAFact, RFAFactFactory, ReachingFactsAnalysisHelper}
 import org.argus.jawa.core.{JawaClass, JawaMethod, JawaType}
-import org.sireum.util._
+import org.argus.jawa.core.util._
 
 /**
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
@@ -68,7 +68,7 @@ object StringModel {
     }
   }
   
-  def doStringCall(s: PTAResult, p: JawaMethod, args: List[String], retVars: Seq[String], currentContext: Context)(implicit factory: RFAFactFactory): (ISet[RFAFact], ISet[RFAFact], Boolean) = {
+  def doStringCall(s: PTAResult, p: JawaMethod, args: List[String], retVar: String, currentContext: Context)(implicit factory: RFAFactFactory): (ISet[RFAFact], ISet[RFAFact], Boolean) = {
     var newFacts = isetEmpty[RFAFact]
     var deleteFacts = isetEmpty[RFAFact]
     var byPassFlag = true
@@ -156,15 +156,13 @@ object StringModel {
         deleteFacts ++=getOldFactForThis(s, args, currentContext)
         byPassFlag = false
       case "Ljava/lang/String;.copyValueOf:([C)Ljava/lang/String;" =>
-        require(retVars.size == 1)
-        newFacts ++= getPointStringForRet(retVars.head, currentContext)
+        newFacts ++= getPointStringForRet(retVar, currentContext)
         byPassFlag = false
       case "Ljava/lang/String;.copyValueOf:([CII)Ljava/lang/String;" =>
-        require(retVars.size == 1)
-          newFacts ++= getPointStringForRet(retVars.head, currentContext)
-          byPassFlag = false
+        newFacts ++= getPointStringForRet(retVar, currentContext)
+        byPassFlag = false
       case "Ljava/lang/String;.failedBoundsCheck:(III)Ljava/lang/StringIndexOutOfBoundsException;" =>
-        ReachingFactsAnalysisHelper.getReturnFact(new JawaType("java.lang.StringIndexOutOfBoundsException"), retVars.head, currentContext) match{
+        ReachingFactsAnalysisHelper.getReturnFact(new JawaType("java.lang.StringIndexOutOfBoundsException"), retVar, currentContext) match{
           case Some(fact) => 
             newFacts += fact
           case None =>
@@ -173,15 +171,13 @@ object StringModel {
       case "Ljava/lang/String;.fastIndexOf:(II)I" =>
       case "Ljava/lang/String;.foldCase:(C)C" =>
       case "Ljava/lang/String;.format:(Ljava/lang/String;[Ljava/lang/Object;)Ljava/lang/String;" =>
-        require(retVars.size == 1)
-        newFacts ++= getPointStringForRet(retVars.head, currentContext)
+        newFacts ++= getPointStringForRet(retVar, currentContext)
         byPassFlag = false
       case "Ljava/lang/String;.format:(Ljava/util/Locale;Ljava/lang/String;[Ljava/lang/Object;)Ljava/lang/String;" =>
-        require(retVars.size == 1)
-        newFacts ++= getPointStringForRet(retVars.head, currentContext)
+        newFacts ++= getPointStringForRet(retVar, currentContext)
         byPassFlag = false
       case "Ljava/lang/String;.indexAndLength:(I)Ljava/lang/StringIndexOutOfBoundsException;" =>
-        ReachingFactsAnalysisHelper.getReturnFact(new JawaType("java.lang.StringIndexOutOfBoundsException"), retVars.head, currentContext) match{
+        ReachingFactsAnalysisHelper.getReturnFact(new JawaType("java.lang.StringIndexOutOfBoundsException"), retVar, currentContext) match{
           case Some(fact) => 
             newFacts += fact
           case None =>
@@ -191,31 +187,26 @@ object StringModel {
       case "Ljava/lang/String;.indexOfSupplementary:(II)I" =>
       case "Ljava/lang/String;.lastIndexOfSupplementary:(II)I" =>
       case "Ljava/lang/String;.startEndAndLength:(II)Ljava/lang/StringIndexOutOfBoundsException;" =>
-        ReachingFactsAnalysisHelper.getReturnFact(new JawaType("java.lang.StringIndexOutOfBoundsException"), retVars.head, currentContext) match{
+        ReachingFactsAnalysisHelper.getReturnFact(new JawaType("java.lang.StringIndexOutOfBoundsException"), retVar, currentContext) match{
           case Some(fact) => 
             newFacts += fact
           case None =>
         }
         byPassFlag = false
       case "Ljava/lang/String;.valueOf:(C)Ljava/lang/String;" =>
-        require(retVars.size == 1)
-        newFacts ++= getPointStringForRet(retVars.head, currentContext)
+        newFacts ++= getPointStringForRet(retVar, currentContext)
         byPassFlag = false
       case "Ljava/lang/String;.valueOf:(D)Ljava/lang/String;" =>
-        require(retVars.size == 1)
-        newFacts ++= getPointStringForRet(retVars.head, currentContext)
+        newFacts ++= getPointStringForRet(retVar, currentContext)
         byPassFlag = false
       case "Ljava/lang/String;.valueOf:(F)Ljava/lang/String;" =>
-        require(retVars.size == 1)
-        newFacts ++= getPointStringForRet(retVars.head, currentContext)
+        newFacts ++= getPointStringForRet(retVar, currentContext)
         byPassFlag = false
       case "Ljava/lang/String;.valueOf:(I)Ljava/lang/String;" =>
-        require(retVars.size == 1)
-        newFacts ++= getPointStringForRet(retVars.head, currentContext)
+        newFacts ++= getPointStringForRet(retVar, currentContext)
         byPassFlag = false
       case "Ljava/lang/String;.valueOf:(J)Ljava/lang/String;" =>
-        require(retVars.size == 1)
-        newFacts ++= getPointStringForRet(retVars.head, currentContext)
+        newFacts ++= getPointStringForRet(retVar, currentContext)
         byPassFlag = false
       case "Ljava/lang/String;.valueOf:(Ljava/lang/Object;)Ljava/lang/String;" =>
         require(args.nonEmpty)
@@ -227,21 +218,17 @@ object StringModel {
               if(ins.isInstanceOf[PTAConcreteStringInstance]) values += ins
               else values += PTAPointStringInstance(currentContext)
           }
-          require(retVars.size == 1)
-          newFacts ++= values.map{v=> new RFAFact(VarSlot(retVars.head, isBase = false, isArg = false), v)}
+          newFacts ++= values.map{v=> new RFAFact(VarSlot(retVar, isBase = false, isArg = false), v)}
         }
         byPassFlag = false
       case "Ljava/lang/String;.valueOf:(Z)Ljava/lang/String;" =>
-        require(retVars.size == 1)
-        newFacts ++= getPointStringForRet(retVars.head, currentContext)
+        newFacts ++= getPointStringForRet(retVar, currentContext)
         byPassFlag = false  
       case "Ljava/lang/String;.valueOf:([C)Ljava/lang/String;" =>
-        require(retVars.size == 1)
-        newFacts ++= getPointStringForRet(retVars.head, currentContext)
+        newFacts ++= getPointStringForRet(retVar, currentContext)
         byPassFlag = false
       case "Ljava/lang/String;.valueOf:([CII)Ljava/lang/String;" =>
-        require(retVars.size == 1)
-        newFacts ++= getPointStringForRet(retVars.head, currentContext)
+        newFacts ++= getPointStringForRet(retVar, currentContext)
         byPassFlag = false
       case "Ljava/lang/String;._getChars:(II[CI)V" =>
       case "Ljava/lang/String;.charAt:(I)C" =>
@@ -252,8 +239,7 @@ object StringModel {
       case "Ljava/lang/String;.compareTo:(Ljava/lang/String;)I" =>
       case "Ljava/lang/String;.compareToIgnoreCase:(Ljava/lang/String;)I" =>
       case "Ljava/lang/String;.concat:(Ljava/lang/String;)Ljava/lang/String;" =>
-        require(retVars.size == 1)
-        newFacts ++= getPointStringForRet(retVars.head, currentContext)
+        newFacts ++= getPointStringForRet(retVar, currentContext)
         byPassFlag = false
       case "Ljava/lang/String;.contains:(Ljava/lang/CharSequence;)Z" =>
       case "Ljava/lang/String;.contentEquals:(Ljava/lang/CharSequence;)Z" =>
@@ -272,8 +258,7 @@ object StringModel {
       case "Ljava/lang/String;.indexOf:(Ljava/lang/String;)I" =>
       case "Ljava/lang/String;.indexOf:(Ljava/lang/String;I)I" =>
       case "Ljava/lang/String;.intern:()Ljava/lang/String;" =>
-        require(retVars.size == 1)
-        newFacts ++=getFactFromThisForRet(s, args, retVars.head, currentContext)
+        newFacts ++=getFactFromThisForRet(s, args, retVar, currentContext)
         byPassFlag = false
       case "Ljava/lang/String;.isEmpty:()Z" =>
       case "Ljava/lang/String;.lastIndexOf:(I)I" =>
@@ -286,70 +271,55 @@ object StringModel {
       case "Ljava/lang/String;.regionMatches:(ILjava/lang/String;II)Z" =>
       case "Ljava/lang/String;.regionMatches:(ZILjava/lang/String;II)Z" =>
       case "Ljava/lang/String;.replace:(CC)Ljava/lang/String;" =>
-        require(retVars.size == 1)
-        newFacts ++= getPointStringForRet(retVars.head, currentContext)
+        newFacts ++= getPointStringForRet(retVar, currentContext)
         byPassFlag = false
       case "Ljava/lang/String;.replace:(Ljava/lang/CharSequence;Ljava/lang/CharSequence;)Ljava/lang/String;" =>
-        require(retVars.size == 1)
-        newFacts ++= getPointStringForRet(retVars.head, currentContext)
+        newFacts ++= getPointStringForRet(retVar, currentContext)
         byPassFlag = false
       /*TODO: */
       case "Ljava/lang/String;.replaceAll:(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;" =>
-        require(retVars.size == 1)
-        newFacts ++= getPointStringForRet(retVars.head, currentContext)
+        newFacts ++= getPointStringForRet(retVar, currentContext)
         byPassFlag = false
       case "Ljava/lang/String;.replaceFirst:(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;" =>
-        require(retVars.size == 1)
-        newFacts ++= getPointStringForRet(retVars.head, currentContext)
+        newFacts ++= getPointStringForRet(retVar, currentContext)
         byPassFlag = false
       case "Ljava/lang/String;.split:(Ljava/lang/String;)[Ljava/lang/String;" =>
-        require(retVars.size == 1)
-        newFacts ++= getPointStringForRet(retVars.head, currentContext)
+        newFacts ++= getPointStringForRet(retVar, currentContext)
         byPassFlag = false
       case "Ljava/lang/String;.split:(Ljava/lang/String;I)[Ljava/lang/String;" =>
-        require(retVars.size == 1)
-          newFacts ++= getPointStringForRet(retVars.head, currentContext)
+          newFacts ++= getPointStringForRet(retVar, currentContext)
       case "Ljava/lang/String;.startsWith:(Ljava/lang/String;)Z" =>
       case "Ljava/lang/String;.startsWith:(Ljava/lang/String;I)Z" =>
       case "Ljava/lang/String;.subSequence:(II)Ljava/lang/CharSequence;" =>
-        require(retVars.size == 1)
-        newFacts ++= getPointStringForRet(retVars.head, currentContext)
+        newFacts ++= getPointStringForRet(retVar, currentContext)
         byPassFlag = false
       case "Ljava/lang/String;.substring:(I)Ljava/lang/String;" =>
-        require(retVars.size == 1)
-        newFacts ++= getPointStringForRet(retVars.head, currentContext)
+        newFacts ++= getPointStringForRet(retVar, currentContext)
         byPassFlag = false
       case "Ljava/lang/String;.substring:(II)Ljava/lang/String;" =>
-        require(retVars.size == 1)
-        newFacts ++= getPointStringForRet(retVars.head, currentContext)
+        newFacts ++= getPointStringForRet(retVar, currentContext)
         byPassFlag = false
       case "Ljava/lang/String;.toCharArray:()[C" =>
         /*TODO:*/
       case "Ljava/lang/String;.toLowerCase:()Ljava/lang/String;" =>
-        require(retVars.size == 1)
-        newFacts ++=getFactFromThisForRet(s, args, retVars.head, currentContext)
+        newFacts ++=getFactFromThisForRet(s, args, retVar, currentContext)
         byPassFlag = false
       case "Ljava/lang/String;.toLowerCase:(Ljava/util/Locale;)Ljava/lang/String;" =>
-        require(retVars.size == 1)
-        newFacts ++=getFactFromThisForRet(s, args, retVars.head, currentContext)
+        newFacts ++=getFactFromThisForRet(s, args, retVar, currentContext)
         byPassFlag = false
       case "Ljava/lang/String;.toString:()Ljava/lang/String;" =>
-        require(retVars.size == 1)
-        newFacts ++=getFactFromThisForRet(s, args, retVars.head, currentContext)
+        newFacts ++=getFactFromThisForRet(s, args, retVar, currentContext)
         byPassFlag = false
         /*TODO:*/
       case "Ljava/lang/String;.toUpperCase:()Ljava/lang/String;" =>
-        require(retVars.size == 1)
-        newFacts ++=getFactFromThisForRet(s, args, retVars.head, currentContext)
+        newFacts ++=getFactFromThisForRet(s, args, retVar, currentContext)
         byPassFlag = false
       case "Ljava/lang/String;.toUpperCase:(Ljava/util/Locale;)Ljava/lang/String;" =>
-        require(retVars.size == 1)
-        newFacts ++=getFactFromThisForRet(s, args, retVars.head, currentContext)
+        newFacts ++=getFactFromThisForRet(s, args, retVar, currentContext)
         byPassFlag = false
         /*TODO:*/
       case "Ljava/lang/String;.trim:()Ljava/lang/String;" =>
-        require(retVars.size == 1)
-        newFacts ++=getFactFromThisForRet(s, args, retVars.head, currentContext)
+        newFacts ++=getFactFromThisForRet(s, args, retVar, currentContext)
         byPassFlag = false
       case _ =>
     }

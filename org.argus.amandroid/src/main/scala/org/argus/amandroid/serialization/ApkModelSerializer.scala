@@ -10,7 +10,7 @@
 
 package org.argus.amandroid.serialization
 
-import org.sireum.util._
+import org.argus.jawa.core.util._
 
 import org.argus.amandroid.core.model.ApkModel
 import org.argus.amandroid.core.appInfo.ApkCertificate

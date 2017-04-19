@@ -17,7 +17,7 @@ import org.argus.jawa.alir.controlFlowGraph._
 import org.argus.jawa.alir.interprocedural.Callee
 import org.argus.jawa.core.util.WorklistAlgorithm
 import org.argus.jawa.core.{JawaType, Signature}
-import org.sireum.util._
+import org.argus.jawa.core.util._
 
 class CallGraph {
   /**
@@ -40,10 +40,10 @@ class CallGraph {
       override def processElement(e: Signature): Unit = {
         if(result.contains(e)) return
         result += e
-        worklist.pushAll(callMap.getOrElse(e, msetEmpty))
+        worklist = callMap.getOrElse(e, msetEmpty) ++: worklist
       }
     }
-    worklistAlgorithm.run(worklistAlgorithm.worklist.pushAll(procs))
+    worklistAlgorithm.run(worklistAlgorithm.worklist = procs.toList)
     result.toSet
   }
   
@@ -101,7 +101,7 @@ class CallGraph {
     scg.shutdown()
   }
   
-  def storeDetailedCallGraph(header: String, icfg: InterproceduralControlFlowGraph[ICFGNode], outpath: String, format: String): Unit = {
+  def storeDetailedCallGraph(header: String, icfg: InterProceduralControlFlowGraph[ICFGNode], outpath: String, format: String): Unit = {
     val fm = format match {
       case "GraphML" => TinkerGraph.FileType.GRAPHML
       case "GML" => TinkerGraph.FileType.GML

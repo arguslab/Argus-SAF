@@ -12,7 +12,7 @@ package org.argus.amandroid.core.util
 import org.argus.amandroid.core.appInfo.AppInfoCollector
 import org.argus.jawa.core.Global
 import org.argus.jawa.core.util.URLInString
-import org.sireum.util._
+import org.argus.jawa.core.util._
 
 object AndroidUrlCollector {
   def collectUrls(global: Global, file: FileResourceUri): ISet[String] = {

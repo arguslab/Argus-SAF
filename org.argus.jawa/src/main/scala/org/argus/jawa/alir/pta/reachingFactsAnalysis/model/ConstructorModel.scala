@@ -14,7 +14,7 @@ import org.argus.jawa.alir.Context
 import org.argus.jawa.alir.pta.PTAResult
 import org.argus.jawa.alir.pta.reachingFactsAnalysis.RFAFact
 import org.argus.jawa.core.{JawaMethod, ScopeManager}
-import org.sireum.util._
+import org.argus.jawa.core.util._
 
 object ConstructorModel {
   val TITLE = "ConstructorModel"

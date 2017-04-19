@@ -14,7 +14,7 @@ import org.argus.jawa.alir.Context
 import org.argus.jawa.alir.pta._
 import org.argus.jawa.alir.pta.reachingFactsAnalysis.{RFAFact, RFAFactFactory}
 import org.argus.jawa.core.{JavaKnowledge, JawaClass, JawaMethod}
-import org.sireum.util._
+import org.argus.jawa.core.util._
 
 /**
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
@@ -23,7 +23,7 @@ object ClassModel {
   val TITLE = "ClassModel"
 	def isClass(r: JawaClass): Boolean = r.getName.equals("java.lang.Class")
 	  
-	def doClassCall(s: PTAResult, p: JawaMethod, args: List[String], retVars: Seq[String], currentContext: Context)(implicit factory: RFAFactFactory): (ISet[RFAFact], ISet[RFAFact], Boolean) = {
+	def doClassCall(s: PTAResult, p: JawaMethod, args: List[String], retVar: String, currentContext: Context)(implicit factory: RFAFactFactory): (ISet[RFAFact], ISet[RFAFact], Boolean) = {
 	  var newFacts = isetEmpty[RFAFact]
 	  var delFacts = isetEmpty[RFAFact]
 	  var byPassFlag = true
@@ -31,25 +31,20 @@ object ClassModel {
 	    case "Ljava/lang/Class;.<init>:()V" =>  //private constructor
 		  case "Ljava/lang/Class;.arraycopy:([Ljava/lang/Object;[Ljava/lang/Object;[Ljava/lang/Object;)[Ljava/lang/Object;" =>  //private static
 		  case "Ljava/lang/Class;.asSubclass:(Ljava/lang/Class;)Ljava/lang/Class;" =>  //public
-		    require(retVars.size == 1)
-		    classAsSubClass(s, args, retVars.head, currentContext) match{case (n, d) => newFacts ++= n; delFacts ++= d}
+		    classAsSubClass(s, args, retVar, currentContext) match{case (n, d) => newFacts ++= n; delFacts ++= d}
 		    byPassFlag = false
 		  case "Ljava/lang/Class;.cast:(Ljava/lang/Object;)Ljava/lang/Object;" =>  //public
-		    require(retVars.size == 1)
-		    classAsSubClass(s, args, retVars.head, currentContext) match{case (n, d) => newFacts ++= n; delFacts ++= d}
+		    classAsSubClass(s, args, retVar, currentContext) match{case (n, d) => newFacts ++= n; delFacts ++= d}
 		    byPassFlag = false
 		  case "Ljava/lang/Class;.classForName:(Ljava/lang/String;ZLjava/lang/ClassLoader;)Ljava/lang/Class;" =>  //private static native
-		    require(retVars.size == 1)
-		    classForName(s, args, retVars.head, currentContext) match{case (n, d) => newFacts ++= n; delFacts ++= d}
+		    classForName(s, args, retVar, currentContext) match{case (n, d) => newFacts ++= n; delFacts ++= d}
 		    byPassFlag = false
 		  case "Ljava/lang/Class;.desiredAssertionStatus:()Z" =>  //public native
 		  case "Ljava/lang/Class;.forName:(Ljava/lang/String;)Ljava/lang/Class;" =>  //public static
-		    require(retVars.size == 1)
-		    classForName(s, args, retVars.head, currentContext) match{case (n, d) => newFacts ++= n; delFacts ++= d}
+		    classForName(s, args, retVar, currentContext) match{case (n, d) => newFacts ++= n; delFacts ++= d}
 		    byPassFlag = false
 		  case "Ljava/lang/Class;.forName:(Ljava/lang/String;ZLjava/lang/ClassLoader;)Ljava/lang/Class;" =>  //public static
-		    require(retVars.size == 1)
-		    classForName(s, args, retVars.head, currentContext) match{case (n, d) => newFacts ++= n; delFacts ++= d}
+		    classForName(s, args, retVar, currentContext) match{case (n, d) => newFacts ++= n; delFacts ++= d}
 		    byPassFlag = false
 		  case "Ljava/lang/Class;.getAnnotation:(Ljava/lang/Class;)Ljava/lang/annotation/Annotation;" =>  //public
 		  case "Ljava/lang/Class;.getAnnotations:()[Ljava/lang/annotation/Annotation;" =>  //public
@@ -94,12 +89,10 @@ object ClassModel {
 		  case "Ljava/lang/Class;.getModifiers:()I" =>  //public
 		  case "Ljava/lang/Class;.getModifiers:(Ljava/lang/Class;Z)I" =>  //private static native
 		  case "Ljava/lang/Class;.getName:()Ljava/lang/String;" =>  //public
-		    require(retVars.size == 1)
-		    classGetName(s, args, retVars.head, currentContext) match{case (n, d) => newFacts ++= n; delFacts ++= d}
+		    classGetName(s, args, retVar, currentContext) match{case (n, d) => newFacts ++= n; delFacts ++= d}
 		    byPassFlag = false
 		  case "Ljava/lang/Class;.getNameNative:()Ljava/lang/String;" =>  //private native
-		    require(retVars.size == 1)
-		    classGetName(s, args, retVars.head, currentContext) match{case (n, d) => newFacts ++= n; delFacts ++= d}
+		    classGetName(s, args, retVar, currentContext) match{case (n, d) => newFacts ++= n; delFacts ++= d}
 		    byPassFlag = false
 		  case "Ljava/lang/Class;.getPackage:()Ljava/lang/Package;" =>  //public
 		  case "Ljava/lang/Class;.getProtectionDomain:()Ljava/security/ProtectionDomain;" =>  //public
@@ -129,8 +122,7 @@ object ClassModel {
 		  case "Ljava/lang/Class;.isPrimitive:()Z" =>  //public native
 		  case "Ljava/lang/Class;.isSynthetic:()Z" =>  //public
 		  case "Ljava/lang/Class;.newInstance:()Ljava/lang/Object;" =>  //public
-        require(retVars.size == 1)
-        classNewInstance(s, args, retVars.head, currentContext) match{case (n, d) => newFacts ++= n; delFacts ++= d}
+        classNewInstance(s, args, retVar, currentContext) match{case (n, d) => newFacts ++= n; delFacts ++= d}
         byPassFlag = false
 		  case "Ljava/lang/Class;.newInstanceImpl:()Ljava/lang/Object;" =>  //private native
 		  case "Ljava/lang/Class;.toString:()Ljava/lang/String;" =>  //public
@@ -182,10 +174,10 @@ object ClassModel {
     var newfacts = isetEmpty[RFAFact]
     val delfacts = isetEmpty[RFAFact]
     clazzNameValue.foreach {
-			case cstr@PTAConcreteStringInstance(text, c) =>
+			case _@PTAConcreteStringInstance(text, _) =>
 				val classType = JavaKnowledge.getTypeFromJawaName(text)
 				newfacts += new RFAFact(VarSlot(retVar, isBase = false, isArg = false), ClassInstance(classType, currentContext))
-			case pstr@PTAPointStringInstance(c) =>
+			case _@PTAPointStringInstance(_) =>
 			//            System.err.println(TITLE, "Get class use point string: " + pstr)
 			case _ =>
 			//            System.err.println(TITLE, "Get class use unknown instance: " + cIns)
@@ -200,7 +192,7 @@ object ClassModel {
     var newfacts = isetEmpty[RFAFact]
     val delfacts = isetEmpty[RFAFact]
     classValue.foreach {
-			case ci@ClassInstance(typ, c) =>
+			case _@ClassInstance(typ, _) =>
 				newfacts += new RFAFact(VarSlot(retVar, isBase = false, isArg = false), PTAInstance(typ, currentContext, isNull_ = false))
 			case _ =>
 		}

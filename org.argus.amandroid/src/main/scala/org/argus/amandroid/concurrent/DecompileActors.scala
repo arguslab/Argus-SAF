@@ -13,8 +13,8 @@ package org.argus.amandroid.concurrent
 import akka.actor._
 import org.argus.amandroid.core.decompile.{ApkDecompiler, DecompileLayout, DecompilerSettings}
 import org.argus.amandroid.core.{ApkGlobal, InvalidApk}
-import org.argus.jawa.core.util.MyFileUtil
-import org.sireum.util._
+import org.argus.jawa.core.util.FileUtil
+import org.argus.jawa.core.util._
 
 /**
  * This is an actor for managing the whole decompile process.
@@ -45,8 +45,8 @@ class DecompilerActor extends Actor with ActorLogging {
         res match {
           case _: DecompileFailResult =>
             val dirName = try{apkFile.getName.substring(0, apkFile.getName.lastIndexOf("."))} catch {case _: Exception => apkFile.getName}
-            val outDir = FileUtil.toFile(MyFileUtil.appendFileName(ddata.outputUri, dirName))
-            MyFileUtil.deleteDir(outDir)
+            val outDir = FileUtil.toFile(FileUtil.appendFileName(ddata.outputUri, dirName))
+            FileUtil.deleteDir(outDir)
           case _ =>
         }
         res

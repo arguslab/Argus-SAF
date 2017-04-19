@@ -57,6 +57,7 @@ class WhitespaceAndCommentsGrouper(lexer: JawaLexer) extends Iterator[Token] {
     case MULTILINE_COMMENT => MultiLineComment(token)
     case DOC_COMMENT => DocComment(token)
     case WS => Whitespace(token)
+    case _ => throw new JawaLexerException(token.pos, "Unexpected HiddenToken: " + token)
   }
 
 }

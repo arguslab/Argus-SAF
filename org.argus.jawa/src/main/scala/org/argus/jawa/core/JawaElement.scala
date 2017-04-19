@@ -10,7 +10,7 @@
 
 package org.argus.jawa.core
 
-import org.sireum.util._
+import org.argus.jawa.core.util._
 
 trait JawaElement extends PropertyProvider {
   

@@ -175,8 +175,8 @@ sealed abstract class PathFinder
   * time of calling.  If the filesystem changes, two calls to this method might be different.*/
   final def get: Seq[File] =
   {
-      import collection.JavaConversions._
-    val pathSet: mutable.Set[File] = new java.util.LinkedHashSet[File]
+      import collection.JavaConverters._
+    val pathSet: mutable.Set[File] = new java.util.LinkedHashSet[File].asScala
     addTo(pathSet)
     pathSet.toSeq
   }

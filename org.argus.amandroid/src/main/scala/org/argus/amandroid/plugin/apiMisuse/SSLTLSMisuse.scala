@@ -13,7 +13,7 @@ package org.argus.amandroid.plugin.apiMisuse
 import org.argus.amandroid.plugin.{ApiMisuseChecker, ApiMisuseResult}
 import org.argus.jawa.alir.dataFlowAnalysis.InterproceduralDataFlowGraph
 import org.argus.jawa.core.Global
-import org.sireum.util._
+import org.argus.jawa.core.util._
 
 /*
  * @author <a href="mailto:i@flanker017.me">Qidan He</a>

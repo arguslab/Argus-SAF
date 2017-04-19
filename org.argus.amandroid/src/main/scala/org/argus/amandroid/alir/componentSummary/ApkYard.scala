@@ -10,8 +10,7 @@
 
 package org.argus.amandroid.alir.componentSummary
 
-import org.sireum.util._
-import org.sireum.alir.AlirEdge
+import org.argus.jawa.core.util._
 import java.io.File
 
 import org.argus.amandroid.core.ApkGlobal
@@ -19,7 +18,7 @@ import org.argus.amandroid.core.appInfo.AppInfoCollector
 import org.argus.amandroid.core.decompile.{ApkDecompiler, DecompilerSettings}
 import org.argus.amandroid.core.model.ApkModel
 import org.argus.amandroid.core.util.AndroidLibraryAPISummary
-import org.argus.jawa.alir.interprocedural.InterproceduralNode
+import org.argus.jawa.alir.{AlirEdge, InterProceduralNode}
 import org.argus.jawa.alir.taintAnalysis.TaintAnalysisResult
 import org.argus.jawa.core.{Constants, Reporter}
 
@@ -52,9 +51,9 @@ class ApkYard(val reporter: Reporter) {
   
 
   private var interAppTaintResult: Option[Any] = None
-  def setInterAppTaintAnalysisResult[N <: InterproceduralNode, E <: AlirEdge[N]](tar: TaintAnalysisResult[N, E]): Unit = this.synchronized(this.interAppTaintResult = Option(tar))
+  def setInterAppTaintAnalysisResult[N <: InterProceduralNode, E <: AlirEdge[N]](tar: TaintAnalysisResult[N, E]): Unit = this.synchronized(this.interAppTaintResult = Option(tar))
   def hasInterAppTaintAnalysisResult: Boolean = interAppTaintResult.isDefined
-  def getInterAppTaintAnalysisResult[N <: InterproceduralNode, E <: AlirEdge[N]]: Option[TaintAnalysisResult[N, E]] = this.interAppTaintResult.map(_.asInstanceOf[TaintAnalysisResult[N, E]])
+  def getInterAppTaintAnalysisResult[N <: InterProceduralNode, E <: AlirEdge[N]]: Option[TaintAnalysisResult[N, E]] = this.interAppTaintResult.map(_.asInstanceOf[TaintAnalysisResult[N, E]])
   
   def reset(): Unit = {
     this.apks.clear()

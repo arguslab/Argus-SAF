@@ -10,10 +10,10 @@
 
 package org.argus.jawa.core.sourcefile
 
+import org.argus.jawa.compiler.parser.CompilationUnit
 import org.argus.jawa.core.io.SourceFile
 import org.argus.jawa.core._
-import org.sireum.pilar.symbol.SymbolTable
-import org.sireum.util._
+import org.argus.jawa.core.util._
 
 
 /**
@@ -21,21 +21,16 @@ import org.sireum.util._
  */
 object SourcefileParser {
   final val TITLE = "SourcefileParser"
-  final val debug = false
-  def parse(file: SourceFile, level: ResolveLevel.Value, reporter: Reporter): IMap[JawaType, MyClass] = {
-    parse(file.code, level, reporter)
+  final val debug = true
+  def parse(file: SourceFile, reporter: Reporter): IMap[JawaType, MyClass] = {
+    parse(file.code, reporter)
   }
-  def parse(str: String, level: ResolveLevel.Value, reporter: Reporter): IMap[JawaType, MyClass] = {
-    var code = str
-    if(level < ResolveLevel.BODY) {
-      code = LightWeightPilarParser.getEmptyBodyCode(code)
-    }
-    val v = new MySTVisitor
+  def parse(code: String, reporter: Reporter): IMap[JawaType, MyClass] = {
+    val v = new MyCUVisitor
     try {
-      val st: SymbolTable = JawaResolver.getSymbolResolveResult(Set(code.replaceAllLiterally("#. ", "# ")))
-      v.resolveFromST(st, level)
+      val cu: CompilationUnit = JawaResolver.parseClass(code.replaceAllLiterally("#. ", "# "), reporter)
+      v.resolve(cu)
     } catch {
-      case ie: InterruptedException => throw ie
       case e: Exception =>
         reporter.error(TITLE, e.getMessage)
         reporter.error(TITLE, code)

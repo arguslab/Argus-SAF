@@ -15,7 +15,7 @@ import org.argus.jawa.core.Signature
 import org.json4s._
 import org.json4s.JsonDSL._
 import org.json4s.native.JsonMethods._
-import org.sireum.util.{FileResourceUri, IList}
+import org.argus.jawa.core.util.{FileResourceUri, IList}
 
 object ContextSerializer extends CustomSerializer[Context](format => (
     {

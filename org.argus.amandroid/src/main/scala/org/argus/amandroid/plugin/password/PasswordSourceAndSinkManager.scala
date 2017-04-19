@@ -17,7 +17,7 @@ import org.argus.amandroid.core.{AndroidConstants, ApkGlobal}
 import org.argus.jawa.alir.controlFlowGraph.{ICFGInvokeNode, ICFGNode}
 import org.argus.jawa.alir.pta.{PTAResult, VarSlot}
 import org.argus.jawa.alir.util.ExplicitValueFinder
-import org.sireum.pilar.ast.JumpLocation
+import org.argus.jawa.compiler.parser.{CallStatement, Location}
 import org.argus.jawa.core._
 
 /**
@@ -27,10 +27,11 @@ import org.argus.jawa.core._
 class PasswordSourceAndSinkManager(sasFilePath: String) extends AndroidSourceAndSinkManager(sasFilePath){
   private final val TITLE = "PasswordSourceAndSinkManager"
   
-  override def isUISource(apk: ApkGlobal, calleeSig: Signature, callerSig: Signature, callerLoc: JumpLocation): Boolean = {
+  override def isUISource(apk: ApkGlobal, calleeSig: Signature, callerSig: Signature, callerLoc: Location): Boolean = {
     if(calleeSig.signature == AndroidConstants.ACTIVITY_FINDVIEWBYID || calleeSig.signature == AndroidConstants.VIEW_FINDVIEWBYID){
       val callerMethod = apk.getMethod(callerSig).get
-      val nums = ExplicitValueFinder.findExplicitIntValueForArgs(callerMethod, callerLoc, 1)
+      val cs = callerLoc.statement.asInstanceOf[CallStatement]
+      val nums = ExplicitValueFinder.findExplicitIntValueForArgs(callerMethod, cs, callerLoc, 1)
       nums.foreach{
         num =>
           apk.model.getLayoutControls.get(num) match{
@@ -51,7 +52,7 @@ class PasswordSourceAndSinkManager(sasFilePath: String) extends AndroidSourceAnd
       callee =>
         if(InterComponentCommunicationModel.isIccOperation(callee.callee)){
           sinkFlag = true
-          val args = PilarAstHelper.getCallArgs(apk.getMethod(invNode.getOwner).get.getBody, invNode.getLocIndex)
+          val args = invNode.argNames
           val intentSlot = VarSlot(args(1), isBase = false, isArg = true)
           val intentValues = ptaResult.pointsToSet(intentSlot, invNode.getContext)
           val intentContents = IntentHelper.getIntentContents(ptaResult, intentValues, invNode.getContext)

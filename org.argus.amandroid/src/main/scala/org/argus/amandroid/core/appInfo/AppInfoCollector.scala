@@ -9,7 +9,7 @@
  */
 package org.argus.amandroid.core.appInfo
 
-import org.sireum.util._
+import org.argus.jawa.core.util._
 
 import scala.util.control.Breaks._
 import java.io.FileInputStream
@@ -18,7 +18,7 @@ import org.argus.amandroid.core.{AndroidConstants, ApkGlobal}
 import org.argus.amandroid.core.parser._
 import org.argus.amandroid.core.pilarCodeGenerator.{AndroidEntryPointConstants, AndroidEnvironmentGenerator, AndroidSubstituteClassMap}
 import org.argus.jawa.core._
-import org.argus.jawa.core.util.MyFileUtil
+import org.argus.jawa.core.util.FileUtil
 
 /** 
  * adapted from Steven Arzt of the FlowDroid group
@@ -201,7 +201,7 @@ object AppInfoCollector {
   def collectInfo(apk: ApkGlobal, outUri: FileResourceUri): Unit = {
     apk.reporter.println(s"Collecting information from ${apk.model.getAppName}...")
     val certs = AppInfoCollector.readCertificates(apk.nameUri)
-    val manifestUri = MyFileUtil.appendFileName(outUri, "AndroidManifest.xml")
+    val manifestUri = FileUtil.appendFileName(outUri, "AndroidManifest.xml")
     val mfp = AppInfoCollector.analyzeManifest(apk.reporter, manifestUri)
     val afp = AppInfoCollector.analyzeARSC(apk.reporter, apk.nameUri)
     val lfp = AppInfoCollector.analyzeLayouts(apk, outUri, mfp, afp)

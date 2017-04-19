@@ -23,7 +23,7 @@ import org.argus.amandroid.plugin.{ApiMisuseChecker, ApiMisuseResult, TaintAnaly
 import org.argus.amandroid.serialization.stage.Staging
 import org.argus.jawa.alir.pta.BuildICFGFromExistingPTAResult
 import org.argus.jawa.core.{MsgLevel, PrintReporter}
-import org.sireum.util._
+import org.argus.jawa.core.util._
 
 trait SecSpec
 case class TaintAnalysisSpec(module: TaintAnalysisModules.Value) extends SecSpec

@@ -14,7 +14,7 @@ import org.argus.jawa.alir.Context
 import org.argus.jawa.alir.pta.PTAResult
 import org.argus.jawa.alir.pta.reachingFactsAnalysis.RFAFact
 import org.argus.jawa.core.{JawaClass, JawaMethod}
-import org.sireum.util._
+import org.argus.jawa.core.util._
 
 /**
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
@@ -22,7 +22,7 @@ import org.sireum.util._
  */ 
 object HandlerModel {
 	def isHandler(r: JawaClass): Boolean = r.getName.equals("android.os.Handler")
-	def doHandlerCall(s: PTAResult, p: JawaMethod, args: List[String], retVars: Seq[String], currentContext: Context): (ISet[RFAFact], ISet[RFAFact], Boolean) = {
+	def doHandlerCall(s: PTAResult, p: JawaMethod, args: List[String], retVar: String, currentContext: Context): (ISet[RFAFact], ISet[RFAFact], Boolean) = {
 	  val newFacts = isetEmpty[RFAFact]
 	  val delFacts = isetEmpty[RFAFact]
 	  val byPassFlag = true

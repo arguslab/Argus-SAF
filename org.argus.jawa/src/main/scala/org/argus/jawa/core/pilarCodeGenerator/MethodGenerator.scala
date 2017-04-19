@@ -14,7 +14,7 @@ import java.util
 
 import org.stringtemplate.v4.STGroupString
 
-import org.sireum.util._
+import org.argus.jawa.core.util._
 import org.stringtemplate.v4.ST
 
 import org.argus.jawa.core._
@@ -229,11 +229,10 @@ abstract class MethodGenerator(global: Global) {
     var paramVars: Map[Int, String] = Map()
     params.foreach{
       case(i, param) =>
-        var r = global.resolveToHierarchy(param)
-//        val outterClassOpt = if(r.isInnerClass) Some(r.getOuterClass) else None
+        var r = global.getClassOrResolve(param)
         if(!r.isConcrete){
           val substClassName = this.substituteClassMap.getOrElse(r.getType, null)
-          if(substClassName != null) r = global.resolveToHierarchy(substClassName)
+          if(substClassName != null) r = global.getClassOrResolve(substClassName)
           else if(r.isInterface) global.getClassHierarchy.getAllImplementersOf(r.getType).foreach(i => if(constructionStack.contains(i)) r = global.getClassOrResolve(i))
           else if(r.isAbstract) global.getClassHierarchy.getAllSubClassesOf(r.getType).foreach(s => if(global.getClassOrResolve(s).isConcrete && constructionStack.contains(s)) r = global.getClassOrResolve(s))
         }
@@ -320,7 +319,7 @@ abstract class MethodGenerator(global: Global) {
     var callbackClasses: Map[JawaClass, ISet[JawaMethod]] = Map()
     this.callbackFunctions(clazz.getType).foreach{
       case (pSig) => 
-        val theClass = global.resolveToHierarchy(pSig.getClassType)
+        val theClass = global.getClassOrResolve(pSig.getClassType)
         val theMethod = findMethod(theClass, pSig.getSubSignature)
         theMethod match {
           case Some(method) =>

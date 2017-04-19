@@ -22,7 +22,7 @@ object PTASlotKeySerializer extends CustomKeySerializer[PTASlot](format => (
         val jv = parse(str)
         jv match {
           case JObject(List(JField("VarSlot", v))) => Extraction.extract[VarSlot](v)
-          case JObject(List(JField("ClassSlot", v))) => Extraction.extract[ClassSlot](v)
+//          case JObject(List(JField("ClassSlot", v))) => Extraction.extract[ClassSlot](v)
           case JObject(List(JField("StaticFieldSlot", v))) => Extraction.extract[StaticFieldSlot](v)
           case JObject(List(JField("FieldSlot", v))) => Extraction.extract[FieldSlot](v)
           case JObject(List(JField("ArraySlot", v))) => Extraction.extract[ArraySlot](v)
@@ -35,8 +35,8 @@ object PTASlotKeySerializer extends CustomKeySerializer[PTASlot](format => (
         slot match {
           case s: VarSlot =>
             compact(render("VarSlot" -> Extraction.decompose(s)))
-          case s: ClassSlot =>
-            compact(render("ClassSlot" -> Extraction.decompose(s)))
+//          case s: ClassSlot =>
+//            compact(render("ClassSlot" -> Extraction.decompose(s)))
           case s: StaticFieldSlot =>
             compact(render("StaticFieldSlot" -> Extraction.decompose(s)))
           case s: FieldSlot =>

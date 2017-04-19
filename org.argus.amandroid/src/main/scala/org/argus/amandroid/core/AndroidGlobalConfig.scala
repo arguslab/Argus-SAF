@@ -13,8 +13,8 @@ import java.io._
 import java.net.URL
 import java.security.{DigestInputStream, MessageDigest}
 
-import org.argus.jawa.core.util.{MyFileUtil, ZipUtil}
-import org.sireum.util.{FileResourceUri, FileUtil}
+import org.argus.jawa.core.util.{FileUtil, ZipUtil}
+import org.argus.jawa.core.util.{FileResourceUri, FileUtil}
 
 /**
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
@@ -42,10 +42,10 @@ object AndroidGlobalConfig {
     if(!stash.exists()) stash.mkdirs()
     val stash_uri = FileUtil.toUri(stash)
     val remotec = getRemoteChecksum("amandroid.checksum")
-    val localCheckUri = MyFileUtil.appendFileName(stash_uri, "amandroid.checksum")
+    val localCheckUri = FileUtil.appendFileName(stash_uri, "amandroid.checksum")
     val localc = getLocalChecksum(localCheckUri)
     val localfile = FileUtil.toFile(FileUtil.toUri(amandroid_home))
-    val localjar = FileUtil.toFile(MyFileUtil.appendFileName(stash_uri, "amandroid.zip"))
+    val localjar = FileUtil.toFile(FileUtil.appendFileName(stash_uri, "amandroid.zip"))
     var needDownload: (Boolean, String) = (false, "")
     if(localfile.exists()) {
       remotec match {

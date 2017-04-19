@@ -9,21 +9,21 @@
  */
 package org.argus.amandroid.core.util
 
-import org.sireum.util._
+import org.argus.jawa.core.util._
 import java.io.PrintWriter
 
 import org.argus.amandroid.core.dedex.JawaDeDex
 import org.argus.amandroid.core.parser.ManifestParser
-import org.argus.jawa.core.util.MyFileUtil
+import org.argus.jawa.core.util.FileUtil
 
 /**
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
  */
 object FixResources {
   def fix(decFolder: FileResourceUri, dedex: JawaDeDex): Unit = {
-    val xml = MyFileUtil.appendFileName(decFolder, "AndroidManifest.xml")
+    val xml = FileUtil.appendFileName(decFolder, "AndroidManifest.xml")
     if(dedex.haveRenamedElements) {
-      var filestr = MyFileUtil.readFileContent(xml)
+      var filestr = FileUtil.readFileContent(xml)
       val (pkg, recs) = ManifestParser.loadPackageAndComponentNames(xml)
       val newpkg = dedex.mapPackage(pkg)
       filestr = filestr.replaceAll("\"" + pkg + "\"", "\"" + newpkg + "\"")

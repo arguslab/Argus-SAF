@@ -11,7 +11,7 @@ package org.argus.amandroid.core.parser
 
 import org.apache.commons.lang.StringEscapeUtils
 import org.argus.jawa.core.{JawaClass, JawaType}
-import org.sireum.util._
+import org.argus.jawa.core.util._
 
 /**
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>

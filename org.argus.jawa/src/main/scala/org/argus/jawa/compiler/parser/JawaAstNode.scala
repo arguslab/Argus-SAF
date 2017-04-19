@@ -15,7 +15,7 @@ import org.argus.jawa.compiler.lexer.Tokens._
 import org.argus.jawa.compiler.util.CaseClassReflector
 import org.argus.jawa.core.{DefaultReporter, JavaKnowledge, JawaType, Signature}
 import org.argus.jawa.core.io.{NoPosition, Position}
-import org.sireum.util._
+import org.argus.jawa.core.util._
 
 import scala.language.implicitConversions
 
@@ -228,7 +228,6 @@ case class FieldNameSymbol(id: Token) extends RefSymbol with FieldSym {
 case class SignatureSymbol(id: Token) extends RefSymbol with MethodSym {
   lazy val tokens: IList[Token] = flatten(id)
   def signature: Signature = new Signature(id.text)
-//  def FQMN: String = signature.FQMN
   def methodName: String = signature.methodName
 }
 
@@ -405,7 +404,11 @@ case class MethodDeclaration(
   def signature: Signature = new Signature(annotations.find { a => a.key == "signature" }.get.value)
   def thisParam: Option[Param] = paramClause.thisParam
   def param(i: Int): Param = paramClause.param(i)
-  def paramlist: IList[Param] = paramClause.paramlist
+  def paramList: IList[Param] = paramClause.paramlist
+  def resolvedBody: ResolvedBody = body match {
+    case rb: ResolvedBody => rb
+    case ub: UnresolvedBody => ub.resolve
+  }
 }
 
 case class ParamClause(
@@ -436,7 +439,10 @@ sealed trait Body extends ParsableAstNode
 
 case class UnresolvedBody(bodytokens: IList[Token]) extends Body {
   lazy val tokens: IList[Token] = flatten(bodytokens)
-  def resolve: ResolvedBody = JawaParser.parse[Body](tokens, resolveBody = true, new DefaultReporter).asInstanceOf[ResolvedBody]
+  def resolve: ResolvedBody = JawaParser.parse[Body](tokens, resolveBody = true, new DefaultReporter) match {
+    case Left(body) => body.asInstanceOf[ResolvedBody]
+    case Right(t) => throw t
+  }
 }
 
 case class ResolvedBody(
@@ -452,6 +458,8 @@ case class ResolvedBody(
         index >= cc.range.fromLocation.locationIndex && index <= cc.range.toLocation.locationIndex
     }
   }
+  def location(locUri: String): Location = locations.find(l => l.locationUri.equals(locUri)).get
+  def location(locIndex: Int): Location = locations(locIndex)
 }
 
 case class LocalVarDeclaration(
@@ -478,15 +486,42 @@ case class Location(
   def locationIndex: Int = locationSymbol.locationIndex
 }
 
+/**
+  * Statements:
+  *   Assignment
+  *   EmptyStatement
+  *   MonitorStatement
+  *   Jump
+  *   ThrowStatement
+  */
 sealed trait Statement extends JawaAstNode
+
+/**
+  * Jumps:
+  *   CallStatement
+  *   GotoStatement
+  *   IfStatement
+  *   ReturnStatement
+  *   SwitchStatement
+  */
+sealed trait Jump extends Statement
+
+/**
+  * Assignments:
+  *   AssignmentStatement
+  *   CallStatement
+  */
+sealed trait Assignment extends Statement {
+  def getLhs: Option[Expression with LHS]
+  def getRhs: Expression with RHS
+}
 
 case class CallStatement(
     callToken: Token, 
     lhsOpt: Option[CallLhs],
-    methodNameSymbol: MethodNameSymbol,
-    argClause: ArgClause,
-    annotations: IList[Annotation]) extends Statement {
-  lazy val tokens: IList[Token] = flatten(callToken, lhsOpt, methodNameSymbol, argClause, annotations)
+    rhs: CallRhs,
+    annotations: IList[Annotation]) extends Assignment with Jump {
+  lazy val tokens: IList[Token] = flatten(callToken, lhsOpt, rhs, annotations)
   //default is virtual call
   def kind: String = annotations.find { a => a.key == "kind" }.map(_.value).getOrElse("virtual")
   def signature: Signature = new Signature(annotations.find { a => a.key == "signature" }.get.value)
@@ -496,35 +531,42 @@ case class CallStatement(
   def isSuper: Boolean = kind == "super"
   def isDirect: Boolean = kind == "direct"
   def isInterface: Boolean = kind == "interface"
-  def recvVarOpt: Option[VarSymbol] = if(isStatic) None else Some(argClause.varSymbols.head._1)
-  def argVars: IList[VarSymbol] = if(isStatic) argClause.varSymbols.map(_._1) else argClause.varSymbols.tail.map(_._1)
+  def recvVarOpt: Option[VarSymbol] = if(isStatic) None else Some(rhs.argClause.varSymbols.head._1)
+  def argVars: IList[VarSymbol] = if(isStatic) rhs.argClause.varSymbols.map(_._1) else rhs.argClause.varSymbols.tail.map(_._1)
   def argVar(i: Int): VarSymbol = {
     i match {
       case n if n >= 0 && n < argVars.size => argVars(n)
       case _ => throw new IndexOutOfBoundsException("List size " + argVars.size + " but index " + i)
     }
   }
-  def recvOpt: Option[String] = if(isStatic) None else Some(argClause.arg(0))
-  def args: IList[String] = if(isStatic) argClause.varSymbols.map(_._1.id.text) else argClause.varSymbols.tail.map(_._1.id.text)
+  def recvOpt: Option[String] = if(isStatic) None else Some(rhs.argClause.arg(0))
+  def args: IList[String] = if(isStatic) rhs.argClause.varSymbols.map(_._1.id.text) else rhs.argClause.varSymbols.tail.map(_._1.id.text)
   def arg(i: Int): String = {
     i match {
       case n if n >= 0 && n < args.size => args(n)
       case _ => throw new IndexOutOfBoundsException("List size " + args.size + " but index " + i)
     }
   }
+
+  override def getLhs: Option[Expression with LHS] = lhsOpt
+  override def getRhs: Expression with RHS = rhs
 }
 
 case class CallLhs(
     lhs: VarSymbol,
-    assignOP: Token) extends JawaAstNode {
+    assignOP: Token) extends Expression with LHS {
   lazy val tokens: IList[Token] = flatten(lhs, assignOP)
 }
 
-//case class CallLhs
+case class CallRhs(
+    methodNameSymbol: MethodNameSymbol,
+    argClause: ArgClause) extends Expression with RHS {
+  lazy val tokens: IList[Token] = flatten(methodNameSymbol, argClause)
+}
 
 case class ArgClause(
     lparen: Token, 
-    varSymbols: IList[(VarSymbol, Option[Token])], 
+    varSymbols: IList[(VarSymbol, Option[Token])],
     rparen: Token) extends JawaAstNode {
   lazy val tokens: IList[Token] = flatten(lparen, varSymbols, rparen)
   def arg(i: Int): String =
@@ -538,10 +580,14 @@ case class AssignmentStatement(
     lhs: Expression with LHS,
     assignOP: Token,
     rhs: Expression with RHS,
-    annotations: IList[Annotation]) extends Statement {
+    annotations: IList[Annotation]) extends Assignment {
   lazy val tokens: IList[Token] = flatten(lhs, assignOP, rhs, annotations)
   def kind: String = annotations.find { a => a.key == "kind" }.map(_.value).getOrElse({if(rhs.isInstanceOf[NewExpression])"object" else ""})
   def typOpt: Option[JawaType] = annotations.find { a => a.key == "type" }.map(_.annotationValueOpt.get.asInstanceOf[TypeExpressionValue].typExp.typ)
+
+  override def getLhs: Option[Expression with LHS] = Some(lhs)
+
+  override def getRhs: Expression with RHS = rhs
 }
 
 case class ThrowStatement(
@@ -554,13 +600,13 @@ case class IfStatement(
     ifToken: Token,
     cond: BinaryExpression,
     thengoto: (Token, Token),
-    targetLocation: LocationSymbol) extends Statement {
+    targetLocation: LocationSymbol) extends Jump {
   lazy val tokens: IList[Token] = flatten(ifToken, cond, thengoto, targetLocation)
 }
 
 case class GotoStatement(
     goto: Token,
-    targetLocation: LocationSymbol) extends Statement {
+    targetLocation: LocationSymbol) extends Jump {
   lazy val tokens: IList[Token] = flatten(goto, targetLocation)
 }
 
@@ -568,7 +614,7 @@ case class SwitchStatement(
     switchToken: Token,
     condition: VarSymbol,
     cases: IList[SwitchCase],
-    defaultCaseOpt: Option[SwitchDefaultCase]) extends Statement {
+    defaultCaseOpt: Option[SwitchDefaultCase]) extends Jump {
   lazy val tokens: IList[Token] = flatten(switchToken, condition, cases, defaultCaseOpt)
 }
 
@@ -593,7 +639,7 @@ case class SwitchDefaultCase(
 case class ReturnStatement(
     returnToken: Token,
     varOpt: Option[VarSymbol],
-    annotations: IList[Annotation]) extends Statement {
+    annotations: IList[Annotation]) extends Jump {
   lazy val tokens: IList[Token] = flatten(returnToken, varOpt, annotations)
   def kind: String = annotations.find { a => a.key == "kind" }.map(_.value).getOrElse("")
 }
@@ -614,8 +660,32 @@ case class EmptyStatement(
 
 sealed trait Expression extends JawaAstNode
 
+/** LHS expressions:
+  *   AccessExpression
+  *   CallLhs
+  *   IndexingExpression
+  *   NameExpression
+  */
 sealed trait LHS
 
+/** LHS expressions:
+  *   AccessExpression
+  *   BinaryExpression
+  *   CallRhs
+  *   CastExpression
+  *   CmpExpression
+  *   ConstClassExpression
+  *   ExceptionExpression
+  *   IndexingExpression
+  *   InstanceofExpression
+  *   LengthExpression
+  *   LiteralExpression
+  *   NameExpression
+  *   NewExpression
+  *   NullExpression
+  *   TupleExpression
+  *   UnaryExpression
+  */
 sealed trait RHS
 
 case class NameExpression(
@@ -702,13 +772,13 @@ case class NewExpression(
     base: Either[TypeSymbol, Token],
     typeFragmentsWithInit: IList[TypeFragmentWithInit]) extends Expression with RHS {
   lazy val tokens: IList[Token] = flatten(newToken, base, typeFragmentsWithInit)
-  def dimentions: Int = typeFragmentsWithInit.size
-  def baseType: JawaType = 
+  def dimensions: Int = typeFragmentsWithInit.size
+  def baseType: JawaType =
     base match {
       case Left(ts) => ts.typ
       case Right(t) => getTypeFromName(t.text)
     }
-  def typ: JawaType = getType(baseType.baseTyp, dimentions)
+  def typ: JawaType = getType(baseType.baseTyp, dimensions)
 }
 
 case class TypeFragmentWithInit(lbracket: Token, varSymbols: IList[(VarSymbol, Option[Token])], rbracket: Token) extends JawaAstNode {
@@ -754,6 +824,8 @@ case class LiteralExpression(
         "0"
     }
   }
+  def isString: Boolean = constant.tokenType == STRING_LITERAL
+  def isInt: Boolean = constant.tokenType == INTEGER_LITERAL
   def getInt: Int = getLiteral.toInt
   def getLong: Long = getLiteral.toLong
   def getFloat: Float = getLiteral.toFloat

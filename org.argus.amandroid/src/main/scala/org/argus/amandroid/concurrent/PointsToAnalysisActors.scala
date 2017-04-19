@@ -23,7 +23,7 @@ import org.argus.jawa.alir.pta.PTAResult
 import org.argus.jawa.alir.pta.reachingFactsAnalysis.RFAFactFactory
 import org.argus.jawa.core.util.MyTimeout
 import org.argus.jawa.core.{ClassLoadManager, MsgLevel, PrintReporter, Signature}
-import org.sireum.util._
+import org.argus.jawa.core.util._
 
 import scala.concurrent.duration._
 

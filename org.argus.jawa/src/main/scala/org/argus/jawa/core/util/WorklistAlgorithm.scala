@@ -10,8 +10,6 @@
 
 package org.argus.jawa.core.util
 
-import scala.collection.mutable
-
 /**
   * Simple implementation of a worklist algorithm. A processing
   * function is applied repeatedly to the first element in the
@@ -26,7 +24,7 @@ import scala.collection.mutable
   */
 trait WorklistAlgorithm[Elem] {
 
-  val worklist: mutable.Stack[Elem] = new mutable.Stack()
+  var worklist: IList[Elem] = ilistEmpty
 
   /**
     * Run the iterative algorithm until the worklist
@@ -50,5 +48,9 @@ trait WorklistAlgorithm[Elem] {
   /**
     * Remove and return the first element to be processed from the worklist.
     */
-  def dequeue: Elem = worklist.pop()
+  def dequeue: Elem = {
+    val e = worklist.head
+    worklist = worklist.tail
+    e
+  }
 }

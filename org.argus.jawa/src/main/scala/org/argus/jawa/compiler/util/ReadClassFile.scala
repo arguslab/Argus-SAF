@@ -38,6 +38,5 @@ object ReadClassFile {
     val ccl: CustomClassLoader = new CustomClassLoader()
     val pw = new PrintWriter(System.out)
     JavaByteCodeGenerator.outputByteCodes(pw, bytecodes)
-//    println("result: " + r)
   }
 }

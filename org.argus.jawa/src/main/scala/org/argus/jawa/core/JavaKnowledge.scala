@@ -10,7 +10,7 @@
 
 package org.argus.jawa.core
 
-import org.sireum.util._
+import org.argus.jawa.core.util._
 
 trait JavaKnowledge {
   def JAVA_TOPLEVEL_OBJECT: String = "java.lang.Object"

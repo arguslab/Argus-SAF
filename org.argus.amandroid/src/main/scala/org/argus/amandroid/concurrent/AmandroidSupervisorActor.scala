@@ -10,7 +10,7 @@
 
 package org.argus.amandroid.concurrent
 
-import org.sireum.util._
+import org.argus.jawa.core.util._
 import akka.actor._
 import akka.routing.FromConfig
 

@@ -12,7 +12,7 @@ package org.argus.jawa.alir.reachability
 
 import org.argus.jawa.core._
 import org.argus.jawa.alir.util.CallHandler
-import org.sireum.util._
+import org.argus.jawa.core.util._
 
 /**
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
@@ -20,7 +20,7 @@ import org.sireum.util._
 object BackwardCallChain {
   class CallChain(val sig: Signature) {
     private val callerMap: MMap[Signature, MSet[Signature]] = mmapEmpty
-    def addCallers(callee: Signature, callers: ISet[Signature]) = {
+    def addCallers(callee: Signature, callers: ISet[Signature]): Unit = {
       callerMap.getOrElseUpdate(callee, msetEmpty) ++= callers
     }
     def getCallerMap: IMap[Signature, ISet[Signature]] = this.callerMap.map{case (k, v) => k -> v.toSet}.toMap

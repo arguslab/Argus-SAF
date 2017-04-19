@@ -10,9 +10,9 @@
 
 package org.argus.jawa.alir
 
-import org.sireum.util._
+import org.argus.jawa.core.util._
 
-import org.argus.jawa.alir.sideEffectAnalysis.InterproceduralSideEffectAnalysisResult
+import org.argus.jawa.alir.sideEffectAnalysis.InterProceduralSideEffectAnalysisResult
 import org.argus.jawa.core.Signature
 
 /**
@@ -20,8 +20,8 @@ import org.argus.jawa.core.Signature
  * @author <a href="mailto:sroy@k-state.edu">Sankardas Roy</a>
  */ 
 object LibSideEffectProvider {
-  var ipsear: InterproceduralSideEffectAnalysisResult = null
-	def init(ipsear: InterproceduralSideEffectAnalysisResult) = {
+  var ipsear: InterProceduralSideEffectAnalysisResult = null
+	def init(ipsear: InterProceduralSideEffectAnalysisResult) = {
 	  this.ipsear = ipsear
 	}
   

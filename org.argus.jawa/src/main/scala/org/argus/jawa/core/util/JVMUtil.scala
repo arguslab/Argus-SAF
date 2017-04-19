@@ -18,13 +18,13 @@ import java.text.NumberFormat
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
  */ 
 object JVMUtil {
-	def startSecondJVM[C](clazz: Class[C], jvmArgs: List[String], args: List[String], redirectStream: Boolean) = {
+	def startSecondJVM[C](clazz: Class[C], jvmArgs: List[String], args: List[String], redirectStream: Boolean): Int = {
     val separator = System.getProperty("file.separator")
     val classpath = Thread.currentThread().getContextClassLoader.asInstanceOf[URLClassLoader].getURLs.map(_.getPath()).reduce((c1, c2) => c1 + java.io.File.pathSeparator + c2)
     val path = System.getProperty("java.home") + separator + "bin" + separator + "java"
-    import scala.collection.JavaConversions._
-    val commands: java.util.List[String] = List(path) ::: jvmArgs ::: List("-cp", classpath, clazz.getCanonicalName.stripSuffix("$")) ::: args
-    val processBuilder = new ProcessBuilder(commands)
+    val commands: IList[String] = List(path) ::: jvmArgs ::: List("-cp", classpath, clazz.getCanonicalName.stripSuffix("$")) ::: args
+    import scala.collection.JavaConverters._
+    val processBuilder = new ProcessBuilder(commands.asJava)
     processBuilder.redirectErrorStream(redirectStream)
     val process = processBuilder.start()
     val is = process.getInputStream
@@ -38,7 +38,7 @@ object JVMUtil {
     process.waitFor()
   }
   
-  def showMemoryUsage() = {
+  def showMemoryUsage(): Unit = {
     val runtime = Runtime.getRuntime
     val format = NumberFormat.getInstance()
     

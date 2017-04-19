@@ -11,7 +11,7 @@
 import sbt._
 
 object ArgusVersions {
-  val scalaVersion = "2.11.8"
+  val scalaVersion = "2.12.1"
   val sbtVersion = "0.13.13"
 }
 
@@ -64,6 +64,7 @@ object DependencyGroups {
     asm_all,
     guava,
     st4,
+    antlr4_runtime,
     jgrapht_core,
     jgrapht_ext,
     blueprints_core

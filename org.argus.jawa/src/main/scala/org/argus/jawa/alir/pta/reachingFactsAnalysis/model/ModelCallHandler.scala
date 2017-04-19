@@ -14,7 +14,7 @@ import org.argus.jawa.alir.Context
 import org.argus.jawa.alir.pta.PTAResult
 import org.argus.jawa.alir.pta.reachingFactsAnalysis.{RFAFact, RFAFactFactory, ReachingFactsAnalysisHelper}
 import org.argus.jawa.core.{Global, JawaMethod}
-import org.sireum.util._
+import org.argus.jawa.core.util._
 
 /**
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
@@ -44,14 +44,14 @@ trait ModelCallHandler {
       global: Global,
       s: PTAResult,
       calleeProc: JawaMethod, 
-      args: List[String], 
-      retVars: Seq[String], 
+      args: List[String],
+      retVar: Option[String],
       currentContext: Context)(implicit factory: RFAFactFactory): (ISet[RFAFact], ISet[RFAFact]) = {
-    val hackVars = if(retVars.size != 1) retVars :+ "hack" else retVars
+    val hackVar = retVar.getOrElse("hack")
     
-    var (newFacts, delFacts, byPassFlag) = caculateResult(global, s, calleeProc, args, hackVars, currentContext)
+    var (newFacts, delFacts, byPassFlag) = caculateResult(global, s, calleeProc, args, hackVar, currentContext)
     if(byPassFlag){
-      val (newF, delF) = ReachingFactsAnalysisHelper.getUnknownObject(calleeProc, s, args, hackVars, currentContext)
+      val (newF, delF) = ReachingFactsAnalysisHelper.getUnknownObject(calleeProc, s, args, hackVar, currentContext)
       newFacts ++= newF
       delFacts ++= delF
     }
@@ -63,18 +63,18 @@ trait ModelCallHandler {
       s: PTAResult, 
       calleeProc: JawaMethod, 
       args: List[String], 
-      retVars: Seq[String], 
+      retVar: String,
       currentContext: Context)(implicit factory: RFAFactFactory): (ISet[RFAFact], ISet[RFAFact], Boolean) = {
     val r = calleeProc.getDeclaringClass
-    if(StringModel.isString(r)) StringModel.doStringCall(s, calleeProc, args, retVars, currentContext)
-    else if(StringBuilderModel.isStringBuilder(r)) StringBuilderModel.doStringBuilderCall(s, calleeProc, args, retVars, currentContext)
-    else if(ListModel.isList(r)) ListModel.doListCall(s, calleeProc, args, retVars, currentContext)
-    else if(SetModel.isSet(r)) SetModel.doSetCall(s, calleeProc, args, retVars, currentContext)
-    else if(MapModel.isMap(r)) MapModel.doMapCall(s, calleeProc, args, retVars, currentContext)
-    else if(ClassModel.isClass(r)) ClassModel.doClassCall(s, calleeProc, args, retVars, currentContext)
-    else if(ObjectModel.isObject(r)) ObjectModel.doObjectCall(s, calleeProc, args, retVars, currentContext)
-    else if(NativeCallModel.isNativeCall(calleeProc)) NativeCallModel.doNativeCall(s, calleeProc, args, retVars, currentContext)
-    else if(UnknownCallModel.isUnknownCall(calleeProc)) UnknownCallModel.doUnknownCall(s, calleeProc, args, retVars, currentContext)
+    if(StringModel.isString(r)) StringModel.doStringCall(s, calleeProc, args, retVar, currentContext)
+    else if(StringBuilderModel.isStringBuilder(r)) StringBuilderModel.doStringBuilderCall(s, calleeProc, args, retVar, currentContext)
+    else if(ListModel.isList(r)) ListModel.doListCall(s, calleeProc, args, retVar, currentContext)
+    else if(SetModel.isSet(r)) SetModel.doSetCall(s, calleeProc, args, retVar, currentContext)
+    else if(MapModel.isMap(r)) MapModel.doMapCall(s, calleeProc, args, retVar, currentContext)
+    else if(ClassModel.isClass(r)) ClassModel.doClassCall(s, calleeProc, args, retVar, currentContext)
+    else if(ObjectModel.isObject(r)) ObjectModel.doObjectCall(s, calleeProc, args, retVar, currentContext)
+    else if(NativeCallModel.isNativeCall(calleeProc)) NativeCallModel.doNativeCall(s, calleeProc, args, retVar, currentContext)
+    else if(UnknownCallModel.isUnknownCall(calleeProc)) UnknownCallModel.doUnknownCall(s, calleeProc, args, retVar, currentContext)
     else throw new RuntimeException("given callee is not a model call: " + calleeProc)
   }
 }

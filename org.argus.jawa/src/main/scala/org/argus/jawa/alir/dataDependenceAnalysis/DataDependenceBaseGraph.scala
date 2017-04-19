@@ -10,18 +10,21 @@
 
 package org.argus.jawa.alir.dataDependenceAnalysis
 
-import org.argus.jawa.alir.Context
+import org.argus.jawa.alir._
 import org.argus.jawa.alir.controlFlowGraph._
-import org.argus.jawa.alir.interprocedural.{Callee, InterproceduralGraph, InterproceduralNode}
+import org.argus.jawa.alir.interprocedural.Callee
 import org.argus.jawa.core.Signature
-import org.sireum.util._
+import org.argus.jawa.core.util._
 
 /**
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
  */
-trait DataDependenceBaseGraph[Node <: IDDGNode] extends InterproceduralGraph[Node] {
+trait DataDependenceBaseGraph[Node <: IDDGNode]
+    extends AlirGraphImpl[Node]
+    with AlirSuccPredAccesses[Node]
+    with AlirEdgeAccesses[Node] {
   def entryNode: Node
-  def icfg: InterproceduralControlFlowGraph[ICFGNode]
+  def icfg: InterProceduralControlFlowGraph[ICFGNode]
   
   def findDefSite(defSite: Context, isRet: Boolean = false): Option[Node] = {
     val icfgN = {
@@ -279,11 +282,10 @@ trait DataDependenceBaseGraph[Node <: IDDGNode] extends InterproceduralGraph[Nod
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
  * @author <a href="mailto:sroy@k-state.edu">Sankardas Roy</a>
  */ 
-sealed abstract class IDDGNode(icfgN: ICFGNode) extends InterproceduralNode(icfgN.getContext) {
+sealed abstract class IDDGNode(icfgN: ICFGNode) extends InterProceduralNode(icfgN.getContext) {
   def getICFGNode: ICFGNode = icfgN
-  def getOwner: Signature = icfgN.getOwner
+  override def getOwner: Signature = icfgN.getOwner
   def getPosition: Option[Int]
-//  def getCode: String = icfgN.getCode
   override def getContext: Context = icfgN.getContext
   override def toString: ResourceUri = icfgN.toString
 }
@@ -301,8 +303,8 @@ abstract class IDDGVirtualNode(icfgN: ICFGNode) extends IDDGNode(icfgN) {
  * @author <a href="mailto:sroy@k-state.edu">Sankardas Roy</a>
  */ 
 abstract class IDDGLocNode(icfgN: ICFGLocNode) extends IDDGNode(icfgN) {
-  def getLocUri: String = icfgN.getLocUri
-  def getLocIndex: Int = icfgN.getLocIndex
+  def getLocUri: String = icfgN.locUri
+  def getLocIndex: Int = icfgN.locIndex
   def getPosition: Option[Int] = None
 }
 

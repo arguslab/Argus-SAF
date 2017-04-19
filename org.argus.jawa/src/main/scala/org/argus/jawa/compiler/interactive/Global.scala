@@ -14,21 +14,23 @@ package org.argus.jawa.compiler.interactive
 import org.argus.jawa.compiler.parser.{CompilationUnit, JawaSymbol}
 import org.argus.jawa.core.Reporter
 import org.argus.jawa.core.io.{NoPosition, Position, SourceFile}
+import org.argus.jawa.core.{Global => JawaGlobal}
+import collection.JavaConverters._
 
 /**
  * This is the interactive compiler of Jawa.
  * 
  * @author <a href="mailto:fgwei@k-state.edu">Fengguo Wei</a>
  */
-class Global(val projectName: String, val reporter: Reporter) extends {
+class Global(projectName: String, reporter: Reporter) extends {
   /* Is the compiler initializing? Early def, so that the field is true during the
    *  execution of the super constructor.
    */
   protected var initializing = true
-} with RichCompilationUnits
+} with JawaGlobal(projectName, reporter)
+  with RichCompilationUnits
   with CompilerLifecycleManagement
-  with CompilerControl
-  with JawaResolver{
+  with CompilerControl {
   
   def logError(msg: String, t: Throwable): Unit = ()
   def inform(msg: String): Unit = ()
@@ -66,7 +68,7 @@ class Global(val projectName: String, val reporter: Reporter) extends {
         try {
           if (keepLoaded || isOutOfDate && onSameThread){
             respond(response){
-              parseCode[CompilationUnit](source, resolveBody = true).get
+              parseCompilationUnit(source).get
             }
           }
         } finally {
@@ -131,7 +133,7 @@ class Global(val projectName: String, val reporter: Reporter) extends {
    *  Calls to this method could probably be replaced by removeUnit once default parameters are handled more robustly.
    */
   private def afterRunRemoveUnitsOf(sources: List[SourceFile]) {
-    toBeRemovedAfterRun ++= sources map (_.file)
+    toBeRemovedAfterRun.addAll(sources.map (_.file).asJava)
   }
   
   private[interactive] def typeAt(pos: Position): Option[JawaSymbol] = getUnitOf(pos.source) match {
@@ -201,9 +203,9 @@ class Global(val projectName: String, val reporter: Reporter) extends {
 
   private[interactive] def reloadSource(source: SourceFile) {
     removeCompilationUnit(source.file)
-    toBeRemoved -= source.file
-    toBeRemovedAfterRun -= source.file
-    val cu = parseCode[CompilationUnit](source, resolveBody = true).get
+    toBeRemoved.remove(source.file)
+    toBeRemovedAfterRun.remove(source.file)
+    val cu = parseCompilationUnit(source).get
     addCompilationUnit(source.file, RichCompilationUnit(cu))
   }
 

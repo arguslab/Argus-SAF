@@ -17,7 +17,7 @@ import org.argus.jawa.alir.pta.PTAScopeManager
 import org.argus.jawa.core._
 import org.argus.jawa.alir.util.CallHandler
 import org.argus.jawa.core.util.MyTimeout
-import org.sireum.util._
+import org.argus.jawa.core.util._
 
 import scala.language.postfixOps
 import scala.concurrent.duration._

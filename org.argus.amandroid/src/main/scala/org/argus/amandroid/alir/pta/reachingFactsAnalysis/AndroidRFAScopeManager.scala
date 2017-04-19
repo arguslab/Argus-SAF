@@ -11,7 +11,7 @@
 package org.argus.amandroid.alir.pta.reachingFactsAnalysis
 
 import org.argus.jawa.core.{JawaClass, ScopeManager}
-import org.sireum.util._
+import org.argus.jawa.core.util._
 
 /**
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>

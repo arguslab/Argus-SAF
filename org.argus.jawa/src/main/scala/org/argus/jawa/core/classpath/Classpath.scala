@@ -100,9 +100,9 @@ object Classpath {
 
     /** Filters for assessing validity of various entities.
      */
-    def validClassFile(name: String)  = endsClass(name) && isValidName(name)
-    def validPackage(name: String)    = (name != "META-INF") && (name != "") && (name.charAt(0) != '.')
-    def validSourceFile(name: String) = endsJawaOrJava(name)
+    def validClassFile(name: String): Boolean = endsClass(name) && isValidName(name)
+    def validPackage(name: String): Boolean = (name != "META-INF") && (name != "") && (name.charAt(0) != '.')
+    def validSourceFile(name: String): Boolean = endsJawaOrJava(name)
 
     /** From the representation to its identifier.
      */
@@ -114,14 +114,15 @@ object Classpath {
   }
 
   def manifests: List[java.net.URL] = {
-    import scala.collection.convert.WrapAsScala.enumerationAsScalaIterator
+    import collection.JavaConverters._
     Thread.currentThread().getContextClassLoader
       .getResources("META-INF/MANIFEST.MF")
+      .asScala
       .filter(_.getProtocol == "jar").toList
   }
 
   class JavaContext extends ClasspathContext {
-    def toBinaryName(rep: AbstractFile) = {
+    def toBinaryName(rep: AbstractFile): String = {
       val name = rep.name
       assert(endsClass(name), name)
       FileUtils.stripClassExtension(name)
@@ -195,9 +196,9 @@ abstract class Classpath extends ClassFileLookup {
 
   /** Filters for assessing validity of various entities.
    */
-  def validClassFile(name: String)  = context.validClassFile(name)
-  def validPackage(name: String)    = context.validPackage(name)
-  def validSourceFile(name: String) = context.validSourceFile(name)
+  def validClassFile(name: String): Boolean = context.validClassFile(name)
+  def validPackage(name: String): Boolean = context.validPackage(name)
+  def validSourceFile(name: String): Boolean = context.validSourceFile(name)
 
   /**
    * Find a ClassRep given a class name of the form "package.subpackage.ClassName".
@@ -223,12 +224,12 @@ abstract class Classpath extends ClassFileLookup {
 
   override def asSourcePathString: String = sourcepaths.mkString(File.pathSeparator)
 
-  def sortString = join(split(asClasspathString).sorted: _*)
-  override def equals(that: Any) = that match {
+  def sortString: String = join(split(asClasspathString).sorted: _*)
+  override def equals(that: Any): Boolean = that match {
     case x: Classpath  => this.sortString == x.sortString
     case _                => false
   }
-  override def hashCode = sortString.hashCode()
+  override def hashCode: Int = sortString.hashCode()
 }
 
 /**
@@ -237,10 +238,10 @@ abstract class Classpath extends ClassFileLookup {
 class SourcePath[T](dir: AbstractFile, val context: ClasspathContext) extends Classpath {
   import FileUtils.AbstractFileOps
 
-  def name = dir.name
-  override def origin = dir.underlyingSource map (_.path)
-  def asURLs = dir.toURLs()
-  def asClasspathString = dir.path
+  def name: String = dir.name
+  override def origin: Option[String] = dir.underlyingSource map (_.path)
+  def asURLs: Seq[URL] = dir.toURLs()
+  def asClasspathString: String = dir.path
   val sourcepaths: IndexedSeq[AbstractFile] = IndexedSeq(dir)
 
   private def traverse() = {
@@ -256,7 +257,7 @@ class SourcePath[T](dir: AbstractFile, val context: ClasspathContext) extends Cl
   }
 
   lazy val (packages, classes) = traverse()
-  override def toString = "sourcepath: "+ dir.toString()
+  override def toString: String = "sourcepath: "+ dir.toString()
 }
 
 /**
@@ -265,10 +266,10 @@ class SourcePath[T](dir: AbstractFile, val context: ClasspathContext) extends Cl
 class DirectoryClasspath(val dir: AbstractFile, val context: ClasspathContext) extends Classpath {
   import FileUtils.AbstractFileOps
 
-  def name = dir.name
-  override def origin = dir.underlyingSource map (_.path)
-  def asURLs = dir.toURLs(default = Seq(new URL(name)))
-  def asClasspathString = dir.path
+  def name: String = dir.name
+  override def origin: Option[String] = dir.underlyingSource map (_.path)
+  def asURLs: Seq[URL] = dir.toURLs(default = Seq(new URL(name)))
+  def asClasspathString: String = dir.path
   val sourcepaths: IndexedSeq[AbstractFile] = IndexedSeq()
 
   // calculates (packages, classes) in one traversal.
@@ -298,7 +299,7 @@ class DirectoryClasspath(val dir: AbstractFile, val context: ClasspathContext) e
   }
 
   lazy val (packages, classes) = traverse()
-  override def toString = "directory classpath: "+ origin.getOrElse("?")
+  override def toString: String = "directory classpath: "+ origin.getOrElse("?")
 }
 
 class DeltaClasspath(original: MergedClasspath, subst: Map[Classpath, Classpath])
@@ -319,8 +320,8 @@ class MergedClasspath(
   def this(entries: TraversableOnce[Classpath], context: ClasspathContext) =
     this(entries.toIndexedSeq, context)
 
-  def name = entries.head.name
-  def asURLs = (entries flatMap (_.asURLs)).toList
+  def name: String = entries.head.name
+  def asURLs: List[URL] = (entries flatMap (_.asURLs)).toList
   lazy val sourcepaths: IndexedSeq[AbstractFile] = entries flatMap (_.sourcepaths)
 
   override def origin = Some(entries map (x => x.origin getOrElse x.name) mkString ("Merged(", ", ", ")"))
@@ -384,7 +385,7 @@ class MergedClasspath(
     asClasspathString split ':' foreach (x => println("  " + x))
   }
 
-  override def toString = "merged classpath "+ entries.mkString("(", "\n", ")")
+  override def toString: String = "merged classpath "+ entries.mkString("(", "\n", ")")
 }
 
 /**

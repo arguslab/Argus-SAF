@@ -14,10 +14,9 @@ import org.argus.amandroid.plugin.{ApiMisuseChecker, ApiMisuseResult}
 import org.argus.jawa.alir.controlFlowGraph.{ICFGCallNode, ICFGNode}
 import org.argus.jawa.alir.dataFlowAnalysis.InterproceduralDataFlowGraph
 import org.argus.jawa.alir.pta.{PTAConcreteStringInstance, PTAResult, VarSlot}
-import org.argus.jawa.core.util.ASTUtil
+import org.argus.jawa.compiler.parser.{AssignmentStatement, CallStatement, NameExpression}
 import org.argus.jawa.core.{Global, Signature}
-import org.sireum.pilar.ast._
-import org.sireum.util._
+import org.argus.jawa.core.util._
 
 /**
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
@@ -95,8 +94,8 @@ class CryptographicMisuse extends ApiMisuseChecker {
     nodes.foreach{
       node =>
         result += (node -> true)
-        val loc = global.getMethod(node.getOwner).get.getBody.location(node.getLocIndex)
-        val argNames: IList[String] = ASTUtil.getCallArgs(loc.asInstanceOf[JumpLocation])
+        val loc = global.getMethod(node.getOwner).get.getBody.resolvedBody.locations(node.locIndex)
+        val argNames: IList[String] = loc.statement.asInstanceOf[CallStatement].args
         require(argNames.isDefinedAt(0))
         val argSlot = VarSlot(argNames.head, isBase = false, isArg = true)
         val argValue = ptaresult.pointsToSet(argSlot, node.context)
@@ -124,24 +123,22 @@ class CryptographicMisuse extends ApiMisuseChecker {
     nodes.foreach{
       node =>
         result += (node -> None)
-        val loc = global.getMethod(node.getOwner).get.getBody.location(node.getLocIndex)
-        val argNames: IList[String] = ASTUtil.getCallArgs(loc.asInstanceOf[JumpLocation])
-        require(argNames.isDefinedAt(1))
-        val argSlot = VarSlot(argNames(1), isBase = false, isArg = true)
+        val loc = global.getMethod(node.getOwner).get.getBody.resolvedBody.locations(node.locIndex)
+        val argNames: IList[String] = loc.statement.asInstanceOf[CallStatement].args
+        require(argNames.isDefinedAt(0))
+        val argSlot = VarSlot(argNames.head, isBase = false, isArg = true)
         val argValue = ptaresult.pointsToSet(argSlot, node.context)
         argValue.foreach {
           instance =>
             if(!instance.isUnknown) result += (node -> Some("Constant IV!"))
             else {
               val defsite = instance.defSite
-              val defloc = global.getMethod(defsite.getMethodSig).get.getBody.location(defsite.getCurrentLocUri)
-              defloc match {
-                case al: ActionLocation =>
-                  al.action match {
-                    case aa: AssignAction =>
-                      if(ASTUtil.isStaticExp(aa.rhs)) {
-                        result += (node -> Some("Static IV!"))
-                      }
+              val defloc = global.getMethod(defsite.getMethodSig).get.getBody.resolvedBody.location(defsite.getCurrentLocUri)
+              defloc.statement match {
+                case al: AssignmentStatement =>
+                  al.rhs match {
+                    case ne: NameExpression =>
+                      if(ne.isStatic) result += (node -> Some("Static IV!"))
                     case _ =>
                   }
                 case _ =>

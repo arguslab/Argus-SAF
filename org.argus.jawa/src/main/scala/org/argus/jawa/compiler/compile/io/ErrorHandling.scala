@@ -14,7 +14,7 @@ import java.io.IOException
 
 object ErrorHandling
 {
-  def translate[T](msg: => String)(f: => T) =
+  def translate[T](msg: => String)(f: => T): T =
     try { f }
     catch {
       case e: IOException => throw new TranslatedIOException(msg + e.toString, e)
@@ -44,6 +44,6 @@ object ErrorHandling
       e.toString
 }
 sealed class TranslatedException private[io](msg: String, cause: Throwable) extends RuntimeException(msg, cause) {
-  override def toString = msg
+  override def toString: String = msg
 }
 final class TranslatedIOException private[io](msg: String, cause: IOException) extends TranslatedException(msg, cause)

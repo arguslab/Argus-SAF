@@ -12,7 +12,7 @@ package org.argus.jawa.core
 
 import java.io.LineNumberReader
 import java.io.StringReader
-import org.sireum.util.ISet
+import org.argus.jawa.core.util.ISet
 
 /**
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
@@ -21,41 +21,6 @@ object LightWeightPilarParser {
   val TITLE = "LightWeightPilarParser"
     
   val DEBUG = false
-  
-  def getEmptyBodyCode(recordCode: String): String = {
-    val emptyBody = 
-"""
-# return;
-  }      
-"""
-    val lnr = new LineNumberReader(new StringReader(recordCode))
-    var lineNo = 0
-    var chunkLineNo = 0
-    val sb = new StringBuilder
-    var lineText = lnr.readLine
-    val keyword = "procedure"
-    var copy = true
-    while (lineText != null) {
-      val word = getFirstWord(lineText)
-      if (keyword == word) {
-        copy = false
-        chunkLineNo = lineNo
-        sb.append(lineText)
-        sb.append('\n')
-        sb.append(emptyBody)
-        sb.append('\n')
-      }
-      if(copy){
-        sb.append(lineText)
-        sb.append('\n')
-      }
-
-      lineNo += 1
-
-      lineText = lnr.readLine
-    }
-    sb.toString.intern()
-  }
   
   def splitCode(code: String): ISet[String] = {
     code.replaceAll("(record `)", "DELIMITER$1").split("DELIMITER").tail.toSet
@@ -98,7 +63,7 @@ object LightWeightPilarParser {
     else None
   }
 
-  def getFirstWord(line: String) = {
+  def getFirstWord(line: String): String = {
     val size = line.length
     var i = 0
     while (i < size && line.charAt(i).isWhitespace) {

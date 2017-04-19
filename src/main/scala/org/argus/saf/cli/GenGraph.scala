@@ -19,7 +19,7 @@ import org.argus.amandroid.core.util.ApkFileUtil
 import org.argus.amandroid.core.{AndroidConstants, ApkGlobal}
 import org.argus.jawa.alir.pta.suspark.InterproceduralSuperSpark
 import org.argus.jawa.core._
-import org.sireum.util._
+import org.argus.jawa.core.util._
 
 
 /**
@@ -75,7 +75,7 @@ object GenGraph {
           val settings = DecompilerSettings(debugMode = false, removeSupportGen = true, forceDelete = true, layout)
           val apk = yard.loadApk(apkFileUri, settings)
           val pros = apk.model.getEntryPoints.flatMap{ compName =>
-            val comp = apk.resolveToBody(compName)
+            val comp = apk.getClassOrResolve(compName)
             val procedures = comp.getDeclaredMethodsByName(AndroidConstants.MAINCOMP_ENV) ++ comp.getDeclaredMethodsByName(AndroidConstants.COMP_ENV)
             procedures
           }

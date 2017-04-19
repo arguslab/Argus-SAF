@@ -15,19 +15,12 @@ import org.argus.jawa.core._
 import org.objectweb.asm.ClassVisitor
 import org.objectweb.asm.FieldVisitor
 import org.objectweb.asm.MethodVisitor
-import org.sireum.util._
+import org.argus.jawa.core.util._
 
 /**
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
  */
 class MyClassVisitor(api: Int) extends ClassVisitor(api) {
-
-  class MyMethodVisitor(m: MyMethod) extends MethodVisitor(api) {
-    override def visitParameter(name: String, access: Int): Unit = {
-      m.addParam(name)
-    }
-  }
-
   private val classes: MMap[JawaType, MyClass] = mmapEmpty
   private var currentClass: MyClass = _
   def getClasses: IMap[JawaType, MyClass] = classes.toMap
@@ -36,12 +29,13 @@ class MyClassVisitor(api: Int) extends ClassVisitor(api) {
     name.replaceAll("/", ".")
   }
   
-  override def visit(version: Int, 
-            access: Int, 
-            name: String,
-            signature: String,
-            superName: String,
-            interfaces: scala.Array[String]): Unit = {
+  override def visit(
+      version: Int,
+      access: Int,
+      name: String,
+      signature: String,
+      superName: String,
+      interfaces: scala.Array[String]): Unit = {
     val accessFlag: Int = AccessFlag.getJawaFlags(access, FlagKind.CLASS, isConstructor = false)
     val typ: JawaType = JavaKnowledge.getTypeFromJawaName(getClassName(name))
     val superType: Option[JawaType] = {
@@ -79,14 +73,10 @@ class MyClassVisitor(api: Int) extends ClassVisitor(api) {
                   signature: String, exceptions: scala.Array[String]): MethodVisitor = {
     val accessFlag: Int = AccessFlag.getJawaFlags(access, FlagKind.METHOD, if(name == "<init>" || name == "<clinit>") true else false)
     val signature: Signature = JavaKnowledge.genSignature(JavaKnowledge.formatTypeToSignature(currentClass.typ), name, desc)
-    val params = signature.getParameters
-    val paramnames: MList[String] = mlistEmpty
-    if(!AccessFlag.isStatic(accessFlag) && !AccessFlag.isAbstract(accessFlag)) paramnames += "this_v"
-    for(i <- params.indices){
-      paramnames += "v" + i
-    }
-    val m = MyMethod(accessFlag, signature, paramnames.toList)
+    val thisParam: Option[String] = if(!AccessFlag.isStatic(accessFlag) && !AccessFlag.isAbstract(accessFlag)) Some("this_v") else None
+    val paramNames: IList[String] = (0 until signature.getParameterNum).map(i => "v" + i).toList
+    val m = MyMethod(accessFlag, signature, thisParam, paramNames)
     currentClass.addMethod(m)
-    new MyMethodVisitor(m)
+    null
   }
 }

@@ -14,10 +14,9 @@ import org.argus.jawa.alir.interprocedural.{Callee, InstanceCallee, StaticCallee
 import org.argus.jawa.alir.pta._
 import org.argus.jawa.alir.util.CallHandler
 import org.argus.jawa.alir.{Context, LibSideEffectProvider}
+import org.argus.jawa.compiler.parser._
 import org.argus.jawa.core._
-import org.argus.jawa.core.util.{ASTUtil, WorklistAlgorithm}
-import org.sireum.pilar.ast._
-import org.sireum.util._
+import org.argus.jawa.core.util._
 
 /**
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
@@ -53,10 +52,10 @@ object ReachingFactsAnalysisHelper {
         processed += ins
         val facts = hs.filter(_.s.asInstanceOf[HeapSlot].matchWithInstance(factory.getInstance(ins)))
         result ++= facts
-        worklist.pushAll(facts.map { case RFAFact(_, v) => v }.diff(processed))
+        worklist = facts.map { case RFAFact(_, v) => v }.diff(processed) ++: worklist
       }
     }
-    worklist.run(worklist.worklist.pushAll(insts))
+    worklist.run(worklist.worklist = insts.toList)
     result
   }
 
@@ -72,35 +71,15 @@ object ReachingFactsAnalysisHelper {
     }
     result
   }
-  
-  private def getInstancesOfArg(ce: CallExp, i: Int, callerContext: Context, ptaresult: PTAResult): ISet[Instance] = {
-    val value: MSet[Instance] = msetEmpty
-    ce.arg match {
-      case te: TupleExp =>
-        te.exps(i) match{
-          case ne: NameExp =>
-            val s = VarSlot(ne.name.name, isBase = false, isArg = true)
-            value ++= ptaresult.pointsToSet(s, callerContext)
-          case _ =>
-        }
-      case _ =>
-    }
-    value.toSet
-  }
 
-  def getCalleeSet(global: Global, cj: CallJump, sig: Signature, callerContext: Context, ptaresult: PTAResult): ISet[Callee] = {
+  def getCalleeSet(global: Global, cs: CallStatement, sig: Signature, callerContext: Context, ptaresult: PTAResult): ISet[Callee] = {
     val subSig = sig.getSubSignature
-    val typ = cj.getValueAnnotation("kind") match {
-      case Some(s) => s match {
-        case ne: NameExp => ne.name.name
-        case _ => ""
-      }
-      case None => throw new RuntimeException("cannot found annotation 'kind' from: " + cj)
-    }
+    val typ = cs.kind
     val calleeSet = msetEmpty[Callee]
     typ match {
       case "virtual" | "interface" | "super" | "direct" =>
-        val recvValue: ISet[Instance] = getInstancesOfArg(cj.callExp, 0, callerContext, ptaresult)
+        val recv = VarSlot(cs.recvOpt.get, isBase = false, isArg = true)
+        val recvValue: ISet[Instance] = ptaresult.pointsToSet(recv, callerContext)
         def handleUnknown(typ: JawaType) = {
           try{
             val unknown = global.getClassOrResolve(typ)
@@ -156,8 +135,7 @@ object ReachingFactsAnalysisHelper {
     getInstanceFromType(rType, currentContext) map(new RFAFact(VarSlot(retVar, isBase = false, isArg = false), _))
   }
 
-  def getUnknownObject(calleeMethod: JawaMethod, s: PTAResult, args: Seq[String], retVars: Seq[String], currentContext: Context)(implicit factory: RFAFactFactory): (ISet[RFAFact], ISet[RFAFact]) = {
-//    val global = calleeMethod.getDeclaringClass.global
+  def getUnknownObject(calleeMethod: JawaMethod, s: PTAResult, args: Seq[String], retVar: String, currentContext: Context)(implicit factory: RFAFactFactory): (ISet[RFAFact], ISet[RFAFact]) = {
     var genFacts: ISet[RFAFact] = isetEmpty
     val killFacts: ISet[RFAFact] = isetEmpty
     val argSlots = args.map(arg=>VarSlot(arg, isBase = false, isArg = true))
@@ -185,14 +163,11 @@ object ReachingFactsAnalysisHelper {
     val retTyp = calleeMethod.getReturnType
     retTyp match {
       case ot if ot.isObject =>
-        retVars.foreach {
-          retVar =>
-            val slot = VarSlot(retVar, isBase = false, isArg = false)
-            val value = 
-              if(retTyp.jawaName == "java.lang.String") PTAPointStringInstance(currentContext)
-              else PTAInstance(ot.toUnknown, currentContext, isNull_ = false)
-            genFacts += new RFAFact(slot, value)
-        }
+        val slot = VarSlot(retVar, isBase = false, isArg = false)
+        val value =
+          if(retTyp.jawaName == "java.lang.String") PTAPointStringInstance(currentContext)
+          else PTAInstance(ot.toUnknown, currentContext, isNull_ = false)
+        genFacts += new RFAFact(slot, value)
       case _ =>
     }
     (genFacts, killFacts)
@@ -208,26 +183,18 @@ object ReachingFactsAnalysisHelper {
     result
   }
   
-  def updatePTAResultLHSs(lhss: Seq[Exp], currentContext: Context, s: ISet[RFAFact], ptaresult: PTAResult)(implicit factory: RFAFactFactory): Unit = {
-    lhss.foreach {
-      case ne: NameExp =>
-      case ae: AccessExp =>
-//        val fieldSig = ae.attributeName.name
-        val baseSlot = ae.exp match {
-          case ne: NameExp => VarSlot(ne.name.name, isBase = true, isArg = false)
-          case _ => throw new RuntimeException("Wrong exp: " + ae.exp)
-        }
+  def updatePTAResultLHS(lhs: Expression with LHS, currentContext: Context, s: ISet[RFAFact], ptaresult: PTAResult)(implicit factory: RFAFactFactory): Unit = {
+    lhs match {
+      case _: NameExpression =>
+      case ae: AccessExpression =>
+        val baseSlot = VarSlot(ae.base, isBase = true, isArg = false)
         val baseValue = s.filter { fact => fact.s.getId == baseSlot.getId }.map(_.v)
         baseValue.foreach {
           ins =>
             ptaresult.addInstance(baseSlot, currentContext, ins)
         }
-      case ie: IndexingExp =>
-        val baseSlot = ie.exp match {
-          case ine: NameExp =>
-            VarSlot(ine.name.name, isBase = true, isArg = false)
-          case _ => throw new RuntimeException("Wrong exp: " + ie.exp)
-        }
+      case ie: IndexingExpression =>
+        val baseSlot = VarSlot(ie.base, isBase = true, isArg = false)
         val baseValue = s.filter { fact => fact.s.getId == baseSlot.getId }.map(_.v)
         baseValue.foreach {
           ins =>
@@ -237,12 +204,8 @@ object ReachingFactsAnalysisHelper {
     }
   }
   
-  private def resolvePTAResultAccessExp(ae: AccessExp, typ: JawaType, currentContext: Context, s: ISet[RFAFact], ptaresult: PTAResult, global: Global)(implicit factory: RFAFactFactory) = {
-    val fqn = ASTUtil.getFieldFQN(ae, typ)
-    val baseSlot = ae.exp match {
-      case ne: NameExp => VarSlot(ne.name.name, isBase = true, isArg = false)
-      case _ => throw new RuntimeException("Wrong exp: " + ae.exp)
-    }
+  private def resolvePTAResultAccessExp(ae: AccessExpression, typ: JawaType, currentContext: Context, s: ISet[RFAFact], ptaresult: PTAResult, global: Global)(implicit factory: RFAFactFactory) = {
+    val baseSlot = VarSlot(ae.base, isBase = true, isArg = false)
     val baseValue = s.filter { fact => fact.s.getId == baseSlot.getId }.map{
       f => 
         ptaresult.addInstance(baseSlot, currentContext, f.v)
@@ -250,19 +213,19 @@ object ReachingFactsAnalysisHelper {
     }
     baseValue.foreach{
       ins =>
-        if(ins.isNull){} //TODO show null error message.
+        if(ins.isNull){}
         else {
-          val fName = fqn.fieldName
+          val fName = ae.fieldName
           val fieldSlot = FieldSlot(ins, fName)
           s.filter { fact => fact.s == fieldSlot }.foreach(f => ptaresult.addInstance(fieldSlot, currentContext, f.v))
           s.foreach {
             fact =>
               fact.s match {
-                case slot: FieldSlot if slot.ins == ins && slot.fieldName.contains(Constants.ALL_FIELD) && fqn.typ.isObject =>
+                case slot: FieldSlot if slot.ins == ins && slot.fieldName.contains(Constants.ALL_FIELD) && typ.isObject =>
                   val definingTypName = slot.fieldName.split(":")(0)
                   val defCls = global.getClassOrResolve(new JawaType(definingTypName))
                   if (defCls.hasField(fName)) {
-                    val uIns = PTAInstance(fqn.typ.toUnknown, fact.v.defSite, isNull_ = false)
+                    val uIns = PTAInstance(typ.toUnknown, fact.v.defSite, isNull_ = false)
                     ptaresult.addInstance(fieldSlot, currentContext, uIns)
                   }
                 case _ =>
@@ -272,13 +235,9 @@ object ReachingFactsAnalysisHelper {
     }
   }
   
-  private def resolvePTAResultIndexingExp(ie: IndexingExp, currentContext: Context, s: ISet[RFAFact], ptaresult: PTAResult)(implicit factory: RFAFactFactory) = {
-    val baseSlot = ie.exp match {
-      case ine: NameExp =>
-        VarSlot(ine.name.name, isBase = true, isArg = false)
-      case _ => throw new RuntimeException("Wrong exp: " + ie.exp)
-    }
-    val baseValue = s.filter { fact => fact.s.getId == baseSlot.getId }.map{
+  private def resolvePTAResultIndexingExp(ie: IndexingExpression, currentContext: Context, s: ISet[RFAFact], ptaresult: PTAResult)(implicit factory: RFAFactFactory) = {
+    val baseSlot = VarSlot(ie.base, isBase = true, isArg = false)
+    val baseValue: ISet[Instance] = s.filter { fact => fact.s.getId == baseSlot.getId }.map{
       f => 
         ptaresult.addInstance(baseSlot, currentContext, f.v)
         f.v
@@ -307,76 +266,69 @@ object ReachingFactsAnalysisHelper {
     }
   }
   
-  def updatePTAResultRHSs(rhss: List[Exp], typ: Option[JawaType], currentContext: Context, s: ISet[RFAFact], ptaresult: PTAResult, global: Global)(implicit factory: RFAFactFactory): Unit = {
-    rhss.foreach{
-      rhs=>
-        updatePTAResultExp(rhs, typ, currentContext, s, ptaresult, global)
-    }
+  def updatePTAResultRHS(rhs: Expression with RHS, typ: Option[JawaType], currentContext: Context, s: ISet[RFAFact], ptaresult: PTAResult, global: Global)(implicit factory: RFAFactFactory): Unit = {
+    updatePTAResultExp(rhs, typ, currentContext, s, ptaresult, global)
   }
   
-  def updatePTAResultCallJump(cj: CallJump, callerContext: Context, s: ISet[RFAFact], ptaresult: PTAResult)(implicit factory: RFAFactFactory): Unit = {
-    cj.callExp.arg match{
-      case te: TupleExp => 
-        te.exps foreach(updatePTAResultCallArg(_, callerContext, s, ptaresult))
-      case _ => throw new RuntimeException("wrong exp type: " + cj.callExp.arg)
-    }
+  def updatePTAResultCallJump(cs: CallStatement, callerContext: Context, s: ISet[RFAFact], ptaresult: PTAResult)(implicit factory: RFAFactFactory): Unit = {
+    (cs.recvOpt ++ cs.args).foreach(updatePTAResultCallArg(_, callerContext, s, ptaresult))
   }
   
-  def updatePTAResultExp(exp: Exp, typ: Option[JawaType], currentContext: Context, s: ISet[RFAFact], ptaresult: PTAResult, global: Global)(implicit factory: RFAFactFactory): Unit = {
+  def updatePTAResultExp(exp: Expression, typ: Option[JawaType], currentContext: Context, s: ISet[RFAFact], ptaresult: PTAResult, global: Global)(implicit factory: RFAFactFactory): Unit = {
     exp match{
-      case be: BinaryExp =>
-        updatePTAResultExp(be.left, typ, currentContext, s, ptaresult, global)
-        updatePTAResultExp(be.right, typ, currentContext, s, ptaresult, global)
-      case ne: NameExp =>
+      case be: BinaryExpression =>
+        val slotlhs = VarSlot(be.left.varName, isBase = false, isArg = false)
+        s.filter { fact => fact.s == slotlhs }.foreach{
+          f =>
+            ptaresult.addInstance(slotlhs, currentContext, f.v)
+        }
+        be.right match {
+          case Left(r) =>
+            val slotrhs = VarSlot(r.varName, isBase = false, isArg = false)
+            s.filter { fact => fact.s == slotrhs }.foreach{
+              f =>
+                ptaresult.addInstance(slotrhs, currentContext, f.v)
+            }
+          case Right(_) =>
+        }
+      case ne: NameExpression =>
         val slot = getNameSlotFromNameExp(ne, typ, isBase = false, isArg = false, global)
         slot match {
-          case cs: ClassSlot => 
-            val ci = ClassInstance(typ.get, currentContext)
-            ptaresult.addInstance(cs, currentContext, ci)
           case ss: StaticFieldSlot =>
             s.filter { fact => fact.s == ss }.foreach(f => ptaresult.addInstance(ss, currentContext, f.v))
           case vs: VarSlot =>
             s.filter { fact => fact.s == vs }.foreach(f => ptaresult.addInstance(slot, currentContext, f.v))
+          case _ =>
         }
-      case ae: AccessExp =>
+//      case ce: ConstClassExpression =>
+//        val slot = ClassSlot(ce.typExp.typ)
+//        val ci = ClassInstance(ce.typExp.typ, currentContext)
+//        ptaresult.addInstance(slot, currentContext, ci)
+      case ae: AccessExpression =>
         resolvePTAResultAccessExp(ae, typ.get, currentContext, s, ptaresult, global)
-      case ie: IndexingExp =>
+      case ie: IndexingExpression =>
         resolvePTAResultIndexingExp(ie, currentContext, s, ptaresult)
-      case ce: CastExp =>
-        ce.exp match{
-          case ice: NameExp =>
-            val slot = VarSlot(ice.name.name, isBase = false, isArg = false)
-            s.filter { fact => fact.s == slot }.foreach{
-              f => 
-                ptaresult.addInstance(slot, currentContext, f.v)
-            }
-          case nle: NewListExp =>
-            System.err.println(TITLE, "NewListExp: " + nle)
-          case _ => throw new RuntimeException("Wrong exp: " + ce.exp)
+      case ce: CastExpression =>
+        val slot = VarSlot(ce.varName, isBase = false, isArg = false)
+        s.filter { fact => fact.s == slot }.foreach{
+          f =>
+            ptaresult.addInstance(slot, currentContext, f.v)
         }
       case _=>
     }
   }
   
-  def updatePTAResultCallArg(exp: Exp, currentContext: Context, s: ISet[RFAFact], ptaresult: PTAResult)(implicit factory: RFAFactFactory): Unit = {
-    exp match{
-      case ne: NameExp =>
-        val slot = VarSlot(ne.name.name, isBase = false, isArg = true)
-        getRelatedFactsForArg(slot, s).foreach(f => ptaresult.addInstance(f.s, currentContext, f.v))
-      case _ =>
-    }
+  def updatePTAResultCallArg(arg: String, currentContext: Context, s: ISet[RFAFact], ptaresult: PTAResult)(implicit factory: RFAFactFactory): Unit = {
+    val slot = VarSlot(arg, isBase = false, isArg = true)
+    getRelatedFactsForArg(slot, s).foreach(f => ptaresult.addInstance(f.s, currentContext, f.v))
   }
   
-  private def getHeapUnknownFactsExp(exp: Exp, currentContext: Context, ptaresult: PTAResult)(implicit factory: RFAFactFactory): ISet[RFAFact] = {
+  private def getHeapUnknownFactsExp(exp: Expression, currentContext: Context, ptaresult: PTAResult)(implicit factory: RFAFactFactory): ISet[RFAFact] = {
     val result: MSet[RFAFact] = msetEmpty
     exp match {
-      case _: AccessExp =>
-      case ie: IndexingExp =>
-        val baseSlot = ie.exp match {
-          case ine: NameExp =>
-            VarSlot(ine.name.name, isBase = true, isArg = false)
-          case _ => throw new RuntimeException("Wrong exp: " + ie.exp)
-        }
+      case _: AccessExpression =>
+      case ie: IndexingExpression =>
+        val baseSlot = VarSlot(ie.base, isBase = true, isArg = false)
         val baseValue = ptaresult.pointsToSet(baseSlot, currentContext)
         baseValue.foreach{
           ins =>
@@ -395,242 +347,174 @@ object ReachingFactsAnalysisHelper {
     result.toSet
   }
   
-  def getHeapUnknownFacts(rhss: List[Exp], currentContext: Context, ptaresult: PTAResult)(implicit factory: RFAFactFactory): ISet[RFAFact] = {
-    val result: MSet[RFAFact] = msetEmpty
-    rhss.foreach{
-      rhs=>
-        result ++= getHeapUnknownFactsExp(rhs, currentContext, ptaresult)
-    }
-    result.toSet
+  def getHeapUnknownFacts(rhs: Expression with RHS, currentContext: Context, ptaresult: PTAResult)(implicit factory: RFAFactFactory): ISet[RFAFact] = {
+    getHeapUnknownFactsExp(rhs, currentContext, ptaresult)
   }
 
-  def processLHSs(lhss: List[Exp], typ: Option[JawaType], currentContext: Context, ptaresult: PTAResult, global: Global): IMap[Int, IMap[PTASlot, Boolean]] = {
-    val result = mmapEmpty[Int, MMap[PTASlot, Boolean]]
-    var i = -1
-    lhss.foreach{
-      key=>
-        i += 1
-        key match{
-          case ne: NameExp =>
-            val slot = getNameSlotFromNameExp(ne, typ, isBase = false, isArg = false, global)
-            result.getOrElseUpdate(i, mmapEmpty)(slot) = true
-          case ae: AccessExp =>
-            val fieldFQN = ASTUtil.getFieldFQN(ae, typ.get)
-            val baseSlot = ae.exp match {
-              case ne: NameExp => VarSlot(ne.name.name, isBase = true, isArg = false)
-              case _ => throw new RuntimeException("Wrong exp: " + ae.exp)
+  def processLHS(lhs: Expression with LHS, typ: Option[JawaType], currentContext: Context, ptaresult: PTAResult, global: Global): IMap[PTASlot, Boolean] = {
+    val result: MMap[PTASlot, Boolean] = mmapEmpty
+    lhs match{
+      case ne: NameExpression =>
+        val slot = getNameSlotFromNameExp(ne, typ, isBase = false, isArg = false, global)
+        result(slot) = true
+      case ae: AccessExpression =>
+        val baseSlot = VarSlot(ae.base, isBase = true, isArg = false)
+        val baseValue = ptaresult.pointsToSet(baseSlot, currentContext)
+        baseValue.foreach {
+          ins =>
+            if(ins.isNull) {}
+            else{
+              val fName = ae.fieldName
+              if(baseValue.size>1) result(FieldSlot(ins, fName)) = false
+              else result(FieldSlot(ins, fName)) = true
             }
-            val baseValue = ptaresult.pointsToSet(baseSlot, currentContext)
-            baseValue.foreach{
-              ins =>
-                if(ins.isNull) {}
-                else{
-                  val fName = fieldFQN.fieldName
-                  if(baseValue.size>1) result.getOrElseUpdate(i, mmapEmpty)(FieldSlot(ins, fName)) = false
-                  else result.getOrElseUpdate(i, mmapEmpty)(FieldSlot(ins, fName)) = true
-                }
-            }
-          case ie: IndexingExp =>
-            val baseSlot = ie.exp match {
-              case ine: NameExp =>
-                VarSlot(ine.name.name, isBase = true, isArg = false)
-              case _ => throw new RuntimeException("Wrong exp: " + ie.exp)
-            }
-            val baseValue = ptaresult.pointsToSet(baseSlot, currentContext)
-            baseValue.foreach{
-              ins =>
-                result.getOrElseUpdate(i, mmapEmpty)(ArraySlot(ins)) = false
-            }
-          case _=>
         }
-    }
-    result.map(x => (x._1, x._2.toMap)).toMap
-  }
-  
-  def processRHSs(rhss: List[Exp], typ: Option[JawaType], currentContext: Context, ptaResult: PTAResult, global: Global): Map[Int, Set[Instance]] = {
-    val result = mmapEmpty[Int, Set[Instance]]
-    var i = -1
-    rhss.foreach{
-      rhs=>
-        i += 1
-        rhs match{
-          case ne: NameExp =>
-            val slot = getNameSlotFromNameExp(ne, typ, isBase = false, isArg = false, global)
-            val value: ISet[Instance] = ptaResult.pointsToSet(slot, currentContext)
-            result(i) = value
-          case le: LiteralExp =>
-            if(le.typ.name.equals("STRING")){
-              val ins = PTAConcreteStringInstance(le.text, currentContext)
-              val value: ISet[Instance] = Set(ins)
-              result(i) = value
-            } else if(le.typ.name.equals("NULL")){
-              val inst = if(typ.get.isArray) typ.get else typ.get.toUnknown
-              val ins = PTAInstance(inst, currentContext, isNull_ = true)
-              val value: ISet[Instance] = Set(ins)
-              result(i) = value
-            } else if(le.typ.name.equals("INT")){
-              if(le.literal == 0) {
-                val inst = JavaKnowledge.JAVA_TOPLEVEL_OBJECT_TYPE.toUnknown
-                val ins = PTAInstance(inst, currentContext, isNull_ = true)
-                val value: ISet[Instance] = Set(ins)
-                result(i) = value
-              }
-            }
-          case ne: NewExp =>
-            var name: ResourceUri = ""
-            var dimensions = 0
-            ne.typeSpec match {
-              case nt: NamedTypeSpec =>
-                dimensions = ne.dims.size + ne.typeFragments.size
-                name = nt.name.name
-              case _ =>
-            }
-            val ins =
-              if(name == "java.lang.String" && dimensions == 0){
-                PTAConcreteStringInstance("", currentContext.copy)
-              } else {
-                PTAInstance(new JawaType(name, dimensions), currentContext.copy, isNull_ = false)
-              }
-            val value: ISet[Instance] = Set(ins)
-            result(i) = value
-          case ae: AccessExp =>
-            val fieldFQN = ASTUtil.getFieldFQN(ae, typ.get)
-            val baseSlot = ae.exp match {
-              case ne: NameExp => getNameSlotFromNameExp(ne, typ, isBase = true, isArg = false, global)
-              case _ => throw new RuntimeException("Wrong exp: " + ae.exp)
-            }
-            val baseValue: ISet[Instance] = ptaResult.pointsToSet(baseSlot, currentContext)
-            baseValue.foreach{
-              ins =>
-                if(ins.isNull){}
-                else {
-                  val fName = fieldFQN.fieldName
-                  val fieldSlot = FieldSlot(ins, fName)
-                  var fieldValue: ISet[Instance] = ptaResult.pointsToSet(fieldSlot, currentContext)
-                  if(ins.isUnknown && fieldFQN.typ.isObject) {
-                    fieldValue += PTAInstance(fieldFQN.typ.toUnknown, currentContext, isNull_ = false)
-                  }
-                  result(i) = fieldValue
-                }
-            }
-          case ie: IndexingExp =>
-            val baseSlot = ie.exp match {
-              case ine: NameExp =>
-                getNameSlotFromNameExp(ine, typ, isBase = true, isArg = false, global)
-              case _ => throw new RuntimeException("Wrong exp: " + ie.exp)
-            }
-            val baseValue: ISet[Instance] = ptaResult.pointsToSet(baseSlot, currentContext)
-            baseValue.foreach{
-              ins =>
-                if(ins.isNull){}
-                else if(ins.isUnknown){
-                  val arraySlot = ArraySlot(ins)
-                  val arrayValue: MSet[Instance] = msetEmpty
-                  arrayValue ++= ptaResult.pointsToSet(arraySlot, currentContext)
-                  val originalType = ins.typ
-                  val dim = if(originalType.dimensions == 0) 0 else originalType.dimensions - 1
-                  val newType = JawaType(originalType.baseType, dim)
-                  val newUnknown =
-                    if(newType.name == "java.lang.String") PTAPointStringInstance(currentContext)
-                    else PTAInstance(newType.toUnknown, currentContext, isNull_ = false)
-                  arrayValue += newUnknown
-                  result(i) = arrayValue.toSet
-                }
-                else {
-                  val arraySlot = ArraySlot(ins)
-                  val arrayValue: ISet[Instance] = ptaResult.pointsToSet(arraySlot, currentContext)
-                  result(i) = arrayValue
-                }
-            }
-          case ce: CastExp =>
-            val casttyp: JawaType = ASTUtil.getTypeFromTypeSpec(ce.typeSpec)
-
-            val insopt =
-              if(casttyp.jawaName == "java.lang.String"){
-                Some(PTAPointStringInstance(currentContext.copy))
-              } else if (casttyp.isObject) {
-                Some(PTAInstance(casttyp, currentContext.copy, isNull_ = false))
-              } else None
-            insopt match {
-              case Some(ins) =>
-                ce.exp match{
-                  case ne: NameExp =>
-                    val slot = getNameSlotFromNameExp(ne, typ, isBase = false, isArg = false, global)
-                    val value: ISet[Instance] = ptaResult.pointsToSet(slot, currentContext)
-                    result(i) = value.map{
-                      v =>
-                        if(v.isUnknown){
-                          PTAInstance(ins.typ.toUnknown, v.defSite.copy, isNull_ = false)
-                        } else {
-                          v
-                        }
-                    }
-                  case nle: NewListExp =>
-                    System.err.println(TITLE, "NewListExp: " + nle)
-                    result(i) = isetEmpty[Instance]// + UnknownInstance(currentContext)
-                  case _ => throw new RuntimeException("Wrong exp: " + ce.exp)
-                }
-              case _ =>
-            }
-          case _=>
+      case ie: IndexingExpression =>
+        val baseSlot = VarSlot(ie.base, isBase = true, isArg = false)
+        val baseValue = ptaresult.pointsToSet(baseSlot, currentContext)
+        baseValue.foreach{
+          ins =>
+            result(ArraySlot(ins)) = false
         }
+      case cl: CallLhs =>
+        val slot = VarSlot(cl.lhs.varName, isBase = false, isArg = false)
+        result(slot) = true
     }
     result.toMap
   }
   
-  def isObjectTypeRegAssignment(a: Assignment): Boolean = {
-    var res = false
-    a match{
-      case _: AssignAction =>
-        a.getValueAnnotation("kind") match{
-          case Some(e) => 
-            e match{
-              case ne: NameExp => res = ne.name.name == "object"
-              case _ =>
-            }
-          case None => 
+  def processRHS(rhs: Expression with RHS, typ: Option[JawaType], currentContext: Context, ptaResult: PTAResult, global: Global): ISet[Instance] = {
+    val result: MSet[Instance] = msetEmpty
+    rhs match{
+      case ne: NameExpression =>
+        val slot = getNameSlotFromNameExp(ne, typ, isBase = false, isArg = false, global)
+        val value: ISet[Instance] = ptaResult.pointsToSet(slot, currentContext)
+        result ++= value
+      case ce: ConstClassExpression =>
+        result += ClassInstance(ce.typExp.typ, currentContext)
+      case _: NullExpression =>
+        val inst = if(typ.get.isArray) typ.get else typ.get.toUnknown
+        val ins = PTAInstance(inst, currentContext, isNull_ = true)
+        val value: ISet[Instance] = Set(ins)
+        result ++= value
+      case le: LiteralExpression =>
+        if(le.isString){
+          val ins = PTAConcreteStringInstance(le.getString, currentContext)
+          val value: ISet[Instance] = Set(ins)
+          result ++= value
+        } else if(le.isInt && le.getInt == 0){
+          val inst = JavaKnowledge.JAVA_TOPLEVEL_OBJECT_TYPE.toUnknown
+          val ins = PTAInstance(inst, currentContext, isNull_ = true)
+          val value: ISet[Instance] = Set(ins)
+          result ++= value
         }
-      case _ =>
+      case ne: NewExpression =>
+        val ins =
+          if(ne.typ == new JawaType("java.lang.String")){
+            PTAConcreteStringInstance("", currentContext.copy)
+          } else {
+            PTAInstance(ne.typ, currentContext.copy, isNull_ = false)
+          }
+        result += ins
+      case ae: AccessExpression =>
+        val baseSlot = VarSlot(ae.base, isBase = true, isArg = false)
+        val baseValue: ISet[Instance] = ptaResult.pointsToSet(baseSlot, currentContext)
+        baseValue.foreach{
+          ins =>
+            if(ins.isNull){}
+            else {
+              val fName = ae.fieldName
+              val fieldSlot = FieldSlot(ins, fName)
+              var fieldValue: ISet[Instance] = ptaResult.pointsToSet(fieldSlot, currentContext)
+              if(ins.isUnknown && typ.get.isObject) {
+                fieldValue += PTAInstance(typ.get.toUnknown, currentContext, isNull_ = false)
+              }
+              result ++= fieldValue
+            }
+        }
+      case ie: IndexingExpression =>
+        val baseSlot = VarSlot(ie.base, isBase = true, isArg = false)
+        val baseValue: ISet[Instance] = ptaResult.pointsToSet(baseSlot, currentContext)
+        baseValue.foreach{
+          ins =>
+            if(ins.isNull){}
+            else if(ins.isUnknown){
+              val arraySlot = ArraySlot(ins)
+              val arrayValue: MSet[Instance] = msetEmpty
+              arrayValue ++= ptaResult.pointsToSet(arraySlot, currentContext)
+              val originalType = ins.typ
+              val dim = if(originalType.dimensions == 0) 0 else originalType.dimensions - 1
+              val newType = JawaType(originalType.baseType, dim)
+              val newUnknown =
+                if(newType.jawaName == "java.lang.String") PTAPointStringInstance(currentContext)
+                else PTAInstance(newType.toUnknown, currentContext, isNull_ = false)
+              arrayValue += newUnknown
+              result ++= arrayValue.toSet
+            } else {
+              val arraySlot = ArraySlot(ins)
+              val arrayValue: ISet[Instance] = ptaResult.pointsToSet(arraySlot, currentContext)
+              result ++= arrayValue
+            }
+        }
+      case ce: CastExpression =>
+        val castTyp = ce.typ.typ
+        val insOpt =
+          if(castTyp.jawaName == "java.lang.String"){
+            Some(PTAPointStringInstance(currentContext.copy))
+          } else if (castTyp.isObject) {
+            Some(PTAInstance(castTyp, currentContext.copy, isNull_ = false))
+          } else None
+        insOpt match {
+          case Some(ins) =>
+            val slot = VarSlot(ce.varName, isBase = false, isArg = false)
+            val value: ISet[Instance] = ptaResult.pointsToSet(slot, currentContext)
+            result ++= value.map{
+              v =>
+                if(v.isUnknown){
+                  PTAInstance(ins.typ.toUnknown, v.defSite.copy, isNull_ = false)
+                } else {
+                  v
+                }
+            }
+          case _ =>
+        }
+      case _=>
     }
-    res
+    result.toSet
+  }
+
+  def isObjectTypeRegAssignment(a: AssignmentStatement): Boolean = {
+    a.kind == "object"
   }
   
-  def isStaticFieldRead(a: Assignment): Boolean = {
+  def isStaticFieldRead(a: AssignmentStatement): Boolean = {
     var result = false
     if(isObjectTypeRegAssignment(a)) {
-      val rhss = PilarAstHelper.getRHSs(a) 
-      rhss.foreach {
-        case ne: NameExp =>
-          if (ne.name.name.startsWith("@@")) {
-            result = true
-          }
+      a.rhs match {
+        case ne: NameExpression =>
+          result = ne.isStatic
         case _ =>
       }
     }
     result
   }
   
-  def isStaticFieldWrite(a: Assignment): Boolean = {
-    var result = true
-    if(isObjectTypeRegAssignment(a))
-    {
-      val lhss = PilarAstHelper.getLHSs(a)
-      lhss.foreach {
-        case ne: NameExp =>
-          if (ne.name.name.startsWith("@@")) {
-            result = true
-          }
+  def isStaticFieldWrite(a: AssignmentStatement): Boolean = {
+    var result = false
+    if(isObjectTypeRegAssignment(a)) {
+      a.lhs match {
+        case ne: NameExpression =>
+          result = ne.isStatic
         case _ =>
       }
     }
     result
   }
   
-  def getNameSlotFromNameExp(ne: NameExp, typ: Option[JawaType], isBase: Boolean, isArg: Boolean, global: Global): NameSlot = {
-    val name = ne.name.name
-    if(name == Constants.CONST_CLASS) ClassSlot(typ.get)
-    else if(name.startsWith("@@")){
-      val fqn = new FieldFQN(name.replace("@@", ""), typ.get)
+  def getNameSlotFromNameExp(ne: NameExpression, typ: Option[JawaType], isBase: Boolean, isArg: Boolean, global: Global): NameSlot = {
+    val name = ne.name
+    if(ne.isStatic){
+      val fqn = new FieldFQN(ne.name, typ.get)
       global.getClassOrResolve(fqn.owner).getField(fqn.fieldName, fqn.typ) match{
         case Some(af) =>
           StaticFieldSlot(af.FQN)

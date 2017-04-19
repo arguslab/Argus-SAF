@@ -10,16 +10,15 @@
 
 package org.argus.jawa.alir.taintAnalysis
 
-import org.sireum.pilar.ast.JumpLocation
-import org.sireum.pilar.ast.LocationDecl
-import org.sireum.util._
+import org.argus.jawa.core.util._
 import java.io.BufferedReader
 import java.io.FileReader
 import java.util.regex.Pattern
 import java.util.regex.Matcher
 
-import org.argus.jawa.alir.interprocedural.InterproceduralNode
+import org.argus.jawa.alir.InterProceduralNode
 import org.argus.jawa.alir.pta.PTAResult
+import org.argus.jawa.compiler.parser.Location
 import org.argus.jawa.core.{Global, Signature}
 
 /**
@@ -60,11 +59,11 @@ trait SourceAndSinkManager[T<: Global] {
     this.sinks += (sink -> (positions, tags))
   }
   
-  def getSourceAndSinkNode[N <: InterproceduralNode](global: T, node: N, ptaResult: PTAResult): (ISet[TaintSource[N]], ISet[TaintSink[N]])
-  def isSource(global: T, loc: LocationDecl, ptaresult: PTAResult): Boolean
-  def isSource(global: T, calleeSig: Signature, callerSig: Signature, callerLoc: JumpLocation): Boolean
+  def getSourceAndSinkNode[N <: InterProceduralNode](global: T, node: N, ptaResult: PTAResult): (ISet[TaintSource[N]], ISet[TaintSink[N]])
+  def isSource(global: T, loc: Location, ptaresult: PTAResult): Boolean
+  def isSource(global: T, calleeSig: Signature, callerSig: Signature, callerLoc: Location): Boolean
   def isSourceMethod(global: T, procedureSig: Signature): Boolean
-  def isSink(global: T, loc: LocationDecl, ptaresult: PTAResult): Boolean
+  def isSink(global: T, loc: Location, ptaresult: PTAResult): Boolean
   def isSink(global: T, procedureSig: Signature): Boolean
 }
 

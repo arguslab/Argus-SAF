@@ -12,7 +12,7 @@ package org.argus.jawa.core.io
 
 import scala.annotation.tailrec
 import scala.collection.mutable.ArrayBuffer
-import org.sireum.util._
+import org.argus.jawa.core.util._
 import org.argus.jawa.core.Chars._
 
 /** abstract base class of a source file used in the compiler */

@@ -9,9 +9,9 @@
  */
 package org.argus.amandroid.core.util
 
-import org.sireum.util.FileResourceUri
-import org.sireum.util.FileUtil
-import org.sireum.util.ISeq
+import org.argus.jawa.core.util.FileResourceUri
+import org.argus.jawa.core.util.FileUtil
+import org.argus.jawa.core.util.ISeq
 import java.io.IOException
 import java.io.DataInputStream
 import java.io.BufferedInputStream
@@ -20,7 +20,7 @@ import java.util.zip.ZipInputStream
 import java.io.FileOutputStream
 
 import org.argus.amandroid.core.ApkGlobal
-import org.argus.jawa.core.util.MyFileUtil
+import org.argus.jawa.core.util.FileUtil
 
 /**
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
@@ -36,7 +36,7 @@ object ApkFileUtil {
   def getOutputUri(apkUri: FileResourceUri, outputUri: FileResourceUri): FileResourceUri = {
     val apkFile = FileUtil.toFile(apkUri)
     val dirName = try{apkFile.getName.substring(0, apkFile.getName.lastIndexOf("."))} catch {case _: IndexOutOfBoundsException => apkFile.getName}
-    MyFileUtil.appendFileName(outputUri, dirName)
+    FileUtil.appendFileName(outputUri, dirName)
   }
   
   /**
@@ -68,7 +68,7 @@ object ApkFileUtil {
     val zipis = new ZipInputStream(new FileInputStream(apkFile))
     val dirName = apkFile.getName.substring(0, apkFile.getName.lastIndexOf("."))
     val outputDir = getOutputUri(apkUri, outputUri)
-    val outputFile = FileUtil.toFile(MyFileUtil.appendFileName(outputDir, dirName + ".dex"))
+    val outputFile = FileUtil.toFile(FileUtil.appendFileName(outputDir, dirName + ".dex"))
     val ops = new FileOutputStream(outputFile)
     //resolve with apk file
     while(zipis.available() == 1){
@@ -92,7 +92,7 @@ object ApkFileUtil {
   def deleteOutputs(apkUri: FileResourceUri, outputUri: FileResourceUri): Unit = {
     val outputDir = FileUtil.toFile(getOutputUri(apkUri, outputUri))
     if(outputDir.exists()){
-      MyFileUtil.deleteDir(outputDir)
+      FileUtil.deleteDir(outputDir)
     }
   }
 }

@@ -13,7 +13,7 @@ package org.argus.jawa.core.util
 import java.io.{File, FileOutputStream, InputStream, OutputStream}
 import java.util.zip.{ZipEntry, ZipFile}
 
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 
 /**
   * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
@@ -22,13 +22,13 @@ object ZipUtil {
   val BUFSIZE = 4096
   val buffer = new Array[Byte](BUFSIZE)
 
-  def unZip(source: String, targetFolder: String) = {
+  def unZip(source: String, targetFolder: String): Boolean = {
     val zipFile = new ZipFile(source)
 
-    unzipAllFile(zipFile.entries.toList, getZipEntryInputStream(zipFile)_, new File(targetFolder))
+    unzipAllFile(zipFile.entries.asScala.toList, getZipEntryInputStream(zipFile), new File(targetFolder))
   }
 
-  def getZipEntryInputStream(zipFile: ZipFile)(entry: ZipEntry) = zipFile.getInputStream(entry)
+  def getZipEntryInputStream(zipFile: ZipFile)(entry: ZipEntry): InputStream = zipFile.getInputStream(entry)
 
   def unzipAllFile(entryList: List[ZipEntry], inputGetter: (ZipEntry) => InputStream, targetFolder: File): Boolean = {
 
@@ -47,13 +47,13 @@ object ZipUtil {
 
   }
 
-  def saveFile(fis: InputStream, fos: OutputStream) = {
-    writeToFile(bufferReader(fis)_, fos)
+  def saveFile(fis: InputStream, fos: OutputStream): Unit = {
+    writeToFile(bufferReader(fis), fos)
     fis.close()
     fos.close()
   }
 
-  def bufferReader(fis: InputStream)(buffer: Array[Byte]) = (fis.read(buffer), buffer)
+  def bufferReader(fis: InputStream)(buffer: Array[Byte]): (Int, Array[Byte]) = (fis.read(buffer), buffer)
 
   def writeToFile(reader: (Array[Byte]) => ((Int, Array[Byte])), fos: OutputStream): Boolean = {
     val (length, data) = reader(buffer)

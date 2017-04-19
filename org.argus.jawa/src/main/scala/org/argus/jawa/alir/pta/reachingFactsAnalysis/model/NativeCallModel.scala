@@ -14,7 +14,7 @@ import org.argus.jawa.alir.Context
 import org.argus.jawa.alir.pta._
 import org.argus.jawa.alir.pta.reachingFactsAnalysis.{RFAFact, RFAFactFactory}
 import org.argus.jawa.core.JawaMethod
-import org.sireum.util._
+import org.argus.jawa.core.util._
 
 /**
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
@@ -22,7 +22,7 @@ import org.sireum.util._
 object NativeCallModel {
    def isNativeCall(p: JawaMethod): Boolean = p.isNative
    
-   def doNativeCall(s: PTAResult, p: JawaMethod, args: List[String], retVars: Seq[String], currentContext: Context)(implicit factory: RFAFactFactory): (ISet[RFAFact], ISet[RFAFact], Boolean) = {
+   def doNativeCall(s: PTAResult, p: JawaMethod, args: List[String], retVar: String, currentContext: Context)(implicit factory: RFAFactFactory): (ISet[RFAFact], ISet[RFAFact], Boolean) = {
     var newFacts = isetEmpty[RFAFact]
     val delFacts = isetEmpty[RFAFact]
     var byPassFlag = true
@@ -37,7 +37,7 @@ object NativeCallModel {
         thisValue.foreach{
           ins =>
             val insClasObj = ClassInstance(ins.typ, currentContext)
-            newFacts += new RFAFact(VarSlot(retVars.head, isBase = false, isArg = false), insClasObj)
+            newFacts += new RFAFact(VarSlot(retVar, isBase = false, isArg = false), insClasObj)
             val strIns = PTAConcreteStringInstance(insClasObj.getName, insClasObj.defSite)
             newFacts += new RFAFact(FieldSlot(insClasObj, "java.lang.Class.name"), strIns)
         }
@@ -53,7 +53,7 @@ object NativeCallModel {
             require(cIns.isInstanceOf[ClassInstance])
             val name = cIns.asInstanceOf[ClassInstance].getName
             val strIns = PTAConcreteStringInstance(name, cIns.defSite)
-              newFacts += new RFAFact(VarSlot(retVars.head, isBase = false, isArg = false), strIns)
+              newFacts += new RFAFact(VarSlot(retVar, isBase = false, isArg = false), strIns)
         }
         byPassFlag = false
       case _ =>

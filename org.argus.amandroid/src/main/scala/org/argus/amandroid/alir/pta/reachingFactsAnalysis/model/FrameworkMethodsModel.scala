@@ -17,7 +17,7 @@ import org.argus.jawa.alir.Context
 import org.argus.jawa.alir.pta._
 import org.argus.jawa.alir.pta.reachingFactsAnalysis.{RFAFact, RFAFactFactory, ReachingFactsAnalysisHelper}
 import org.argus.jawa.core.{JavaKnowledge, JawaMethod, JawaType}
-import org.sireum.util._
+import org.argus.jawa.core.util._
 
 /**
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
@@ -44,41 +44,35 @@ object FrameworkMethodsModel {
     else false
   }
 
-  def doFrameworkMethodsModelCall(apk: ApkGlobal, s: PTAResult, p: JawaMethod, args: List[String], retVars: Seq[String], currentContext: Context)(implicit factory: RFAFactFactory): (ISet[RFAFact], ISet[RFAFact], Boolean) = {
+  def doFrameworkMethodsModelCall(apk: ApkGlobal, s: PTAResult, p: JawaMethod, args: List[String], retVar: String, currentContext: Context)(implicit factory: RFAFactFactory): (ISet[RFAFact], ISet[RFAFact], Boolean) = {
     var newFacts = isetEmpty[RFAFact]
     val delFacts = isetEmpty[RFAFact]
     var byPassFlag = true
     p.getSubSignature match {
       case "setContentView:(I)V" =>
       case "registerReceiver:(Landroid/content/BroadcastReceiver;Landroid/content/IntentFilter;)Landroid/content/Intent;" =>
-        require(retVars.size == 1)
-        newFacts ++= registerReceiver(apk, s, args, retVars.head, currentContext)
+        newFacts ++= registerReceiver(apk, s, args, retVar, currentContext)
         byPassFlag = false
       case "registerReceiver:(Landroid/content/BroadcastReceiver;Landroid/content/IntentFilter;Ljava/lang/String;Landroid/os/Handler;)Landroid/content/Intent;" => 
-        require(retVars.size == 1)
-        newFacts ++= registerReceiver(apk, s, args, retVars.head, currentContext)
+        newFacts ++= registerReceiver(apk, s, args, retVar, currentContext)
         byPassFlag = false
       case "getApplication:()Landroid/app/Application;" =>
-        require(retVars.size == 1)
-        ReachingFactsAnalysisHelper.getReturnFact(new JawaType("android.app.Application"), retVars.head, currentContext) match{
+        ReachingFactsAnalysisHelper.getReturnFact(new JawaType("android.app.Application"), retVar, currentContext) match{
           case Some(f) => newFacts += f
           case None =>
         }
         byPassFlag = false
       case "getSystemService:(Ljava/lang/String;)Ljava/lang/Object;" =>
-        require(retVars.size == 1)
-        newFacts ++= getSystemService(apk, s, args, retVars.head, currentContext)
+        newFacts ++= getSystemService(apk, s, args, retVar, currentContext)
   //      byPassFlag = false
       case "getBaseContext:()Landroid/content/Context;" =>
-        require(retVars.size == 1)
-        ReachingFactsAnalysisHelper.getReturnFact(new JawaType("android.app.ContextImpl"), retVars.head, currentContext) match{
+        ReachingFactsAnalysisHelper.getReturnFact(new JawaType("android.app.ContextImpl"), retVar, currentContext) match{
           case Some(f) => newFacts += f
           case None =>
         }
         byPassFlag = false
       case "getApplicationContext:()Landroid/content/Context;"=>
-        require(retVars.size == 1)
-        ReachingFactsAnalysisHelper.getReturnFact(new JawaType("android.app.Application"), retVars.head, currentContext) match{
+        ReachingFactsAnalysisHelper.getReturnFact(new JawaType("android.app.Application"), retVar, currentContext) match{
           case Some(f) => newFacts += f
           case None =>
         }

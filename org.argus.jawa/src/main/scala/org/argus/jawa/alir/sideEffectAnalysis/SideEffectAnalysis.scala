@@ -11,13 +11,12 @@
 package org.argus.jawa.alir.sideEffectAnalysis
 
 import org.argus.jawa.alir.JawaAlirInfoProvider
-import org.argus.jawa.alir.reachingDefinitionAnalysis.JawaReachingDefinitionAnalysis
+import org.argus.jawa.alir.controlFlowGraph.{CFGNode, IntraProceduralControlFlowGraph}
+import org.argus.jawa.alir.reachingDefinitionAnalysis.{LocDefDesc, ReachingDefinitionAnalysis}
 import org.argus.jawa.core._
 import org.argus.jawa.alir.util.CallHandler
-import org.sireum.pilar.ast._
-import org.sireum.alir.ControlFlowGraph
-import org.sireum.alir.LocDefDesc
-import org.sireum.util._
+import org.argus.jawa.compiler.parser.{AssignmentStatement, Location, NameExpression}
+import org.argus.jawa.core.util._
 
 import scala.collection.GenMap
 
@@ -25,15 +24,15 @@ import scala.collection.GenMap
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
  * @author <a href="mailto:sroy@k-state.edu">Sankardas Roy</a>
  */ 
-trait InterproceduralSideEffectAnalysisResult {
-  def result: Signature => Option[InterproceduralSideEffectResult]
+trait InterProceduralSideEffectAnalysisResult {
+  def result: Signature => Option[InterProceduralSideEffectResult]
 }
 
 /**
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
  * @author <a href="mailto:sroy@k-state.edu">Sankardas Roy</a>
  */
-case class InterproceduralSideEffectResult(procSig: Signature,
+case class InterProceduralSideEffectResult(procSig: Signature,
                                            readMap: Map[Int, Set[String]],
                                            writeMap: Map[Int, Set[String]],
                                            globalRead: Set[String],
@@ -121,10 +120,10 @@ case class CallInfo(callees: Set[JawaMethod], paramMap: Map[Int, Int]){
  */
 object SideEffectAnalysis {
 
-  def interProceduralSideEffect(intraSEResults: GenMap[Signature, IntraproceduralSideEffectResult]): InterproceduralSideEffectAnalysisResult = {
-    val results: MMap[Signature, InterproceduralSideEffectResult] = mmapEmpty
-    def getResult(sig: Signature): Option[InterproceduralSideEffectResult] = results.get(sig)
-    class Ipsea(val result: Signature => Option[InterproceduralSideEffectResult]) extends InterproceduralSideEffectAnalysisResult {
+  def interProceduralSideEffect(intraSEResults: GenMap[Signature, IntraproceduralSideEffectResult]): InterProceduralSideEffectAnalysisResult = {
+    val results: MMap[Signature, InterProceduralSideEffectResult] = mmapEmpty
+    def getResult(sig: Signature): Option[InterProceduralSideEffectResult] = results.get(sig)
+    class Ipsea(val result: Signature => Option[InterProceduralSideEffectResult]) extends InterProceduralSideEffectAnalysisResult {
 
       override def toString: String = {
         val sb = new StringBuilder
@@ -139,24 +138,24 @@ object SideEffectAnalysis {
 
       override def equals(cr: Any): Boolean = {
         cr match {
-          case result1: InterproceduralSideEffectAnalysisResult => results.forall { case (sig, r) => r.toString == result1.result(sig).get.toString }
+          case result1: InterProceduralSideEffectAnalysisResult => results.forall { case (sig, r) => r.toString == result1.result(sig).get.toString }
           case _ => false
         }
       }
 
-      def add(ipser: InterproceduralSideEffectResult): Unit = {
+      def add(ipser: InterProceduralSideEffectResult): Unit = {
         this.synchronized(
           results.update(ipser.procSig, ipser)
         )
       }
     }
 
-    val ipsea = new Ipsea(getResult _)
+    val ipsea = new Ipsea(getResult)
     var x: Float = 0
     val procSize = intraSEResults.size
     val rs =
       intraSEResults.par.map{
-        case (procSig, intraPSE) =>
+        case (_, intraPSE) =>
           this.synchronized(x += 1)
           if(x%1000==0)println((x/procSize)*100 + "%")
           if(x == procSize) println("Inter side effect Done!")
@@ -166,7 +165,7 @@ object SideEffectAnalysis {
     ipsea
   }
 
-  private def resolveInterProceduralSideEffect(intraPSE: IntraproceduralSideEffectResult, intraSEResults: GenMap[Signature, IntraproceduralSideEffectResult]): InterproceduralSideEffectResult = {
+  private def resolveInterProceduralSideEffect(intraPSE: IntraproceduralSideEffectResult, intraSEResults: GenMap[Signature, IntraproceduralSideEffectResult]): InterProceduralSideEffectResult = {
     var worklist: Set[CallInfo] = Set()
     val processed: MSet[CallInfo] = msetEmpty
     worklist ++= intraPSE.callInfos
@@ -202,7 +201,7 @@ object SideEffectAnalysis {
           newCalls
       }.reduce(iunion[CallInfo])
     }
-    InterproceduralSideEffectResult(procedure.getSignature, readMap, writeMap, globalRead, globalWrite)
+    InterProceduralSideEffectResult(procedure.getSignature, readMap, writeMap, globalRead, globalWrite)
   }
 
   def intraProceduralSideEffect(global: Global, procedure: JawaMethod): IntraproceduralSideEffectResult = {
@@ -220,7 +219,7 @@ object SideEffectAnalysis {
           case pfl: PointFieldL =>
             val varName = pfl.baseP.baseName
             val fieldName = pfl.fqn.fieldName
-            val position = findPositionFromRda(procedure, cfg, rda, varName, Some(pfl.loc), pfl.locIndex)
+            val position = findPositionFromRda(procedure, cfg, rda, varName, pfl.locUri, pfl.locIndex)
             if (position >= 0)
               writeMap += (position -> (writeMap.getOrElse(position, Set()) + fieldName))
           case pgl: PointStaticFieldL =>
@@ -232,7 +231,7 @@ object SideEffectAnalysis {
           case pfr: PointFieldR =>
             val varName = pfr.baseP.baseName
             val fieldName = pfr.fqn.fieldName
-            val position = findPositionFromRda(procedure, cfg, rda, varName, Some(pfr.loc), pfr.locIndex)
+            val position = findPositionFromRda(procedure, cfg, rda, varName, pfr.locUri, pfr.locIndex)
             if (position >= 0)
               readMap += (position -> (readMap.getOrElse(position, Set()) + fieldName))
           case pgr: PointStaticFieldR =>
@@ -247,15 +246,15 @@ object SideEffectAnalysis {
         pi match {
           case p: PointI =>
             val varName = p.recvPCall.argName
-            val position = findPositionFromRda(procedure, cfg, rda, varName, Some(p.loc), p.locIndex)
+            val position = findPositionFromRda(procedure, cfg, rda, varName, p.locUri, p.locIndex)
             if (position >= 0)
               paramMap += (0 -> position)
           case _ =>
         }
         pi.argPsCall.foreach {
-          case (i, arg) =>
+          case (_, arg) =>
             val varName = arg.argName
-            val position = findPositionFromRda(procedure, cfg, rda, varName, Some(pi.loc), pi.locIndex)
+            val position = findPositionFromRda(procedure, cfg, rda, varName, pi.locUri, pi.locIndex)
             val argPosition = arg.index
             if (position >= 0)
               paramMap += (argPosition -> position)
@@ -269,12 +268,12 @@ object SideEffectAnalysis {
   
   private def findPositionFromRda(
       procedure: JawaMethod,
-      cfg: ControlFlowGraph[String],
-      rda: JawaReachingDefinitionAnalysis.Result,
+      cfg: IntraProceduralControlFlowGraph[CFGNode],
+      rda: ReachingDefinitionAnalysis.Result,
       varName: String,
-      locUri: Option[String],
+      locUri: String,
       locIndex: Int,
-      slotStack: Set[JawaReachingDefinitionAnalysis.RDFact] = Set()): Int = {
+      slotStack: Set[ReachingDefinitionAnalysis.RDFact] = Set()): Int = {
     val paramNameList = procedure.getParamNames
     val slots = rda.entrySet(cfg.getNode(locUri, locIndex)) -- slotStack
     slots.foreach{
@@ -289,7 +288,7 @@ object SideEffectAnalysis {
               }
             case _ if defDesc.isUndefined => return -2
             case locDefDesc: LocDefDesc =>
-              val loc = procedure.getBody.location(locDefDesc.locIndex)
+              val loc = procedure.getBody.resolvedBody.locations(locDefDesc.locIndex)
               if (isSimpleAssignment(loc)) {
                 val rhsVar = getAssignmentRhsVar(loc)
                 return findPositionFromRda(procedure, cfg, rda, rhsVar, locDefDesc.locUri, locDefDesc.locIndex, slotStack ++ slots)
@@ -303,27 +302,18 @@ object SideEffectAnalysis {
     -2
   }
   
-  private def isSimpleAssignment(loc: LocationDecl): Boolean = {
-    loc match{
-      case al: ActionLocation =>
-        al.action match{
-          case aa: AssignAction =>
-            aa.lhs.isInstanceOf[NameExp] && aa.rhs.isInstanceOf[NameExp]
-          case _ => false
-        }
+  private def isSimpleAssignment(loc: Location): Boolean = {
+    loc.statement match{
+      case as: AssignmentStatement =>
+        as.lhs.isInstanceOf[NameExpression] && as.rhs.isInstanceOf[NameExpression]
       case _ => false
     }
   }
   
-  private def getAssignmentRhsVar(loc: LocationDecl): String = {
-    loc match{
-      case al: ActionLocation =>
-        al.action match{
-          case aa: AssignAction =>
-            require(aa.rhs.isInstanceOf[NameExp])
-            aa.rhs.asInstanceOf[NameExp].name.name
-          case _ => throw new RuntimeException
-        }
+  private def getAssignmentRhsVar(loc: Location): String = {
+    loc.statement match{
+      case as: AssignmentStatement =>
+        as.rhs.asInstanceOf[NameExpression].name
       case _ => throw new RuntimeException
     }
   }

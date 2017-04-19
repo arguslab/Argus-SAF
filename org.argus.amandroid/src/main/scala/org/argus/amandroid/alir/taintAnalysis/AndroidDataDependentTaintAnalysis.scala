@@ -12,10 +12,10 @@ package org.argus.amandroid.alir.taintAnalysis
 
 import org.argus.amandroid.alir.componentSummary.ApkYard
 import org.argus.amandroid.core.security.AndroidProblemCategories
-import org.argus.jawa.alir.dataDependenceAnalysis.{DataDependenceBaseGraph, IDDGCallArgNode, InterproceduralDataDependenceAnalysis, InterproceduralDataDependenceInfo}
+import org.argus.jawa.alir.dataDependenceAnalysis.{DataDependenceBaseGraph, IDDGCallArgNode, InterProceduralDataDependenceAnalysis, InterProceduralDataDependenceInfo}
 import org.argus.jawa.alir.pta.{PTAResult, VarSlot}
 import org.argus.jawa.alir.taintAnalysis._
-import org.sireum.util._
+import org.argus.jawa.core.util._
 
 /**
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
@@ -23,19 +23,19 @@ import org.sireum.util._
  */ 
 object AndroidDataDependentTaintAnalysis {
   final val TITLE = "AndroidDataDependentTaintAnalysis"
-  type Node = InterproceduralDataDependenceAnalysis.Node
+  type Node = InterProceduralDataDependenceAnalysis.Node
   
-  case class Tp(path: IList[InterproceduralDataDependenceAnalysis.Edge]) extends TaintPath[Node, InterproceduralDataDependenceAnalysis.Edge] {
+  case class Tp(path: IList[InterProceduralDataDependenceAnalysis.Edge]) extends TaintPath[Node, InterProceduralDataDependenceAnalysis.Edge] {
     var srcN: TaintSource[Node] = _
     var sinN: TaintSink[Node] = _
     val typs: MSet[String] = msetEmpty
     def getSource: TaintSource[Node] = srcN
     def getSink: TaintSink[Node] = sinN
     def getTypes: ISet[String] = this.typs.toSet
-    def getPath: IList[InterproceduralDataDependenceAnalysis.Edge] = {
-      path.reverse.map(edge=> new InterproceduralDataDependenceAnalysis.Edge(edge.owner, edge.target, edge.source))
+    def getPath: IList[InterProceduralDataDependenceAnalysis.Edge] = {
+      path.reverse.map(edge=> new InterProceduralDataDependenceAnalysis.Edge(edge.owner, edge.target, edge.source))
     }
-    def isSame(tp: TaintPath[Node, InterproceduralDataDependenceAnalysis.Edge]): Boolean = getSource.isSame(tp.getSource) && getSink.isSame(tp.getSink)
+    def isSame(tp: TaintPath[Node, InterProceduralDataDependenceAnalysis.Edge]): Boolean = getSource.isSame(tp.getSource) && getSink.isSame(tp.getSink)
     def toTaintSimplePath: TaintSimplePath = {
       val source: TaintDescriptor = getSource.descriptor
       val sink: TaintDescriptor = getSink.descriptor
@@ -67,21 +67,21 @@ object AndroidDataDependentTaintAnalysis {
     }
   }
   
-  class TarApk extends TaintAnalysisResult[Node, InterproceduralDataDependenceAnalysis.Edge] {
-    var tars: MSet[TaintAnalysisResult[Node, InterproceduralDataDependenceAnalysis.Edge]] = msetEmpty
+  class TarApk extends TaintAnalysisResult[Node, InterProceduralDataDependenceAnalysis.Edge] {
+    var tars: MSet[TaintAnalysisResult[Node, InterProceduralDataDependenceAnalysis.Edge]] = msetEmpty
     def getSourceNodes: ISet[TaintSource[Node]] = tars.map(_.getSourceNodes).fold(isetEmpty)(_ ++ _)
     def getSinkNodes: ISet[TaintSink[Node]] = tars.map(_.getSinkNodes).fold(isetEmpty)(_ ++ _)
-    def getTaintedPaths: ISet[TaintPath[Node, InterproceduralDataDependenceAnalysis.Edge]] = tars.map(_.getTaintedPaths).fold(isetEmpty)(_ ++ _)
+    def getTaintedPaths: ISet[TaintPath[Node, InterProceduralDataDependenceAnalysis.Edge]] = tars.map(_.getTaintedPaths).fold(isetEmpty)(_ ++ _)
     
   }
   
-  case class Tar(iddi: InterproceduralDataDependenceInfo) extends TaintAnalysisResult[Node, InterproceduralDataDependenceAnalysis.Edge] {
+  case class Tar(iddi: InterProceduralDataDependenceInfo) extends TaintAnalysisResult[Node, InterProceduralDataDependenceAnalysis.Edge] {
     var sourceNodes: ISet[TaintSource[Node]] = isetEmpty
     var sinkNodes: ISet[TaintSink[Node]] = isetEmpty
     def getSourceNodes: ISet[TaintSource[Node]] = this.sourceNodes
     def getSinkNodes: ISet[TaintSink[Node]] = this.sinkNodes
-    def getTaintedPaths: ISet[TaintPath[Node, InterproceduralDataDependenceAnalysis.Edge]] = {
-      var tps: ISet[TaintPath[Node, InterproceduralDataDependenceAnalysis.Edge]] = isetEmpty
+    def getTaintedPaths: ISet[TaintPath[Node, InterProceduralDataDependenceAnalysis.Edge]] = {
+      var tps: ISet[TaintPath[Node, InterProceduralDataDependenceAnalysis.Edge]] = isetEmpty
       sinkNodes.foreach {
         sinN =>
           sourceNodes.foreach {
@@ -121,10 +121,10 @@ object AndroidDataDependentTaintAnalysis {
     }
   }
     
-  def apply(yard: ApkYard, iddi: InterproceduralDataDependenceInfo, ptaResult: PTAResult, ssm: AndroidSourceAndSinkManager): TaintAnalysisResult[Node, InterproceduralDataDependenceAnalysis.Edge]
+  def apply(yard: ApkYard, iddi: InterProceduralDataDependenceInfo, ptaResult: PTAResult, ssm: AndroidSourceAndSinkManager): TaintAnalysisResult[Node, InterProceduralDataDependenceAnalysis.Edge]
     = build(yard, iddi, ptaResult, ssm)
   
-  def build(yard: ApkYard, iddi: InterproceduralDataDependenceInfo, ptaResult: PTAResult, ssm: AndroidSourceAndSinkManager): TaintAnalysisResult[Node, InterproceduralDataDependenceAnalysis.Edge] = {
+  def build(yard: ApkYard, iddi: InterProceduralDataDependenceInfo, ptaResult: PTAResult, ssm: AndroidSourceAndSinkManager): TaintAnalysisResult[Node, InterProceduralDataDependenceAnalysis.Edge] = {
     var sourceNodes: ISet[TaintSource[Node]] = isetEmpty
     var sinkNodes: ISet[TaintSink[Node]] = isetEmpty
 
@@ -157,7 +157,7 @@ object AndroidDataDependentTaintAnalysis {
     tar
   }
   
-  private def extendIDDGForSinkApis(iddg: DataDependenceBaseGraph[InterproceduralDataDependenceAnalysis.Node], callArgNode: IDDGCallArgNode, ptaresult: PTAResult) = {
+  private def extendIDDGForSinkApis(iddg: DataDependenceBaseGraph[InterProceduralDataDependenceAnalysis.Node], callArgNode: IDDGCallArgNode, ptaresult: PTAResult) = {
     val calleeSet = callArgNode.getCalleeSet
     calleeSet.foreach{ _ =>
       val argSlot = VarSlot(callArgNode.argName, isBase = false, isArg = true)

@@ -16,7 +16,7 @@ import org.argus.jawa.alir.Context
 import org.argus.jawa.alir.pta.PTAResult
 import org.argus.jawa.alir.pta.reachingFactsAnalysis.{RFAFact, RFAFactFactory}
 import org.argus.jawa.core.{JawaMethod, JawaType, Signature}
-import org.sireum.util._
+import org.argus.jawa.core.util._
 
 /**
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
@@ -28,8 +28,8 @@ object AndroidReachingFactsAnalysisHelper {
     AndroidModelCallHandler.isModelCall(calleeMethod)
   }
   
-  def doModelCall(s: PTAResult, calleeMethod: JawaMethod, args: List[String], retVars: Seq[String], currentContext: Context, apk: ApkGlobal)(implicit factory: RFAFactFactory): (ISet[RFAFact], ISet[RFAFact]) = {
-    AndroidModelCallHandler.doModelCall(apk, s, calleeMethod, args, retVars, currentContext)
+  def doModelCall(s: PTAResult, calleeMethod: JawaMethod, args: List[String], retVar: Option[String], currentContext: Context, apk: ApkGlobal)(implicit factory: RFAFactFactory): (ISet[RFAFact], ISet[RFAFact]) = {
+    AndroidModelCallHandler.doModelCall(apk, s, calleeMethod, args, retVar, currentContext)
   }
   
   def isICCCall(calleeSig: Signature): Boolean = {

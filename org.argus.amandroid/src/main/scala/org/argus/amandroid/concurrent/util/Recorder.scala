@@ -12,15 +12,14 @@ package org.argus.amandroid.concurrent.util
 
 import java.io.FileWriter
 
-import org.argus.jawa.core.util.MyFileUtil
-import org.sireum.util.{FileResourceUri, FileUtil}
+import org.argus.jawa.core.util.{FileResourceUri, FileUtil}
 
 /**
   * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
   */
 case class Recorder(outUri: FileResourceUri) {
   def decompile(apkName: String, succ: Boolean): Unit = {
-    val rp = FileUtil.toFile(MyFileUtil.appendFileName(outUri, "decompile_report.txt"))
+    val rp = FileUtil.toFile(FileUtil.appendFileName(outUri, "decompile_report.txt"))
     this.synchronized {
       val writer = new FileWriter(rp, true)
       try {
@@ -35,7 +34,7 @@ case class Recorder(outUri: FileResourceUri) {
   }
 
   def infocollect(apkName: String, succ: Boolean): Unit = {
-    val rp = FileUtil.toFile(MyFileUtil.appendFileName(outUri, "info_collect_report.txt"))
+    val rp = FileUtil.toFile(FileUtil.appendFileName(outUri, "info_collect_report.txt"))
     this.synchronized {
       val writer = new FileWriter(rp, true)
       try {
@@ -50,7 +49,7 @@ case class Recorder(outUri: FileResourceUri) {
   }
 
   def pta(apkName: String, time: Long, componentNum: Int, succ: Boolean): Unit = {
-    val rp = FileUtil.toFile(MyFileUtil.appendFileName(outUri, "pta_report.txt"))
+    val rp = FileUtil.toFile(FileUtil.appendFileName(outUri, "pta_report.txt"))
     this.synchronized {
       val writer = new FileWriter(rp, true)
       try {

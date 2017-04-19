@@ -15,7 +15,7 @@ import org.argus.jawa.alir.Context
 import org.argus.jawa.alir.pta._
 import org.argus.jawa.alir.pta.reachingFactsAnalysis.{RFAFact, RFAFactFactory, ReachingFactsAnalysisHelper}
 import org.argus.jawa.core.{JawaClass, JawaMethod, JawaType}
-import org.sireum.util._
+import org.argus.jawa.core.util._
 
 /**
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
@@ -24,7 +24,7 @@ import org.sireum.util._
 object BundleModel {
   def isBundle(r: JawaClass): Boolean = r.getName.equals(AndroidConstants.BUNDLE)
     
-  def doBundleCall(s: PTAResult, p: JawaMethod, args: List[String], retVars: Seq[String], currentContext: Context)(implicit factory: RFAFactFactory): (ISet[RFAFact], ISet[RFAFact], Boolean) = {
+  def doBundleCall(s: PTAResult, p: JawaMethod, args: List[String], retVar: String, currentContext: Context)(implicit factory: RFAFactFactory): (ISet[RFAFact], ISet[RFAFact], Boolean) = {
     var newFacts = isetEmpty[RFAFact]
     val delFacts = isetEmpty[RFAFact]
     var byPassFlag = true
@@ -33,33 +33,28 @@ object BundleModel {
       case "Landroid/os/Bundle;.<init>:()V" =>  //public constructor
       case "Landroid/os/Bundle;.<init>:(I)V" =>  //public constructor
       case "Landroid/os/Bundle;.<init>:(Landroid/os/Bundle;)V" =>  //public constructor
-        require(retVars.size == 1)
-        newFacts ++= initBundleFromBundle(s, args, retVars.head, currentContext)
+        newFacts ++= initBundleFromBundle(s, args, retVar, currentContext)
         byPassFlag = false
       case "Landroid/os/Bundle;.<init>:(Landroid/os/Parcel;)V" =>  //constructor
       case "Landroid/os/Bundle;.<init>:(Landroid/os/Parcel;I)V" =>  //constructor
       case "Landroid/os/Bundle;.<init>:(Ljava/lang/ClassLoader;)V" =>  //public constructor
       case "Landroid/os/Bundle;.clear:()V" =>  //public
       case "Landroid/os/Bundle;.clone:()Ljava/lang/Object;" =>  //public
-        require(retVars.size == 1)
-        newFacts ++= cloneBundle(s, args, retVars.head, currentContext)
+        newFacts ++= cloneBundle(s, args, retVar, currentContext)
         byPassFlag = false
       case "Landroid/os/Bundle;.containsKey:(Ljava/lang/String;)Z" =>  //public
       case "Landroid/os/Bundle;.describeContents:()I" =>  //public
       case "Landroid/os/Bundle;.forPair:(Ljava/lang/String;Ljava/lang/String;)Landroid/os/Bundle;" =>  //public static
-        require(retVars.size == 1)
-        newFacts ++= forPair(s, args, retVars.head, currentContext)
+        newFacts ++= forPair(s, args, retVar, currentContext)
         byPassFlag = false
       case "Landroid/os/Bundle;.get:(Ljava/lang/String;)Ljava/lang/Object;" =>  //public
-        require(retVars.size == 1)
-        newFacts ++= getBundleValue(s, args, retVars.head, currentContext)
+        newFacts ++= getBundleValue(s, args, retVar, currentContext)
         byPassFlag = false
       case "Landroid/os/Bundle;.getBoolean:(Ljava/lang/String;)Z" =>  //public
       case "Landroid/os/Bundle;.getBoolean:(Ljava/lang/String;Z)Z" =>  //public
       case "Landroid/os/Bundle;.getBooleanArray:(Ljava/lang/String;)[Z" =>  //public
       case "Landroid/os/Bundle;.getBundle:(Ljava/lang/String;)Landroid/os/Bundle;" =>  //public
-        require(retVars.size == 1)
-        newFacts ++= getBundleValue(s, args, retVars.head, currentContext)
+        newFacts ++= getBundleValue(s, args, retVar, currentContext)
         byPassFlag = false
       case "Landroid/os/Bundle;.getByte:(Ljava/lang/String;)B" =>  //public
       case "Landroid/os/Bundle;.getByte:(Ljava/lang/String;B)Ljava/lang/Byte;" =>  //public
@@ -68,20 +63,16 @@ object BundleModel {
       case "Landroid/os/Bundle;.getChar:(Ljava/lang/String;C)C" =>  //public
       case "Landroid/os/Bundle;.getCharArray:(Ljava/lang/String;)[C" =>  //public
       case "Landroid/os/Bundle;.getCharSequence:(Ljava/lang/String;)Ljava/lang/CharSequence;" =>  //public
-        require(retVars.size == 1)
-        newFacts ++= getBundleValue(s, args, retVars.head, currentContext)
+        newFacts ++= getBundleValue(s, args, retVar, currentContext)
         byPassFlag = false
       case "Landroid/os/Bundle;.getCharSequence:(Ljava/lang/String;Ljava/lang/CharSequence;)Ljava/lang/CharSequence;" =>  //public
-        require(retVars.size == 1)
-        newFacts ++= getBundleValueWithDefault(s, args, retVars.head, currentContext)
+        newFacts ++= getBundleValueWithDefault(s, args, retVar, currentContext)
         byPassFlag = false
       case "Landroid/os/Bundle;.getCharSequenceArray:(Ljava/lang/String;)[Ljava/lang/CharSequence;" =>  //public
-        require(retVars.size == 1)
-        newFacts ++= getBundleValue(s, args, retVars.head, currentContext)
+        newFacts ++= getBundleValue(s, args, retVar, currentContext)
         byPassFlag = false
       case "Landroid/os/Bundle;.getCharSequenceArrayList:(Ljava/lang/String;)Ljava/util/ArrayList;" =>  //public
-        require(retVars.size == 1)
-        newFacts ++= getBundleValue(s, args, retVars.head, currentContext)
+        newFacts ++= getBundleValue(s, args, retVar, currentContext)
         byPassFlag = false
       case "Landroid/os/Bundle;.getClassLoader:()Ljava/lang/ClassLoader;" =>  //public
       case "Landroid/os/Bundle;.getDouble:(Ljava/lang/String;)D" =>  //public
@@ -91,65 +82,53 @@ object BundleModel {
       case "Landroid/os/Bundle;.getFloat:(Ljava/lang/String;F)F" =>  //public
       case "Landroid/os/Bundle;.getFloatArray:(Ljava/lang/String;)[F" =>  //public
       case "Landroid/os/Bundle;.getIBinder:(Ljava/lang/String;)Landroid/os/IBinder;" =>  //public
-        require(retVars.size == 1)
-        newFacts ++= getBundleValue(s, args, retVars.head, currentContext)
+        newFacts ++= getBundleValue(s, args, retVar, currentContext)
         byPassFlag = false
       case "Landroid/os/Bundle;.getInt:(Ljava/lang/String;)I" =>  //public
       case "Landroid/os/Bundle;.getInt:(Ljava/lang/String;I)I" =>  //public
       case "Landroid/os/Bundle;.getIntArray:(Ljava/lang/String;)[I" =>  //public
       case "Landroid/os/Bundle;.getIntegerArrayList:(Ljava/lang/String;)Ljava/util/ArrayList;" =>  //public
-        require(retVars.size == 1)
-        newFacts ++= getBundleValue(s, args, retVars.head, currentContext)
+        newFacts ++= getBundleValue(s, args, retVar, currentContext)
         byPassFlag = false
       case "Landroid/os/Bundle;.getLong:(Ljava/lang/String;)J" =>  //public
       case "Landroid/os/Bundle;.getLong:(Ljava/lang/String;J)J" =>  //public
       case "Landroid/os/Bundle;.getLongArray:(Ljava/lang/String;)[J" =>  //public
       case "Landroid/os/Bundle;.getPairValue:()Ljava/lang/String;" =>  //public
       case "Landroid/os/Bundle;.getParcelable:(Ljava/lang/String;)Landroid/os/Parcelable;" =>  //public
-        require(retVars.size == 1)
-        newFacts ++= getBundleValue(s, args, retVars.head, currentContext)
+        newFacts ++= getBundleValue(s, args, retVar, currentContext)
         byPassFlag = false
       case "Landroid/os/Bundle;.getParcelableArray:(Ljava/lang/String;)[Landroid/os/Parcelable;" =>  //public
-        require(retVars.size == 1)
-        newFacts ++= getBundleValue(s, args, retVars.head, currentContext)
+        newFacts ++= getBundleValue(s, args, retVar, currentContext)
         byPassFlag = false
       case "Landroid/os/Bundle;.getParcelableArrayList:(Ljava/lang/String;)Ljava/util/ArrayList;" =>  //public
-        require(retVars.size == 1)
-        newFacts ++= getBundleValue(s, args, retVars.head, currentContext)
+        newFacts ++= getBundleValue(s, args, retVar, currentContext)
         byPassFlag = false
       case "Landroid/os/Bundle;.getSerializable:(Ljava/lang/String;)Ljava/io/Serializable;" =>  //public
-        require(retVars.size == 1)
-        newFacts ++= getBundleValue(s, args, retVars.head, currentContext)
+        newFacts ++= getBundleValue(s, args, retVar, currentContext)
         byPassFlag = false
       case "Landroid/os/Bundle;.getShort:(Ljava/lang/String;)S" =>  //public
       case "Landroid/os/Bundle;.getShort:(Ljava/lang/String;S)S" =>  //public
       case "Landroid/os/Bundle;.getShortArray:(Ljava/lang/String;)[S" =>  //public
       case "Landroid/os/Bundle;.getSparseParcelableArray:(Ljava/lang/String;)Landroid/util/SparseArray;" =>  //public
-        require(retVars.size == 1)
-        newFacts ++= getBundleValue(s, args, retVars.head, currentContext)
+        newFacts ++= getBundleValue(s, args, retVar, currentContext)
         byPassFlag = false
       case "Landroid/os/Bundle;.getString:(Ljava/lang/String;)Ljava/lang/String;" =>  //public
-        require(retVars.size == 1)
-        newFacts ++= getBundleValue(s, args, retVars.head, currentContext)
+        newFacts ++= getBundleValue(s, args, retVar, currentContext)
         byPassFlag = false
       case "Landroid/os/Bundle;.getString:(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;" =>  //public
-        require(retVars.size == 1)
-        newFacts ++= getBundleValueWithDefault(s, args, retVars.head, currentContext)
+        newFacts ++= getBundleValueWithDefault(s, args, retVar, currentContext)
         byPassFlag = false
       case "Landroid/os/Bundle;.getStringArray:(Ljava/lang/String;)[Ljava/lang/String;" =>  //public
-        require(retVars.size == 1)
-        newFacts ++= getBundleValue(s, args, retVars.head, currentContext)
+        newFacts ++= getBundleValue(s, args, retVar, currentContext)
         byPassFlag = false
       case "Landroid/os/Bundle;.getStringArrayList:(Ljava/lang/String;)Ljava/util/ArrayList;" =>  //public
-        require(retVars.size == 1)
-        newFacts ++= getBundleValue(s, args, retVars.head, currentContext)
+        newFacts ++= getBundleValue(s, args, retVar, currentContext)
         byPassFlag = false
       case "Landroid/os/Bundle;.hasFileDescriptors:()Z" =>  //public
       case "Landroid/os/Bundle;.isEmpty:()Z" =>  //public
       case "Landroid/os/Bundle;.isParcelled:()Z" =>  //public
       case "Landroid/os/Bundle;.keySet:()Ljava/util/Set;" =>  //public
-        require(retVars.size == 1)
-        newFacts ++= getBundleKeySetToRet(s, args, retVars.head, currentContext)
+        newFacts ++= getBundleKeySetToRet(s, args, retVar, currentContext)
         byPassFlag = false
       case "Landroid/os/Bundle;.putAll:(Landroid/os/Bundle;)V" =>  //public
         newFacts ++= putAllBundleValues(s, args, currentContext)
@@ -219,8 +198,7 @@ object BundleModel {
       case "Landroid/os/Bundle;.setClassLoader:(Ljava/lang/ClassLoader;)V" =>  //public
       case "Landroid/os/Bundle;.size:()I" =>  //public
       case "Landroid/os/Bundle;.toString:()Ljava/lang/String;" =>  //public declared_synchronized
-        require(retVars.size == 1)
-        newFacts += getPointStringToRet(retVars.head, currentContext)
+        newFacts += getPointStringToRet(retVar, currentContext)
         byPassFlag = false
       case "Landroid/os/Bundle;.typeWarning:(Ljava/lang/String;Ljava/lang/Object;Ljava/lang/String;Ljava/lang/ClassCastException;)V" =>  //private
       case "Landroid/os/Bundle;.typeWarning:(Ljava/lang/String;Ljava/lang/Object;Ljava/lang/String;Ljava/lang/Object;Ljava/lang/ClassCastException;)V" =>  //private

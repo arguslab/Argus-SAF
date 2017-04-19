@@ -57,7 +57,7 @@ case class JawaField(declaringClass: JawaClass, name: String, typ: JawaType, acc
 
   override def toString: String = FQN.toString()
 
-  def printDetail() = {
+  def printDetail(): Unit = {
     println("~~~~~~~~~~~~~JawaField~~~~~~~~~~~~~")
     println("name: " + name)
     println("FQN: " + FQN)

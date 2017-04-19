@@ -12,7 +12,7 @@ package org.argus.amandroid.core.dedex
 
 import java.io._
 
-import org.sireum.util._
+import org.argus.jawa.core.util._
 import org.argus.amandroid.core.decompile.DecompilerSettings
 import org.argus.jawa.core.{JavaKnowledge, JawaPackage, JawaType}
 import org.jf.dexlib2.analysis.InlineMethodResolver

@@ -15,9 +15,9 @@ import java.io.File
 import org.argus.amandroid.core.AndroidConstants
 import org.argus.amandroid.core.parser.ManifestParser
 import org.argus.jawa.core.JawaType
-import org.argus.jawa.core.util.MyFileUtil
-import org.sireum.util._
-import org.sireum.util.FileResourceUri
+import org.argus.jawa.core.util.FileUtil
+import org.argus.jawa.core.util._
+import org.argus.jawa.core.util.FileResourceUri
 
 object ApkDecompiler {
   final val TITLE = "ApkDecompiler"
@@ -71,7 +71,7 @@ object ApkDecompiler {
   def decompile(apkUri: FileResourceUri, settings: DecompilerSettings): (FileResourceUri, ISet[String], ISet[String]) = {
     val outUri = decodeApk(apkUri, settings.layout.outputUri, settings.forceDelete, settings.layout.createFolder, settings.layout.srcFolder)
     settings.layout.outputSrcUri = outUri
-    val manifestUri = MyFileUtil.appendFileName(outUri, "AndroidManifest.xml")
+    val manifestUri = FileUtil.appendFileName(outUri, "AndroidManifest.xml")
     val pkg = ManifestParser.loadPackageName(manifestUri)
     val srcFolders: MSet[String] = msetEmpty
     val dependencies: MSet[String] = msetEmpty

@@ -10,7 +10,7 @@
 
 package org.argus.amandroid.serialization.stage
 
-import org.sireum.util._
+import org.argus.jawa.core.util._
 import java.io._
 
 import org.json4s._
@@ -22,15 +22,15 @@ import org.argus.amandroid.serialization.{ApkModelSerializer, ContextSerializer,
 import org.argus.jawa.alir.pta.PTAResult
 import org.argus.jawa.alir.taintAnalysis.TaintAnalysisSimpleResult
 import org.argus.jawa.core.Signature
-import org.argus.jawa.core.util.MyFileUtil
+import org.argus.jawa.core.util.FileUtil
 
 object Staging {
   
   def stageApkModel(apk: ApkModel, outApkUri: FileResourceUri): Unit = {
-    val outStageUri = MyFileUtil.appendFileName(outApkUri, "stage")
+    val outStageUri = FileUtil.appendFileName(outApkUri, "stage")
     val outStageDir = FileUtil.toFile(outStageUri)
     if(!outStageDir.exists()) outStageDir.mkdirs()
-    val apkRes = FileUtil.toFile(MyFileUtil.appendFileName(outStageUri, "apk.json"))
+    val apkRes = FileUtil.toFile(FileUtil.appendFileName(outStageUri, "apk.json"))
     val oapk = new PrintWriter(apkRes)
     implicit val formats = Serialization.formats(NoTypeHints) + ApkModelSerializer + PTAResultSerializer
     try {
@@ -46,10 +46,10 @@ object Staging {
   }
   
   def stagePTAResult(ptaresults: IMap[Signature, PTAResult], outApkUri: FileResourceUri): Unit = {
-    val outStageUri = MyFileUtil.appendFileName(outApkUri, "stage")
+    val outStageUri = FileUtil.appendFileName(outApkUri, "stage")
     val outStageDir = FileUtil.toFile(outStageUri)
     if(!outStageDir.exists()) outStageDir.mkdirs()
-    val ptsRes = FileUtil.toFile(MyFileUtil.appendFileName(outStageUri, "ptaresult.json"))
+    val ptsRes = FileUtil.toFile(FileUtil.appendFileName(outStageUri, "ptaresult.json"))
     val opts = new PrintWriter(ptsRes)
     implicit val formats = Serialization.formats(NoTypeHints) + PTAResultSerializer + SignatureKeySerializer
     try {
@@ -70,10 +70,10 @@ object Staging {
   }
   
   def stageTaintAnalysisResult(tasr: TaintAnalysisSimpleResult, outApkUri: FileResourceUri): Unit = {
-    val outStageUri = MyFileUtil.appendFileName(outApkUri, "stage")
+    val outStageUri = FileUtil.appendFileName(outApkUri, "stage")
     val outStageDir = FileUtil.toFile(outStageUri)
     if(!outStageDir.exists()) outStageDir.mkdirs()
-    val ptsRes = FileUtil.toFile(MyFileUtil.appendFileName(outStageUri, "taintresult.json"))
+    val ptsRes = FileUtil.toFile(FileUtil.appendFileName(outStageUri, "taintresult.json"))
     val opts = new PrintWriter(ptsRes)
     implicit val formats = Serialization.formats(NoTypeHints) + ContextSerializer
     try {
@@ -89,10 +89,10 @@ object Staging {
   }
   
   def stageAPIMisuseResult(amr: ApiMisuseResult, outApkUri: FileResourceUri): Unit = {
-    val outStageUri = MyFileUtil.appendFileName(outApkUri, "stage")
+    val outStageUri = FileUtil.appendFileName(outApkUri, "stage")
     val outStageDir = FileUtil.toFile(outStageUri)
     if(!outStageDir.exists()) outStageDir.mkdirs()
-    val ptsRes = FileUtil.toFile(MyFileUtil.appendFileName(outStageUri, "misuseresult.json"))
+    val ptsRes = FileUtil.toFile(FileUtil.appendFileName(outStageUri, "misuseresult.json"))
     val opts = new PrintWriter(ptsRes)
     implicit val formats = Serialization.formats(NoTypeHints) + ContextSerializer
     try {
@@ -108,10 +108,10 @@ object Staging {
   }
   
   def recoverApkModel(outApkUri: FileResourceUri): ApkModel = {
-    val outStageUri = MyFileUtil.appendFileName(outApkUri, "stage")
+    val outStageUri = FileUtil.appendFileName(outApkUri, "stage")
     val outStageDir = FileUtil.toFile(outStageUri)
     if(!outStageDir.exists()) throw new RuntimeException("Did not have stage folder!")
-    val apkRes = FileUtil.toFile(MyFileUtil.appendFileName(outStageUri, "apk.json"))
+    val apkRes = FileUtil.toFile(FileUtil.appendFileName(outStageUri, "apk.json"))
     val rapk = new FileReader(apkRes)
     implicit val formats = Serialization.formats(NoTypeHints) + ApkModelSerializer
     try {
@@ -126,10 +126,10 @@ object Staging {
   }
   
   def recoverPTAResult(outApkUri: FileResourceUri): IMap[Signature, PTAResult] = {
-    val outStageUri = MyFileUtil.appendFileName(outApkUri, "stage")
+    val outStageUri = FileUtil.appendFileName(outApkUri, "stage")
     val outStageDir = FileUtil.toFile(outStageUri)
     if(!outStageDir.exists()) throw new RuntimeException("Did not have stage folder!")
-    val ptsRes = FileUtil.toFile(MyFileUtil.appendFileName(outStageUri, "ptaresult.json"))
+    val ptsRes = FileUtil.toFile(FileUtil.appendFileName(outStageUri, "ptaresult.json"))
     val rpts = new FileReader(ptsRes)
     implicit val formats = Serialization.formats(NoTypeHints) + PTAResultSerializer + SignatureKeySerializer
     try {
@@ -148,10 +148,10 @@ object Staging {
   }
   
   def recoverTaintAnalysisResult(outApkUri: FileResourceUri): TaintAnalysisSimpleResult = {
-    val outStageUri = MyFileUtil.appendFileName(outApkUri, "stage")
+    val outStageUri = FileUtil.appendFileName(outApkUri, "stage")
     val outStageDir = FileUtil.toFile(outStageUri)
     if(!outStageDir.exists()) throw new RuntimeException("Did not have stage folder!")
-    val ptsRes = FileUtil.toFile(MyFileUtil.appendFileName(outStageUri, "taintresult.json"))
+    val ptsRes = FileUtil.toFile(FileUtil.appendFileName(outStageUri, "taintresult.json"))
     val rpts = new FileReader(ptsRes)
     implicit val formats = Serialization.formats(NoTypeHints) + ContextSerializer
     try {
@@ -166,10 +166,10 @@ object Staging {
   }
   
   def recoverAPIMisuseResult(outApkUri: FileResourceUri): ApiMisuseResult = {
-    val outStageUri = MyFileUtil.appendFileName(outApkUri, "stage")
+    val outStageUri = FileUtil.appendFileName(outApkUri, "stage")
     val outStageDir = FileUtil.toFile(outStageUri)
     if(!outStageDir.exists()) throw new RuntimeException("Did not have stage folder!")
-    val ptsRes = FileUtil.toFile(MyFileUtil.appendFileName(outStageUri, "misuseresult.json"))
+    val ptsRes = FileUtil.toFile(FileUtil.appendFileName(outStageUri, "misuseresult.json"))
     val rpts = new FileReader(ptsRes)
     implicit val formats = Serialization.formats(NoTypeHints) + PTAResultSerializer
     try {
@@ -189,7 +189,7 @@ object Staging {
   }
 
   def hasStage(outUri: FileResourceUri, apkName: String): Boolean = {
-    val stageRp = FileUtil.toFile(MyFileUtil.appendFileName(outUri, "stage_report.txt"))
+    val stageRp = FileUtil.toFile(FileUtil.appendFileName(outUri, "stage_report.txt"))
     if(stageRp.exists()) {
       val br = new BufferedReader(new FileReader(stageRp))
       var line = br.readLine()
@@ -204,7 +204,7 @@ object Staging {
   }
 
   def stageReport(outUri: FileResourceUri, apkName: String): Unit = {
-    val stageRp = FileUtil.toFile(MyFileUtil.appendFileName(outUri, "stage_report.txt"))
+    val stageRp = FileUtil.toFile(FileUtil.appendFileName(outUri, "stage_report.txt"))
     this.synchronized {
       val writer = new FileWriter(stageRp, true)
       try {

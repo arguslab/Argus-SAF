@@ -14,18 +14,18 @@ import java.io._
 
 import org.antlr.v4.runtime.ANTLRInputStream
 import org.antlr.v4.runtime.{Token => AntlrToken}
+import org.argus.jawa.compiler.Antlr4PilarLexer
 import org.argus.jawa.core.Reporter
 import org.argus.jawa.core.io.{FgSourceFile, NoFile, RangePosition, SourceFile}
-import org.sireum.pilar.parser.Antlr4PilarLexer
 
 class JawaLexer(aplexer: Antlr4PilarLexer, file: SourceFile, reporter: Reporter) extends Iterator[Token] {
   val sourceFile: SourceFile = file
 
   private var eofTokenEmitted = false
   protected var builtToken: Token = _
-  
 
-  import org.sireum.pilar.parser.Antlr4PilarLexer._
+
+  import org.argus.jawa.compiler.Antlr4PilarLexer._
   protected def fetchPilarToken(): Unit = {
     val aptoken: AntlrToken = aplexer.nextToken()
     val tokenLine = aptoken.getLine

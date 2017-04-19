@@ -14,7 +14,7 @@ import org.argus.amandroid.core.AndroidConstants
 import org.argus.amandroid.core.appInfo.ApkCertificate
 import org.argus.amandroid.core.parser.{ComponentInfo, ComponentType, IntentFilterDataBase, LayoutControl}
 import org.argus.jawa.core.{JawaType, Signature}
-import org.sireum.util._
+import org.argus.jawa.core.util._
 
 /**
   * Created by fgwei on 3/12/17.

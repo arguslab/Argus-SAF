@@ -10,7 +10,7 @@
 
 package org.argus.jawa.compiler.util
 
-import org.sireum.util._
+import org.argus.jawa.core.util._
 import java.io.File
 import java.util.jar.JarFile
 import java.net.{URI, URLDecoder}

@@ -10,8 +10,7 @@
 
 package org.argus.jawa.core
 
-import org.sireum.util.ResourceUri
-import org.sireum.util.IMap
+import org.argus.jawa.core.util.IMap
 
 abstract class Point{
   def ownerSig: Signature
@@ -67,7 +66,7 @@ trait Field{
  * have location and index
  */
 trait Loc{
-  def loc: ResourceUri
+  def locUri: String
   def locIndex: Int
 }
 

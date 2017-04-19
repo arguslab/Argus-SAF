@@ -12,6 +12,6 @@ package org.argus.jawa.compiler.interactive
 
 import org.argus.jawa.compiler.parser.CompilationUnit
 import org.argus.jawa.core.io.AbstractFile
-import org.sireum.util._
+import org.argus.jawa.core.util._
 
 case class JawaDelta(changedOrDeletedCUFiles: ISet[AbstractFile], changedOrAddedCUs: ISeq[CompilationUnit])

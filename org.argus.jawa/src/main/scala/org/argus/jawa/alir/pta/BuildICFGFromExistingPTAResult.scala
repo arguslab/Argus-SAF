@@ -11,12 +11,12 @@
 package org.argus.jawa.alir.pta
 
 import org.argus.jawa.alir.Context
-import org.argus.jawa.alir.controlFlowGraph.{ICFGCallNode, ICFGInvokeNode, ICFGNode, InterproceduralControlFlowGraph}
+import org.argus.jawa.alir.controlFlowGraph.{ICFGCallNode, ICFGInvokeNode, ICFGNode, InterProceduralControlFlowGraph}
 import org.argus.jawa.alir.dataFlowAnalysis.InterproceduralDataFlowGraph
 import org.argus.jawa.alir.interprocedural.{Callee, InstanceCallee, StaticCallee}
 import org.argus.jawa.alir.util.CallHandler
 import org.argus.jawa.core._
-import org.sireum.util._
+import org.argus.jawa.core.util._
 
 object BuildICFGFromExistingPTAResult {
   
@@ -28,7 +28,7 @@ object BuildICFGFromExistingPTAResult {
     val result: MMap[JawaType, InterproceduralDataFlowGraph] = mmapEmpty
     pta_results foreach {
       case (ep, pta_result) =>
-        val icfg = new InterproceduralControlFlowGraph[N]
+        val icfg = new InterProceduralControlFlowGraph[N]
         val epmopt = global.getMethodOrResolve(ep)
         epmopt match {
           case Some(epm) => 
@@ -43,10 +43,10 @@ object BuildICFGFromExistingPTAResult {
   }
   
   private def doBuild(
-      global: Global,
-      ep: JawaMethod,
-      icfg: InterproceduralControlFlowGraph[N], 
-      pta_result: PTAResult): Unit = {
+                       global: Global,
+                       ep: JawaMethod,
+                       icfg: InterProceduralControlFlowGraph[N],
+                       pta_result: PTAResult): Unit = {
     val context: Context = new Context(global.projectName)
     val nodes = icfg.collectCfgToBaseGraph(ep, context.copy, isFirst = true)
     val worklist: MList[N] = mlistEmpty ++ nodes
@@ -115,7 +115,7 @@ object BuildICFGFromExistingPTAResult {
   
   private def extendGraphWithConstructGraph(calleeProc: JawaMethod, 
       callerContext: Context, 
-      icfg: InterproceduralControlFlowGraph[N]): ISet[N] = {
+      icfg: InterProceduralControlFlowGraph[N]): ISet[N] = {
     val nodes = icfg.collectCfgToBaseGraph(calleeProc, callerContext.copy)
     icfg.extendGraph(calleeProc.getSignature, callerContext.copy)
     nodes

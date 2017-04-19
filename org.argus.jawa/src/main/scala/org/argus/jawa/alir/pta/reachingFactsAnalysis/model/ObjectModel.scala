@@ -14,7 +14,7 @@ import org.argus.jawa.alir.Context
 import org.argus.jawa.alir.pta.{ClassInstance, PTAResult, VarSlot}
 import org.argus.jawa.alir.pta.reachingFactsAnalysis.{RFAFact, RFAFactFactory}
 import org.argus.jawa.core.{JawaClass, JawaMethod}
-import org.sireum.util._
+import org.argus.jawa.core.util._
 
 /**
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
@@ -23,7 +23,7 @@ object ObjectModel {
   val TITLE = "ObjectModel"
   def isObject(r: JawaClass): Boolean = r.getName.equals("java.lang.Object")
     
-  def doObjectCall(s: PTAResult, p: JawaMethod, args: List[String], retVars: Seq[String], currentContext: Context)(implicit factory: RFAFactFactory): (ISet[RFAFact], ISet[RFAFact], Boolean) = {
+  def doObjectCall(s: PTAResult, p: JawaMethod, args: List[String], retVar: String, currentContext: Context)(implicit factory: RFAFactFactory): (ISet[RFAFact], ISet[RFAFact], Boolean) = {
     var newFacts = isetEmpty[RFAFact]
     var delFacts = isetEmpty[RFAFact]
     var byPassFlag = true
@@ -31,8 +31,7 @@ object ObjectModel {
       case "Ljava/lang/Object;.<init>:()V" =>
         byPassFlag = false
       case "Ljava/lang/Object;.getClass:()Ljava/lang/Class;" =>
-        require(retVars.size == 1)
-        objectGetClass(s, args, retVars.head, currentContext) match{case (n, d) => newFacts ++= n; delFacts ++= d}
+        objectGetClass(s, args, retVar, currentContext) match{case (n, d) => newFacts ++= n; delFacts ++= d}
         byPassFlag = false
       case _ =>
     }

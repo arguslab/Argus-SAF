@@ -18,7 +18,7 @@ import org.argus.amandroid.core.ApkGlobal
 import org.argus.amandroid.plugin.{TaintAnalysisModules, TaintAnalysisTask}
 import org.argus.jawa.core.util.IgnoreException
 import org.argus.jawa.core.{FileReporter, MsgLevel, NoReporter}
-import org.sireum.util._
+import org.argus.jawa.core.util._
 
 /**
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>

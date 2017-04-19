@@ -9,19 +9,18 @@
  */
 package org.argus.amandroid.core
 
-import org.sireum.util._
+import org.argus.jawa.core.util._
 import java.util.zip.ZipInputStream
 import java.io.FileInputStream
 import java.util.zip.ZipEntry
 
 import org.argus.amandroid.alir.componentSummary.ComponentSummaryTable
 import org.argus.amandroid.core.model.ApkModel
-import org.argus.jawa.alir.dataDependenceAnalysis.InterproceduralDataDependenceInfo
+import org.argus.jawa.alir.{AlirEdge, InterProceduralNode}
+import org.argus.jawa.alir.dataDependenceAnalysis.InterProceduralDataDependenceInfo
 import org.argus.jawa.alir.dataFlowAnalysis.InterproceduralDataFlowGraph
-import org.argus.jawa.alir.interprocedural.InterproceduralNode
 import org.argus.jawa.alir.taintAnalysis.TaintAnalysisResult
 import org.argus.jawa.core.{Global, JawaType, Reporter}
-import org.sireum.alir.AlirEdge
 
 object ApkGlobal {
   def isValidApk(nameUri: FileResourceUri): Boolean = {
@@ -123,12 +122,12 @@ class ApkGlobal(val model: ApkModel, reporter: Reporter) extends Global(model.na
   def getIDFG(key: JawaType): Option[InterproceduralDataFlowGraph] = this.synchronized(this.idfgResults.get(key))
   def getIDFGs: Map[JawaType, InterproceduralDataFlowGraph] = this.idfgResults.toMap
 
-  private val iddaResults: MMap[JawaType, InterproceduralDataDependenceInfo] = mmapEmpty
+  private val iddaResults: MMap[JawaType, InterProceduralDataDependenceInfo] = mmapEmpty
 
-  def addIDDG(key: JawaType, iddi: InterproceduralDataDependenceInfo): Unit = this.synchronized(this.iddaResults += (key -> iddi))
+  def addIDDG(key: JawaType, iddi: InterProceduralDataDependenceInfo): Unit = this.synchronized(this.iddaResults += (key -> iddi))
   def hasIDDG(key: JawaType): Boolean = this.iddaResults.contains(key)
-  def getIDDG(key: JawaType): Option[InterproceduralDataDependenceInfo] = this.synchronized(this.iddaResults.get(key))
-  def getIDDGs: Map[JawaType, InterproceduralDataDependenceInfo] = this.iddaResults.toMap
+  def getIDDG(key: JawaType): Option[InterProceduralDataDependenceInfo] = this.synchronized(this.iddaResults.get(key))
+  def getIDDGs: Map[JawaType, InterProceduralDataDependenceInfo] = this.iddaResults.toMap
 
   private val summaryTables: MMap[JawaType, ComponentSummaryTable] = mmapEmpty
 
@@ -139,9 +138,9 @@ class ApkGlobal(val model: ApkModel, reporter: Reporter) extends Global(model.na
 
   private var apkTaintResult: Option[Any] = None
 
-  def addTaintAnalysisResult[N <: InterproceduralNode, E <: AlirEdge[N]](tar: TaintAnalysisResult[N, E]): Unit = this.synchronized(this.apkTaintResult = Some(tar))
+  def addTaintAnalysisResult[N <: InterProceduralNode, E <: AlirEdge[N]](tar: TaintAnalysisResult[N, E]): Unit = this.synchronized(this.apkTaintResult = Some(tar))
   def hasTaintAnalysisResult(fileUri: FileResourceUri): Boolean = this.apkTaintResult.contains(fileUri)
-  def getTaintAnalysisResult[N <: InterproceduralNode, E <: AlirEdge[N]](fileUri: FileResourceUri): Option[TaintAnalysisResult[N, E]] = this.apkTaintResult.map(_.asInstanceOf[TaintAnalysisResult[N, E]])
+  def getTaintAnalysisResult[N <: InterProceduralNode, E <: AlirEdge[N]](fileUri: FileResourceUri): Option[TaintAnalysisResult[N, E]] = this.apkTaintResult.map(_.asInstanceOf[TaintAnalysisResult[N, E]])
 
 
   override def reset(removeCode: Boolean = true): Unit = {

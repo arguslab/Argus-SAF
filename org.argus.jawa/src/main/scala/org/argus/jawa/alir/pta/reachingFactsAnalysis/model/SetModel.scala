@@ -14,7 +14,7 @@ import org.argus.jawa.alir.Context
 import org.argus.jawa.alir.pta.{FieldSlot, PTAResult, VarSlot}
 import org.argus.jawa.alir.pta.reachingFactsAnalysis.{RFAFact, RFAFactFactory}
 import org.argus.jawa.core.{JawaClass, JawaMethod, JawaType}
-import org.sireum.util._
+import org.argus.jawa.core.util._
 
 /**
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
@@ -49,7 +49,7 @@ object SetModel {
     thisValue.map{s => new RFAFact(VarSlot(retVar, isBase = false, isArg = false), s.clone(currentContext))}
   }
   
-  def doSetCall(s: PTAResult, p: JawaMethod, args: List[String], retVars: Seq[String], currentContext: Context)(implicit factory: RFAFactFactory): (ISet[RFAFact], ISet[RFAFact], Boolean) = {
+  def doSetCall(s: PTAResult, p: JawaMethod, args: List[String], retVars: String, currentContext: Context)(implicit factory: RFAFactFactory): (ISet[RFAFact], ISet[RFAFact], Boolean) = {
     var newFacts = isetEmpty[RFAFact]
     val delFacts = isetEmpty[RFAFact]
     var byPassFlag = true
@@ -59,8 +59,7 @@ object SetModel {
         byPassFlag = false
       case "clear:()V" =>
       case "clone:()Ljava/lang/Object;" =>
-        require(retVars.size == 1)
-        newFacts ++= cloneSetToRet(s, args, retVars.head, currentContext)
+        newFacts ++= cloneSetToRet(s, args, retVars, currentContext)
         byPassFlag = false
       case "contains:(Ljava/lang/Object;)Z" =>
 //      case "Ljava/util/HashSet;.createBackingMap:(IF)Ljava/util/HashMap;" =>

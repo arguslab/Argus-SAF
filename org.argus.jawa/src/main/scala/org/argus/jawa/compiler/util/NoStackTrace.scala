@@ -29,5 +29,5 @@ object NoStackTrace {
 
   // two-stage init to make checkinit happy, since sys.SystemProperties.noTraceSupression.value calls back into NoStackTrace.noSuppression
   final private var _noSuppression = false
-  _noSuppression = sys.SystemProperties.noTraceSupression.value
+  _noSuppression = sys.SystemProperties.noTraceSuppression.value
 }

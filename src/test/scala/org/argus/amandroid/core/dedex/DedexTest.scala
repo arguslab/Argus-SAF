@@ -11,10 +11,10 @@
 package org.argus.amandroid.core.dedex
 
 import org.argus.amandroid.core.decompile.{DecompileLayout, DecompilerSettings}
-import org.argus.jawa.core.{JawaType, NoReporter, ResolveLevel}
+import org.argus.jawa.core.{JawaType, NoReporter}
 import org.argus.jawa.core.sourcefile.SourcefileParser
 import org.scalatest.{FlatSpec, Matchers}
-import org.sireum.util.FileUtil
+import org.argus.jawa.core.util.FileUtil
 
 /**
   * Created by fgwei on 4/8/17.
@@ -46,7 +46,7 @@ class DedexTest extends FlatSpec with Matchers {
     val dexUri = FileUtil.toUri(getClass.getResource("/dexes/data.dex").getPath)
     dedex.decompile(dexUri, None, recordFilter, DecompilerSettings(debugMode = false, removeSupportGen = true, forceDelete = false, DecompileLayout("")))
     dedex.getCodes map { case (_, code) =>
-      noException should be thrownBy SourcefileParser.parse(code, ResolveLevel.BODY, new NoReporter)
+      noException should be thrownBy SourcefileParser.parse(code, new NoReporter)
     }
     assert(!dedex.getCodes.exists{case (_, code) => code.contains("@INVALID_")})
   }
@@ -56,7 +56,7 @@ class DedexTest extends FlatSpec with Matchers {
     val dexUri = FileUtil.toUri(getClass.getResource("/dexes/comprehensive.dex").getPath)
     dedex.decompile(dexUri, None, recordFilter, DecompilerSettings(debugMode = false, removeSupportGen = true, forceDelete = false, DecompileLayout("")))
     dedex.getCodes map { case (_, code) =>
-      noException should be thrownBy SourcefileParser.parse(code, ResolveLevel.BODY, new NoReporter)
+      noException should be thrownBy SourcefileParser.parse(code, new NoReporter)
     }
     assert(!dedex.getCodes.exists{case (_, code) => code.contains("@INVALID_")})
   }
@@ -66,7 +66,7 @@ class DedexTest extends FlatSpec with Matchers {
     val dexUri = FileUtil.toUri(getClass.getResource("/dexes/comprehensive.odex").getPath)
     dedex.decompile(dexUri, None, recordFilter, DecompilerSettings(debugMode = false, removeSupportGen = true, forceDelete = false, DecompileLayout("")))
     dedex.getCodes map { case (_, code) =>
-      noException should be thrownBy SourcefileParser.parse(code, ResolveLevel.BODY, new NoReporter)
+      noException should be thrownBy SourcefileParser.parse(code, new NoReporter)
     }
     assert(!dedex.getCodes.exists{case (_, code) => code.contains("@INVALID_")})
   }
@@ -76,7 +76,7 @@ class DedexTest extends FlatSpec with Matchers {
     val dexUri = FileUtil.toUri(getClass.getResource("/dexes/BasicDreams.odex").getPath)
     dedex.decompile(dexUri, None, recordFilter, DecompilerSettings(debugMode = true, removeSupportGen = true, forceDelete = false, DecompileLayout(""), api = 25))
     dedex.getCodes map { case (_, code) =>
-      noException should be thrownBy SourcefileParser.parse(code, ResolveLevel.BODY, new NoReporter)
+      noException should be thrownBy SourcefileParser.parse(code, new NoReporter)
     }
     assert(!dedex.getCodes.exists{case (_, code) => code.contains("@INVALID_")})
   }
