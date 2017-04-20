@@ -11,8 +11,8 @@
 package org.argus.jawa.alir.reachability
 
 import org.argus.jawa.alir.pta.suspark.InterproceduralSuperSpark
-import org.argus.jawa.core.{Global, Signature}
-import org.argus.jawa.core.util.ISet
+import org.argus.jawa.core.{Global, JawaType, Signature}
+import org.argus.jawa.core.util._
 
 
 /**
@@ -32,10 +32,20 @@ object ReachabilityAnalysis {
     idfg.icfg.getCallGraph.getReachableMethods(procedures)
   }
 
-def getReachableMethodsBySBCG(global: Global, procedures: ISet[Signature]): ISet[Signature] = {
-  val cg = SignatureBasedCallGraph(global, procedures)
-  cg.getReachableMethods(procedures)
-}
+  def getReachableMethodsBySBCG(global: Global, typs: ISet[JawaType]): IMap[JawaType, ISet[Signature]] = {
+    val map: IMap[JawaType, ISet[Signature]] = typs.map { typ =>
+      typ -> {
+        global.getClazz(typ) match {
+          case Some(c) => c.getDeclaredMethods.map(_.getSignature)
+          case None => isetEmpty[Signature]
+        }
+      }
+    }.toMap
+    val cg = SignatureBasedCallGraph(global, map.flatMap(_._2).toSet)
+    map.map { case (typ, sigs) =>
+      typ -> cg.getReachableMethods(sigs)
+    }
+  }
 //
 //def getBackwardReachability(apiSigs: Set[String], par: Boolean): Map[String, Set[JawaMethod]] = {
 //  BackwardCallChain.getReachableMethods(apiSigs, par)

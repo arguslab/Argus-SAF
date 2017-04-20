@@ -50,9 +50,7 @@ class CryptographicMisuse extends ApiMisuseChecker {
     val rule2Res = IVCheck(global, nodeMap, ptaresult)
     rule2Res.foreach {
       case (n, r) =>
-        if(r.isDefined) {
-          misusedApis((n.getContext.getMethodSig.signature, n.getContext.getCurrentLocUri)) = r.get
-        }
+        misusedApis((n.getContext.getMethodSig.signature, n.getContext.getCurrentLocUri)) = r
     }
     ApiMisuseResult(name, misusedApis.toMap)
   }
@@ -112,39 +110,37 @@ class CryptographicMisuse extends ApiMisuseChecker {
   /**
     * Rule 2 Do not use a non-random IV for CBC encryption.
     */
-  def IVCheck(global: Global, nodeMap: MMap[String, MSet[ICFGCallNode]], ptaresult: PTAResult): IMap[ICFGCallNode, Option[String]] = {
-    val result: MMap[ICFGCallNode, Option[String]] = mmapEmpty
+  def IVCheck(global: Global, nodeMap: MMap[String, MSet[ICFGCallNode]], ptaresult: PTAResult): IMap[ICFGCallNode, String] = {
+    val result: MMap[ICFGCallNode, String] = mmapEmpty
     val nodes: MSet[ICFGCallNode] = msetEmpty
     nodeMap.foreach{
       case (sig, ns) =>
         if(CryptographicConstants.getIVParameterInitAPIs.contains(sig))
           nodes ++= ns
     }
-    nodes.foreach{
-      node =>
-        result += (node -> None)
-        val loc = global.getMethod(node.getOwner).get.getBody.resolvedBody.locations(node.locIndex)
-        val argNames: IList[String] = loc.statement.asInstanceOf[CallStatement].args
-        require(argNames.isDefinedAt(0))
-        val argSlot = VarSlot(argNames.head, isBase = false, isArg = true)
-        val argValue = ptaresult.pointsToSet(argSlot, node.context)
-        argValue.foreach {
-          instance =>
-            if(!instance.isUnknown) result += (node -> Some("Constant IV!"))
-            else {
-              val defsite = instance.defSite
-              val defloc = global.getMethod(defsite.getMethodSig).get.getBody.resolvedBody.location(defsite.getCurrentLocUri)
-              defloc.statement match {
-                case al: AssignmentStatement =>
-                  al.rhs match {
-                    case ne: NameExpression =>
-                      if(ne.isStatic) result += (node -> Some("Static IV!"))
-                    case _ =>
-                  }
-                case _ =>
-              }
+    nodes.foreach{ node =>
+      val loc = global.getMethod(node.getOwner).get.getBody.resolvedBody.locations(node.locIndex)
+      val argNames: IList[String] = loc.statement.asInstanceOf[CallStatement].args
+      require(argNames.isDefinedAt(0))
+      val argSlot = VarSlot(argNames.head, isBase = false, isArg = true)
+      val argValue = ptaresult.pointsToSet(argSlot, node.context)
+      argValue.foreach {
+        instance =>
+          if(!instance.isUnknown) result += (node -> "Constant IV!")
+          else {
+            val defsite = instance.defSite
+            val defloc = global.getMethod(defsite.getMethodSig).get.getBody.resolvedBody.location(defsite.getCurrentLocUri)
+            defloc.statement match {
+              case al: AssignmentStatement =>
+                al.rhs match {
+                  case ne: NameExpression =>
+                    if(ne.isStatic) result += (node -> "Static IV!")
+                  case _ =>
+                }
+              case _ =>
             }
-        }
+          }
+      }
     }
     result.toMap
   }

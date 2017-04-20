@@ -73,7 +73,7 @@ object GenGraph {
           val yard = new ApkYard(reporter)
           val layout = DecompileLayout(outputUri)
           val settings = DecompilerSettings(debugMode = false, removeSupportGen = true, forceDelete = true, layout)
-          val apk = yard.loadApk(apkFileUri, settings)
+          val apk = yard.loadApk(apkFileUri, settings, collectInfo = true)
           val pros = apk.model.getEntryPoints.flatMap{ compName =>
             val comp = apk.getClassOrResolve(compName)
             val procedures = comp.getDeclaredMethodsByName(AndroidConstants.MAINCOMP_ENV) ++ comp.getDeclaredMethodsByName(AndroidConstants.COMP_ENV)

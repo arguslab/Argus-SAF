@@ -22,16 +22,16 @@ class IntentFilterDataBase {
    * Map from record name to it's intent filter information
    */
   private val intentFmap: MMap[JawaType, MSet[IntentFilter]] = mmapEmpty
-  def updateIntentFmap(intentFilter: IntentFilter) = {
+  def updateIntentFmap(intentFilter: IntentFilter): Unit = {
     this.intentFmap.getOrElseUpdate(intentFilter.getHolder, msetEmpty) += intentFilter
   }
-  def addIntentFmap(intentFmap: IMap[JawaType, ISet[IntentFilter]]) = {
+  def addIntentFmap(intentFmap: IMap[JawaType, ISet[IntentFilter]]): Unit = {
     intentFmap.foreach{
       case (rec, filters) =>
         this.intentFmap.getOrElseUpdate(rec, msetEmpty) ++= filters
     }
   }
-  def merge(intentFilterDB: IntentFilterDataBase) = {
+  def merge(intentFilterDB: IntentFilterDataBase): Unit = {
     addIntentFmap(intentFilterDB.getIntentFmap)
   }
   def containsClass(r: JawaClass): Boolean = containsClass(r.getType)
@@ -50,11 +50,11 @@ class IntentFilterDataBase {
     }
     actions.toSet
   }
-  def reset = {
+  def reset: IntentFilterDataBase = {
     this.intentFmap.clear()
     this
   }
-  override def toString = intentFmap.toString
+  override def toString: String = intentFmap.toString
 }
 
 
@@ -101,10 +101,10 @@ class IntentFilter(holder: JawaType) {
     categories.subsetOf(this.categories) || this.categories.contains("ANY")
   }
 
-  def addAction(action: String) = this.actions += action
-  def addActions(actions: ISet[String]) = this.actions ++= actions
-  def addCategory(category: String) = this.categories += category
-  def addCategories(categories: ISet[String]) = this.categories ++= categories
+  def addAction(action: String): Unit = this.actions += action
+  def addActions(actions: ISet[String]): Unit = this.actions ++= actions
+  def addCategory(category: String): Unit = this.categories += category
+  def addCategories(categories: ISet[String]): Unit = this.categories ++= categories
   def modData(
       scheme: String, 
       host: String, 
@@ -112,11 +112,11 @@ class IntentFilter(holder: JawaType) {
       path: String, 
       pathPrefix: String, 
       pathPattern: String,
-      mimeType: String) = {
+      mimeType: String): Unit = {
     data.add(scheme, host, port, path, pathPrefix, pathPattern, mimeType)
   }
   
-  def addData(d: Data) = {
+  def addData(d: Data): Unit = {
     this.data.addSchemes(d.getSchemes)
     this.data.addAuthorities(d.getAuthorities)
     this.data.addPaths(d.getPaths)
@@ -128,9 +128,9 @@ class IntentFilter(holder: JawaType) {
   def getActions: ISet[String] = IntentFilter.this.actions.toSet
   def getCategorys: ISet[String] = IntentFilter.this.categories.toSet
   def getData: Data = IntentFilter.this.data
-  def getHolder = IntentFilter.this.holder
+  def getHolder: JawaType = IntentFilter.this.holder
   
-  override def toString = "component: " + holder + " (actions: " + actions + " categories: " + categories + " datas: " + data + ")"
+  override def toString: String = "component: " + holder + " (actions: " + actions + " categories: " + categories + " datas: " + data + ")"
 }
 
 case class Authority(host: String, port: String)
@@ -144,12 +144,12 @@ class Data{
   private val pathPatterns: MSet[String] = msetEmpty
   private val mimeTypes: MSet[String] = msetEmpty
   
-  def getSchemes = schemes.toSet
-  def getAuthorities = authorities.toSet
-  def getPaths = paths.toSet
-  def getPathPrefixs = pathPrefixs.toSet
-  def getPathPatterns = pathPatterns.toSet
-  def getMimeTypes = mimeTypes.toSet
+  def getSchemes: ISet[String] = schemes.toSet
+  def getAuthorities: ISet[Authority] = authorities.toSet
+  def getPaths: ISet[String] = paths.toSet
+  def getPathPrefixs: ISet[String] = pathPrefixs.toSet
+  def getPathPatterns: ISet[String] = pathPatterns.toSet
+  def getMimeTypes: ISet[String] = mimeTypes.toSet
   
   def isEmpty: Boolean = schemes.isEmpty && authorities.isEmpty && paths.isEmpty && pathPrefixs.isEmpty && pathPatterns.isEmpty && mimeTypes.isEmpty
   
@@ -247,7 +247,7 @@ class Data{
       path: String, 
       pathPrefix: String, 
       pathPattern: String, 
-      mimeType: String) = {
+      mimeType: String): Unit = {
     if(scheme!= null) {
       this.schemes +=scheme
     }
@@ -271,57 +271,57 @@ class Data{
     }
   }
   
-  def addScheme(scheme: String) ={
+  def addScheme(scheme: String): Unit ={
     if(scheme!= null){
       this.schemes +=scheme
     }
   }
-  def addSchemes(schemes: ISet[String]) = this.schemes ++= schemes
+  def addSchemes(schemes: ISet[String]): Unit = this.schemes ++= schemes
   
-  def addAuthority(host: String, port: String) = {
+  def addAuthority(host: String, port: String): Unit = {
     this.authorities += Authority(host, port)
   }
   
-  def addAuthorityHostOnly(host: String) = {
+  def addAuthorityHostOnly(host: String): Unit = {
     this.authorities += Authority(host, null)
   }
   
-  def addAuthorityPortOnly(port: String) = {
+  def addAuthorityPortOnly(port: String): Unit = {
     this.authorities += Authority(null, port)
   }
   
-  def addAuthorities(authorities: ISet[Authority]) = this.authorities ++= authorities
+  def addAuthorities(authorities: ISet[Authority]): Unit = this.authorities ++= authorities
   
-  def addPath(path: String) ={
+  def addPath(path: String): Unit ={
     if(path!= null){
       this.paths +=path
     }
   }
-  def addPaths(paths: ISet[String]) = this.paths ++= paths
+  def addPaths(paths: ISet[String]): Unit = this.paths ++= paths
   
-  def addPathPrefixs(pathPrefixs: ISet[String]) = this.pathPrefixs ++= pathPrefixs
+  def addPathPrefixs(pathPrefixs: ISet[String]): Unit = this.pathPrefixs ++= pathPrefixs
   
-  def addPathPatterns(pathPatterns: ISet[String]) = this.pathPatterns ++= pathPatterns
+  def addPathPatterns(pathPatterns: ISet[String]): Unit = this.pathPatterns ++= pathPatterns
   
-  def addType(mimeType: String) ={
+  def addType(mimeType: String): Unit ={
     if(mimeType!= null){
       this.mimeTypes +=mimeType
     }
   }
-  def addTypes(mimeTypes: ISet[String]) = this.mimeTypes ++= mimeTypes
+  def addTypes(mimeTypes: ISet[String]): Unit = this.mimeTypes ++= mimeTypes
   
-  override def toString = {"schemes= " + schemes + " authorities= " + authorities + " path= " + paths + " pathPrefix= " + pathPrefixs + " pathPattern= " + pathPatterns + " mimeType= " + mimeTypes}
+  override def toString: String = {"schemes= " + schemes + " authorities= " + authorities + " path= " + paths + " pathPrefix= " + pathPrefixs + " pathPattern= " + pathPatterns + " mimeType= " + mimeTypes}
 }
 
 // A UriData class represents all pieces of info associated with the mData field of a particular Intent instance
 
 class UriData{
-  private var scheme: String = null
-  private var host: String = null 
-  private var port: String = null
-  private var path: String = null
-  private var pathPrefix: String = null
-  private var pathPattern: String = null
+  private var scheme: String = _
+  private var host: String = _
+  private var port: String = _
+  private var path: String = _
+  private var pathPrefix: String = _
+  private var pathPattern: String = _
   
   def set(
       scheme: String,
@@ -329,7 +329,7 @@ class UriData{
       port: String,
       path: String,
       pathPrefix: String,
-      pathPattern: String) = {
+      pathPattern: String): Unit = {
     if(scheme!= null){
       this.scheme =scheme
     }
@@ -350,45 +350,45 @@ class UriData{
     }
   }
   
-  def setScheme(scheme: String) ={
+  def setScheme(scheme: String): Unit ={
     if(scheme!= null){
       this.scheme =scheme
     }
   }
-  def getScheme = this.scheme
+  def getScheme: String = this.scheme
   
-  def setHost(host: String) ={
+  def setHost(host: String): Unit ={
     if(host!= null){
       this.host =host
     }
   }
   def getHost = this.host
-  def setPort(port: String) ={
+  def setPort(port: String): Unit ={
     if(port!= null){
       this.port =port
     }
   }
-  def getPort = this.port
-  def setPath(path: String) ={
+  def getPort: String = this.port
+  def setPath(path: String): Unit ={
     if(path!= null){
       this.path =path
     }
   }
-  def getPath = this.path
+  def getPath: String = this.path
   
-  def setPathPrefix(pathPrefix: String) ={
+  def setPathPrefix(pathPrefix: String): Unit ={
     if(pathPrefix!= null){
       this.pathPrefix = pathPrefix
     }
   }
-  def getPathPrefix = this.pathPrefix
+  def getPathPrefix: String = this.pathPrefix
   
-  def setPathPattern(pathPattern: String) ={
+  def setPathPattern(pathPattern: String): Unit ={
     if(pathPattern!= null){
       this.pathPattern = pathPattern
     }
   }
-  def getPathPattern = this.pathPattern
+  def getPathPattern: String = this.pathPattern
   
-  override def toString = {"schemes= " + scheme + " host= " + host + " port= " + port + " path= " + path + " pathPrefix= " + pathPrefix + " pathPattern= " + pathPattern }
+  override def toString: String = {"schemes= " + scheme + " host= " + host + " port= " + port + " path= " + path + " pathPrefix= " + pathPrefix + " pathPattern= " + pathPattern }
 }

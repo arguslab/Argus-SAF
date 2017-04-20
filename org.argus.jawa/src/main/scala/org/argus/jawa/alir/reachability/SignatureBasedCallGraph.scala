@@ -16,6 +16,7 @@ import org.argus.jawa.alir.callGraph.CallGraph
 import org.argus.jawa.alir.pta.PTAScopeManager
 import org.argus.jawa.core._
 import org.argus.jawa.alir.util.CallHandler
+import org.argus.jawa.compiler.parser.CallStatement
 import org.argus.jawa.core.util.MyTimeout
 import org.argus.jawa.core.util._
 
@@ -39,67 +40,60 @@ object SignatureBasedCallGraph {
       timer: Option[MyTimeout]): CallGraph = {
     global.reporter.println(s"Building SignatureBasedCallGraph with ${entryPoints.size} entry points...")
     val cg = new CallGraph
-    entryPoints.foreach{
-      ep =>
-        if(timer.isDefined) timer.get.refresh()
-        try {
-          val epmopt = global.getMethodOrResolve(ep)
-          epmopt match {
-            case Some(epm) =>
-              if (!PTAScopeManager.shouldBypass(epm.getDeclaringClass) && epm.isConcrete) {
-                sbcg(global, epm, cg, timer)
-              }
-            case None =>
-          }
-        } catch {
-          case te: TimeoutException =>
-            global.reporter.error(TITLE, ep + ": " + te.getMessage)
+    val processed: MSet[String] = msetEmpty
+    entryPoints.foreach{ ep =>
+      if(timer.isDefined) timer.get.refresh()
+      try {
+        val epmopt = global.getMethodOrResolve(ep)
+        epmopt match {
+          case Some(epm) =>
+            if (!PTAScopeManager.shouldBypass(epm.getDeclaringClass) && epm.isConcrete) {
+              sbcg(global, epm, cg, processed, timer)
+            }
+          case None =>
         }
+      } catch {
+        case te: TimeoutException =>
+          global.reporter.error(TITLE, ep + ": " + te.getMessage)
+      }
     }
     global.reporter.println(s"SignatureBasedCallGraph done with call size ${cg.getCallMap.size}.")
     cg
   }
   
-  private def sbcg(global: Global, ep: JawaMethod, cg: CallGraph, timer: Option[MyTimeout]) = {
+  private def sbcg(global: Global, ep: JawaMethod, cg: CallGraph, processed: MSet[String], timer: Option[MyTimeout]) = {
     val worklist: MList[JawaMethod] = mlistEmpty // Make sure that all the method in the worklist are concrete.
-    val processed: MSet[String] = msetEmpty
     worklist += ep
     while(worklist.nonEmpty) {
       if(timer.isDefined) timer.get.isTimeoutThrow()
       val m = worklist.remove(0)
       processed += m.getSignature.signature
       try {
-        val points = new PointsCollector().points(m.getSignature, m.getBody)
-        points foreach {
-          case pa: PointAsmt =>
-            pa.rhs match {
-              case po: PointO =>
-                global.getClassOrResolve(po.obj)
-              case _ =>
-            }
-          case pc: PointCall =>
-            val pi = pc.rhs
-            val typ = pi.invokeTyp
-            val sig = pi.sig
-            val callees: MSet[JawaMethod] = msetEmpty
-            typ match {
-              case "super" =>
-                callees ++= CallHandler.getSuperCalleeMethod(global, sig)
-              case "direct" =>
-                callees ++= CallHandler.getDirectCalleeMethod(global, sig)
-              case "static" =>
-                callees ++= CallHandler.getStaticCalleeMethod(global, sig)
-              case "virtual" | "interface" | _ =>
-                callees ++= CallHandler.getUnknownVirtualCalleeMethods(global, sig.getClassType, sig.getSubSignature)
-            }
-            callees foreach {
-              callee =>
-                cg.addCall(m.getSignature, callee.getSignature)
-                if (!processed.contains(callee.getSignature.signature) && !PTAScopeManager.shouldBypass(callee.getDeclaringClass) && callee.isConcrete) {
-                  worklist += callee
-                }
-            }
-          case _ =>
+        m.getBody.resolvedBody.locations foreach { l =>
+          l.statement match {
+            case cs: CallStatement =>
+              val typ = cs.kind
+              val sig = cs.signature
+              val callees: MSet[JawaMethod] = msetEmpty
+              typ match {
+                case "super" =>
+                  callees ++= CallHandler.getSuperCalleeMethod(global, sig)
+                case "direct" =>
+                  callees ++= CallHandler.getDirectCalleeMethod(global, sig)
+                case "static" =>
+                  callees ++= CallHandler.getStaticCalleeMethod(global, sig)
+                case "virtual" | "interface" | _ =>
+                  callees ++= CallHandler.getUnknownVirtualCalleeMethods(global, sig.getClassType, sig.getSubSignature)
+              }
+              callees foreach {
+                callee =>
+                  cg.addCall(m.getSignature, callee.getSignature)
+                  if (!processed.contains(callee.getSignature.signature) && !PTAScopeManager.shouldBypass(callee.getDeclaringClass) && callee.isConcrete) {
+                    worklist += callee
+                  }
+              }
+            case _ =>
+          }
         }
       } catch {
         case e: Throwable => global.reporter.warning(TITLE, e.getMessage)

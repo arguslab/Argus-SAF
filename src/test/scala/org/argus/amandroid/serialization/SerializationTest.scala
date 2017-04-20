@@ -34,7 +34,7 @@ class SerializationTest extends FlatSpec with Matchers {
     val yard = new ApkYard(new DefaultReporter)
     val layout = DecompileLayout(outputUri)
     val settings = DecompilerSettings(debugMode = false, removeSupportGen = true, forceDelete = true, layout)
-    val apk = yard.loadApk(apkUri, settings)
+    val apk = yard.loadApk(apkUri, settings, collectInfo = true)
     val model = apk.model
     implicit val formats = Serialization.formats(NoTypeHints) + ApkModelSerializer
     val apkRes = FileUtil.toFile(FileUtil.appendFileName(outputUri, "apk.json"))

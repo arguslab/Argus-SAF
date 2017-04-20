@@ -242,10 +242,10 @@ class DefaultAndroidSourceAndSinkManager(sasFilePath: String) extends AndroidSou
     if(calleeSig.signature == AndroidConstants.ACTIVITY_FINDVIEWBYID || calleeSig.signature == AndroidConstants.VIEW_FINDVIEWBYID){
       val callerProc = apk.getMethod(callerSig).get
       val cs = callerLoc.statement.asInstanceOf[CallStatement]
-      val nums = ExplicitValueFinder.findExplicitIntValueForArgs(callerProc, cs, callerLoc, 1)
-      nums.foreach{
+      val nums = ExplicitValueFinder.findExplicitLiteralForArgs(callerProc, callerLoc, cs.arg(0))
+      nums.filter(_.isInt).foreach{
         num =>
-          apk.model.getLayoutControls.get(num) match{
+          apk.model.getLayoutControls.get(num.getInt) match{
             case Some(control) =>
               return control.isSensitive
             case None =>

@@ -10,12 +10,12 @@
 
 package org.argus.jawa.core.io
 
-import java.io.{ FileInputStream, FileOutputStream, IOException }
+import java.io.{FileInputStream, FileOutputStream}
 
 /** ''Note:  This library is considered experimental and should not be used unless you know what you are doing.'' */
 class PlainDirectory(givenPath: Directory) extends PlainFile(givenPath) {
   override def isDirectory = true
-  override def iterator = givenPath.list filter (_.exists) map (x => new PlainFile(x))
+  override def iterator: Iterator[PlainFile] = givenPath.list filter (_.exists) map (x => new PlainFile(x))
   override def delete(): Unit = givenPath.deleteRecursively()
 }
 
@@ -26,26 +26,26 @@ class PlainDirectory(givenPath: Directory) extends PlainFile(givenPath) {
 class PlainFile(val givenPath: Path) extends AbstractFile {
   assert(path ne null)
 
-  val file = givenPath.jfile
+  val file: JFile = givenPath.jfile
   override def underlyingSource = Some(this)
 
   private val fpath = givenPath.toAbsolute
 
   /** Returns the name of this abstract file. */
-  def name = givenPath.name
+  def name: String = givenPath.name
 
   /** Returns the path of this abstract file. */
-  def path = givenPath.path
+  def path: String = givenPath.path
 
   /** The absolute file. */
   def absolute = new PlainFile(givenPath.toAbsolute)
 
   override def container: AbstractFile = new PlainFile(givenPath.parent)
-  override def input = givenPath.toFile.inputStream()
-  override def output = givenPath.toFile.outputStream()
+  override def input: FileInputStream = givenPath.toFile.inputStream()
+  override def output: FileOutputStream = givenPath.toFile.outputStream()
   override def sizeOption = Some(givenPath.length.toInt)
 
-  override def toString = path
+  override def toString: String = path
   override def hashCode(): Int = fpath.hashCode()
   override def equals(that: Any): Boolean = that match {
     case x: PlainFile => fpath == x.fpath

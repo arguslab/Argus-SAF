@@ -41,7 +41,7 @@ case class TaintAnalysisTask(module: TaintAnalysisModules.Value, fileUris: ISet[
     val yard = new ApkYard(reporter)
     val layout = DecompileLayout(outputUri)
     val settings = DecompilerSettings(debugMode = false, removeSupportGen = true, forceDelete = forceDelete, layout)
-    val apks = fileUris.map(yard.loadApk(_, settings))
+    val apks = fileUris.map(yard.loadApk(_, settings, collectInfo = true))
     val ssm = module match {
       case INTENT_INJECTION =>
         new IntentInjectionSourceAndSinkManager(AndroidGlobalConfig.settings.sas_file)

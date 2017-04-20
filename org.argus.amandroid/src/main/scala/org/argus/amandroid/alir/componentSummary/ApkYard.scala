@@ -33,7 +33,7 @@ class ApkYard(val reporter: Reporter) {
   def getApk(nameUri: FileResourceUri): Option[ApkGlobal] = apks.get(nameUri)
   def getApks: IMap[FileResourceUri, ApkGlobal] = this.apks.toMap
   
-  def loadApk(apkUri: FileResourceUri, settings: DecompilerSettings): ApkGlobal = {
+  def loadApk(apkUri: FileResourceUri, settings: DecompilerSettings, collectInfo: Boolean): ApkGlobal = {
     val (outUri, srcs, _) = ApkDecompiler.decompile(apkUri, settings)
     val apk = new ApkGlobal(ApkModel(apkUri, outUri, srcs), reporter)
     srcs foreach {
@@ -44,7 +44,8 @@ class ApkYard(val reporter: Reporter) {
           apk.load(fileUri, Constants.JAWA_FILE_EXT, AndroidLibraryAPISummary)
         }
     }
-    AppInfoCollector.collectInfo(apk, outUri)
+    if(collectInfo)
+      AppInfoCollector.collectInfo(apk)
     addApk(apk)
     apk
   }

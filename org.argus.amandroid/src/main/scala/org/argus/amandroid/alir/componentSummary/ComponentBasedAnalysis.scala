@@ -85,29 +85,27 @@ class ComponentBasedAnalysis(yard: ApkYard) {
     apks.foreach { apk =>
       println("--Analyzing " + apk.model.getAppName)
       val idfgs = apk.getIDFGs
-      idfgs foreach {
-        case (comp, idfg) =>
-          // do dda on this component
-          val iddResult = InterProceduralDataDependenceAnalysis(apk, idfg)
-          apk.addIDDG(comp, iddResult)
+      idfgs foreach { case (comp, idfg) =>
+        // do dda on this component
+        val iddResult = InterProceduralDataDependenceAnalysis(apk, idfg)
+        apk.addIDDG(comp, iddResult)
       }
       var components = apk.model.getComponents
       problematicComp.getOrElseUpdate(apk.nameUri, msetEmpty) ++= (components -- idfgs.keySet)
       components = components -- problematicComp(apk.nameUri)
 
-      components.foreach {
-        component =>
-          println("----Building ST for component: " + component)
-          try {
-            // build summary table
-            val summaryTable = buildComponentSummaryTable(Component(apk, component))
-            apk.addSummaryTable(component, summaryTable)
-          } catch {
-            case ex: Exception =>
-              problematicComp(apk.nameUri) += component
-              if (DEBUG) ex.printStackTrace()
-              yard.reporter.error(TITLE, "Collect Info for Component " + component + " has error: " + ex.getMessage)
-          }
+      components.foreach { component =>
+        println("----Building ST for component: " + component)
+        try {
+          // build summary table
+          val summaryTable = buildComponentSummaryTable(Component(apk, component))
+          apk.addSummaryTable(component, summaryTable)
+        } catch {
+          case ex: Exception =>
+            problematicComp(apk.nameUri) += component
+            if (DEBUG) ex.printStackTrace()
+            yard.reporter.error(TITLE, "Collect Info for Component " + component + " has error: " + ex.getMessage)
+        }
       }
     }
   }

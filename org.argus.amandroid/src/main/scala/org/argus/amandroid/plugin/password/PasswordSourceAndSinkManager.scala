@@ -31,10 +31,10 @@ class PasswordSourceAndSinkManager(sasFilePath: String) extends AndroidSourceAnd
     if(calleeSig.signature == AndroidConstants.ACTIVITY_FINDVIEWBYID || calleeSig.signature == AndroidConstants.VIEW_FINDVIEWBYID){
       val callerMethod = apk.getMethod(callerSig).get
       val cs = callerLoc.statement.asInstanceOf[CallStatement]
-      val nums = ExplicitValueFinder.findExplicitIntValueForArgs(callerMethod, cs, callerLoc, 1)
-      nums.foreach{
+      val nums = ExplicitValueFinder.findExplicitLiteralForArgs(callerMethod, callerLoc, cs.arg(0))
+      nums.filter(_.isInt).foreach{
         num =>
-          apk.model.getLayoutControls.get(num) match{
+          apk.model.getLayoutControls.get(num.getInt) match{
             case Some(control) =>
               return control.isSensitive
             case None =>

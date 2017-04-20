@@ -83,39 +83,37 @@ object AppInfoCollector {
     }
     reporter.println("Collecting XML based callback methods...")
     // Collect the XML-based callback methods
-    analysisHelper.getLayoutClasses.foreach {
-      case (k, v) =>
-        v.foreach {
-          i =>
-            val resource = afp.findResource(i)
-            if(resource != null && resource.getType.getName == "layout"){
-              val includes = lfp.getIncludes.filter(_._1.contains(resource.getName)).flatten(_._2).toSet
-              val resources = includes.map(i => afp.findResource(i)) + resource
-              lfp.getCallbackMethods.find{case (file, _) => resources.map(_.getName).exists { x => file.contains(x) }}.foreach{
-                case (_, methodNames) =>
-                  for(methodName <- methodNames) {
-                    //The callback may be declared directly in the class or in one of the superclasses
-                    var callbackClass = analysisHelper.global.getClassOrResolve(k)
-                    val callbackMethod: MSet[Signature] = msetEmpty
-                    breakable{ 
-                      while(callbackMethod.isEmpty){
-                        if(callbackClass.declaresMethodByName(methodName))
-                          callbackMethod ++= callbackClass.getDeclaredMethodsByName(methodName).map(_.getSignature)
-                        if(callbackClass.hasSuperClass)
-                          callbackClass = analysisHelper.global.getClassOrResolve(callbackClass.getSuperClass)
-                        else break
-                      }
-                    }
-                    if(callbackMethod.nonEmpty){
-                      callbackMethods.getOrElseUpdate(k, msetEmpty) ++= callbackMethod
-                    } else {
-                      reporter.echo(TITLE, "Callback method " + methodName + " not found in class " + k)
-                    }
+    analysisHelper.getLayoutClasses.foreach { case (k, v) =>
+      v.foreach { i =>
+        val resource = afp.findResource(i)
+        if(resource != null && resource.getType.getName == "layout"){
+          val includes = lfp.getIncludes.filter(_._1.contains(resource.getName)).flatten(_._2).toSet
+          val resources = includes.map(i => afp.findResource(i)) + resource
+          lfp.getCallbackMethods.find{case (file, _) => resources.map(_.getName).exists { x => file.contains(x) }}.foreach{
+            case (_, methodNames) =>
+              for(methodName <- methodNames) {
+                //The callback may be declared directly in the class or in one of the superclasses
+                var callbackClass = analysisHelper.global.getClassOrResolve(k)
+                val callbackMethod: MSet[Signature] = msetEmpty
+                breakable{
+                  while(callbackMethod.isEmpty){
+                    if(callbackClass.declaresMethodByName(methodName))
+                      callbackMethod ++= callbackClass.getDeclaredMethodsByName(methodName).map(_.getSignature)
+                    if(callbackClass.hasSuperClass)
+                      callbackClass = analysisHelper.global.getClassOrResolve(callbackClass.getSuperClass)
+                    else break
                   }
+                }
+                if(callbackMethod.nonEmpty){
+                  callbackMethods.getOrElseUpdate(k, msetEmpty) ++= callbackMethod
+                } else {
+                  reporter.echo(TITLE, "Callback method " + methodName + " not found in class " + k)
+                }
               }
-          } else {
-            reporter.echo(TITLE, "Unexpected resource type for layout class: " + resource)
           }
+        } else {
+          reporter.echo(TITLE, "Unexpected resource type for layout class: " + resource)
+        }
       }
     }
     reporter.println("Callback collection done.")
@@ -198,13 +196,13 @@ object AppInfoCollector {
     result.toMap
   }
 
-  def collectInfo(apk: ApkGlobal, outUri: FileResourceUri): Unit = {
+  def collectInfo(apk: ApkGlobal): Unit = {
     apk.reporter.println(s"Collecting information from ${apk.model.getAppName}...")
     val certs = AppInfoCollector.readCertificates(apk.nameUri)
-    val manifestUri = FileUtil.appendFileName(outUri, "AndroidManifest.xml")
+    val manifestUri = FileUtil.appendFileName(apk.model.outApkUri, "AndroidManifest.xml")
     val mfp = AppInfoCollector.analyzeManifest(apk.reporter, manifestUri)
     val afp = AppInfoCollector.analyzeARSC(apk.reporter, apk.nameUri)
-    val lfp = AppInfoCollector.analyzeLayouts(apk, outUri, mfp, afp)
+    val lfp = AppInfoCollector.analyzeLayouts(apk, apk.model.outApkUri, mfp, afp)
     val ra = AppInfoCollector.reachabilityAnalysis(apk, mfp.getComponentInfos.map(_.compType))
     val callbacks = AppInfoCollector.analyzeCallback(apk.reporter, afp, lfp, ra)
     apk.model.addCertificates(certs)

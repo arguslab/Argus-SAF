@@ -13,12 +13,12 @@ package org.argus.saf.cli
 import java.io.File
 
 import org.argus.amandroid.alir.componentSummary.ApkYard
-import org.argus.amandroid.alir.pta.reachingFactsAnalysis.AndroidReachingFactsAnalysisConfig
+import org.argus.amandroid.core.appInfo.AppInfoCollector
 import org.argus.amandroid.core.decompile.{DecompileLayout, DecompilerSettings}
 import org.argus.amandroid.core.util.ApkFileUtil
 import org.argus.amandroid.core.{AndroidGlobalConfig, ApkGlobal}
 import org.argus.amandroid.plugin.apiMisuse.{CryptographicMisuse, HideIcon, SSLTLSMisuse}
-import org.argus.amandroid.plugin.{ApiMisuseChecker, ApiMisuseModules}
+import org.argus.amandroid.plugin.ApiMisuseModules
 import org.argus.jawa.alir.Context
 import org.argus.jawa.alir.pta.suspark.InterproceduralSuperSpark
 import org.argus.jawa.core.util.IgnoreException
@@ -44,17 +44,12 @@ object ApiMisuse {
           apkFileUris += FileUtil.toUri(file)
         else println(file + " is not decompilable.")
     }
-    val (checker, buildIDFG) = module match {
-      case ApiMisuseModules.CRYPTO_MISUSE => (new CryptographicMisuse, true)
-      case ApiMisuseModules.HIDE_ICON => (new HideIcon, false)
-      case ApiMisuseModules.SSLTLS_MISUSE => (new SSLTLSMisuse, false)
-    }
-    apiMisuse(apkFileUris.toSet, outputPath, checker, buildIDFG, debug, forceDelete)
+
+    apiMisuse(apkFileUris.toSet, outputPath, module, debug, forceDelete)
   }
   
-  def apiMisuse(apkFileUris: Set[FileResourceUri], outputPath: String, checker: ApiMisuseChecker, buildIDFG: Boolean, debug: Boolean, forceDelete: Boolean): Unit = {
+  def apiMisuse(apkFileUris: Set[FileResourceUri], outputPath: String, module: ApiMisuseModules.Value, debug: Boolean, forceDelete: Boolean): Unit = {
     Context.init_context_length(AndroidGlobalConfig.settings.k_context)
-    AndroidReachingFactsAnalysisConfig.parallel = AndroidGlobalConfig.settings.parallel
 
     println("Total apks: " + apkFileUris.size)
 
@@ -72,8 +67,22 @@ object ApiMisuse {
             val outputUri = FileUtil.toUri(outputPath)
             val layout = DecompileLayout(outputUri)
             val settings = DecompilerSettings(debugMode = false, removeSupportGen = true, forceDelete = forceDelete, layout)
-            val apk = yard.loadApk(fileUri, settings)
+            val apk = yard.loadApk(fileUri, settings, collectInfo = false)
+            val (checker, buildIDFG) = module match {
+              case ApiMisuseModules.CRYPTO_MISUSE => (new CryptographicMisuse, true)
+              case ApiMisuseModules.HIDE_ICON =>
+                val man = AppInfoCollector.analyzeManifest(reporter, FileUtil.appendFileName(apk.model.outApkUri, "AndroidManifest.xml"))
+                val mainComp = man.getIntentDB.getIntentFmap.find{ case (_, fs) =>
+                    fs.exists{ f =>
+                      f.getActions.contains("android.intent.action.MAIN") && f.getCategorys.contains("android.intent.category.LAUNCHER")
+                    }
+                }.map(_._1)
+                if(mainComp.isEmpty) return
+                (new HideIcon(mainComp.get), false)
+              case ApiMisuseModules.SSLTLS_MISUSE => (new SSLTLSMisuse, false)
+            }
             if(buildIDFG) {
+              AppInfoCollector.collectInfo(apk)
               apk.model.getComponents foreach {
                 comp =>
                   val clazz = apk.getClassOrResolve(comp)

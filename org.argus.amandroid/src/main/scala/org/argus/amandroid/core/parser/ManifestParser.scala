@@ -57,8 +57,8 @@ class ManifestParser{
     intentFdb.updateIntentFmap(intentFilter)
   }
 
-  def toPilarClass(str: String): JawaType = new JawaType(str)
-  
+  private def toJawaClass(str: String): JawaType = new JawaType(str)
+
   def loadClassesFromTextManifest(manifestIS: InputStream): Unit = {
     try {
       val db = DocumentBuilderFactory.newInstance().newDocumentBuilder()
@@ -85,7 +85,7 @@ class ManifestParser{
             this.permissions += permission.getAttribute(header + "name")
         }
       }
-      
+
       val appsElement = rootElement.getElementsByTagName("application")
       for (appIdx <- 0 until appsElement.getLength) {
         val appElement: Element = appsElement.item(appIdx).asInstanceOf[Element]
@@ -108,7 +108,7 @@ class ManifestParser{
           val receivers = appElement.getElementsByTagName("receiver")
           val services  = appElement.getElementsByTagName("service")
           val providers = appElement.getElementsByTagName("provider")
-      
+
           for (i <- 0 until activities.getLength) {
             val activity = activities.item(i).asInstanceOf[Element]
             loadManifestEntry(activity, ComponentType.ACTIVITY, this.packageName)
@@ -130,7 +130,7 @@ class ManifestParser{
       this.components.foreach{
         case (compType, typ) =>
           val exported = this.componentExported.get(compType) match {
-            case Some(tag) => 
+            case Some(tag) =>
               tag match{
                 case "false" => false
                 case _ => true
@@ -162,7 +162,7 @@ class ManifestParser{
               } else throw new RuntimeException("Wrong component type: " + typ)
           }
           val enabled = this.componentEnabled.get(compType) match {
-            case Some(tag) => 
+            case Some(tag) =>
               tag match{
                 case "false" => false
                 case _ => true
@@ -193,16 +193,16 @@ class ManifestParser{
   private def loadManifestEntry(comp: Element, baseClass: ComponentType.Value, packageName: String) = {
     val className = ManifestParser.getAttribute(comp, "name", ret_null = false, this.headerNames.toSet)
     if (className.startsWith(".")){
-      this.currentComponent = toPilarClass(this.packageName + className)
+      this.currentComponent = toJawaClass(this.packageName + className)
       this.components += (this.currentComponent -> baseClass)
     } else if (className.substring(0, 1).equals(className.substring(0, 1).toUpperCase())){
-      this.currentComponent = toPilarClass(this.packageName + "." + className)
+      this.currentComponent = toJawaClass(this.packageName + "." + className)
       this.components += (this.currentComponent -> baseClass)
     } else if (this.packageName != "" && !className.contains(".")){
-      this.currentComponent = toPilarClass(this.packageName + "." + className)
+      this.currentComponent = toJawaClass(this.packageName + "." + className)
       this.components += (this.currentComponent -> baseClass)
     } else {
-      this.currentComponent = toPilarClass(className)
+      this.currentComponent = toJawaClass(className)
       this.components += (this.currentComponent -> baseClass)
     }
     val classType = this.currentComponent

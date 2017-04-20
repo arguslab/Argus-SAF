@@ -177,11 +177,11 @@ case class JawaMethod(declaringClass: JawaClass,
   }
 
   /**
-   * resolve current method to body level
+   * get MethodDeclaration
    */
   def getBody: MethodDeclaration = {
     if(isUnknown) throw new RuntimeException(getSignature + " is an unknown method.")
-    this.md.get.resolvedBody
+    if(getDeclaringClass.isSystemLibraryClass) throw new RuntimeException(getSignature + " is an system library method.")
     this.md.get
   }
   
