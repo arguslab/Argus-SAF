@@ -238,9 +238,8 @@ class ReachableInfoCollector(val global: Global, entryPointTypes: ISet[JawaType]
             if (typRec.isInterface) {
               val impls = hier.getAllImplementersOf(typRec.getType)
               if (impls.nonEmpty) {
-                callbackClasses ++= impls.map {
-                  impl =>
-                    hier.getAllSubClassesOfIncluding(impl).map(global.getClassOrResolve)
+                callbackClasses ++= impls.map { impl =>
+                  hier.getAllSubClassesOfIncluding(impl).map(global.getClassOrResolve)
                 }.reduce(iunion[JawaClass])
               }
             } else {

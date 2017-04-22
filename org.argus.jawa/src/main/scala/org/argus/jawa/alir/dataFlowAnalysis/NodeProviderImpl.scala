@@ -130,12 +130,15 @@ class InterNodeProvider[LatticeElement](icfg: InterProceduralControlFlowGraph[IC
       }
       result
     }
+    val total = icfg.nodes.size
     val workList = mlistEmpty[ICFGNode]
     workList += startNode
     val ensurer = new ConvergeEnsurer[ICFGNode]
+    var i = 0
     while(workList.nonEmpty){
       while (workList.nonEmpty) {
         val n = workList.remove(0)
+        i += 1
         if(ensurer.checkNode(n)) {
           ensurer.updateNodeCount(n)
           onPreVisitNode(n, icfg.predecessors(n))
@@ -145,22 +148,21 @@ class InterNodeProvider[LatticeElement](icfg: InterProceduralControlFlowGraph[IC
         }
       }
       val nodes = icfg.nodes
-      workList ++= nodes.map{
-        node =>
-          var newnodes = isetEmpty[ICFGNode]
-          node match{
-            case xn: ICFGExitNode =>
-              onPreVisitNode(xn, icfg.predecessors(xn))
-              val succs = icfg.successors(xn)
-              for (succ <- succs){
-                val factsForCaller = callr.get.getAndMapFactsForCaller(mdaf.entrySet(xn), succ, xn)
-                if(mdaf.update(mdaf.confluence(mdaf.entrySet(succ), factsForCaller), succ))
-                  newnodes += succ
-              }
-              onPostVisitNode(xn, succs)
-            case _ =>
-          }
-          newnodes
+      workList ++= nodes.map{ node =>
+        var newnodes = isetEmpty[ICFGNode]
+        node match {
+          case xn: ICFGExitNode =>
+            onPreVisitNode(xn, icfg.predecessors(xn))
+            val succs = icfg.successors(xn)
+            for (succ <- succs){
+              val factsForCaller = callr.get.getAndMapFactsForCaller(mdaf.entrySet(xn), succ, xn)
+              if(mdaf.update(mdaf.confluence(mdaf.entrySet(succ), factsForCaller), succ))
+                newnodes += succ
+            }
+            onPostVisitNode(xn, succs)
+          case _ =>
+        }
+        newnodes
       }.reduce(iunion[ICFGNode])
     }
   }

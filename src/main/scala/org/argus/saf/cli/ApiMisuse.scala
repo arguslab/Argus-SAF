@@ -69,7 +69,7 @@ object ApiMisuse {
             val settings = DecompilerSettings(debugMode = false, removeSupportGen = true, forceDelete = forceDelete, layout)
             val apk = yard.loadApk(fileUri, settings, collectInfo = false)
             val (checker, buildIDFG) = module match {
-              case ApiMisuseModules.CRYPTO_MISUSE => (new CryptographicMisuse, true)
+              case ApiMisuseModules.CRYPTO_MISUSE => (new CryptographicMisuse, false)
               case ApiMisuseModules.HIDE_ICON =>
                 val man = AppInfoCollector.analyzeManifest(reporter, FileUtil.appendFileName(apk.model.outApkUri, "AndroidManifest.xml"))
                 val mainComp = man.getIntentDB.getIntentFmap.find{ case (_, fs) =>

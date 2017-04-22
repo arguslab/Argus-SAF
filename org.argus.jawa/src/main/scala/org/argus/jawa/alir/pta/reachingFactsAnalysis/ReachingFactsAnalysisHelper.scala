@@ -10,9 +10,7 @@
 
 package org.argus.jawa.alir.pta.reachingFactsAnalysis
 
-import org.argus.jawa.alir.interprocedural.{Callee, InstanceCallee, StaticCallee, UnknownCallee}
 import org.argus.jawa.alir.pta._
-import org.argus.jawa.alir.util.CallHandler
 import org.argus.jawa.alir.{Context, LibSideEffectProvider}
 import org.argus.jawa.compiler.parser._
 import org.argus.jawa.core._
@@ -70,55 +68,6 @@ object ReachingFactsAnalysisHelper {
       }
     }
     result
-  }
-
-  def getCalleeSet(global: Global, cs: CallStatement, sig: Signature, callerContext: Context, ptaresult: PTAResult): ISet[Callee] = {
-    val subSig = sig.getSubSignature
-    val typ = cs.kind
-    val calleeSet = msetEmpty[Callee]
-    typ match {
-      case "virtual" | "interface" | "super" | "direct" =>
-        val recv = VarSlot(cs.recvOpt.get, isBase = false, isArg = true)
-        val recvValue: ISet[Instance] = ptaresult.pointsToSet(recv, callerContext)
-        def handleUnknown(typ: JawaType) = {
-          try{
-            val unknown = global.getClassOrResolve(typ)
-            val unknown_base = global.getClassOrResolve(typ.removeUnknown())
-            val c2 = global.getClassOrResolve(sig.classTyp)
-            val actc = if(c2.isInterface || unknown_base.isChildOf(c2.getType)) unknown else c2
-            calleeSet ++= actc.getMethod(subSig).map(m => UnknownCallee(m.getSignature))
-          } catch {
-            case ie: InterruptedException => throw ie
-            case _: Exception =>
-          }
-        }
-        recvValue.foreach{
-          ins =>
-            if(!ins.isNull)
-              if(typ == "super"){
-                calleeSet ++= CallHandler.getSuperCalleeMethod(global, sig).map(m => InstanceCallee(m.getSignature, ins))
-              } else if(typ == "direct"){
-                calleeSet ++= CallHandler.getDirectCalleeMethod(global, sig).map(m => InstanceCallee(m.getSignature, ins))
-              } else {
-                if(ins.isUnknown){
-                  handleUnknown(ins.typ)
-                } else {
-                  CallHandler.getVirtualCalleeMethod(global, ins.typ, subSig).map(m => InstanceCallee(m.getSignature, ins)) match {
-                    case Some(c) => calleeSet += c
-                    case None =>
-                      handleUnknown(ins.typ.toUnknown)
-                  }
-                }
-              }
-        }
-        if(recvValue.isEmpty) {
-          handleUnknown(sig.getClassType.toUnknown)
-        }
-      case "static" =>
-        calleeSet ++= CallHandler.getStaticCalleeMethod(global, sig).map(m => StaticCallee(m.getSignature))
-      case _ => 
-    }
-    calleeSet.toSet
   }
 
   def getInstanceFromType(typ: JawaType, currentContext: Context): Option[Instance] = {

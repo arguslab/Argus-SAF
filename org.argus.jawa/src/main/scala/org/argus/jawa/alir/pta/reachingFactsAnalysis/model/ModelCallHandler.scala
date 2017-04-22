@@ -13,35 +13,42 @@ package org.argus.jawa.alir.pta.reachingFactsAnalysis.model
 import org.argus.jawa.alir.Context
 import org.argus.jawa.alir.pta.PTAResult
 import org.argus.jawa.alir.pta.reachingFactsAnalysis.{RFAFact, RFAFactFactory, ReachingFactsAnalysisHelper}
-import org.argus.jawa.core.{Global, JawaMethod}
+import org.argus.jawa.core.{JawaMethod, ScopeManager}
 import org.argus.jawa.core.util._
+
+trait ModelCall {
+  def isModelCall(p: JawaMethod): Boolean
+  def doModelCall(s: PTAResult, p: JawaMethod, args: List[String], retVar: String, currentContext: Context)(implicit factory: RFAFactFactory): (ISet[RFAFact], ISet[RFAFact], Boolean)
+}
 
 /**
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
  */ 
-trait ModelCallHandler {
-  
+class ModelCallHandler(scopeManager: ScopeManager) {
+
+  private val modelCalls: MList[ModelCall] = mlistEmpty
+  def registerModelCall(mc: ModelCall): Unit = modelCalls += mc
+
+  registerModelCall(new StringBuilderModel)
+  registerModelCall(new StringModel)
+  registerModelCall(new ListModel)
+  registerModelCall(new SetModel)
+  registerModelCall(new MapModel)
+  registerModelCall(new ClassModel)
+  registerModelCall(new ThreadModel)
+  registerModelCall(new ObjectModel)
+  registerModelCall(new NativeCallModel)
+  registerModelCall(new UnknownCallModel)
+
   /**
    * return true if the given callee procedure needs to be modeled
    */
-  def isModelCall(calleeProc: JawaMethod): Boolean = {
-    val r = calleeProc.getDeclaringClass
-    StringBuilderModel.isStringBuilder(r) ||
-    StringModel.isString(r) ||
-    ListModel.isList(r) ||
-    SetModel.isSet(r) || 
-    MapModel.isMap(r) ||
-    ClassModel.isClass(r) ||
-    ObjectModel.isObject(r) ||
-    NativeCallModel.isNativeCall(calleeProc) ||
-    UnknownCallModel.isUnknownCall(calleeProc)
-  }
+  def isModelCall(calleeProc: JawaMethod): Boolean = modelCalls.exists(_.isModelCall(calleeProc)) || scopeManager.shouldBypass(calleeProc.getDeclaringClass)
       
   /**
    * instead of doing operation inside callee procedure's real code, we do it manually and return the result. 
    */
-  def doModelCall[T](
-      global: Global,
+  def doModelCall(
       s: PTAResult,
       calleeProc: JawaMethod, 
       args: List[String],
@@ -49,34 +56,21 @@ trait ModelCallHandler {
       currentContext: Context)(implicit factory: RFAFactFactory): (ISet[RFAFact], ISet[RFAFact]) = {
     val hackVar = retVar.getOrElse("hack")
     
-    var (newFacts, delFacts, byPassFlag) = caculateResult(global, s, calleeProc, args, hackVar, currentContext)
-    if(byPassFlag){
-      val (newF, delF) = ReachingFactsAnalysisHelper.getUnknownObject(calleeProc, s, args, hackVar, currentContext)
-      newFacts ++= newF
-      delFacts ++= delF
+    modelCalls.foreach{ model =>
+      if(model.isModelCall(calleeProc)) {
+        var (newFacts, delFacts, byPassFlag) = model.doModelCall(s, calleeProc, args, hackVar, currentContext)
+        if(byPassFlag){
+          val (newF, delF) = ReachingFactsAnalysisHelper.getUnknownObject(calleeProc, s, args, hackVar, currentContext)
+          newFacts ++= newF
+          delFacts ++= delF
+        }
+        return (newFacts, delFacts)
+      }
     }
-    (newFacts, delFacts)
-  }
-
-  def caculateResult[T<: Global](
-      global: T,
-      s: PTAResult, 
-      calleeProc: JawaMethod, 
-      args: List[String], 
-      retVar: String,
-      currentContext: Context)(implicit factory: RFAFactFactory): (ISet[RFAFact], ISet[RFAFact], Boolean) = {
-    val r = calleeProc.getDeclaringClass
-    if(StringModel.isString(r)) StringModel.doStringCall(s, calleeProc, args, retVar, currentContext)
-    else if(StringBuilderModel.isStringBuilder(r)) StringBuilderModel.doStringBuilderCall(s, calleeProc, args, retVar, currentContext)
-    else if(ListModel.isList(r)) ListModel.doListCall(s, calleeProc, args, retVar, currentContext)
-    else if(SetModel.isSet(r)) SetModel.doSetCall(s, calleeProc, args, retVar, currentContext)
-    else if(MapModel.isMap(r)) MapModel.doMapCall(s, calleeProc, args, retVar, currentContext)
-    else if(ClassModel.isClass(r)) ClassModel.doClassCall(s, calleeProc, args, retVar, currentContext)
-    else if(ObjectModel.isObject(r)) ObjectModel.doObjectCall(s, calleeProc, args, retVar, currentContext)
-    else if(NativeCallModel.isNativeCall(calleeProc)) NativeCallModel.doNativeCall(s, calleeProc, args, retVar, currentContext)
-    else if(UnknownCallModel.isUnknownCall(calleeProc)) UnknownCallModel.doUnknownCall(s, calleeProc, args, retVar, currentContext)
-    else throw new RuntimeException("given callee is not a model call: " + calleeProc)
+    if(scopeManager.shouldBypass(calleeProc.getDeclaringClass)) {
+      val (newF, delF) = ReachingFactsAnalysisHelper.getUnknownObject(calleeProc, s, args, hackVar, currentContext)
+      return (newF, delF)
+    }
+    throw new RuntimeException("given callee is not a model call: " + calleeProc)
   }
 }
-
-object NormalModelCallHandler extends ModelCallHandler

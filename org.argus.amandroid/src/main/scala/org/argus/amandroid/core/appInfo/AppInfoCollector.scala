@@ -16,7 +16,7 @@ import java.io.FileInputStream
 
 import org.argus.amandroid.core.{AndroidConstants, ApkGlobal}
 import org.argus.amandroid.core.parser._
-import org.argus.amandroid.core.pilarCodeGenerator.{AndroidEntryPointConstants, AndroidEnvironmentGenerator, AndroidSubstituteClassMap}
+import org.argus.amandroid.core.pilarCodeGenerator.{AndroidEntryPointConstants, AndroidEnvironmentGenerator, AndroidSubstituteClassMap, AsyncTaskEnvGenerator}
 import org.argus.jawa.core._
 import org.argus.jawa.core.util.FileUtil
 
@@ -132,20 +132,29 @@ object AppInfoCollector {
     analysisHelper
   }
 
-  def generateEnvironment(apk: ApkGlobal, record: JawaClass, envName: String): Int = {
-    if(record == null) return 0
+  def generateEnvironment(apk: ApkGlobal, clazz: JawaClass, envName: String): Int = {
+    if(clazz == null) return 0
     //generate env main method
-    apk.reporter.println("Generate environment for " + record)
-    val dmGen = new AndroidEnvironmentGenerator(record.global)
+    apk.reporter.println("Generate environment for " + clazz)
+    val dmGen = new AndroidEnvironmentGenerator(apk)
     dmGen.setSubstituteClassMap(AndroidSubstituteClassMap.getSubstituteClassMap)
-    dmGen.setCurrentComponent(record.getType)
+    dmGen.setCurrentComponent(clazz.getType)
     dmGen.setComponentInfos(apk.model.getComponentInfos)
     dmGen.setCodeCounter(apk.model.getCodeLineCounter)
     dmGen.setCallbackFunctions(apk.model.getCallbackMethodMapping)
     dmGen.setCallbackFunctions(apk.model.getRpcMethodMappingWithoutRemoteFlag)
-    val (proc, code) = dmGen.generateWithParam(List(new JawaType(AndroidEntryPointConstants.INTENT_NAME)), envName)
-    apk.model.addEnvMap(record.getType, proc.getSignature, code)
+    val (proc, code) = dmGen.generateWithParam(List((new JawaType(AndroidEntryPointConstants.INTENT_NAME), "object")), List(), envName, "STATIC")
+    apk.model.addEnvMap(clazz.getType, proc.getSignature, code)
     dmGen.getCodeCounter
+  }
+
+  def generateAsyncTask(apk: ApkGlobal, typ: JawaType): Unit = {
+    apk.reporter.echo("generateAsyncTask", "Generate environment for " + typ)
+    val dmGen = new AsyncTaskEnvGenerator(apk)
+    dmGen.setSubstituteClassMap(AndroidSubstituteClassMap.getSubstituteClassMap)
+    dmGen.setCurrentComponent(typ)
+    val (proc, code) = dmGen.generateWithParam(List((typ, "this"), (new JawaType(JavaKnowledge.JAVA_TOPLEVEL_OBJECT, 1), "object")), List(), "run", "PUBLIC")
+    apk.model.addEnvMap(typ, proc.getSignature, code)
   }
 
   def dynamicRegisterReceiver(apk: ApkGlobal, comRec: JawaClass, iDB: IntentFilterDataBase, permission: ISet[String]): Unit = {
@@ -214,20 +223,24 @@ object AppInfoCollector {
     callbacks foreach {
       case (typ, sigs) => apk.model.addCallbackMethods(typ, sigs)
     }
-    mfp.getComponentInfos.foreach {
-      f =>
-        if(f.enabled){
-          val comp = apk.getClassOrResolve(f.compType)
-          if(!comp.isUnknown && comp.isApplicationClass){
-            apk.model.addComponent(comp.getType, f.typ)
-            if(f.typ == ComponentType.SERVICE) {
-              val rpcs = getRpcMethods(apk, comp, ra)
-              apk.model.addRpcMethods(comp.getType, rpcs)
-            }
-            val clCounter = generateEnvironment(apk, comp, if(f.exported)AndroidConstants.MAINCOMP_ENV else AndroidConstants.COMP_ENV)
-            apk.model.setCodeLineCounter(clCounter)
+    ra.getReachableMap.flatMap(_._2).map(_.classTyp).filter{ typ =>
+      apk.getClassHierarchy.isClassRecursivelySubClassOf(typ, new JawaType("android.os.AsyncTask"))
+    }.foreach { typ =>
+      generateAsyncTask(apk, typ)
+    }
+    mfp.getComponentInfos.foreach { f =>
+      if(f.enabled){
+        val comp = apk.getClassOrResolve(f.compType)
+        if(!comp.isUnknown && comp.isApplicationClass){
+          apk.model.addComponent(comp.getType, f.typ)
+          if(f.typ == ComponentType.SERVICE) {
+            val rpcs = getRpcMethods(apk, comp, ra)
+            apk.model.addRpcMethods(comp.getType, rpcs)
           }
+          val clCounter = generateEnvironment(apk, comp, if(f.exported)AndroidConstants.MAINCOMP_ENV else AndroidConstants.COMP_ENV)
+          apk.model.setCodeLineCounter(clCounter)
         }
+      }
     }
     apk.reporter.println("Info collection done.")
   }

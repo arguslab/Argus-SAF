@@ -15,7 +15,6 @@ import org.argus.jawa.alir._
 import org.argus.jawa.alir.interprocedural._
 import org.argus.jawa.alir.pta._
 import org.argus.jawa.core._
-import org.argus.jawa.alir.util.CallHandler
 
 import scala.collection.mutable
 

@@ -407,7 +407,9 @@ case class MethodDeclaration(
   def paramList: IList[Param] = paramClause.paramlist
   def resolvedBody: ResolvedBody = body match {
     case rb: ResolvedBody => rb
-    case ub: UnresolvedBody => ub.resolve
+    case ub: UnresolvedBody =>
+      body = ub.resolve
+      body.asInstanceOf[ResolvedBody]
   }
 }
 

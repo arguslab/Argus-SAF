@@ -13,18 +13,18 @@ package org.argus.jawa.alir.pta.reachingFactsAnalysis.model
 import org.argus.jawa.alir.Context
 import org.argus.jawa.alir.pta.{FieldSlot, PTAResult, VarSlot}
 import org.argus.jawa.alir.pta.reachingFactsAnalysis.{RFAFact, RFAFactFactory}
-import org.argus.jawa.core.{JawaClass, JawaMethod, JawaType}
+import org.argus.jawa.core.{JawaMethod, JawaType}
 import org.argus.jawa.core.util._
 
 /**
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
  */ 
-object SetModel {
-  def isSet(r: JawaClass): Boolean = {
-    if(r.isApplicationClass) false
+class SetModel extends ModelCall {
+  def isModelCall(p: JawaMethod): Boolean = {
+    if(p.getDeclaringClass.isApplicationClass) false
     else {
-      val set = r.global.getClassOrResolve(new JawaType("java.util.Set"))
-      r.global.getClassHierarchy.getAllImplementersOf(set.getType).contains(r.getType)
+      val set = p.getDeclaringClass.global.getClassOrResolve(new JawaType("java.util.Set"))
+      p.getDeclaringClass.global.getClassHierarchy.getAllImplementersOf(set.getType).contains(p.getDeclaringClass.getType)
     }
   }
     
@@ -49,7 +49,7 @@ object SetModel {
     thisValue.map{s => new RFAFact(VarSlot(retVar, isBase = false, isArg = false), s.clone(currentContext))}
   }
   
-  def doSetCall(s: PTAResult, p: JawaMethod, args: List[String], retVars: String, currentContext: Context)(implicit factory: RFAFactFactory): (ISet[RFAFact], ISet[RFAFact], Boolean) = {
+  def doModelCall(s: PTAResult, p: JawaMethod, args: List[String], retVars: String, currentContext: Context)(implicit factory: RFAFactFactory): (ISet[RFAFact], ISet[RFAFact], Boolean) = {
     var newFacts = isetEmpty[RFAFact]
     val delFacts = isetEmpty[RFAFact]
     var byPassFlag = true

@@ -12,9 +12,9 @@ package org.argus.jawa.alir.sideEffectAnalysis
 
 import org.argus.jawa.alir.JawaAlirInfoProvider
 import org.argus.jawa.alir.controlFlowGraph.{CFGNode, IntraProceduralControlFlowGraph}
+import org.argus.jawa.alir.interprocedural.CallHandler
 import org.argus.jawa.alir.reachingDefinitionAnalysis.{LocDefDesc, ReachingDefinitionAnalysis}
 import org.argus.jawa.core._
-import org.argus.jawa.alir.util.CallHandler
 import org.argus.jawa.compiler.parser.{AssignmentStatement, Location, NameExpression}
 import org.argus.jawa.core.util._
 

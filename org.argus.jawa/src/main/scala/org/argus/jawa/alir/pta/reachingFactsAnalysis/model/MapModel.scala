@@ -13,18 +13,18 @@ package org.argus.jawa.alir.pta.reachingFactsAnalysis.model
 import org.argus.jawa.alir.Context
 import org.argus.jawa.alir.pta._
 import org.argus.jawa.alir.pta.reachingFactsAnalysis.{RFAFact, RFAFactFactory, ReachingFactsAnalysisHelper}
-import org.argus.jawa.core.{JawaClass, JawaMethod, JawaType}
+import org.argus.jawa.core.{JawaMethod, JawaType}
 import org.argus.jawa.core.util._
 
 /**
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
  */ 
-object MapModel {
-  def isMap(r: JawaClass): Boolean = {
-    if(r.isApplicationClass) false
+class MapModel extends ModelCall {
+  def isModelCall(p: JawaMethod): Boolean = {
+    if(p.getDeclaringClass.isApplicationClass) false
     else {
-      val map = r.global.getClassOrResolve(new JawaType("java.util.Map"))
-      val res = r.global.getClassHierarchy.getAllImplementersOf(map.getType).contains(r.getType)
+      val map = p.getDeclaringClass.global.getClassOrResolve(new JawaType("java.util.Map"))
+      val res = p.getDeclaringClass.global.getClassHierarchy.getAllImplementersOf(map.getType).contains(p.getDeclaringClass.getType)
       res
     }
   }
@@ -148,7 +148,7 @@ object MapModel {
     result
   }
   
-  def doMapCall(s: PTAResult, p: JawaMethod, args: List[String], retVar: String, currentContext: Context)(implicit factory: RFAFactFactory): (ISet[RFAFact], ISet[RFAFact], Boolean) = {
+  def doModelCall(s: PTAResult, p: JawaMethod, args: List[String], retVar: String, currentContext: Context)(implicit factory: RFAFactFactory): (ISet[RFAFact], ISet[RFAFact], Boolean) = {
     var newFacts = isetEmpty[RFAFact]
     val delFacts = isetEmpty[RFAFact]
     var byPassFlag = true

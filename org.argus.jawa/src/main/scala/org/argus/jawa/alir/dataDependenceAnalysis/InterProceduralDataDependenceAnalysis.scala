@@ -13,6 +13,7 @@ package org.argus.jawa.alir.dataDependenceAnalysis
 import org.argus.jawa.alir.{AlirEdge, LibSideEffectProvider}
 import org.argus.jawa.alir.controlFlowGraph.{ICFGCallNode, ICFGExitNode, ICFGNormalNode}
 import org.argus.jawa.alir.dataFlowAnalysis.InterproceduralDataFlowGraph
+import org.argus.jawa.alir.interprocedural.IndirectCallee
 import org.argus.jawa.alir.pta.{ArraySlot, FieldSlot, PTAResult, VarSlot}
 import org.argus.jawa.alir.reachingDefinitionAnalysis.{DefDesc, LocDefDesc, ParamDefDesc}
 import org.argus.jawa.compiler.parser._
@@ -45,7 +46,7 @@ class DefaultInterProceduralDataDependenceInfo(iddg: DataDependenceBaseGraph[Int
  * @author <a href="mailto:sroy@k-state.edu">Sankardas Roy</a>
  */
 object InterProceduralDataDependenceAnalysis {
-  final val TITLE = "InterproceduralDataDependenceAnalysis"
+  final val TITLE = "InterProceduralDataDependenceAnalysis"
   type Node = IDDGNode
   type Edge = AlirEdge[Node]
 
@@ -57,84 +58,85 @@ object InterProceduralDataDependenceAnalysis {
     val irdaResult = InterProceduralReachingDefinitionAnalysis(global, icfg)
     val iddg = new InterProceduralDataDependenceGraph[Node]
     iddg.initGraph(global, icfg)
-    iddg.nodes.foreach {
-      node =>
-        val targetNodes: MSet[Node] = msetEmpty
-        if(node != iddg.entryNode){
-          node match {
-            case en: IDDGEntryParamNode =>
-              val icfgN = icfg.getICFGEntryNode(en.getContext)
-              val icfgTarN = icfg.predecessors(icfgN)
-              targetNodes ++= icfgTarN.map(n => iddg.findDefSite(n.getContext, en.position))
-            case en: IDDGExitParamNode =>
-              val icfgN = icfg.getICFGExitNode(en.getContext)
-              val procName = en.paramName
-              val irdaFacts = irdaResult(icfgN)
-              targetNodes ++= searchRda(global, procName, en, irdaFacts, iddg)
-            case cn: IDDGCallArgNode =>
-              val icfgN = icfg.getICFGCallNode(cn.getContext)
-              val irdaFacts = irdaResult(icfgN)
-              targetNodes ++= processCallArg(global, cn, ptaresult, irdaFacts, iddg)
-            case rn: IDDGReturnArgNode =>
-              val icfgN = icfg.getICFGReturnNode(rn.getContext)
-              val icfgTarN = icfg.predecessors(icfgN)
-              icfgTarN.foreach {
-                case cn: ICFGCallNode =>
-                  targetNodes += iddg.findDefSite(cn.getContext, rn.position)
-                case en: ICFGExitNode =>
+    iddg.nodes.foreach { node =>
+      val targetNodes: MSet[Node] = msetEmpty
+      if(node != iddg.entryNode){
+        node match {
+          case en: IDDGEntryParamNode =>
+            val icfgN = icfg.getICFGEntryNode(en.getContext)
+            val icfgTarN = icfg.predecessors(icfgN)
+            targetNodes ++= icfgTarN.map(n => iddg.findDefSite(n.getContext, en.position))
+          case en: IDDGExitParamNode =>
+            val icfgN = icfg.getICFGExitNode(en.getContext)
+            val procName = en.paramName
+            val irdaFacts = irdaResult(icfgN)
+            targetNodes ++= searchRda(global, procName, en, irdaFacts, iddg)
+          case cn: IDDGCallArgNode =>
+            val icfgN = icfg.getICFGCallNode(cn.getContext)
+            val irdaFacts = irdaResult(icfgN)
+            targetNodes ++= processCallArg(global, cn, ptaresult, irdaFacts, iddg)
+          case rn: IDDGReturnArgNode =>
+            val icfgN = icfg.getICFGReturnNode(rn.getContext)
+            val icfgTarN = icfg.predecessors(icfgN)
+            icfgTarN.foreach {
+              case cn: ICFGCallNode =>
+                targetNodes += iddg.findDefSite(cn.getContext, rn.position)
+              case en: ICFGExitNode =>
+                if(!rn.getCalleeSet.exists(_.isInstanceOf[IndirectCallee])) {
                   targetNodes += iddg.findDefSite(en.getContext, rn.position)
-                case _ =>
-              }
-            case rn: IDDGReturnVarNode =>
-              val icfgN = icfg.getICFGReturnNode(rn.getContext)
-              val icfgTarN = icfg.predecessors(icfgN)
-              icfgTarN.foreach {
-                case cn: ICFGCallNode =>
-                  val retSlot = VarSlot(rn.retVarName, isBase = false, isArg = false)
-                  val retInss = ptaresult.pointsToSet(retSlot, rn.getContext)
-                  val idEntNs = iddg.getIDDGCallArgNodes(cn).map(_.asInstanceOf[IDDGCallArgNode])
-                  if (retInss.isEmpty) targetNodes ++= idEntNs
-                  else {
-                    val argInss =
-                      idEntNs.map {
-                        n =>
-                          val argSlot = VarSlot(n.argName, isBase = false, isArg = true)
-                          ptaresult.getRelatedInstances(argSlot, n.getContext)
-                      }
-                    val poss = retInss.map {
-                      ins =>
-                        argInss.filter(_.contains(ins)) map (argInss.indexOf(_))
-                    }.fold(ilistEmpty)(_ ++ _)
-                    if (poss.isEmpty) targetNodes ++= idEntNs
-                    else {
-                      targetNodes ++= poss.map(pos => iddg.findDefSite(cn.getContext, pos))
+                }
+              case _ =>
+            }
+          case rn: IDDGReturnVarNode =>
+            val icfgN = icfg.getICFGReturnNode(rn.getContext)
+            val icfgTarN = icfg.predecessors(icfgN)
+            icfgTarN.foreach {
+              case cn: ICFGCallNode =>
+                val retSlot = VarSlot(rn.retVarName, isBase = false, isArg = false)
+                val retInss = ptaresult.pointsToSet(retSlot, rn.getContext)
+                val idEntNs = iddg.getIDDGCallArgNodes(cn).map(_.asInstanceOf[IDDGCallArgNode])
+                if (retInss.isEmpty) targetNodes ++= idEntNs
+                else {
+                  val argInss =
+                    idEntNs.map {
+                      n =>
+                        val argSlot = VarSlot(n.argName, isBase = false, isArg = true)
+                        ptaresult.getRelatedInstances(argSlot, n.getContext)
                     }
+                  val poss = retInss.map {
+                    ins =>
+                      argInss.filter(_.contains(ins)) map (argInss.indexOf(_))
+                  }.fold(ilistEmpty)(_ ++ _)
+                  if (poss.isEmpty) targetNodes ++= idEntNs
+                  else {
+                    targetNodes ++= poss.map(pos => iddg.findDefSite(cn.getContext, pos))
                   }
-                case en: ICFGExitNode =>
-                  val enPreds = icfg.predecessors(en)
-                  enPreds foreach {
-                    case nn: ICFGNormalNode =>
-                      targetNodes ++= iddg.findDefSite(nn.getContext)
-                    case _ =>
-                  }
-                case _ =>
-              }
-            case vn: IDDGVirtualBodyNode =>
-              val icfgN = vn.icfgN
-              val idEntNs = iddg.getIDDGCallArgNodes(icfgN)
-              targetNodes ++= idEntNs
-              val irdaFacts = irdaResult(icfgN)
-              targetNodes ++= processVirtualBody(global, vn, ptaresult, irdaFacts, iddg)
-            case ln: IDDGNormalNode =>
-              val icfgN = icfg.getICFGNormalNode(ln.getContext)
-              val ownerProc = global.getMethod(ln.getOwner).get
-              val loc = ownerProc.getBody.resolvedBody.locations(ln.getLocIndex)
-              val irdaFacts = irdaResult(icfgN)
-              targetNodes ++= processLocation(global, node, loc, ptaresult, irdaFacts, iddg)
-            case _ =>
-          }
+                }
+              case en: ICFGExitNode =>
+                val enPreds = icfg.predecessors(en)
+                enPreds foreach {
+                  case nn: ICFGNormalNode =>
+                    targetNodes ++= iddg.findDefSite(nn.getContext)
+                  case _ =>
+                }
+              case _ =>
+            }
+          case vn: IDDGVirtualBodyNode =>
+            val icfgN = vn.icfgN
+            val idEntNs = iddg.getIDDGCallArgNodes(icfgN)
+            targetNodes ++= idEntNs
+            val irdaFacts = irdaResult(icfgN)
+            targetNodes ++= processVirtualBody(global, vn, ptaresult, irdaFacts, iddg)
+          case ln: IDDGNormalNode =>
+            val icfgN = icfg.getICFGNormalNode(ln.getContext)
+            val ownerProc = global.getMethod(ln.getOwner).get
+            val loc = ownerProc.getBody.resolvedBody.locations(ln.getLocIndex)
+            val irdaFacts = irdaResult(icfgN)
+            targetNodes ++= processLocation(global, node, loc, ptaresult, irdaFacts, iddg)
+          case _ =>
         }
-        targetNodes.foreach(tn=>iddg.addEdge(node, tn))
+      }
+      targetNodes.foreach(tn=>iddg.addEdge(node, tn))
     }
     global.reporter.echo(NoPosition, "[IDDG building done!]")
     new DefaultInterProceduralDataDependenceInfo(iddg)

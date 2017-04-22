@@ -15,10 +15,12 @@ import org.argus.jawa.core.util._
 import scala.collection.immutable.BitSet
 import java.util.concurrent.TimeoutException
 
+import org.argus.amandroid.alir.pta.reachingFactsAnalysis.model.AndroidModelCallHandler
 import org.argus.amandroid.core.ApkGlobal
 import org.argus.jawa.alir.Context
 import org.argus.jawa.alir.controlFlowGraph._
 import org.argus.jawa.alir.dataFlowAnalysis._
+import org.argus.jawa.alir.interprocedural.{CallHandler, Callee}
 import org.argus.jawa.alir.pta._
 import org.argus.jawa.alir.pta.reachingFactsAnalysis.{RFAFact, RFAFactFactory, ReachingFactsAnalysisHelper}
 import org.argus.jawa.compiler.parser._
@@ -79,7 +81,7 @@ class AndroidReachingFactsAnalysisBuilder(apk: ApkGlobal, clm: ClassLoadManager,
       if(me.declaresStaticInitializer) {
         val p = me.getStaticInitializer.get
         if(AndroidReachingFactsAnalysisConfig.resolve_static_init) {
-          if(AndroidReachingFactsAnalysisHelper.isModelCall(p)) {
+          if(AndroidModelCallHandler.isModelCall(p)) {
             ReachingFactsAnalysisHelper.getUnknownObjectForClinit(p, currentNode.getContext)
           } else if(!this.icfg.isProcessed(p.getSignature, currentNode.getContext)) { // for normal call
             val nodes = this.icfg.collectCfgToBaseGraph(p, currentNode.getContext)
@@ -282,11 +284,11 @@ class AndroidReachingFactsAnalysisBuilder(apk: ApkGlobal, clm: ClassLoadManager,
       val callerContext = callerNode.getContext
       ReachingFactsAnalysisHelper.updatePTAResultCallJump(cs, callerContext, s, ptaresult)
       val sig = cs.signature
-      val calleeSet = ReachingFactsAnalysisHelper.getCalleeSet(apk, cs, sig, callerContext, ptaresult)
+      val calleeSet = CallHandler.getCalleeSet(apk, cs, sig, callerContext, ptaresult)
       val icfgCallnode = icfg.getICFGCallNode(callerContext)
-      icfgCallnode.asInstanceOf[ICFGCallNode].setCalleeSet(calleeSet)
+      icfgCallnode.asInstanceOf[ICFGCallNode].setCalleeSet(calleeSet.map(_.asInstanceOf[Callee]))
       val icfgReturnnode = icfg.getICFGReturnNode(callerContext)
-      icfgReturnnode.asInstanceOf[ICFGReturnNode].setCalleeSet(calleeSet)
+      icfgReturnnode.asInstanceOf[ICFGReturnNode].setCalleeSet(calleeSet.map(_.asInstanceOf[Callee]))
       var calleeFactsMap: IMap[ICFGNode, ISet[RFAFact]] = imapEmpty
       var returnFacts: ISet[RFAFact] = s
       val genSet: MSet[RFAFact] = msetEmpty
@@ -294,32 +296,33 @@ class AndroidReachingFactsAnalysisBuilder(apk: ApkGlobal, clm: ClassLoadManager,
       var pureNormalFlag = pureNormalFlagMap.getOrElseUpdate(callerNode, true)
       
       val args = (cs.recvOpt ++ cs.args).toList
-      calleeSet.foreach{
-        callee =>
-          val calleeSig = callee.callee
-          icfg.getCallGraph.addCall(callerNode.getOwner, calleeSig)
-          val calleep = apk.getMethod(calleeSig).get
-          if(AndroidReachingFactsAnalysisHelper.isICCCall(calleeSig) || AndroidReachingFactsAnalysisHelper.isRPCCall(apk, currentComponent.getType, calleeSig) || AndroidReachingFactsAnalysisHelper.isModelCall(calleep)) {
-            pureNormalFlag = false
-            if(AndroidReachingFactsAnalysisHelper.isICCCall(calleeSig)) {
-              // don't do anything for the ICC call now.
-            } else if (AndroidReachingFactsAnalysisHelper.isRPCCall(apk, currentComponent.getType, calleeSig)) {
-              // don't do anything for the RPC call now.
-            } else { // for non-ICC-RPC model call
-              val (g, k) = AndroidReachingFactsAnalysisHelper.doModelCall(ptaresult, calleep, args, cs.lhsOpt.map(_.lhs.varName), callerContext, apk)
-              genSet ++= g
-              killSet ++= k
-            }
-          } else { // for normal call
-            require(calleep.isConcrete)
-            if(!icfg.isProcessed(calleeSig, callerContext)){
+      calleeSet.foreach { callee =>
+        val calleeSig: Signature = callee.callee
+        icfg.getCallGraph.addCall(callerNode.getOwner, calleeSig)
+        val calleep = apk.getMethodOrResolve(calleeSig).get
+        if(AndroidModelCallHandler.isICCCall(calleeSig) || AndroidModelCallHandler.isRPCCall(apk, currentComponent.getType, calleeSig) || AndroidModelCallHandler.isModelCall(calleep)) {
+          pureNormalFlag = false
+          if(AndroidModelCallHandler.isICCCall(calleeSig)) {
+            // don't do anything for the ICC call now.
+          } else if (AndroidModelCallHandler.isRPCCall(apk, currentComponent.getType, calleeSig)) {
+            // don't do anything for the RPC call now.
+          } else { // for non-ICC-RPC model call
+            val (g, k) = AndroidModelCallHandler.doModelCall(ptaresult, calleep, args, cs.lhsOpt.map(_.lhs.varName), callerContext)
+            genSet ++= g
+            killSet ++= k
+          }
+        } else {
+          // for normal call
+          if (calleep.isConcrete) {
+            if (!icfg.isProcessed(calleeSig, callerContext)) {
               icfg.collectCfgToBaseGraph[String](calleep, callerContext, isFirst = false)
               icfg.extendGraph(calleeSig, callerContext)
             }
             val factsForCallee = getFactsForCallee(s, cs, calleep, callerContext)
             killSet ++= factsForCallee
-            calleeFactsMap += (icfg.entryNode(calleeSig, callerContext) -> mapFactsToCallee(factsForCallee, callerContext, cs, calleep))
+            calleeFactsMap += (icfg.entryNode(calleeSig, callerContext) -> callee.mapFactsToCallee(factsForCallee, args, (calleep.thisOpt ++ calleep.getParamNames).toList, factory))
           }
+        }
       }
       if(pureNormalFlag) {
         if(icfg.hasEdge(icfgCallnode, icfgReturnnode)) {
@@ -330,13 +333,12 @@ class AndroidReachingFactsAnalysisBuilder(apk: ApkGlobal, clm: ClassLoadManager,
       /**
        * update ptaresult with each callee params and return var's points-to info
        */
-      calleeFactsMap foreach {
-        case (n, facts) =>
-          facts foreach {
-            f =>
-              if(!f.s.isInstanceOf[StaticFieldSlot])
-                ptaresult.addInstance(f.s, n.getContext, f.v)
-          }
+      calleeFactsMap foreach { case (n, facts) =>
+        facts foreach {
+          f =>
+            if(!f.s.isInstanceOf[StaticFieldSlot])
+              ptaresult.addInstance(f.s, n.getContext, f.v)
+        }
       }
       cs.lhsOpt match {
         case Some(lhs) =>
@@ -372,33 +374,19 @@ class AndroidReachingFactsAnalysisBuilder(apk: ApkGlobal, clm: ClassLoadManager,
       (calleeFactsMap, returnFacts)
     }
     
-//    def getFactsForICCTarget(s: ISet[RFAFact], cs: CallStatement, callerContext: Context): ISet[RFAFact] = {
-//      val calleeFacts = msetEmpty[RFAFact]
-//      calleeFacts ++= ReachingFactsAnalysisHelper.getGlobalFacts(s)
-//      val intent = cs.args.head
-//      val slot = VarSlot(intent, isBase = false, isArg = true)
-//      val value = ptaresult.pointsToSet(slot, callerContext)
-//      val instnums = value.map(factory.getInstanceNum)
-//      calleeFacts ++= value.map { r => new RFAFact(VarSlot(slot.varName, isBase = false, isArg = false), r) }
-//      calleeFacts ++= ReachingFactsAnalysisHelper.getRelatedHeapFacts(instnums, s)
-//      calleeFacts.toSet
-//    }
-    
     private def getFactsForCallee(s: ISet[RFAFact], cs: CallStatement, callee: JawaMethod, callerContext: Context): ISet[RFAFact] = {
       val calleeFacts = msetEmpty[RFAFact]
-      val typ = cs.kind
-      
       calleeFacts ++= ReachingFactsAnalysisHelper.getGlobalFacts(s)
       val args = (cs.recvOpt ++ cs.args).toList
       for(i <- args.indices) {
         val arg = args(i)
         val slot = VarSlot(arg, isBase = false, isArg = true)
-        var value = ptaresult.pointsToSet(slot, callerContext)
-        if (!cs.isStatic && i == 0) {
-          value = value.filter { r =>
-            !r.isNull && !r.isUnknown && shouldPass(r, callee, typ)
-          }
-        }
+        val value = ptaresult.pointsToSet(slot, callerContext)
+//        if (!cs.isStatic && i == 0) {
+//          value = value.filter { r =>
+//            !r.isNull && !r.isUnknown && shouldPass(r, callee, typ)
+//          }
+//        }
         calleeFacts ++= value.map { r => new RFAFact(VarSlot(slot.varName, isBase = false, isArg = false), r) }
         val instnums = value.map(factory.getInstanceNum)
         calleeFacts ++= ReachingFactsAnalysisHelper.getRelatedHeapFacts(instnums, s)
@@ -409,69 +397,23 @@ class AndroidReachingFactsAnalysisBuilder(apk: ApkGlobal, clm: ClassLoadManager,
     /**
      * return true if the given recv Instance should pass to the given callee
      */
-    private def shouldPass(recvIns: Instance, calleeProc: JawaMethod, typ: String): Boolean = {
-      val recRecv = apk.getClassOrResolve(recvIns.typ)
-      val recCallee = calleeProc.getDeclaringClass
-      var tmpRec = recRecv
-      if(typ == "direct" || typ == "super" ){
-        true
-      } else {
-        while(tmpRec.hasSuperClass){
-          if(tmpRec == recCallee) return true
-          else if(tmpRec.declaresMethod(calleeProc.getSubSignature)) return false
-          else tmpRec = apk.getClassOrResolve(tmpRec.getSuperClass)
-        }
-        if(tmpRec == recCallee) true
-        else {
-          apk.reporter.echo(TITLE, "Given recvIns: " + recvIns + " and calleeProc: " + calleeProc + " is not in the Same hierarchy.")
-          false
-        }
-      }
-    }
-    
-    def mapFactsToCallee(factsToCallee: ISet[RFAFact], callerContext: Context, cs: CallStatement, calleep: JawaMethod): ISet[RFAFact] = {
-      val varFacts = factsToCallee.filter(f=>f.s.isInstanceOf[VarSlot])
-      val argSlots = (cs.recvOpt ++ cs.args).map(VarSlot(_, isBase = false, isArg = true)).toList
-      val paramSlots = (calleep.thisOpt ++ calleep.getParamNames).map(VarSlot(_, isBase = false, isArg = false)).toList
-      val result = msetEmpty[RFAFact]
-          
-      for(i <- argSlots.indices){
-        if(!paramSlots.isDefinedAt(i)){
-          apk.reporter.error(TITLE, "argSlots does not adjust to paramSlots:\n" + callerContext + "\n" + argSlots + "\n" + calleep.getSignature + "\n" + paramSlots)
-        } else {
-          val argSlot = argSlots(i)
-          val paramSlot = paramSlots(i)
-          varFacts.foreach{
-            fact =>
-              if(fact.s.getId == argSlot.getId) result += new RFAFact(paramSlot, fact.v)
-          }
-        }
-      }
-      factsToCallee -- varFacts ++ result
-    }
-    
-//    def mapFactsToICCTarget(factsToCallee: ISet[RFAFact], cj: CallStatement, calleeMethod: MethodDeclaration): ISet[RFAFact] = {
-//      val varFacts = factsToCallee.filter(f=>f.s.isInstanceOf[VarSlot]).map{f=> RFAFact(f.slot, f.ins)}
-//      cj.callExp.arg match{
-//        case te: TupleExp =>
-//          val argSlot = te.exps(1) match{
-//            case ne: NameExp => VarSlot(ne.name.name, isBase = false, isArg = true)
-//            case exp => VarSlot(exp.toString, isBase = false, isArg = true)
-//          }
-//          val paramSlots: MList[VarSlot] = mlistEmpty
-//          calleeMethod.params.foreach{
-//            param =>
-//              require(param.typeSpec.isDefined)
-//              paramSlots += VarSlot(param.name.name, isBase = false, isArg = false)
-//          }
-//          var result = isetEmpty[RFAFact]
-//          val paramSlot = paramSlots.head
-//          varFacts.foreach{
-//            fact =>
-//              if(fact.s.getId == argSlot.getId) result += new RFAFact(paramSlot, fact.v)
-//          }
-//          factsToCallee -- varFacts ++ result
-//        case _ => throw new RuntimeException("wrong exp type: " + cj.callExp.arg)
+//    private def shouldPass(recvIns: Instance, calleeProc: JawaMethod, typ: String): Boolean = {
+//      val recRecv = apk.getClassOrResolve(recvIns.typ)
+//      val recCallee = calleeProc.getDeclaringClass
+//      var tmpRec = recRecv
+//      if(typ == "direct" || typ == "super" ){
+//        true
+//      } else {
+//        while(tmpRec.hasSuperClass){
+//          if(tmpRec == recCallee) return true
+//          else if(tmpRec.declaresMethod(calleeProc.getSubSignature)) return false
+//          else tmpRec = apk.getClassOrResolve(tmpRec.getSuperClass)
+//        }
+//        if(tmpRec == recCallee) true
+//        else {
+//          apk.reporter.echo(TITLE, "Given recvIns: " + recvIns + " and calleeProc: " + calleeProc + " is not in the Same hierarchy.")
+//          false
+//        }
 //      }
 //    }
     

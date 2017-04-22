@@ -17,7 +17,7 @@ import org.argus.amandroid.core.util.ApkFileUtil
 import org.argus.amandroid.core.ApkGlobal
 import org.argus.amandroid.plugin.{TaintAnalysisModules, TaintAnalysisTask}
 import org.argus.jawa.core.util.IgnoreException
-import org.argus.jawa.core.{FileReporter, MsgLevel, NoReporter}
+import org.argus.jawa.core.{FileReporter, MsgLevel, NoReporter, PrintReporter}
 import org.argus.jawa.core.util._
 
 /**
@@ -51,7 +51,7 @@ object TaintAnalysis{
             println("Analyzing #" + i + ":" + fileUri)
             val reporter = 
               if(debug) new FileReporter(getOutputDirUri(outputUri, fileUri), MsgLevel.INFO)
-              else new NoReporter
+              else new PrintReporter(MsgLevel.ERROR)
             TaintAnalysisTask(module, Set(fileUri), outputUri, forceDelete, reporter).run
             println("Done!")
             if(debug) println("Debug info write into " + reporter.asInstanceOf[FileReporter].f)

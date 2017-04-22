@@ -14,10 +14,6 @@ package org.argus.jawa.core
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
  */
 object Constants {
-  final val CONST_CLASS = "constclass"
-  final val LENGTH = "length"
-  final val INSTANCEOF = "instanceof"
-  final val EXCEPTION = "Exception"
   final val ALL_FIELD = "ALL.FIELD"
   
   final val JAWA_FILE_EXT = "jawa"

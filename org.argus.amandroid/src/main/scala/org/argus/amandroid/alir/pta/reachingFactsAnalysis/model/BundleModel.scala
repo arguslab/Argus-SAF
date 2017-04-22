@@ -13,18 +13,19 @@ package org.argus.amandroid.alir.pta.reachingFactsAnalysis.model
 import org.argus.amandroid.core.AndroidConstants
 import org.argus.jawa.alir.Context
 import org.argus.jawa.alir.pta._
+import org.argus.jawa.alir.pta.reachingFactsAnalysis.model.ModelCall
 import org.argus.jawa.alir.pta.reachingFactsAnalysis.{RFAFact, RFAFactFactory, ReachingFactsAnalysisHelper}
-import org.argus.jawa.core.{JawaClass, JawaMethod, JawaType}
+import org.argus.jawa.core.{JawaMethod, JawaType}
 import org.argus.jawa.core.util._
 
 /**
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
  * @author <a href="mailto:sroy@k-state.edu">Sankardas Roy</a>
  */ 
-object BundleModel {
-  def isBundle(r: JawaClass): Boolean = r.getName.equals(AndroidConstants.BUNDLE)
+class BundleModel extends ModelCall {
+  def isModelCall(r: JawaMethod): Boolean = r.getDeclaringClass.getName.equals(AndroidConstants.BUNDLE)
     
-  def doBundleCall(s: PTAResult, p: JawaMethod, args: List[String], retVar: String, currentContext: Context)(implicit factory: RFAFactFactory): (ISet[RFAFact], ISet[RFAFact], Boolean) = {
+  def doModelCall(s: PTAResult, p: JawaMethod, args: List[String], retVar: String, currentContext: Context)(implicit factory: RFAFactFactory): (ISet[RFAFact], ISet[RFAFact], Boolean) = {
     var newFacts = isetEmpty[RFAFact]
     val delFacts = isetEmpty[RFAFact]
     var byPassFlag = true

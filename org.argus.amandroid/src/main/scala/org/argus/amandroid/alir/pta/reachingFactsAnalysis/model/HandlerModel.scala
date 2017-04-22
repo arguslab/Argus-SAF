@@ -12,17 +12,18 @@ package org.argus.amandroid.alir.pta.reachingFactsAnalysis.model
 
 import org.argus.jawa.alir.Context
 import org.argus.jawa.alir.pta.PTAResult
-import org.argus.jawa.alir.pta.reachingFactsAnalysis.RFAFact
-import org.argus.jawa.core.{JawaClass, JawaMethod}
+import org.argus.jawa.alir.pta.reachingFactsAnalysis.{RFAFact, RFAFactFactory}
+import org.argus.jawa.alir.pta.reachingFactsAnalysis.model.ModelCall
+import org.argus.jawa.core.JawaMethod
 import org.argus.jawa.core.util._
 
 /**
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
  * @author <a href="mailto:sroy@k-state.edu">Sankardas Roy</a>
  */ 
-object HandlerModel {
-	def isHandler(r: JawaClass): Boolean = r.getName.equals("android.os.Handler")
-	def doHandlerCall(s: PTAResult, p: JawaMethod, args: List[String], retVar: String, currentContext: Context): (ISet[RFAFact], ISet[RFAFact], Boolean) = {
+class HandlerModel extends ModelCall {
+	def isModelCall(p: JawaMethod): Boolean = p.getDeclaringClass.getName.equals("android.os.Handler")
+	def doModelCall(s: PTAResult, p: JawaMethod, args: List[String], retVar: String, currentContext: Context)(implicit factory: RFAFactFactory): (ISet[RFAFact], ISet[RFAFact], Boolean) = {
 	  val newFacts = isetEmpty[RFAFact]
 	  val delFacts = isetEmpty[RFAFact]
 	  val byPassFlag = true

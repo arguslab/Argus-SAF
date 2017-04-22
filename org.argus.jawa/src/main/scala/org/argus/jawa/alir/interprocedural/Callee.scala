@@ -10,31 +10,62 @@
 
 package org.argus.jawa.alir.interprocedural
 
-import org.argus.jawa.alir.pta.Instance
+import org.argus.jawa.alir.pta.{Instance, VarSlot}
+import org.argus.jawa.alir.pta.reachingFactsAnalysis.{RFAFact, RFAFactFactory}
 import org.argus.jawa.core.Signature
+import org.argus.jawa.core.util._
 
 /**
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
  * @author <a href="mailto:sroy@k-state.edu">Sankardas Roy</a>
  */ 
-abstract class Callee {
+trait Callee {
   def callee: Signature
 }
 
-/**
- * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
- * @author <a href="mailto:sroy@k-state.edu">Sankardas Roy</a>
- */ 
-final case class InstanceCallee(callee: Signature, ins: Instance) extends Callee
+trait RFACallee extends Callee {
+  def mapFactsToCallee: (ISet[RFAFact], IList[String], IList[String], RFAFactFactory) => ISet[RFAFact]
+}
+
+abstract class DirectCallee extends RFACallee {
+  def mapFactsToCallee: (ISet[RFAFact], IList[String], IList[String], RFAFactFactory) => ISet[RFAFact] = (factsToCallee, args, params, factory) => {
+    val varFacts = factsToCallee.filter(f=>f.s.isInstanceOf[VarSlot])
+    val argSlots = args.map(VarSlot(_, isBase = false, isArg = true))
+    val paramSlots = params.map(VarSlot(_, isBase = false, isArg = false))
+    val result = msetEmpty[RFAFact]
+
+    for(i <- argSlots.indices){
+      val argSlot = argSlots(i)
+      val paramSlot = paramSlots(i)
+      varFacts.foreach{ fact =>
+        if(fact.s.getId == argSlot.getId) result += new RFAFact(paramSlot, fact.v)(factory)
+      }
+    }
+    factsToCallee -- varFacts ++ result
+  }
+}
+
+abstract class IndirectCallee extends RFACallee
 
 /**
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
  * @author <a href="mailto:sroy@k-state.edu">Sankardas Roy</a>
  */ 
-final case class UnknownCallee(callee: Signature) extends Callee
+final case class InstanceCallee(callee: Signature, ins: Instance) extends DirectCallee
 
 /**
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
  * @author <a href="mailto:sroy@k-state.edu">Sankardas Roy</a>
  */ 
-final case class StaticCallee(callee: Signature) extends Callee
+final case class UnknownCallee(callee: Signature) extends DirectCallee
+
+/**
+ * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
+ * @author <a href="mailto:sroy@k-state.edu">Sankardas Roy</a>
+ */ 
+final case class StaticCallee(callee: Signature) extends DirectCallee
+
+/**
+  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
+  */
+final case class IndirectInstanceCallee(callee: Signature, ins: Instance, mapFactsToCallee: (ISet[RFAFact], IList[String], IList[String], RFAFactFactory) => ISet[RFAFact]) extends IndirectCallee

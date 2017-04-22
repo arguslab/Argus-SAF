@@ -18,8 +18,8 @@ object CryptographicConstants {
   final val JAVAX_CIPHER_GETINSTANCE_1 = "Ljavax/crypto/Cipher;.getInstance:(Ljava/lang/String;)Ljavax/crypto/Cipher;"
   final val JAVAX_CIPHER_GETINSTANCE_2 = "Ljavax/crypto/Cipher;.getInstance:(Ljava/lang/String;Ljava/lang/String;)Ljavax/crypto/Cipher;"
 
-	final val JAVAX_IVPARAMETER_INIT_1 = "Ljavax/crypto/spec/IvParameterSpec;.<init>:([B;)V"
-	final val JAVAX_IVPARAMETER_INIT_2 = "Ljavax/crypto/spec/IvParameterSpec;.<init>:([B;II)V"
+	final val JAVAX_IVPARAMETER_INIT_1 = "Ljavax/crypto/spec/IvParameterSpec;.<init>:([B)V"
+	final val JAVAX_IVPARAMETER_INIT_2 = "Ljavax/crypto/spec/IvParameterSpec;.<init>:([BII)V"
 
   def getCryptoAPIs: Set[String] = getCipherGetinstanceAPIs ++ getIVParameterInitAPIs
   def getCipherGetinstanceAPIs: Set[String] = Set(JAVAX_CIPHER_GETINSTANCE_1, JAVAX_CIPHER_GETINSTANCE_2)

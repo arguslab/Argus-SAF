@@ -13,8 +13,7 @@ package org.argus.jawa.alir.pta
 import org.argus.jawa.alir.Context
 import org.argus.jawa.alir.controlFlowGraph.{ICFGCallNode, ICFGInvokeNode, ICFGNode, InterProceduralControlFlowGraph}
 import org.argus.jawa.alir.dataFlowAnalysis.InterproceduralDataFlowGraph
-import org.argus.jawa.alir.interprocedural.{Callee, InstanceCallee, StaticCallee}
-import org.argus.jawa.alir.util.CallHandler
+import org.argus.jawa.alir.interprocedural.{CallHandler, Callee, InstanceCallee, StaticCallee}
 import org.argus.jawa.core._
 import org.argus.jawa.core.util._
 

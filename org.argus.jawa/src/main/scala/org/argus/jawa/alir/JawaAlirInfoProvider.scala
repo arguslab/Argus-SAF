@@ -70,15 +70,6 @@ object JawaAlirInfoProvider {
     }
     p.getProperty(CFG)
   }
-  
-  /**
-   * get cfg of given method body
-   */
-  def getCfg(md: MethodDeclaration, global: Global): IntraProceduralControlFlowGraph[CFGNode] = {
-    this.synchronized{
-      buildCfg(md, global)
-    }
-  }
 	
 	/**
    * get rda result of current procedure

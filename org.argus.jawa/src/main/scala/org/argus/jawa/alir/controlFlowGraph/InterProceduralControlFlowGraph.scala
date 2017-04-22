@@ -460,9 +460,9 @@ abstract class ICFGInvokeNode(context: Context) extends ICFGLocNode(context) {
   final val CALLEE_SIG = "callee_sig"
   final val CALL_TYPE = "call_type"
   def getInvokeLabel: String
-  def setCalleeSet(calleeSet: ISet[Callee]): Option[ISet[Callee]] = this.setProperty(CALLEES, calleeSet)
-  def addCallee(callee: Callee): Option[ISet[Callee]] = this.setProperty(CALLEES, getCalleeSet + callee)
-  def addCallees(calleeSet: ISet[Callee]): Option[ISet[Callee]] = this.setProperty(CALLEES, getCalleeSet ++ calleeSet)
+  def setCalleeSet(calleeSet: ISet[Callee]): Unit = this.setProperty(CALLEES, calleeSet)
+  def addCallee(callee: Callee): Unit = this.setProperty(CALLEES, getCalleeSet + callee)
+  def addCallees(calleeSet: ISet[Callee]): Unit = this.setProperty(CALLEES, getCalleeSet ++ calleeSet)
   def getCalleeSet: ISet[Callee] = this.getPropertyOrElse(CALLEES, isetEmpty)
   def setCalleeSig(calleeSig: Signature): Option[Signature] = {
     this.setProperty(CALLEE_SIG, calleeSig)

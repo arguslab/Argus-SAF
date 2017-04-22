@@ -12,7 +12,6 @@ package org.argus.amandroid.core
 
 import java.io.{File, FileInputStream, InputStream}
 
-import org.argus.jawa.core.util.FileUtil
 import org.ini4j.Wini
 import org.argus.jawa.core.util.FileUtil
 
@@ -33,7 +32,7 @@ class AmandroidSettings(amandroid_home: String, iniPathOpt: Option[String]) {
     }
   }
   private val ini = new Wini(FileUtil.toFile(iniUri))
-  def timeout: Int = Option(ini.get("analysis", "timeout", classOf[Int])).getOrElse(10)
+  def timeout: Int = Option(ini.get("analysis", "timeout", classOf[Int])).getOrElse(5)
   def dependence_dir: Option[String] = Option(ini.get("general", "dependence_dir", classOf[String]))
   def debug: Boolean = ini.get("general", "debug", classOf[Boolean])
   def lib_files: String = Option(ini.get("general", "lib_files", classOf[String])).getOrElse(defaultLibFiles)

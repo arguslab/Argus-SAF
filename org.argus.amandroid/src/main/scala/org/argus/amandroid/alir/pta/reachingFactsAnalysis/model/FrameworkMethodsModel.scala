@@ -15,6 +15,7 @@ import org.argus.amandroid.core.{AndroidConstants, ApkGlobal}
 import org.argus.amandroid.core.parser.{IntentFilter, IntentFilterDataBase}
 import org.argus.jawa.alir.Context
 import org.argus.jawa.alir.pta._
+import org.argus.jawa.alir.pta.reachingFactsAnalysis.model.ModelCall
 import org.argus.jawa.alir.pta.reachingFactsAnalysis.{RFAFact, RFAFactFactory, ReachingFactsAnalysisHelper}
 import org.argus.jawa.core.{JavaKnowledge, JawaMethod, JawaType}
 import org.argus.jawa.core.util._
@@ -23,11 +24,11 @@ import org.argus.jawa.core.util._
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
  * @author <a href="mailto:sroy@k-state.edu">Sankardas Roy</a>
  */ 
-object FrameworkMethodsModel {
+class FrameworkMethodsModel extends ModelCall {
   
   final val TITLE = "FrameworkMethodsModel"
   
-  def isFrameworkMethods(p: JawaMethod): Boolean = {
+  def isModelCall(p: JawaMethod): Boolean = {
     val contextRec = p.getDeclaringClass.global.getClassOrResolve(new JawaType("android.content.Context"))
     if(!p.getDeclaringClass.isInterface && p.getDeclaringClass.global.getClassHierarchy.isClassRecursivelySubClassOfIncluding(p.getDeclaringClass.getType, contextRec.getType)){
       p.getSubSignature match{
@@ -44,7 +45,8 @@ object FrameworkMethodsModel {
     else false
   }
 
-  def doFrameworkMethodsModelCall(apk: ApkGlobal, s: PTAResult, p: JawaMethod, args: List[String], retVar: String, currentContext: Context)(implicit factory: RFAFactFactory): (ISet[RFAFact], ISet[RFAFact], Boolean) = {
+  def doModelCall(s: PTAResult, p: JawaMethod, args: List[String], retVar: String, currentContext: Context)(implicit factory: RFAFactFactory): (ISet[RFAFact], ISet[RFAFact], Boolean) = {
+    val apk = p.getDeclaringClass.global.asInstanceOf[ApkGlobal]
     var newFacts = isetEmpty[RFAFact]
     val delFacts = isetEmpty[RFAFact]
     var byPassFlag = true

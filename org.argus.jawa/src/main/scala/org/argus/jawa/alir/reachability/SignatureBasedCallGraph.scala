@@ -13,9 +13,9 @@ package org.argus.jawa.alir.reachability
 import java.util.concurrent.TimeoutException
 
 import org.argus.jawa.alir.callGraph.CallGraph
+import org.argus.jawa.alir.interprocedural.CallHandler
 import org.argus.jawa.alir.pta.PTAScopeManager
 import org.argus.jawa.core._
-import org.argus.jawa.alir.util.CallHandler
 import org.argus.jawa.compiler.parser.CallStatement
 import org.argus.jawa.core.util.MyTimeout
 import org.argus.jawa.core.util._
@@ -72,25 +72,11 @@ object SignatureBasedCallGraph {
         m.getBody.resolvedBody.locations foreach { l =>
           l.statement match {
             case cs: CallStatement =>
-              val typ = cs.kind
-              val sig = cs.signature
-              val callees: MSet[JawaMethod] = msetEmpty
-              typ match {
-                case "super" =>
-                  callees ++= CallHandler.getSuperCalleeMethod(global, sig)
-                case "direct" =>
-                  callees ++= CallHandler.getDirectCalleeMethod(global, sig)
-                case "static" =>
-                  callees ++= CallHandler.getStaticCalleeMethod(global, sig)
-                case "virtual" | "interface" | _ =>
-                  callees ++= CallHandler.getUnknownVirtualCalleeMethods(global, sig.getClassType, sig.getSubSignature)
-              }
-              callees foreach {
-                callee =>
-                  cg.addCall(m.getSignature, callee.getSignature)
-                  if (!processed.contains(callee.getSignature.signature) && !PTAScopeManager.shouldBypass(callee.getDeclaringClass) && callee.isConcrete) {
-                    worklist += callee
-                  }
+              CallHandler.resolveSignatureBasedCall(global, cs.signature, cs.kind) foreach { callee =>
+                cg.addCall(m.getSignature, callee.getSignature)
+                if (!processed.contains(callee.getSignature.signature) && !PTAScopeManager.shouldBypass(callee.getDeclaringClass) && callee.isConcrete) {
+                  worklist += callee
+                }
               }
             case _ =>
           }

@@ -26,105 +26,93 @@ class AndroidEnvironmentGenerator(global: Global) extends MethodGenerator(global
   
   def generateInternal(methods: List[Signature]): String = {
     val classMap: MMap[JawaType, MList[Signature]] = mmapEmpty
-    methods.map{
-      method => 
-        val clazz = method.getClassType
-        classMap.getOrElseUpdate(clazz, mlistEmpty) += method
+    methods.foreach { method =>
+      val clazz = method.getClassType
+      classMap.getOrElseUpdate(clazz, mlistEmpty) += method
     }
     if(!classMap.contains(this.currentComponent)) classMap.getOrElseUpdate(this.currentComponent, mlistEmpty)
 //    val intVar = template.getInstanceOf("LocalVar")
     val outerStartFragment = new CodeFragmentGenerator
     outerStartFragment.addLabel()
     codeFragments.add(outerStartFragment)
-    classMap.foreach{
-      item =>
-        val classStartFragment = new CodeFragmentGenerator
-        classStartFragment.addLabel()
-        codeFragments.add(classStartFragment)
-        val entryExitFragment = new CodeFragmentGenerator
-        createIfStmt(entryExitFragment, classStartFragment)
-        val endClassFragment = new CodeFragmentGenerator
-        try{
-          var activity = false
-          var service = false
-          var broadcastReceiver = false
-          var contentProvider = false
-          var plain = false
-          val currentClass = global.getClassOrResolve(item._1)
-          val ancestors = global.getClassHierarchy.getAllSuperClassesOfIncluding(currentClass.getType)
-          ancestors.foreach{
-            ancestor =>
-              val recName = ancestor.name
-              if(recName.equals(AndroidEntryPointConstants.ACTIVITY_CLASS)) activity = true
-              if(recName.equals(AndroidEntryPointConstants.SERVICE_CLASS)) service = true
-              if(recName.equals(AndroidEntryPointConstants.BROADCAST_RECEIVER_CLASS)) broadcastReceiver = true
-              if(recName.equals(AndroidEntryPointConstants.CONTENT_PROVIDER_CLASS)) contentProvider = true
-          }
-          componentInfos.foreach{
-            ci =>
-              if(ci.compType.name == currentClass.getName){
-                ci.typ match{
-                  case ComponentType.ACTIVITY => activity = true
-                  case ComponentType.SERVICE => service = true
-                  case ComponentType.RECEIVER => broadcastReceiver = true
-                  case ComponentType.PROVIDER => contentProvider = true
-                }
+    classMap.foreach{ item =>
+      val classStartFragment = new CodeFragmentGenerator
+      classStartFragment.addLabel()
+      codeFragments.add(classStartFragment)
+      val entryExitFragment = new CodeFragmentGenerator
+      createIfStmt(entryExitFragment, classStartFragment)
+      val endClassFragment = new CodeFragmentGenerator
+      try{
+        var activity = false
+        var service = false
+        var broadcastReceiver = false
+        var contentProvider = false
+        var plain = false
+        val currentClass = global.getClassOrResolve(item._1)
+        val ancestors = global.getClassHierarchy.getAllSuperClassesOfIncluding(currentClass.getType)
+        ancestors.foreach{
+          ancestor =>
+            val recName = ancestor.name
+            if(recName.equals(AndroidEntryPointConstants.ACTIVITY_CLASS)) activity = true
+            if(recName.equals(AndroidEntryPointConstants.SERVICE_CLASS)) service = true
+            if(recName.equals(AndroidEntryPointConstants.BROADCAST_RECEIVER_CLASS)) broadcastReceiver = true
+            if(recName.equals(AndroidEntryPointConstants.CONTENT_PROVIDER_CLASS)) contentProvider = true
+        }
+        componentInfos.foreach{
+          ci =>
+            if(ci.compType.name == currentClass.getName){
+              ci.typ match{
+                case ComponentType.ACTIVITY => activity = true
+                case ComponentType.SERVICE => service = true
+                case ComponentType.RECEIVER => broadcastReceiver = true
+                case ComponentType.PROVIDER => contentProvider = true
+              }
+            }
+        }
+        if(!activity && !service && !broadcastReceiver && !contentProvider) plain = true
+        var instanceNeeded = activity || service || broadcastReceiver || contentProvider
+        //How this part work? item._2 always empty!
+        var plainMethods: Map[Signature, JawaMethod] = Map()
+        if(!instanceNeeded || plain) {
+          item._2.foreach{
+            procSig =>
+              global.getMethod(procSig) match {
+                case Some(p) =>
+                  plainMethods += (procSig -> p)
+                  if(!p.isStatic) instanceNeeded = true
+                case None =>
               }
           }
-          if(!activity && !service && !broadcastReceiver && !contentProvider) plain = true
-          var instanceNeeded = activity || service || broadcastReceiver || contentProvider
-          //How this part work? item._2 always empty!
-          var plainMethods: Map[Signature, JawaMethod] = Map()
-          if(!instanceNeeded || plain) {
-            item._2.foreach{
-              procSig =>
-                global.getMethod(procSig) match {
-                  case Some(p) =>
-                    plainMethods += (procSig -> p)
-                    if(!p.isStatic) instanceNeeded = true
-                  case None =>
-//                    val className = StringFormConverter.getClassNameFromMethodSignature(procSig)
-//                    if(!Center.containsClass(className)) err_msg_normal(TITLE, "Class for entry point " + className + " not found, skipping")
-//                    else{
-//                      Center.getMethod(procSig) match{
-//                        case Some(p) => 
-//                          plainMethods += (procSig -> p)
-//                          if(!p.isStatic) instanceNeeded = true
-//                        case None => err_msg_normal(TITLE, "Method for entry point " + procSig + " not found, skipping")
-//                      }
-//                    }
-                }
-            }
-          }
-          if(instanceNeeded){
-            val va = generateInstanceCreation(currentClass.getType, classStartFragment)
-            this.localVarsForClasses += (currentClass.getType -> va)
-            generateClassConstructor(currentClass, msetEmpty, classStartFragment)
-          }
-          val classLocalVar = localVarsForClasses.getOrElse(currentClass.getType, null)
-        
-          //now start to generate lifecycle for the four kinds of component
-          if(activity){
-            activityLifeCycleGenerator(item._2, currentClass, endClassFragment, classLocalVar, classStartFragment)
-          }
-          if(service){
-            serviceLifeCycleGenerator(item._2, currentClass, endClassFragment, classLocalVar, classStartFragment)
-          }
-          if(broadcastReceiver){
-            broadcastReceiverLifeCycleGenerator(item._2, currentClass, endClassFragment, classLocalVar, classStartFragment)
-          }
-          if(contentProvider){
-            contentProviderLifeCycleGenerator(item._2, currentClass, endClassFragment, classLocalVar, classStartFragment)
-          }
-          if(plain){
-            plainClassGenerator(plainMethods, endClassFragment, classLocalVar, classStartFragment)
-          }
-        } finally {
-          endClassFragment.addLabel()
-          codeFragments.add(endClassFragment)
-          entryExitFragment.addLabel()
-          codeFragments.add(entryExitFragment)
         }
+        if(instanceNeeded){
+          val va = generateInstanceCreation(currentClass.getType, classStartFragment)
+          this.localVarsForClasses += (currentClass.getType -> va)
+          generateClassConstructor(currentClass, msetEmpty, classStartFragment)
+        }
+        val classLocalVar = localVarsForClasses.getOrElse(currentClass.getType, null)
+
+        //now start to generate lifecycle for the four kinds of component
+        if(activity){
+          activityLifeCycleGenerator(item._2, currentClass, endClassFragment, classLocalVar, classStartFragment)
+        }
+        if(service){
+          serviceLifeCycleGenerator(item._2, currentClass, endClassFragment, classLocalVar, classStartFragment)
+        }
+        if(broadcastReceiver){
+          broadcastReceiverLifeCycleGenerator(item._2, currentClass, endClassFragment, classLocalVar, classStartFragment)
+        }
+        if(contentProvider){
+          contentProviderLifeCycleGenerator(item._2, currentClass, endClassFragment, classLocalVar, classStartFragment)
+        }
+        if(plain){
+          plainClassGenerator(plainMethods, endClassFragment, classLocalVar, classStartFragment)
+        }
+      } finally {
+        endClassFragment.addLabel()
+        codeFragments.add(endClassFragment)
+        entryExitFragment.addLabel()
+        codeFragments.add(entryExitFragment)
+      }
     }
     val outerExitFragment = new CodeFragmentGenerator
     outerExitFragment.addLabel()

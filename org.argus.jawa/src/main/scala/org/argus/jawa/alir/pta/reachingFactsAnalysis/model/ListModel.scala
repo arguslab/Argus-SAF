@@ -13,18 +13,18 @@ package org.argus.jawa.alir.pta.reachingFactsAnalysis.model
 import org.argus.jawa.alir.Context
 import org.argus.jawa.alir.pta.{FieldSlot, PTAResult, VarSlot}
 import org.argus.jawa.alir.pta.reachingFactsAnalysis.{RFAFact, RFAFactFactory}
-import org.argus.jawa.core.{JawaClass, JawaMethod, JawaType}
+import org.argus.jawa.core.{JawaMethod, JawaType}
 import org.argus.jawa.core.util._
 
 /**
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
  */
-object ListModel {
-  def isList(r: JawaClass): Boolean = {
-    if(r.isApplicationClass) false
+class ListModel extends ModelCall {
+  def isModelCall(p: JawaMethod): Boolean = {
+    if(p.getDeclaringClass.isApplicationClass) false
     else {
-      val list = r.global.getClassOrResolve(new JawaType("java.util.List"))
-      r.global.getClassHierarchy.getAllImplementersOf(list.getType).contains(r.getType)
+      val list = p.getDeclaringClass.global.getClassOrResolve(new JawaType("java.util.List"))
+      p.getDeclaringClass.global.getClassHierarchy.getAllImplementersOf(list.getType).contains(p.getDeclaringClass.getType)
     }
   }
     
@@ -62,7 +62,7 @@ object ListModel {
     thisValue.map{s => new RFAFact(VarSlot(retVar, isBase = false, isArg = false), s.clone(currentContext))}
   }
   
-  def doListCall(s: PTAResult, p: JawaMethod, args: List[String], retVar: String, currentContext: Context)(implicit factory: RFAFactFactory): (ISet[RFAFact], ISet[RFAFact], Boolean) = {
+  def doModelCall(s: PTAResult, p: JawaMethod, args: List[String], retVar: String, currentContext: Context)(implicit factory: RFAFactFactory): (ISet[RFAFact], ISet[RFAFact], Boolean) = {
     var newFacts = isetEmpty[RFAFact]
     val delFacts = isetEmpty[RFAFact]
     var byPassFlag = true

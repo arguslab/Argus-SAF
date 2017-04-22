@@ -8,8 +8,11 @@
  * Detailed contributors are listed in the CONTRIBUTOR.md
  */
 
-package org.argus.jawa.alir.util
+package org.argus.jawa.alir.interprocedural
 
+import org.argus.jawa.alir.Context
+import org.argus.jawa.alir.pta.{Instance, PTAResult, VarSlot}
+import org.argus.jawa.compiler.parser.CallStatement
 import org.argus.jawa.core._
 import org.argus.jawa.core.util._
 
@@ -18,6 +21,63 @@ import org.argus.jawa.core.util._
  * @author <a href="mailto:sroy@k-state.edu">Sankardas Roy</a>
  */ 
 object CallHandler {
+
+  def getCalleeSet(global: Global, cs: CallStatement, sig: Signature, callerContext: Context, ptaResult: PTAResult): ISet[RFACallee] = {
+    val subSig = sig.getSubSignature
+    val typ = cs.kind
+    val calleeSet = msetEmpty[RFACallee]
+    typ match {
+      case "virtual" | "interface" | "super" | "direct" =>
+        val recv = VarSlot(cs.recvOpt.get, isBase = false, isArg = true)
+        val recvValue: ISet[Instance] = ptaResult.pointsToSet(recv, callerContext)
+        def handleUnknown(typ: JawaType) = try {
+          val unknown = global.getClassOrResolve(typ)
+          val unknown_base = global.getClassOrResolve(typ.removeUnknown())
+          val c2 = global.getClassOrResolve(sig.classTyp)
+          val actc = if(c2.isInterface || unknown_base.isChildOf(c2.getType)) unknown else c2
+          calleeSet ++= actc.getMethod(subSig).map(m => UnknownCallee(m.getSignature))
+        } catch {
+          case _: Exception =>
+        }
+        val args = (cs.recvOpt ++ cs.args).toList
+        // Try to resolve indirect call first.
+        IndirectCallResolver.getCallResolver(global, sig.classTyp, subSig) match {
+          case Some(c) =>
+            c.getCallTarget(global, recvValue, callerContext, args, ptaResult) match { case (targets, mapFactsToCallee) =>
+              calleeSet ++= targets.map{ case (m, ins) => IndirectInstanceCallee(m.getSignature, ins, mapFactsToCallee)}
+            }
+            if(calleeSet.isEmpty) {
+              handleUnknown(sig.getClassType.toUnknown)
+            }
+          case None =>
+            recvValue.foreach { ins =>
+              if (typ == "super") {
+                calleeSet ++= CallHandler.getSuperCalleeMethod(global, sig).map(m => InstanceCallee(m.getSignature, ins))
+              } else if (typ == "direct") {
+                calleeSet ++= CallHandler.getDirectCalleeMethod(global, sig).map(m => InstanceCallee(m.getSignature, ins))
+              } else {
+                if (ins.isUnknown) {
+                  handleUnknown(ins.typ)
+                } else {
+                  CallHandler.getVirtualCalleeMethod(global, ins.typ, subSig).map(m => InstanceCallee(m.getSignature, ins)) match {
+                    case Some(c) => calleeSet += c
+                    case None =>
+                      handleUnknown(ins.typ.toUnknown)
+                  }
+                }
+              }
+            }
+            if(recvValue.isEmpty) {
+              handleUnknown(sig.getClassType.toUnknown)
+            }
+        }
+      case "static" =>
+        calleeSet ++= CallHandler.getStaticCalleeMethod(global, sig).map(m => StaticCallee(m.getSignature))
+      case _ =>
+    }
+    calleeSet.toSet
+  }
+
   /**
    * check and get virtual callee procedure from Center. Input: equals:(Ljava/lang/Object;)Z
    */
@@ -93,59 +153,18 @@ object CallHandler {
     }
   }
 
-  def resolveSignatureBasedCall(global: Global, callSig: Signature, typ: String): ISet[JawaMethod] = {
-    val result: MSet[JawaMethod] = msetEmpty
-    val classType = callSig.getClassType
-    val subSig = callSig.getSubSignature
-    val rec = global.getClassOrResolve(classType)
-    if(!rec.isUnknown){
-      typ match{
-        case "interface" =>
-          require(rec.isInterface)
-          global.getClassHierarchy.getAllImplementersOf(rec.getType).foreach{
-            record =>
-              if(global.getClassOrResolve(record).isConcrete){
-                val fromType = record
-                var callee: Option[JawaMethod] = None 
-                try{
-                  callee = getVirtualCalleeMethod(global, fromType, subSig)
-                } catch {
-                  case pe: MethodInvisibleException =>
-                    println(pe.getMessage)
-                  case a: Throwable =>
-                    throw a
-                }
-                if(callee.isDefined)
-                  result += callee.get
-              }
-          }
-        case "virtual" =>
-          require(!rec.isInterface)
-          global.getClassHierarchy.getAllSubClassesOfIncluding(rec.getType).foreach{
-            record =>
-              if(global.getClassOrResolve(record).isConcrete){
-                val fromType = record
-                var callee: Option[JawaMethod] = None 
-                try{
-                  callee = getVirtualCalleeMethod(global, fromType, subSig)
-                } catch {
-                  case pe: MethodInvisibleException =>
-                    println(pe.getMessage)
-                  case a: Throwable =>
-                    throw a
-                }
-                if(callee.isDefined)
-                  result += callee.get
-              }
-          }
-        case "super" =>
-          result ++= getSuperCalleeMethod(global, callSig)
-        case "direct" =>
-          result ++= getDirectCalleeMethod(global, callSig)
-        case "static" =>
-          result ++= getStaticCalleeMethod(global, callSig)
-      }
+  def resolveSignatureBasedCall(global: Global, sig: Signature, typ: String): ISet[JawaMethod] = {
+    val callees: MSet[JawaMethod] = msetEmpty
+    typ match {
+      case "super" =>
+        callees ++= CallHandler.getSuperCalleeMethod(global, sig)
+      case "direct" =>
+        callees ++= CallHandler.getDirectCalleeMethod(global, sig)
+      case "static" =>
+        callees ++= CallHandler.getStaticCalleeMethod(global, sig)
+      case "virtual" | "interface" | _ =>
+        callees ++= CallHandler.getUnknownVirtualCalleeMethods(global, sig.getClassType, sig.getSubSignature)
     }
-    result.toSet
+    callees.toSet
   }
 }

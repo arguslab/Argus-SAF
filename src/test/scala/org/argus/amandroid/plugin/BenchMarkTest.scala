@@ -244,6 +244,31 @@ class BenchMarkTest extends FlatSpec with Matchers {
     assert(res.isDefined && res.get.getTaintedPaths.size == 19)
   }
 
+  "AsyncTask1" should "have 1 taint paths" in {
+    val res = taintAnalysis(getClass.getResource("/droid-bench/Threading/AsyncTask1.apk").getPath)
+    assert(res.isDefined && res.get.getTaintedPaths.size == 1)
+  }
+
+  "Executor1" should "have 1 taint paths" in {
+    val res = taintAnalysis(getClass.getResource("/droid-bench/Threading/Executor1.apk").getPath)
+    assert(res.isDefined && res.get.getTaintedPaths.size == 1)
+  }
+
+  "JavaThread1" should "have 1 taint paths" in {
+    val res = taintAnalysis(getClass.getResource("/droid-bench/Threading/JavaThread1.apk").getPath)
+    assert(res.isDefined && res.get.getTaintedPaths.size == 1)
+  }
+
+  "JavaThread2" should "have 1 taint paths" in {
+    val res = taintAnalysis(getClass.getResource("/droid-bench/Threading/JavaThread2.apk").getPath)
+    assert(res.isDefined && res.get.getTaintedPaths.size == 1)
+  }
+
+  "Looper1" should "have 1 taint paths" in {
+    val res = taintAnalysis(getClass.getResource("/droid-bench/Threading/Looper1.apk").getPath)
+    assert(res.isDefined && res.get.getTaintedPaths.size == 1)
+  }
+
   private def taintAnalysis(apkFile: String): Option[TaintAnalysisResult[AndroidDataDependentTaintAnalysis.Node, InterProceduralDataDependenceAnalysis.Edge]] = {
     taintAnalysis(Set(apkFile))
   }
@@ -255,7 +280,7 @@ class BenchMarkTest extends FlatSpec with Matchers {
     AndroidReachingFactsAnalysisConfig.resolve_static_init = true
     Context.init_context_length(0)
     val res = TaintAnalysisTask(TaintAnalysisModules.DATA_LEAKAGE, fileUris, outputUri, forceDelete = true, reporter).run
-    ConverterUtil.cleanDir(outputUri)
+//    ConverterUtil.cleanDir(outputUri)
     res
   }
 }

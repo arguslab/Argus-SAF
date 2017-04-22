@@ -46,16 +46,4 @@ object ReachabilityAnalysis {
       typ -> cg.getReachableMethods(sigs)
     }
   }
-//
-//def getBackwardReachability(apiSigs: Set[String], par: Boolean): Map[String, Set[JawaMethod]] = {
-//  BackwardCallChain.getReachableMethods(apiSigs, par)
-//}
-//
-//def getBackwardReachability(apiSig: String, par: Boolean): Set[JawaMethod] = {
-//  BackwardCallChain.getReachableMethods(apiSig, par)
-//}
-//
-//def getBackwardReachabilityForSubSig(apiSubSig: String, par: Boolean): Set[JawaMethod] = {
-//  BackwardCallChain.getReachableMethodsBySubSig(apiSubSig, par)
-//}
 }

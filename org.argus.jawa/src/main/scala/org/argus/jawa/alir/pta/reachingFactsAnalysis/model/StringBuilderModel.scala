@@ -13,16 +13,16 @@ package org.argus.jawa.alir.pta.reachingFactsAnalysis.model
 import org.argus.jawa.alir.Context
 import org.argus.jawa.alir.pta._
 import org.argus.jawa.alir.pta.reachingFactsAnalysis.{RFAFact, RFAFactFactory, ReachingFactsAnalysisHelper}
-import org.argus.jawa.core.{JawaClass, JawaMethod, JawaType}
+import org.argus.jawa.core.{JawaMethod, JawaType}
 import org.argus.jawa.core.util._
 
 /**
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
  * @author <a href="mailto:sroy@k-state.edu">Sankardas Roy</a>
  */ 
-object StringBuilderModel {
+class StringBuilderModel extends ModelCall {
   
-  def isStringBuilder(r: JawaClass): Boolean = r.getName.equals("java.lang.StringBuilder")
+  def isModelCall(p: JawaMethod): Boolean = p.getDeclaringClass.getName.equals("java.lang.StringBuilder")
   
   private def getReturnFactsWithAlias(rType: JawaType, retVar: String, currentContext: Context, alias: ISet[Instance])(implicit factory: RFAFactFactory): ISet[RFAFact] = 
     alias.map{a=> new RFAFact(VarSlot(retVar, isBase = false, isArg = false), a)}
@@ -162,7 +162,7 @@ object StringBuilderModel {
     
 
      
-  def doStringBuilderCall(s: PTAResult, p: JawaMethod, args: List[String], retVar: String, currentContext: Context)(implicit factory: RFAFactFactory): (ISet[RFAFact], ISet[RFAFact], Boolean) = {
+  def doModelCall(s: PTAResult, p: JawaMethod, args: List[String], retVar: String, currentContext: Context)(implicit factory: RFAFactFactory): (ISet[RFAFact], ISet[RFAFact], Boolean) = {
     var newFacts = isetEmpty[RFAFact]
     val deleteFacts = isetEmpty[RFAFact]
     var byPassFlag = true

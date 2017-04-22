@@ -13,17 +13,17 @@ package org.argus.jawa.alir.pta.reachingFactsAnalysis.model
 import org.argus.jawa.alir.Context
 import org.argus.jawa.alir.pta.{ClassInstance, PTAResult, VarSlot}
 import org.argus.jawa.alir.pta.reachingFactsAnalysis.{RFAFact, RFAFactFactory}
-import org.argus.jawa.core.{JawaClass, JawaMethod}
+import org.argus.jawa.core.JawaMethod
 import org.argus.jawa.core.util._
 
 /**
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
  */ 
-object ObjectModel {
+class ObjectModel extends ModelCall {
   val TITLE = "ObjectModel"
-  def isObject(r: JawaClass): Boolean = r.getName.equals("java.lang.Object")
+  def isModelCall(p: JawaMethod): Boolean = p.getDeclaringClass.getName.equals("java.lang.Object")
     
-  def doObjectCall(s: PTAResult, p: JawaMethod, args: List[String], retVar: String, currentContext: Context)(implicit factory: RFAFactFactory): (ISet[RFAFact], ISet[RFAFact], Boolean) = {
+  def doModelCall(s: PTAResult, p: JawaMethod, args: List[String], retVar: String, currentContext: Context)(implicit factory: RFAFactFactory): (ISet[RFAFact], ISet[RFAFact], Boolean) = {
     var newFacts = isetEmpty[RFAFact]
     var delFacts = isetEmpty[RFAFact]
     var byPassFlag = true

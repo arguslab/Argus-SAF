@@ -19,10 +19,10 @@ import org.argus.jawa.core.util._
 /**
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
  */ 
-object NativeCallModel {
-   def isNativeCall(p: JawaMethod): Boolean = p.isNative
+class NativeCallModel extends ModelCall {
+   def isModelCall(p: JawaMethod): Boolean = p.isNative
    
-   def doNativeCall(s: PTAResult, p: JawaMethod, args: List[String], retVar: String, currentContext: Context)(implicit factory: RFAFactFactory): (ISet[RFAFact], ISet[RFAFact], Boolean) = {
+   def doModelCall(s: PTAResult, p: JawaMethod, args: List[String], retVar: String, currentContext: Context)(implicit factory: RFAFactFactory): (ISet[RFAFact], ISet[RFAFact], Boolean) = {
     var newFacts = isetEmpty[RFAFact]
     val delFacts = isetEmpty[RFAFact]
     var byPassFlag = true

@@ -13,6 +13,7 @@ package org.argus.amandroid.alir.pta.reachingFactsAnalysis.model
 import org.argus.amandroid.core.AndroidConstants
 import org.argus.jawa.alir.Context
 import org.argus.jawa.alir.pta._
+import org.argus.jawa.alir.pta.reachingFactsAnalysis.model.ModelCall
 import org.argus.jawa.alir.pta.reachingFactsAnalysis.{RFAFact, RFAFactFactory}
 import org.argus.jawa.core._
 import org.argus.jawa.core.util._
@@ -21,11 +22,11 @@ import org.argus.jawa.core.util._
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
  * @author <a href="mailto:sroy@k-state.edu">Sankardas Roy</a>
  */ 
-object ComponentNameModel {
+class ComponentNameModel extends ModelCall {
   final val TITLE = "ComponentNameModel"
-  def isComponentName(r: JawaClass): Boolean = r.getName.equals("android.content.ComponentName")
+  def isModelCall(p: JawaMethod): Boolean = p.getDeclaringClass.getName.equals("android.content.ComponentName")
     
-  def doComponentNameCall(s: PTAResult, p: JawaMethod, args: List[String], retVar: String, currentContext: Context)(implicit factory: RFAFactFactory): (ISet[RFAFact], ISet[RFAFact], Boolean) = {
+  def doModelCall(s: PTAResult, p: JawaMethod, args: List[String], retVar: String, currentContext: Context)(implicit factory: RFAFactFactory): (ISet[RFAFact], ISet[RFAFact], Boolean) = {
     var newFacts = isetEmpty[RFAFact]
     val delFacts = isetEmpty[RFAFact]
     var byPassFlag = true

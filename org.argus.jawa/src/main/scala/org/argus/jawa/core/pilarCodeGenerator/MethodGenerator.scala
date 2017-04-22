@@ -126,30 +126,30 @@ abstract class MethodGenerator(global: Global) {
     (global.resolveMethodCode(signature, code), code)
   }
   
-  def generateWithParam(params: List[JawaType], name: String): (JawaMethod, String) = {
+  def generateWithParam(params: List[(JawaType, String)], methods: List[Signature], name: String, kind: String): (JawaMethod, String) = {
     val className = this.currentComponent.jawaName
     val methodName = className + "." + name
 //    val annotations = new util.ArrayList[ST]
     var parSigStr: String = ""
-    params.foreach{param => parSigStr += JavaKnowledge.formatTypeToSignature(param)}
+    params.foreach{param => if(param._2 != "this") parSigStr += JavaKnowledge.formatTypeToSignature(param._1)}
     val signature = JavaKnowledge.genSignature(JavaKnowledge.formatTypeToSignature(this.currentComponent), name, "(" + parSigStr+ ")V")
 
-    initMethodHead("void", methodName, className, signature, "STATIC")
+    initMethodHead("void", methodName, className, signature, kind)
     val paramArray = new util.ArrayList[ST]
-    params.indices.foreach{
-      i =>
-        val paramVar = template.getInstanceOf("ParamVar")
-        val p = varGen.generate(params(i))
-        localVarsForClasses += (params(i) -> p)
-        this.paramClasses += params(i)
-        paramVar.add("typ", params(i))
-        paramVar.add("name", p)
-        val annot = generateExpAnnotation("kind", List("object"))
-        paramVar.add("annotations", new util.ArrayList[ST](util.Arrays.asList(annot)))
-        paramArray.add(i, paramVar)
+    params.indices.foreach{ i =>
+      val paramVar = template.getInstanceOf("ParamVar")
+      val (param, kind) = params(i)
+      val p = varGen.generate(param)
+      localVarsForClasses += (param -> p)
+      this.paramClasses += param
+      paramVar.add("typ", param)
+      paramVar.add("name", p)
+      val annot = generateExpAnnotation("kind", List(kind))
+      paramVar.add("annotations", new util.ArrayList[ST](util.Arrays.asList(annot)))
+      paramArray.add(i, paramVar)
     }
     procDeclTemplate.add("params", paramArray)
-    val code = generateInternal(List())
+    val code = generateInternal(methods)
     global.reporter.echo(TITLE, "Environment code:\n" + code)
     (global.resolveMethodCode(signature, code), code)
   }

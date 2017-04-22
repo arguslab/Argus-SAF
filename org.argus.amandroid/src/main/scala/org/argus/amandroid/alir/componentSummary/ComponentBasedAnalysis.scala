@@ -86,6 +86,7 @@ class ComponentBasedAnalysis(yard: ApkYard) {
       println("--Analyzing " + apk.model.getAppName)
       val idfgs = apk.getIDFGs
       idfgs foreach { case (comp, idfg) =>
+        println("----Data Dependence Analysis: " + comp)
         // do dda on this component
         val iddResult = InterProceduralDataDependenceAnalysis(apk, idfg)
         apk.addIDDG(comp, iddResult)

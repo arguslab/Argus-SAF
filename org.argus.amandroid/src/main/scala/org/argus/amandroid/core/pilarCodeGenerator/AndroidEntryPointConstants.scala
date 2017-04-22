@@ -54,7 +54,12 @@ object AndroidEntryPointConstants {
 	
 	final val INTENT_NAME = "android.content.Intent"
 	final val ACTIVITY_SETINTENT_SIG = new Signature("Landroid/app/Activity;.setIntent:(Landroid/content/Intent;)V")
-	
+
+	final val ASYNCTASK_ONPREEXECUTE = "onPreExecute:()V"
+	final val ASYNCTASK_DOINBACKGROUND = "doInBackground:([Ljava/lang/Object;)Ljava/lang/Object;"
+	final val ASYNCTASK_ONPROGRESSUPDATE = "onProgressUpdate:([I)V"
+	final val ASYNCTASK_ONPOSTEXECUTE = "onPostExecute:(Ljava/lang/Object;)V"
+
 	private final val applicationMethods = List(APPLICATION_ONCREATE, APPLICATION_ONTERMINATE)
 	private final val activityMethods = List(ACTIVITY_ONCREATE, ACTIVITY_ONDESTROY, ACTIVITY_ONPAUSE,
 		ACTIVITY_ONRESTART, ACTIVITY_ONRESUME, ACTIVITY_ONSTART, ACTIVITY_ONSTOP,

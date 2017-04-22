@@ -13,21 +13,22 @@ package org.argus.amandroid.alir.pta.reachingFactsAnalysis.model
 import org.argus.amandroid.core.AndroidConstants
 import org.argus.jawa.alir.Context
 import org.argus.jawa.alir.pta._
+import org.argus.jawa.alir.pta.reachingFactsAnalysis.model.ModelCall
 import org.argus.jawa.alir.pta.reachingFactsAnalysis.{RFAFact, RFAFactFactory}
-import org.argus.jawa.core.{JavaKnowledge, JawaClass, JawaMethod}
+import org.argus.jawa.core.{JavaKnowledge, JawaMethod}
 import org.argus.jawa.core.util._
 
 /**
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
  * @author <a href="mailto:sroy@k-state.edu">Sankardas Roy</a>
  */ 
-object IntentFilterModel {
+class IntentFilterModel extends ModelCall {
   
   final val TITLE = "IntentFilterModel"
   
-  def isIntentFilter(r: JawaClass): Boolean = r.getName.equals(AndroidConstants.INTENTFILTER)
+  def isModelCall(p: JawaMethod): Boolean = p.getDeclaringClass.getName.equals(AndroidConstants.INTENTFILTER)
     
-  def doIntentFilterCall(s: PTAResult, p: JawaMethod, args: List[String], retVar: String, currentContext: Context)(implicit factory: RFAFactFactory): (ISet[RFAFact], ISet[RFAFact], Boolean) = {
+  def doModelCall(s: PTAResult, p: JawaMethod, args: List[String], retVar: String, currentContext: Context)(implicit factory: RFAFactFactory): (ISet[RFAFact], ISet[RFAFact], Boolean) = {
     var newFacts = isetEmpty[RFAFact]
     var delFacts = isetEmpty[RFAFact]
     var byPassFlag = true

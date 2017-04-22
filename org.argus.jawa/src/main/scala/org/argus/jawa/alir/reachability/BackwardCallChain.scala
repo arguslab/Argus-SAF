@@ -10,8 +10,8 @@
 
 package org.argus.jawa.alir.reachability
 
+import org.argus.jawa.alir.interprocedural.CallHandler
 import org.argus.jawa.core._
-import org.argus.jawa.alir.util.CallHandler
 import org.argus.jawa.core.util._
 
 /**

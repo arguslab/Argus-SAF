@@ -292,14 +292,30 @@ class JawaParser(tokens: Array[Token], reporter: Reporter) extends JavaKnowledge
       val catchClauses_ : IList[CatchClause] = catchClauses()
       val rbrace: Token = accept(RBRACE)
       val rb = ResolvedBody(lbrace, locals, locations_, catchClauses_, rbrace)
-      rb.getAllChildren foreach {
-        case ls: LocationSym =>
-          rb.locations.find(_.locationUri == ls.location) match {
-            case Some(l) =>
-              ls.locationIndex = l.locationSymbol.locationIndex
-            case None =>
-          }
-        case _ =>
+      val locationSymbols: MSet[LocationSymbol] = msetEmpty
+      rb.locations foreach { l =>
+        l.statement match {
+          case is: IfStatement => locationSymbols += is.targetLocation
+          case gs: GotoStatement => locationSymbols += gs.targetLocation
+          case ss: SwitchStatement =>
+            ss.cases.foreach { ss_case =>
+              locationSymbols += ss_case.targetLocation
+            }
+            ss.defaultCaseOpt.foreach { ss_def =>
+              locationSymbols += ss_def.targetLocation
+            }
+          case _ =>
+        }
+      }
+      rb.catchClauses.foreach { cc =>
+        locationSymbols += cc.range.fromLocation
+        locationSymbols += cc.range.toLocation
+        locationSymbols += cc.targetLocation
+      }
+      locationSymbols.foreach { ls =>
+        rb.locations.find(l => l.locationUri == ls.location) foreach { l =>
+          ls.locationIndex = l.locationIndex
+        }
       }
       rb
     } else {

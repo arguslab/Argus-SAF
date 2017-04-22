@@ -11,61 +11,32 @@
 package org.argus.amandroid.alir.pta.reachingFactsAnalysis.model
 
 import org.argus.amandroid.core.ApkGlobal
-import org.argus.jawa.alir.Context
-import org.argus.jawa.alir.pta.reachingFactsAnalysis.{RFAFact, RFAFactFactory}
-import org.argus.jawa.alir.pta.{PTAResult, PTAScopeManager}
+import org.argus.jawa.alir.pta.PTAScopeManager
 import org.argus.jawa.alir.pta.reachingFactsAnalysis.model.ModelCallHandler
-import org.argus.jawa.core.{Global, JawaMethod, Signature}
-import org.argus.jawa.core.util._
+import org.argus.jawa.core.{JawaType, Signature}
 
 /**
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
  * @author <a href="mailto:sroy@k-state.edu">Sankardas Roy</a>
  */ 
-object AndroidModelCallHandler extends ModelCallHandler{
+object AndroidModelCallHandler extends ModelCallHandler(PTAScopeManager){
 
-  /**
-   * return true if the given callee procedure needs to be modeled
-   */
-  override def isModelCall(calleeMethod: JawaMethod): Boolean = {
-    val r = calleeMethod.getDeclaringClass
-    BundleModel.isBundle(r) ||
-    HandlerModel.isHandler(r) ||
-    ComponentNameModel.isComponentName(r) ||
-    IntentFilterModel.isIntentFilter(r) ||
-    IntentModel.isIntent(r) ||
-    UriModel.isUri(r) ||
-    FrameworkMethodsModel.isFrameworkMethods(calleeMethod) ||
-    ActivityModel.isActivity(r) ||
-    super.isModelCall(calleeMethod) ||
-    PTAScopeManager.shouldBypass(r)
-  }
+  registerModelCall(new BundleModel)
+  registerModelCall(new HandlerModel)
+  registerModelCall(new ComponentNameModel)
+  registerModelCall(new IntentFilterModel)
+  registerModelCall(new IntentModel)
+  registerModelCall(new UriModel)
+  registerModelCall(new FrameworkMethodsModel)
+  registerModelCall(new ActivityModel)
   
   def isICCCall(calleeSig: Signature): Boolean = {
     InterComponentCommunicationModel.isIccOperation(calleeSig)
   }
-  
-  /**
-   * instead of doing operation inside callee procedure's real code, we do it manually and return the result. 
-   */
-  override def caculateResult[T<: Global](apk: T, s: PTAResult, calleeMethod: JawaMethod, args: List[String], retVar: String, currentContext: Context)(implicit factory: RFAFactFactory): (ISet[RFAFact], ISet[RFAFact], Boolean) = {
-    val r = calleeMethod.getDeclaringClass
-    if(BundleModel.isBundle(r)) BundleModel.doBundleCall(s, calleeMethod, args, retVar, currentContext)
-    else if(HandlerModel.isHandler(r)) HandlerModel.doHandlerCall(s, calleeMethod, args, retVar, currentContext)
-    else if(ComponentNameModel.isComponentName(r)) ComponentNameModel.doComponentNameCall(s, calleeMethod, args, retVar, currentContext)
-    else if(IntentFilterModel.isIntentFilter(r)) IntentFilterModel.doIntentFilterCall(s, calleeMethod, args, retVar, currentContext)
-    else if(IntentModel.isIntent(r)) IntentModel.doIntentCall(s, calleeMethod, args, retVar, currentContext)
-    else if(UriModel.isUri(r)) UriModel.doUriCall(s, calleeMethod, args, retVar, currentContext)
-    else if(FrameworkMethodsModel.isFrameworkMethods(calleeMethod)) FrameworkMethodsModel.doFrameworkMethodsModelCall(apk.asInstanceOf[ApkGlobal], s, calleeMethod, args, retVar, currentContext)
-    else if(ActivityModel.isActivity(r)) ActivityModel.doActivityCall(s, calleeMethod, args, retVar, currentContext)
-    else if(super.isModelCall(calleeMethod)) super.caculateResult(apk, s, calleeMethod, args, retVar, currentContext)
-    else if(PTAScopeManager.shouldBypass(r)) BypassedModel.handleBypass(s, calleeMethod, args, retVar, currentContext)
-    else throw new RuntimeException("given callee is not a model call: " + calleeMethod)
-  }
 
-//  def doICCCall(apk: ApkGlobal, s: PTAResult, calleeSig: Signature, args: List[String], retVar: Seq[String], currentContext: Context): (ISet[RFAFact], ISet[JawaMethod]) = {
-//    if(InterComponentCommunicationModel.isIccOperation(calleeSig)) InterComponentCommunicationModel.doIccCall(apk, s, calleeSig, args, retVar, currentContext)
-//    else throw new RuntimeException("given callee is not an ICC call: " + calleeSig)
-//  }
+  def isRPCCall(apk: ApkGlobal, currentComp: JawaType, calleeSig: Signature): Boolean = {
+    (apk.getClassHierarchy.isClassRecursivelySubClassOfIncluding(calleeSig.getClassType, new JawaType("android.os.Messenger"))
+      && calleeSig.getSubSignature == "send:(Landroid/os/Message;)V") || apk.model.getRpcMethodMapping.exists{ case (typ, sigs) => currentComp != typ && sigs.contains(calleeSig)}
+  }
 
 }
