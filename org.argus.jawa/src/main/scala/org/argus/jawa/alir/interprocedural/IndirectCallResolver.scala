@@ -168,7 +168,6 @@ class AsyncTask extends IndirectCall {
     val argSlots = args.map(VarSlot(_, isBase = false, isArg = true))
     val paramSlots = params.map(VarSlot(_, isBase = false, isArg = false))
     val result = msetEmpty[RFAFact]
-
     for(i <- argSlots.indices){
       val argSlot = argSlots(i)
       val paramSlot = paramSlots(i)

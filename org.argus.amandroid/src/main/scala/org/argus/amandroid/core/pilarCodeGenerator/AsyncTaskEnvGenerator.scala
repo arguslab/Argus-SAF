@@ -33,7 +33,6 @@ class AsyncTaskEnvGenerator(global: Global) extends MethodGenerator(global) {
 
   private def asyncTaskLifeCycleGenerator(entryPoints: MList[Signature], clazz: JawaClass, classFragment: CodeFragmentGenerator) = {
     val constructionStack: MSet[JawaType] = msetEmpty ++ this.paramClasses
-
     // 1. onPreExecute:
     searchAndBuildMethodCall(AndroidEntryPointConstants.ASYNCTASK_ONPREEXECUTE, clazz, entryPoints, constructionStack, classFragment)
     // 2. doInBackground:

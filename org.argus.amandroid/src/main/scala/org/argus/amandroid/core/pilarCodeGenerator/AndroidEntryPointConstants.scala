@@ -57,7 +57,7 @@ object AndroidEntryPointConstants {
 
 	final val ASYNCTASK_ONPREEXECUTE = "onPreExecute:()V"
 	final val ASYNCTASK_DOINBACKGROUND = "doInBackground:([Ljava/lang/Object;)Ljava/lang/Object;"
-	final val ASYNCTASK_ONPROGRESSUPDATE = "onProgressUpdate:([I)V"
+	final val ASYNCTASK_ONPROGRESSUPDATE = "onProgressUpdate:([Ljava/lang/Object;)V"
 	final val ASYNCTASK_ONPOSTEXECUTE = "onPostExecute:(Ljava/lang/Object;)V"
 
 	private final val applicationMethods = List(APPLICATION_ONCREATE, APPLICATION_ONTERMINATE)
