@@ -204,7 +204,6 @@ case class JawaClass(global: Global, typ: JawaType, accessFlags: Int) extends Ja
         if(isUnknown){
           Some(JawaField(this, name, typ, AccessFlag.getAccessFlags("PUBLIC")))
         } else {
-          global.reporter.error(TITLE, "No field " + name + " in class " + getName)
           None
         }
     }

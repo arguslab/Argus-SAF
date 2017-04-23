@@ -25,12 +25,6 @@ val buildInfoSettings = Seq(
   buildInfoPackage := "org.argus"
 )
 
-val assemblySettings = Seq(
-  test in assembly := {},
-  assemblyJarName in assembly := s"${name.value}-${version.value}-assembly.jar",
-  mainClass in assembly := Some("org.argus.saf.Main")
-)
-
 lazy val publishSnapshot = taskKey[Unit]("Publish Snapshot - Custom Task")
 publishSnapshot := {
   println("Publishing Snapshot ...")
@@ -72,11 +66,15 @@ lazy val argus_saf: Project =
   .dependsOn(amandroid_core)
   .settings(argusSafSettings)
   .settings(buildInfoSettings)
-  .settings(assemblySettings)
   .aggregate(
     saf_library, jawa_core, amandroid_core
   )
   .settings(publishSettings)
+  .settings(
+    test in assembly := {},
+    assemblyJarName in assembly := s"${name.value}-${version.value}-assembly.jar",
+    mainClass in assembly := Some("org.argus.saf.Main")
+  )
   .settings(
     artifact in (Compile, assembly) ~= { art =>
       art.copy(`classifier` = Some("assembly"))
