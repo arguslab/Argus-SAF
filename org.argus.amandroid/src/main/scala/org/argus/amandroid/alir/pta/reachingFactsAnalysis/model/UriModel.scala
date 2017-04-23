@@ -15,7 +15,7 @@ import org.argus.jawa.alir.Context
 import org.argus.jawa.alir.pta._
 import org.argus.jawa.alir.pta.reachingFactsAnalysis.model.ModelCall
 import org.argus.jawa.alir.pta.reachingFactsAnalysis.{RFAFact, RFAFactFactory}
-import org.argus.jawa.core.{JavaKnowledge, JawaMethod, JawaType}
+import org.argus.jawa.core.{JawaMethod, JawaType}
 import org.argus.jawa.core.util._
 
 /**
@@ -97,12 +97,12 @@ class UriModel extends ModelCall {
     val stringUriIns = PTAInstance(new JawaType(AndroidConstants.URI_STRING_URI), currentContext, isNull_ = false)
     newfacts += new RFAFact(VarSlot(retVar, isBase = false, isArg = false), stringUriIns)
     strValue.foreach {
-      case cstr@PTAConcreteStringInstance(text, c) =>
-        newfacts += new RFAFact(FieldSlot(stringUriIns, JavaKnowledge.getFieldNameFromFieldFQN(AndroidConstants.URI_STRING_URI_URI_STRING)), cstr)
-      case pstr@PTAPointStringInstance(c) =>
-        newfacts += new RFAFact(FieldSlot(stringUriIns, JavaKnowledge.getFieldNameFromFieldFQN(AndroidConstants.URI_STRING_URI_URI_STRING)), pstr)
+      case cstr: PTAConcreteStringInstance =>
+        newfacts += new RFAFact(FieldSlot(stringUriIns, AndroidConstants.URI_STRING_URI_URI_STRING), cstr)
+      case pstr: PTAPointStringInstance =>
+        newfacts += new RFAFact(FieldSlot(stringUriIns, AndroidConstants.URI_STRING_URI_URI_STRING), pstr)
       case sv =>
-        newfacts += new RFAFact(FieldSlot(stringUriIns, JavaKnowledge.getFieldNameFromFieldFQN(AndroidConstants.URI_STRING_URI_URI_STRING)), sv)
+        newfacts += new RFAFact(FieldSlot(stringUriIns, AndroidConstants.URI_STRING_URI_URI_STRING), sv)
     }
     (newfacts, delfacts)
   }

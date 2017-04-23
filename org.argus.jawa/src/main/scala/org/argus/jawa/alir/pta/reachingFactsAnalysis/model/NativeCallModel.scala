@@ -13,7 +13,7 @@ package org.argus.jawa.alir.pta.reachingFactsAnalysis.model
 import org.argus.jawa.alir.Context
 import org.argus.jawa.alir.pta._
 import org.argus.jawa.alir.pta.reachingFactsAnalysis.{RFAFact, RFAFactFactory}
-import org.argus.jawa.core.JawaMethod
+import org.argus.jawa.core.{Constants, JawaMethod}
 import org.argus.jawa.core.util._
 
 /**
@@ -39,7 +39,7 @@ class NativeCallModel extends ModelCall {
             val insClasObj = ClassInstance(ins.typ, currentContext)
             newFacts += new RFAFact(VarSlot(retVar, isBase = false, isArg = false), insClasObj)
             val strIns = PTAConcreteStringInstance(insClasObj.getName, insClasObj.defSite)
-            newFacts += new RFAFact(FieldSlot(insClasObj, "java.lang.Class.name"), strIns)
+            newFacts += new RFAFact(FieldSlot(insClasObj, Constants.CLASS_NAME), strIns)
         }
         byPassFlag = false
       case "Ljava/lang/Class;.getNameNative:()Ljava/lang/String;" =>

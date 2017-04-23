@@ -15,7 +15,7 @@ import org.argus.jawa.alir.Context
 import org.argus.jawa.alir.pta._
 import org.argus.jawa.alir.pta.reachingFactsAnalysis.model.ModelCall
 import org.argus.jawa.alir.pta.reachingFactsAnalysis.{RFAFact, RFAFactFactory, ReachingFactsAnalysisHelper}
-import org.argus.jawa.core.{JawaMethod, JawaType}
+import org.argus.jawa.core.{Constants, JawaMethod, JawaType}
 import org.argus.jawa.core.util._
 
 /**
@@ -222,10 +222,10 @@ class BundleModel extends ModelCall {
     val paramSlot = VarSlot(args(1), isBase = false, isArg = true)
     val paramValue = s.pointsToSet(paramSlot, currentContext)
     if(paramValue.nonEmpty && thisValue.nonEmpty){
-      val pvs = paramValue.map{ins => s.pointsToSet(FieldSlot(ins, "entries"), currentContext)}.reduce(iunion[Instance])
+      val pvs = paramValue.map{ins => s.pointsToSet(FieldSlot(ins, AndroidConstants.BUNDLE_ENTRIES), currentContext)}.reduce(iunion[Instance])
       thisValue.map{
         tv =>
-          pvs.map{s => new RFAFact(FieldSlot(tv, "entries"), s)}
+          pvs.map{s => new RFAFact(FieldSlot(tv, AndroidConstants.BUNDLE_ENTRIES), s)}
       }.reduce(iunion[RFAFact])
     } else {
       isetEmpty
@@ -254,7 +254,7 @@ class BundleModel extends ModelCall {
             entries += PTATupleInstance(kv, vv, currentContext)
         }
     }
-    entries.map{s => new RFAFact(FieldSlot(rf.v, "entries"), s)}
+    entries.map{s => new RFAFact(FieldSlot(rf.v, AndroidConstants.BUNDLE_ENTRIES), s)}
   }
   
   private def getBundleKeySetToRet(s: PTAResult, args: List[String], retVar: String, currentContext: Context)(implicit factory: RFAFactFactory): ISet[RFAFact] ={
@@ -263,14 +263,13 @@ class BundleModel extends ModelCall {
     val thisSlot = VarSlot(args.head, isBase = false, isArg = true)
     val thisValue = s.pointsToSet(thisSlot, currentContext)
     if(thisValue.nonEmpty){
-      val strValue = thisValue.map{ins => s.pointsToSet(FieldSlot(ins, "entries"), currentContext)}.reduce(iunion[Instance])
-        val rf = ReachingFactsAnalysisHelper.getReturnFact(new JawaType("java.util.HashSet", 0), retVar, currentContext).get
-        result += rf
-        result ++= strValue.map{
-          s => 
-            require(s.isInstanceOf[PTATupleInstance])
-            new RFAFact(FieldSlot(rf.v, "items"), s.asInstanceOf[PTATupleInstance].left)
-        }
+      val strValue = thisValue.map{ins => s.pointsToSet(FieldSlot(ins, AndroidConstants.BUNDLE_ENTRIES), currentContext)}.reduce(iunion[Instance])
+      val rf = ReachingFactsAnalysisHelper.getReturnFact(new JawaType(Constants.HASHSET), retVar, currentContext).get
+      result += rf
+      result ++= strValue.map{ s =>
+        require(s.isInstanceOf[PTATupleInstance])
+        new RFAFact(FieldSlot(rf.v, Constants.HASHSET_ITEMS), s.asInstanceOf[PTATupleInstance].left)
+      }
     }
     result
   }
@@ -283,7 +282,7 @@ class BundleModel extends ModelCall {
     val keySlot = VarSlot(args(1), isBase = false, isArg = true)
     val keyValue = s.pointsToSet(keySlot, currentContext)
     if(thisValue.nonEmpty){
-      val entValue = thisValue.map{ins => s.pointsToSet(FieldSlot(ins, "entries"), currentContext)}.reduce(iunion[Instance])
+      val entValue = thisValue.map{ins => s.pointsToSet(FieldSlot(ins, AndroidConstants.BUNDLE_ENTRIES), currentContext)}.reduce(iunion[Instance])
       if(!keyValue.exists(_.isInstanceOf[PTAPointStringInstance])){
         entValue.foreach{
           v =>
@@ -313,7 +312,7 @@ class BundleModel extends ModelCall {
     val defaultSlot = VarSlot(args(2), isBase = false, isArg = true)
     val defaultValue = s.pointsToSet(defaultSlot, currentContext)
     if(thisValue.nonEmpty){
-        val entValue = thisValue.map{ins => s.pointsToSet(FieldSlot(ins, "entries"), currentContext)}.reduce(iunion[Instance])
+        val entValue = thisValue.map{ins => s.pointsToSet(FieldSlot(ins, AndroidConstants.BUNDLE_ENTRIES), currentContext)}.reduce(iunion[Instance])
         if(!keyValue.exists(_.isInstanceOf[PTAPointStringInstance])){
           entValue.foreach{
             v =>
@@ -358,7 +357,7 @@ class BundleModel extends ModelCall {
     }
     thisValue.foreach{
       ins =>
-        result ++= entries.map(e => new RFAFact(FieldSlot(ins, "entries"), e))
+        result ++= entries.map(e => new RFAFact(FieldSlot(ins, AndroidConstants.BUNDLE_ENTRIES), e))
     }
     result
   }
@@ -376,8 +375,8 @@ class BundleModel extends ModelCall {
       ins =>
         value2.foreach{
           e => 
-            val ents = s.pointsToSet(FieldSlot(e, "entries"), currentContext)
-            result ++= ents.map(e => new RFAFact(FieldSlot(ins, "entries"), e))
+            val ents = s.pointsToSet(FieldSlot(e, AndroidConstants.BUNDLE_ENTRIES), currentContext)
+            result ++= ents.map(e => new RFAFact(FieldSlot(ins, AndroidConstants.BUNDLE_ENTRIES), e))
         }
     }
     result

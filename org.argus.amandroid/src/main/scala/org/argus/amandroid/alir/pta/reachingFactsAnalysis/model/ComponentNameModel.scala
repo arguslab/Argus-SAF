@@ -116,7 +116,7 @@ class ComponentNameModel extends ModelCall {
     val thisSlot = VarSlot(args.head, isBase = false, isArg = true)
     val thisValue = s.pointsToSet(thisSlot, currentContext)
     if(thisValue.nonEmpty){
-      val cValue = thisValue.map(tv=>s.pointsToSet(FieldSlot(tv, JavaKnowledge.getFieldNameFromFieldFQN(AndroidConstants.COMPONENTNAME_CLASS)), currentContext)).reduce(iunion[Instance])
+      val cValue = thisValue.map(tv=>s.pointsToSet(FieldSlot(tv, AndroidConstants.COMPONENTNAME_CLASS), currentContext)).reduce(iunion[Instance])
       cValue.map(cv=> new RFAFact(VarSlot(retVar, isBase = false, isArg = false), cv))
     } else isetEmpty
   }
@@ -126,7 +126,7 @@ class ComponentNameModel extends ModelCall {
     val thisSlot = VarSlot(args.head, isBase = false, isArg = true)
     val thisValue = s.pointsToSet(thisSlot, currentContext)
     if(thisValue.nonEmpty) {
-        val cValue = thisValue.map(tv=>s.pointsToSet(FieldSlot(tv, JavaKnowledge.getFieldNameFromFieldFQN(AndroidConstants.COMPONENTNAME_CLASS)), currentContext)).reduce(iunion[Instance])
+        val cValue = thisValue.map(tv=>s.pointsToSet(FieldSlot(tv, AndroidConstants.COMPONENTNAME_CLASS), currentContext)).reduce(iunion[Instance])
         getShortNameFromClassName(global, cValue, currentContext).map(cv=> new RFAFact(VarSlot(retVar, isBase = false, isArg = false), cv))
     } else isetEmpty
   }
@@ -154,7 +154,7 @@ class ComponentNameModel extends ModelCall {
     val thisSlot = VarSlot(args.head, isBase = false, isArg = true)
     val thisValue = s.pointsToSet(thisSlot, currentContext)
     if(thisValue.nonEmpty){
-      val cValue = thisValue.map(tv=>s.pointsToSet(FieldSlot(tv, JavaKnowledge.getFieldNameFromFieldFQN(AndroidConstants.COMPONENTNAME_PACKAGE)), currentContext)).reduce(iunion[Instance])
+      val cValue = thisValue.map(tv=>s.pointsToSet(FieldSlot(tv, AndroidConstants.COMPONENTNAME_PACKAGE), currentContext)).reduce(iunion[Instance])
       cValue.map(cv=> new RFAFact(VarSlot(retVar, isBase = false, isArg = false), cv))
     } else isetEmpty
   }
@@ -169,7 +169,7 @@ class ComponentNameModel extends ModelCall {
       if(param2Value.isEmpty){
         isetEmpty[Instance]
       } else {
-        param2Value.map(v=>s.pointsToSet(FieldSlot(v, "name"), currentContext)).reduce(iunion[Instance])
+        param2Value.map(v=>s.pointsToSet(FieldSlot(v, Constants.CLASS_NAME), currentContext)).reduce(iunion[Instance])
       }
     if(thisValue.nonEmpty) {
       thisValue.map{
@@ -189,23 +189,23 @@ class ComponentNameModel extends ModelCall {
                       case None => ""
                     }
                     val pakStr = PTAConcreteStringInstance(packageName, c)
-                    facts += new RFAFact(FieldSlot(tv, JavaKnowledge.getFieldNameFromFieldFQN(AndroidConstants.COMPONENTNAME_PACKAGE)), pakStr)
-                    facts += new RFAFact(FieldSlot(tv, JavaKnowledge.getFieldNameFromFieldFQN(AndroidConstants.COMPONENTNAME_CLASS)), cstr)
+                    facts += new RFAFact(FieldSlot(tv, AndroidConstants.COMPONENTNAME_PACKAGE), pakStr)
+                    facts += new RFAFact(FieldSlot(tv, AndroidConstants.COMPONENTNAME_CLASS), cstr)
                   case None =>
                     val unknownIns = PTAInstance(recordTyp.toUnknown, currentContext.copy, isNull_ = false)
-                    facts += new RFAFact(FieldSlot(tv, JavaKnowledge.getFieldNameFromFieldFQN(AndroidConstants.COMPONENTNAME_PACKAGE)), unknownIns)
-                    facts += new RFAFact(FieldSlot(tv, JavaKnowledge.getFieldNameFromFieldFQN(AndroidConstants.COMPONENTNAME_CLASS)), unknownIns)
+                    facts += new RFAFact(FieldSlot(tv, AndroidConstants.COMPONENTNAME_PACKAGE), unknownIns)
+                    facts += new RFAFact(FieldSlot(tv, AndroidConstants.COMPONENTNAME_CLASS), unknownIns)
                 }
                 facts
               case pstr@PTAPointStringInstance(_) =>
                 var facts = isetEmpty[RFAFact]
-                facts += new RFAFact(FieldSlot(tv, JavaKnowledge.getFieldNameFromFieldFQN(AndroidConstants.COMPONENTNAME_PACKAGE)), pstr)
-                facts += new RFAFact(FieldSlot(tv, JavaKnowledge.getFieldNameFromFieldFQN(AndroidConstants.COMPONENTNAME_CLASS)), pstr)
+                facts += new RFAFact(FieldSlot(tv, AndroidConstants.COMPONENTNAME_PACKAGE), pstr)
+                facts += new RFAFact(FieldSlot(tv, AndroidConstants.COMPONENTNAME_CLASS), pstr)
                 facts
               case cn =>
                 var facts = isetEmpty[RFAFact]
-                facts += new RFAFact(FieldSlot(tv, JavaKnowledge.getFieldNameFromFieldFQN(AndroidConstants.COMPONENTNAME_PACKAGE)), cn)
-                facts += new RFAFact(FieldSlot(tv, JavaKnowledge.getFieldNameFromFieldFQN(AndroidConstants.COMPONENTNAME_CLASS)), cn)
+                facts += new RFAFact(FieldSlot(tv, AndroidConstants.COMPONENTNAME_PACKAGE), cn)
+                facts += new RFAFact(FieldSlot(tv, AndroidConstants.COMPONENTNAME_CLASS), cn)
                 facts
             }.reduce(iunion[RFAFact])
          }
@@ -235,18 +235,18 @@ class ComponentNameModel extends ModelCall {
               }
               val pakStr = PTAConcreteStringInstance(packageName, c)
               var facts = isetEmpty[RFAFact]
-              facts += new RFAFact(FieldSlot(tv, JavaKnowledge.getFieldNameFromFieldFQN(AndroidConstants.COMPONENTNAME_PACKAGE)), pakStr)
-              facts += new RFAFact(FieldSlot(tv, JavaKnowledge.getFieldNameFromFieldFQN(AndroidConstants.COMPONENTNAME_CLASS)), claStr)
+              facts += new RFAFact(FieldSlot(tv, AndroidConstants.COMPONENTNAME_PACKAGE), pakStr)
+              facts += new RFAFact(FieldSlot(tv, AndroidConstants.COMPONENTNAME_CLASS), claStr)
               facts
             case pstr@PTAPointStringInstance(_) =>
               var facts = isetEmpty[RFAFact]
-              facts += new RFAFact(FieldSlot(tv, JavaKnowledge.getFieldNameFromFieldFQN(AndroidConstants.COMPONENTNAME_PACKAGE)), pstr)
-              facts += new RFAFact(FieldSlot(tv, JavaKnowledge.getFieldNameFromFieldFQN(AndroidConstants.COMPONENTNAME_CLASS)), pstr)
+              facts += new RFAFact(FieldSlot(tv, AndroidConstants.COMPONENTNAME_PACKAGE), pstr)
+              facts += new RFAFact(FieldSlot(tv, AndroidConstants.COMPONENTNAME_CLASS), pstr)
               facts
             case cn =>
               var facts = isetEmpty[RFAFact]
-              facts += new RFAFact(FieldSlot(tv, JavaKnowledge.getFieldNameFromFieldFQN(AndroidConstants.COMPONENTNAME_PACKAGE)), cn)
-              facts += new RFAFact(FieldSlot(tv, JavaKnowledge.getFieldNameFromFieldFQN(AndroidConstants.COMPONENTNAME_CLASS)), cn)
+              facts += new RFAFact(FieldSlot(tv, AndroidConstants.COMPONENTNAME_PACKAGE), cn)
+              facts += new RFAFact(FieldSlot(tv, AndroidConstants.COMPONENTNAME_CLASS), cn)
               facts
           }.reduce(iunion[RFAFact])
         }
@@ -276,18 +276,18 @@ class ComponentNameModel extends ModelCall {
                     val recordType = JavaKnowledge.getTypeFromJawaName(text)
                     val claStr = PTAConcreteStringInstance(recordType.name, c)
                     var facts = isetEmpty[RFAFact]
-                    facts += new RFAFact(FieldSlot(tv, JavaKnowledge.getFieldNameFromFieldFQN(AndroidConstants.COMPONENTNAME_PACKAGE)), pv1)
-                    facts += new RFAFact(FieldSlot(tv, JavaKnowledge.getFieldNameFromFieldFQN(AndroidConstants.COMPONENTNAME_CLASS)), claStr)
+                    facts += new RFAFact(FieldSlot(tv, AndroidConstants.COMPONENTNAME_PACKAGE), pv1)
+                    facts += new RFAFact(FieldSlot(tv, AndroidConstants.COMPONENTNAME_CLASS), claStr)
                     facts
-                  case pstr2@PTAPointStringInstance(`c`) =>
+                  case pstr2: PTAPointStringInstance =>
                     var facts = isetEmpty[RFAFact]
-                    facts += new RFAFact(FieldSlot(tv, JavaKnowledge.getFieldNameFromFieldFQN(AndroidConstants.COMPONENTNAME_PACKAGE)), pstr2)
-                    facts += new RFAFact(FieldSlot(tv, JavaKnowledge.getFieldNameFromFieldFQN(AndroidConstants.COMPONENTNAME_CLASS)), pstr2)
+                    facts += new RFAFact(FieldSlot(tv, AndroidConstants.COMPONENTNAME_PACKAGE), pstr2)
+                    facts += new RFAFact(FieldSlot(tv, AndroidConstants.COMPONENTNAME_CLASS), pstr2)
                     facts
                   case pv2 =>
                     var facts = isetEmpty[RFAFact]
-                    facts += new RFAFact(FieldSlot(tv, JavaKnowledge.getFieldNameFromFieldFQN(AndroidConstants.COMPONENTNAME_PACKAGE)), pv2)
-                    facts += new RFAFact(FieldSlot(tv, JavaKnowledge.getFieldNameFromFieldFQN(AndroidConstants.COMPONENTNAME_CLASS)), pv2)
+                    facts += new RFAFact(FieldSlot(tv, AndroidConstants.COMPONENTNAME_PACKAGE), pv2)
+                    facts += new RFAFact(FieldSlot(tv, AndroidConstants.COMPONENTNAME_CLASS), pv2)
                     facts
                 }.reduce(iunion[RFAFact])
               }
@@ -306,25 +306,25 @@ class ComponentNameModel extends ModelCall {
                     }
                     val pakStr = PTAConcreteStringInstance(packageName, c)
                     var facts = isetEmpty[RFAFact]
-                    facts += new RFAFact(FieldSlot(tv, JavaKnowledge.getFieldNameFromFieldFQN(AndroidConstants.COMPONENTNAME_PACKAGE)), pakStr)
-                    facts += new RFAFact(FieldSlot(tv, JavaKnowledge.getFieldNameFromFieldFQN(AndroidConstants.COMPONENTNAME_CLASS)), claStr)
+                    facts += new RFAFact(FieldSlot(tv, AndroidConstants.COMPONENTNAME_PACKAGE), pakStr)
+                    facts += new RFAFact(FieldSlot(tv, AndroidConstants.COMPONENTNAME_CLASS), claStr)
                     facts
-                  case pstr2@PTAPointStringInstance(`c`) =>
+                  case pstr2: PTAPointStringInstance =>
                     var facts = isetEmpty[RFAFact]
-                    facts += new RFAFact(FieldSlot(tv, JavaKnowledge.getFieldNameFromFieldFQN(AndroidConstants.COMPONENTNAME_PACKAGE)), pstr2)
-                    facts += new RFAFact(FieldSlot(tv, JavaKnowledge.getFieldNameFromFieldFQN(AndroidConstants.COMPONENTNAME_CLASS)), pstr2)
+                    facts += new RFAFact(FieldSlot(tv, AndroidConstants.COMPONENTNAME_PACKAGE), pstr2)
+                    facts += new RFAFact(FieldSlot(tv, AndroidConstants.COMPONENTNAME_CLASS), pstr2)
                     facts
                   case pv2 =>
                     var facts = isetEmpty[RFAFact]
-                    facts += new RFAFact(FieldSlot(tv, JavaKnowledge.getFieldNameFromFieldFQN(AndroidConstants.COMPONENTNAME_PACKAGE)), pv2)
-                    facts += new RFAFact(FieldSlot(tv, JavaKnowledge.getFieldNameFromFieldFQN(AndroidConstants.COMPONENTNAME_CLASS)), pv2)
+                    facts += new RFAFact(FieldSlot(tv, AndroidConstants.COMPONENTNAME_PACKAGE), pv2)
+                    facts += new RFAFact(FieldSlot(tv, AndroidConstants.COMPONENTNAME_CLASS), pv2)
                     facts
                 }.reduce(iunion[RFAFact])
               }
             case pv1 =>
               var facts = isetEmpty[RFAFact]
-              facts += new RFAFact(FieldSlot(tv, JavaKnowledge.getFieldNameFromFieldFQN(AndroidConstants.COMPONENTNAME_PACKAGE)), pv1)
-              facts += new RFAFact(FieldSlot(tv, JavaKnowledge.getFieldNameFromFieldFQN(AndroidConstants.COMPONENTNAME_CLASS)), pv1)
+              facts += new RFAFact(FieldSlot(tv, AndroidConstants.COMPONENTNAME_PACKAGE), pv1)
+              facts += new RFAFact(FieldSlot(tv, AndroidConstants.COMPONENTNAME_CLASS), pv1)
               facts
           }.reduce(iunion[RFAFact])
         }

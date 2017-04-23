@@ -611,7 +611,7 @@ final case class PtaNode(point: Point, context: Context) extends InterProcedural
         val pts = ptaResult.pointsToSet(VarSlot(fie.baseP.baseName, isBase = true, isArg = false), context)
         pts.map{
           ins =>
-            FieldSlot(ins, fie.fqn.fieldName)
+            FieldSlot(ins, fie.fqn)
         }
       case bas: Point with Loc with Base =>
         Set(VarSlot(bas.baseName, isBase = true, isArg = false))

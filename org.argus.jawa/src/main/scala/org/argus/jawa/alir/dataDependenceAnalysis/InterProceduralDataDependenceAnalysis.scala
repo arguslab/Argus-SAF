@@ -18,7 +18,7 @@ import org.argus.jawa.alir.pta.{ArraySlot, FieldSlot, PTAResult, VarSlot}
 import org.argus.jawa.alir.reachingDefinitionAnalysis.{DefDesc, LocDefDesc, ParamDefDesc}
 import org.argus.jawa.compiler.parser._
 import org.argus.jawa.core.io.NoPosition
-import org.argus.jawa.core.{Global, JawaType}
+import org.argus.jawa.core.{FieldFQN, Global, JawaType}
 import org.argus.jawa.core.util._
 
 /**
@@ -176,18 +176,16 @@ object InterProceduralDataDependenceAnalysis {
             val argInss = ptaresult.pointsToSet(argSlot, virtualBodyNode.getContext)
             argInss.foreach (ins => result ++= iddg.findDefSite(ins.defSite))
             if(sideEffectResult.isDefined) {
-              val readmap = sideEffectResult.get.readMap
-              val position = i
-              val fields = readmap.getOrElse(position, Set()) 
-              argInss.foreach{
-                argIns =>
-                  fields.foreach{
-                    f => 
-                      val fs = FieldSlot(argIns, f)
-                      val argRelatedValue = ptaresult.getRelatedInstances(fs, virtualBodyNode.getContext)
-                      argRelatedValue.foreach{ins => result ++= iddg.findDefSite(ins.defSite)}
-                  }
-              }
+//              val readmap = sideEffectResult.get.readMap
+//              val position = i
+//              val fields = readmap.getOrElse(position, Set())
+//              argInss.foreach{ argIns =>
+//                fields.foreach{ f =>
+//                  val fs = FieldSlot(argIns, f)
+//                  val argRelatedValue = ptaresult.getRelatedInstances(fs, virtualBodyNode.getContext)
+//                  argRelatedValue.foreach{ins => result ++= iddg.findDefSite(ins.defSite)}
+//                }
+//              }
             } else if({
               val calleep = global.getMethod(calleeSig)
               if(calleep.isDefined) calleep.get.isConcrete
@@ -284,11 +282,15 @@ object InterProceduralDataDependenceAnalysis {
         result ++= searchRda(global, ae.base, node, irdaFacts, iddg)
         val baseSlot = VarSlot(ae.base, isBase = true, isArg = false)
         val baseValue = ptaresult.pointsToSet(baseSlot, node.getContext)
-        val fieldName: String = ae.fieldName
         baseValue.foreach{ ins =>
           result ++= iddg.findDefSite(ins.defSite)
           if(!ins.isNull) {
-            val fieldSlot = FieldSlot(ins, fieldName)
+            var fqn = new FieldFQN(ae.fieldSym.FQN, typ.get)
+            global.getField(fqn) match {
+              case Some(f) => fqn = f.FQN
+              case None =>
+            }
+            val fieldSlot = FieldSlot(ins, fqn)
             val fieldValue = ptaresult.pointsToSet(fieldSlot, node.getContext)
             fieldValue.foreach(fIns => result ++= iddg.findDefSite(fIns.defSite))
           }

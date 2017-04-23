@@ -138,6 +138,13 @@ trait JawaClassLoadManager extends JavaKnowledge with JawaResolver { self: Globa
       case _: Throwable => None
     }
   }
+
+  /**
+    * get FQN. Input example is java.lang.Throwable.stackState
+    */
+  def resolveFQN(fieldFQN: FieldFQN): FieldFQN = {
+    getField(fieldFQN).map(_.FQN).getOrElse(fieldFQN)
+  }
   
   /**
    * return true if contains the given field. Input example is java.lang.Throwable.stackState

@@ -27,7 +27,7 @@ object JawaTypeSerializer extends CustomSerializer[JawaType](format => (
     }
 ))
 
-object JawaTypeKeySerializer extends CustomKeySerializer[JawaType](format => (
+object JawaTypeKeySerializer extends CustomKeySerializer[JawaType](_ => (
     {
       case str: String =>
         JavaKnowledge.getTypeFromJawaName(str)

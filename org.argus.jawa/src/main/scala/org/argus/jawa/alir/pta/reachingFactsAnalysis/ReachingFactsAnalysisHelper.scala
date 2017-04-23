@@ -11,7 +11,7 @@
 package org.argus.jawa.alir.pta.reachingFactsAnalysis
 
 import org.argus.jawa.alir.pta._
-import org.argus.jawa.alir.{Context, LibSideEffectProvider}
+import org.argus.jawa.alir.Context
 import org.argus.jawa.compiler.parser._
 import org.argus.jawa.core._
 import org.argus.jawa.core.util._
@@ -95,10 +95,7 @@ object ReachingFactsAnalysisHelper {
         if(!calleeMethod.isStatic && i == 0) calleeMethod.getDeclaringClass.typ
         else if(!calleeMethod.isStatic) calleeMethod.getSignature.getParameterTypes(i - 1)
         else calleeMethod.getSignature.getParameterTypes(i)
-      val influencedFields = 
-        if(LibSideEffectProvider.isDefined)
-          LibSideEffectProvider.getInfluencedFields(i, calleeMethod.getSignature)
-        else Set(typ.name + ":" + Constants.ALL_FIELD)
+      val influencedFields = Set(Constants.ALL_FIELD_FQN(typ))
       argValues.foreach {
         ins => 
           for(f <- influencedFields) {
@@ -164,21 +161,20 @@ object ReachingFactsAnalysisHelper {
       ins =>
         if(ins.isNull){}
         else {
-          val fName = ae.fieldName
-          val fieldSlot = FieldSlot(ins, fName)
+          val fqn = global.resolveFQN(new FieldFQN(ae.fieldSym.FQN, typ))
+          val fieldSlot = FieldSlot(ins, fqn)
           s.filter { fact => fact.s == fieldSlot }.foreach(f => ptaresult.addInstance(fieldSlot, currentContext, f.v))
-          s.foreach {
-            fact =>
-              fact.s match {
-                case slot: FieldSlot if slot.ins == ins && slot.fieldName.contains(Constants.ALL_FIELD) && typ.isObject =>
-                  val definingTypName = slot.fieldName.split(":")(0)
-                  val defCls = global.getClassOrResolve(new JawaType(definingTypName))
-                  if (defCls.hasField(fName)) {
-                    val uIns = PTAInstance(typ.toUnknown, fact.v.defSite, isNull_ = false)
-                    ptaresult.addInstance(fieldSlot, currentContext, uIns)
-                  }
-                case _ =>
-              }
+          s.foreach { fact =>
+            fact.s match {
+              case slot: FieldSlot if slot.ins == ins && slot.fqn.fieldName == Constants.ALL_FIELD && typ.isObject =>
+                val definingTyp = slot.fqn.typ
+                val defCls = global.getClassOrResolve(definingTyp)
+                if (defCls.hasField(fqn.fieldName)) {
+                  val uIns = PTAInstance(typ.toUnknown, fact.v.defSite, isNull_ = false)
+                  ptaresult.addInstance(fieldSlot, currentContext, uIns)
+                }
+              case _ =>
+            }
           }
         }
     }
@@ -309,14 +305,13 @@ object ReachingFactsAnalysisHelper {
       case ae: AccessExpression =>
         val baseSlot = VarSlot(ae.base, isBase = true, isArg = false)
         val baseValue = ptaresult.pointsToSet(baseSlot, currentContext)
-        baseValue.foreach {
-          ins =>
-            if(ins.isNull) {}
-            else{
-              val fName = ae.fieldName
-              if(baseValue.size>1) result(FieldSlot(ins, fName)) = false
-              else result(FieldSlot(ins, fName)) = true
-            }
+        baseValue.foreach { ins =>
+          if(ins.isNull) {}
+          else{
+            val fqn = global.resolveFQN(new FieldFQN(ae.fieldSym.FQN, typ.get))
+            if(baseValue.size>1) result(FieldSlot(ins, fqn)) = false
+            else result(FieldSlot(ins, fqn)) = true
+          }
         }
       case ie: IndexingExpression =>
         val baseSlot = VarSlot(ie.base, isBase = true, isArg = false)
@@ -372,8 +367,8 @@ object ReachingFactsAnalysisHelper {
           ins =>
             if(ins.isNull){}
             else {
-              val fName = ae.fieldName
-              val fieldSlot = FieldSlot(ins, fName)
+              val fqn = global.resolveFQN(new FieldFQN(ae.fieldSym.FQN, typ.get))
+              val fieldSlot = FieldSlot(ins, fqn)
               var fieldValue: ISet[Instance] = ptaResult.pointsToSet(fieldSlot, currentContext)
               if(ins.isUnknown && typ.get.isObject) {
                 fieldValue += PTAInstance(typ.get.toUnknown, currentContext, isNull_ = false)

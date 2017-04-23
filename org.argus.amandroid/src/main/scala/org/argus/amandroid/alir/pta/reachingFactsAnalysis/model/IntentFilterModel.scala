@@ -15,7 +15,7 @@ import org.argus.jawa.alir.Context
 import org.argus.jawa.alir.pta._
 import org.argus.jawa.alir.pta.reachingFactsAnalysis.model.ModelCall
 import org.argus.jawa.alir.pta.reachingFactsAnalysis.{RFAFact, RFAFactFactory}
-import org.argus.jawa.core.{JavaKnowledge, JawaMethod}
+import org.argus.jawa.core.JawaMethod
 import org.argus.jawa.core.util._
 
 /**
@@ -107,21 +107,20 @@ class IntentFilterModel extends ModelCall {
     val actionValue = s.pointsToSet(actionSlot, currentContext)
     var newfacts = isetEmpty[RFAFact]
     var delfacts = isetEmpty[RFAFact]
-    thisValue.foreach{
-      tv =>
-        if(thisValue.size == 1){
-          for(v <- s.pointsToSet(FieldSlot(tv, JavaKnowledge.getFieldNameFromFieldFQN(AndroidConstants.INTENTFILTER_ACTIONS)), currentContext)){
-            delfacts += new RFAFact(FieldSlot(tv, JavaKnowledge.getFieldNameFromFieldFQN(AndroidConstants.INTENTFILTER_ACTIONS)), v)
-          }
+    thisValue.foreach{ tv =>
+      if(thisValue.size == 1){
+        for(v <- s.pointsToSet(FieldSlot(tv, AndroidConstants.INTENTFILTER_ACTIONS), currentContext)){
+          delfacts += new RFAFact(FieldSlot(tv, AndroidConstants.INTENTFILTER_ACTIONS), v)
         }
-        actionValue.foreach {
-          case cstr@PTAConcreteStringInstance(_, _) =>
-            newfacts += new RFAFact(FieldSlot(tv, JavaKnowledge.getFieldNameFromFieldFQN(AndroidConstants.INTENTFILTER_ACTIONS)), cstr)
-          case pstr@PTAPointStringInstance(_) =>
-            newfacts += new RFAFact(FieldSlot(tv, JavaKnowledge.getFieldNameFromFieldFQN(AndroidConstants.INTENTFILTER_ACTIONS)), pstr)
-          case ustr if ustr.isUnknown =>
-          case acStr => System.err.println(TITLE + ": unexpected instance type: " + acStr)
-        }
+      }
+      actionValue.foreach {
+        case cstr@PTAConcreteStringInstance(_, _) =>
+          newfacts += new RFAFact(FieldSlot(tv, AndroidConstants.INTENTFILTER_ACTIONS), cstr)
+        case pstr@PTAPointStringInstance(_) =>
+          newfacts += new RFAFact(FieldSlot(tv, AndroidConstants.INTENTFILTER_ACTIONS), pstr)
+        case ustr if ustr.isUnknown =>
+        case acStr => System.err.println(TITLE + ": unexpected instance type: " + acStr)
+      }
     }
     (newfacts, delfacts)
   }

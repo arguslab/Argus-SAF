@@ -13,7 +13,7 @@ package org.argus.jawa.alir.pta.reachingFactsAnalysis.model
 import org.argus.jawa.alir.Context
 import org.argus.jawa.alir.pta.{FieldSlot, PTAResult, VarSlot}
 import org.argus.jawa.alir.pta.reachingFactsAnalysis.{RFAFact, RFAFactFactory}
-import org.argus.jawa.core.{JawaMethod, JawaType}
+import org.argus.jawa.core.{Constants, JawaMethod, JawaType}
 import org.argus.jawa.core.util._
 
 /**
@@ -23,7 +23,7 @@ class SetModel extends ModelCall {
   def isModelCall(p: JawaMethod): Boolean = {
     if(p.getDeclaringClass.isApplicationClass) false
     else {
-      val set = p.getDeclaringClass.global.getClassOrResolve(new JawaType("java.util.Set"))
+      val set = p.getDeclaringClass.global.getClassOrResolve(new JawaType(Constants.SET))
       p.getDeclaringClass.global.getClassHierarchy.getAllImplementersOf(set.getType).contains(p.getDeclaringClass.getType)
     }
   }
@@ -37,7 +37,7 @@ class SetModel extends ModelCall {
     val paramValues = s.pointsToSet(paramSlot, currentContext)
     thisValues.foreach{
       ins =>
-        newfacts ++= paramValues.map{p=> new RFAFact(FieldSlot(ins, "items"), p)}
+        newfacts ++= paramValues.map{p=> new RFAFact(FieldSlot(ins, Constants.SET_ITEMS), p)}
     }
     newfacts 
   }

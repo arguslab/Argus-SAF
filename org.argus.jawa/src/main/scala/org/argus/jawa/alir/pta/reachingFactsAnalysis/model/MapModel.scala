@@ -13,7 +13,7 @@ package org.argus.jawa.alir.pta.reachingFactsAnalysis.model
 import org.argus.jawa.alir.Context
 import org.argus.jawa.alir.pta._
 import org.argus.jawa.alir.pta.reachingFactsAnalysis.{RFAFact, RFAFactFactory, ReachingFactsAnalysisHelper}
-import org.argus.jawa.core.{JawaMethod, JawaType}
+import org.argus.jawa.core.{Constants, JawaMethod, JawaType}
 import org.argus.jawa.core.util._
 
 /**
@@ -23,7 +23,7 @@ class MapModel extends ModelCall {
   def isModelCall(p: JawaMethod): Boolean = {
     if(p.getDeclaringClass.isApplicationClass) false
     else {
-      val map = p.getDeclaringClass.global.getClassOrResolve(new JawaType("java.util.Map"))
+      val map = p.getDeclaringClass.global.getClassOrResolve(new JawaType(Constants.MAP))
       val res = p.getDeclaringClass.global.getClassHierarchy.getAllImplementersOf(map.getType).contains(p.getDeclaringClass.getType)
       res
     }
@@ -46,10 +46,10 @@ class MapModel extends ModelCall {
     require(args.nonEmpty)
     val thisSlot = VarSlot(args.head, isBase = false, isArg = true)
     val thisValue = s.pointsToSet(thisSlot, currentContext)
-    val strValue = thisValue.map{ins => s.pointsToSet(FieldSlot(ins, "entrys"), currentContext)}.fold(isetEmpty)(iunion[Instance])
-    val rf = ReachingFactsAnalysisHelper.getReturnFact(new JawaType("java.util.HashSet"), retVar, currentContext).get
+    val strValue = thisValue.map{ins => s.pointsToSet(FieldSlot(ins, Constants.MAP_ENTRIES), currentContext)}.fold(isetEmpty)(iunion[Instance])
+    val rf = ReachingFactsAnalysisHelper.getReturnFact(new JawaType(Constants.HASHSET), retVar, currentContext).get
     result += rf
-    result ++= strValue.map{s => new RFAFact(FieldSlot(rf.v, "items"), s)}
+    result ++= strValue.map{s => new RFAFact(FieldSlot(rf.v, Constants.HASHSET_ITEMS), s)}
     result
   }
   
@@ -58,11 +58,11 @@ class MapModel extends ModelCall {
     require(args.nonEmpty)
     val thisSlot = VarSlot(args.head, isBase = false, isArg = true)
     val thisValue = s.pointsToSet(thisSlot, currentContext)
-    val strValue = thisValue.map{ins => s.pointsToSet(FieldSlot(ins, "entrys"), currentContext)}.fold(isetEmpty)(iunion[Instance])
-    val rf = ReachingFactsAnalysisHelper.getReturnFact(new JawaType("java.util.HashSet"), retVar, currentContext).get
+    val strValue = thisValue.map{ins => s.pointsToSet(FieldSlot(ins, Constants.MAP_ENTRIES), currentContext)}.fold(isetEmpty)(iunion[Instance])
+    val rf = ReachingFactsAnalysisHelper.getReturnFact(new JawaType(Constants.HASHSET), retVar, currentContext).get
     result += rf
     strValue.foreach {
-      case instance: PTATupleInstance => result += new RFAFact(FieldSlot(rf.v, "items"), instance.left)
+      case instance: PTATupleInstance => result += new RFAFact(FieldSlot(rf.v, Constants.HASHSET_ITEMS), instance.left)
       case _ =>
     }
     result
@@ -73,13 +73,13 @@ class MapModel extends ModelCall {
     require(args.nonEmpty)
     val thisSlot = VarSlot(args.head, isBase = false, isArg = true)
     val thisValue = s.pointsToSet(thisSlot, currentContext)
-    val strValue = thisValue.map{ins => s.pointsToSet(FieldSlot(ins, "entrys"), currentContext)}.fold(isetEmpty)(iunion[Instance])
-    val rf = ReachingFactsAnalysisHelper.getReturnFact(new JawaType("java.util.HashSet"), retVar, currentContext).get
+    val strValue = thisValue.map{ins => s.pointsToSet(FieldSlot(ins, Constants.MAP_ENTRIES), currentContext)}.fold(isetEmpty)(iunion[Instance])
+    val rf = ReachingFactsAnalysisHelper.getReturnFact(new JawaType(Constants.HASHSET), retVar, currentContext).get
     result += rf
     result ++= strValue.map{
       s => 
         require(s.isInstanceOf[PTATupleInstance])
-        new RFAFact(FieldSlot(rf.v, "items"), s.asInstanceOf[PTATupleInstance].right)
+        new RFAFact(FieldSlot(rf.v, Constants.HASHSET_ITEMS), s.asInstanceOf[PTATupleInstance].right)
     }
     result
   }
@@ -92,7 +92,7 @@ class MapModel extends ModelCall {
     val keySlot = VarSlot(args(1), isBase = false, isArg = true)
     val keyValue = s.pointsToSet(keySlot, currentContext)
     if(thisValue.nonEmpty){
-      val entValue = thisValue.map{ins => s.pointsToSet(FieldSlot(ins, "entrys"), currentContext)}.fold(isetEmpty)(iunion[Instance])
+      val entValue = thisValue.map{ins => s.pointsToSet(FieldSlot(ins, Constants.MAP_ENTRIES), currentContext)}.fold(isetEmpty)(iunion[Instance])
       entValue.foreach{
         v =>
           require(v.isInstanceOf[PTATupleInstance])
@@ -125,7 +125,7 @@ class MapModel extends ModelCall {
     }
     thisValue.foreach{
       ins =>
-        result ++= entrys.map(e => new RFAFact(FieldSlot(ins, "entrys"), e))
+        result ++= entrys.map(e => new RFAFact(FieldSlot(ins, Constants.MAP_ENTRIES), e))
     }
     result.toSet
   }
@@ -141,8 +141,8 @@ class MapModel extends ModelCall {
       ins =>
         value2.foreach{
           e => 
-            val ents = s.pointsToSet(FieldSlot(e, "entrys"), currentContext)
-            result ++= ents.map(new RFAFact(FieldSlot(ins, "entrys"), _))
+            val ents = s.pointsToSet(FieldSlot(e, Constants.MAP_ENTRIES), currentContext)
+            result ++= ents.map(new RFAFact(FieldSlot(ins, Constants.MAP_ENTRIES), _))
         }
     }
     result

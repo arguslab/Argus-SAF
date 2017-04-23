@@ -13,7 +13,7 @@ package org.argus.jawa.alir.pta.reachingFactsAnalysis.model
 import org.argus.jawa.alir.Context
 import org.argus.jawa.alir.pta.{FieldSlot, PTAResult, VarSlot}
 import org.argus.jawa.alir.pta.reachingFactsAnalysis.{RFAFact, RFAFactFactory}
-import org.argus.jawa.core.JawaMethod
+import org.argus.jawa.core.{Constants, JawaMethod}
 import org.argus.jawa.core.util.{ISet, isetEmpty}
 
 /**
@@ -103,7 +103,7 @@ class ThreadModel extends ModelCall {
     val runnableValue = s.pointsToSet(runnableSlot, currentContext)
     var newfacts = isetEmpty[RFAFact]
     thisValue.foreach{
-      tv => newfacts ++= runnableValue.map(new RFAFact(FieldSlot(tv, "runnable"), _))
+      tv => newfacts ++= runnableValue.map(new RFAFact(FieldSlot(tv, Constants.THREAD_RUNNABLE), _))
     }
     newfacts
   }

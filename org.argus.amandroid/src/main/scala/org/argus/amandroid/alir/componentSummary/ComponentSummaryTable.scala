@@ -172,7 +172,7 @@ object ComponentSummaryTable {
     summaryTable
   }
 
-  def buildMultiDataDependentGraph(components: ISet[Component]): MultiDataDependenceGraph[IDDGNode] = {
+  def buildMultiDataDependentGraph(components: ISet[Component], reporter: Reporter): MultiDataDependenceGraph[IDDGNode] = {
     val mddg = new MultiDataDependenceGraph[IDDGNode]
     val summaryTables = components.flatMap(component => component.apk.getSummaryTable(component.typ))
     val summaryMap = summaryTables.map(st => (st.component, st)).toMap
@@ -191,7 +191,7 @@ object ComponentSummaryTable {
         }
     }
 
-    println("--Link inter-component data dependence")
+    reporter.println("--Link inter-component data dependence")
     components.foreach { component =>
       try {
         val summaryTable = summaryMap.getOrElse(component, throw new RuntimeException("Summary table does not exist for " + component))
@@ -205,7 +205,7 @@ object ComponentSummaryTable {
             icc_callees foreach { case (calleeNode, icc_callee) =>
               icc_callee match {
                 case ic_callee: IntentCallee =>
-                  println(component + " --icc--> " + icc_callee.asInstanceOf[IntentCallee].component)
+                  reporter.println(component + " --icc--> " + icc_callee.asInstanceOf[IntentCallee].component)
                   val caller_position: Int = 1
                   val callee_position: Int = 0
                   val callerDDGNode = mddg.getIDDGCallArgNode(callernode.asInstanceOf[ICFGCallNode], caller_position)
@@ -242,89 +242,88 @@ object ComponentSummaryTable {
       }
     }
 
-    components.foreach {
-      component =>
-        try {
-          val summaryTable = summaryMap.getOrElse(component, throw new RuntimeException("Summary table does not exist for " + component))
-          val icc_summary: ICC_Summary = summaryTable.get(CHANNELS.ICC)
-          icc_summary.asCaller foreach {
-            case (callernode, icc_caller) =>
-              allICCCallees.filter(_._2.isInstanceOf[IntentResultCallee]).filter(_._2.matchWith(icc_caller)) foreach { case (calleeNode, icc_callee) =>
-                icc_callee match {
-                  case _: IntentResultCallee =>
-                    println(component + " --icc: setResult--> " + icc_callee.asInstanceOf[IntentResultCallee].component)
-                    val caller_position: Int = 2
-                    val callee_position: Int = 3
-                    val callerDDGNode = mddg.getIDDGCallArgNode(callernode.asInstanceOf[ICFGCallNode], caller_position)
-                    val calleeDDGNode = mddg.getIDDGEntryParamNode(calleeNode.asInstanceOf[ICFGEntryNode], callee_position)
+    components.foreach { component =>
+      try {
+        val summaryTable = summaryMap.getOrElse(component, throw new RuntimeException("Summary table does not exist for " + component))
+        val icc_summary: ICC_Summary = summaryTable.get(CHANNELS.ICC)
+        icc_summary.asCaller foreach {
+          case (callernode, icc_caller) =>
+            allICCCallees.filter(_._2.isInstanceOf[IntentResultCallee]).filter(_._2.matchWith(icc_caller)) foreach { case (calleeNode, icc_callee) =>
+              icc_callee match {
+                case _: IntentResultCallee =>
+                  reporter.println(component + " --icc: setResult--> " + icc_callee.asInstanceOf[IntentResultCallee].component)
+                  val caller_position: Int = 2
+                  val callee_position: Int = 3
+                  val callerDDGNode = mddg.getIDDGCallArgNode(callernode.asInstanceOf[ICFGCallNode], caller_position)
+                  val calleeDDGNode = mddg.getIDDGEntryParamNode(calleeNode.asInstanceOf[ICFGEntryNode], callee_position)
+                  mddg.addEdge(calleeDDGNode, callerDDGNode)
+                case _ =>
+              }
+            }
+        }
+
+        // link the rpc edges
+        val rpc_summary: RPC_Summary = summaryTable.get(CHANNELS.RPC)
+        rpc_summary.asCaller foreach {
+          case (callernode, rpc_caller) =>
+            val rpc_callees = allRpcCallees.filter(_._2.matchWith(rpc_caller))
+            rpc_callees foreach {
+              case (calleenode, rpc_callee) =>
+                rpc_callee match {
+                  case mc: MessengerCallee =>
+                    reporter.println(component + " --rpc: Messenger.send to Handler.handleMessage--> " + mc.owner)
+                    val callerDDGNode = mddg.getIDDGCallArgNode(callernode.asInstanceOf[ICFGCallNode], 1)
+                    val calleeDDGNode = mddg.getIDDGEntryParamNode(calleenode.asInstanceOf[ICFGEntryNode], 1)
                     mddg.addEdge(calleeDDGNode, callerDDGNode)
+                  case bsc: BoundServiceCallee =>
+                    reporter.println(component + " --rpc: " + bsc.sig + "--> " + bsc.component)
+                    for (i <- callernode.asInstanceOf[ICFGCallNode].argNames.indices) {
+                      val callerDDGNode = mddg.getIDDGCallArgNode(callernode.asInstanceOf[ICFGCallNode], i)
+                      val calleeDDGNode = mddg.getIDDGEntryParamNode(calleenode.asInstanceOf[ICFGEntryNode], i)
+                      mddg.addEdge(calleeDDGNode, callerDDGNode)
+                    }
+                  case bsrc: BoundServiceReturnCallee =>
+                    reporter.println(component + " --rpc return: " + bsrc.callee_sig + "--> " + bsrc.component)
+                    for (i <- calleenode.asInstanceOf[ICFGReturnNode].argNames.indices) {
+                      val callerDDGNode = mddg.getIDDGExitParamNode(callernode.asInstanceOf[ICFGExitNode], i)
+                      val calleeDDGNode = mddg.getIDDGReturnArgNode(calleenode.asInstanceOf[ICFGReturnNode], i)
+                      mddg.addEdge(calleeDDGNode, callerDDGNode)
+                    }
+                    component.apk.getIDFG(component.typ) match {
+                      case Some(idfg) =>
+                        val calleeDDGNode = mddg.getIDDGReturnVarNode(calleenode.asInstanceOf[ICFGReturnNode])
+                        idfg.icfg.predecessors(callernode) foreach {
+                          case nn: ICFGNormalNode =>
+                            val callerDDGNode = mddg.getIDDGNormalNode(nn)
+                            mddg.addEdge(calleeDDGNode, callerDDGNode)
+                          case _ =>
+                        }
+                      case None =>
+                    }
                   case _ =>
                 }
-              }
-          }
-
-          // link the rpc edges
-          val rpc_summary: RPC_Summary = summaryTable.get(CHANNELS.RPC)
-          rpc_summary.asCaller foreach {
-            case (callernode, rpc_caller) =>
-              val rpc_callees = allRpcCallees.filter(_._2.matchWith(rpc_caller))
-              rpc_callees foreach {
-                case (calleenode, rpc_callee) =>
-                  rpc_callee match {
-                    case mc: MessengerCallee =>
-                      println(component + " --rpc: Messenger.send to Handler.handleMessage--> " + mc.owner)
-                      val callerDDGNode = mddg.getIDDGCallArgNode(callernode.asInstanceOf[ICFGCallNode], 1)
-                      val calleeDDGNode = mddg.getIDDGEntryParamNode(calleenode.asInstanceOf[ICFGEntryNode], 1)
-                      mddg.addEdge(calleeDDGNode, callerDDGNode)
-                    case bsc: BoundServiceCallee =>
-                      println(component + " --rpc: " + bsc.sig + "--> " + bsc.component)
-                      for (i <- callernode.asInstanceOf[ICFGCallNode].argNames.indices) {
-                        val callerDDGNode = mddg.getIDDGCallArgNode(callernode.asInstanceOf[ICFGCallNode], i)
-                        val calleeDDGNode = mddg.getIDDGEntryParamNode(calleenode.asInstanceOf[ICFGEntryNode], i)
-                        mddg.addEdge(calleeDDGNode, callerDDGNode)
-                      }
-                    case bsrc: BoundServiceReturnCallee =>
-                      println(component + " --rpc return: " + bsrc.callee_sig + "--> " + bsrc.component)
-                      for (i <- calleenode.asInstanceOf[ICFGReturnNode].argNames.indices) {
-                        val callerDDGNode = mddg.getIDDGExitParamNode(callernode.asInstanceOf[ICFGExitNode], i)
-                        val calleeDDGNode = mddg.getIDDGReturnArgNode(calleenode.asInstanceOf[ICFGReturnNode], i)
-                        mddg.addEdge(calleeDDGNode, callerDDGNode)
-                      }
-                      component.apk.getIDFG(component.typ) match {
-                        case Some(idfg) =>
-                          val calleeDDGNode = mddg.getIDDGReturnVarNode(calleenode.asInstanceOf[ICFGReturnNode])
-                          idfg.icfg.predecessors(callernode) foreach {
-                            case nn: ICFGNormalNode =>
-                              val callerDDGNode = mddg.getIDDGNormalNode(nn)
-                              mddg.addEdge(calleeDDGNode, callerDDGNode)
-                            case _ =>
-                          }
-                        case None =>
-                      }
-                    case _ =>
-                  }
-              }
-          }
-
-          // link the static field edges
-          val sf_summary: StaticField_Summary = summaryTable.get(CHANNELS.STATIC_FIELD)
-          sf_summary.asCaller foreach {
-            case (callernode, sf_write) =>
-              val sf_reads = allSFCallees.filter(_._2.matchWith(sf_write))
-              sf_reads foreach {
-                case (calleenode, st_callee) =>
-                  println(component + " --static field: " + sf_write.asInstanceOf[StaticFieldWrite].fqn + "--> " + st_callee.asInstanceOf[StaticFieldRead].component)
-                  val callerDDGNode = mddg.getIDDGNormalNode(callernode.asInstanceOf[ICFGNormalNode])
-                  val calleeDDGNode = mddg.getIDDGNormalNode(calleenode.asInstanceOf[ICFGNormalNode])
-                  mddg.addEdge(calleeDDGNode, callerDDGNode)
-              }
-          }
-
-        } catch {
-          case ex: Exception =>
-            if (DEBUG) ex.printStackTrace()
-            component.apk.reporter.error(TITLE, ex.getMessage)
+            }
         }
+
+        // link the static field edges
+        val sf_summary: StaticField_Summary = summaryTable.get(CHANNELS.STATIC_FIELD)
+        sf_summary.asCaller foreach {
+          case (callernode, sf_write) =>
+            val sf_reads = allSFCallees.filter(_._2.matchWith(sf_write))
+            sf_reads foreach {
+              case (calleenode, st_callee) =>
+                reporter.echo(TITLE, component + " --static field: " + sf_write.asInstanceOf[StaticFieldWrite].fqn + "--> " + st_callee.asInstanceOf[StaticFieldRead].component)
+                val callerDDGNode = mddg.getIDDGNormalNode(callernode.asInstanceOf[ICFGNormalNode])
+                val calleeDDGNode = mddg.getIDDGNormalNode(calleenode.asInstanceOf[ICFGNormalNode])
+                mddg.addEdge(calleeDDGNode, callerDDGNode)
+            }
+        }
+
+      } catch {
+        case ex: Exception =>
+          if (DEBUG) ex.printStackTrace()
+          component.apk.reporter.error(TITLE, ex.getMessage)
+      }
     }
     mddg
   }

@@ -13,7 +13,7 @@ package org.argus.jawa.alir.pta.reachingFactsAnalysis.model
 import org.argus.jawa.alir.Context
 import org.argus.jawa.alir.pta.{FieldSlot, PTAResult, VarSlot}
 import org.argus.jawa.alir.pta.reachingFactsAnalysis.{RFAFact, RFAFactFactory}
-import org.argus.jawa.core.{JawaMethod, JawaType}
+import org.argus.jawa.core.{Constants, JawaMethod, JawaType}
 import org.argus.jawa.core.util._
 
 /**
@@ -23,7 +23,7 @@ class ListModel extends ModelCall {
   def isModelCall(p: JawaMethod): Boolean = {
     if(p.getDeclaringClass.isApplicationClass) false
     else {
-      val list = p.getDeclaringClass.global.getClassOrResolve(new JawaType("java.util.List"))
+      val list = p.getDeclaringClass.global.getClassOrResolve(new JawaType(Constants.LIST))
       p.getDeclaringClass.global.getClassHierarchy.getAllImplementersOf(list.getType).contains(p.getDeclaringClass.getType)
     }
   }
@@ -37,7 +37,7 @@ class ListModel extends ModelCall {
     val paramValues = s.pointsToSet(paramSlot, currentContext)
     thisValues.foreach{
       ins =>
-        newfacts ++= paramValues.map{p=> new RFAFact(FieldSlot(ins, "items"), p)}
+        newfacts ++= paramValues.map{p=> new RFAFact(FieldSlot(ins, Constants.LIST_ITEMS), p)}
     }
     newfacts 
   }
@@ -47,7 +47,7 @@ class ListModel extends ModelCall {
     var newfacts = isetEmpty[RFAFact]
     val thisSlot = VarSlot(args.head, isBase = false, isArg = true)
     val thisValue = s.pointsToSet(thisSlot, currentContext)
-    val itemSlots = thisValue.map{s => FieldSlot(s, "items")}
+    val itemSlots = thisValue.map{s => FieldSlot(s, Constants.LIST_ITEMS)}
     itemSlots.foreach{
       islot =>
         newfacts ++= s.pointsToSet(islot, currentContext).map(ins => new RFAFact(VarSlot(retVar, isBase = false, isArg = false), ins))

@@ -13,7 +13,7 @@ package org.argus.jawa.alir.interprocedural
 import org.argus.jawa.alir.Context
 import org.argus.jawa.alir.pta.reachingFactsAnalysis.{RFAFact, RFAFactFactory}
 import org.argus.jawa.alir.pta.{FieldSlot, Instance, PTAResult, VarSlot}
-import org.argus.jawa.core.{Global, JawaMethod, JawaType, Signature}
+import org.argus.jawa.core._
 import org.argus.jawa.core.util.{ISet, _}
 
 trait IndirectCall {
@@ -32,7 +32,7 @@ class ThreadStartRun extends IndirectCall {
   override def getCallTarget(global: Global, inss: ISet[Instance], callerContext: Context, args: IList[String], pTAResult: PTAResult): (ISet[(JawaMethod, Instance)], (ISet[RFAFact], IList[String], IList[String], RFAFactFactory) => ISet[RFAFact]) = {
     val callees: MSet[(JawaMethod, Instance)] = msetEmpty
     inss.foreach { ins =>
-      val fieldSlot = FieldSlot(ins, "runnable")
+      val fieldSlot = FieldSlot(ins, Constants.THREAD_RUNNABLE)
       val runnableInss = pTAResult.pointsToSet(fieldSlot, callerContext)
       runnableInss foreach { runnableIns =>
         if (global.getClassHierarchy.getAllImplementersOf(run.getClassType).contains(runnableIns.typ)) {
@@ -54,7 +54,7 @@ class ThreadStartRun extends IndirectCall {
     val paramSlot = VarSlot(params.head, isBase = false, isArg = false)
     varFacts.foreach { varFact =>
       if(varFact.s.getId == argSlot.getId) {
-        val runnableSlot = FieldSlot(varFact.v, "runnable")
+        val runnableSlot = FieldSlot(varFact.v, Constants.THREAD_RUNNABLE)
         factsToCallee.foreach { fact =>
           if(fact.s == runnableSlot) {
             result += new RFAFact(paramSlot, fact.v)(factory)

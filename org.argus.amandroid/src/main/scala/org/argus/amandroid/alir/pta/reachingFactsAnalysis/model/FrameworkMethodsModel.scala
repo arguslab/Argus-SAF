@@ -17,7 +17,7 @@ import org.argus.jawa.alir.Context
 import org.argus.jawa.alir.pta._
 import org.argus.jawa.alir.pta.reachingFactsAnalysis.model.ModelCall
 import org.argus.jawa.alir.pta.reachingFactsAnalysis.{RFAFact, RFAFactFactory, ReachingFactsAnalysisHelper}
-import org.argus.jawa.core.{JavaKnowledge, JawaMethod, JawaType}
+import org.argus.jawa.core.{JawaMethod, JawaType}
 import org.argus.jawa.core.util._
 
 /**
@@ -27,7 +27,7 @@ import org.argus.jawa.core.util._
 class FrameworkMethodsModel extends ModelCall {
   
   final val TITLE = "FrameworkMethodsModel"
-  
+
   def isModelCall(p: JawaMethod): Boolean = {
     val contextRec = p.getDeclaringClass.global.getClassOrResolve(new JawaType("android.content.Context"))
     if(!p.getDeclaringClass.isInterface && p.getDeclaringClass.global.getClassHierarchy.isClassRecursivelySubClassOfIncluding(p.getDeclaringClass.getType, contextRec.getType)){
@@ -107,7 +107,7 @@ class FrameworkMethodsModel extends ModelCall {
         val comRec = apk.getClassOrResolve(rv.typ)
         filterValue.foreach {
           fv =>
-            val mActionsSlot = FieldSlot(fv, JavaKnowledge.getFieldNameFromFieldFQN(AndroidConstants.INTENTFILTER_ACTIONS))
+            val mActionsSlot = FieldSlot(fv, AndroidConstants.INTENTFILTER_ACTIONS)
             val mActionsValue = s.pointsToSet(mActionsSlot, currentContext)
             mActionsValue.foreach {
               case PTAConcreteStringInstance(text, _) =>
@@ -115,7 +115,7 @@ class FrameworkMethodsModel extends ModelCall {
               case _ =>
                 intentF.addAction("ANY")
             }
-            val mCategoriesSlot = FieldSlot(fv, JavaKnowledge.getFieldNameFromFieldFQN(AndroidConstants.INTENTFILTER_CATEGORIES))
+            val mCategoriesSlot = FieldSlot(fv, AndroidConstants.INTENTFILTER_CATEGORIES)
             val mCategoriesValue = s.pointsToSet(mCategoriesSlot, currentContext)
             mCategoriesValue.foreach {
               case PTAConcreteStringInstance(text, _) =>
@@ -143,6 +143,8 @@ class FrameworkMethodsModel extends ModelCall {
     isetEmpty
   }
 
+  private val systemServices: MSet[(Context, String)] = msetEmpty
+
   private def getSystemService(apk: ApkGlobal, s: PTAResult, args: List[String], retVar: String, currentContext: Context): ISet[RFAFact] ={
     val result = isetEmpty[RFAFact]
     require(args.size >1)
@@ -150,10 +152,13 @@ class FrameworkMethodsModel extends ModelCall {
     val paramValue = s.pointsToSet(paramSlot, currentContext)
     paramValue.foreach {
       case cstr@PTAConcreteStringInstance(text, _) =>
-        if (AndroidConstants.getSystemServiceStrings.contains(text)) {
-          apk.reporter.echo(TITLE, "Get " + text + " service in " + currentContext)
-        } else {
-          apk.reporter.echo(TITLE, "Given service does not exist: " + cstr)
+        if(!systemServices.contains((currentContext, text))) {
+          if (AndroidConstants.getSystemServiceStrings.contains(text)) {
+            apk.reporter.echo(TITLE, "Get " + text + " service in " + currentContext)
+          } else {
+            apk.reporter.echo(TITLE, "Given service does not exist: " + cstr)
+          }
+          systemServices.add((currentContext, text))
         }
       case pstr@PTAPointStringInstance(_) => apk.reporter.echo(TITLE, "Get system service use point string: " + pstr)
       case str => apk.reporter.echo(TITLE, "Get system service use unexpected instance type: " + str)

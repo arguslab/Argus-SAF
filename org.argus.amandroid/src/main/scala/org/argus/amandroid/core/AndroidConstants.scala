@@ -9,6 +9,7 @@
  */
 package org.argus.amandroid.core
 
+import org.argus.jawa.core.{Constants, FieldFQN, JavaKnowledge, JawaType}
 import org.argus.jawa.core.util.IList
 
 /**
@@ -85,25 +86,27 @@ object AndroidConstants {
   }
   
 	def getDynRegisterMethods: IList[String] = List(REGISTER_RECEIVER1, REGISTER_RECEIVER2)
-	
+
+  final val COMPONENTNAME = "android.content.ComponentName"
+  final val COMPONENTNAME_PACKAGE = FieldFQN(new JawaType(COMPONENTNAME), "mPackage", new JawaType(Constants.STRING))
+  final val COMPONENTNAME_CLASS = FieldFQN(new JawaType(COMPONENTNAME), "mClass", new JawaType(Constants.STRING))
+
 	final val INTENT = "android.content.Intent"
-	final val INTENT_COMPONENT = "android.content.Intent.mComponent"
-	final val INTENT_ACTION  = "android.content.Intent.mAction"
-	final val INTENT_MTYPE  = "android.content.Intent.mType"
-	final val INTENT_URI_DATA = "android.content.Intent.mData"
-	final val INTENT_CATEGORIES = "android.content.Intent.mCategories"
-	final val INTENT_EXTRAS = "android.content.Intent.mExtras"
-	final val INTENT_PACKAGE = "android.content.Intent.mPackage"
+	final val INTENT_COMPONENT = FieldFQN(new JawaType(INTENT), "mComponent", new JawaType(COMPONENTNAME))
+	final val INTENT_ACTION  = FieldFQN(new JawaType(INTENT), "mAction", new JawaType(Constants.STRING))
+	final val INTENT_MTYPE  = FieldFQN(new JawaType(INTENT), "mType", new JawaType(Constants.STRING))
+  final val URI_STRING_URI = "android.net.Uri$StringUri"
+  final val URI_STRING_URI_URI_STRING = FieldFQN(new JawaType(URI_STRING_URI), "uriString", new JawaType(Constants.STRING))
+	final val INTENT_URI_DATA = FieldFQN(new JawaType(INTENT), "mData", new JawaType(URI_STRING_URI))
+	final val INTENT_CATEGORIES = FieldFQN(new JawaType(INTENT), "mCategories", new JawaType(Constants.HASHSET))
+  final val BUNDLE = "android.os.Bundle"
+  final val BUNDLE_ENTRIES = FieldFQN(new JawaType(BUNDLE), "entries", JavaKnowledge.JAVA_TOPLEVEL_OBJECT_TYPE)
+	final val INTENT_EXTRAS = FieldFQN(new JawaType(INTENT), "mExtras", new JawaType(BUNDLE))
+	final val INTENT_PACKAGE = FieldFQN(new JawaType(INTENT), "mPackage", new JawaType(Constants.STRING))
 	  
 	final val INTENTFILTER = "android.content.IntentFilter"
-	final val INTENTFILTER_ACTIONS  = "android.content.IntentFilter.mActions"
-	final val INTENTFILTER_CATEGORIES = "android.content.IntentFilter.mCategories"
-	  
-	final val COMPONENTNAME = "android.content.ComponentName"
-	final val COMPONENTNAME_PACKAGE = "android.content.ComponentName.mPackage"
-	final val COMPONENTNAME_CLASS = "android.content.ComponentName.mClass"
-	final val URI_STRING_URI = "android.net.Uri$StringUri"
-	final val URI_STRING_URI_URI_STRING = "android.net.Uri$StringUri.uriString"  
+	final val INTENTFILTER_ACTIONS  = FieldFQN(new JawaType(INTENTFILTER), "mActions", new JawaType(Constants.STRING))
+	final val INTENTFILTER_CATEGORIES = FieldFQN(new JawaType(INTENTFILTER), "mCategories", new JawaType(Constants.STRING))
 	  
 	final val ACTIVITY_FINDVIEWBYID = "Landroid/app/Activity;.findViewById:(I)Landroid/view/View;"
 	final val VIEW_FINDVIEWBYID = "Landroid/view/View;.findViewById:(I)Landroid/view/View;"
@@ -113,9 +116,7 @@ object AndroidConstants {
   final val SERVICE = "android.app.Service"
   final val RECEIVER = "android.content.BroadcastReceiver"
   final val PROVIDER = "android.content.ContentProvider"
-	final val ACTIVITY_INTENT = "android.app.Activity.mIntent"
-	  
-	final val BUNDLE = "android.os.Bundle"
+	final val ACTIVITY_INTENT = FieldFQN(new JawaType(ACTIVITY), "mIntent", new JawaType(INTENT))
 	  
 	final val CONTEXT = "android.content.Context"
 	final val CONTEXT_WRAPPER = "android.content.ContextWrapper"

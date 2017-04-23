@@ -116,7 +116,7 @@ class ComponentBasedAnalysis(yard: ApkYard) {
       (apk.model.getComponents -- problematicComp(apk.nameUri)).map(Component(apk, _))
     }
     println(TITLE + ":" + " Phase 2-------" + apks.size + s" apk${if (apks.size > 1) "s" else ""} " + components.size + s" component${if (components.size > 1) "s" else ""}-------")
-    val mddg = ComponentSummaryTable.buildMultiDataDependentGraph(components)
+    val mddg = ComponentSummaryTable.buildMultiDataDependentGraph(components, yard.reporter)
 //    mddg.toDot(new java.io.PrintWriter(System.out))
     (apks, new DefaultInterProceduralDataDependenceInfo(mddg))
   }

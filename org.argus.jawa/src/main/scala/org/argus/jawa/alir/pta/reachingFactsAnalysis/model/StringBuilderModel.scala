@@ -13,7 +13,7 @@ package org.argus.jawa.alir.pta.reachingFactsAnalysis.model
 import org.argus.jawa.alir.Context
 import org.argus.jawa.alir.pta._
 import org.argus.jawa.alir.pta.reachingFactsAnalysis.{RFAFact, RFAFactFactory, ReachingFactsAnalysisHelper}
-import org.argus.jawa.core.{JawaMethod, JawaType}
+import org.argus.jawa.core.{Constants, JawaMethod, JawaType}
 import org.argus.jawa.core.util._
 
 /**
@@ -22,7 +22,7 @@ import org.argus.jawa.core.util._
  */ 
 class StringBuilderModel extends ModelCall {
   
-  def isModelCall(p: JawaMethod): Boolean = p.getDeclaringClass.getName.equals("java.lang.StringBuilder")
+  def isModelCall(p: JawaMethod): Boolean = p.getDeclaringClass.getName.equals(Constants.STRING_BUILDER)
   
   private def getReturnFactsWithAlias(rType: JawaType, retVar: String, currentContext: Context, alias: ISet[Instance])(implicit factory: RFAFactFactory): ISet[RFAFact] = 
     alias.map{a=> new RFAFact(VarSlot(retVar, isBase = false, isArg = false), a)}
@@ -76,9 +76,8 @@ class StringBuilderModel extends ModelCall {
     val thisSlot = VarSlot(args.head, isBase = false, isArg = true)
     val thisValue = s.pointsToSet(thisSlot, currentContext)
     val newStringIns = PTAPointStringInstance(currentContext)
-    thisValue.foreach{
-      ins =>
-        newfacts += new RFAFact(FieldSlot(ins, "value"), newStringIns)
+    thisValue.foreach{ ins =>
+      newfacts += new RFAFact(FieldSlot(ins, Constants.STRING_BUILDER_VALUE), newStringIns)
     }
     newfacts
   }
@@ -91,7 +90,7 @@ class StringBuilderModel extends ModelCall {
     val newStringIns = PTAConcreteStringInstance(str, currentContext)
     thisValue.foreach{
       ins =>
-        newfacts += new RFAFact(FieldSlot(ins, "value"), newStringIns)
+        newfacts += new RFAFact(FieldSlot(ins, Constants.STRING_BUILDER_VALUE), newStringIns)
     }
     newfacts
   }
@@ -105,7 +104,7 @@ class StringBuilderModel extends ModelCall {
     val paramValues = s.pointsToSet(paramSlot, currentContext)
     thisValue.foreach{
       ins =>
-        newfacts ++= paramValues.map{v => new RFAFact(FieldSlot(ins, "value"), v)}
+        newfacts ++= paramValues.map{v => new RFAFact(FieldSlot(ins, Constants.STRING_BUILDER_VALUE), v)}
     }
     newfacts
   }
@@ -118,9 +117,9 @@ class StringBuilderModel extends ModelCall {
       val newStringIns = PTAPointStringInstance(currentContext)
       thisValue.foreach{
         ins =>
-          newfacts += new RFAFact(FieldSlot(ins, "value"), newStringIns)
+          newfacts += new RFAFact(FieldSlot(ins, Constants.STRING_BUILDER_VALUE), newStringIns)
       }
-      val facts = getReturnFactsWithAlias(new JawaType("java.lang.StringBuilder"), retVar, currentContext, thisValue)
+      val facts = getReturnFactsWithAlias(new JawaType(Constants.STRING_BUILDER), retVar, currentContext, thisValue)
       newfacts ++= facts
       newfacts
     }
@@ -130,7 +129,7 @@ class StringBuilderModel extends ModelCall {
       val thisSlot = VarSlot(args.head, isBase = false, isArg = true)
       val thisValues = s.pointsToSet(thisSlot, currentContext)
       if(thisValues.nonEmpty){
-          val strValues = thisValues.map{ins => s.pointsToSet(FieldSlot(ins, "value"), currentContext)}.reduce(iunion[Instance])
+          val strValues = thisValues.map{ins => s.pointsToSet(FieldSlot(ins, Constants.STRING_BUILDER_VALUE), currentContext)}.reduce(iunion[Instance])
           strValues.map(v => new RFAFact(VarSlot(retVar, isBase = false, isArg = false), v))
       } else isetEmpty
     }
@@ -143,7 +142,7 @@ class StringBuilderModel extends ModelCall {
       val thisValue = s.pointsToSet(thisSlot, currentContext)
       thisValue.foreach{
         sbIns => 
-          val fieldValue = s.pointsToSet(FieldSlot(sbIns, "value"), currentContext)
+          val fieldValue = s.pointsToSet(FieldSlot(sbIns, Constants.STRING_BUILDER_VALUE), currentContext)
           var newFieldValue = isetEmpty[Instance]
           fieldValue.foreach {
             case instance: PTAConcreteStringInstance =>
@@ -153,9 +152,9 @@ class StringBuilderModel extends ModelCall {
 
             case fIns => newFieldValue += fIns
           }
-          newfacts ++= newFieldValue.map(v => new RFAFact(FieldSlot(sbIns, "value"), v))
+          newfacts ++= newFieldValue.map(v => new RFAFact(FieldSlot(sbIns, Constants.STRING_BUILDER_VALUE), v))
           if(fieldValue.nonEmpty)
-            deletefacts ++= fieldValue.map(v => new RFAFact(FieldSlot(sbIns, "value"), v))
+            deletefacts ++= fieldValue.map(v => new RFAFact(FieldSlot(sbIns, Constants.STRING_BUILDER_VALUE), v))
         }
       (newfacts  , deletefacts) 
     }

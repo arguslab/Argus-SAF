@@ -18,11 +18,10 @@ import org.json4s.native.JsonMethods._
 object PTASlotKeySerializer extends CustomKeySerializer[PTASlot](format => (
     {
       case str: String =>
-        implicit val formats = format + InstanceSerializer + SignatureSerializer + JawaTypeSerializer
+        implicit val formats = format + InstanceSerializer + SignatureSerializer + JawaTypeSerializer + FieldFQNSerializer
         val jv = parse(str)
         jv match {
           case JObject(List(JField("VarSlot", v))) => Extraction.extract[VarSlot](v)
-//          case JObject(List(JField("ClassSlot", v))) => Extraction.extract[ClassSlot](v)
           case JObject(List(JField("StaticFieldSlot", v))) => Extraction.extract[StaticFieldSlot](v)
           case JObject(List(JField("FieldSlot", v))) => Extraction.extract[FieldSlot](v)
           case JObject(List(JField("ArraySlot", v))) => Extraction.extract[ArraySlot](v)
@@ -31,16 +30,14 @@ object PTASlotKeySerializer extends CustomKeySerializer[PTASlot](format => (
         }
     }, {
       case slot: PTASlot =>
-        implicit val formats = format + InstanceSerializer + SignatureSerializer + JawaTypeSerializer
+        implicit val formats = format + InstanceSerializer + SignatureSerializer + JawaTypeSerializer + FieldFQNSerializer
         slot match {
           case s: VarSlot =>
             compact(render("VarSlot" -> Extraction.decompose(s)))
-//          case s: ClassSlot =>
-//            compact(render("ClassSlot" -> Extraction.decompose(s)))
           case s: StaticFieldSlot =>
             compact(render("StaticFieldSlot" -> Extraction.decompose(s)))
           case s: FieldSlot =>
-            compact(render("FieldSlot" -> ("ins" -> Extraction.decompose(s.ins)) ~ ("fieldName" -> s.fieldName)))
+            compact(render("FieldSlot" -> ("ins" -> Extraction.decompose(s.ins)) ~ ("fqn" -> Extraction.decompose(s.fqn))))
           case s: ArraySlot =>
             compact(render("ArraySlot" -> ("ins" -> Extraction.decompose(s.ins))))
           case s: InstanceSlot =>

@@ -15,7 +15,7 @@ import org.argus.jawa.alir.Context
 import org.argus.jawa.alir.pta.reachingFactsAnalysis.model.ModelCall
 import org.argus.jawa.alir.pta.{FieldSlot, PTAResult, VarSlot}
 import org.argus.jawa.alir.pta.reachingFactsAnalysis.{RFAFact, RFAFactFactory}
-import org.argus.jawa.core.{JavaKnowledge, JawaMethod}
+import org.argus.jawa.core.JawaMethod
 import org.argus.jawa.core.util._
 
 /**
@@ -271,7 +271,7 @@ class ActivityModel extends ModelCall {
     var delfacts = isetEmpty[RFAFact]
     thisValue.foreach{
       tv =>
-        val mIntentSlot = FieldSlot(tv, JavaKnowledge.getFieldNameFromFieldFQN(AndroidConstants.ACTIVITY_INTENT))
+        val mIntentSlot = FieldSlot(tv, AndroidConstants.ACTIVITY_INTENT)
         if(thisValue.size == 1){
           for (v <- s.pointsToSet(mIntentSlot, currentContext)) {
             delfacts += new RFAFact(mIntentSlot, v)
@@ -290,7 +290,7 @@ class ActivityModel extends ModelCall {
     val delfacts = isetEmpty[RFAFact]
     thisValue.foreach{
       tv =>
-        val mIntentSlot = FieldSlot(tv, JavaKnowledge.getFieldNameFromFieldFQN(AndroidConstants.ACTIVITY_INTENT))
+        val mIntentSlot = FieldSlot(tv, AndroidConstants.ACTIVITY_INTENT)
         val mIntentValue = s.pointsToSet(mIntentSlot, currentContext)
 //        val mUnknownIntentSlot = FieldSlot(tv, "ALL")
 //        s.pointsToSet(mUnknownIntentSlot, currentContext) foreach {
