@@ -23,7 +23,7 @@ Argus-SAF/
 ## Obtaining Argus-SAF as library
 
 Depend on Jawa
-[![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.github.arguslab/jawa-core_2.11/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.github.arguslab/jawa-core_2.11)
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.github.arguslab/jawa_2.12/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.github.arguslab/jawa_2.12)
 by editing
 `build.sbt`:
 
@@ -32,7 +32,7 @@ libraryDependencies += "com.github.arguslab" %% "jawa-core" % VERSION
 ```
 
 Depend on Amandroid
-[![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.github.arguslab/amandroid-core_2.11/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.github.arguslab/amandroid-core_2.11)
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.github.arguslab/amandroid_2.12/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.github.arguslab/amandroid_2.12)
 by editing
 `build.sbt`:
 
