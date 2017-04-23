@@ -324,7 +324,6 @@ object DataCollector {
         val protectPermission = comp.permission
         val intentFilters = intentFDB.getIntentFilters(compTyp)
         var iccInfos = isetEmpty[IccInfo]
-//        var taintResult: Option[TaintAnalysisResult[InterproceduralNode, AlirEdge[InterproceduralNode]]] = None
         if(!compRec.isUnknown){
           if(apk.hasIDFG(compTyp)) {
             val InterproceduralDataFlowGraph(icfg, ptaresult) = apk.getIDFG(compTyp).get

@@ -183,12 +183,11 @@ object ComponentSummaryTable {
     val sfChannels = summaryTables.map(_.get[StaticField_Summary](CHANNELS.STATIC_FIELD))
     val allSFCallees: ISet[(ICFGNode, CSTCallee)] = sfChannels.flatMap(_.asCallee)
 
-    components.foreach {
-      component =>
-        component.apk.getIDDG(component.typ) match {
-          case Some(iddg) => mddg.addGraph(iddg.getIddg)
-          case None =>
-        }
+    components.foreach { component =>
+      component.apk.getIDDG(component.typ) match {
+        case Some(iddg) => mddg.addGraph(iddg.getIddg)
+        case None =>
+      }
     }
 
     reporter.println("--Link inter-component data dependence")

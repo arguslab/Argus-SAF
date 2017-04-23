@@ -49,7 +49,7 @@ class InterProceduralReachingDefinitionAnalysis {
   var icfg: InterProceduralControlFlowGraph[Node] = _
   var factSet: MIdMap[Node, ISet[IRDFact]] = idmapEmpty[Node, ISet[IRDFact]]
   
-  def build (
+  def build(
       global: Global,
       icfg: InterProceduralControlFlowGraph[Node]): MIdMap[Node, ISet[IRDFact]] = {
     val gen = new Gen
@@ -69,17 +69,13 @@ class InterProceduralReachingDefinitionAnalysis {
                 val rdafact = rda.entrySet(cfg.getVirtualNode(cvn.getVirtualLabel))
                 factSet.update(cvn, rdafact.map{fact => (fact, getContext(fact, cvn.getContext))})
               case cln: ICFGLocNode =>
-                global.getMethod(cln.getOwner) match {
-                  case Some(ownerMethod) =>
-                    val rdafact = rda.entrySet(cfg.getNode(ownerMethod.getBody.resolvedBody.locations(cln.locIndex)))
-                    factSet.update(cln, rdafact.map{fact => (fact, getContext(fact, cln.getContext))})
-                  case None =>
-                }
-
+                val rdafact = rda.entrySet(cfg.getNode(owner.getBody.resolvedBody.locations(cln.locIndex)))
+                factSet.update(cln, rdafact.map{fact => (fact, getContext(fact, cln.getContext))})
             }
           }
-        case None =>
+
       }
+
     }
     val initialContext: Context = new Context(global.projectName)
     val iota: ISet[IRDFact] = isetEmpty + (((VarSlot("@@IRDA"), InitDefDesc), initialContext))

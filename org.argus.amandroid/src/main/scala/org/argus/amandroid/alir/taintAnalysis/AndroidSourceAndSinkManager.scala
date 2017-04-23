@@ -138,12 +138,15 @@ abstract class AndroidSourceAndSinkManager(val sasFilePath: String) extends Sour
         val calleeSet = invNode.getCalleeSet
         calleeSet.foreach{ callee =>
           val calleeSig = callee.callee
-          val caller = apk.getMethod(invNode.getOwner).get
-          val jumpLoc = caller.getBody.resolvedBody.locations(invNode.getLocIndex)
-          if(invNode.isInstanceOf[IDDGVirtualBodyNode] && this.isSource(apk, calleeSig, invNode.getOwner, jumpLoc)){
-            apk.reporter.echo(TITLE, "found source: " + calleeSig + "@" + invNode.getContext)
-            val tn = TaintSource(gNode, TypeTaintDescriptor(calleeSig.signature, None, SourceAndSinkCategory.API_SOURCE))
-            sources += tn
+          apk.getMethod(invNode.getOwner) match {
+            case Some(caller) =>
+              val jumpLoc = caller.getBody.resolvedBody.locations(invNode.getLocIndex)
+              if(invNode.isInstanceOf[IDDGVirtualBodyNode] && this.isSource(apk, calleeSig, invNode.getOwner, jumpLoc)){
+                apk.reporter.echo(TITLE, "found source: " + calleeSig + "@" + invNode.getContext)
+                val tn = TaintSource(gNode, TypeTaintDescriptor(calleeSig.signature, None, SourceAndSinkCategory.API_SOURCE))
+                sources += tn
+              }
+            case None =>
           }
           invNode match {
             case node: IDDGCallArgNode if this.isSink(apk, calleeSig) =>
