@@ -49,7 +49,7 @@ class InterProceduralReachingDefinitionAnalysis {
   var icfg: InterProceduralControlFlowGraph[Node] = _
   var factSet: MIdMap[Node, ISet[IRDFact]] = idmapEmpty[Node, ISet[IRDFact]]
   
-  def build(
+  def build (
       global: Global,
       icfg: InterProceduralControlFlowGraph[Node]): MIdMap[Node, ISet[IRDFact]] = {
     val gen = new Gen
@@ -59,19 +59,26 @@ class InterProceduralReachingDefinitionAnalysis {
     val np = new InterNodeProvider[IRDFact](icfg)
     this.icfg = icfg
     icfg.nodes.foreach{ node =>
-      val owner = global.getMethod(node.getOwner).get
-      if(!owner.isUnknown){
-        val cfg = JawaAlirInfoProvider.getCfg(owner)
-        val rda = JawaAlirInfoProvider.getRdaWithCall(owner, cfg)
-        node match{
-          case cvn: ICFGVirtualNode =>
-            val rdafact = rda.entrySet(cfg.getVirtualNode(cvn.getVirtualLabel))
-            factSet.update(cvn, rdafact.map{fact => (fact, getContext(fact, cvn.getContext))})
-          case cln: ICFGLocNode =>
-            val owner = global.getMethod(cln.getOwner).get
-            val rdafact = rda.entrySet(cfg.getNode(owner.getBody.resolvedBody.locations(cln.locIndex)))
-            factSet.update(cln, rdafact.map{fact => (fact, getContext(fact, cln.getContext))})
-        }
+      global.getMethod(node.getOwner) match {
+        case Some(owner) =>
+          if(!owner.isUnknown){
+            val cfg = JawaAlirInfoProvider.getCfg(owner)
+            val rda = JawaAlirInfoProvider.getRdaWithCall(owner, cfg)
+            node match{
+              case cvn: ICFGVirtualNode =>
+                val rdafact = rda.entrySet(cfg.getVirtualNode(cvn.getVirtualLabel))
+                factSet.update(cvn, rdafact.map{fact => (fact, getContext(fact, cvn.getContext))})
+              case cln: ICFGLocNode =>
+                global.getMethod(cln.getOwner) match {
+                  case Some(ownerMethod) =>
+                    val rdafact = rda.entrySet(cfg.getNode(ownerMethod.getBody.resolvedBody.locations(cln.locIndex)))
+                    factSet.update(cln, rdafact.map{fact => (fact, getContext(fact, cln.getContext))})
+                  case None =>
+                }
+
+            }
+          }
+        case None =>
       }
     }
     val initialContext: Context = new Context(global.projectName)

@@ -129,10 +129,13 @@ object InterProceduralDataDependenceAnalysis {
             targetNodes ++= processVirtualBody(global, vn, ptaresult, irdaFacts, iddg)
           case ln: IDDGNormalNode =>
             val icfgN = icfg.getICFGNormalNode(ln.getContext)
-            val ownerProc = global.getMethod(ln.getOwner).get
-            val loc = ownerProc.getBody.resolvedBody.locations(ln.getLocIndex)
-            val irdaFacts = irdaResult(icfgN)
-            targetNodes ++= processLocation(global, node, loc, ptaresult, irdaFacts, iddg)
+            global.getMethod(ln.getOwner) match {
+              case Some(ownerProc) =>
+                val loc = ownerProc.getBody.resolvedBody.locations(ln.getLocIndex)
+                val irdaFacts = irdaResult(icfgN)
+                targetNodes ++= processLocation(global, node, loc, ptaresult, irdaFacts, iddg)
+              case None =>
+            }
           case _ =>
         }
       }

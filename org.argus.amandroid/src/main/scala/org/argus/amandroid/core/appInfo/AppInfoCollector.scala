@@ -124,7 +124,7 @@ object AppInfoCollector {
   }
 
   def reachabilityAnalysis(global: Global, typs: ISet[JawaType]): ReachableInfoCollector = {
-    global.reporter.println(s"Start reachabilityAnalysis for ${typs.mkString(", ")}...")
+    global.reporter.println(s"Start reachabilityAnalysis for: \n  ${typs.mkString("\n  ")}")
     // Collect the callback interfaces implemented in the app's source code
     val analysisHelper = new ReachableInfoCollector(global, typs) 
     analysisHelper.init()

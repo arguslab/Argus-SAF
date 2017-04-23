@@ -105,7 +105,7 @@ class ReachableInfoCollector(val global: Global, entryPointTypes: ISet[JawaType]
   def findClassLayoutMappings(): Unit = {
     this.entryPointTypes.foreach{ compTyp =>
       global.getClazz(compTyp) match {
-        case Some(c) =>
+        case Some(c) if c.isConcrete && !c.isSystemLibraryClass =>
           c.getDeclaredMethods.foreach { method =>
             if(method.isConcrete){
               method.getBody.resolvedBody.locations foreach { l =>
@@ -122,7 +122,7 @@ class ReachableInfoCollector(val global: Global, entryPointTypes: ISet[JawaType]
               }
             }
           }
-        case None =>
+        case _ =>
       }
     }
   }

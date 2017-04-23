@@ -457,7 +457,7 @@ case class JawaClass(global: Global, typ: JawaType, accessFlags: Int) extends Ja
   /**
    * return true if this class is concrete
    */
-  def isConcrete: Boolean = !isInterface && !isAbstract
+  def isConcrete: Boolean = !isInterface && !isAbstract && !isUnknown
   
   /**
    * is this class an application class

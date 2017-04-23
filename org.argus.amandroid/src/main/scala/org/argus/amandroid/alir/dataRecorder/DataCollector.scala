@@ -333,17 +333,19 @@ object DataCollector {
                 node.isInstanceOf[ICFGCallNode] && node.asInstanceOf[ICFGCallNode].getCalleeSet.exists(c => InterComponentCommunicationModel.isIccOperation(c.callee))
             }.map(_.asInstanceOf[ICFGCallNode])
             iccInfos =
-              iccNodes.map{
-                iccNode =>
-                  val iccMethod = apk.getMethod(iccNode.getOwner).get
-                  val args = iccMethod.getBody.resolvedBody.locations(iccNode.locIndex).statement.asInstanceOf[CallStatement].args
-                  val intentSlot = VarSlot(args.head, isBase = false, isArg = true)
-                  val intentValues = ptaresult.pointsToSet(intentSlot, iccNode.context)
-                  val intentcontents = IntentHelper.getIntentContents(ptaresult, intentValues, iccNode.getContext)
-                  val compType = AndroidConstants.getIccCallType(iccNode.getCalleeSet.head.callee.getSubSignature)
-                  val comMap = IntentHelper.mappingIntents(apk, intentcontents, compType)
-                  val intents = intentcontents.map(ic=>Intent(ic.componentNames, ic.actions, ic.categories, ic.datas, ic.types, ic.preciseExplicit, ic.preciseImplicit, comMap(ic).map(c=>(c._1.name, c._2.toString))))
-                  IccInfo(iccNode.getCalleeSet.map(_.callee), iccNode.getContext, intents)
+              iccNodes.flatMap{ iccNode =>
+                apk.getMethod(iccNode.getOwner) match {
+                  case Some(iccMethod) =>
+                    val args = iccMethod.getBody.resolvedBody.locations(iccNode.locIndex).statement.asInstanceOf[CallStatement].args
+                    val intentSlot = VarSlot(args.head, isBase = false, isArg = true)
+                    val intentValues = ptaresult.pointsToSet(intentSlot, iccNode.context)
+                    val intentcontents = IntentHelper.getIntentContents(ptaresult, intentValues, iccNode.getContext)
+                    val compType = AndroidConstants.getIccCallType(iccNode.getCalleeSet.head.callee.getSubSignature)
+                    val comMap = IntentHelper.mappingIntents(apk, intentcontents, compType)
+                    val intents = intentcontents.map(ic=>Intent(ic.componentNames, ic.actions, ic.categories, ic.datas, ic.types, ic.preciseExplicit, ic.preciseImplicit, comMap(ic).map(c=>(c._1.name, c._2.toString))))
+                    Some(IccInfo(iccNode.getCalleeSet.map(_.callee), iccNode.getContext, intents))
+                  case None => None
+                }
               }.toSet
           }
       }

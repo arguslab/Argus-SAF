@@ -29,12 +29,14 @@ class HideIcon(mainActivity: JawaType) extends ApiMisuseChecker {
   def check(global: Global, idfgOpt: Option[InterproceduralDataFlowGraph]): ApiMisuseResult = {
     val result: MMap[(String, String), String] = mmapEmpty
     val clazz = global.getClassOrResolve(mainActivity)
-    clazz.getDeclaredMethods foreach { method =>
-      val code = method.getBody.toCode
-      if(code.contains("setComponentEnabledSetting:(Landroid/content/ComponentName;II)V")) {
-        hasHideIconAPI(method) match {
-          case Some(loc) => result((method.getSignature.signature, loc)) = "Hide app icon."
-          case None =>
+    if(!clazz.isSystemLibraryClass && clazz.isConcrete) {
+      clazz.getDeclaredMethods foreach { method =>
+        val code = method.getBody.toCode
+        if (code.contains("setComponentEnabledSetting:(Landroid/content/ComponentName;II)V")) {
+          hasHideIconAPI(method) match {
+            case Some(loc) => result((method.getSignature.signature, loc)) = "Hide app icon."
+            case None =>
+          }
         }
       }
     }

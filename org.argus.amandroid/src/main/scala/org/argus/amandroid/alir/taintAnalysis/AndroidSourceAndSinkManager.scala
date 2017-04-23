@@ -69,33 +69,36 @@ abstract class AndroidSourceAndSinkManager(val sasFilePath: String) extends Sour
     icfgN match {
       case invNode: ICFGInvokeNode =>
         val calleeSet = invNode.getCalleeSet
-        calleeSet.foreach{
-          callee =>
-            val calleeSig = callee.callee
-            val caller = apk.getMethod(invNode.getOwner).get
-            val jumpLoc = caller.getBody.resolvedBody.locations(invNode.locIndex)
-            if(this.isSource(apk, calleeSig, invNode.getOwner, jumpLoc)) {
-              var tags = getSourceTags(apk, calleeSig)
-              if(tags.isEmpty) tags += "ANY"
-              apk.reporter.echo(TITLE, "found source: " + calleeSig + "@" + invNode.getContext + " " + tags)
-              val tn = TaintSource(gNode, TagTaintDescriptor(calleeSig.signature, isetEmpty, SourceAndSinkCategory.API_SOURCE, tags))
-              sources += tn
-            }
-            if(this.isSink(apk, calleeSig)) {
-              var tags = getSinkTags(apk, calleeSig)
-              if(tags.isEmpty) tags += "ANY"
-              apk.reporter.echo(TITLE, "found sink: " + calleeSig + "@" + invNode.getContext + " " + tags)
-              val poss = this.sinks.filter(sink => matches(apk, calleeSig, sink._1)).map(_._2._1).fold(isetEmpty)(iunion)
-              val tn = TaintSink(gNode, TagTaintDescriptor(calleeSig.signature, poss, SourceAndSinkCategory.API_SINK, tags))
+        calleeSet.foreach{ callee =>
+          val calleeSig = callee.callee
+          apk.getMethod(invNode.getOwner) match {
+            case Some(caller) =>
+              val jumpLoc = caller.getBody.resolvedBody.locations(invNode.locIndex)
+              if(this.isSource(apk, calleeSig, invNode.getOwner, jumpLoc)) {
+                var tags = getSourceTags(apk, calleeSig)
+                if(tags.isEmpty) tags += "ANY"
+                apk.reporter.echo(TITLE, "found source: " + calleeSig + "@" + invNode.getContext + " " + tags)
+                val tn = TaintSource(gNode, TagTaintDescriptor(calleeSig.signature, isetEmpty, SourceAndSinkCategory.API_SOURCE, tags))
+                sources += tn
+              }
+            case None =>
+          }
+
+          if(this.isSink(apk, calleeSig)) {
+            var tags = getSinkTags(apk, calleeSig)
+            if(tags.isEmpty) tags += "ANY"
+            apk.reporter.echo(TITLE, "found sink: " + calleeSig + "@" + invNode.getContext + " " + tags)
+            val poss = this.sinks.filter(sink => matches(apk, calleeSig, sink._1)).map(_._2._1).fold(isetEmpty)(iunion)
+            val tn = TaintSink(gNode, TagTaintDescriptor(calleeSig.signature, poss, SourceAndSinkCategory.API_SINK, tags))
+            sinks += tn
+          }
+          invNode match {
+            case invNode1: ICFGCallNode if this.isIccSink(apk, invNode1, ptaResult) =>
+              apk.reporter.echo(TITLE, "found icc sink: " + invNode)
+              val tn = TaintSink(gNode, TagTaintDescriptor(invNode.locUri, Set(1), SourceAndSinkCategory.ICC_SINK, Set("ICC")))
               sinks += tn
-            }
-            invNode match {
-              case invNode1: ICFGCallNode if this.isIccSink(apk, invNode1, ptaResult) =>
-                apk.reporter.echo(TITLE, "found icc sink: " + invNode)
-                val tn = TaintSink(gNode, TagTaintDescriptor(invNode.locUri, Set(1), SourceAndSinkCategory.ICC_SINK, Set("ICC")))
-                sinks += tn
-              case _ =>
-            }
+            case _ =>
+          }
         }
       case entNode: ICFGEntryNode =>
         if(this.isIccSource(apk, entNode, entNode)){
