@@ -130,7 +130,6 @@ class InterNodeProvider[LatticeElement](icfg: InterProceduralControlFlowGraph[IC
       }
       result
     }
-    val total = icfg.nodes.size
     val workList = mlistEmpty[ICFGNode]
     workList += startNode
     val ensurer = new ConvergeEnsurer[ICFGNode]
@@ -152,14 +151,16 @@ class InterNodeProvider[LatticeElement](icfg: InterProceduralControlFlowGraph[IC
         var newnodes = isetEmpty[ICFGNode]
         node match {
           case xn: ICFGExitNode =>
-            onPreVisitNode(xn, icfg.predecessors(xn))
-            val succs = icfg.successors(xn)
-            for (succ <- succs){
-              val factsForCaller = callr.get.getAndMapFactsForCaller(mdaf.entrySet(xn), succ, xn)
-              if(mdaf.update(mdaf.confluence(mdaf.entrySet(succ), factsForCaller), succ))
-                newnodes += succ
+            if(ensurer.checkNode(xn)) {
+              onPreVisitNode(xn, icfg.predecessors(xn))
+              val succs = icfg.successors(xn)
+              for (succ <- succs) {
+                val factsForCaller = callr.get.getAndMapFactsForCaller(mdaf.entrySet(xn), succ, xn)
+                if (mdaf.update(mdaf.confluence(mdaf.entrySet(succ), factsForCaller), succ))
+                  newnodes += succ
+              }
+              onPostVisitNode(xn, succs)
             }
-            onPostVisitNode(xn, succs)
           case _ =>
         }
         newnodes
@@ -175,7 +176,7 @@ class InterNodeProvider[LatticeElement](icfg: InterProceduralControlFlowGraph[IC
   * Theoretically the algorithm should converge if it's implemented correctly, but just in case.
   */
 class ConvergeEnsurer[N] {
-  private val limit: Int = 200
+  private val limit: Int = 5
   private val usageMap: MMap[N, Int] = mmapEmpty
   private val nonConvergeNodes: MSet[N] = msetEmpty
   def checkNode(n: N): Boolean = {
