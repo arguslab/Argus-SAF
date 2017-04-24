@@ -31,7 +31,6 @@ publishSnapshot := {
   val extracted = Project.extract(state.value)
   Project.runTask(publishSigned, extracted.append(Seq(
     publishTo := Some("Artifactory Realm" at "http://oss.jfrog.org/artifactory/oss-snapshot-local"),
-    // Only setting the credentials file if it exists (#52)
     credentials := List(Path.userHome / ".bintray" / ".artifactory").filter(_.exists).map(Credentials(_))
   ), state.value), checkCycles = true)
 }
@@ -63,11 +62,11 @@ lazy val argus_saf: Project =
   newProject("argus-saf", file("."))
   .enablePlugins(BuildInfoPlugin, BintrayPlugin, ScalaUnidocPlugin)
   .settings(libraryDependencies ++= DependencyGroups.argus_saf)
-  .dependsOn(amandroid_core)
+  .dependsOn(amandroid)
   .settings(argusSafSettings)
   .settings(buildInfoSettings)
   .aggregate(
-    saf_library, jawa_core, amandroid_core
+    saf_library, jawa, amandroid
   )
   .settings(publishSettings)
   .settings(
@@ -100,17 +99,23 @@ lazy val saf_library: Project =
     )
     .settings(publishSettings)
 
-lazy val jawa_core: Project =
+lazy val jawa: Project =
   newProject("jawa", file("org.argus.jawa"))
   .dependsOn(saf_library)
-  .settings(libraryDependencies ++= DependencyGroups.jawa_core)
+  .settings(libraryDependencies ++= DependencyGroups.jawa)
   .settings(publishSettings)
 
-lazy val amandroid_core: Project =
+lazy val amandroid: Project =
   newProject("amandroid", file("org.argus.amandroid"))
-  .dependsOn(jawa_core)
-  .settings(libraryDependencies ++= DependencyGroups.amandroid_core)
+  .dependsOn(jawa)
+  .settings(libraryDependencies ++= DependencyGroups.amandroid)
   .settings(publishSettings)
+
+lazy val amandroid_concurrent: Project =
+  newProject("amandroid-concurrent", file("org.argus.amandroid_concurrent"))
+    .dependsOn(amandroid)
+    .settings(libraryDependencies ++= DependencyGroups.amandroid_concurrent)
+    .settings(publishSettings)
 
 releaseProcess := Seq(
   checkSnapshotDependencies,
@@ -123,8 +128,9 @@ releaseProcess := Seq(
   tagRelease,
   publishArtifacts,
   ReleaseStep(releaseStepTask(bintrayRelease in saf_library)),
-  ReleaseStep(releaseStepTask(bintrayRelease in jawa_core)),
-  ReleaseStep(releaseStepTask(bintrayRelease in amandroid_core)),
+  ReleaseStep(releaseStepTask(bintrayRelease in jawa)),
+  ReleaseStep(releaseStepTask(bintrayRelease in amandroid)),
+  ReleaseStep(releaseStepTask(bintrayRelease in amandroid_concurrent)),
   ReleaseStep(releaseStepTask(bintrayRelease in argus_saf)),
   setNextVersion,
   commitNextVersion,

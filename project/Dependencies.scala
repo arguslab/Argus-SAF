@@ -13,6 +13,8 @@ import sbt._
 object ArgusVersions {
   val scalaVersion = "2.12.2"
   val sbtVersion = "0.13.13"
+  val jgraphtVersion = "1.0.1"
+  val json4sVersion = "3.5.0"
 }
 
 object Dependencies {
@@ -24,60 +26,56 @@ object Dependencies {
 
   val asm_all: ModuleID = "org.ow2.asm" % "asm-all" % "5.1"
 
-  val guava: ModuleID = "com.google.guava" % "guava" % "19.0"
-
-  val antlr4_runtime: ModuleID = "org.antlr" % "antlr4-runtime" % "4.5.3"
+  val antlr4_runtime: ModuleID = "org.antlr" % "antlr4-runtime" % "4.7"
 
   val st4: ModuleID = "org.antlr" % "ST4" % "4.0.8"
 
-  val jgrapht_core: ModuleID = "org.jgrapht" % "jgrapht-core" % "0.9.2"
-  val jgrapht_ext: ModuleID = "org.jgrapht" % "jgrapht-ext" % "0.9.2"
-
-  val blueprints_core: ModuleID = ("com.tinkerpop.blueprints" % "blueprints-core" % "2.6.0").
-    exclude("commons-beanutils", "commons-beanutils-core").
-    exclude("commons-collections", "commons-collections").
-    exclude("commons-logging", "commons-logging")
+  val jgrapht_core: ModuleID = "org.jgrapht" % "jgrapht-core" % jgraphtVersion
+  val jgrapht_ext: ModuleID = "org.jgrapht" % "jgrapht-ext" % jgraphtVersion
 
   val ini4j: ModuleID = "org.ini4j" % "ini4j" % "0.5.4"
 
   val commons_cli: ModuleID = "commons-cli" % "commons-cli" % "1.3.1"
+  val commons_lang3: ModuleID = "org.apache.commons" % "commons-lang3" % "3.5"
 
-  val commons_lang3: ModuleID = "org.apache.commons" % "commons-lang3" % "3.4"
+  val guava: ModuleID = "com.google.guava" % "guava" % "21.0"
 
-  val akka_actor: ModuleID = "com.typesafe.akka" %% "akka-actor" % "2.4.17"
-
-  val json4s_native: ModuleID = "org.json4s" %% "json4s-native" % "3.5.0"
-  val json4s_ext: ModuleID = "org.json4s" %% "json4s-ext" % "3.5.0"
+  val json4s_native: ModuleID = "org.json4s" %% "json4s-native" % json4sVersion
+  val json4s_ext: ModuleID = "org.json4s" %% "json4s-ext" % json4sVersion
 
   val scalatest: ModuleID = "org.scalatest" %% "scalatest" % "3.0.1" % "test"
   val findbug: ModuleID = "com.google.code.findbugs" % "jsr305" % "3.0.+" % "compile"
+
+  val akka_actor: ModuleID = "com.typesafe.akka" %% "akka-actor" % "2.4.17"
 }
 
 object DependencyGroups {
   import Dependencies._
 
-  val saf_library = Seq(findbug, commons_lang3)
-
-  val jawa_core: Seq[ModuleID] = Seq(
-    scala_reflect,
-    scalatest,
-    asm_all,
+  val saf_library = Seq(
+    findbug,
     guava,
+    commons_lang3,
+    scala_reflect,
+    scalatest)
+
+  val jawa: Seq[ModuleID] = Seq(
+    asm_all,
     st4,
     antlr4_runtime,
     jgrapht_core,
-    jgrapht_ext,
-    blueprints_core
+    jgrapht_ext
   ) ++ saf_library
 
-  val amandroid_core: Seq[ModuleID] = Seq(
+  val amandroid: Seq[ModuleID] = Seq(
     ini4j,
     json4s_native,
-    json4s_ext,
-    akka_actor
-  ) ++ jawa_core
+    json4s_ext
+  ) ++ jawa
 
   val argus_saf: Seq[ModuleID] = Seq(
     commons_cli
-  ) ++ amandroid_core
+  ) ++ amandroid
+
+  val amandroid_concurrent: Seq[ModuleID] = Seq(akka_actor) ++ amandroid
 }

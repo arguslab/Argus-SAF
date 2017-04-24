@@ -16,7 +16,7 @@ import org.argus.jawa.core.Signature
 import org.argus.jawa.core.util.Property.Key
 import org.argus.jawa.core.util._
 import org.jgrapht._
-import org.jgrapht.alg.DijkstraShortestPath
+import org.jgrapht.alg.shortestpath.DijkstraShortestPath
 import org.jgrapht.ext._
 import org.jgrapht.graph._
 
@@ -36,46 +36,48 @@ trait AlirGraphImpl[N <: AlirNode] extends AlirGraph[N] {
 
   def pool: MMap[AlirNode, N] = pl
 
-  protected val vIDProvider = new VertexNameProvider[N]() {
+  protected val vIDProvider = new ComponentNameProvider[N]() {
     def filterLabel(uri: String): String = {
       uri.filter(_.isUnicodeIdentifierPart)  // filters out the special characters like '/', '.', '%', etc.
     }
 
-    def getVertexName(v: N): String = {
+    def getName(v: N): String = {
       filterLabel(v.toString)
     }
   }
 
-  protected val eIDProvider = new EdgeNameProvider[Edge]() {
+  protected val eIDProvider = new ComponentNameProvider[Edge]() {
     def filterLabel(uri: String): String = {
       uri.filter(_.isUnicodeIdentifierPart)  // filters out the special characters like '/', '.', '%', etc.
     }
 
-    def getEdgeName(e: Edge): String = {
+    def getName(e: Edge): String = {
       filterLabel(e.source.toString) + "-" + filterLabel(e.target.toString)
     }
   }
 
-  def toDot(w: Writer, vlp: VertexNameProvider[N] = vIDProvider): Unit = {
+  def toDot(w: Writer, vlp: ComponentNameProvider[N] = vIDProvider): Unit = {
     val de = new DOTExporter[N, Edge](vlp, vlp, null)
-    de.export(w, graph)
+    de.exportGraph(graph, w)
   }
 
-  def toGraphML(w: Writer, vip: VertexNameProvider[N] = vIDProvider, vlp: VertexNameProvider[N] = vIDProvider, eip: EdgeNameProvider[Edge] = eIDProvider, elp: EdgeNameProvider[Edge] = null): Unit = {
+  def toGraphML(w: Writer, vip: ComponentNameProvider[N] = vIDProvider, vlp: ComponentNameProvider[N] = vIDProvider, eip: ComponentNameProvider[Edge] = eIDProvider, elp: ComponentNameProvider[Edge] = null): Unit = {
     val graphml = new GraphMLExporter[N, Edge](vip, vlp, eip, elp)
-    graphml.export(w, graph)
+    graphml.exportGraph(graph, w)
   }
 
-  def toGML(w: Writer, vip: VertexNameProvider[N] = vIDProvider, vlp: VertexNameProvider[N] = vIDProvider, eip: EdgeNameProvider[Edge] = eIDProvider, elp: EdgeNameProvider[Edge] = null): Unit = {
+  def toGML(w: Writer, vip: ComponentNameProvider[N] = vIDProvider, vlp: ComponentNameProvider[N] = vIDProvider, eip: ComponentNameProvider[Edge] = eIDProvider, elp: ComponentNameProvider[Edge] = null): Unit = {
     val gml = new GmlExporter[N, Edge](vip, vlp, eip, elp)
-    gml.export(w, graph)
+    gml.exportGraph(graph, w)
   }
 
   def findPath(srcNode: N, tarNode: N): IList[Edge] = {
     import scala.collection.JavaConverters._
-    val path = DijkstraShortestPath.findPathBetween(this.graph, srcNode, tarNode)
-    if(path != null) path.asScala.toList
-    else ilistEmpty
+
+    Option(DijkstraShortestPath.findPathBetween(this.graph, srcNode, tarNode)) match {
+      case Some(path) => path.getEdgeList.asScala.toList
+      case None => ilistEmpty
+    }
   }
 
   def addNode(node : N) : N = {

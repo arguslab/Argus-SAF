@@ -16,7 +16,7 @@ import java.io.PrintStream
 import collection.JavaConverters._
 import java.util
 
-import org.apache.commons.lang.StringEscapeUtils
+import org.apache.commons.lang3.StringEscapeUtils
 import org.argus.jawa.core.AccessFlag.FlagKind
 import org.argus.jawa.core._
 import org.argus.jawa.core.util.FileUtil

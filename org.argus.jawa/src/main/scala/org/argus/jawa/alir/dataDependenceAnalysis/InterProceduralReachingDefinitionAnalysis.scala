@@ -73,7 +73,7 @@ class InterProceduralReachingDefinitionAnalysis {
                 factSet.update(cln, rdafact.map{fact => (fact, getContext(fact, cln.getContext))})
             }
           }
-
+        case None =>
       }
 
     }

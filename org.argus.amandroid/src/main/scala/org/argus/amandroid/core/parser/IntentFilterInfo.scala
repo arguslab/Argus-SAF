@@ -9,7 +9,7 @@
  */
 package org.argus.amandroid.core.parser
 
-import org.apache.commons.lang.StringEscapeUtils
+import org.apache.commons.lang3.StringEscapeUtils
 import org.argus.jawa.core.{JawaClass, JawaType}
 import org.argus.jawa.core.util._
 
@@ -362,7 +362,7 @@ class UriData{
       this.host =host
     }
   }
-  def getHost = this.host
+  def getHost: String = this.host
   def setPort(port: String): Unit ={
     if(port!= null){
       this.port =port

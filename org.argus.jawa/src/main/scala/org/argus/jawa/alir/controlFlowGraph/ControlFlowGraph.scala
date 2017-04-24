@@ -13,7 +13,7 @@ package org.argus.jawa.alir.controlFlowGraph
 import org.argus.jawa.alir._
 import org.argus.jawa.compiler.parser._
 import org.argus.jawa.core.util._
-import org.jgrapht.ext.VertexNameProvider
+import org.jgrapht.ext.ComponentNameProvider
 
 trait ControlFlowGraph[N <: AlirNode]
     extends AlirGraphImpl[N]
@@ -67,11 +67,9 @@ abstract class IntraProceduralControlFlowGraph[N <: CFGNode]
     n
   }
 
-  override protected val vIDProvider = new VertexNameProvider[N]() {
-    def filterLabel(uri: String): String = {
-      uri.filter(_.isUnicodeIdentifierPart)  // filters out the special characters like '/', '.', '%', etc.
-    }
-    def getVertexName(v: N): String = {
+  override protected val vIDProvider = new ComponentNameProvider[N]() {
+    def filterLabel(uri: String): String = uri.filter(_.isUnicodeIdentifierPart) // filters out the special characters like '/', '.', '%', etc.
+    def getName(v: N): String = {
       val str = v match {
         case CFGLocationNode(locUri, _) => UriUtil.lastPath(locUri)
         case CFGVirtualNode(vlabel)        => vlabel.toString

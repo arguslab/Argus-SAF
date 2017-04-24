@@ -22,26 +22,16 @@ object Main extends App {
 
   private val version = org.argus.BuildInfo.version
 
-  object Verbosity extends Enumeration {
-    val VERBOSE, NORMAL, QUIET = Value
-  }
-  // set verbosity default
-//  private var verbosity = Verbosity.NORMAL
   private val generalOptionGroup: OptionGroup = new OptionGroup
   private val normalOptions: Options = new Options
   private val decompilerOptions: Options = new Options
   private val taintOptions: Options = new Options
   private val apiMisuseOptions: Options = new Options
-  private val stageOptions: Options = new Options
   private val allOptions: Options = new Options
 
   private def createOptions(): Unit = {
     // create options
     val versionOption: Option = Option.builder().longOpt("version").desc("Prints the version then exits.").build()
-
-//    val verboseOption: Option = Option.builder("v").longOpt("verbose").desc("Execute in verbose mode.").build()
-//
-//    val quietOption: Option = Option.builder("q").longOpt("quiet").desc("Execute in quite mode.").build()
 
     val debugDecOption: Option = Option.builder("d").longOpt("debug").desc("Output debug information.").build()
     val outputOption: Option = Option.builder("o")
@@ -61,8 +51,6 @@ object Main extends App {
       .longOpt("checker").desc("Api checker to use. [Default: HIDE_ICON, Choices: (CRYPTO_MISUSE, HIDE_ICON, SSLTLS_MISUSE)]")
       .hasArg(true).argName("name").build()
 
-//    generalOptionGroup.addOption(verboseOption)
-//    generalOptionGroup.addOption(quietOption)
     generalOptionGroup.addOption(debugDecOption)
     generalOptionGroup.addOption(outputOption)
     generalOptionGroup.addOption(iniPathOption)
@@ -78,8 +66,6 @@ object Main extends App {
     apiMisuseOptions.addOptionGroup(generalOptionGroup)
     apiMisuseOptions.addOption(apimoduleOption)
 
-    stageOptions.addOptionGroup(generalOptionGroup)
-
     allOptions.addOption(versionOption)
     allOptions.addOption(debugDecOption)
     allOptions.addOption(outputOption)
@@ -91,7 +77,7 @@ object Main extends App {
   }
 
   object Mode extends Enumeration {
-    val ARGUS_SAF, APICHECK, DECOMPILE, STAGE, TAINT = Value
+    val ARGUS_SAF, APICHECK, DECOMPILE, TAINT = Value
   }
 
   private def usage(mode: Mode.Value): Unit ={
@@ -100,12 +86,11 @@ object Main extends App {
     mode match {
       case Mode.ARGUS_SAF =>
         println(s"""Argus-SAF v$version - a static analysis framework for Android apks
-                    |Copyright 2016 Argus Laboratory, University of South Florida""".stripMargin)
+                    |Copyright 2017 Argus Cybersecurity Laboratory, University of South Florida""".stripMargin)
         println("")
         println("""Available Modes:
                   |  a[picheck]    Detecting API misuse.
                   |  d[ecompile]   Decompile Apk file(s).
-                  |  s[tage]       Stage middle results.
                   |  t[aint]       Perform taint analysis on Apk(s).""".stripMargin)
         println("")
         formatter.printHelp("<options>", normalOptions)
@@ -114,8 +99,6 @@ object Main extends App {
         formatter.printHelp("a[picheck] [options] <file_apk/dir>", apiMisuseOptions)
       case Mode.DECOMPILE =>
         formatter.printHelp("d[compile] [options] <file_apk/dir>", decompilerOptions)
-      case Mode.STAGE =>
-        formatter.printHelp("s[tage] [options] <file_apk/dir>", stageOptions)
       case Mode.TAINT =>
         formatter.printHelp("t[aint] [options] <file_apk/dir>", taintOptions)
     }
@@ -158,10 +141,6 @@ object Main extends App {
       }
       else if (opt.equalsIgnoreCase("a") || opt.equalsIgnoreCase("apicheck")) {
         cmdApiMisuse(commandLine)
-        cmdFound = true
-      }
-      else if (opt.equalsIgnoreCase("s") || opt.equalsIgnoreCase("stage")) {
-        cmdStaging(commandLine)
         cmdFound = true
       }
     }
@@ -273,30 +252,5 @@ object Main extends App {
         System.exit(0)
     }
     ApiMisuse(module, debug, sourcePath, outputPath, forceDelete)
-  }
-
-  private def cmdStaging(cli: CommandLine) = {
-    var debug = false
-    var outputPath: String = "."
-    var forceDelete: Boolean = false
-    if(cli.hasOption("d") || cli.hasOption("debug")) {
-      debug = true
-    }
-    if(cli.hasOption("o") || cli.hasOption("output")) {
-      outputPath = cli.getOptionValue("o")
-    }
-    if(cli.hasOption("f") || cli.hasOption("force")) {
-      forceDelete = true
-    }
-    var sourcePath: String = null
-
-    try {
-      sourcePath = cli.getArgList.get(1)
-    } catch {
-      case _: Exception =>
-        usage(Mode.STAGE)
-        System.exit(0)
-    }
-    Staging(debug, sourcePath, outputPath, forceDelete)
   }
 }
