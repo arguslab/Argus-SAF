@@ -112,7 +112,7 @@ lazy val amandroid: Project =
   .settings(publishSettings)
 
 lazy val amandroid_concurrent: Project =
-  newProject("amandroid-concurrent", file("org.argus.amandroid_concurrent"))
+  newProject("amandroid-concurrent", file("org.argus.amandroid.concurrent"))
     .dependsOn(amandroid)
     .settings(libraryDependencies ++= DependencyGroups.amandroid_concurrent)
     .settings(publishSettings)
