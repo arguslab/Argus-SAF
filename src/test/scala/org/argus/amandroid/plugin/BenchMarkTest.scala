@@ -24,7 +24,7 @@ import org.argus.jawa.core.util.FileUtil
   * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
   */
 class BenchMarkTest extends FlatSpec with Matchers {
-  private final val DEBUG = true
+  private final val DEBUG = false
 
   "ICC_Explicit_NoSrc_NoSink" should "have 0 taint paths" in {
     val res = taintAnalysis(getClass.getResource("/icc-bench/IccHandling/icc_explicit_nosrc_nosink.apk").getPath)
