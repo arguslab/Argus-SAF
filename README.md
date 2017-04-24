@@ -18,6 +18,7 @@ Argus-SAF/
 +--org.argus.saf.library            Libraries for Argus-SAF
 +--org.argus.jawa                   Core static analysis data structures, "*.class"&"*.jawa" file managing, jawa compiler, class hierarchy, method body resolving, flow analysis, etc.
 +--org.argus.amandroid              Android resource parsers, information collector, decompiler, environment method builder, flow analysis, etc.
++--org.argus.amandroid.concurrent   Akka actors for Amandroid.
 ```
 
 ## Obtaining Argus-SAF as library
@@ -28,7 +29,7 @@ by editing
 `build.sbt`:
 
 ```
-libraryDependencies += "com.github.arguslab" %% "jawa-core" % VERSION
+libraryDependencies += "com.github.arguslab" %% "jawa" % VERSION
 ```
 
 Depend on Amandroid
@@ -37,7 +38,16 @@ by editing
 `build.sbt`:
 
 ```
-libraryDependencies += "com.github.arguslab" %% "amandroid-core" % VERSION
+libraryDependencies += "com.github.arguslab" %% "amandroid" % VERSION
+```
+
+Depend on Amandroid-Concurrent
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.github.arguslab/amandroid-concurrent_2.12/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.github.arguslab/amandroid-concurrent_2.12)
+by editing
+`build.sbt`:
+
+```
+libraryDependencies += "com.github.arguslab" %% "amandroid-concurrent" % VERSION
 ```
 
 > Note that: Depend on Amandroid will automatically add Jawa as dependency. If you use Maven or Gradle, you should translate it to corresponding format.
