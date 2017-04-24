@@ -52,14 +52,14 @@ object Dependencies {
 object DependencyGroups {
   import Dependencies._
 
-  val saf_library = Seq(
+  val saf_library = Seq()
+
+  val jawa: Seq[ModuleID] = Seq(
     findbug,
     guava,
     commons_lang3,
     scala_reflect,
-    scalatest)
-
-  val jawa: Seq[ModuleID] = Seq(
+    scalatest,
     asm_all,
     st4,
     antlr4_runtime,
