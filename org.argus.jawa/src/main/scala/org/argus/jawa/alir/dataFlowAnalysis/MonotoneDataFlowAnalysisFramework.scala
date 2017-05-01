@@ -49,8 +49,6 @@ trait MonotoneDataFlowAnalysisBuilder[N <: AlirNode, LatticeElement] extends Mon
  * @author <a href="mailto:sroy@k-state.edu">Sankardas Roy</a>
  */
 trait MonotonicFunction[N <: AlirNode, LatticeElement] {
-  def apply(s: ISet[LatticeElement], a: Assignment, currentNode: N): ISet[LatticeElement]
-  def apply(s: ISet[LatticeElement], e: Expression, currentNode: N): ISet[LatticeElement]
   def apply(s: ISet[LatticeElement], e: Statement, currentNode: N): ISet[LatticeElement]
 }
 
@@ -160,20 +158,8 @@ object MonotoneDataFlowAnalysisFramework {
 //        case a => throw new RuntimeException("unexpected node type: " + a)
 //      }
 
-      protected def fA(a: Assignment, in: DFF, currentNode: N): DFF =
-        kill(in, a, currentNode).union(gen(in, a, currentNode))
-
-      protected def fE(e: Expression, in: DFF, currentNode: N): DFF =
-        kill(in, e, currentNode).union(gen(in, e, currentNode))
-
       protected def fS(e: Statement, in: DFF, currentNode: N): DFF =
         kill(in, e, currentNode).union(gen(in, e, currentNode))
-
-      protected def statementF(in: DFF, s: Statement, currentNode: N): DFF =
-        s match {
-          case a: Assignment => fA(a, in, currentNode)
-          case _ => fS(s, in, currentNode)
-        }
 
       def update(s: DFF, n: N): Boolean = {
         val oldS = entrySet(n)
@@ -366,16 +352,14 @@ object MonotoneDataFlowAnalysisFramework {
         def jumpF(s: DFF, j: Jump): Unit =
           j match {
             case j: IfStatement =>
-              var r = s
               if (esl.isDefined) esl.get.ifJump(j, s)
-              r = fE(j.cond, r, currentNode)
               val ifGotoLoc = body.locations(j.targetLocation.locationIndex)
               val ifGotoContext = np.newLoc(currentNode, ifGotoLoc)
               val gn = np.node(ifGotoLoc, ifGotoContext)
-              latticeMap += (gn -> r)
+              latticeMap += (gn -> s)
               val sn = np.next(currentNode, body)
-              if (esl.isDefined) esl.get.exitSet(r)
-              latticeMap += (sn -> r)
+              if (esl.isDefined) esl.get.exitSet(s)
+              latticeMap += (sn -> s)
             case j: SwitchStatement =>
               if (esl.isDefined) esl.get.switchJump(j, s)
               for (switchCase <- j.cases) {
@@ -431,22 +415,20 @@ object MonotoneDataFlowAnalysisFramework {
                 if (esl.isDefined) esl.get.exitSet(entrySet(rn))
                 latticeMap += (rn -> retFacts)
               } else {
-                val r = fA(j, s, currentNode)
-                if(esl.isDefined) esl.get.exitSet(r)
+                if(esl.isDefined) esl.get.exitSet(s)
                 val succs = cfg.successors(currentNode)
-                succs.foreach(succ=>latticeMap += (succ -> r))
+                succs.foreach(succ=>latticeMap += (succ -> s))
               }
           }
 
-        val s = entrySet(currentNode)
+        val s = fS(l.statement, entrySet(currentNode), currentNode)
         l.statement match {
           case j: Jump =>
             jumpF(s, j)
-          case stat: Statement =>
-            val r = statementF(s, stat, currentNode)
-            if(esl.isDefined) esl.get.exitSet(r)
+          case _: Statement =>
+            if(esl.isDefined) esl.get.exitSet(s)
             val succs = cfg.successors(currentNode)
-            succs.foreach(succ=>latticeMap += (succ -> r))
+            succs.foreach(succ=>latticeMap += (succ -> s))
 
         }
         latticeMap.toMap

@@ -10,7 +10,7 @@
 
 package org.argus.jawa.core.io
 
-class Position extends InternalPositionImpl {
+abstract class Position extends InternalPositionImpl {
   type Pos = Position
   def pos: Position = this
 
@@ -47,10 +47,10 @@ object Position {
     prefix + (pos showError msg)
   }
   
-  def caculateLine(source: SourceFile, point: Int): Int = {
+  def calculateLine(source: SourceFile, point: Int): Int = {
     if(source ne NoSourceFile)source.offsetToLine(point) else 0
   }
-  
+
   def calculateColumn(source: SourceFile, point: Int): Int = {
     var idx = source.lineToOffset(source.offsetToLine(point))
     var col = 0
@@ -69,39 +69,39 @@ object Position {
 
 class OffsetPosition(sourceIn: SourceFile, pointIn: Int, lineIn: Int, columnIn: Int) extends DefinedPosition {
   def this(sourceIn: SourceFile, pointIn: Int) = {
-    this(sourceIn, pointIn, Position.caculateLine(sourceIn, pointIn), Position.calculateColumn(sourceIn, pointIn))
+    this(sourceIn, pointIn, Position.calculateLine(sourceIn, pointIn), Position.calculateColumn(sourceIn, pointIn))
   }
   override def isRange = false
-  override def source  = sourceIn
-  override def point   = pointIn
-  override def start   = point
-  override def end     = point
-  override def line    = lineIn
-  override def column  = columnIn
+  override def source: SourceFile = sourceIn
+  override def point: Int = pointIn
+  override def start: Int = point
+  override def end: Int = point
+  override def line: Int = lineIn
+  override def column: Int = columnIn
 }
 class RangePosition(sourceIn: SourceFile, startIn: Int, length: Int, lineIn: Int, columnIn: Int) extends OffsetPosition(sourceIn, startIn, lineIn, columnIn) {
   def this(sourceIn: SourceFile, startIn: Int, length: Int) = {
-    this(sourceIn, startIn, length, Position.caculateLine(sourceIn, startIn), Position.calculateColumn(sourceIn, startIn))
+    this(sourceIn, startIn, length, Position.calculateLine(sourceIn, startIn), Position.calculateColumn(sourceIn, startIn))
   }
   override def isRange = true
-  override def start   = startIn
-  override def end     = startIn + length - 1
+  override def start: Int = startIn
+  override def end: Int = startIn + length - 1
 }
 
 case object NoPosition extends UndefinedPosition
 case class FakePos(msg: String) extends UndefinedPosition {
-  override def toString = msg
+  override def toString: String = msg
 }
 
 
 sealed abstract class DefinedPosition extends Position {
   final override def isDefined = true
-  override def equals(that: Any) = that match {
+  override def equals(that: Any): Boolean = that match {
     case that: DefinedPosition => source.file == that.source.file && start == that.start && point == that.point && end == that.end
     case _                     => false
   }
-  override def hashCode = Seq[Any](source.file, start, point, end).##
-  override def toString =
+  override def hashCode: Int = Seq[Any](source.file, start, point, end).##
+  override def toString: String =
     if (isRange) s"RangePosition($fileName, $start, $line, $column)"
     else s"source-$canonicalPath,line-$line,$pointMessage$point"
   private def pointMessage  = if (point > source.length) "out-of-bounds-" else "offset="
@@ -113,9 +113,9 @@ sealed abstract class UndefinedPosition extends Position {
   final override def isDefined = false
   override def isRange         = false
   override def source          = NoSourceFile
-  override def start           = fail("start")
-  override def point           = fail("point")
-  override def end             = fail("end")
+  override def start: Int = fail("start")
+  override def point: Int = fail("point")
+  override def end: Int = fail("end")
 }
 
 private[io] trait InternalPositionImpl {
@@ -136,8 +136,8 @@ private[io] trait InternalPositionImpl {
   def finalPosition: Pos = source positionInUltimateSource this
 
   def isTransparent              = false
-  def isOffset                   = isDefined && !isRange
-  def isOpaqueRange              = isRange && !isTransparent
+  def isOffset: Boolean = isDefined && !isRange
+  def isOpaqueRange: Boolean = isRange && !isTransparent
   def pointOrElse(alt: Int): Int = if (isDefined) point else alt
 
   /** Copy a range position with a changed value.
@@ -209,7 +209,7 @@ private[io] trait InternalPositionImpl {
     }
   }
   def showDebug: String = toString
-  def show =
+  def show: String =
     if (isOpaqueRange) s"[$start:$end]"
     else if (isTransparent) s"<$start:$end>"
     else if (isDefined) s"[$point]"

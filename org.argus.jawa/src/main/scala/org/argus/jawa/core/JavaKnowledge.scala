@@ -17,6 +17,7 @@ trait JavaKnowledge {
   def JAVA_TOPLEVEL_OBJECT_TYPE: JawaType = new JawaType(JAVA_TOPLEVEL_OBJECT)
   def JAVA_PRIMITIVES: ISet[String] = Set("byte", "short", "int", "float", "boolean", "char", "void") ++ JAVA_DWORD_PRIMITIVES
   def JAVA_DWORD_PRIMITIVES = Set("long", "double")
+
   /**
    * return whether given type is java primitive type
    */
@@ -337,4 +338,16 @@ trait JavaKnowledge {
   def isJawaConstructor(name: String): Boolean = name == constructorName || name == staticInitializerName
 }
 
-object JavaKnowledge extends JavaKnowledge
+object JavaKnowledge extends JavaKnowledge {
+  def BYTE: JawaType = new JawaType("byte")
+  def SHORT: JawaType = new JawaType("short")
+  def INT: JawaType = new JawaType("int")
+  def FLOAT: JawaType = new JawaType("float")
+  def BOOLEAN: JawaType = new JawaType("boolean")
+  def CHAR: JawaType = new JawaType("char")
+  def VOID: JawaType = new JawaType("void")
+  def LONG: JawaType = new JawaType("long")
+  def DOUBLE: JawaType = new JawaType("double")
+  def CLASS: JawaType = new JawaType("java.lang.Class")
+  def STRING: JawaType = new JawaType("java.lang.String")
+}

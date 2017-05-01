@@ -118,38 +118,40 @@ class InterProceduralReachingDefinitionAnalysis {
    * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
    */
   class Gen extends MonotonicFunction[Node, IRDFact] {
-
-    def apply(s: ISet[IRDFact], a: Assignment, currentNode: Node): ISet[IRDFact] = {
-      val node = currentNode
-      val succs = icfg.successors(node)
-      val globFacts = 
-        if(succs.isEmpty) isetEmpty[IRDFact]
-        else succs.map(node => factSet(node).filter(fact => isGlobal(fact._1._1) && isDef(fact._1._2))).reduce(iunion[IRDFact])
-      val globDefFacts = globFacts.filter(fact => isDef(fact._1._2))
-      val flowingGlobFacts = s.filter(fact => isGlobal(fact._1._1) && isDef(fact._1._2))
-      factSet += (node -> (factSet.getOrElse(node, isetEmpty) -- globFacts ++ flowingGlobFacts ++ globDefFacts))
-      globDefFacts
+    def apply(s: ISet[IRDFact], e: Statement, currentNode: Node): ISet[IRDFact] = {
+      e match {
+        case _: AssignmentStatement =>
+          val succs = icfg.successors(currentNode)
+          val globFacts =
+            if(succs.isEmpty) isetEmpty[IRDFact]
+            else succs.map(node => factSet(node).filter(fact => isGlobal(fact._1._1) && isDef(fact._1._2))).reduce(iunion[IRDFact])
+          val globDefFacts = globFacts.filter(fact => isDef(fact._1._2))
+          val flowingGlobFacts = s.filter(fact => isGlobal(fact._1._1) && isDef(fact._1._2))
+          factSet += (currentNode -> (factSet.getOrElse(currentNode, isetEmpty) -- globFacts ++ flowingGlobFacts ++ globDefFacts))
+          globDefFacts
+        case _ =>
+          isetEmpty
+      }
     }
-    def apply(s: ISet[IRDFact], e: Expression, currentNode: Node): ISet[IRDFact] = isetEmpty
-
-    def apply(s: ISet[IRDFact], e: Statement, currentNode: Node): ISet[IRDFact] = isetEmpty
   }
   
   /**
    * @author Fengguo Wei & Sankardas Roy
    */
   class Kill extends MonotonicFunction[Node, IRDFact] {
-    def apply(s: ISet[IRDFact], a: Assignment, currentNode: Node): ISet[IRDFact] = {
-      val node = currentNode
-      val succs = icfg.successors(node)
-      val globDefFacts = 
-        if(succs.isEmpty) isetEmpty[IRDFact]
-        else succs.map(node => factSet(node).filter(fact => isGlobal(fact._1._1) && isDef(fact._1._2))).reduce(iunion[IRDFact])
-      val redefGlobSlots = globDefFacts.filter(fact => s.map(_._1._1).contains(fact._1._1)).map(_._1._1)
-      s.filter(f => !redefGlobSlots.contains(f._1._1))
+    def apply(s: ISet[IRDFact], e: Statement, currentNode: Node): ISet[IRDFact] = {
+      e match {
+        case _: AssignmentStatement =>
+          val node = currentNode
+          val succs = icfg.successors(node)
+          val globDefFacts =
+            if(succs.isEmpty) isetEmpty[IRDFact]
+            else succs.map(node => factSet(node).filter(fact => isGlobal(fact._1._1) && isDef(fact._1._2))).reduce(iunion[IRDFact])
+          val redefGlobSlots = globDefFacts.filter(fact => s.map(_._1._1).contains(fact._1._1)).map(_._1._1)
+          s.filter(f => !redefGlobSlots.contains(f._1._1))
+        case _ => s
+      }
     }
-    def apply(s: ISet[IRDFact], e: Expression, currentNode: Node): ISet[IRDFact] = s
-    def apply(s: ISet[IRDFact], e: Statement, currentNode: Node): ISet[IRDFact] = s
   }
   
   class Mbp(global: Global) extends MethodBodyProvider {

@@ -88,7 +88,7 @@ class CommunicationSourceAndSinkManager(sasFilePath: String) extends AndroidSour
     sinkflag
   }
 
-	def isIccSource(apk: ApkGlobal, entNode: ICFGNode, iddgEntNode: ICFGNode): Boolean = {
+	def isIccSource(apk: ApkGlobal, entNode: ICFGNode): Boolean = {
 	  false
 	}
 	

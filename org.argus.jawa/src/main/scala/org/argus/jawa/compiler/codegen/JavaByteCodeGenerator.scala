@@ -19,6 +19,7 @@ import java.io.DataOutputStream
 import java.io.FileOutputStream
 
 import org.argus.jawa.compiler.lexer.Tokens._
+import org.argus.jawa.core.io.Position
 import org.argus.jawa.core.{AccessFlag, JavaKnowledge, JawaPackage, JawaType}
 import org.objectweb.asm.util.TraceClassVisitor
 
@@ -61,6 +62,7 @@ class JavaByteCodeGenerator(javaVersion: Int) {
   def getClasses: IMap[JawaType, Array[Byte]] = classes.toMap
   
   def generate(cu: JawaCompilationUnit): IMap[JawaType, Array[Byte]] = {
+    if(!cu.localTypResolved) throw new RuntimeException("Cannot generate bytecode for untyped code. Use LocalTypeResolver() to transform untyped code to typed.")
     cu.topDecls foreach {
       cid =>
         visitClass(cid, javaVersion)
@@ -218,7 +220,7 @@ class JavaByteCodeGenerator(javaVersion: Int) {
         mv.visitVarInsn(Opcodes.ALOAD, this.maxLocals)
         this.maxLocals -= 1
         mv.visitInsn(Opcodes.MONITOREXIT)
-      case _ => println("visitMonitorStatement problem: " + ms)
+      case _ => throw new JawaByteCodeGenException(ms.pos, "visitMonitorStatement problem: " + ms)
     }
   }
   
@@ -265,8 +267,8 @@ class JavaByteCodeGenerator(javaVersion: Int) {
       case Left(right) =>
         if(locals(right.varName).typ.isObject) isObject = true
       case Right(right) => 
-        right.text match {
-          case "null" => isNull = true
+        right match {
+          case Right(_) => isNull = true
           case _ =>
         }
     }
@@ -276,9 +278,9 @@ class JavaByteCodeGenerator(javaVersion: Int) {
       case Left(right) => 
         visitVarLoad(mv, right.varName)
       case Right(right) => 
-        right.text match {
-          case "null" =>
-          case t => if(!isBoolean)generateIntConst(mv, t.toInt)
+        right match {
+          case Left(i) => if(!isBoolean)generateIntConst(mv, i.getInt)
+          case Right(_) =>
         }
     }
     val target = this.locations(is.targetLocation.location)
@@ -296,16 +298,20 @@ class JavaByteCodeGenerator(javaVersion: Int) {
       is.cond.op.text match {
         case "==" => mv.visitJumpInsn(Opcodes.IFEQ, target)
         case "!=" => mv.visitJumpInsn(Opcodes.IFNE, target)
+        case "<"  => mv.visitJumpInsn(Opcodes.IFLT, target)
+        case ">=" => mv.visitJumpInsn(Opcodes.IFGE, target)
+        case ">"  => mv.visitJumpInsn(Opcodes.IFGT, target)
+        case "<=" => mv.visitJumpInsn(Opcodes.IFLE, target)
       }
     } else {
       is.cond.op.text match {
         case "==" => mv.visitJumpInsn(Opcodes.IF_ICMPEQ, target)
         case "!=" => mv.visitJumpInsn(Opcodes.IF_ICMPNE, target)
-        case "<" =>  mv.visitJumpInsn(Opcodes.IF_ICMPLT, target)
+        case "<"  => mv.visitJumpInsn(Opcodes.IF_ICMPLT, target)
         case ">=" => mv.visitJumpInsn(Opcodes.IF_ICMPGE, target)
-        case ">" =>  mv.visitJumpInsn(Opcodes.IF_ICMPGT, target)
+        case ">"  => mv.visitJumpInsn(Opcodes.IF_ICMPGT, target)
         case "<=" => mv.visitJumpInsn(Opcodes.IF_ICMPLE, target)
-        case _ =>    println("visitIfStatement problem: " + is)
+        case _ =>    throw new JawaByteCodeGenException(is.pos, "visitIfStatement problem: " + is)
       }
     }
   }
@@ -320,11 +326,6 @@ class JavaByteCodeGenerator(javaVersion: Int) {
           case "float" => mv.visitInsn(Opcodes.FRETURN)
           case "double" => mv.visitInsn(Opcodes.DRETURN)
           case _ => mv.visitInsn(Opcodes.ARETURN)
-//          case "double" =>
-//          case "float" =>
-//          case "int" =>
-//          case "long" =>
-//          case _ => println("visitReturnStatement problem: " + rs + " " + kind)
         }
       case None => 
         mv.visitInsn(Opcodes.RETURN)
@@ -332,8 +333,6 @@ class JavaByteCodeGenerator(javaVersion: Int) {
   }
   
   private def visitCallStatement(mv: MethodVisitor, cs: CallStatement): Unit = {
-//    val isReturnObject: Boolean = cs.signature.isReturnObject
-//    val isReturnVoid: Boolean = cs.signature.getReturnType.name == "void"
     val isStatic: Boolean = cs.isStatic
     cs.recvOpt match {
       case Some(recv) =>
@@ -451,14 +450,13 @@ class JavaByteCodeGenerator(javaVersion: Int) {
         case Left(_) =>
           visitVarStore(mv, ne.name)
         case Right(fnSym) =>
-//          val t = JavaKnowledge.getTypeFromName(kind)
           mv.visitFieldInsn(Opcodes.PUTSTATIC, fnSym.baseType.name.replaceAll("\\.", "/"), fnSym.fieldName, JavaKnowledge.formatTypeToSignature(typOpt.get))
       }
     case ie: IndexingExpression =>
       visitIndexStore(mv, ie, kind)
     case ae: AccessExpression =>
       visitFieldStore(mv, ae, typOpt.get)
-    case _ => println("visitLhsExpression problem: " + lhs + " " + kind)
+    case _ => throw new JawaByteCodeGenException(lhs.pos, "visitLhsExpression problem: " + lhs + " " + kind)
   }
   
   private def visitRhsExpression(mv: MethodVisitor, rhs: Expression with RHS, kind: String, typOpt: Option[JawaType], lhsTyp: Option[JawaType]): Unit = rhs match {
@@ -531,7 +529,7 @@ class JavaByteCodeGenerator(javaVersion: Int) {
       visitConstClassExpression(mv, ce)
     case le: LengthExpression =>
       visitLengthExpression(mv, le)
-    case _ =>  println("visitRhsExpression problem: " + rhs + " " + kind)
+    case _ =>  throw new JawaByteCodeGenException(rhs.pos, "visitRhsExpression problem: " + rhs + " " + kind)
   }
   
   private def handleTypeImplicitConvert(mv: MethodVisitor, lhsTyp: Option[JawaType], rhsTyp: Option[JawaType]) = {
@@ -633,7 +631,7 @@ class JavaByteCodeGenerator(javaVersion: Int) {
         mv.visitInsn(Opcodes.DCMPG)
       case "lcmp" =>
         mv.visitInsn(Opcodes.LCMP)
-      case _ => println("visitCmpExpression problem: " + ce)
+      case _ => throw new JawaByteCodeGenException(ce.pos, "visitCmpExpression problem: " + ce)
     }
   }
   
@@ -671,88 +669,96 @@ class JavaByteCodeGenerator(javaVersion: Int) {
           case _ =>
         }
       case Right(lit) =>
-        generateIntConst(mv, lit.text.toInt)
-        rhs2Typ = Some(new JawaType("int"))
+        lit match {
+          case Left(i) =>
+            generateIntConst(mv, i.getInt)
+            rhs2Typ = Some(new JawaType("int"))
+          case Right(_) => throw new JawaByteCodeGenException(be.pos, "Should not be here!")
+        }
     }
     handleTypeImplicitConvert(mv, lhsTyp, rhs2Typ)
+    val k = rhs1Typ match {
+      case Some(t) => t.jawaName
+      case None => kind
+    }
     be.op.text match {
-      case "+" => 
-        kind match {
+      case "+" =>
+        k match {
           case "int" =>    mv.visitInsn(Opcodes.IADD)
           case "long" =>   mv.visitInsn(Opcodes.LADD)
           case "float" =>  mv.visitInsn(Opcodes.FADD)
           case "double" => mv.visitInsn(Opcodes.DADD)
-          case _ =>        println("visitBinaryExpression problem: " + be)
+          case _ =>        throw new JawaByteCodeGenException(be.pos, "visitBinaryExpression problem: " + be.toCode)
         }
-      case "-" => 
-        kind match {
+      case "-" =>
+        k match {
           case "int" =>    mv.visitInsn(Opcodes.ISUB)
           case "long" =>   mv.visitInsn(Opcodes.LSUB)
           case "float" =>  mv.visitInsn(Opcodes.FSUB)
           case "double" => mv.visitInsn(Opcodes.DSUB)
-          case _ =>        println("visitBinaryExpression problem: " + be)
+          case _ =>        throw new JawaByteCodeGenException(be.pos, "visitBinaryExpression problem: " + be.toCode)
         }
       case "*" =>
-        kind match {
+        k match {
           case "int"  =>   mv.visitInsn(Opcodes.IMUL)
           case "long" =>   mv.visitInsn(Opcodes.LMUL)
           case "float" =>  mv.visitInsn(Opcodes.FMUL)
           case "double" => mv.visitInsn(Opcodes.DMUL)
-          case _ =>        println("visitBinaryExpression problem: " + be)
+          case _ =>        throw new JawaByteCodeGenException(be.pos, "visitBinaryExpression problem: " + be.toCode)
         }
       case "/" =>
-        kind match {
+        k match {
           case "int"  =>   mv.visitInsn(Opcodes.IDIV)
           case "long" =>   mv.visitInsn(Opcodes.LDIV)
           case "float" =>  mv.visitInsn(Opcodes.FDIV)
           case "double" => mv.visitInsn(Opcodes.DDIV)
-          case _ =>        println("visitBinaryExpression problem: " + be)
+          case _ =>        throw new JawaByteCodeGenException(be.pos, "visitBinaryExpression problem: " + be.toCode)
         }
       case "%%" =>
-        kind match {
+        k match {
           case "int"  =>   mv.visitInsn(Opcodes.IREM)
           case "long" =>   mv.visitInsn(Opcodes.LREM)
           case "float" =>  mv.visitInsn(Opcodes.FREM)
           case "double" => mv.visitInsn(Opcodes.DREM)
-          case _ =>        println("visitBinaryExpression problem: " + be)
+          case _ =>        throw new JawaByteCodeGenException(be.pos, "visitBinaryExpression problem: " + be.toCode)
         }
       case "^&" =>
-        kind match {
+        k match {
           case "int"  =>   mv.visitInsn(Opcodes.IAND)
           case "long" =>   mv.visitInsn(Opcodes.LAND)
-          case _ =>        println("visitBinaryExpression problem: " + be)
+          case _ =>        throw new JawaByteCodeGenException(be.pos, "visitBinaryExpression problem: " + be.toCode)
         }
-      case "^|" => 
-        kind match {
+      case "^|" =>
+        k match {
           case "int"  =>   mv.visitInsn(Opcodes.IOR)
           case "long" =>   mv.visitInsn(Opcodes.LOR)
-          case _ =>        println("visitBinaryExpression problem: " + be)
+          case _ =>        throw new JawaByteCodeGenException(be.pos, "visitBinaryExpression problem: " + be.toCode)
         }
-      case "^~" => 
-        kind match {
+      case "^~" =>
+        k match {
           case "int"  =>   mv.visitInsn(Opcodes.IXOR)
           case "long" =>   mv.visitInsn(Opcodes.LXOR)
-          case _ =>        println("visitBinaryExpression problem: " + be)
+          case _ =>        throw new JawaByteCodeGenException(be.pos, "visitBinaryExpression problem: " + be.toCode)
         }
       case "^<" =>
-        kind match {
+        k match {
           case "int"  =>   mv.visitInsn(Opcodes.ISHL)
           case "long" =>   mv.visitInsn(Opcodes.LSHL)
-          case _ =>        println("visitBinaryExpression problem: " + be)
+          case _ =>        throw new JawaByteCodeGenException(be.pos, "visitBinaryExpression problem: " + be.toCode)
         }
       case "^>" =>
-        kind match {
+        k match {
           case "int"  =>   mv.visitInsn(Opcodes.ISHR)
           case "long" =>   mv.visitInsn(Opcodes.LSHR)
-          case _ =>        println("visitBinaryExpression problem: " + be)
+          case _ =>        throw new JawaByteCodeGenException(be.pos, "visitBinaryExpression problem: " + be.toCode)
         }
       case "^>>" =>
-        kind match {
+        k match {
           case "int"  =>   mv.visitInsn(Opcodes.IUSHR)
           case "long" =>   mv.visitInsn(Opcodes.LUSHR)
-          case _ =>        println("visitBinaryExpression problem: " + be)
+          case _ =>        throw new JawaByteCodeGenException(be.pos, "visitBinaryExpression problem: " + be.toCode)
         }
-      case _ =>            println("visitBinaryExpression problem: " + be)
+      case _ =>            throw new JawaByteCodeGenException(be.pos, "visitBinaryExpression problem: " + be.toCode)
     }
   }
   
@@ -765,7 +771,7 @@ class JavaByteCodeGenerator(javaVersion: Int) {
       visitVarLoad(mv, ue.unary.varName)
       mv.visitInsn(Opcodes.ICONST_M1)
       mv.visitInsn(Opcodes.IXOR)
-    case _ =>   println("visitUnaryExpression problem: " + ue)
+    case _ =>   throw new JawaByteCodeGenException(ue.pos, "visitUnaryExpression problem: " + ue)
   }
   
   private def visitLiteralExpression(mv: MethodVisitor, le: LiteralExpression): Unit = {
@@ -777,16 +783,16 @@ class JavaByteCodeGenerator(javaVersion: Int) {
         lit match {
           case x if x.endsWith("f") | x.endsWith("F") => generateFloatConst(mv, le.getFloat)
           case x if x.endsWith("d") | x.endsWith("D") => generateDoubleConst(mv, le.getDouble)
-          case _ => println("visitLiteralExpression - FLOATING_POINT_LITERAL - problem: " + le.getString + " " + le)
+          case _ => throw new JawaByteCodeGenException(le.pos, "visitLiteralExpression - FLOATING_POINT_LITERAL - problem: " + le.getString + " " + le)
         }
       case INTEGER_LITERAL =>
         lit match {
           case x if x.endsWith("i") | x.endsWith("I") => generateIntConst(mv, le.getInt)
           case x if x.endsWith("l") | x.endsWith("L") => generateLongConst(mv, le.getLong)
-          case _ => println("visitLiteralExpression - INTEGER_LITERAL - problem: " + le.getString + " " + le)
+          case _ => throw new JawaByteCodeGenException(le.pos, "visitLiteralExpression - INTEGER_LITERAL - problem: " + le.getString + " " + le)
         }
       case _ =>
-        println("visitLiteralExpression problem: " + le.getString + " " + le)
+        throw new JawaByteCodeGenException(le.pos, "visitLiteralExpression problem: " + le.getString + " " + le)
     }
   }
   
@@ -814,8 +820,11 @@ class JavaByteCodeGenerator(javaVersion: Int) {
   
   private def visitIndexLoad(mv: MethodVisitor, ie: IndexingExpression, kind: String): Unit = {
     visitArrayAccess(mv, ie)
-    kind match {
-      case "object" => mv.visitInsn(Opcodes.AALOAD)
+    val k = this.locals.get(ie.base) match {
+      case Some(t) => t.typ.baseType.typ
+      case None => kind
+    }
+    k match {
       case "boolean" => mv.visitInsn(Opcodes.BALOAD)
       case "char" => mv.visitInsn(Opcodes.CALOAD)
       case "double" => mv.visitInsn(Opcodes.DALOAD)
@@ -823,13 +832,16 @@ class JavaByteCodeGenerator(javaVersion: Int) {
       case "int" | "byte" | "" => mv.visitInsn(Opcodes.IALOAD)
       case "long" => mv.visitInsn(Opcodes.LALOAD)
       case "short" => mv.visitInsn(Opcodes.SALOAD)
-      case _ => println("visitIndexLoad problem: " + kind + " " + ie)
+      case "object" | _ => mv.visitInsn(Opcodes.AALOAD)
     }
   }
   
   private def visitIndexStore(mv: MethodVisitor, ie: IndexingExpression, kind: String): Unit = {
-    kind match {
-      case "object" => mv.visitInsn(Opcodes.AASTORE)
+    val k = this.locals.get(ie.base) match {
+      case Some(t) => t.typ.baseType.typ
+      case None => kind
+    }
+    k match {
       case "boolean" => mv.visitInsn(Opcodes.BASTORE)
       case "char" => mv.visitInsn(Opcodes.CASTORE)
       case "double" => mv.visitInsn(Opcodes.DASTORE)
@@ -837,7 +849,7 @@ class JavaByteCodeGenerator(javaVersion: Int) {
       case "int" | "byte" | "" => mv.visitInsn(Opcodes.IASTORE)
       case "long" => mv.visitInsn(Opcodes.LASTORE)
       case "short" => mv.visitInsn(Opcodes.SASTORE)
-      case _ => println("visitIndexStore problem: " + kind + " " + ie)
+      case "object" | _ => mv.visitInsn(Opcodes.AASTORE)
     }
   }
   
@@ -861,7 +873,7 @@ class JavaByteCodeGenerator(javaVersion: Int) {
         case Left(vs) => 
           visitVarLoad(mv, vs.varName)
         case Right(t) =>
-          generateIntConst(mv, t.text.toInt)
+          generateIntConst(mv, t.getInt)
       }
     }
     for(_ <- 0 to dimentions - 2){
@@ -946,7 +958,7 @@ class JavaByteCodeGenerator(javaVersion: Int) {
     case "object" => 
       mv.visitVarInsn(Opcodes.ALOAD, this.locals(ce.varName).index)
       mv.visitTypeInsn(Opcodes.CHECKCAST, getClassName(ce.typ.typ.name))
-    case _ => println("visitCastExpression problem: " + ce + " " + kind)
+    case _ => throw new JawaByteCodeGenException(ce.pos, "visitCastExpression problem: " + ce + " " + kind)
   }
   
   private def generateIntConst(mv: MethodVisitor, i: Int) = i match {
@@ -989,3 +1001,5 @@ class JavaByteCodeGenerator(javaVersion: Int) {
       mv.visitLdcInsn(new java.lang.Double(d))
   }
 }
+
+class JawaByteCodeGenException(pos: Position, message: String) extends JawaParserException(pos, message)

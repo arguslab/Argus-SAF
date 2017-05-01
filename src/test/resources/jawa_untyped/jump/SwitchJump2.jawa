@@ -1,0 +1,15 @@
+record `com.fgwei.SwitchJump2`  @kind class @AccessFlag PUBLIC {
+   }
+    procedure `int` `com.fgwei.SwitchJump2.main` () @owner ^`com.fgwei.SwitchJump1` @signature `Lcom/fgwei/SwitchJump2;.main:()I` @AccessFlag PUBLIC_STATIC {
+      v1;
+      v2;
+      
+#L026e42.   v1:= 2130903040I  @kind int;
+#L026e4c.   v2:= 0I  @kind int;
+#L028a16.   goto L028c28;
+#L026e5a.   v1:= 0I  @kind int;
+#L026eb0.   return v1;
+#L028c28.   switch  v2
+                 | 0 => goto L026e5a
+                 | else => goto L026eb0;
+   }

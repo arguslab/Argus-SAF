@@ -134,7 +134,6 @@ sealed trait JawaAstNode extends CaseClassReflector with JavaKnowledge {
     else {
       val firstIndex = tokens.head.pos.start
       val lastIndex = tokens.last.lastCharacterOffset
-      println(firstToken.file, firstIndex, lastIndex)
       Position.range(firstToken.file, firstIndex, lastIndex - firstIndex + 1)
     }
   }
@@ -146,6 +145,7 @@ case class CompilationUnit(
     topDecls: IList[ClassOrInterfaceDeclaration], 
     eofToken: Token) extends ParsableAstNode {
   lazy val tokens: IList[Token] = flatten(topDecls, eofToken)
+  def localTypResolved: Boolean = topDecls.forall(_.methods.forall(_.resolvedBody.locals.forall(_.typOpt.isDefined)))
 }
 
 sealed trait Declaration extends JawaAstNode {
@@ -265,28 +265,28 @@ case class LocationSymbol(id: Token) extends RefSymbol with LocationSym {
 }
 
 case class ClassOrInterfaceDeclaration(
-    dclToken: Token, 
-    cityp: TypeDefSymbol,
-    annotations: IList[Annotation], 
-    extendsAndImplimentsClausesOpt: Option[ExtendsAndImplimentsClauses],
-    instanceFieldDeclarationBlock: InstanceFieldDeclarationBlock,
-    staticFields: IList[StaticFieldDeclaration],
-    methods: IList[MethodDeclaration]) extends Declaration with ParsableAstNode {
-  lazy val tokens: IList[Token] = flatten(dclToken, cityp, annotations, extendsAndImplimentsClausesOpt, instanceFieldDeclarationBlock, staticFields, methods)
+                                        dclToken: Token,
+                                        cityp: TypeDefSymbol,
+                                        annotations: IList[Annotation],
+                                        extendsAndImplementsClausesOpt: Option[ExtendsAndImplementsClauses],
+                                        instanceFieldDeclarationBlock: InstanceFieldDeclarationBlock,
+                                        staticFields: IList[StaticFieldDeclaration],
+                                        methods: IList[MethodDeclaration]) extends Declaration with ParsableAstNode {
+  lazy val tokens: IList[Token] = flatten(dclToken, cityp, annotations, extendsAndImplementsClausesOpt, instanceFieldDeclarationBlock, staticFields, methods)
   def isInterface: Boolean = {
     annotations.exists { a => a.key == "kind" && a.value == "interface" }
   }
-  def parents: IList[JawaType] = extendsAndImplimentsClausesOpt match {case Some(e) => e.parents; case None => ilistEmpty}
-  def superClassOpt: Option[JawaType] = extendsAndImplimentsClausesOpt match{case Some(e) => e.superClassOpt; case None => None}
-  def interfaces: IList[JawaType] = extendsAndImplimentsClausesOpt match {case Some(e) => e.interfaces; case None => ilistEmpty}
+  def parents: IList[JawaType] = extendsAndImplementsClausesOpt match {case Some(e) => e.parents; case None => ilistEmpty}
+  def superClassOpt: Option[JawaType] = extendsAndImplementsClausesOpt match{case Some(e) => e.superClassOpt; case None => None}
+  def interfaces: IList[JawaType] = extendsAndImplementsClausesOpt match {case Some(e) => e.interfaces; case None => ilistEmpty}
   def fields: IList[Field with Declaration] = instanceFieldDeclarationBlock.instanceFields ++ staticFields
   def instanceFields: IList[InstanceFieldDeclaration] = instanceFieldDeclarationBlock.instanceFields
   def typ: JawaType = cityp.typ
 }
 
 case class Annotation(
-    at: Token, 
-    annotationID: Token, 
+    at: Token,
+    annotationID: Token,
     annotationValueOpt: Option[AnnotationValue]) extends JawaAstNode {
   lazy val tokens: IList[Token] = flatten(at, annotationID, annotationValueOpt)
   def key: String = annotationID.text
@@ -315,9 +315,9 @@ case class TokenValue(
   def value: String = token.text
 }
 
-case class ExtendsAndImplimentsClauses(
+case class ExtendsAndImplementsClauses(
     extendsAndImplementsToken: Token,
-    parentTyps: IList[(ExtendAndImpliment, Option[Token])]) extends JawaAstNode {
+    parentTyps: IList[(ExtendAndImplement, Option[Token])]) extends JawaAstNode {
   require(parentTyps.count(_._1.isExtend) <= 1)
   lazy val tokens: IList[Token] = flatten(extendsAndImplementsToken, parentTyps)
   def parents: IList[JawaType] = parentTyps.map(_._1.typ)
@@ -325,7 +325,7 @@ case class ExtendsAndImplimentsClauses(
   def interfaces: IList[JawaType] = parentTyps.filter(_._1.isImplement).map(_._1.typ)
 }
 
-case class ExtendAndImpliment(
+case class ExtendAndImplement(
     parenttyp: TypeSymbol,
     annotations: IList[Annotation])extends JawaAstNode {
   lazy val tokens: IList[Token] = flatten(parenttyp, annotations)
@@ -704,6 +704,7 @@ case class NameExpression(
 
 case class ExceptionExpression(
     exception: Token) extends Expression with RHS {
+  var typ: JawaType = _
   lazy val tokens: IList[Token] = flatten(exception)
 }
 
@@ -738,7 +739,7 @@ case class IndexingExpression(
 
 case class IndexingSuffix(
     lbracket: Token,
-    index: Either[VarSymbol, Token],
+    index: Either[VarSymbol, LiteralExpression],
     rbracket: Token) extends JawaAstNode {
   lazy val tokens: IList[Token] = flatten(lbracket, index, rbracket)
 }
@@ -754,10 +755,10 @@ case class AccessExpression(
 
 case class TupleExpression(
     lparen: Token,
-    constants: IList[(Token, Option[Token])],
+    constants: IList[(LiteralExpression, Option[Token])],
     rparen: Token) extends Expression with RHS {
   lazy val tokens: IList[Token] = flatten(lparen, constants, rparen)
-  def integers: IList[Int] = constants.map(_._1.text.toInt)
+  def integers: IList[Int] = constants.map(_._1.getInt)
 }
 
 case class CastExpression(
@@ -827,7 +828,10 @@ case class LiteralExpression(
     }
   }
   def isString: Boolean = constant.tokenType == STRING_LITERAL
-  def isInt: Boolean = constant.tokenType == INTEGER_LITERAL
+  def isInt: Boolean = constant.tokenType == INTEGER_LITERAL && !constant.text.endsWith("L")
+  def isLong: Boolean = constant.tokenType == INTEGER_LITERAL && !constant.text.endsWith("I")
+  def isFloat: Boolean = constant.tokenType == FLOATING_POINT_LITERAL && !constant.text.endsWith("D")
+  def isDouble: Boolean = constant.tokenType == FLOATING_POINT_LITERAL && !constant.text.endsWith("F")
   def getInt: Int = getLiteral.toInt
   def getLong: Long = getLiteral.toLong
   def getFloat: Float = getLiteral.toFloat
@@ -845,7 +849,7 @@ case class UnaryExpression(
 case class BinaryExpression(
   left: VarSymbol,
   op: Token,
-  right: Either[VarSymbol, Token])
+  right: Either[VarSymbol, Either[LiteralExpression, NullExpression]])
     extends Expression with RHS {
   lazy val tokens: IList[Token] = flatten(left, op, right)
 }
@@ -860,9 +864,9 @@ case class CmpExpression(
   lazy val tokens: IList[Token] = flatten(cmp, lparen, var1Symbol, comma, var2Symbol, rparen)
   def paramType: JawaType = {
     cmp.text match {
-      case "fcmpl" | "fcmpg" => new JawaType("float")
-      case "dcmpl" | "dcmpg" => new JawaType("double")
-      case "lcmp" => new JawaType("long")
+      case "fcmpl" | "fcmpg" => JavaKnowledge.FLOAT
+      case "dcmpl" | "dcmpg" => JavaKnowledge.DOUBLE
+      case "lcmp" => JavaKnowledge.LONG
     }
   }
 }

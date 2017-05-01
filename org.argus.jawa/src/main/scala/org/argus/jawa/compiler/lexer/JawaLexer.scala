@@ -15,7 +15,7 @@ import java.io._
 import org.antlr.v4.runtime.{CharStreams, Token => AntlrToken}
 import org.argus.jawa.compiler.Antlr4PilarLexer
 import org.argus.jawa.core.Reporter
-import org.argus.jawa.core.io.{FgSourceFile, NoFile, RangePosition, SourceFile}
+import org.argus.jawa.core.io.{FgSourceFile, RangePosition, SourceFile, StringFile}
 
 class JawaLexer(aplexer: Antlr4PilarLexer, file: SourceFile, reporter: Reporter) extends Iterator[Token] {
   val sourceFile: SourceFile = file
@@ -237,7 +237,10 @@ object JawaLexer {
     val input = CharStreams.fromReader(reader)
     val aplexer = new Antlr4PilarLexer(input)
     val file: SourceFile = source match {
-      case Left(_) => new FgSourceFile(NoFile)
+      case Left(c) =>
+        val sf = new FgSourceFile(new StringFile(c))
+        sf.code
+        sf
       case Right(f) => f
     }
     makeRawLexer(aplexer, file, reporter)

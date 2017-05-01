@@ -40,7 +40,9 @@ class IntentInjectionSourceAndSinkManager(sasFilePath: String) extends AndroidSo
     sinkFlag
   }
 
-  override def isIccSource(apk: ApkGlobal, entNode: ICFGNode, iddgEntNode: ICFGNode): Boolean = {
-    entNode == iddgEntNode
+  override def isIccSource(apk: ApkGlobal, entNode: ICFGNode): Boolean = {
+    apk.model.getEnvMap.exists{
+      case (_, v) => entNode.getOwner == v._1
+    }
   }
 }

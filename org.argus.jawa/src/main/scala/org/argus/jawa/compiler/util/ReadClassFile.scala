@@ -35,7 +35,6 @@ object ReadClassFile {
   
   def read(file: File): Unit = {
     val bytecodes = IOUtils.toByteArray(new FileInputStream(file))
-    val ccl: CustomClassLoader = new CustomClassLoader()
     val pw = new PrintWriter(System.out)
     JavaByteCodeGenerator.outputByteCodes(pw, bytecodes)
   }

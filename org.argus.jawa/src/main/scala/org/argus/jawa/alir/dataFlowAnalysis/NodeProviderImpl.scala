@@ -176,7 +176,7 @@ class InterNodeProvider[LatticeElement](icfg: InterProceduralControlFlowGraph[IC
   * Theoretically the algorithm should converge if it's implemented correctly, but just in case.
   */
 class ConvergeEnsurer[N] {
-  private val limit: Int = 30
+  private val limit: Int = 10
   private val usageMap: MMap[N, Int] = mmapEmpty
   private val nonConvergeNodes: MSet[N] = msetEmpty
   def checkNode(n: N): Boolean = {

@@ -25,14 +25,11 @@ import org.jf.dexlib2.dexbacked.{DexBackedCatchAllExceptionHandler, DexBackedCla
 import org.stringtemplate.v4.{ST, STGroupString}
 
 /**
- * Be aware that if you using this listener, the record code will not write to file automatically.
- * Basically the idea is you should handle that by yourself.
- * 
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
  */
 trait JawaStyleCodeGeneratorListener {
   def onRecordGenerated(recType: JawaType, code: String, outputUri: Option[FileResourceUri]): Unit = {}
-  def onProcedureGenerated(sig: Signature): Unit = {}
+  def onProcedureGenerated(sig: Signature, accessFlag: Int): Unit = {}
   def onInstructionGenerated(round: Int): Unit = {}
   def onGenerateEnd(recordCount: Int, errorOccupied: Boolean): Unit = {}
 }
@@ -60,6 +57,21 @@ object JawaStyleCodeGenerator {
       case Some(_) => outputStream.close()
       case _ =>
     }
+  }
+
+  def generateAnnotation(flag: String, value: String, template: STGroupString): ST = {
+    val annot = template.getInstanceOf("Annotation")
+    annot.add("flag", flag)
+    annot.add("value", value)
+  }
+
+  def generateType(typ: JawaType, template: STGroupString): ST = {
+    val typTemplate = template.getInstanceOf("Type")
+    typTemplate.add("baseTyp", typ.baseTyp)
+    val dimensions: util.ArrayList[String] = new util.ArrayList[String]
+    for(_ <- 0 until typ.dimensions) dimensions.add("[]")
+    typTemplate.add("dimensions", dimensions)
+    typTemplate
   }
 }
 
@@ -206,21 +218,6 @@ class JawaStyleCodeGenerator(ddFile: DexBackedDexFile, outputUri: Option[FileRes
           e.printStackTrace()
         None
     }
-  }
-
-  private def generateAnnotation(flag: String, value: String, template: STGroupString): ST = {
-    val annot = template.getInstanceOf("Annotation")
-    annot.add("flag", flag)
-    annot.add("value", value)
-  }
-
-  def generateType(typ: JawaType, template: STGroupString): ST = {
-    val typTemplate = template.getInstanceOf("Type")
-    typTemplate.add("baseTyp", typ.baseTyp)
-    val dimensions: util.ArrayList[String] = new util.ArrayList[String]
-    for(_ <- 0 until typ.dimensions) dimensions.add("[]")
-    typTemplate.add("dimensions", dimensions)
-    typTemplate
   }
 
   private def generateRecord(dexClass: DexBackedClassDef, recTyp: JawaType, listener: Option[JawaStyleCodeGeneratorListener], genBody: Boolean, template: STGroupString): String = {
@@ -370,8 +367,8 @@ class JawaStyleCodeGenerator(ddFile: DexBackedDexFile, outputUri: Option[FileRes
         val paramAnnotations = new util.ArrayList[ST]
         if(!JavaKnowledge.isJavaPrimitive(paramTyp)) {
           paramAnnotations.add(generateAnnotation("kind", "object", template))
-          if(paramName != null) paramAnnotations.add(generateAnnotation("name", "`" + paramName + "`", template))
         }
+        if(paramName != null) paramAnnotations.add(generateAnnotation("name", "`" + paramName + "`", template))
         paramTemplate.add("annotations", paramAnnotations)
         params.add(paramTemplate)
     }
@@ -390,7 +387,7 @@ class JawaStyleCodeGenerator(ddFile: DexBackedDexFile, outputUri: Option[FileRes
     } else {
       procTemplate.add("body", "#. return;")
     }
-    if(listener.isDefined) listener.get.onProcedureGenerated(sig)
+    if(listener.isDefined) listener.get.onProcedureGenerated(sig, accessFlagInt)
     procTemplate
   }
 

@@ -81,7 +81,7 @@ class OAuthSourceAndSinkManager(sasFilePath: String) extends AndroidSourceAndSin
     sinkflag
   }
 
-	def isIccSource(apk: ApkGlobal, entNode: ICFGNode, iddgEntNode: ICFGNode): Boolean = {
+	def isIccSource(apk: ApkGlobal, entNode: ICFGNode): Boolean = {
 	  false
 	}
 	

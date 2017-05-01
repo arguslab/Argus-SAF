@@ -111,7 +111,7 @@ class ClassHierarchy(reporter: Reporter) extends JavaKnowledge {
   /**
    * return a set of all super-classes of r
    */
-  def getAllSuperClassesOf(r: JawaType): Set[JawaType] = {
+  def getAllSuperClassesOf(r: JawaType): ISet[JawaType] = {
     var rl = r
     val l: MSet[JawaType] = msetEmpty
     while(classToSuperClass.contains(rl)){
@@ -131,7 +131,7 @@ class ClassHierarchy(reporter: Reporter) extends JavaKnowledge {
   /**
    * return a set of all sub-interfaces of r
    */
-  def getAllSubInterfacesOf(r: JawaType): Set[JawaType] = {
+  def getAllSubInterfacesOf(r: JawaType): ISet[JawaType] = {
     this.interfaceToAllSubInterfaces.get(r) match{
       case Some(classes) => classes.toSet //if already cached return the value
       case None =>
@@ -145,32 +145,16 @@ class ClassHierarchy(reporter: Reporter) extends JavaKnowledge {
   }
 
   /**
-   * return a set of all super-interfaces of r, including itself
-   */
-//  def getAllSuperInterfacesOfIncluding(r: JawaType): Set[JawaType] = {
-//    getAllSuperInterfacesOf(r) + r
-//  }
-
-  /**
-   * return a set of all super-interfaces of r
-   */
-//  def getAllSuperInterfacesOf(r: JawaType): Set[JawaType] = {
-//    val ins = r.getInterfaces
-//      ins.map{getAllSuperInterfacesOf}.fold(isetEmpty)(_ ++ _) ++ ins
-//    }
-//  }
-
-  /**
    * return a set of sub-classes of r, including itself
    */
-  def getSubClassesOfIncluding(r: JawaType): Set[JawaType] = {
+  def getSubClassesOfIncluding(r: JawaType): ISet[JawaType] = {
     getSubClassesOf(r) + r
   }
 
   /**
    * return a set of sub-classes of r
    */
-  def getSubClassesOf(r: JawaType): Set[JawaType] = {
+  def getSubClassesOf(r: JawaType): ISet[JawaType] = {
     this.classToSubClasses.getOrElse(r, msetEmpty).toSet
   }
 
@@ -192,13 +176,6 @@ class ClassHierarchy(reporter: Reporter) extends JavaKnowledge {
   def getSubInterfacesOf(r: JawaType): ISet[JawaType] = {
     this.interfaceToSubInterfaces.getOrElse(r, msetEmpty).toSet
   }
-
-  /**
-   * return a set of all super-interfaces of r
-   */
-//  def getSuperInterfacesOf(r: JawaType): ISet[JawaType] = {
-//    r.getInterfaces
-//  }
 
   /**
    * get all implementers of r

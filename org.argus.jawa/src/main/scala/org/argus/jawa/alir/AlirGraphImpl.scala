@@ -26,11 +26,11 @@ import org.jgrapht.graph._
 trait AlirGraphImpl[N <: AlirNode] extends AlirGraph[N] {
   self =>
 
-  protected val graph = new DirectedPseudograph(
-    new EdgeFactory[N, Edge] {
-      def createEdge(source : N, target : N) =
-        new AlirEdge(self, source, target)
-    })
+  private val factory = new EdgeFactory[N, Edge] {
+    def createEdge(source : N, target : N) =
+      new AlirEdge(self, source, target)
+  }
+  protected val graph = new DirectedPseudograph(factory)
 
   val pl: MMap[AlirNode, N] = cmapEmpty
 

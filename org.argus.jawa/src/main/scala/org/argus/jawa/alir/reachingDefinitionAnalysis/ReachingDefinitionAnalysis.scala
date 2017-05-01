@@ -69,7 +69,7 @@ object ReachingDefinitionAnalysis {
 
   protected class Gen(defRef: DefRef)
       extends MonotonicFunction[N, RDFact] {
-    def apply(s: ISet[RDFact], a: Assignment, currentNode: N): ISet[RDFact] = {
+    private def handleAssignment(s: ISet[RDFact], a: Assignment, currentNode: N): ISet[RDFact] = {
       val ldd = LLocDefDesc(currentNode.asInstanceOf[CFGLocationNode].locUri, currentNode.asInstanceOf[CFGLocationNode].locIndex)
       a match {
         case j: CallStatement =>
@@ -91,26 +91,29 @@ object ReachingDefinitionAnalysis {
           defRef.definitions(a).map { d => (d, ldd) }
       }
     }
-
-    def apply(s: ISet[RDFact], e: Expression, currentNode: N): ISet[RDFact] = isetEmpty
-    def apply(s: ISet[RDFact], e: Statement, currentNode: N): ISet[RDFact] = isetEmpty
+    def apply(s: ISet[RDFact], e: Statement, currentNode: N): ISet[RDFact] = {
+      e match {
+        case a: Assignment => handleAssignment(s, a, currentNode)
+        case _ => isetEmpty
+      }
+    }
   }
 
   protected class Kill(defRef: DefRef)
       extends MonotonicFunction[N, RDFact] {
-    
-    def apply(s: ISet[RDFact], a: Assignment, currentNode: N): ISet[RDFact] = {
-      val strongDefs = defRef.strongDefinitions(a)
-      var result = s
-      for (rdf @ (slot, _) <- s) {
-        if (strongDefs.contains(slot)) {
-          result = result - rdf
-        }
+    def apply(s: ISet[RDFact], e: Statement, currentNode: N): ISet[RDFact] = {
+      e match {
+        case a: Assignment =>
+          val strongDefs = defRef.strongDefinitions(a)
+          var result = s
+          for (rdf @ (slot, _) <- s) {
+            if (strongDefs.contains(slot)) {
+              result = result - rdf
+            }
+          }
+          result
+        case _ => s
       }
-      result
     }
-
-    def apply(s: ISet[RDFact], e: Expression, currentNode: N): ISet[RDFact] = s
-    def apply(s: ISet[RDFact], e: Statement, currentNode: N): ISet[RDFact] = s
   }
 }

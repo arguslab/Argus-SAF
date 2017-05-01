@@ -68,6 +68,10 @@ object NoSourceFile extends SourceFile {
 
 object NoFile extends VirtualFile("<no file>", "<no file>")
 
+class StringFile(code: String) extends  VirtualFile("<String>", "<String>") {
+  content = code.getBytes()
+}
+
 class FgSourceFile(val file: AbstractFile) extends SourceFile {
   def this(sourceName: String)   = this(new VirtualFile(sourceName))
 

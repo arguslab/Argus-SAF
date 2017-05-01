@@ -101,7 +101,7 @@ abstract class AndroidSourceAndSinkManager(val sasFilePath: String) extends Sour
           }
         }
       case entNode: ICFGEntryNode =>
-        if(this.isIccSource(apk, entNode, entNode)){
+        if(this.isIccSource(apk, entNode)){
           apk.reporter.echo(TITLE, "found icc source: " + entNode)
           val tn = TaintSource(gNode, TagTaintDescriptor(entNode.getOwner.signature, isetEmpty, SourceAndSinkCategory.ICC_SOURCE, Set("ICC")))
           sources += tn
@@ -167,7 +167,7 @@ abstract class AndroidSourceAndSinkManager(val sasFilePath: String) extends Sour
           }
         }
       case entNode: IDDGEntryParamNode =>
-        if(this.isIccSource(apk, entNode.getICFGNode, entNode.getICFGNode)){
+        if(this.isIccSource(apk, entNode.getICFGNode)){
           apk.reporter.echo(TITLE, "found icc source: " + entNode)
           val tn = TaintSource(gNode, TypeTaintDescriptor(entNode.getOwner.signature, None, SourceAndSinkCategory.ICC_SOURCE))
           sources += tn
@@ -228,7 +228,7 @@ abstract class AndroidSourceAndSinkManager(val sasFilePath: String) extends Sour
   def isCallbackSource(apk: ApkGlobal, sig: Signature, pos: Int): Boolean = false
   def isUISource(apk: ApkGlobal, calleeSig: Signature, callerSig: Signature, callerLoc: Location): Boolean = false
   def isIccSink(apk: ApkGlobal, invNode: ICFGInvokeNode, s: PTAResult): Boolean
-  def isIccSource(apk: ApkGlobal, entNode: ICFGNode, iddgEntNode: ICFGNode): Boolean
+  def isIccSource(apk: ApkGlobal, entNode: ICFGNode): Boolean
 
   def getSourceSigs: ISet[Signature] = this.sources.keySet.toSet
   def getSinkSigs: ISet[Signature] = this.sinks.keySet.toSet
@@ -291,7 +291,7 @@ class DefaultAndroidSourceAndSinkManager(sasFilePath: String) extends AndroidSou
     sinkflag
   }
   
-  def isIccSource(apk: ApkGlobal, entNode: ICFGNode, iddgEntNode: ICFGNode): Boolean = false
+  def isIccSource(apk: ApkGlobal, entNode: ICFGNode): Boolean = false
 }
 
 /**

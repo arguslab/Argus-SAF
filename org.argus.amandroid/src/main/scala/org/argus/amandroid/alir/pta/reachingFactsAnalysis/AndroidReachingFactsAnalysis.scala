@@ -179,7 +179,7 @@ class AndroidReachingFactsAnalysisBuilder(apk: ApkGlobal, clm: ClassLoadManager,
 
   class Gen extends MonotonicFunction[Node, RFAFact] {
     
-    def apply(s: ISet[RFAFact], a: Assignment, currentNode: Node): ISet[RFAFact] = {
+    private def handleAssignmentStatement(s: ISet[RFAFact], a: AssignmentStatement, currentNode: Node): ISet[RFAFact] = {
       val typ = a match {
         case as: AssignmentStatement => as.typOpt
         case _ => None
@@ -208,16 +208,14 @@ class AndroidReachingFactsAnalysisBuilder(apk: ApkGlobal, clm: ClassLoadManager,
           ptaresult.removeInstance(f.s, c, f.v)
       }
       needtoremove.clear
-      result.foreach{
-        f =>
-          ptaresult.addInstance(f.s, currentNode.getContext, f.v)
-      }
       result
     }
 
     def apply(s: ISet[RFAFact], e: Statement, currentNode: Node): ISet[RFAFact] = {
       var result: ISet[RFAFact] = isetEmpty
       e match{
+        case as: AssignmentStatement =>
+          result ++= handleAssignmentStatement(s, as, currentNode)
         case ta: ThrowStatement =>
           val slot = VarSlot(ta.varSymbol.varName, isBase = false, isArg = false)
           val value = s.filter(_.s == slot).map(_.v)
@@ -229,14 +227,12 @@ class AndroidReachingFactsAnalysisBuilder(apk: ApkGlobal, clm: ClassLoadManager,
       }
       result
     }
-
-    def apply(s: ISet[RFAFact], e: Expression, currentNode: Node): ISet[RFAFact] = isetEmpty
   }
 
   class Kill
       extends MonotonicFunction[Node, RFAFact] {
     
-    def apply(s: ISet[RFAFact], a: Assignment, currentNode: Node): ISet[RFAFact] = {
+    private def handleAssignmentStatement(s: ISet[RFAFact], a: AssignmentStatement, currentNode: Node): ISet[RFAFact] = {
       val typ = a match {
         case as: AssignmentStatement => as.typOpt
         case _ => None
@@ -261,11 +257,11 @@ class AndroidReachingFactsAnalysisBuilder(apk: ApkGlobal, clm: ClassLoadManager,
       result
     }
 
-    def apply(s: ISet[RFAFact], e: Statement, currentNode: Node): ISet[RFAFact] = s
-
-    def apply(s: ISet[RFAFact], e: Expression, currentNode: Node): ISet[RFAFact] = {
-      ReachingFactsAnalysisHelper.updatePTAResultExp(e, None, currentNode.getContext, s, ptaresult, apk)
-      s
+    def apply(s: ISet[RFAFact], e: Statement, currentNode: Node): ISet[RFAFact] = {
+      e match {
+        case as: AssignmentStatement => handleAssignmentStatement(s, as, currentNode)
+        case _ => s
+      }
     }
   }
   

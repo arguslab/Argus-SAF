@@ -32,29 +32,50 @@ trait JawaClasspathManager extends JavaKnowledge { self: Global =>
     */
   def load(fileRootUri: FileResourceUri, ext: String, summary: LibraryAPISummary): Unit = {
     val fileUris = FileUtil.listFiles(fileRootUri, ext, recursive = true)
-    fileUris.foreach{
-      fileUri =>
-        val source = new FgSourceFile(new PlainFile(FileUtil.toFile(fileUri)))
-        val codes = source.getClassCodes
-        val classTypes: MSet[JawaType] = msetEmpty
-        codes.foreach{
-          code =>
-            try {
-              val className = LightWeightPilarParser.getClassName(code)
-              classTypes += JavaKnowledge.getTypeFromJawaName(className)
-            } catch {
-              case ie: InterruptedException => throw ie
-              case e: Exception => reporter.warning(TITLE, e.getMessage)
-            }
+    fileUris.foreach{ fileUri =>
+      load(fileUri, summary)
+    }
+  }
+
+  /**
+    * load code from given file
+    */
+  def load(fileUri: FileResourceUri, summary: LibraryAPISummary): Unit = {
+    val source = new FgSourceFile(new PlainFile(FileUtil.toFile(fileUri)))
+    val codes = source.getClassCodes
+    val classTypes: MSet[JawaType] = msetEmpty
+    codes.foreach{ code =>
+      try {
+        val className = LightWeightPilarParser.getClassName(code)
+        classTypes += JavaKnowledge.getTypeFromJawaName(className)
+      } catch {
+        case e: Exception => reporter.warning(TITLE, e.getMessage)
+      }
+    }
+    classTypes.foreach { typ =>
+      if (summary.isLibraryClass(typ)) {
+        this.userLibraryClassCodes(typ) = source
+      } else {
+        this.applicationClassCodes(typ) = source
+      }
+    }
+  }
+
+  /**
+    * load code from given string
+    */
+  def load(codes: IMap[JawaType, String], summary: LibraryAPISummary): Unit = {
+    codes.foreach { case (typ, code) =>
+      try {
+        val source = new FgSourceFile(new StringFile(code))
+        if (summary.isLibraryClass(typ)) {
+          this.userLibraryClassCodes(typ) = source
+        } else {
+          this.applicationClassCodes(typ) = source
         }
-        classTypes.foreach {
-          typ =>
-            if (summary.isLibraryClass(typ)) {
-              this.userLibraryClassCodes(typ) = source
-            } else {
-              this.applicationClassCodes(typ) = source
-            }
-        }
+      } catch {
+        case e: Exception => reporter.warning(TITLE, e.getMessage)
+      }
     }
   }
   

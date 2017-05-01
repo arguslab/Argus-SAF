@@ -51,7 +51,7 @@ class JawaParser(tokens: Array[Token], reporter: Reporter) extends JavaKnowledge
     val dclToken: Token = accept(CLASS_OR_INTERFACE)
     val cityp: TypeDefSymbol = typeDefSymbol()
     val annotations_ : IList[Annotation] = annotations()
-    val extendsAndImplimentsClausesOpt_ : Option[ExtendsAndImplimentsClauses] = extendsAndImplimentsClausesOpt()
+    val extendsAndImplimentsClausesOpt_ : Option[ExtendsAndImplementsClauses] = extendsAndImplimentsClausesOpt()
     val instanceFieldDeclarationBlock_ : InstanceFieldDeclarationBlock = instanceFieldDeclarationBlock()
     val staticFields: IList[StaticFieldDeclaration] = staticFieldDeclarations()
     val methods: IList[MethodDeclaration] = methodDeclarations(resolveBody)
@@ -151,13 +151,13 @@ class JawaParser(tokens: Array[Token], reporter: Reporter) extends JavaKnowledge
     LocationSymbol(id)
   }
   
-  private def extendsAndImplimentsClausesOpt(): Option[ExtendsAndImplimentsClauses] = {
+  private def extendsAndImplimentsClausesOpt(): Option[ExtendsAndImplementsClauses] = {
     currentTokenType match {
       case EXTENDS_AND_IMPLEMENTS =>
         val extendsAndImplementsToken: Token = accept(EXTENDS_AND_IMPLEMENTS)
-        val parents: MList[(ExtendAndImpliment, Option[Token])] = mlistEmpty
+        val parents: MList[(ExtendAndImplement, Option[Token])] = mlistEmpty
         def loop() {
-          val parent : ExtendAndImpliment = extendAndImpliment()
+          val parent : ExtendAndImplement = extendAndImpliment()
           currentTokenType match {
             case COMMA =>
               val comma: Token = nextToken()
@@ -168,16 +168,16 @@ class JawaParser(tokens: Array[Token], reporter: Reporter) extends JavaKnowledge
           }
         }
         loop()
-        val eic = ExtendsAndImplimentsClauses(extendsAndImplementsToken, parents.toList)
+        val eic = ExtendsAndImplementsClauses(extendsAndImplementsToken, parents.toList)
         Some(eic)
       case _ => None
     }
   }
   
-  private def extendAndImpliment(): ExtendAndImpliment = {
+  private def extendAndImpliment(): ExtendAndImplement = {
     val parenttyp: TypeSymbol = typeSymbol()
     val annotations_ : IList[Annotation] = annotations()
-    ExtendAndImpliment(parenttyp, annotations_)
+    ExtendAndImplement(parenttyp, annotations_)
   }
   
   private def instanceFieldDeclarationBlock(): InstanceFieldDeclarationBlock = {
@@ -293,6 +293,17 @@ class JawaParser(tokens: Array[Token], reporter: Reporter) extends JavaKnowledge
       val rbrace: Token = accept(RBRACE)
       val rb = ResolvedBody(lbrace, locals, locations_, catchClauses_, rbrace)
       val locationSymbols: MSet[LocationSymbol] = msetEmpty
+      rb.catchClauses.foreach { cc =>
+        locationSymbols += cc.range.fromLocation
+        locationSymbols += cc.range.toLocation
+        locationSymbols += cc.targetLocation
+      }
+      locationSymbols.foreach { ls =>
+        rb.locations.find(l => l.locationUri == ls.location) foreach { l =>
+          ls.locationIndex = l.locationIndex
+        }
+      }
+      locationSymbols.clear()
       rb.locations foreach { l =>
         l.statement match {
           case is: IfStatement => locationSymbols += is.targetLocation
@@ -304,13 +315,18 @@ class JawaParser(tokens: Array[Token], reporter: Reporter) extends JavaKnowledge
             ss.defaultCaseOpt.foreach { ss_def =>
               locationSymbols += ss_def.targetLocation
             }
+          case as: AssignmentStatement =>
+            as.rhs match {
+              case e: ExceptionExpression =>
+                rb.catchClauses.find(_.targetLocation.locationIndex == l.locationIndex) match {
+                  case Some(cc) =>
+                    e.typ = cc.typ.typ
+                  case None => throw new JawaParserException(l.pos, "ExceptionExpression should have corresponding CatchClause: " + l.toCode)
+                }
+              case _ =>
+            }
           case _ =>
         }
-      }
-      rb.catchClauses.foreach { cc =>
-        locationSymbols += cc.range.fromLocation
-        locationSymbols += cc.range.toLocation
-        locationSymbols += cc.targetLocation
       }
       locationSymbols.foreach { ls =>
         rb.locations.find(l => l.locationUri == ls.location) foreach { l =>
@@ -653,7 +669,7 @@ class JawaParser(tokens: Array[Token], reporter: Reporter) extends JavaKnowledge
       currentTokenType match {
         case LBRACKET =>
           val lbracket: Token = nextToken()
-          val index: Either[VarSymbol, Token] = getVarOrLit
+          val index: Either[VarSymbol, LiteralExpression] = getVarOrLit
           val rbracket: Token = accept(RBRACKET)
           val is = IndexingSuffix(lbracket, index, rbracket)
           indices += is
@@ -675,10 +691,10 @@ class JawaParser(tokens: Array[Token], reporter: Reporter) extends JavaKnowledge
   
   private def tupleExpression(): TupleExpression = {
     val lparen: Token = accept(LPAREN)
-    val constants: MList[(Token, Option[Token])] = mlistEmpty
+    val constants: MList[(LiteralExpression, Option[Token])] = mlistEmpty
     while(currentTokenType != RPAREN) {
       if(!isLiteral) throw new JawaParserException(currentToken.pos, "expected literal but found " + currentToken)
-      val cons: Token = nextToken()
+      val cons: LiteralExpression = literalExpression()
       val commaOpt: Option[Token] = 
         currentTokenType match {
           case COMMA => Some(nextToken())
@@ -728,10 +744,20 @@ class JawaParser(tokens: Array[Token], reporter: Reporter) extends JavaKnowledge
     val le = LiteralExpression(constant)
     le
   }
-  
-  private def getVarOrLit: Either[VarSymbol, Token] = {
+
+  private def getVarOrLitOrNull: Either[VarSymbol, Either[LiteralExpression,NullExpression]] = {
     currentTokenType match {
-      case x if isLiteralToken(x) => Right(nextToken())
+      case x if isLiteralToken(x) =>
+        if(x == NULL) {
+          Right(Right(nullExpression()))
+        } else Right(Left(literalExpression()))
+      case _ => Left(varSymbol())
+    }
+  }
+  
+  private def getVarOrLit: Either[VarSymbol, LiteralExpression] = {
+    currentTokenType match {
+      case x if isLiteralToken(x) => Right(literalExpression())
       case _ => Left(varSymbol())
     }
   }
@@ -755,7 +781,7 @@ class JawaParser(tokens: Array[Token], reporter: Reporter) extends JavaKnowledge
        currentTokenType != FLOATING_POINT_LITERAL &&
        currentTokenType != NULL)
       throw new JawaParserException(currentToken.pos, "expected 'ID' or 'INTEGER_LITERAL' or 'FLOATING_POINT_LITERAL' or 'NULL' but " + currentToken + " found")
-    val right: Either[VarSymbol, Token] = getVarOrLit
+    val right: Either[VarSymbol, Either[LiteralExpression, NullExpression]] = getVarOrLitOrNull
     val be = BinaryExpression(left, op, right)
     be
   }

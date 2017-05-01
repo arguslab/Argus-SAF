@@ -1,0 +1,16 @@
+record `com.fgwei.ArrayAccess2`  @kind class @AccessFlag PUBLIC {
+   }
+    procedure `java.lang.String` `com.fgwei.ArrayAccess2.main` () @owner ^`com.fgwei.ArrayAccess2` @signature `Lcom/fgwei/ArrayAccess2;.main:()Ljava/lang/String;` @AccessFlag PUBLIC_STATIC {
+      v1;
+      v3;
+      v4;
+      
+#L026e4c.   v1:= 3I;
+#L026e4e.   v1:= new `java.lang.String`[v1];
+#L026e5a.   v3:= 0I;
+#L026e5c.   v4:= "element 1 is tainted:" @kind object;
+#L026e60.   v1[v3]:= v4  @kind object;
+#L026ea2.   v3:= v1[v3]  @kind object;
+#L026eb0.   return v3 @kind object;
+
+   }
