@@ -100,7 +100,7 @@ object AppInfoCollector {
                     if(callbackClass.declaresMethodByName(methodName))
                       callbackMethod ++= callbackClass.getDeclaredMethodsByName(methodName).map(_.getSignature)
                     if(callbackClass.hasSuperClass)
-                      callbackClass = analysisHelper.global.getClassOrResolve(callbackClass.getSuperClass)
+                      callbackClass = callbackClass.getSuperClass
                     else break
                   }
                 }
@@ -185,16 +185,19 @@ object AppInfoCollector {
   private def getRpcMethods(apk: ApkGlobal, comp: JawaClass, ra: ReachableInfoCollector): IMap[Signature, Boolean] = {
     val global = comp.global
     val methods = ra.getReachableMap.getOrElse(comp.getType, isetEmpty)
-    val iinterfaceImpls = global.getClassHierarchy.getAllImplementersOf(new JawaType("android.os.IInterface"))
+    val iinterface = global.getClassOrResolve(new JawaType("android.os.IInterface"))
+    val iinterfaceImpls = global.getClassHierarchy.getAllImplementersOf(iinterface)
+    val handler = global.getClassOrResolve(new JawaType("android.os.Handler"))
     val result: MMap[Signature, Boolean] = mmapEmpty
     methods.foreach { method =>
+      val clazz = global.getClassOrResolve(method.classTyp)
       /* This is the remote service case. */
-      if(iinterfaceImpls.contains(method.classTyp)) {
-        result ++= global.getClassOrResolve(method.classTyp).getMethods.filter(m => m.getDeclaringClass.isApplicationClass && !m.isConstructor && !m.isStatic).map(_.getSignature -> true)
+      if(iinterfaceImpls.contains(clazz)) {
+        result ++= clazz.getMethods.filter(m => m.getDeclaringClass.isApplicationClass && !m.isConstructor && !m.isStatic).map(_.getSignature -> true)
       }
       /* This is the messenger service case. */
-      if(global.getClassHierarchy.isClassRecursivelySubClassOf(method.classTyp, new JawaType("android.os.Handler"))) {
-        result ++= global.getClassOrResolve(method.classTyp).getMethod("handleMessage:(Landroid/os/Message;)V").map(_.getSignature -> true)
+      if(global.getClassHierarchy.isClassRecursivelySubClassOf(clazz, handler)) {
+        result ++= clazz.getMethod("handleMessage:(Landroid/os/Message;)V").map(_.getSignature -> true)
       }
     }
     /* This is the local service case. */
@@ -223,8 +226,10 @@ object AppInfoCollector {
     callbacks foreach {
       case (typ, sigs) => apk.model.addCallbackMethods(typ, sigs)
     }
+    val asyncTask = apk.getClassOrResolve(new JawaType("android.os.AsyncTask"))
     ra.getReachableMap.flatMap(_._2).map(_.classTyp).filter{ typ =>
-      apk.getClassHierarchy.isClassRecursivelySubClassOf(typ, new JawaType("android.os.AsyncTask"))
+      val clazz = apk.getClassOrResolve(typ)
+      apk.getClassHierarchy.isClassRecursivelySubClassOf(clazz, asyncTask)
     }.foreach { typ =>
       generateAsyncTask(apk, typ)
     }

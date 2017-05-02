@@ -22,23 +22,7 @@ import org.argus.jawa.core.util.FileUtil
 class DedexTest extends FlatSpec with Matchers {
 
   val recordFilter: (JawaType => Boolean) = { ot =>
-    if(ot.name.startsWith("android.support.v4")){
-      false
-    } else if (ot.name.startsWith("android.support.v13")) {
-      false
-    } else if (ot.name.startsWith("android.support.v7")){
-      false
-    } else if (ot.name.startsWith("android.support.design")) {
-      false
-    } else if (ot.name.startsWith("android.support.annotation")) {
-      false
-    } else if(ot.name.endsWith(".BuildConfig") ||
-      ot.name.endsWith(".Manifest") ||
-      ot.name.contains(".Manifest$") ||
-      ot.name.endsWith(".R") ||
-      ot.name.contains(".R$")) {
-      false
-    } else true
+    true
   }
 
   "Dedex data.dex" should "produce expected code" in {

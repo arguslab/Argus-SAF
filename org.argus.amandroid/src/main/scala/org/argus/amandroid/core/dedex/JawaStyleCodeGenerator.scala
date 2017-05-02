@@ -37,7 +37,7 @@ trait JawaStyleCodeGeneratorListener {
 object JawaStyleCodeGenerator {
   def outputCode(recType: JawaType, code: String, outputUri: Option[FileResourceUri]): Unit = {
     val classPath = recType.jawaName.replaceAll("\\.", "/")
-    val outputStream = outputUri match {
+    outputUri match {
       case Some(od) =>
         var targetFile = FileUtil.toFile(FileUtil.appendFileName(od, classPath + ".jawa"))
         var i = 0
@@ -48,14 +48,13 @@ object JawaStyleCodeGenerator {
         val parent = targetFile.getParentFile
         if(parent != null)
           parent.mkdirs()
-        new PrintStream(targetFile)
+        val outputStream = new PrintStream(targetFile)
+        try {
+          outputStream.println(code)
+        } finally {
+          outputStream.close()
+        }
       case None =>
-        new PrintStream(System.out)
-    }
-    outputStream.println(code)
-    outputUri match {
-      case Some(_) => outputStream.close()
-      case _ =>
     }
   }
 
@@ -385,7 +384,7 @@ class JawaStyleCodeGenerator(ddFile: DexBackedDexFile, outputUri: Option[FileRes
       procTemplate.add("body", body)
       procTemplate.add("catchClauses", tryCatch)
     } else {
-      procTemplate.add("body", "#. return;")
+      procTemplate.add("body", "# return;")
     }
     if(listener.isDefined) listener.get.onProcedureGenerated(sig, accessFlagInt)
     procTemplate

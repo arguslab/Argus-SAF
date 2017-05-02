@@ -28,7 +28,12 @@ class MyCUVisitor {
     cu.topDecls foreach { cd =>
       val typ = cd.typ
       val accessFlag = AccessFlag.getAccessFlags(cd.accessModifier)
-      val superType = cd.superClassOpt
+      val superType = cd.superClassOpt match {
+        case Some(a) => Some(a)
+        case None =>
+          if(typ != JavaKnowledge.JAVA_TOPLEVEL_OBJECT_TYPE) Some(JavaKnowledge.JAVA_TOPLEVEL_OBJECT_TYPE)
+          else None
+      }
       val interfaces = cd.interfaces
       var outerType: Option[JawaType] = None
       if(JavaKnowledge.isInnerClass(typ)) outerType = Some(JavaKnowledge.getOuterTypeFrom(typ))

@@ -24,7 +24,7 @@ class ListModel extends ModelCall {
     if(p.getDeclaringClass.isApplicationClass) false
     else {
       val list = p.getDeclaringClass.global.getClassOrResolve(new JawaType(Constants.LIST))
-      p.getDeclaringClass.global.getClassHierarchy.getAllImplementersOf(list.getType).contains(p.getDeclaringClass.getType)
+      p.getDeclaringClass.global.getClassHierarchy.getAllImplementersOf(list).contains(p.getDeclaringClass)
     }
   }
     

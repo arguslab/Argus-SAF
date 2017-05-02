@@ -12,7 +12,6 @@ package org.argus.jawa.core
 
 import org.argus.jawa.compiler.parser.{CompilationUnit, JawaParser, MethodDeclaration}
 import org.argus.jawa.core.sourcefile.MyCUVisitor
-import org.argus.jawa.core.util.WorklistAlgorithm
 import org.argus.jawa.core.util._
 
 /**
@@ -53,13 +52,15 @@ trait JawaResolver extends JavaKnowledge { self: Global =>
         if(classType.baseType.unknown) {
           val baseCls = getClassOrResolve(classType.removeUnknown())
           if(baseCls.isInterface) {
-            rec.setSuperClass(JAVA_TOPLEVEL_OBJECT_TYPE)
-            rec.addInterface(baseCls.getType)
+            if(rec.getType != JAVA_TOPLEVEL_OBJECT_TYPE)
+              rec.setSuperClass(getClassOrResolve(JAVA_TOPLEVEL_OBJECT_TYPE))
+            rec.addInterface(baseCls)
           } else {
-            rec.setSuperClass(classType.removeUnknown())
+            rec.setSuperClass(baseCls)
           }
         } else {
-          rec.setSuperClass(JAVA_TOPLEVEL_OBJECT_TYPE)
+          if(rec.getType != JAVA_TOPLEVEL_OBJECT_TYPE)
+            rec.setSuperClass(getClassOrResolve(JAVA_TOPLEVEL_OBJECT_TYPE))
           reporter.echo(TITLE, "Add phantom class " + rec)
           addClassNotFound(classType)
         }
@@ -67,38 +68,10 @@ trait JawaResolver extends JavaKnowledge { self: Global =>
       } else {
         forceResolve(classType)
       }
-    if(!getClassHierarchy.resolved(clazz.getType)) {
-      resolveClassRelation(clazz)
+    if(!getClassHierarchy.resolved(clazz)) {
+      addClassesNeedUpdateInHierarchy(clazz)
     }
     clazz
-  }
-
-  /**
-    * resolve classes relation of the whole program
-    */
-  protected[core] def resolveClassRelation(clazz: JawaClass): Any = {
-    val worklistAlgo = new WorklistAlgorithm[JawaClass] {
-      override def processElement(clazz: JawaClass): Unit = {
-        addClassesNeedUpdateInHierarchy(clazz)
-        val parents = clazz.getInterfaces ++ Option(clazz.getSuperClass)
-        parents foreach { par =>
-          if(!getClassHierarchy.resolved(par)) {
-            getMyClass(par) match {
-              case Some(mc) =>
-                val parent = resolveFromMyClass(mc)
-                worklist = parent :: worklist
-              case None =>
-                val rec = new JawaClass(clazz.global, par, "")
-                rec.setUnknown()
-                rec.setSuperClass(JAVA_TOPLEVEL_OBJECT_TYPE)
-                addClassNotFound(par)
-                worklist = rec :: worklist
-            }
-          }
-        }
-      }
-    }
-    worklistAlgo.run(worklistAlgo.worklist = List(clazz))
   }
   
   /**
@@ -128,7 +101,7 @@ trait JawaResolver extends JavaKnowledge { self: Global =>
         if(baseaf.contains("FINAL")) baseaf else "FINAL_" + baseaf
       }
     val clazz: JawaClass = new JawaClass(this, typ, recAccessFlag)
-    clazz.setSuperClass(JAVA_TOPLEVEL_OBJECT_TYPE)
+    clazz.setSuperClass(getClassOrResolve(JAVA_TOPLEVEL_OBJECT_TYPE))
     new JawaField(clazz, "class", new JawaType("java.lang.Class"), "FINAL_STATIC")
     new JawaField(clazz, "length", new JawaType("int"), "FINAL")
     clazz
@@ -138,23 +111,20 @@ trait JawaResolver extends JavaKnowledge { self: Global =>
     val typ = mc.typ
     val accessFlag = mc.accessFlag
     val clazz: JawaClass = JawaClass(this, typ, accessFlag)
-    mc.fields foreach{
-      f =>
-        val fname = f.FQN.fieldName
-        val ftyp = f.FQN.typ
-        val faccessFlag = f.accessFlag
-        JawaField(clazz, fname, ftyp, faccessFlag)
+    mc.fields foreach{ f =>
+      val fname = f.FQN.fieldName
+      val ftyp = f.FQN.typ
+      val faccessFlag = f.accessFlag
+      JawaField(clazz, fname, ftyp, faccessFlag)
     }
-    mc.methods foreach {
-      m =>
-        resolveFromMyMethod(clazz, m)
+    mc.methods foreach { m =>
+      resolveFromMyMethod(clazz, m)
     }
     mc.superType match {
-      case Some(t) => clazz.setSuperClass(t)
+      case Some(t) => clazz.setSuperClass(getClassOrResolve(t))
       case None =>
-        if(!clazz.getName.equals(JAVA_TOPLEVEL_OBJECT)) clazz.setSuperClass(JAVA_TOPLEVEL_OBJECT_TYPE)
     }
-    mc.interfaces.foreach(clazz.addInterface)
+    mc.interfaces.foreach(i => clazz.addInterface(getClassOrResolve(i)))
     clazz
   }
   

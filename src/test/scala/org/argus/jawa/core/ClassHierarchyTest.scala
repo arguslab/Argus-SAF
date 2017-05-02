@@ -22,58 +22,63 @@ class ClassHierarchyTest extends FlatSpec with Matchers {
     val global = new Global("test", new NoReporter)
     global.setJavaLib(getClass.getResource("/libs/android.jar").getPath)
     global.getClassOrResolve(new JawaType("android.app.Activity"))
-    assert(global.getClassHierarchy.resolved(new JawaType("android.content.ContextWrapper")))
+    assert(global.getClassHierarchy.resolved(global.getClassOrResolve(new JawaType("android.content.ContextWrapper"))))
   }
 
   "Load android.app.Activity" should "let java.lang.Object getAllSubClassesOfIncluding have 5 results" in {
     val global = new Global("test", new NoReporter)
     global.setJavaLib(getClass.getResource("/libs/android.jar").getPath)
     global.getClassOrResolve(new JawaType("android.app.Activity"))
-    assert(global.getClassHierarchy.getAllSubClassesOfIncluding(new JawaType("java.lang.Object")).size == 5)
+    val Object = global.getClassOrResolve(JavaKnowledge.JAVA_TOPLEVEL_OBJECT_TYPE)
+    assert(global.getClassHierarchy.getAllSubClassesOfIncluding(Object).size == 5)
   }
 
   "Load android.app.Activity" should "let java.lang.Object getAllSubClassesOf have 4 subclasses" in {
     val global = new Global("test", new NoReporter)
     global.setJavaLib(getClass.getResource("/libs/android.jar").getPath)
     global.getClassOrResolve(new JawaType("android.app.Activity"))
-    assert(global.getClassHierarchy.getAllSubClassesOf(new JawaType("java.lang.Object")).size == 4)
+    val Object = global.getClassOrResolve(JavaKnowledge.JAVA_TOPLEVEL_OBJECT_TYPE)
+    assert(global.getClassHierarchy.getAllSubClassesOf(Object).size == 4)
   }
 
   "android.app.Activity" should "have 5 superclasses including itself" in {
     val global = new Global("test", new NoReporter)
     global.setJavaLib(getClass.getResource("/libs/android.jar").getPath)
-    global.getClassOrResolve(new JawaType("android.app.Activity"))
-    assert(global.getClassHierarchy.getAllSuperClassesOfIncluding(new JawaType("android.app.Activity")).size == 5)
+    val activity = global.getClassOrResolve(new JawaType("android.app.Activity"))
+    assert(global.getClassHierarchy.getAllSuperClassesOfIncluding(activity).size == 5)
   }
 
   "android.app.Activity" should "have 4 superclasses" in {
     val global = new Global("test", new NoReporter)
     global.setJavaLib(getClass.getResource("/libs/android.jar").getPath)
-    global.getClassOrResolve(new JawaType("android.app.Activity"))
-    assert(global.getClassHierarchy.getAllSuperClassesOf(new JawaType("android.app.Activity")).size == 4)
+    val activity = global.getClassOrResolve(new JawaType("android.app.Activity"))
+    assert(global.getClassHierarchy.getAllSuperClassesOf(activity).size == 4)
   }
 
-  "com.ksu.fieldFlowSentivity.MainActivity" should "have 5 superclasses" in {
+  "com.ksu.fieldFlowSentivity.MainActivity" should "have 5 superclasses and assignable to Activity" in {
     val srcUri = FileUtil.toUri(getClass.getResource("/test1").getPath)
     val global = new Global("test", new NoReporter)
     global.setJavaLib(getClass.getResource("/libs/android.jar").getPath)
     global.load(srcUri ,Constants.JAWA_FILE_EXT, DefaultLibraryAPISummary)
-    global.getClassOrResolve(new JawaType("com.ksu.fieldFlowSentivity.MainActivity"))
-    assert(global.getClassHierarchy.getAllSuperClassesOf(new JawaType("com.ksu.fieldFlowSentivity.MainActivity")).size == 5)
+    val mainActivity = global.getClassOrResolve(new JawaType("com.ksu.fieldFlowSentivity.MainActivity"))
+    val activity = global.getClassOrResolve(new JawaType("android.app.Activity"))
+    assert(global.getClassHierarchy.getAllSuperClassesOf(mainActivity).size == 5 && activity.isAssignableFrom(mainActivity))
   }
 
-  "Load android.nfc.tech.TagTechnology" should "let java.lang.AutoCloseable get 3 subinterface including itself" in {
+  "Load android.nfc.tech.TagTechnology" should "let java.lang.AutoCloseable get 3 subinterface including itself and assignable" in {
     val global = new Global("test", new NoReporter)
     global.setJavaLib(getClass.getResource("/libs/android.jar").getPath)
-    global.getClassOrResolve(new JawaType("android.nfc.tech.TagTechnology"))
-    assert(global.getClassHierarchy.getAllSubInterfacesOfIncluding(new JawaType("java.lang.AutoCloseable")).size == 3)
+    val tag = global.getClassOrResolve(new JawaType("android.nfc.tech.TagTechnology"))
+    val closeable = global.getClassOrResolve(new JawaType("java.lang.AutoCloseable"))
+    assert(global.getClassHierarchy.getAllSubInterfacesOfIncluding(closeable).size == 3 && closeable.isAssignableFrom(tag))
   }
 
   "Load android.nfc.tech.TagTechnology" should "let java.lang.AutoCloseable get 2 subinterface" in {
     val global = new Global("test", new NoReporter)
     global.setJavaLib(getClass.getResource("/libs/android.jar").getPath)
     global.getClassOrResolve(new JawaType("android.nfc.tech.TagTechnology"))
-    assert(global.getClassHierarchy.getAllSubInterfacesOf(new JawaType("java.lang.AutoCloseable")).size == 2)
+    val closeable = global.getClassOrResolve(new JawaType("java.lang.AutoCloseable"))
+    assert(global.getClassHierarchy.getAllSubInterfacesOf(closeable).size == 2)
   }
 
   "Load com.ksu.fieldFlowSentivity.MainActivity and com.ksu.fieldFlowSentivity.FooActivity" should "let android.app.Activity have 3 subclasses including itself" in {
@@ -83,7 +88,8 @@ class ClassHierarchyTest extends FlatSpec with Matchers {
     global.load(srcUri ,Constants.JAWA_FILE_EXT, DefaultLibraryAPISummary)
     global.getClassOrResolve(new JawaType("com.ksu.fieldFlowSentivity.MainActivity"))
     global.getClassOrResolve(new JawaType("com.ksu.fieldFlowSentivity.FooActivity"))
-    assert(global.getClassHierarchy.getSubClassesOfIncluding(new JawaType("android.app.Activity")).size == 3)
+    val activity = global.getClassOrResolve(new JawaType("android.app.Activity"))
+    assert(global.getClassHierarchy.getSubClassesOfIncluding(activity).size == 3)
   }
 
   "Load com.ksu.fieldFlowSentivity.MainActivity and com.ksu.fieldFlowSentivity.FooActivity" should "let android.app.Activity have 2 subclasses" in {
@@ -93,14 +99,16 @@ class ClassHierarchyTest extends FlatSpec with Matchers {
     global.load(srcUri ,Constants.JAWA_FILE_EXT, DefaultLibraryAPISummary)
     global.getClassOrResolve(new JawaType("com.ksu.fieldFlowSentivity.MainActivity"))
     global.getClassOrResolve(new JawaType("com.ksu.fieldFlowSentivity.FooActivity"))
-    assert(global.getClassHierarchy.getSubClassesOf(new JawaType("android.app.Activity")).size == 2)
+    val activity = global.getClassOrResolve(new JawaType("android.app.Activity"))
+    assert(global.getClassHierarchy.getSubClassesOf(activity).size == 2)
   }
 
   "Load android.nfc.tech.TagTechnology" should "let java.lang.AutoCloseable get subinterface java.io.Closeable" in {
     val global = new Global("test", new NoReporter)
     global.setJavaLib(getClass.getResource("/libs/android.jar").getPath)
     global.getClassOrResolve(new JawaType("android.nfc.tech.TagTechnology"))
-    assert(global.getClassHierarchy.getSubInterfacesOfIncluding(new JawaType("java.lang.AutoCloseable")).contains(new JawaType("java.io.Closeable")))
+    val closeable = global.getClassOrResolve(new JawaType("java.lang.AutoCloseable"))
+    assert(global.getClassHierarchy.getSubInterfacesOfIncluding(closeable).map(_.getType).contains(new JawaType("java.io.Closeable")))
   }
 
   "Load com.ksu.fieldFlowSentivity.MainActivity" should "let android.view.LayoutInflater$Factory get implementer android.app.Activity" in {
@@ -109,7 +117,8 @@ class ClassHierarchyTest extends FlatSpec with Matchers {
     global.setJavaLib(getClass.getResource("/libs/android.jar").getPath)
     global.load(srcUri ,Constants.JAWA_FILE_EXT, DefaultLibraryAPISummary)
     global.getClassOrResolve(new JawaType("com.ksu.fieldFlowSentivity.MainActivity"))
-    assert(global.getClassHierarchy.getAllImplementersOf(new JawaType("android.view.LayoutInflater$Factory")).contains(new JawaType("android.app.Activity")))
+    val factory = global.getClassOrResolve(new JawaType("android.view.LayoutInflater$Factory"))
+    assert(global.getClassHierarchy.getAllImplementersOf(factory).map(_.getType).contains(new JawaType("android.app.Activity")))
   }
 
   "com.ksu.fieldFlowSentivity.MainActivity" should "recursively subclass of java.lang.Object" in {
@@ -117,8 +126,9 @@ class ClassHierarchyTest extends FlatSpec with Matchers {
     val global = new Global("test", new NoReporter)
     global.setJavaLib(getClass.getResource("/libs/android.jar").getPath)
     global.load(srcUri ,Constants.JAWA_FILE_EXT, DefaultLibraryAPISummary)
-    global.getClassOrResolve(new JawaType("com.ksu.fieldFlowSentivity.MainActivity"))
-    assert(global.getClassHierarchy.isClassRecursivelySubClassOfIncluding(new JawaType("com.ksu.fieldFlowSentivity.MainActivity"), new JawaType("java.lang.Object")))
+    val mainActivity = global.getClassOrResolve(new JawaType("com.ksu.fieldFlowSentivity.MainActivity"))
+    val Object = global.getClassOrResolve(JavaKnowledge.JAVA_TOPLEVEL_OBJECT_TYPE)
+    assert(global.getClassHierarchy.isClassRecursivelySubClassOfIncluding(mainActivity, Object))
   }
 
   "com.ksu.fieldFlowSentivity.MainActivity" should "be subclass of android.app.Activity" in {
@@ -126,17 +136,9 @@ class ClassHierarchyTest extends FlatSpec with Matchers {
     val global = new Global("test", new NoReporter)
     global.setJavaLib(getClass.getResource("/libs/android.jar").getPath)
     global.load(srcUri ,Constants.JAWA_FILE_EXT, DefaultLibraryAPISummary)
-    global.getClassOrResolve(new JawaType("com.ksu.fieldFlowSentivity.MainActivity"))
-    assert(global.getClassHierarchy.isClassSubClassOf(new JawaType("com.ksu.fieldFlowSentivity.MainActivity"), new JawaType("android.app.Activity")))
-  }
-
-  "java.lang.Object" should "recursively superclass of com.ksu.fieldFlowSentivity.MainActivity" in {
-    val srcUri = FileUtil.toUri(getClass.getResource("/test1").getPath)
-    val global = new Global("test", new NoReporter)
-    global.setJavaLib(getClass.getResource("/libs/android.jar").getPath)
-    global.load(srcUri ,Constants.JAWA_FILE_EXT, DefaultLibraryAPISummary)
-    global.getClassOrResolve(new JawaType("com.ksu.fieldFlowSentivity.MainActivity"))
-    assert(global.getClassHierarchy.isClassRecursivelySuperClassOfIncluding(new JawaType("java.lang.Object"), new JawaType("com.ksu.fieldFlowSentivity.MainActivity")))
+    val mainActivity = global.getClassOrResolve(new JawaType("com.ksu.fieldFlowSentivity.MainActivity"))
+    val activity = global.getClassOrResolve(new JawaType("android.app.Activity"))
+    assert(global.getClassHierarchy.isClassSubClassOf(mainActivity, activity))
   }
 
   "onCreate" should "be visible from com.ksu.fieldFlowSentivity.MainActivity" in {
@@ -144,9 +146,9 @@ class ClassHierarchyTest extends FlatSpec with Matchers {
     val global = new Global("test", new NoReporter)
     global.setJavaLib(getClass.getResource("/libs/android.jar").getPath)
     global.load(srcUri ,Constants.JAWA_FILE_EXT, DefaultLibraryAPISummary)
-    global.getClassOrResolve(new JawaType("com.ksu.fieldFlowSentivity.MainActivity"))
+    val mainActivity = global.getClassOrResolve(new JawaType("com.ksu.fieldFlowSentivity.MainActivity"))
     val ms = global.getClassOrResolve(new JawaType("android.app.Activity")).getDeclaredMethodsByName("onCreate")
-    assert(ms.forall(m => global.getClassHierarchy.isMethodVisible(new JawaType("com.ksu.fieldFlowSentivity.MainActivity"), m)))
+    assert(ms.forall(m => global.getClassHierarchy.isMethodVisible(mainActivity, m)))
   }
 
   "com.ksu.fieldFlowSentivity.MainActivity.isDestroyed" should "be dispatched to android.app.Activity.isDestroyed" in {
@@ -174,9 +176,9 @@ class ClassHierarchyTest extends FlatSpec with Matchers {
     val global = new Global("test", new NoReporter)
     global.setJavaLib(getClass.getResource("/libs/android.jar").getPath)
     global.load(srcUri ,Constants.JAWA_FILE_EXT, DefaultLibraryAPISummary)
-    global.getClassOrResolve(new JawaType("android.app.Activity"))
+    val activity = global.getClassOrResolve(new JawaType("android.app.Activity"))
     global.getClassOrResolve(new JawaType("com.ksu.fieldFlowSentivity.FooActivity"))
     global.getClassHierarchy.reset()
-    assert(!global.getClassHierarchy.resolved(new JawaType("android.app.Activity")))
+    assert(!global.getClassHierarchy.resolved(activity))
   }
 }

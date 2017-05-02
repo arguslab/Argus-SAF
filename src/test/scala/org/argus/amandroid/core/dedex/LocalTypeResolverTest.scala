@@ -164,10 +164,10 @@ class LocalTypeResolverTest extends FlatSpec with Matchers {
     global.load(FileUtil.toUri(untyped), DefaultLibraryAPISummary)
     val newcode = GenerateTypedJawa(FileUtil.readFileContent(FileUtil.toUri(untyped)), global)
     val cu = new JawaParser(JawaLexer.tokenise(Left(newcode), reporter).toArray, reporter).compilationUnit(true)
-    val css = new JavaByteCodeGenerator("1.8").generate(cu)
+    val css = new JavaByteCodeGenerator("1.8").generate(global, cu)
     val typed = getClass.getResource("/jawa_typed" + path).getPath
     val cu2 = new JawaParser(JawaLexer.tokenise(Left(FileUtil.readFileContent(FileUtil.toUri(typed))), reporter).toArray, reporter).compilationUnit(true)
-    val css2 = new JavaByteCodeGenerator("1.8").generate(cu2)
+    val css2 = new JavaByteCodeGenerator("1.8").generate(global, cu2)
     val ccl: CustomClassLoader = new CustomClassLoader()
     val ccl2: CustomClassLoader = new CustomClassLoader()
     css foreach {
@@ -233,11 +233,16 @@ class LocalTypeResolverTest extends FlatSpec with Matchers {
     val global = new Global("test", reporter)
     global.setJavaLib(getClass.getResource("/libs/android.jar").getPath)
     global.load(dedex.getCodes, DefaultLibraryAPISummary)
-    dedex.getCodes.foreach { case (_, code) =>
-      val newcode = GenerateTypedJawa(code, global)
-      println(newcode)
-      val cu = new JawaParser(JawaLexer.tokenise(Left(newcode), reporter).toArray, reporter).compilationUnit(true)
-      new JavaByteCodeGenerator("1.8").generate(cu)
+    val total = dedex.getCodes.size
+    var i = 0
+    val newcodes = dedex.getCodes.map { case (t, code) =>
+      i += 1
+      println(s"$total:$i:$t")
+      GenerateTypedJawa(code, global)
+    }
+    newcodes.foreach { code =>
+      val cu = new JawaParser(JawaLexer.tokenise(Left(code), reporter).toArray, reporter).compilationUnit(true)
+      new JavaByteCodeGenerator("1.8").generate(global, cu)
     }
     true
   }

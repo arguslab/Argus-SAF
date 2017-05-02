@@ -10,6 +10,8 @@
 
 package org.argus.jawa.core.io
 
+import java.io.{BufferedReader, StringReader}
+
 import scala.annotation.tailrec
 import scala.collection.mutable.ArrayBuffer
 import org.argus.jawa.core.util._
@@ -105,7 +107,12 @@ class FgSourceFile(val file: AbstractFile) extends SourceFile {
     idx < length && notCRLF0 && p(content(idx))
   }
 
-  def isLineBreak(idx: Int): Boolean = charAtIsEOL(idx)(isLineBreakChar)
+  def isLineBreak(idx: Int): Boolean =
+    if (idx >= length) false else content(idx) match {
+      // don't identify the CR in CR LF as a line break, since LF will do.
+      case CR => (idx + 1 == length) || (content(idx + 1) != LF)
+      case x  => isLineBreakChar(x)
+    }
 
   /** True if the index is included by an EOL sequence. */
   def isEndOfLine(idx: Int): Boolean = (content isDefinedAt idx) && PartialFunction.cond(content(idx)) {
@@ -118,14 +125,24 @@ class FgSourceFile(val file: AbstractFile) extends SourceFile {
     case _       => false
   }
 
-  def calculateLineIndices(cs: Array[Char]): Array[Int] = {
+  private lazy val lineIndices: Array[Int] = {
     val buf = new ArrayBuffer[Int]
     buf += 0
-    for (i <- cs.indices) if (isAtEndOfLine(i)) buf += i + 1
-    buf += cs.length // sentinel, so that findLine below works smoother
+    val reader = new BufferedReader(new StringReader(code))
+    try {
+      var l = reader.readLine()
+      var i = 0
+      while (l != null) {
+        i += l.length + 1
+        buf += i
+        l = reader.readLine()
+      }
+      buf += content.length // sentinel, so that findLine below works smoother
+    } finally {
+      reader.close()
+    }
     buf.toArray
   }
-  private lazy val lineIndices: Array[Int] = calculateLineIndices(content)
 
   def lineToOffset(index: Int): Int = lineIndices(index)
 

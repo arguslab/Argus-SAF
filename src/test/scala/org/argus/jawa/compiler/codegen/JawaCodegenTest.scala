@@ -16,11 +16,13 @@ import java.lang.reflect.InvocationTargetException
 import org.argus.jawa.compiler.lexer.JawaLexer
 import org.argus.jawa.compiler.parser.JawaParser
 import org.argus.jawa.compiler.util.ReadClassFile.CustomClassLoader
-import org.argus.jawa.core.DefaultReporter
+import org.argus.jawa.core.{Global, MsgLevel, PrintReporter}
 import org.argus.jawa.core.io.{FgSourceFile, PlainFile, SourceFile}
 import org.scalatest._
 
 class JawaCodegenTest extends FlatSpec with Matchers {
+
+  val DEBUG = false
 
   "Generate code" should "not throw an exception on ArrayAccess1" in {
     val jf = new FgSourceFile(new PlainFile(new File(getClass.getResource("/jawa_typed/array/ArrayAccess1.jawa").getPath)))
@@ -154,13 +156,14 @@ class JawaCodegenTest extends FlatSpec with Matchers {
     printCode(jf)
   }
 
-  val reporter = new DefaultReporter
-  private def parser(s: Either[String, SourceFile]) = new JawaParser(JawaLexer.tokenise(s, reporter).toArray, reporter)
+  private def parser(s: Either[String, SourceFile], reporter: PrintReporter) = new JawaParser(JawaLexer.tokenise(s, reporter).toArray, reporter)
 
   private def genCode(s: SourceFile) = {
     val newcode = s.code
-    val cu = parser(Left(newcode)).compilationUnit(true)
-    val css = new JavaByteCodeGenerator("1.8").generate(cu)
+    val reporter = if(DEBUG) new PrintReporter(MsgLevel.INFO) else new PrintReporter(MsgLevel.NO)
+    val cu = parser(Left(newcode), reporter).compilationUnit(true)
+    val global = new Global("JawaCodegenTest", reporter)
+    val css = new JavaByteCodeGenerator("1.8").generate(global, cu)
     val ccl: CustomClassLoader = new CustomClassLoader()
     val pw = new PrintWriter(System.out)
     css foreach {
@@ -181,8 +184,10 @@ class JawaCodegenTest extends FlatSpec with Matchers {
 
   private def printCode(s: SourceFile) = {
     val newcode = s.code
-    val cu = parser(Left(newcode)).compilationUnit(true)
-    val css = new JavaByteCodeGenerator("1.8").generate(cu)
+    val reporter = if(DEBUG) new PrintReporter(MsgLevel.INFO) else new PrintReporter(MsgLevel.NO)
+    val global = new Global("JawaCodegenTest", reporter)
+    val cu = parser(Left(newcode), reporter).compilationUnit(true)
+    val css = new JavaByteCodeGenerator("1.8").generate(global, cu)
     val pw = new PrintWriter(System.out)
     css foreach {
       case (_, bytecodes) =>

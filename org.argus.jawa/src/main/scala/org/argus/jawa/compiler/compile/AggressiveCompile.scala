@@ -15,7 +15,7 @@ import java.io.File
 
 import org.argus.jawa.compiler.compile.io.IO
 import org.argus.jawa.compiler.log.Logger
-import org.argus.jawa.core.Reporter
+import org.argus.jawa.core.Global
 import org.argus.jawa.core.util._
 
 /**
@@ -28,7 +28,7 @@ class AggressiveCompile(cacheFile: File) {
             output: Output,
             progress: CompileProgress,
             javacOptions: IList[String] = Nil,
-            reporter: Reporter)(implicit log: Logger): Unit = {
+            global: Global)(implicit log: Logger): Unit = {
     val outputDirs = outputDirectories(output)
     outputDirs foreach IO.createDirectory
     val incSrc = sources
@@ -38,7 +38,7 @@ class AggressiveCompile(cacheFile: File) {
       if(jawaSrcs.nonEmpty) {
         val sources = jawaSrcs
         timed("Jawa compilation", log) {
-          compiler.compile(sources.toArray, outputDirs.toArray, reporter, log, progress)
+          compiler.compile(sources.toArray, outputDirs.toArray, global, log, progress)
         }
       }
     def compileJava() =

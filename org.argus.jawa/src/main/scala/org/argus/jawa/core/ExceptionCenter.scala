@@ -36,9 +36,7 @@ object ExceptionCenter {
     getExceptionMayThrowFromStatement(loc.statement)
     catchClauses.foreach { cc =>
       try {
-        val from = body.locations(cc.range.fromLocation.locationIndex)
-        val to = body.locations(cc.range.toLocation.locationIndex)
-        if(loc.locationIndex >= from.locationIndex && loc.locationIndex <= to.locationIndex) result += cc.typ.typ
+        if(loc.locationIndex >= cc.range.fromLocation.locationIndex && loc.locationIndex <= cc.range.toLocation.locationIndex) result += cc.typ.typ
       } catch {
         case ex: Exception =>
           System.err.println("ExceptionCenter:" + ex.getMessage)

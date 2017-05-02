@@ -16,7 +16,7 @@ import org.argus.jawa.compiler.codegen.JavaByteCodeGenerator
 import org.argus.jawa.compiler.lexer.JawaLexer
 import org.argus.jawa.compiler.log.Logger
 import org.argus.jawa.compiler.parser.JawaParser
-import org.argus.jawa.core.{DefaultReporter, Reporter}
+import org.argus.jawa.core.{DefaultReporter, Global}
 import org.argus.jawa.core.io.{FgSourceFile, PlainFile}
 import org.argus.jawa.core.util._
 
@@ -28,20 +28,19 @@ import scala.language.postfixOps
 final class JawaCompiler(javaVersionStr: String) {
   val reporter = new DefaultReporter
   private def parser(s: Either[String, FgSourceFile]) = new JawaParser(JawaLexer.tokenise(s, reporter).toArray, reporter)
-  def compile(sources: Array[File], outputDirs: Array[File], reporter: Reporter, log: Logger, progress: CompileProgress): Unit = {
-    sources foreach{
-      source =>
-        require(source.getPath.endsWith("jawa"), "Wrong file extension to compile " + source)
-        val file = new FgSourceFile(new PlainFile(source))
-        val cu = parser(Right(file)).compilationUnit(true)
-        val css = new JavaByteCodeGenerator(javaVersionStr).generate(cu)
-        css foreach {
-          case (typ, bcs) =>
-            outputDirs.foreach {
-              output =>
-                JavaByteCodeGenerator.writeClassFile(output.getAbsolutePath, typ.getPackage.get, typ.name.substring(typ.name.lastIndexOf(".") + 1), bcs)
-            }
-        }
+  def compile(sources: Array[File], outputDirs: Array[File], global: Global, log: Logger, progress: CompileProgress): Unit = {
+    sources foreach{ source =>
+      require(source.getPath.endsWith("jawa"), "Wrong file extension to compile " + source)
+      val file = new FgSourceFile(new PlainFile(source))
+      val cu = parser(Right(file)).compilationUnit(true)
+      val css = new JavaByteCodeGenerator(javaVersionStr).generate(global, cu)
+      css foreach {
+        case (typ, bcs) =>
+          outputDirs.foreach {
+            output =>
+              JavaByteCodeGenerator.writeClassFile(output.getAbsolutePath, typ.getPackage.get, typ.name.substring(typ.name.lastIndexOf(".") + 1), bcs)
+          }
+      }
     }
   }
 }

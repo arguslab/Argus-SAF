@@ -24,7 +24,7 @@ class MapModel extends ModelCall {
     if(p.getDeclaringClass.isApplicationClass) false
     else {
       val map = p.getDeclaringClass.global.getClassOrResolve(new JawaType(Constants.MAP))
-      val res = p.getDeclaringClass.global.getClassHierarchy.getAllImplementersOf(map.getType).contains(p.getDeclaringClass.getType)
+      val res = p.getDeclaringClass.global.getClassHierarchy.getAllImplementersOf(map).contains(p.getDeclaringClass)
       res
     }
   }

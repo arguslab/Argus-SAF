@@ -64,22 +64,27 @@ case class JawaClass(global: Global, typ: JawaType, accessFlags: Int) extends Ja
   /**
    * set of interfaces which this class/interface implements/extends. map from interface name to JawaClass
    */
-  protected val interfaces: MSet[JawaType] = msetEmpty
+  protected val interfaces: MSet[JawaClass] = msetEmpty
 
   /**
-   * super class of this class. For interface it's always java.lang.Object
+   * super class of this class.
    */
-  protected var superClass: JawaType = _
+  protected var superClass: JawaClass = _
   
   /**
    * return true if it's a child of given record
    */
   def isChildOf(typ: JawaType): Boolean = {
-    global.getClassHierarchy.getAllSuperClassesOf(getType).contains(typ)
+    var sc = this
+    while(sc.hasSuperClass) {
+      sc = sc.getSuperClass
+      if(sc.getType == typ) return true
+    }
+    false
   }
   
   def isImplementerOf(typ: JawaType): Boolean = {
-    global.getClassHierarchy.getAllImplementersOf(typ).contains(getType)
+    global.getClassHierarchy.getAllImplementersOf(global.getClassOrResolve(typ)).contains(this)
   }
   
   /**
@@ -99,7 +104,7 @@ case class JawaClass(global: Global, typ: JawaType, accessFlags: Int) extends Ja
     var results = getDeclaredFields
     var rec = this
     while(rec.hasSuperClass){
-      val parent = global.getClassOrResolve(rec.getSuperClass)
+      val parent = rec.getSuperClass
       val fields = parent.getDeclaredFields.filter(f => !f.isPrivate && !results.exists(_.getName == f.getName))
       results ++= fields
       rec = parent
@@ -309,7 +314,7 @@ case class JawaClass(global: Global, typ: JawaType, accessFlags: Int) extends Ja
     var results = getDeclaredMethods
     var rec = this
     while(rec.hasSuperClass){
-      val parent = global.getClassOrResolve(rec.getSuperClass)
+      val parent = rec.getSuperClass
       val fields = parent.getDeclaredMethods.filter(f => !f.isPrivate && !results.exists(_.getName == f.getName))
       results ++= fields
       rec = parent
@@ -397,24 +402,24 @@ case class JawaClass(global: Global, typ: JawaType, accessFlags: Int) extends Ja
   /**
    * get interfaces
    */
-  def getInterfaces: ISet[JawaType] = this.interfaces.toSet
+  def getInterfaces: ISet[JawaClass] = this.interfaces.toSet
 
   /**
    * whether this class implements the given interface
    */
-  def implementsInterface(typ: JawaType): Boolean = this.interfaces.contains(typ)
+  def implementsInterface(typ: JawaType): Boolean = this.interfaces.map(_.getType).contains(typ)
 
   /**
    * add an interface which is directly implemented by this class
    */
-  def addInterface(i: JawaType): Unit = {
+  def addInterface(i: JawaClass): Unit = {
     this.interfaces += i
   }
 
   /**
    * remove an interface from this class
    */
-  def removeInterface(i: JawaType): Any = {
+  def removeInterface(i: JawaClass): Any = {
     this.interfaces -= i
   }
 
@@ -426,27 +431,43 @@ case class JawaClass(global: Global, typ: JawaType, accessFlags: Int) extends Ja
   /**
    * get the super class
    */
-  def getSuperClass: JawaType = this.superClass
+  def getSuperClass: JawaClass = this.superClass
 
   /**
    * set super class
    */
-  def setSuperClass(sc: JawaType): Unit = this.superClass = sc
+  def setSuperClass(sc: JawaClass): Unit = this.superClass = sc
 
   /**
    * whether the current class has an outer class or not
    */
-  def hasOuterClass: Boolean = isInnerClass(getType)
+  def hasOuterType: Boolean = isInnerClass(getType)
 
   /**
    * get the outer class
    */
-  def getOuterClass: Option[JawaType] = if(isInnerClass) Some(getOuterTypeFrom(getType)) else None
+  def getOuterType: Option[JawaType] = if(isInnerClass) Some(getOuterTypeFrom(getType)) else None
 
   /**
    * whether current class is an inner class or not
    */
-  def isInnerClass: Boolean = hasOuterClass
+  def isInnerClass: Boolean = hasOuterType
+
+  /**
+    * return all parents of this class
+    */
+  def getAllParents: ISet[JawaClass] = {
+    val parents: MSet[JawaClass] = msetEmpty
+    if(hasSuperClass) {
+      parents += getSuperClass
+      parents ++= getSuperClass.getAllParents
+    }
+    parents ++= getInterfaces
+    getInterfaces.foreach{ i =>
+      parents ++= i.getAllParents
+    }
+    parents.toSet
+  }
 
   /**
    * return true if this class is an interface
@@ -489,6 +510,37 @@ case class JawaClass(global: Global, typ: JawaType, accessFlags: Int) extends Ja
     packageName.startsWith("org.xml.")
   }
 
+  /**
+    * Determines if the class or interface represented by this
+    * `JawaClass` object is either the same as, or is a superclass or
+    * superinterface of, the class or interface represented by the specified
+    * `JawaClass` parameter. It returns `true` if so;
+    * otherwise it returns `false`.
+    *
+    * @param other the { @code Class} object to be checked
+    * @return the { @code boolean} value indicating whether objects of the
+    *                     type { @code other} can be assigned to objects of this class
+    */
+  def isAssignableFrom(other: JawaClass): Boolean = {
+    if(other == null) false
+    else if(getType == other.getType) true
+    else if(isInterface && other.isInterface) {
+      other.getInterfaces.exists(isAssignableFrom)
+    } else if(isInterface && !other.isInterface) {
+      var tmp = other
+      var found = false
+      while(!found && tmp.hasSuperClass) {
+        found = tmp.getInterfaces.exists(isAssignableFrom)
+        tmp = tmp.getSuperClass
+      }
+      found
+    } else if(!isInterface && other.isInterface) {
+      getType == JAVA_TOPLEVEL_OBJECT_TYPE
+    } else {
+      isAssignableFrom(other.getSuperClass)
+    }
+  }
+
   def printDetail(): Unit = {
     println("++++++++++++++++JawaClass++++++++++++++++")
     println("recName: " + getName)
@@ -496,7 +548,7 @@ case class JawaClass(global: Global, typ: JawaType, accessFlags: Int) extends Ja
     println("simpleName: " + getSimpleName)
     println("CanonicalName: " + getCanonicalName)
     println("superClass: " + getSuperClass)
-    println("outerClass: " + getOuterClass)
+    println("outerType: " + getOuterType)
     println("interfaces: " + getInterfaces)
     println("accessFlags: " + getAccessFlagsStr)
     println("fields: " + getDeclaredFields)

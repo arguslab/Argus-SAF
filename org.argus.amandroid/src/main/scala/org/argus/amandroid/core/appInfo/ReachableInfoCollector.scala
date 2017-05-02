@@ -169,8 +169,7 @@ class ReachableInfoCollector(val global: Global, entryPointTypes: ISet[JawaType]
     // it as a potential callback.
     var classType = ClassType.Plain
     val systemMethods: MSet[String] = msetEmpty
-    for (typ <- global.getClassHierarchy.getAllSuperClassesOf(record.getType)) {
-      val ancestorClass = global.getClassOrResolve(typ)
+    for (ancestorClass <- global.getClassHierarchy.getAllSuperClassesOf(record)) {
       if (ancestorClass.getName.equals(AndroidEntryPointConstants.ACTIVITY_CLASS))
         classType = ClassType.Activity
       else if (ancestorClass.getName.equals(AndroidEntryPointConstants.SERVICE_CLASS))
@@ -190,8 +189,7 @@ class ReachableInfoCollector(val global: Global, entryPointTypes: ISet[JawaType]
     var lifecycleFlag = false // represents if a method is lifecycle method
     // Iterate over all user-implemented methods. If they are inherited
     // from a system class, they are callback candidates.
-    for (typ <- global.getClassHierarchy.getAllSubClassesOfIncluding(record.getType)) {
-      val sClass = global.getClassOrResolve(typ)
+    for (sClass <- global.getClassHierarchy.getAllSubClassesOfIncluding(record)) {
       val rName = sClass.getName
       if (!rName.startsWith("android.") && !rName.startsWith("com.android."))
         for (procedure <- sClass.getDeclaredMethods) {
@@ -236,14 +234,14 @@ class ReachableInfoCollector(val global: Global, entryPointTypes: ISet[JawaType]
           case Some(typRec) =>
             val hier = global.getClassHierarchy
             if (typRec.isInterface) {
-              val impls = hier.getAllImplementersOf(typRec.getType)
+              val impls = hier.getAllImplementersOf(typRec)
               if (impls.nonEmpty) {
                 callbackClasses ++= impls.map { impl =>
-                  hier.getAllSubClassesOfIncluding(impl).map(global.getClassOrResolve)
+                  hier.getAllSubClassesOfIncluding(impl)
                 }.reduce(iunion[JawaClass])
               }
             } else {
-              callbackClasses ++= hier.getAllSubClassesOfIncluding(typRec.getType).map(global.getClassOrResolve)
+              callbackClasses ++= hier.getAllSubClassesOfIncluding(typRec)
             }
           case None =>
         }
@@ -278,13 +276,12 @@ class ReachableInfoCollector(val global: Global, entryPointTypes: ISet[JawaType]
     // If we are a class, one of our superclasses might implement an Android
     // interface
     if (clazz.hasSuperClass)
-      analyzeClassInterfaceCallbacks(baseClass, global.getClassOrResolve(clazz.getSuperClass), lifecycleElement) // recursion
+      analyzeClassInterfaceCallbacks(baseClass, clazz.getSuperClass, lifecycleElement) // recursion
     // Do we implement one of the well-known interfaces?
     for (i <- collectAllInterfaces(clazz)) {
-      if(this.androidCallbacks.contains(i.name)){
-        global.getClassOrResolve(i).getDeclaredMethods.foreach{
-          proc =>
-            checkAndAddMethod(getMethodFromHierarchy(baseClass, proc.getSubSignature), lifecycleElement)
+      if(this.androidCallbacks.contains(i.getName)){
+        i.getDeclaredMethods.foreach{ proc =>
+          checkAndAddMethod(getMethodFromHierarchy(baseClass, proc.getSubSignature), lifecycleElement)
         }
       }
     }
@@ -304,14 +301,14 @@ class ReachableInfoCollector(val global: Global, entryPointTypes: ISet[JawaType]
     }
   }
 
-  private def collectAllInterfaces(ar: JawaClass): Set[JawaType] = {
-    if(ar.getInterfaceSize == 0) Set()
-    else ar.getInterfaces ++ ar.getInterfaces.map{i => collectAllInterfaces(global.getClassOrResolve(i))}.reduce((s1, s2) => s1 ++ s2)
+  private def collectAllInterfaces(ar: JawaClass): ISet[JawaClass] = {
+    if(ar.getInterfaceSize == 0) isetEmpty
+    else ar.getInterfaces ++ ar.getInterfaces.flatMap{i => collectAllInterfaces(i)}
   }
 
   private def getMethodFromHierarchy(r :JawaClass, subSig: String): JawaMethod = {
     if(r.declaresMethod(subSig)) r.getMethod(subSig).get
-    else if(r.hasSuperClass) getMethodFromHierarchy(global.getClassOrResolve(r.getSuperClass), subSig)
+    else if(r.hasSuperClass) getMethodFromHierarchy(r.getSuperClass, subSig)
     else throw new RuntimeException("Could not find procedure: " + subSig)
   }
 

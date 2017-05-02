@@ -9,7 +9,8 @@
  */
 package org.argus.amandroid.core.dedex.`type`
 
-import org.argus.jawa.alir.controlFlowGraph.{CFGLocationNode, CFGNode, CFGVirtualNode, ControlFlowGraph}
+import org.argus.jawa.alir.JawaAlirInfoProvider
+import org.argus.jawa.alir.controlFlowGraph.{CFGLocationNode, CFGNode, CFGVirtualNode}
 import org.argus.jawa.alir.dataFlowAnalysis._
 import org.argus.jawa.alir.reachingDefinitionAnalysis._
 import org.argus.jawa.compiler.parser._
@@ -41,10 +42,7 @@ object LocalTypeResolver {
       this
     }
     def getTypes: ISet[(JawaType, CertainLevel.Value)] = types.toSet
-    private def getAllParents(global: Global, typ: JawaType): ISet[JawaType] = {
-      val clazz = global.getClassOrResolve(typ)
-      global.getClassHierarchy.getAllSuperClassesOfIncluding(typ) ++ clazz.getInterfaces.flatMap(global.getClassHierarchy.getAllSuperClassesOfIncluding(_))
-    }
+
     private def resolvePrimitives(typs: ISet[JawaType]): JawaType = {
       if(typs.contains(JavaKnowledge.DOUBLE)) return JavaKnowledge.DOUBLE
       if(typs.contains(JavaKnowledge.LONG)) return JavaKnowledge.LONG
@@ -62,8 +60,9 @@ object LocalTypeResolver {
         val objs = typs.filter(_.isObject)
         if(objs.nonEmpty) {
           objs.find{ t =>
-            val parents = getAllParents(global, t)
-            objs.diff(parents).isEmpty
+            val clazz = global.getClassOrResolve(t)
+            val allParentsIncluding = clazz.getAllParents.map(_.getType) + clazz.getType
+            objs.diff(allParentsIncluding).isEmpty
           } match {
             case Some(t) => Some(t)
             case None => Some(JavaKnowledge.JAVA_TOPLEVEL_OBJECT_TYPE)
@@ -106,11 +105,11 @@ object LocalTypeResolver {
     }
   }
 
-  def apply(md: MethodDeclaration): (IMap[Int, IMap[VarSlot, VarType]], IMap[Int, IMap[VarSlot, VarType]]) = build(md)
+  def apply(global: Global, md: MethodDeclaration): (IMap[Int, IMap[VarSlot, VarType]], IMap[Int, IMap[VarSlot, VarType]]) = build(global, md)
 
-  def build(md: MethodDeclaration): (IMap[Int, IMap[VarSlot, VarType]], IMap[Int, IMap[VarSlot, VarType]]) = {
+  def build(global: Global, md: MethodDeclaration): (IMap[Int, IMap[VarSlot, VarType]], IMap[Int, IMap[VarSlot, VarType]]) = {
     val mbp = new Mbp(md)
-    val cfg = ControlFlowGraph(md.resolvedBody, "Entry", "Exit")
+    val cfg = JawaAlirInfoProvider.buildCfg(md, global)
     val np = new IntraNodeProvider[TypeFact](cfg)
     val def_types: MMap[Int, MMap[VarSlot, VarType]] = mmapEmpty
     val use_types: MMap[Int, MMap[VarSlot, VarType]] = mmapEmpty

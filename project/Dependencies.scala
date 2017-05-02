@@ -24,7 +24,8 @@ object Dependencies {
 
   val scala_reflect: ModuleID = "org.scala-lang" % "scala-reflect" % scalaVersion
 
-  val asm_all: ModuleID = "org.ow2.asm" % "asm-all" % "5.1"
+  val asm: ModuleID = "org.ow2.asm" % "asm" % "5.2"
+  val asm_util: ModuleID = "org.ow2.asm" % "asm-util" % "5.2"
 
   val antlr4_runtime: ModuleID = "org.antlr" % "antlr4-runtime" % "4.7"
 
@@ -60,7 +61,8 @@ object DependencyGroups {
     commons_lang3,
     scala_reflect,
     scalatest,
-    asm_all,
+    asm,
+    asm_util,
     st4,
     antlr4_runtime,
     jgrapht_core,

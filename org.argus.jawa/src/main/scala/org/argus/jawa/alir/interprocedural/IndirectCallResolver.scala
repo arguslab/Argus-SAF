@@ -21,12 +21,14 @@ trait IndirectCall {
   def getCallTarget(global: Global, inss: ISet[Instance], callerContext: Context, args: IList[String], pTAResult: PTAResult): (ISet[(JawaMethod, Instance)], (ISet[RFAFact], IList[String], IList[String], RFAFactFactory) => ISet[RFAFact])
 }
 
-class ThreadStartRun extends IndirectCall {
-  private val start: Signature = new Signature("Ljava/lang/Thread;.start:()V")
+class RunnableStartRun extends IndirectCall {
+  private val start: Signature = new Signature("Ljava/lang/Runnable;.start:()V")
   private val run: Signature = new Signature("Ljava/lang/Runnable;.run:()V")
 
   override def isIndirectCall(global: Global, typ: JawaType, subSig: String): Boolean = {
-    global.getClassHierarchy.isClassRecursivelySubClassOfIncluding(typ, start.getClassType) && subSig == start.getSubSignature
+    val clazz = global.getClassOrResolve(typ)
+    val runnable = global.getClassOrResolve(start.getClassType)
+    runnable.isAssignableFrom(clazz) && subSig == start.getSubSignature
   }
 
   override def getCallTarget(global: Global, inss: ISet[Instance], callerContext: Context, args: IList[String], pTAResult: PTAResult): (ISet[(JawaMethod, Instance)], (ISet[RFAFact], IList[String], IList[String], RFAFactFactory) => ISet[RFAFact]) = {
@@ -35,8 +37,10 @@ class ThreadStartRun extends IndirectCall {
       val fieldSlot = FieldSlot(ins, Constants.THREAD_RUNNABLE)
       val runnableInss = pTAResult.pointsToSet(fieldSlot, callerContext)
       runnableInss foreach { runnableIns =>
-        if (global.getClassHierarchy.getAllImplementersOf(run.getClassType).contains(runnableIns.typ)) {
-          global.getClassOrResolve(runnableIns.typ).getMethod(run.getSubSignature) match {
+        val clazz = global.getClassOrResolve(runnableIns.typ)
+        val runnable = global.getClassOrResolve(run.getClassType)
+        if (runnable.isAssignableFrom(clazz)) {
+          clazz.getMethod(run.getSubSignature) match {
             case Some(m) => callees += ((m, runnableIns))
             case None =>
           }
@@ -72,7 +76,9 @@ class ExecutorExecuteRun extends IndirectCall {
   private val run: Signature = new Signature("Ljava/lang/Runnable;.run:()V")
 
   override def isIndirectCall(global: Global, typ: JawaType, subSig: String): Boolean = {
-    global.getClassHierarchy.isClassRecursivelySubClassOfIncluding(typ, start.getClassType) && subSig == start.getSubSignature
+    val clazz = global.getClassOrResolve(typ)
+    val executor = global.getClassOrResolve(start.getClassType)
+    executor.isAssignableFrom(clazz) && subSig == start.getSubSignature
   }
 
   override def getCallTarget(global: Global, inss: ISet[Instance], callerContext: Context, args: IList[String], pTAResult: PTAResult): (ISet[(JawaMethod, Instance)], (ISet[RFAFact], IList[String], IList[String], RFAFactFactory) => ISet[RFAFact]) = {
@@ -80,8 +86,10 @@ class ExecutorExecuteRun extends IndirectCall {
     val runnableInss = pTAResult.pointsToSet(varSlot, callerContext)
     val callees: MSet[(JawaMethod, Instance)] = msetEmpty
     runnableInss.foreach { runnableIns =>
-      if (global.getClassHierarchy.getAllImplementersOf(run.getClassType).contains(runnableIns.typ)) {
-        global.getClassOrResolve(runnableIns.typ).getMethod(run.getSubSignature) match {
+      val clazz = global.getClassOrResolve(runnableIns.typ)
+      val runnable = global.getClassOrResolve(run.getClassType)
+      if (runnable.isAssignableFrom(clazz)) {
+        clazz.getMethod(run.getSubSignature) match {
           case Some(m) => callees += ((m, runnableIns))
           case None =>
         }
@@ -109,14 +117,18 @@ class HandlerMessage extends IndirectCall {
   private val handleMessage: Signature = new Signature("Landroid/os/Handler;.handleMessage:(Landroid/os/Message;)V")
 
   override def isIndirectCall(global: Global, typ: JawaType, subSig: String): Boolean = {
-    global.getClassHierarchy.isClassRecursivelySubClassOfIncluding(typ, dispatchMessage.getClassType) && subSig == dispatchMessage.getSubSignature
+    val clazz = global.getClassOrResolve(typ)
+    val handler = global.getClassOrResolve(dispatchMessage.getClassType)
+    handler.isAssignableFrom(clazz) && subSig == dispatchMessage.getSubSignature
   }
 
   override def getCallTarget(global: Global, inss: ISet[Instance], callerContext: Context, args: IList[String], pTAResult: PTAResult): (ISet[(JawaMethod, Instance)], (ISet[RFAFact], IList[String], IList[String], RFAFactFactory) => ISet[RFAFact]) = {
     val callees: MSet[(JawaMethod, Instance)] = msetEmpty
     inss.foreach { ins =>
-      if (global.getClassHierarchy.isClassRecursivelySubClassOfIncluding(ins.typ, handleMessage.getClassType)) {
-        global.getClassOrResolve(ins.typ).getMethod(handleMessage.getSubSignature) match {
+      val clazz = global.getClassOrResolve(ins.typ)
+      val handler = global.getClassOrResolve(handleMessage.getClassType)
+      if (handler.isAssignableFrom(clazz)) {
+        clazz.getMethod(handleMessage.getSubSignature) match {
           case Some(m) => callees += ((m, ins))
           case None =>
         }
@@ -147,14 +159,18 @@ class AsyncTask extends IndirectCall {
   private val run: Signature = new Signature("Landroid/os/AsyncTask;.run:([Ljava/lang/Object;)V")
 
   override def isIndirectCall(global: Global, typ: JawaType, subSig: String): Boolean = {
-    global.getClassHierarchy.isClassRecursivelySubClassOfIncluding(typ, execute.getClassType) && subSig == execute.getSubSignature
+    val clazz = global.getClassOrResolve(typ)
+    val asyncTask = global.getClassOrResolve(execute.getClassType)
+    asyncTask.isAssignableFrom(clazz) && subSig == execute.getSubSignature
   }
 
   override def getCallTarget(global: Global, inss: ISet[Instance], callerContext: Context, args: IList[String], pTAResult: PTAResult): (ISet[(JawaMethod, Instance)], (ISet[RFAFact], IList[String], IList[String], RFAFactFactory) => ISet[RFAFact]) = {
     val callees: MSet[(JawaMethod, Instance)] = msetEmpty
     inss.foreach { ins =>
-      if (global.getClassHierarchy.isClassRecursivelySubClassOfIncluding(ins.typ, run.getClassType)) {
-        global.getClassOrResolve(ins.typ).getMethod(run.getSubSignature) match {
+      val clazz = global.getClassOrResolve(ins.typ)
+      val asyncTask = global.getClassOrResolve(run.getClassType)
+      if (asyncTask.isAssignableFrom(clazz)) {
+        clazz.getMethod(run.getSubSignature) match {
           case Some(m) => callees += ((m, ins))
           case None =>
         }
@@ -189,12 +205,10 @@ object IndirectCallResolver {
     */
   private var indirectCallResolvers: ISet[IndirectCall] = isetEmpty
   def addCall(call: IndirectCall): Unit = this.indirectCallResolvers += call
-  addCall(new ThreadStartRun)
+  addCall(new RunnableStartRun)
   addCall(new ExecutorExecuteRun)
   addCall(new HandlerMessage)
   addCall(new AsyncTask)
-//  addCallMap(new Signature("Ljava/util/concurrent/ExecutorService;.execute:(Ljava/lang/Runnable;)V"), CallInfo(new Signature("Ljava/lang/Thread;.run:()V")))
-//  addCallMap(new Signature("Landroid/os/Handler;.dispatchMessage:(Landroid/os/Message;)V"), CallInfo(new Signature("Landroid/os/Handler;.handleMessage:(Landroid/os/Message;)V")))
 
   def getCallResolver(global: Global, typ: JawaType, subSig: String): Option[IndirectCall] = {
     indirectCallResolvers.find { c =>

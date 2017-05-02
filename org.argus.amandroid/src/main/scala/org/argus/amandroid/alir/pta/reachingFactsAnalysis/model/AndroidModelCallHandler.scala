@@ -35,7 +35,9 @@ object AndroidModelCallHandler extends ModelCallHandler(PTAScopeManager){
   }
 
   def isRPCCall(apk: ApkGlobal, currentComp: JawaType, calleeSig: Signature): Boolean = {
-    (apk.getClassHierarchy.isClassRecursivelySubClassOfIncluding(calleeSig.getClassType, new JawaType("android.os.Messenger"))
+    val messenger = apk.getClassOrResolve(new JawaType("android.os.Messenger"))
+    val clazz = apk.getClassOrResolve(calleeSig.getClassType)
+    (apk.getClassHierarchy.isClassRecursivelySubClassOfIncluding(clazz, messenger)
       && calleeSig.getSubSignature == "send:(Landroid/os/Message;)V") || apk.model.getRpcMethodMapping.exists{ case (typ, sigs) => currentComp != typ && sigs.contains(calleeSig)}
   }
 

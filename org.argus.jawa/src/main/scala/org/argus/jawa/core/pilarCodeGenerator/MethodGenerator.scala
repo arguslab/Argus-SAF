@@ -233,8 +233,8 @@ abstract class MethodGenerator(global: Global) {
         if(!r.isConcrete){
           val substClassName = this.substituteClassMap.getOrElse(r.getType, null)
           if(substClassName != null) r = global.getClassOrResolve(substClassName)
-          else if(r.isInterface) global.getClassHierarchy.getAllImplementersOf(r.getType).foreach(i => if(constructionStack.contains(i)) r = global.getClassOrResolve(i))
-          else if(r.isAbstract) global.getClassHierarchy.getAllSubClassesOf(r.getType).foreach(s => if(global.getClassOrResolve(s).isConcrete && constructionStack.contains(s)) r = global.getClassOrResolve(s))
+          else if(r.isInterface) global.getClassHierarchy.getAllImplementersOf(r).foreach(i => if(constructionStack.contains(i.getType)) r = i)
+          else if(r.isAbstract) global.getClassHierarchy.getAllSubClassesOf(r).foreach(s => if(s.isConcrete && constructionStack.contains(s.getType)) r = s)
         }
         // to protect from going into dead constructor create loop
         if(localVarsForClasses.contains(r.getType)) paramVars += (i -> localVarsForClasses(r.getType))
@@ -353,17 +353,7 @@ abstract class MethodGenerator(global: Global) {
   }
 
   protected def isCompatible(actual: JawaClass, expected: JawaClass): Boolean = {
-    var act: JawaClass = actual
-    while(act != null){
-      if(act.getName.equals(expected.getName))
-        return true
-      if(expected.isInterface)
-        act.getInterfaces.foreach{int => if(int.name.equals(expected.getName)) return true}
-      if(act.hasSuperClass)
-        act = global.getClassOrResolve(act.getSuperClass)
-      else act = null
-    }
-    false
+    expected.isAssignableFrom(actual)
   }
 
   protected def createIfStmt(targetfg: CodeFragmentGenerator, codefg: CodeFragmentGenerator): AnyVal = {
@@ -438,7 +428,7 @@ abstract class MethodGenerator(global: Global) {
 
   protected def findMethod(currentClass: JawaClass, subSig: String): Option[JawaMethod] = {
     if(currentClass.declaresMethod(subSig)) currentClass.getMethod(subSig)
-    else if(currentClass.hasSuperClass) findMethod(global.getClassOrResolve(currentClass.getSuperClass), subSig)
+    else if(currentClass.hasSuperClass) findMethod(currentClass.getSuperClass, subSig)
     else None
   }
 }

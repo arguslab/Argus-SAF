@@ -24,7 +24,7 @@ class SetModel extends ModelCall {
     if(p.getDeclaringClass.isApplicationClass) false
     else {
       val set = p.getDeclaringClass.global.getClassOrResolve(new JawaType(Constants.SET))
-      p.getDeclaringClass.global.getClassHierarchy.getAllImplementersOf(set.getType).contains(p.getDeclaringClass.getType)
+      p.getDeclaringClass.global.getClassHierarchy.getAllImplementersOf(set).contains(p.getDeclaringClass)
     }
   }
     

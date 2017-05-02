@@ -96,8 +96,7 @@ object GenerateTypedJawa {
   }
 
   private def generateProcedure(global: Global, method: MethodDeclaration, template: STGroupString): ST = {
-
-    val (def_types, use_types) = LocalTypeResolver(method)
+    val (def_types, use_types) = LocalTypeResolver(global, method)
 
     val localvars: MMap[String, (JawaType, Boolean)] = mmapEmpty
     val realnameMap: MMap[String, String] = mmapEmpty
@@ -148,7 +147,7 @@ object GenerateTypedJawa {
       catchesTemplate.add("catches", catches)
       procTemplate.add("catchClauses", catchesTemplate)
     } else {
-      procTemplate.add("body", "#. return;")
+      procTemplate.add("body", "# return;")
     }
     procTemplate
   }
@@ -205,14 +204,7 @@ object GenerateTypedJawa {
               be.right match {
                 case Left(v) =>
                   code = resolveVar(global, code, v, uses, localvars, realnameMap)
-                case Right(l) =>
-                  l match {
-                    case Left(i) =>
-                      if(be.op.text == "==" || be.op.text == "!=") {
-                        nullable = Some(i.pos)
-                      }
-                    case Right(_) =>
-                  }
+                case Right(_) =>
               }
               code = resolveVar(global, code, be.left, uses, localvars, realnameMap)
             case cr: CallRhs =>
@@ -299,7 +291,18 @@ object GenerateTypedJawa {
           is.cond.right match {
             case Left(v) =>
               code = resolveVar(global, code, v, uses, localvars, realnameMap)
-            case Right(_) =>
+            case Right(l) =>
+              l match {
+                case Left(i) =>
+                  val typ: JawaType = uses.get(VarSlot(is.cond.left.varName)) match {
+                    case Some(t) => t.getJawaType(global)
+                    case None => throw new LocalTypeResolveException(is.cond.left.pos, "Type should be resolved.")
+                  }
+                  if(typ.isObject) {
+                    code = updateCode(code, i.pos, "null")
+                  }
+                case Right(_) =>
+              }
           }
           code = resolveVar(global, code, is.cond.left, uses, localvars, realnameMap)
         case rs: ReturnStatement =>

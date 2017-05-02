@@ -80,9 +80,9 @@ class LayoutFileParser(apk: ApkGlobal, packageName: String, arsc: ARSCFileParser
     // To make sure that nothing all wonky is going on here, we
     // check the hierarchy to find the android view class
     var found = false
-    apk.getClassHierarchy.getAllSuperClassesOf(theClass.get.getType).foreach{
+    apk.getClassHierarchy.getAllSuperClassesOf(theClass.get).foreach{
       su =>
-        if(su.name.equals("android.view.ViewGroup"))
+        if(su.getName.equals("android.view.ViewGroup"))
           found = true
     }
     found
@@ -93,8 +93,8 @@ class LayoutFileParser(apk: ApkGlobal, packageName: String, arsc: ARSCFileParser
       return false
     // To make sure that nothing all wonky is going on here, we
     // check the hierarchy to find the android view class
-    apk.getClassHierarchy.getAllSuperClassesOf(theClass.get.getType).foreach{ su =>
-      if(su.name.equals("android.view.View") || su.name.equals("android.webkit.WebView"))
+    apk.getClassHierarchy.getAllSuperClassesOf(theClass.get).foreach{ su =>
+      if(su.getName.equals("android.view.View") || su.getName.equals("android.webkit.WebView"))
         return true
     }
     apk.reporter.echo(TITLE, "Layout class " + theClass + " is not derived from " + "android.view.View")

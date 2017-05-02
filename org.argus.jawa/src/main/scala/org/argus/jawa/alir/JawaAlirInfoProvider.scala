@@ -31,23 +31,20 @@ object JawaAlirInfoProvider {
     { (loc, catchClauses) =>
       	var result = isetEmpty[CatchClause]
       	val thrownExcs = ExceptionCenter.getExceptionsMayThrow(body, loc, catchClauses.toSet)
-      	thrownExcs.foreach{
-      	  thrownException =>
+      	thrownExcs.foreach{ thrownException =>
           val child = global.getClassOrResolve(thrownException)
-      	    val ccOpt =
-              catchClauses.find{
-			          catchClause =>
-			            val excType = catchClause.typ.typ
-			            val exc = global.getClassOrResolve(excType)
-                  global.getClassHierarchy.isClassRecursivelySubClassOfIncluding(child.getType, exc.getType)
-	      	    }
+          val ccOpt =
+            catchClauses.filter{ catchClause =>
+              val excType = catchClause.typ.typ
+              val exc = global.getClassOrResolve(excType)
+              global.getClassHierarchy.isClassRecursivelySubClassOfIncluding(child, exc)
+            }
           result ++= ccOpt
       	}
-      	
       	(result, false)
     }
 
-  private def buildCfg(md: MethodDeclaration, global: Global): IntraProceduralControlFlowGraph[CFGNode] = {
+  def buildCfg(md: MethodDeclaration, global: Global): IntraProceduralControlFlowGraph[CFGNode] = {
 	  val ENTRY_NODE_LABEL = "Entry"
 	  val EXIT_NODE_LABEL = "Exit"
     val rb = md.resolvedBody

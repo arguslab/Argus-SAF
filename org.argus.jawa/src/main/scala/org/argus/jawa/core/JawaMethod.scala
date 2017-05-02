@@ -306,7 +306,7 @@ case class JawaMethod(declaringClass: JawaClass,
           return
         }
     }
-    if(clazz.hasSuperClass) computeImplementsOrOverrides(clazz.global.getClassOrResolve(clazz.getSuperClass))
+    if(clazz.hasSuperClass) computeImplementsOrOverrides(clazz.getSuperClass)
   }
   
   def isImplements: Boolean = {

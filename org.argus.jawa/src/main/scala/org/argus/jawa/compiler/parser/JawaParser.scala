@@ -550,7 +550,7 @@ class JawaParser(tokens: Array[Token], reporter: Reporter) extends JavaKnowledge
     val monitor: Token = currentTokenType match {
       case MONITOR_ENTER => accept(MONITOR_ENTER)
       case MONITOR_EXIT => accept(MONITOR_EXIT)
-      case _ => throw new JawaParserException(currentToken.pos, "Unexpected expression start: " + currentToken)
+      case _ => throw new JawaParserException(currentToken.pos, "Unexpected monitorStatement start: " + currentToken)
     }
     val varSymbol_ : VarSymbol = varSymbol()
     MonitorStatement(at, monitor, varSymbol_)
@@ -573,7 +573,7 @@ class JawaParser(tokens: Array[Token], reporter: Reporter) extends JavaKnowledge
           case LBRACKET => indexingExpression()
           case _ => nameExpression()
         }
-      case _ =>  throw new JawaParserException(currentToken.pos, "Unexpected expression start: " + currentToken)
+      case _ =>  throw new JawaParserException(currentToken.pos, "Unexpected expression_lhs start: " + currentToken)
     }
   }
   
@@ -604,7 +604,7 @@ class JawaParser(tokens: Array[Token], reporter: Reporter) extends JavaKnowledge
           case OP => binaryExpression()
           case _ => nameExpression()
         }
-      case _ => throw new JawaParserException(currentToken.pos, "Unexpected expression start: " + currentToken)
+      case _ => throw new JawaParserException(currentToken.pos, "Unexpected expression_rhs start: " + currentToken)
     }
   }
   

@@ -78,63 +78,68 @@ object ComponentSummaryTable {
         }
       case en: ICFGEntryNode =>
         // Add onActivityResult as icc callee
-        if(apk.getClassHierarchy.isClassRecursivelySubClassOfIncluding(en.getOwner.getClassType, new JawaType("android.app.Activity"))
+        val activity = apk.getClassOrResolve(new JawaType("android.app.Activity"))
+        val current = apk.getClassOrResolve(en.getOwner.getClassType)
+        if(activity.isAssignableFrom(current)
           && en.getOwner.getSubSignature == "onActivityResult:(IILandroid/content/Intent;)V") {
           icc_summary.addCallee(en, IntentResultCallee(Component(apk, en.getOwner.getClassType)))
         }
-        rpcs.filter(rpc => rpc._1 == en.context.getMethodSig).foreach {
-          rpc =>
-            // Add handleMessage as rpc callee
-            if(apk.getClassHierarchy.isClassRecursivelySubClassOf(rpc._1.classTyp, new JawaType("android.os.Handler"))
-              && rpc._1.getSubSignature == "handleMessage:(Landroid/os/Message;)V") {
-              rpc_summary.addCallee(en, MessengerCallee(component, rpc._1))
-            } else {
-              rpc_summary.addCallee(en, BoundServiceCallee(component, rpc._1, rpc._2))
-            }
+        val handler = apk.getClassOrResolve(new JawaType("android.os.Handler"))
+        rpcs.filter(rpc => rpc._1 == en.context.getMethodSig).foreach { case (rpc, allow_remote) =>
+          val rpcClazz = apk.getClassOrResolve(rpc.classTyp)
+          // Add handleMessage as rpc callee
+          if(handler.isAssignableFrom(rpcClazz)
+            && rpc.getSubSignature == "handleMessage:(Landroid/os/Message;)V") {
+            rpc_summary.addCallee(en, MessengerCallee(component, rpc))
+          } else {
+            rpc_summary.addCallee(en, BoundServiceCallee(component, rpc, allow_remote))
+          }
         }
       case cn: ICFGCallNode =>
         val callees = cn.getCalleeSet
-        callees foreach {
-          callee =>
-            val calleeSig = callee.callee
-            val ptsmap = idfg.ptaresult.getPTSMap(cn.context)
-            if (AndroidConstants.isIccMethod(calleeSig.getSubSignature)) {
-              // add icc call as icc caller
-              val callTyp = AndroidConstants.getIccCallType(calleeSig.getSubSignature)
-              val intentSlot = VarSlot(cn.argNames(1), isBase = false, isArg = true)
-              val intentValue: ISet[Instance] = ptsmap.getOrElse(intentSlot, isetEmpty)
-              val intentContents = IntentHelper.getIntentContents(idfg.ptaresult, intentValue, cn.context)
-              intentContents foreach {
-                intentContent =>
-                  icc_summary.addCaller(cn, IntentCaller(component, callTyp, intentContent))
-              }
+        val activity = apk.getClassOrResolve(new JawaType("android.app.Activity"))
+        val messenger = apk.getClassOrResolve(new JawaType("android.os.Messenger"))
+        callees foreach { callee =>
+          val calleeSig = callee.callee
+          val ptsmap = idfg.ptaresult.getPTSMap(cn.context)
+          if (AndroidConstants.isIccMethod(calleeSig.getSubSignature)) {
+            // add icc call as icc caller
+            val callTyp = AndroidConstants.getIccCallType(calleeSig.getSubSignature)
+            val intentSlot = VarSlot(cn.argNames(1), isBase = false, isArg = true)
+            val intentValue: ISet[Instance] = ptsmap.getOrElse(intentSlot, isetEmpty)
+            val intentContents = IntentHelper.getIntentContents(idfg.ptaresult, intentValue, cn.context)
+            intentContents foreach {
+              intentContent =>
+                icc_summary.addCaller(cn, IntentCaller(component, callTyp, intentContent))
             }
-            if(apk.getClassHierarchy.isClassRecursivelySubClassOfIncluding(calleeSig.getClassType, new JawaType("android.app.Activity"))
-              && AndroidConstants.isSetResult(calleeSig.getSubSignature)) {
-              // add setResult as icc caller
-              icc_summary.addCaller(cn, IntentResultCaller(component))
-            }
-            if(apk.getClassHierarchy.isClassRecursivelySubClassOfIncluding(calleeSig.getClassType, new JawaType("android.os.Messenger"))
-              && calleeSig.getSubSignature == "send:(Landroid/os/Message;)V") {
-              val rpc_summary: RPC_Summary = summaryTable.get(CHANNELS.RPC)
-              rpc_summary.addCaller(cn, MessengerCaller(component, calleeSig))
-            } else if(calleeSig.getClassType.baseType.unknown) {
-              apk.model.getRpcMethods.foreach { sig =>
-                if(sig._1.getSubSignature == calleeSig.getSubSignature) {
-                  val calleeTyp = calleeSig.classTyp.removeUnknown()
-                  val calleeCls = apk.getClassOrResolve(calleeTyp)
-                  if((calleeCls.isInterface && apk.getClassHierarchy.getAllImplementersOf(calleeTyp).contains(sig._1.classTyp))
-                    || (!calleeCls.isInterface && apk.getClassHierarchy.isClassRecursivelySubClassOfIncluding(sig._1.classTyp, calleeTyp))) {
-                    val rpc_summary: RPC_Summary = summaryTable.get(CHANNELS.RPC)
-                    rpc_summary.addCaller(cn, BoundServiceCaller(component, sig._1))
-                  }
+          }
+          val calleeClazz = apk.getClassOrResolve(calleeSig.getClassType)
+          if(activity.isAssignableFrom(calleeClazz)
+            && AndroidConstants.isSetResult(calleeSig.getSubSignature)) {
+            // add setResult as icc caller
+            icc_summary.addCaller(cn, IntentResultCaller(component))
+          }
+          if(messenger.isAssignableFrom(calleeClazz)
+            && calleeSig.getSubSignature == "send:(Landroid/os/Message;)V") {
+            val rpc_summary: RPC_Summary = summaryTable.get(CHANNELS.RPC)
+            rpc_summary.addCaller(cn, MessengerCaller(component, calleeSig))
+          } else if(calleeSig.getClassType.baseType.unknown) {
+            apk.model.getRpcMethods.foreach { case (rpc, _) =>
+              if(rpc.getSubSignature == calleeSig.getSubSignature) {
+                val calleeTyp = calleeSig.classTyp.removeUnknown()
+                val calleeCls = apk.getClassOrResolve(calleeTyp)
+                val rpcCls = apk.getClassOrResolve(rpc.classTyp)
+                if((calleeCls.isInterface && apk.getClassHierarchy.getAllImplementersOf(calleeCls).contains(rpcCls))
+                  || (!calleeCls.isInterface && apk.getClassHierarchy.isClassRecursivelySubClassOfIncluding(rpcCls, calleeCls))) {
+                  val rpc_summary: RPC_Summary = summaryTable.get(CHANNELS.RPC)
+                  rpc_summary.addCaller(cn, BoundServiceCaller(component, rpc))
                 }
               }
-            } else {
-              if(apk.model.getRpcMethods.contains(calleeSig))
-                rpc_summary.addCaller(cn, BoundServiceCaller(component, calleeSig))
             }
-
+          } else {
+            if(apk.model.getRpcMethods.contains(calleeSig))
+              rpc_summary.addCaller(cn, BoundServiceCaller(component, calleeSig))
+          }
         }
       case en: ICFGExitNode =>
         rpcs.filter(rpc => rpc._1 == en.context.getMethodSig).foreach {
@@ -146,26 +151,25 @@ object ComponentSummaryTable {
         }
       case rn: ICFGReturnNode =>
         val callees = rn.getCalleeSet
-        callees foreach {
-          callee =>
-            val calleeSig = callee.callee
-            if(calleeSig.getClassType.baseType.unknown) {
-              apk.model.getRpcMethods.foreach { sig =>
-                if(sig._1.getSubSignature == calleeSig.getSubSignature) {
-                  val calleeTyp = calleeSig.classTyp.removeUnknown()
-                  val calleeCls = apk.getClassOrResolve(calleeTyp)
-                  if((calleeCls.isInterface && apk.getClassHierarchy.getAllImplementersOf(calleeTyp).contains(sig._1.classTyp))
-                    || (!calleeCls.isInterface && apk.getClassHierarchy.isClassRecursivelySubClassOfIncluding(sig._1.classTyp, calleeTyp))) {
-                    val rpc_summary: RPC_Summary = summaryTable.get(CHANNELS.RPC)
-                    rpc_summary.addCallee(rn, BoundServiceReturnCallee(component, sig._1))
-                  }
+        callees foreach { callee =>
+          val calleeSig = callee.callee
+          if(calleeSig.getClassType.baseType.unknown) {
+            apk.model.getRpcMethods.foreach { case (rpc, _) =>
+              if(rpc.getSubSignature == calleeSig.getSubSignature) {
+                val calleeTyp = calleeSig.classTyp.removeUnknown()
+                val calleeCls = apk.getClassOrResolve(calleeTyp)
+                val rpcCls = apk.getClassOrResolve(rpc.classTyp)
+                if((calleeCls.isInterface && apk.getClassHierarchy.getAllImplementersOf(calleeCls).contains(rpcCls))
+                  || (!calleeCls.isInterface && apk.getClassHierarchy.isClassRecursivelySubClassOfIncluding(rpcCls, calleeCls))) {
+                  val rpc_summary: RPC_Summary = summaryTable.get(CHANNELS.RPC)
+                  rpc_summary.addCallee(rn, BoundServiceReturnCallee(component, rpc))
                 }
               }
-            } else {
-              if(apk.model.getRpcMethods.contains(calleeSig))
-                rpc_summary.addCallee(rn, BoundServiceReturnCallee(component, calleeSig))
             }
-
+          } else {
+            if(apk.model.getRpcMethods.contains(calleeSig))
+              rpc_summary.addCallee(rn, BoundServiceReturnCallee(component, calleeSig))
+          }
         }
       case _ =>
     }

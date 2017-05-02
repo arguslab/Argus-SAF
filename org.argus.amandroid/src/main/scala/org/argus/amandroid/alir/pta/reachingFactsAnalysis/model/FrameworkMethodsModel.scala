@@ -30,7 +30,7 @@ class FrameworkMethodsModel extends ModelCall {
 
   def isModelCall(p: JawaMethod): Boolean = {
     val contextRec = p.getDeclaringClass.global.getClassOrResolve(new JawaType("android.content.Context"))
-    if(!p.getDeclaringClass.isInterface && p.getDeclaringClass.global.getClassHierarchy.isClassRecursivelySubClassOfIncluding(p.getDeclaringClass.getType, contextRec.getType)){
+    if(!p.getDeclaringClass.isInterface && p.getDeclaringClass.global.getClassHierarchy.isClassRecursivelySubClassOfIncluding(p.getDeclaringClass, contextRec)){
       p.getSubSignature match{
         case "setContentView:(I)V" |
           "registerReceiver:(Landroid/content/BroadcastReceiver;Landroid/content/IntentFilter;)Landroid/content/Intent;" |

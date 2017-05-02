@@ -122,17 +122,13 @@ object ControlFlowGraph {
     val result = new Cfg()
     if (locationDecls.isEmpty) return result
 
-    def getLocUriIndex(l: Location) =
-      (l.locationUri, l.locationIndex)
-
     def getNode(l: Location) =
       result.getNode(l.locationUri, l.locationIndex)
 
     val verticesMap = mmapEmpty[ResourceUri, Node]
     for (ld <- locationDecls) {
-      val lui = getLocUriIndex(ld)
-      val n = result.addNode(lui._1, lui._2)
-      verticesMap(lui._1) = n
+      val n = result.addNode(ld.locationUri, ld.locationIndex)
+      verticesMap(ld.locationUri) = n
     }
 
     val exitNode = result.addVirtualNode(exitLabel)

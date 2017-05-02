@@ -72,7 +72,7 @@ class AndroidReachingFactsAnalysisBuilder(apk: ApkGlobal, clm: ClassLoadManager,
   
   private def checkAndLoadClassFromHierarchy(me: JawaClass, s: ISet[RFAFact], currentNode: Node): Unit = {
     if(me.hasSuperClass){
-      checkAndLoadClassFromHierarchy(apk.getClassOrResolve(me.getSuperClass), s, currentNode)
+      checkAndLoadClassFromHierarchy(me.getSuperClass, s, currentNode)
     }
     val bitset = currentNode.getLoadedClassBitSet
     if(!clm.isLoaded(me, bitset)) {

@@ -49,10 +49,10 @@ class AndroidEnvironmentGenerator(global: Global) extends MethodGenerator(global
         var contentProvider = false
         var plain = false
         val currentClass = global.getClassOrResolve(item._1)
-        val ancestors = global.getClassHierarchy.getAllSuperClassesOfIncluding(currentClass.getType)
+        val ancestors = global.getClassHierarchy.getAllSuperClassesOfIncluding(currentClass)
         ancestors.foreach{
           ancestor =>
-            val recName = ancestor.name
+            val recName = ancestor.getName
             if(recName.equals(AndroidEntryPointConstants.ACTIVITY_CLASS)) activity = true
             if(recName.equals(AndroidEntryPointConstants.SERVICE_CLASS)) service = true
             if(recName.equals(AndroidEntryPointConstants.BROADCAST_RECEIVER_CLASS)) broadcastReceiver = true

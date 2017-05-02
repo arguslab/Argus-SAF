@@ -397,12 +397,12 @@ object MonotoneDataFlowAnalysisFramework {
               }
               latticeMap += (sn -> s)
             case j: ReturnStatement =>
-              val sn = np.exitNode(currentNode)
+              val succs = cfg.successors(currentNode)
               if (esl.isDefined) {
                 esl.get.returnJump(j, s)
                 esl.get.exitSet(s)
               }
-              latticeMap += (sn -> s)
+              succs.foreach(succ=>latticeMap += (succ -> s))
             case j: CallStatement =>
               if (esl.isDefined) esl.get.callJump(j, s)
               if (callr.isDefined) {
@@ -429,7 +429,6 @@ object MonotoneDataFlowAnalysisFramework {
             if(esl.isDefined) esl.get.exitSet(s)
             val succs = cfg.successors(currentNode)
             succs.foreach(succ=>latticeMap += (succ -> s))
-
         }
         latticeMap.toMap
       }

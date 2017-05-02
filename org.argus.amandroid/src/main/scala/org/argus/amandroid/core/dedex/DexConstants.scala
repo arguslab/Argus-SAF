@@ -179,7 +179,7 @@ trait DexConstants {
   def subInt(x: String, y: String, z: String): String = "%s:= %s - %s  @kind int;".format(x, y, z) // 0x91
   def mulInt(x: String, y: String, z: String): String = "%s:= %s * %s  @kind int;".format(x, y, z) // 0x92
   def divInt(x: String, y: String, z: String): String = "%s:= %s / %s  @kind int;".format(x, y, z) // 0x93
-  def remInt(x: String, y: String, z: String): String = "%s:= %s %% %s  @kind int;".format(x, y, z) // 0x94
+  def remInt(x: String, y: String, z: String): String = "%s:= %s %%%% %s  @kind int;".format(x, y, z) // 0x94
   def andInt(x: String, y: String, z: String): String = "%s:= %s ^& %s  @kind int;".format(x, y, z) // 0x95
   def orInt(x: String, y: String, z: String): String = "%s:= %s ^| %s  @kind int;".format(x, y, z) // 0x96
   def xorInt(x: String, y: String, z: String): String = "%s:= %s ^~ %s  @kind int;".format(x, y, z) // 0x97
@@ -190,7 +190,7 @@ trait DexConstants {
   def subLong(x: String, y: String, z: String): String = "%s:= %s - %s  @kind long;".format(x, y, z) // 0x9c
   def mulLong(x: String, y: String, z: String): String = "%s:= %s * %s  @kind long;".format(x, y, z) // 0x9d
   def divLong(x: String, y: String, z: String): String = "%s:= %s / %s  @kind long;".format(x, y, z) // 0x9e
-  def remLong(x: String, y: String, z: String): String = "%s:= %s %% %s  @kind long;".format(x, y, z) // 0x9f
+  def remLong(x: String, y: String, z: String): String = "%s:= %s %%%% %s  @kind long;".format(x, y, z) // 0x9f
   def andLong(x: String, y: String, z: String): String = "%s:= %s ^& %s  @kind long;".format(x, y, z) // 0xa0
   def orLong(x: String, y: String, z: String): String = "%s:= %s ^| %s  @kind long;".format(x, y, z) // 0xa1
   def xorLong(x: String, y: String, z: String): String = "%s:= %s ^~ %s  @kind long;".format(x, y, z) // 0xa2
@@ -201,17 +201,17 @@ trait DexConstants {
   def subFloat(x: String, y: String, z: String): String = "%s:= %s - %s  @kind float;".format(x, y, z) // 0xa7
   def mulFloat(x: String, y: String, z: String): String = "%s:= %s * %s  @kind float;".format(x, y, z) // 0xa8
   def divFloat(x: String, y: String, z: String): String = "%s:= %s / %s  @kind float;".format(x, y, z) // 0xa9
-  def remFloat(x: String, y: String, z: String): String = "%s:= %s %% %s  @kind float;".format(x, y, z) // 0xaa
+  def remFloat(x: String, y: String, z: String): String = "%s:= %s %%%% %s  @kind float;".format(x, y, z) // 0xaa
   def addDouble(x: String, y: String, z: String): String = "%s:= %s + %s  @kind double;".format(x, y, z) // 0xab
   def subDouble(x: String, y: String, z: String): String = "%s:= %s - %s  @kind double;".format(x, y, z) // 0xac
   def mulDouble(x: String, y: String, z: String): String = "%s:= %s * %s  @kind double;".format(x, y, z) // 0xad
   def divDouble(x: String, y: String, z: String): String = "%s:= %s / %s  @kind double;".format(x, y, z) // 0xae
-  def remDouble(x: String, y: String, z: String): String = "%s:= %s %% %s  @kind double;".format(x, y, z) // 0xaf
+  def remDouble(x: String, y: String, z: String): String = "%s:= %s %%%% %s  @kind double;".format(x, y, z) // 0xaf
 //  def addInt2addr(x: String, y: String) = "%s:= %s + %s  @kind int;".format(x, x, y) // 0xb0
 //  def subInt2addr(x: String, y: String) = "%s:= %s - %s  @kind int;".format(x, x, y) // 0xb1
 //  def mulInt2addr(x: String, y: String) = "%s:= %s * %s  @kind int;".format(x, x, y) // 0xb2
 //  def divInt2addr(x: String, y: String) = "%s:= %s / %s  @kind int;".format(x, x, y) // 0xb3
-//  def remInt2addr(x: String, y: String) = "%s:= %s %% %s  @kind int;".format(x, x, y) // 0xb4
+//  def remInt2addr(x: String, y: String) = "%s:= %s %%%% %s  @kind int;".format(x, x, y) // 0xb4
 //  def andInt2addr(x: String, y: String) = "%s:= %s ^& %s  @kind int;".format(x, x, y) // 0xb5
 //  def orInt2addr(x: String, y: String)  = "%s:= %s ^| %s  @kind int;".format(x, x, y) // 0xb6
 //  def xorInt2addr(x: String, y: String) = "%s:= %s ^~ %s  @kind int;".format(x, x, y) // 0xb7
@@ -222,7 +222,7 @@ trait DexConstants {
 //  def subLong2addr(x: String, y: String) = "%s:= %s - %s  @kind long;".format(x, x, y) // 0xbc
 //  def mulLong2addr(x: String, y: String) = "%s:= %s * %s  @kind long;".format(x, x, y) // 0xbd
 //  def divLong2addr(x: String, y: String) = "%s:= %s / %s  @kind long;".format(x, x, y) // 0xbe
-//  def remLong2addr(x: String, y: String) = "%s:= %s %% %s  @kind long;".format(x, x, y) // 0xbf
+//  def remLong2addr(x: String, y: String) = "%s:= %s %%%% %s  @kind long;".format(x, x, y) // 0xbf
 //  def andLong2addr(x: String, y: String) = "%s:= %s ^& %s  @kind long;".format(x, x, y) // 0xc0
 //  def orLong2addr(x: String, y: String) = "%s:= %s ^| %s  @kind long;".format(x, x, y) // 0xc1
 //  def xorLong2addr(x: String, y: String) = "%s:= %s ^~ %s  @kind long;".format(x, x, y) // 0xc2
@@ -233,17 +233,17 @@ trait DexConstants {
 //  def subFloat2addr(x: String, y: String) = "%s:= %s - %s  @kind float;".format(x, x, y) // 0xc7
 //  def mulFloat2addr(x: String, y: String) = "%s:= %s * %s  @kind float;".format(x, x, y) // 0xc8
 //  def divFloat2addr(x: String, y: String) = "%s:= %s / %s  @kind float;".format(x, x, y) // 0xc9
-//  def remFloat2addr(x: String, y: String) = "%s:= %s %% %s  @kind float;".format(x, x, y) // 0xca
+//  def remFloat2addr(x: String, y: String) = "%s:= %s %%%% %s  @kind float;".format(x, x, y) // 0xca
 //  def addDouble2addr(x: String, y: String) = "%s:= %s + %s  @kind double;".format(x, x, y) // 0xcb
 //  def subDouble2addr(x: String, y: String) = "%s:= %s - %s  @kind double;".format(x, x, y) // 0xcc
 //  def mulDouble2addr(x: String, y: String) = "%s:= %s * %s  @kind double;".format(x, x, y) // 0xcd
 //  def divDouble2addr(x: String, y: String) = "%s:= %s / %s  @kind double;".format(x, x, y) // 0xce
-//  def remDouble2addr(x: String, y: String) = "%s:= %s %% %s  @kind double;".format(x, x, y) // 0xcf
+//  def remDouble2addr(x: String, y: String) = "%s:= %s %%%% %s  @kind double;".format(x, x, y) // 0xcf
   def addLit16(x: String, y: String, z: Int): String = "%s:= %s + %d;".format(x, y, z) // 0xd0
   def subLit16(x: String, y: String, z: Int): String = "%s:= %s - %d;".format(x, y, z) // 0xd1
   def mulLit16(x: String, y: String, z: Int): String = "%s:= %s * %d;".format(x, y, z) // 0xd2
   def divLit16(x: String, y: String, z: Int): String = "%s:= %s / %d;".format(x, y, z) // 0xd3
-  def remLit16(x: String, y: String, z: Int): String = "%s:= %s %% %d;".format(x, y, z) // 0xd4
+  def remLit16(x: String, y: String, z: Int): String = "%s:= %s %%%% %d;".format(x, y, z) // 0xd4
   def andLit16(x: String, y: String, z: Int): String = "%s:= %s ^& %d;".format(x, y, z) // 0xd5
   def orLit16(x: String, y: String, z: Int): String = "%s:= %s ^| %d;".format(x, y, z) // 0xd6
   def xorLit16(x: String, y: String, z: Int): String = "%s:= %s ^~ %d;".format(x, y, z) // 0xd7
@@ -251,7 +251,7 @@ trait DexConstants {
   def subLit8(x: String, y: String, z: Int): String = "%s:= %s - %d;".format(x, y, z) // 0xd9
   def mulLit8(x: String, y: String, z: Int): String = "%s:= %s * %d;".format(x, y, z) // 0xda
   def divLit8(x: String, y: String, z: Int): String = "%s:= %s / %d;".format(x, y, z) // 0xdb
-  def remLit8(x: String, y: String, z: Int): String = "%s:= %s %% %d;".format(x, y, z) // 0xdc
+  def remLit8(x: String, y: String, z: Int): String = "%s:= %s %%%% %d;".format(x, y, z) // 0xdc
   def andLit8(x: String, y: String, z: Int): String = "%s:= %s ^& %d;".format(x, y, z) // 0xdd
   def orLit8(x: String, y: String, z: Int): String = "%s:= %s ^| %d;".format(x, y, z) // 0xde
   def xorLit8(x: String, y: String, z: Int): String = "%s:= %s ^~ %d;".format(x, y, z) // 0xdf

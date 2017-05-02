@@ -45,8 +45,9 @@ class IntraNodeProvider[LatticeElement](cfg: IntraProceduralControlFlowGraph[CFG
       val n = workList.remove(0)
       n match {
         case ln: CFGLocationNode =>
-          if (mdaf.visit(ln))
+          if (mdaf.visit(ln)) {
             workList ++= cfg.successors(n)
+          }
         case _ =>
           for (succ <- cfg.successors(n)) {
             mdaf.update(mdaf.entrySet(n), succ)
