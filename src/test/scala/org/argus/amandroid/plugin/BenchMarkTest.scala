@@ -276,7 +276,7 @@ class BenchMarkTest extends FlatSpec with Matchers {
   private def taintAnalysis(apkFiles: Set[String]): Option[TaintAnalysisResult[AndroidDataDependentTaintAnalysis.Node, InterProceduralDataDependenceAnalysis.Edge]] = {
     val fileUris = apkFiles.map(FileUtil.toUri)
     val outputUri = FileUtil.toUri(apkFiles.head.substring(0, apkFiles.head.length - 4))
-    val reporter = if(DEBUG) new PrintReporter(MsgLevel.INFO) else new NoReporter
+    val reporter = if(DEBUG) new PrintReporter(MsgLevel.INFO) else new PrintReporter(MsgLevel.NO)
     AndroidReachingFactsAnalysisConfig.resolve_static_init = true
     Context.init_context_length(0)
     val res = TaintAnalysisTask(TaintAnalysisModules.DATA_LEAKAGE, fileUris, outputUri, forceDelete = true, reporter).run

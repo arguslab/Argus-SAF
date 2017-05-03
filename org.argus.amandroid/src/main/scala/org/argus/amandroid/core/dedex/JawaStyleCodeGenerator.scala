@@ -182,19 +182,20 @@ class JawaStyleCodeGenerator(ddFile: DexBackedDexFile, filter: (JawaType => Deco
     val result: MMap[JawaType, String] = mmapEmpty
     val global = new Global("Type", reporter)
     global.setJavaLib(AndroidGlobalConfig.settings.lib_files)
-    def handleType: ((JawaType, String)) => (JawaType, String) = { case (typ, code) =>
-      val newcode = try {
-        GenerateTypedJawa(code, global)
-      } catch {
-        case e: Exception =>
-          if(DEBUG_FLOW) e.printStackTrace()
-          errorOccurred = true
-          code
-      }
-      (typ, newcode)
+    def handleType: ((JawaType, (String, DecompileLevel.Value))) => (JawaType, String) = { case (typ, (code, level)) =>
+      if(level >= DecompileLevel.TYPED) {
+        val newcode = try {
+          GenerateTypedJawa(code, global)
+        } catch {
+          case e: Exception =>
+            if (DEBUG_FLOW) e.printStackTrace()
+            errorOccurred = true
+            code
+        }
+        (typ, newcode)
+      } else (typ, code)
     }
-    val typeTasks: ISet[(JawaType, String)] = tmp.filter{case (_, (_, l)) => l == DecompileLevel.TYPED}.map{case (typ, (code, _)) => (typ, code)}.toSet
-    result ++= ProgressBarUtil.withProgressBar("Resolving types...", progressBar)(typeTasks, handleType)
+    result ++= ProgressBarUtil.withProgressBar("Resolving types...", progressBar)(tmp.toSet, handleType)
     if(listener.isDefined) listener.get.onGenerateEnd(result.size, errorOccurred)
     result.toMap
   }
