@@ -115,7 +115,7 @@ lazy val amandroid_concurrent: Project =
   newProject("amandroid-concurrent", file("org.argus.amandroid.concurrent"))
   .dependsOn(amandroid)
   .settings(libraryDependencies ++= DependencyGroups.amandroid_concurrent)
-  .settings(publishSettings)
+  .settings(doNotPublishSettings)
 
 releaseProcess := Seq(
   checkSnapshotDependencies,
@@ -130,7 +130,6 @@ releaseProcess := Seq(
   ReleaseStep(releaseStepTask(bintrayRelease in saf_library)),
   ReleaseStep(releaseStepTask(bintrayRelease in jawa)),
   ReleaseStep(releaseStepTask(bintrayRelease in amandroid)),
-  ReleaseStep(releaseStepTask(bintrayRelease in amandroid_concurrent)),
   ReleaseStep(releaseStepTask(bintrayRelease in argus_saf)),
   setNextVersion,
   commitNextVersion,
