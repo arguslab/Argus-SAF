@@ -40,7 +40,7 @@ class DefaultLibraryAPISummary(filePath: String) extends LibraryAPISummary {
       line match {
         case Some(str) =>
           if(str.endsWith(".*"))
-            libraryPackagePrefixes += str.substring(0, str.length - 1)
+            libraryPackagePrefixes += str.substring(0, str.length - 2)
           else libraryPackages += str
         case None =>
       }
