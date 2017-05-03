@@ -113,9 +113,9 @@ lazy val amandroid: Project =
 
 lazy val amandroid_concurrent: Project =
   newProject("amandroid-concurrent", file("org.argus.amandroid.concurrent"))
-    .dependsOn(amandroid)
-    .settings(libraryDependencies ++= DependencyGroups.amandroid_concurrent)
-    .settings(publishSettings)
+  .dependsOn(amandroid)
+  .settings(libraryDependencies ++= DependencyGroups.amandroid_concurrent)
+  .settings(publishSettings)
 
 releaseProcess := Seq(
   checkSnapshotDependencies,
