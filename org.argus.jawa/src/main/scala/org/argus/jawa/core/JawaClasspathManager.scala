@@ -30,17 +30,17 @@ trait JawaClasspathManager extends JavaKnowledge { self: Global =>
   /**
     * load code from given root dir
     */
-  def load(fileRootUri: FileResourceUri, ext: String, summary: LibraryAPISummary): Unit = {
+  def load(fileRootUri: FileResourceUri, ext: String, isLib: (JawaType => Boolean)): Unit = {
     val fileUris = FileUtil.listFiles(fileRootUri, ext, recursive = true)
     fileUris.foreach{ fileUri =>
-      load(fileUri, summary)
+      load(fileUri, isLib)
     }
   }
 
   /**
     * load code from given file
     */
-  def load(fileUri: FileResourceUri, summary: LibraryAPISummary): Unit = {
+  def load(fileUri: FileResourceUri, isLib: (JawaType => Boolean)): Unit = {
     val source = new FgSourceFile(new PlainFile(FileUtil.toFile(fileUri)))
     val codes = source.getClassCodes
     val classTypes: MSet[JawaType] = msetEmpty
@@ -53,7 +53,7 @@ trait JawaClasspathManager extends JavaKnowledge { self: Global =>
       }
     }
     classTypes.foreach { typ =>
-      if (summary.isLibraryClass(typ)) {
+      if (isLib(typ)) {
         this.userLibraryClassCodes(typ) = source
       } else {
         this.applicationClassCodes(typ) = source
@@ -64,11 +64,11 @@ trait JawaClasspathManager extends JavaKnowledge { self: Global =>
   /**
     * load code from given string
     */
-  def load(codes: IMap[JawaType, String], summary: LibraryAPISummary): Unit = {
+  def load(codes: IMap[JawaType, String], isLib: (JawaType => Boolean)): Unit = {
     codes.foreach { case (typ, code) =>
       try {
         val source = new FgSourceFile(new StringFile(code))
-        if (summary.isLibraryClass(typ)) {
+        if (isLib(typ)) {
           this.userLibraryClassCodes(typ) = source
         } else {
           this.applicationClassCodes(typ) = source

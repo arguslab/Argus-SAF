@@ -13,9 +13,10 @@ package org.argus.amandroid.serialization
 import java.io.{FileReader, FileWriter}
 
 import org.argus.amandroid.alir.componentSummary.ApkYard
-import org.argus.amandroid.core.decompile.{ConverterUtil, DecompileLayout, DecompilerSettings}
+import org.argus.amandroid.core.AndroidGlobalConfig
+import org.argus.amandroid.core.decompile.{ConverterUtil, DecompileLayout, DecompileStrategy, DecompilerSettings}
 import org.argus.amandroid.core.model.ApkModel
-import org.argus.jawa.core.DefaultReporter
+import org.argus.jawa.core.{DefaultLibraryAPISummary, DefaultReporter}
 import org.json4s.NoTypeHints
 import org.json4s.native.Serialization
 import org.json4s.native.Serialization.{read, write}
@@ -31,9 +32,11 @@ class SerializationTest extends FlatSpec with Matchers {
     val apkFile = getClass.getResource("/icc-bench/IccHandling/icc_explicit_src_sink.apk").getPath
     val apkUri = FileUtil.toUri(apkFile)
     val outputUri = FileUtil.toUri(apkFile.substring(0, apkFile.length - 4))
-    val yard = new ApkYard(new DefaultReporter)
+    val reporter = new DefaultReporter
+    val yard = new ApkYard(reporter)
     val layout = DecompileLayout(outputUri)
-    val settings = DecompilerSettings(debugMode = false, removeSupportGen = true, forceDelete = true, layout)
+    val strategy = DecompileStrategy(new DefaultLibraryAPISummary(AndroidGlobalConfig.settings.third_party_lib_file), layout)
+    val settings = DecompilerSettings(debugMode = false, forceDelete = true, strategy, reporter)
     val apk = yard.loadApk(apkUri, settings, collectInfo = true)
     val model = apk.model
     implicit val formats = Serialization.formats(NoTypeHints) + ApkModelSerializer

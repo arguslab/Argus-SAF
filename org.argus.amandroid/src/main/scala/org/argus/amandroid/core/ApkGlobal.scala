@@ -20,7 +20,7 @@ import org.argus.jawa.alir.{AlirEdge, InterProceduralNode}
 import org.argus.jawa.alir.dataDependenceAnalysis.InterProceduralDataDependenceInfo
 import org.argus.jawa.alir.dataFlowAnalysis.InterproceduralDataFlowGraph
 import org.argus.jawa.alir.taintAnalysis.TaintAnalysisResult
-import org.argus.jawa.core.{Global, JawaType, Reporter}
+import org.argus.jawa.core.{Constants, Global, JawaType, Reporter}
 
 object ApkGlobal {
   def isValidApk(nameUri: FileResourceUri): Boolean = {
@@ -107,6 +107,22 @@ class ApkGlobal(val model: ApkModel, reporter: Reporter) extends Global(model.na
   setJavaLib(AndroidGlobalConfig.settings.lib_files)
 
   def nameUri: FileResourceUri = model.nameUri
+
+  def load(): Unit = {
+    val outApkUri = model.layout.outputSrcUri
+    model.layout.sourceFolders foreach { src =>
+      val fileUri = FileUtil.appendFileName(outApkUri, src)
+      if(FileUtil.toFile(fileUri).exists()) {
+        load(fileUri, Constants.JAWA_FILE_EXT, _ => false)
+      }
+    }
+    model.layout.libFolders foreach { lib =>
+      val fileUri = FileUtil.appendFileName(outApkUri, lib)
+      if(FileUtil.toFile(fileUri).exists()) {
+        load(fileUri, Constants.JAWA_FILE_EXT, _ => true)
+      }
+    }
+  }
 
   def resolveEnvInGlobal(): Unit = {
     model.getEnvMap.foreach {

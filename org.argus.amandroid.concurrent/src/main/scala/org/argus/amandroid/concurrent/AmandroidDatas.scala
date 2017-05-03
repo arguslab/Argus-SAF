@@ -10,6 +10,7 @@
 
 package org.argus.amandroid.concurrent
 
+import org.argus.amandroid.core.decompile.DecompileLayout
 import org.argus.amandroid.core.model.ApkModel
 import org.argus.jawa.alir.pta.PTAResult
 import org.argus.jawa.core.Signature
@@ -30,22 +31,22 @@ case class DecompileData(fileUri: FileResourceUri, outputUri: FileResourceUri, d
 trait DecompilerResult extends AmandroidData {
   def fileUri: FileResourceUri
 }
-case class DecompileSuccResult(fileUri: FileResourceUri, outApkUri: FileResourceUri, srcFolders: ISet[String], dependencies: ISet[String]) extends DecompilerResult with Success
+case class DecompileSuccResult(fileUri: FileResourceUri, layout: DecompileLayout) extends DecompilerResult with Success
 case class DecompileFailResult(fileUri: FileResourceUri, e: Throwable) extends DecompilerResult with Failure
 
 // ApkInfoCollectActor's input
-case class ApkInfoCollectData(fileUri: FileResourceUri, outApkUri: FileResourceUri, srcFolders: ISet[String], timeout: Duration) extends DecompilerResult
+case class ApkInfoCollectData(fileUri: FileResourceUri, layout: DecompileLayout, timeout: Duration) extends DecompilerResult
 // ApkInfoCollectActor's result
 trait ApkInfoCollectResult extends AmandroidData {
   def fileUri: FileResourceUri
 }
-case class ApkInfoCollectSuccResult(model: ApkModel, outApkUri: FileResourceUri, srcFolders: ISet[String]) extends ApkInfoCollectResult with Success {
+case class ApkInfoCollectSuccResult(model: ApkModel) extends ApkInfoCollectResult with Success {
   def fileUri: FileResourceUri = model.nameUri
 }
 case class ApkInfoCollectFailResult(fileUri: FileResourceUri, e: Exception) extends ApkInfoCollectResult with Failure
 
 // PointsToAnalysisActor's input
-case class PointsToAnalysisData(model: ApkModel, outApkUri: FileResourceUri, srcFolders: ISet[String], algos: PTAAlgorithms.Value, stage: Boolean, timeoutForeachComponent: Duration) extends AmandroidData
+case class PointsToAnalysisData(model: ApkModel, algos: PTAAlgorithms.Value, stage: Boolean, timeoutForeachComponent: Duration) extends AmandroidData
 // PointsToAnalysisActor's result
 trait PointsToAnalysisResult extends AmandroidData {
   def fileUri: FileResourceUri

@@ -11,9 +11,9 @@
 package org.argus.amandroid.serialization
 
 import org.argus.jawa.core.util._
-
 import org.argus.amandroid.core.model.ApkModel
 import org.argus.amandroid.core.appInfo.ApkCertificate
+import org.argus.amandroid.core.decompile.DecompileLayout
 import org.argus.amandroid.core.parser.{ComponentInfo, ComponentType, IntentFilterDataBase, LayoutControl}
 import org.argus.jawa.core._
 import org.json4s.{CustomSerializer, Extraction, JValue}
@@ -22,10 +22,9 @@ import org.json4s.JsonDSL._
 object ApkModelSerializer extends CustomSerializer[ApkModel](format => (
   {
     case jv: JValue =>
-      implicit val formats = format + JawaTypeSerializer + JawaTypeKeySerializer + SignatureSerializer + SignatureKeySerializer + IntentFilterDataBaseSerializer + new org.json4s.ext.EnumNameSerializer(ComponentType)
+      implicit val formats = format + JawaTypeSerializer + JawaTypeKeySerializer + SignatureSerializer + SignatureKeySerializer + IntentFilterDataBaseSerializer + DecompileLayoutSerializer + new org.json4s.ext.EnumNameSerializer(ComponentType)
       val nameUri  = (jv \ "nameUri").extract[FileResourceUri]
-      val outApkUri = (jv \ "outApkUri").extract[FileResourceUri]
-      val srcs = (jv \ "srcs").extract[ISet[String]]
+      val layout = (jv \ "layout").extract[DecompileLayout]
       val certificates = (jv \ "certificates").extract[ISet[ApkCertificate]]
       val activities = (jv \ "activities").extract[ISet[JawaType]]
       val services = (jv \ "services").extract[ISet[JawaType]]
@@ -41,7 +40,7 @@ object ApkModelSerializer extends CustomSerializer[ApkModel](format => (
       val intentFdb = (jv \ "intentFdb").extract[IntentFilterDataBase]
       val codeLineCounter = (jv \ "codeLineCounter").extract[Int]
       val envMap = (jv \ "envMap").extract[IMap[JawaType, (Signature, String)]]
-      val apk = ApkModel(nameUri, outApkUri, srcs)
+      val apk = ApkModel(nameUri, layout)
       apk.addCertificates(certificates)
       apk.addActivities(activities)
       apk.addServices(services)
@@ -61,10 +60,9 @@ object ApkModelSerializer extends CustomSerializer[ApkModel](format => (
   },
   {
     case model: ApkModel =>
-      implicit val formats = format + JawaTypeSerializer + JawaTypeKeySerializer + SignatureSerializer + SignatureKeySerializer + IntentFilterDataBaseSerializer + new org.json4s.ext.EnumNameSerializer(ComponentType)
+      implicit val formats = format + JawaTypeSerializer + JawaTypeKeySerializer + SignatureSerializer + SignatureKeySerializer + IntentFilterDataBaseSerializer + DecompileLayoutSerializer + new org.json4s.ext.EnumNameSerializer(ComponentType)
       val nameUri: FileResourceUri = model.nameUri
-      val outApkUri: FileResourceUri = model.outApkUri
-      val srcs: ISet[String] = model.srcs
+      val layout: DecompileLayout = model.layout
       val certificates: ISet[ApkCertificate] = model.getCertificates
       val activities: ISet[JawaType] = model.getActivities
       val services: ISet[JawaType] = model.getServices
@@ -81,8 +79,7 @@ object ApkModelSerializer extends CustomSerializer[ApkModel](format => (
       val codeLineCounter: Int = model.getCodeLineCounter
       val envMap: IMap[JawaType, (Signature, String)] = model.getEnvMap
       ("nameUri" -> nameUri) ~
-      ("outApkUri" -> outApkUri) ~
-      ("srcs" -> srcs) ~
+      ("layout" -> Extraction.decompose(layout)) ~
       ("certificates" -> Extraction.decompose(certificates)) ~
       ("activities" -> Extraction.decompose(activities)) ~
       ("services" -> Extraction.decompose(services)) ~

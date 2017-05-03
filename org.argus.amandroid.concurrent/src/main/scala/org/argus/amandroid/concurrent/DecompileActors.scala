@@ -11,10 +11,10 @@
 package org.argus.amandroid.concurrent
 
 import akka.actor._
-import org.argus.amandroid.core.decompile.{ApkDecompiler, DecompileLayout, DecompilerSettings}
-import org.argus.amandroid.core.{ApkGlobal, InvalidApk}
+import org.argus.amandroid.core.decompile.{ApkDecompiler, DecompileLayout, DecompileStrategy, DecompilerSettings}
+import org.argus.amandroid.core.{AndroidGlobalConfig, ApkGlobal, InvalidApk}
+import org.argus.jawa.core.{DefaultLibraryAPISummary, DefaultReporter}
 import org.argus.jawa.core.util.FileUtil
-import org.argus.jawa.core.util._
 
 /**
  * This is an actor for managing the whole decompile process.
@@ -31,13 +31,13 @@ class DecompilerActor extends Actor with ActorLogging {
   def decompile(ddata: DecompileData): DecompilerResult = {
     log.info("Start decompile " + ddata.fileUri)
     if(ApkGlobal.isValidApk(ddata.fileUri)) {
-        val listener = None
         val apkFile = FileUtil.toFile(ddata.fileUri)
         val res = try {
           val layout = DecompileLayout(ddata.outputUri)
-          val settings = DecompilerSettings(debugMode = false, removeSupportGen = ddata.removeSupportGen, forceDelete = ddata.forceDelete, layout, listener)
-          val (outApkUri, srcs, deps) = ApkDecompiler.decompile(ddata.fileUri, settings)
-          DecompileSuccResult(ddata.fileUri, outApkUri, srcs, deps)
+          val strategy = DecompileStrategy(new DefaultLibraryAPISummary(AndroidGlobalConfig.settings.third_party_lib_file), layout)
+          val settings = DecompilerSettings(debugMode = false, forceDelete = ddata.forceDelete, strategy, new DefaultReporter, None)
+          ApkDecompiler.decompile(ddata.fileUri, settings)
+          DecompileSuccResult(ddata.fileUri, layout)
         } catch {
           case e: Throwable =>
             DecompileFailResult(ddata.fileUri, e)

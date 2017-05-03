@@ -25,6 +25,7 @@ class AmandroidSettings(amandroid_home: String, iniPathOpt: Option[String]) {
     amandroid_home + "/androidSdk/support/v4/android-support-v4.jar" + java.io.File.pathSeparator +
     amandroid_home + "/androidSdk/support/v13/android-support-v13.jar" + java.io.File.pathSeparator +
     amandroid_home + "/androidSdk/support/v7/android-support-v7-appcompat.jar"
+  private def defaultThirdPartyLibFile = amandroid_home + "/liblist.txt"
   private val iniUri = {
     iniPathOpt match {
       case Some(path) => FileUtil.toUri(path)
@@ -36,6 +37,7 @@ class AmandroidSettings(amandroid_home: String, iniPathOpt: Option[String]) {
   def dependence_dir: Option[String] = Option(ini.get("general", "dependence_dir", classOf[String]))
   def debug: Boolean = ini.get("general", "debug", classOf[Boolean])
   def lib_files: String = Option(ini.get("general", "lib_files", classOf[String])).getOrElse(defaultLibFiles)
+  def third_party_lib_file: String = Option(ini.get("general", "third_party_lib_file", classOf[String])).getOrElse(defaultThirdPartyLibFile)
   def actor_conf_file: InputStream = Option(ini.get("concurrent", "actor_conf_file", classOf[String])) match {
     case Some(path) => new FileInputStream(path)
     case None => getClass.getResourceAsStream("/application.conf")

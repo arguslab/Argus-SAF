@@ -211,10 +211,10 @@ object AppInfoCollector {
   def collectInfo(apk: ApkGlobal): Unit = {
     apk.reporter.println(s"Collecting information from ${apk.model.getAppName}...")
     val certs = AppInfoCollector.readCertificates(apk.nameUri)
-    val manifestUri = FileUtil.appendFileName(apk.model.outApkUri, "AndroidManifest.xml")
+    val manifestUri = FileUtil.appendFileName(apk.model.layout.outputSrcUri, "AndroidManifest.xml")
     val mfp = AppInfoCollector.analyzeManifest(apk.reporter, manifestUri)
     val afp = AppInfoCollector.analyzeARSC(apk.reporter, apk.nameUri)
-    val lfp = AppInfoCollector.analyzeLayouts(apk, apk.model.outApkUri, mfp, afp)
+    val lfp = AppInfoCollector.analyzeLayouts(apk, apk.model.layout.outputSrcUri, mfp, afp)
     val ra = AppInfoCollector.reachabilityAnalysis(apk, mfp.getComponentInfos.map(_.compType))
     val callbacks = AppInfoCollector.analyzeCallback(apk.reporter, afp, lfp, ra)
     apk.model.addCertificates(certs)

@@ -20,21 +20,21 @@ class GlobalTest extends FlatSpec with Matchers {
   "Load code" should "have size 4" in {
     val srcUri = FileUtil.toUri(getClass.getResource("/test1").getPath)
     val global = new Global("test", new NoReporter)
-    global.load(srcUri ,Constants.JAWA_FILE_EXT, DefaultLibraryAPISummary)
+    global.load(srcUri ,Constants.JAWA_FILE_EXT, NoLibraryAPISummary.isLibraryClass)
     assert(global.getApplicationClassCodes.size == 4)
   }
 
   "Load code" should "have given type" in {
     val srcUri = FileUtil.toUri(getClass.getResource("/test1").getPath)
     val global = new Global("test", new NoReporter)
-    global.load(srcUri ,Constants.JAWA_FILE_EXT, DefaultLibraryAPISummary)
+    global.load(srcUri ,Constants.JAWA_FILE_EXT, NoLibraryAPISummary.isLibraryClass)
     assert(global.getApplicationClassCodes.contains(new JawaType("com.ksu.fieldFlowSentivity.MainActivity")))
   }
 
   "Given type" should "in application category" in {
     val srcUri = FileUtil.toUri(getClass.getResource("/test1").getPath)
     val global = new Global("test", new NoReporter)
-    global.load(srcUri ,Constants.JAWA_FILE_EXT, DefaultLibraryAPISummary)
+    global.load(srcUri ,Constants.JAWA_FILE_EXT, NoLibraryAPISummary.isLibraryClass)
     assert(global.isApplicationClasses(new JawaType("com.ksu.fieldFlowSentivity.MainActivity")) && global.getClassCategoryFromClassPath(new JawaType("com.ksu.fieldFlowSentivity.MainActivity")) == global.ClassCategory.APPLICATION)
   }
 
@@ -99,14 +99,14 @@ class GlobalTest extends FlatSpec with Matchers {
   "Get application classes" should "return 4 classes" in {
     val srcUri = FileUtil.toUri(getClass.getResource("/test1").getPath)
     val global = new Global("test", new NoReporter)
-    global.load(srcUri ,Constants.JAWA_FILE_EXT, DefaultLibraryAPISummary)
+    global.load(srcUri ,Constants.JAWA_FILE_EXT, NoLibraryAPISummary.isLibraryClass)
     assert(global.getApplicationClasses.size == 4)
   }
 
   "Get user library classes" should "return empty" in {
     val srcUri = FileUtil.toUri(getClass.getResource("/test1").getPath)
     val global = new Global("test", new NoReporter)
-    global.load(srcUri ,Constants.JAWA_FILE_EXT, DefaultLibraryAPISummary)
+    global.load(srcUri ,Constants.JAWA_FILE_EXT, NoLibraryAPISummary.isLibraryClass)
     assert(global.getUserLibraryClasses.isEmpty)
   }
 

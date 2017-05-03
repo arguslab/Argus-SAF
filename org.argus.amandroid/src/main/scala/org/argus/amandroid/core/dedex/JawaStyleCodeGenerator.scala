@@ -11,15 +11,17 @@
 package org.argus.amandroid.core.dedex
 
 import org.argus.jawa.core.util._
-import java.io.PrintStream
 
 import collection.JavaConverters._
 import java.util
 
+import hu.ssh.progressbar.ProgressBar
 import org.apache.commons.lang3.StringEscapeUtils
+import org.argus.amandroid.core.AndroidGlobalConfig
+import org.argus.amandroid.core.decompile.DecompileLevel
+import org.argus.amandroid.core.dedex.`type`.GenerateTypedJawa
 import org.argus.jawa.core.AccessFlag.FlagKind
 import org.argus.jawa.core._
-import org.argus.jawa.core.util.FileUtil
 import org.jf.dexlib2.dexbacked.instruction.DexBackedInstruction
 import org.jf.dexlib2.dexbacked.{DexBackedCatchAllExceptionHandler, DexBackedClassDef, DexBackedDexFile, DexBackedField, DexBackedMethod, DexBackedTryBlock, DexBackedTypedExceptionHandler}
 import org.stringtemplate.v4.{ST, STGroupString}
@@ -28,36 +30,13 @@ import org.stringtemplate.v4.{ST, STGroupString}
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
  */
 trait JawaStyleCodeGeneratorListener {
-  def onRecordGenerated(recType: JawaType, code: String, outputUri: Option[FileResourceUri]): Unit = {}
+  def onRecordGenerated(recType: JawaType, code: String): Unit = {}
   def onProcedureGenerated(sig: Signature, accessFlag: Int): Unit = {}
   def onInstructionGenerated(round: Int): Unit = {}
   def onGenerateEnd(recordCount: Int, errorOccupied: Boolean): Unit = {}
 }
 
 object JawaStyleCodeGenerator {
-  def outputCode(recType: JawaType, code: String, outputUri: Option[FileResourceUri]): Unit = {
-    val classPath = recType.jawaName.replaceAll("\\.", "/")
-    outputUri match {
-      case Some(od) =>
-        var targetFile = FileUtil.toFile(FileUtil.appendFileName(od, classPath + ".jawa"))
-        var i = 0
-        while(targetFile.exists()){
-          i += 1
-          targetFile = FileUtil.toFile(FileUtil.appendFileName(od, classPath + "." + i + ".jawa"))
-        }
-        val parent = targetFile.getParentFile
-        if(parent != null)
-          parent.mkdirs()
-        val outputStream = new PrintStream(targetFile)
-        try {
-          outputStream.println(code)
-        } finally {
-          outputStream.close()
-        }
-      case None =>
-    }
-  }
-
   def generateAnnotation(flag: String, value: String, template: STGroupString): ST = {
     val annot = template.getInstanceOf("Annotation")
     annot.add("flag", flag)
@@ -77,7 +56,7 @@ object JawaStyleCodeGenerator {
 /**
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
  */
-class JawaStyleCodeGenerator(ddFile: DexBackedDexFile, outputUri: Option[FileResourceUri], filter: (JawaType => Boolean)) {
+class JawaStyleCodeGenerator(ddFile: DexBackedDexFile, filter: (JawaType => DecompileLevel.Value), reporter: Reporter) {
 
   import JawaStyleCodeGenerator._
 
@@ -106,8 +85,7 @@ class JawaStyleCodeGenerator(ddFile: DexBackedDexFile, outputUri: Option[FileRes
           case None => ilistEmpty
         }
         var recname = typ.baseType.name
-        pkgList foreach {
-          pkg =>
+        pkgList foreach { pkg =>
             val pkgname = pkg.name
             if(pkgNameMapping.contains(pkg)) {
               sb.append(pkgNameMapping(pkg) + ".")
@@ -183,23 +161,40 @@ class JawaStyleCodeGenerator(ddFile: DexBackedDexFile, outputUri: Option[FileRes
     }
   }
 
-  def generate(listener: Option[JawaStyleCodeGeneratorListener] = None, genBody: Boolean): IMap[JawaType, String] = {
-    val result: MMap[JawaType, String] = mmapEmpty
-    val dexClasses = ddFile.getClasses.asScala
+  def generate(listener: Option[JawaStyleCodeGeneratorListener] = None, progressBar: ProgressBar): IMap[JawaType, String] = {
+    val tmp: MMap[JawaType, (String, DecompileLevel.Value)] = mmapEmpty
+    val dexClasses = ddFile.getClasses.asScala.toSet
     var errorOccurred = false
-    dexClasses.foreach { dexClass =>
+    def handleClass: DexBackedClassDef => Unit = { dexClass =>
       val recType: JawaType = JavaKnowledge.formatSignatureToType(dexClass.getType).jawaName.resolveRecord
-      if (filter(recType)) {
-         process(dexClass, recType, listener, genBody) match {
-           case Some((typ, code)) =>
-             result(typ) = code
-             outputCode(typ, code, outputUri)
-           case None =>
-             errorOccurred = true
-         }
+      val level = filter(recType)
+      if (level > DecompileLevel.NO) {
+        val genBody = level > DecompileLevel.SIGNATURE
+        process(dexClass, recType, listener, genBody) match {
+          case Some((typ, code)) =>
+            tmp(typ) = (code, level)
+          case None =>
+            errorOccurred = true
+        }
       }
     }
-
+    ProgressBarUtil.withProgressBar("Dedexing dalvik...", progressBar)(dexClasses, handleClass)
+    val result: MMap[JawaType, String] = mmapEmpty
+    val global = new Global("Type", reporter)
+    global.setJavaLib(AndroidGlobalConfig.settings.lib_files)
+    def handleType: ((JawaType, String)) => (JawaType, String) = { case (typ, code) =>
+      val newcode = try {
+        GenerateTypedJawa(code, global)
+      } catch {
+        case e: Exception =>
+          if(DEBUG_FLOW) e.printStackTrace()
+          errorOccurred = true
+          code
+      }
+      (typ, newcode)
+    }
+    val typeTasks: ISet[(JawaType, String)] = tmp.filter{case (_, (_, l)) => l == DecompileLevel.TYPED}.map{case (typ, (code, _)) => (typ, code)}.toSet
+    result ++= ProgressBarUtil.withProgressBar("Resolving types...", progressBar)(typeTasks, handleType)
     if(listener.isDefined) listener.get.onGenerateEnd(result.size, errorOccurred)
     result.toMap
   }
@@ -260,7 +255,7 @@ class JawaStyleCodeGenerator(ddFile: DexBackedDexFile, outputUri: Option[FileRes
     recTemplate.add("globals", generateGlobals(recTyp, dexClass.getStaticFields.asScala.toList, template))
     recTemplate.add("procedures", generateProcedures(recTyp, dexClass.getMethods.asScala.toList, listener, genBody, template))
     val code = recTemplate.render()
-    if(listener.isDefined) listener.get.onRecordGenerated(recTyp, code, outputUri)
+    if(listener.isDefined) listener.get.onRecordGenerated(recTyp, code)
     code
   }
 

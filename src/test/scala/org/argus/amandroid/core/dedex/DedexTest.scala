@@ -10,8 +10,8 @@
 
 package org.argus.amandroid.core.dedex
 
-import org.argus.amandroid.core.decompile.{DecompileLayout, DecompilerSettings}
-import org.argus.jawa.core.{JawaType, NoReporter}
+import org.argus.amandroid.core.decompile.{DecompileLayout, DecompileStrategy, DecompilerSettings}
+import org.argus.jawa.core.{JawaType, NoLibraryAPISummary, NoReporter}
 import org.argus.jawa.core.sourcefile.SourcefileParser
 import org.scalatest.{FlatSpec, Matchers}
 import org.argus.jawa.core.util.FileUtil
@@ -21,14 +21,16 @@ import org.argus.jawa.core.util.FileUtil
   */
 class DedexTest extends FlatSpec with Matchers {
 
-  val recordFilter: (JawaType => Boolean) = { ot =>
+  val recordFilter: (JawaType => Boolean) = { _ =>
     true
   }
+
+  val settings = DecompilerSettings(debugMode = false, forceDelete = false, DecompileStrategy(NoLibraryAPISummary, DecompileLayout("")), new NoReporter)
 
   "Dedex data.dex" should "produce expected code" in {
     val dedex = new JawaDeDex
     val dexUri = FileUtil.toUri(getClass.getResource("/dexes/data.dex").getPath)
-    dedex.decompile(dexUri, None, recordFilter, DecompilerSettings(debugMode = false, removeSupportGen = true, forceDelete = false, DecompileLayout("")))
+    dedex.decompile(dexUri, settings)
     dedex.getCodes map { case (_, code) =>
       noException should be thrownBy SourcefileParser.parse(code, new NoReporter)
     }
@@ -38,7 +40,7 @@ class DedexTest extends FlatSpec with Matchers {
   "Dedex comprehensive.dex" should "produce expected code" in {
     val dedex = new JawaDeDex
     val dexUri = FileUtil.toUri(getClass.getResource("/dexes/comprehensive.dex").getPath)
-    dedex.decompile(dexUri, None, recordFilter, DecompilerSettings(debugMode = false, removeSupportGen = true, forceDelete = false, DecompileLayout("")))
+    dedex.decompile(dexUri, settings)
     dedex.getCodes map { case (_, code) =>
       noException should be thrownBy SourcefileParser.parse(code, new NoReporter)
     }
@@ -48,7 +50,7 @@ class DedexTest extends FlatSpec with Matchers {
   "Dedex comprehensive.odex" should "produce expected code" in {
     val dedex = new JawaDeDex
     val dexUri = FileUtil.toUri(getClass.getResource("/dexes/comprehensive.odex").getPath)
-    dedex.decompile(dexUri, None, recordFilter, DecompilerSettings(debugMode = false, removeSupportGen = true, forceDelete = false, DecompileLayout("")))
+    dedex.decompile(dexUri, settings)
     dedex.getCodes map { case (_, code) =>
       noException should be thrownBy SourcefileParser.parse(code, new NoReporter)
     }
@@ -58,7 +60,7 @@ class DedexTest extends FlatSpec with Matchers {
   "Dedex oat file BasicDreams.odex" should "produce expected code" in {
     val dedex = new JawaDeDex
     val dexUri = FileUtil.toUri(getClass.getResource("/dexes/BasicDreams.odex").getPath)
-    dedex.decompile(dexUri, None, recordFilter, DecompilerSettings(debugMode = true, removeSupportGen = true, forceDelete = false, DecompileLayout(""), api = 25))
+    dedex.decompile(dexUri, settings)
     dedex.getCodes map { case (_, code) =>
       noException should be thrownBy SourcefileParser.parse(code, new NoReporter)
     }

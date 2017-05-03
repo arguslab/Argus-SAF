@@ -17,33 +17,34 @@ import java.util.concurrent.TimeoutException
 
 import org.argus.amandroid.core.dedex.JawaDeDex
 import org.argus.amandroid.core.util.FixResources
-import org.argus.jawa.core.JawaType
 import org.xml.sax.SAXParseException
 
 /**
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
  * @author <a href="mailto:sroy@k-state.edu">Sankardas Roy</a>
  */ 
-object Dex2PilarConverter {
-  def convert(
-      f: FileResourceUri,
-      targetDirUri: FileResourceUri,
-      recordFilter: (JawaType => Boolean),
-      settings: DecompilerSettings): FileResourceUri = {
-    if(!settings.forceDelete && FileUtil.toFile(targetDirUri).exists()) return targetDirUri
-    ConverterUtil.cleanDir(targetDirUri)
+object Dex2JawaConverter {
+  def convert(dexUri: FileResourceUri, settings: DecompilerSettings): Unit = {
+    val srcUri = settings.strategy.layout.sourceOutUri(dexUri)
+    val libUri = settings.strategy.layout.libOutUri(dexUri)
+    if(!settings.forceDelete && FileUtil.toFile(srcUri).exists()) return
+    ConverterUtil.cleanDir(srcUri)
+    ConverterUtil.cleanDir(libUri)
     try {
       val pdd = new JawaDeDex
-      pdd.decompile(f, Some(targetDirUri), recordFilter, settings)
-      FixResources.fix(settings.layout.outputSrcUri, pdd)
+      pdd.decompile(dexUri, settings)
+      pdd.getCodes.foreach { case (typ, code) =>
+        settings.strategy.outputCode(typ, code, dexUri)
+      }
+      settings.strategy.outputThirdPartyLibs()
+      FixResources.fix(settings.strategy.layout.outputSrcUri, pdd)
     } catch {
       case _: SAXParseException =>
       case te: TimeoutException =>
         throw te
       case _: Exception =>
-        System.err.println("Given file is not decompilable: " + f)
+        System.err.println("Given file is not decompilable: " + dexUri)
     }
-    targetDirUri
   }
 }
 

@@ -13,8 +13,7 @@ import java.io._
 import java.net.URL
 import java.security.{DigestInputStream, MessageDigest}
 
-import org.argus.jawa.core.util.{FileUtil, ZipUtil}
-import org.argus.jawa.core.util.{FileResourceUri, FileUtil}
+import org.argus.jawa.core.util.{FileResourceUri, FileUtil, ZipUtil}
 
 /**
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>

@@ -16,14 +16,14 @@ import org.argus.amandroid.alir.componentSummary.{ApkYard, ComponentBasedAnalysi
 import org.argus.amandroid.alir.dataRecorder.DataCollector
 import org.argus.amandroid.alir.taintAnalysis.{AndroidDataDependentTaintAnalysis, DataLeakageAndroidSourceAndSinkManager}
 import org.argus.amandroid.core.AndroidGlobalConfig
-import org.argus.amandroid.core.decompile.{DecompileLayout, DecompilerSettings}
+import org.argus.amandroid.core.decompile.{DecompileLayout, DecompileStrategy, DecompilerSettings}
 import org.argus.amandroid.plugin.communication.CommunicationSourceAndSinkManager
 import org.argus.amandroid.plugin.dataInjection.IntentInjectionSourceAndSinkManager
 import org.argus.amandroid.plugin.oauth.OAuthSourceAndSinkManager
 import org.argus.amandroid.plugin.password.PasswordSourceAndSinkManager
 import org.argus.jawa.alir.dataDependenceAnalysis.InterProceduralDataDependenceAnalysis
 import org.argus.jawa.alir.taintAnalysis.TaintAnalysisResult
-import org.argus.jawa.core.Reporter
+import org.argus.jawa.core.{DefaultLibraryAPISummary, Reporter}
 import org.argus.jawa.core.util.FileUtil
 import org.argus.jawa.core.util._
 
@@ -40,7 +40,8 @@ case class TaintAnalysisTask(module: TaintAnalysisModules.Value, fileUris: ISet[
   def run: Option[TaintAnalysisResult[AndroidDataDependentTaintAnalysis.Node, InterProceduralDataDependenceAnalysis.Edge]] = {
     val yard = new ApkYard(reporter)
     val layout = DecompileLayout(outputUri)
-    val settings = DecompilerSettings(debugMode = false, removeSupportGen = true, forceDelete = forceDelete, layout)
+    val strategy = DecompileStrategy(new DefaultLibraryAPISummary(AndroidGlobalConfig.settings.third_party_lib_file), layout)
+    val settings = DecompilerSettings(debugMode = false, forceDelete = forceDelete, strategy, reporter)
     val apks = fileUris.map(yard.loadApk(_, settings, collectInfo = true))
     val ssm = module match {
       case INTENT_INJECTION =>
@@ -61,7 +62,7 @@ case class TaintAnalysisTask(module: TaintAnalysisModules.Value, fileUris: ISet[
     val tar = cba.phase3(iddResult, ssm)
     apks.foreach { apk =>
       val appData = DataCollector.collect(apk)
-      val outputDirUri = FileUtil.appendFileName(apk.model.outApkUri, "result")
+      val outputDirUri = FileUtil.appendFileName(apk.model.layout.outputSrcUri, "result")
       val outputDir = FileUtil.toFile(outputDirUri)
       if (!outputDir.exists()) outputDir.mkdirs()
       val out = new PrintWriter(FileUtil.toFile(FileUtil.appendFileName(outputDirUri, "AppData.txt")))

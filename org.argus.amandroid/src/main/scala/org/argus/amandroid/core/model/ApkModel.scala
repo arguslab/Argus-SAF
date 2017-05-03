@@ -12,6 +12,7 @@ package org.argus.amandroid.core.model
 
 import org.argus.amandroid.core.AndroidConstants
 import org.argus.amandroid.core.appInfo.ApkCertificate
+import org.argus.amandroid.core.decompile.DecompileLayout
 import org.argus.amandroid.core.parser.{ComponentInfo, ComponentType, IntentFilterDataBase, LayoutControl}
 import org.argus.jawa.core.{JawaType, Signature}
 import org.argus.jawa.core.util._
@@ -19,7 +20,7 @@ import org.argus.jawa.core.util._
 /**
   * Created by fgwei on 3/12/17.
   */
-case class ApkModel(nameUri: FileResourceUri, outApkUri: FileResourceUri, srcs: ISet[String]) {
+case class ApkModel(nameUri: FileResourceUri, layout: DecompileLayout) {
 
   def getAppName: String = FileUtil.toFile(nameUri).getName
 

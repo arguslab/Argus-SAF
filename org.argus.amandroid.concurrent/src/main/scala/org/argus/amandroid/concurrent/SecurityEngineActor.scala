@@ -13,7 +13,6 @@ package org.argus.amandroid.concurrent
 import akka.actor._
 import org.argus.amandroid.alir.componentSummary.{ApkYard, ComponentBasedAnalysis}
 import org.argus.amandroid.alir.taintAnalysis.DataLeakageAndroidSourceAndSinkManager
-import org.argus.amandroid.concurrent.util.GlobalUtil
 import org.argus.amandroid.core.{AndroidGlobalConfig, ApkGlobal}
 import org.argus.amandroid.plugin.communication.CommunicationSourceAndSinkManager
 import org.argus.amandroid.plugin.dataInjection.IntentInjectionSourceAndSinkManager
@@ -51,7 +50,7 @@ class SecurityEngineActor extends Actor with ActorLogging {
         }
       val reporter = new PrintReporter(MsgLevel.ERROR)
       val apk = new ApkGlobal(model, reporter)
-      GlobalUtil.buildGlobal(apk, apk.model.outApkUri, apk.model.srcs)
+      apk.load()
       apk.resolveEnvInGlobal()
       val idfgs = BuildICFGFromExistingPTAResult(apk, pta_results)
       idfgs.foreach { case (typ, idfg) =>
@@ -79,8 +78,8 @@ class SecurityEngineActor extends Actor with ActorLogging {
           val tar = cba.phase3(iddResult, ssm)
           tar match {
             case Some(tres) =>
-              Staging.stageTaintAnalysisResult(tres.toTaintAnalysisSimpleResult, apk.model.outApkUri)
-              res = SecurityEngineSuccResult(secdata.ptar.fileUri, Some(TaintAnalysisResult(apk.model.outApkUri)))
+              Staging.stageTaintAnalysisResult(tres.toTaintAnalysisSimpleResult, apk.model.layout.outputSrcUri)
+              res = SecurityEngineSuccResult(secdata.ptar.fileUri, Some(TaintAnalysisResult(apk.model.layout.outputSrcUri)))
             case None =>
               res = SecurityEngineSuccResult(secdata.ptar.fileUri, None)
           }
@@ -91,8 +90,8 @@ class SecurityEngineActor extends Actor with ActorLogging {
               val result = am.checker.check(apk, Some(idfg))
               misusedApis ++= result.misusedApis
           }
-          Staging.stageAPIMisuseResult(ApiMisuseResult(am.checker.name, misusedApis.toMap), apk.model.outApkUri)
-          res = SecurityEngineSuccResult(secdata.ptar.fileUri, Some(APIMisConfigureResult(apk.model.outApkUri)))
+          Staging.stageAPIMisuseResult(ApiMisuseResult(am.checker.name, misusedApis.toMap), apk.model.layout.outputSrcUri)
+          res = SecurityEngineSuccResult(secdata.ptar.fileUri, Some(APIMisConfigureResult(apk.model.layout.outputSrcUri)))
       }
       
     } catch {

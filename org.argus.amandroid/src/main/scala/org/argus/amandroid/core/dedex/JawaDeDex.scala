@@ -67,8 +67,6 @@ class JawaDeDex {
   
   def decompile(
       dexFileUri: FileResourceUri,
-      targetDirUri: Option[FileResourceUri],
-      classFilter: (JawaType => Boolean),
       settings: DecompilerSettings): Unit = {
     try {
       val dexFile = FileUtil.toFile(dexFileUri)
@@ -101,8 +99,8 @@ class JawaDeDex {
             }
         }
       }
-      val pscg = new JawaStyleCodeGenerator(ddFile, targetDirUri, classFilter)
-      this.codes = pscg.generate(settings.listener, settings.genBody)
+      val pscg = new JawaStyleCodeGenerator(ddFile, settings.strategy.recordFilter, settings.reporter)
+      this.codes = pscg.generate(settings.listener, settings.progressBar)
       this.pkgNameMapping = pscg.pkgNameMapping.toMap
       this.recordNameMapping = pscg.recordNameMapping.toMap
       this.procedureNameMapping = pscg.procedureNameMapping.toMap

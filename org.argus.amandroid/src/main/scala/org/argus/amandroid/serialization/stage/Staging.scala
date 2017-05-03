@@ -26,8 +26,8 @@ import org.argus.jawa.core.util.FileUtil
 
 object Staging {
   
-  def stageApkModel(apk: ApkModel, outApkUri: FileResourceUri): Unit = {
-    val outStageUri = FileUtil.appendFileName(outApkUri, "stage")
+  def stageApkModel(apk: ApkModel): Unit = {
+    val outStageUri = FileUtil.appendFileName(apk.layout.outputSrcUri, "stage")
     val outStageDir = FileUtil.toFile(outStageUri)
     if(!outStageDir.exists()) outStageDir.mkdirs()
     val apkRes = FileUtil.toFile(FileUtil.appendFileName(outStageUri, "apk.json"))
@@ -64,9 +64,9 @@ object Staging {
     }
   }
   
-  def stage(apk: ApkModel, ptaresults: IMap[Signature, PTAResult], outApkUri: FileResourceUri): Unit = {
-    stageApkModel(apk, outApkUri)
-    stagePTAResult(ptaresults, outApkUri)
+  def stage(apk: ApkModel, ptaresults: IMap[Signature, PTAResult]): Unit = {
+    stageApkModel(apk)
+    stagePTAResult(ptaresults, apk.layout.outputSrcUri)
   }
   
   def stageTaintAnalysisResult(tasr: TaintAnalysisSimpleResult, outApkUri: FileResourceUri): Unit = {

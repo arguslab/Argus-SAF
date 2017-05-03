@@ -36,7 +36,7 @@ class AmandroidSupervisorActor(recorder: Recorder) extends Actor with ActorLoggi
       dr match {
         case dsr: DecompileSuccResult =>
           recorder.decompile(FileUtil.toFile(dsr.fileUri).getName, succ = true)
-          apkInfoColActor ! ApkInfoCollectData(dsr.fileUri, dsr.outApkUri, dsr.srcFolders, 30 minutes)
+          apkInfoColActor ! ApkInfoCollectData(dsr.fileUri, dsr.layout, 30 minutes)
         case dfr: DecompileFailResult =>
           recorder.decompile(FileUtil.toFile(dfr.fileUri).getName, succ = false)
           log.error(dfr.e, "Decompile fail on " + dfr.fileUri)
@@ -47,7 +47,7 @@ class AmandroidSupervisorActor(recorder: Recorder) extends Actor with ActorLoggi
       aicr match {
         case aicsr: ApkInfoCollectSuccResult =>
           recorder.infocollect(FileUtil.toFile(aicsr.fileUri).getName, succ = true)
-          ptaActor ! PointsToAnalysisData(aicsr.model, aicsr.outApkUri, aicsr.srcFolders, PTAAlgorithms.RFA, stage = true, timeoutForeachComponent = 5 minutes)
+          ptaActor ! PointsToAnalysisData(aicsr.model, PTAAlgorithms.RFA, stage = true, timeoutForeachComponent = 5 minutes)
         case aicfr: ApkInfoCollectFailResult =>
           recorder.infocollect(FileUtil.toFile(aicfr.fileUri).getName, succ = false)
           log.error(aicfr.e, "Information collect failed on " + aicfr.fileUri)

@@ -11,16 +11,14 @@
 package org.argus.amandroid.alir.componentSummary
 
 import org.argus.jawa.core.util._
-import java.io.File
 
 import org.argus.amandroid.core.ApkGlobal
 import org.argus.amandroid.core.appInfo.AppInfoCollector
 import org.argus.amandroid.core.decompile.{ApkDecompiler, DecompilerSettings}
 import org.argus.amandroid.core.model.ApkModel
-import org.argus.amandroid.core.util.AndroidLibraryAPISummary
 import org.argus.jawa.alir.{AlirEdge, InterProceduralNode}
 import org.argus.jawa.alir.taintAnalysis.TaintAnalysisResult
-import org.argus.jawa.core.{Constants, Reporter}
+import org.argus.jawa.core.Reporter
 
 /**
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
@@ -34,16 +32,9 @@ class ApkYard(val reporter: Reporter) {
   def getApks: IMap[FileResourceUri, ApkGlobal] = this.apks.toMap
   
   def loadApk(apkUri: FileResourceUri, settings: DecompilerSettings, collectInfo: Boolean): ApkGlobal = {
-    val (outUri, srcs, _) = ApkDecompiler.decompile(apkUri, settings)
-    val apk = new ApkGlobal(ApkModel(apkUri, outUri, srcs), reporter)
-    srcs foreach {
-      src =>
-        val fileUri = FileUtil.toUri(FileUtil.toFilePath(outUri) + File.separator + src)
-        if(FileUtil.toFile(fileUri).exists()) {
-          //store the app's jawa code in AmandroidCodeSource which is organized class by class.
-          apk.load(fileUri, Constants.JAWA_FILE_EXT, AndroidLibraryAPISummary)
-        }
-    }
+    ApkDecompiler.decompile(apkUri, settings)
+    val apk = new ApkGlobal(ApkModel(apkUri, settings.strategy.layout), reporter)
+    apk.load()
     if(collectInfo)
       AppInfoCollector.collectInfo(apk)
     addApk(apk)

@@ -11,10 +11,11 @@
 package org.argus.amandroid.plugin
 
 import org.argus.amandroid.alir.componentSummary.ApkYard
+import org.argus.amandroid.core.AndroidGlobalConfig
 import org.argus.amandroid.core.appInfo.AppInfoCollector
-import org.argus.amandroid.core.decompile.{ConverterUtil, DecompileLayout, DecompilerSettings}
+import org.argus.amandroid.core.decompile.{ConverterUtil, DecompileLayout, DecompileStrategy, DecompilerSettings}
 import org.argus.amandroid.plugin.apiMisuse.{CryptographicMisuse, HideIcon, SSLTLSMisuse}
-import org.argus.jawa.core.{MsgLevel, NoReporter, PrintReporter}
+import org.argus.jawa.core.{DefaultLibraryAPISummary, MsgLevel, NoReporter, PrintReporter}
 import org.argus.jawa.core.util.FileUtil
 import org.scalatest.{FlatSpec, Matchers}
 
@@ -37,12 +38,13 @@ class ApiMisuseTest extends FlatSpec with Matchers {
       else new NoReporter
     val yard = new ApkYard(reporter)
     val layout = DecompileLayout(outputUri)
-    val settings = DecompilerSettings(debugMode = false, removeSupportGen = true, forceDelete = true, layout)
+    val strategy = DecompileStrategy(new DefaultLibraryAPISummary(AndroidGlobalConfig.settings.third_party_lib_file), layout)
+    val settings = DecompilerSettings(debugMode = false, forceDelete = true, strategy, reporter)
     val apk = yard.loadApk(fileUri, settings, collectInfo = false)
     val checker = module match {
       case ApiMisuseModules.CRYPTO_MISUSE => new CryptographicMisuse
       case ApiMisuseModules.HIDE_ICON =>
-        val man = AppInfoCollector.analyzeManifest(reporter, FileUtil.appendFileName(apk.model.outApkUri, "AndroidManifest.xml"))
+        val man = AppInfoCollector.analyzeManifest(reporter, FileUtil.appendFileName(apk.model.layout.outputSrcUri, "AndroidManifest.xml"))
         val mainComp = man.getIntentDB.getIntentFmap.find{ case (_, fs) =>
           fs.exists{ f =>
             f.getActions.contains("android.intent.action.MAIN") && f.getCategorys.contains("android.intent.category.LAUNCHER")

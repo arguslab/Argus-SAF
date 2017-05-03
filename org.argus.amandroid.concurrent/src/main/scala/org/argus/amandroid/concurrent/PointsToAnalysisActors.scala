@@ -14,7 +14,6 @@ import java.util.concurrent.TimeoutException
 
 import akka.actor._
 import org.argus.amandroid.alir.pta.reachingFactsAnalysis.{AndroidRFAConfig, AndroidReachingFactsAnalysis}
-import org.argus.amandroid.concurrent.util.GlobalUtil
 import org.argus.amandroid.core.ApkGlobal
 import org.argus.amandroid.serialization.stage.Staging
 import org.argus.jawa.alir.Context
@@ -42,6 +41,7 @@ class PointsToAnalysisActor extends Actor with ActorLogging {
     log.info("Start points to analysis for " + ptadata.model.nameUri)
     val model = ptadata.model
     val apk = new ApkGlobal(model, new PrintReporter(MsgLevel.ERROR))
+    apk.load()
     val components = model.getComponents
     val worklist: MList[Signature] = mlistEmpty
     components foreach {
@@ -59,7 +59,7 @@ class PointsToAnalysisActor extends Actor with ActorLogging {
     while(worklist.nonEmpty) {
       val esig = worklist.remove(0)
       try {
-        val res = rfa(esig, apk, ptadata.outApkUri, ptadata.srcFolders, ptadata.timeoutForeachComponent)
+        val res = rfa(esig, apk, ptadata.timeoutForeachComponent)
         ptaresults(esig) = res.ptaresult
         succEps += esig
       } catch {
@@ -72,10 +72,10 @@ class PointsToAnalysisActor extends Actor with ActorLogging {
     time = (System.currentTimeMillis() - time) / 1000
     if(ptadata.stage) {
       try {
-        Staging.stage(model, ptaresults.toMap, ptadata.outApkUri)
-        val outUri = FileUtil.toUri(FileUtil.toFile(ptadata.outApkUri).getParentFile)
+        Staging.stage(model, ptaresults.toMap)
+        val outUri = FileUtil.toUri(FileUtil.toFile(model.layout.outputSrcUri).getParentFile)
         Staging.stageReport(outUri, model.getAppName)
-        PointsToAnalysisSuccStageResult(model.nameUri, time, model.getComponentInfos.size, ptadata.outApkUri)
+        PointsToAnalysisSuccStageResult(model.nameUri, time, model.getComponentInfos.size, model.layout.outputSrcUri)
       } catch {
         case e: Exception =>
           PointsToAnalysisFailResult(model.nameUri, time, model.getComponentInfos.size, e)
@@ -86,9 +86,8 @@ class PointsToAnalysisActor extends Actor with ActorLogging {
     
   }
   
-  private def rfa(ep: Signature, apk: ApkGlobal, outApkUri: FileResourceUri, srcs: ISet[String], timeout: Duration): InterproceduralDataFlowGraph = {
+  private def rfa(ep: Signature, apk: ApkGlobal, timeout: Duration): InterproceduralDataFlowGraph = {
     log.info("Start rfa for " + ep)
-    GlobalUtil.buildGlobal(apk, outApkUri, srcs)
     val m = apk.resolveMethodCode(ep, apk.model.getEnvMap(ep.classTyp)._2)
     implicit val factory = new RFAFactFactory
     val initialfacts = AndroidRFAConfig.getInitialFactsForMainEnvironment(m)

@@ -11,7 +11,6 @@
 package org.argus.amandroid.concurrent
 
 import akka.actor._
-import org.argus.amandroid.concurrent.util.GlobalUtil
 import org.argus.amandroid.core.ApkGlobal
 import org.argus.amandroid.core.appInfo.AppInfoCollector
 import org.argus.amandroid.core.model.ApkModel
@@ -26,15 +25,13 @@ class ApkInfoCollectActor extends Actor with ActorLogging {
   
   private def collectInfo(acdata: ApkInfoCollectData): ApkInfoCollectResult = {
     log.info("Start collect info for " + acdata.fileUri)
-    val srcs = acdata.srcFolders
-    val outApkUri = acdata.outApkUri
     val reporter = new PrintReporter(MsgLevel.ERROR)
-    val apk = new ApkGlobal(ApkModel(acdata.fileUri, outApkUri, srcs), reporter)
+    val apk = new ApkGlobal(ApkModel(acdata.fileUri, acdata.layout), reporter)
+    apk.load()
     try {
-      GlobalUtil.buildGlobal(apk, outApkUri, srcs)
       AppInfoCollector.collectInfo(apk)
-      Staging.stageApkModel(apk.model, outApkUri)
-      ApkInfoCollectSuccResult(apk.model, acdata.outApkUri, acdata.srcFolders)
+      Staging.stageApkModel(apk.model)
+      ApkInfoCollectSuccResult(apk.model)
     } catch {
       case e: Exception =>
         ApkInfoCollectFailResult(apk.model.nameUri, e)

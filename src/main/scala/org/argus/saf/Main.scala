@@ -34,14 +34,10 @@ object Main extends App {
     val versionOption: Option = Option.builder().longOpt("version").desc("Prints the version then exits.").build()
 
     val debugDecOption: Option = Option.builder("d").longOpt("debug").desc("Output debug information.").build()
-    val outputOption: Option = Option.builder("o")
-      .longOpt("output").desc("Set output directory. [Default: .]")
-      .hasArg(true).argName("dir").build()
-    val forceDeleteOption: Option = Option.builder("f")
-      .longOpt("force").desc("Force delete previous decompile result. [Default: false]").build()
-    val iniPathOption: Option = Option.builder("i")
-      .longOpt("ini").desc("Set .ini configuration file path.")
-      .hasArg(true).argName("path").build()
+    val outputOption: Option = Option.builder("o").longOpt("output").desc("Set output directory. [Default: .]").hasArg(true).argName("dir").build()
+    val forceDeleteOption: Option = Option.builder("f").longOpt("force").desc("Force delete previous decompile result. [Default: false]").build()
+    val keepLibOption: Option = Option.builder("kl").longOpt("keep-lib").desc("Keep third party libraries. [Default: false]").build()
+    val iniPathOption: Option = Option.builder("i").longOpt("ini").desc("Set .ini configuration file path.").hasArg(true).argName("path").build()
 
     val taintmoduleOption: Option = Option.builder("mo")
       .longOpt("module").desc("Taint analysis module to use. [Default: DATA_LEAKAGE, Choices: (COMMUNICATION_LEAKAGE, OAUTH_TOKEN_TRACKING, PASSWORD_TRACKING, INTENT_INJECTION, DATA_LEAKAGE)]")
@@ -59,6 +55,7 @@ object Main extends App {
     normalOptions.addOption(versionOption)
 
     decompilerOptions.addOptionGroup(generalOptionGroup)
+    decompilerOptions.addOption(keepLibOption)
 
     taintOptions.addOptionGroup(generalOptionGroup)
     taintOptions.addOption(taintmoduleOption)
@@ -70,6 +67,7 @@ object Main extends App {
     allOptions.addOption(debugDecOption)
     allOptions.addOption(outputOption)
     allOptions.addOption(forceDeleteOption)
+    allOptions.addOption(keepLibOption)
     allOptions.addOption(iniPathOption)
     allOptions.addOption(taintmoduleOption)
     allOptions.addOption(apimoduleOption)
@@ -165,6 +163,7 @@ object Main extends App {
     var debug = false
     var outputPath: String = "."
     var forceDelete: Boolean = false
+    var keepLib: Boolean = false
     if(cli.hasOption("d") || cli.hasOption("debug")) {
       debug = true
     }
@@ -173,6 +172,9 @@ object Main extends App {
     }
     if(cli.hasOption("f") || cli.hasOption("force")) {
       forceDelete = true
+    }
+    if(cli.hasOption("kl") || cli.hasOption("keep-lib")) {
+      keepLib = true
     }
     var sourcePath: String = null
 
@@ -183,7 +185,7 @@ object Main extends App {
         usage(Mode.DECOMPILE)
         System.exit(0)
     }
-    Decompiler(debug, sourcePath, outputPath, forceDelete)
+    Decompiler(debug, sourcePath, outputPath, forceDelete, keepLib)
   }
 
   private def cmdTaintAnalysis(cli: CommandLine) = {

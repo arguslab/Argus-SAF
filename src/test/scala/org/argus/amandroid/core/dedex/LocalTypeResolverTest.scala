@@ -12,13 +12,13 @@ package org.argus.amandroid.core.dedex
 
 import java.lang.reflect.InvocationTargetException
 
-import org.argus.amandroid.core.decompile.{DecompileLayout, DecompilerSettings}
+import org.argus.amandroid.core.decompile.{DecompileLayout, DecompileStrategy, DecompilerSettings}
 import org.argus.amandroid.core.dedex.`type`.GenerateTypedJawa
 import org.argus.jawa.compiler.codegen.JavaByteCodeGenerator
 import org.argus.jawa.compiler.lexer.JawaLexer
 import org.argus.jawa.compiler.parser.JawaParser
 import org.argus.jawa.compiler.util.ReadClassFile.CustomClassLoader
-import org.argus.jawa.core.{DefaultLibraryAPISummary, Global, JawaType, MsgLevel, PrintReporter}
+import org.argus.jawa.core.{Global, JawaType, MsgLevel, NoLibraryAPISummary, NoReporter, PrintReporter}
 import org.argus.jawa.core.util.FileUtil
 import org.scalatest.{FlatSpec, Matchers}
 import java.lang.reflect.Method
@@ -161,7 +161,7 @@ class LocalTypeResolverTest extends FlatSpec with Matchers {
     val untyped = getClass.getResource("/jawa_untyped" + path).getPath
     val global = new Global("test", reporter)
     global.setJavaLib(getClass.getResource("/libs/android.jar").getPath)
-    global.load(FileUtil.toUri(untyped), DefaultLibraryAPISummary)
+    global.load(FileUtil.toUri(untyped), NoLibraryAPISummary.isLibraryClass)
     val newcode = GenerateTypedJawa(FileUtil.readFileContent(FileUtil.toUri(untyped)), global)
     val cu = new JawaParser(JawaLexer.tokenise(Left(newcode), reporter).toArray, reporter).compilationUnit(true)
     val css = new JavaByteCodeGenerator("1.8").generate(global, cu)
@@ -229,10 +229,11 @@ class LocalTypeResolverTest extends FlatSpec with Matchers {
     val reporter = if(DEBUG) new PrintReporter(MsgLevel.INFO) else new PrintReporter(MsgLevel.NO)
     val dedex = new JawaDeDex
     val dexUri = FileUtil.toUri(filePath)
-    dedex.decompile(dexUri, None, recordFilter, DecompilerSettings(debugMode = true, removeSupportGen = true, forceDelete = false, DecompileLayout(""), api = 25))
+    val settings = DecompilerSettings(debugMode = false, forceDelete = false, DecompileStrategy(NoLibraryAPISummary, DecompileLayout("")), new NoReporter)
+    dedex.decompile(dexUri, settings)
     val global = new Global("test", reporter)
     global.setJavaLib(getClass.getResource("/libs/android.jar").getPath)
-    global.load(dedex.getCodes, DefaultLibraryAPISummary)
+    global.load(dedex.getCodes, NoLibraryAPISummary.isLibraryClass)
     val total = dedex.getCodes.size
     var i = 0
     val newcodes = dedex.getCodes.map { case (t, code) =>

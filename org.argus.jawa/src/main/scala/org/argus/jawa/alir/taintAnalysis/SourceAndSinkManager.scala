@@ -77,11 +77,10 @@ object SSParser{
   //                           1            2                   3            4
   private val regex = "([^\\s]+)\\s+([^\\s]+)?\\s*->\\s+([^\\s]+)\\s*([^\\s]+)?\\s*"
   def parse(filePath: String): (IMap[Signature, ISet[String]], IMap[Signature, (ISet[Int], ISet[String])]) = {
-    def readFile: BufferedReader = new BufferedReader(new FileReader(filePath))
+    val rdr: BufferedReader = new BufferedReader(new FileReader(filePath))
     val sources: MMap[Signature, ISet[String]] = mmapEmpty
     val sinks: MMap[Signature, (ISet[Int], ISet[String])] = mmapEmpty
     val p: Pattern = Pattern.compile(regex)
-    val rdr = readFile
     var line = rdr.readLine()
     while(line != null){
       try{
@@ -104,6 +103,7 @@ object SSParser{
       }
       line = rdr.readLine()
     }
+    rdr.close()
     (sources.toMap, sinks.toMap)
   }
   
