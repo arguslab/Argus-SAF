@@ -52,6 +52,7 @@ public abstract class AbstractProgressBar implements ProgressBar {
 
 		actualSteps = totalSteps;
 		refresh();
+		finishProgressBar();
 	}
 
 	private Progress getProgress() {

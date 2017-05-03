@@ -23,10 +23,9 @@ import org.argus.jawa.core.util._
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
  */ 
 object Decompiler {
-  def apply(debug: Boolean, sourcePath: String, outputPath: String, forceDelete: Boolean, keepLib: Boolean) {
+  def apply(debug: Boolean, sourcePath: String, outputPath: String, forceDelete: Boolean, srcLevel: DecompileLevel.Value, libLevel: DecompileLevel.Value) {
     val outputUri = FileUtil.toUri(outputPath)
     val reporter = if(debug) new PrintReporter(MsgLevel.INFO) else new PrintReporter(MsgLevel.NO)
-    val libLevel = if(keepLib) DecompileLevel.TYPED else DecompileLevel.NO
     try {
       val fileOrDir = new File(sourcePath)
       fileOrDir match {
@@ -39,7 +38,7 @@ object Decompiler {
             i += 1
             reporter.println(i + ":####" + apkUri + "####")
             val layout = DecompileLayout(outputUri)
-            val strategy = DecompileStrategy(new DefaultLibraryAPISummary(AndroidGlobalConfig.settings.third_party_lib_file), layout, DecompileLevel.TYPED, libLevel)
+            val strategy = DecompileStrategy(new DefaultLibraryAPISummary(AndroidGlobalConfig.settings.third_party_lib_file), layout, srcLevel, libLevel)
             val settings = DecompilerSettings(debugMode = debug, forceDelete = forceDelete, strategy, reporter)
             try {
               ApkDecompiler.decompile(apkUri, settings)
@@ -56,7 +55,7 @@ object Decompiler {
             println(i + ":####" + dexUri + "####")
             val dexname = dexUri.substring(dexUri.lastIndexOf("/") + 1, dexUri.lastIndexOf("."))
             val layout = DecompileLayout(outputUri + "/" + dexname)
-            val strategy = DecompileStrategy(new DefaultLibraryAPISummary(AndroidGlobalConfig.settings.third_party_lib_file), layout, DecompileLevel.TYPED, libLevel)
+            val strategy = DecompileStrategy(new DefaultLibraryAPISummary(AndroidGlobalConfig.settings.third_party_lib_file), layout, srcLevel, libLevel)
             val settings = DecompilerSettings(debugMode = debug, forceDelete = forceDelete, strategy, new DefaultReporter)
             try {
               Dex2JawaConverter.convert(dexUri, settings)
@@ -70,7 +69,7 @@ object Decompiler {
         case file =>
           reporter.println("Processing " + file)
           val layout = DecompileLayout(outputUri)
-          val strategy = DecompileStrategy(new DefaultLibraryAPISummary(AndroidGlobalConfig.settings.third_party_lib_file), layout, DecompileLevel.TYPED, libLevel)
+          val strategy = DecompileStrategy(new DefaultLibraryAPISummary(AndroidGlobalConfig.settings.third_party_lib_file), layout, srcLevel, libLevel)
           val settings = DecompilerSettings(debugMode = debug, forceDelete = forceDelete, strategy, reporter)
           if(ApkGlobal.isValidApk(FileUtil.toUri(file))) {
             ApkDecompiler.decompile(FileUtil.toUri(file), settings)

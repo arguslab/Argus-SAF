@@ -63,7 +63,7 @@ public final class ConsoleProgressBar extends AbstractProgressBar {
 
 	private static final long DEFAULT_STEPS = 100;
 	private static final String DEFAULT_FORMAT = "[:bar] :percent% :eta";
-	private static final int DEFAULT_PROGRESSBAR_WIDTH = 60;
+	private static final int DEFAULT_PROGRESSBAR_WIDTH = 50;
 	private static final Set<Replacer> DEFAULT_REPLACERS = getDefaultReplacers(DEFAULT_PROGRESSBAR_WIDTH);
 
 	private final Set<Replacer> replacers;
@@ -163,10 +163,8 @@ public final class ConsoleProgressBar extends AbstractProgressBar {
 	@Override
 	protected void updateProgressBar(final Progress progress) {
 		final String actualBar = getActualProgressBar(progress);
-
-		streamToUse.print(actualBar);
-		streamToUse.print(getGarbageCleaning(actualBar.length()));
-		streamToUse.print(CARRIAGE_RETURN);
+		streamToUse.print(CARRIAGE_RETURN + actualBar + getGarbageCleaning(actualBar.length()));
+		streamToUse.flush();
 	}
 
 	@Override
@@ -192,6 +190,7 @@ public final class ConsoleProgressBar extends AbstractProgressBar {
 
 	private String getGarbageCleaning(final int actualLength) {
 		if (actualLength >= previousLength) {
+			previousLength = actualLength;
 			return "";
 		}
 

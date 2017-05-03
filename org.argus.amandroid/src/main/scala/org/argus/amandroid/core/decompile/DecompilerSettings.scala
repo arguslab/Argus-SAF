@@ -34,7 +34,7 @@ case class DecompilerSettings(
     listener: Option[JawaStyleCodeGeneratorListener] = None,
     api: Int = 15,
     progressBar: ProgressBar = ConsoleProgressBar.on(System.out)
-      .withFormat("[:bar] :percent% :elapsed/:total ETA: :eta"))
+      .withFormat("[:bar] :percent% :elapsed ETA: :eta"))
 
 case class DecompileStrategy(
     libraryAPISummary: LibraryAPISummary,

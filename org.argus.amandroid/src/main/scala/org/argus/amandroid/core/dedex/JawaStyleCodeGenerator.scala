@@ -178,7 +178,7 @@ class JawaStyleCodeGenerator(ddFile: DexBackedDexFile, filter: (JawaType => Deco
         }
       }
     }
-    ProgressBarUtil.withProgressBar("Dedexing dalvik...", progressBar)(dexClasses, handleClass)
+    ProgressBarUtil.withProgressBar("Dedexing...", progressBar)(dexClasses, handleClass)
     val result: MMap[JawaType, String] = mmapEmpty
     val global = new Global("Type", reporter)
     global.setJavaLib(AndroidGlobalConfig.settings.lib_files)

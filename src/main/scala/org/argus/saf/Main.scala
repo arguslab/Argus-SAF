@@ -12,6 +12,7 @@ package org.argus.saf
 
 import org.apache.commons.cli._
 import org.argus.amandroid.core.AndroidGlobalConfig
+import org.argus.amandroid.core.decompile.DecompileLevel
 import org.argus.amandroid.plugin.{ApiMisuseModules, TaintAnalysisModules}
 import org.argus.saf.cli._
 
@@ -36,7 +37,8 @@ object Main extends App {
     val debugDecOption: Option = Option.builder("d").longOpt("debug").desc("Output debug information.").build()
     val outputOption: Option = Option.builder("o").longOpt("output").desc("Set output directory. [Default: .]").hasArg(true).argName("dir").build()
     val forceDeleteOption: Option = Option.builder("f").longOpt("force").desc("Force delete previous decompile result. [Default: false]").build()
-    val keepLibOption: Option = Option.builder("kl").longOpt("keep-lib").desc("Keep third party libraries. [Default: false]").build()
+    val srclevelOption: Option = Option.builder("sl").longOpt("src-level").desc("Application code decompile level. [Default: TYPED, Choices: (NO, SIGNATURE, UNTYPED, TYPED)]").hasArg(true).argName("level").build()
+    val liblevelOption: Option = Option.builder("ll").longOpt("lib-level").desc("Third party library decompile level. [Default: SIGNATURE, Choices: (NO, SIGNATURE, UNTYPED, TYPED)]").hasArg(true).argName("level").build()
     val iniPathOption: Option = Option.builder("i").longOpt("ini").desc("Set .ini configuration file path.").hasArg(true).argName("path").build()
 
     val taintmoduleOption: Option = Option.builder("mo")
@@ -55,7 +57,8 @@ object Main extends App {
     normalOptions.addOption(versionOption)
 
     decompilerOptions.addOptionGroup(generalOptionGroup)
-    decompilerOptions.addOption(keepLibOption)
+    decompilerOptions.addOption(srclevelOption)
+    decompilerOptions.addOption(liblevelOption)
 
     taintOptions.addOptionGroup(generalOptionGroup)
     taintOptions.addOption(taintmoduleOption)
@@ -67,7 +70,8 @@ object Main extends App {
     allOptions.addOption(debugDecOption)
     allOptions.addOption(outputOption)
     allOptions.addOption(forceDeleteOption)
-    allOptions.addOption(keepLibOption)
+    allOptions.addOption(srclevelOption)
+    allOptions.addOption(liblevelOption)
     allOptions.addOption(iniPathOption)
     allOptions.addOption(taintmoduleOption)
     allOptions.addOption(apimoduleOption)
@@ -163,7 +167,8 @@ object Main extends App {
     var debug = false
     var outputPath: String = "."
     var forceDelete: Boolean = false
-    var keepLib: Boolean = false
+    var srcLevel: DecompileLevel.Value = DecompileLevel.TYPED
+    var libLevel: DecompileLevel.Value = DecompileLevel.SIGNATURE
     if(cli.hasOption("d") || cli.hasOption("debug")) {
       debug = true
     }
@@ -173,8 +178,21 @@ object Main extends App {
     if(cli.hasOption("f") || cli.hasOption("force")) {
       forceDelete = true
     }
-    if(cli.hasOption("kl") || cli.hasOption("keep-lib")) {
-      keepLib = true
+    if(cli.hasOption("sl") || cli.hasOption("src-level")) {
+      srcLevel = cli.getOptionValue("sl") match {
+        case "NO" => DecompileLevel.NO
+        case "SIGNATURE" => DecompileLevel.SIGNATURE
+        case "UNTYPED" => DecompileLevel.UNTYPED
+        case "TYPED" => DecompileLevel.TYPED
+      }
+    }
+    if(cli.hasOption("ll") || cli.hasOption("lib-level")) {
+      libLevel = cli.getOptionValue("sl") match {
+        case "NO" => DecompileLevel.NO
+        case "SIGNATURE" => DecompileLevel.SIGNATURE
+        case "UNTYPED" => DecompileLevel.UNTYPED
+        case "TYPED" => DecompileLevel.TYPED
+      }
     }
     var sourcePath: String = null
 
@@ -185,7 +203,7 @@ object Main extends App {
         usage(Mode.DECOMPILE)
         System.exit(0)
     }
-    Decompiler(debug, sourcePath, outputPath, forceDelete, keepLib)
+    Decompiler(debug, sourcePath, outputPath, forceDelete, srcLevel, libLevel)
   }
 
   private def cmdTaintAnalysis(cli: CommandLine) = {
