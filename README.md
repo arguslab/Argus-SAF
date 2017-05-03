@@ -41,15 +41,6 @@ by editing
 libraryDependencies += "com.github.arguslab" %% "amandroid" % VERSION
 ```
 
-Depend on Amandroid-Concurrent
-[![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.github.arguslab/amandroid-concurrent_2.12/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.github.arguslab/amandroid-concurrent_2.12)
-by editing
-`build.sbt`:
-
-```
-libraryDependencies += "com.github.arguslab" %% "amandroid-concurrent" % VERSION
-```
-
 > Note that: Depend on Amandroid will automatically add Jawa as dependency. If you use Maven or Gradle, you should translate it to corresponding format.
 
 ## Obtaining Argus-SAF CLI Tool
