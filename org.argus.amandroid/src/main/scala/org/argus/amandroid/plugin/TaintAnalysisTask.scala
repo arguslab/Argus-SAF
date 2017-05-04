@@ -45,7 +45,7 @@ case class TaintAnalysisTask(module: TaintAnalysisModules.Value, fileUris: ISet[
     val apks = fileUris.map(yard.loadApk(_, settings, collectInfo = true))
     val ssm = module match {
       case INTENT_INJECTION =>
-        new IntentInjectionSourceAndSinkManager(AndroidGlobalConfig.settings.sas_file)
+        new IntentInjectionSourceAndSinkManager(AndroidGlobalConfig.settings.injection_sas_file)
       case PASSWORD_TRACKING =>
         new PasswordSourceAndSinkManager(AndroidGlobalConfig.settings.sas_file)
       case OAUTH_TOKEN_TRACKING =>
