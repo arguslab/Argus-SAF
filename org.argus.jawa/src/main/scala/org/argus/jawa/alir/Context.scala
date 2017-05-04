@@ -89,7 +89,7 @@ class Context(val application: FileResourceUri) {
     val sb = new StringBuilder
     this.callStack.foreach{
       case(sig, str) =>
-        sb.append("(" + FileUtil.toFile(application).getName + ":" + sig.methodName)
+        sb.append("(" + sig.classTyp.simpleName + "." + sig.methodName)
           
         if(str.lastIndexOf('.') > 0)
           sb.append("," + str.substring(str.lastIndexOf('.') + 1, str.lastIndexOf(':')) + ")")
@@ -101,7 +101,7 @@ class Context(val application: FileResourceUri) {
     val sb = new StringBuilder
     this.callStack.foreach{
       case(sig, str) =>
-        sb.append("(" + application + "," + sig + "," + str + ")")
+        sb.append("(" + sig + "," + str + ")")
     }
     sb.toString.intern()
   }
