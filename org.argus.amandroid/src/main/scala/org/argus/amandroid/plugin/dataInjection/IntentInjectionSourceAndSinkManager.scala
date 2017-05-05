@@ -41,18 +41,8 @@ class IntentInjectionSourceAndSinkManager(sasFilePath: String) extends AndroidSo
   }
 
   override def isIccSource(apk: ApkGlobal, entNode: ICFGNode): Boolean = {
-    apk.model.getEnvMap.find{ case (_, (sig, _)) =>
-      entNode.getOwner == sig
-    } match {
-      case Some((typ, _)) =>
-        apk.model.getComponentInfos.find{ c_info =>
-          c_info.compType == typ
-        } match {
-          case Some(info) =>
-            info.exported
-          case None => false
-        }
-      case None => false
+    apk.model.getEnvMap.exists{ case (_, (sig, _)) =>
+      entNode.getOwner == sig && sig.methodName == "envMain"
     }
   }
 }
