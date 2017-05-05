@@ -163,7 +163,7 @@ class JawaCodegenTest extends FlatSpec with Matchers {
     val reporter = if(DEBUG) new PrintReporter(MsgLevel.INFO) else new PrintReporter(MsgLevel.NO)
     val cu = parser(Left(newcode), reporter).compilationUnit(true)
     val global = new Global("JawaCodegenTest", reporter)
-    val css = new JavaByteCodeGenerator("1.8").generate(global, cu)
+    val css = new JavaByteCodeGenerator("1.8").generate(Some(global), cu)
     val ccl: CustomClassLoader = new CustomClassLoader()
     val pw = new PrintWriter(System.out)
     css foreach {
@@ -187,7 +187,7 @@ class JawaCodegenTest extends FlatSpec with Matchers {
     val reporter = if(DEBUG) new PrintReporter(MsgLevel.INFO) else new PrintReporter(MsgLevel.NO)
     val global = new Global("JawaCodegenTest", reporter)
     val cu = parser(Left(newcode), reporter).compilationUnit(true)
-    val css = new JavaByteCodeGenerator("1.8").generate(global, cu)
+    val css = new JavaByteCodeGenerator("1.8").generate(Some(global), cu)
     val pw = new PrintWriter(System.out)
     css foreach {
       case (_, bytecodes) =>
