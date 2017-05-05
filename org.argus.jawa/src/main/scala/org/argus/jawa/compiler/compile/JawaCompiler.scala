@@ -28,12 +28,12 @@ import scala.language.postfixOps
 final class JawaCompiler(javaVersionStr: String) {
   val reporter = new DefaultReporter
   private def parser(s: Either[String, FgSourceFile]) = new JawaParser(JawaLexer.tokenise(s, reporter).toArray, reporter)
-  def compile(sources: Array[File], outputDirs: Array[File], global: Global, log: Logger, progress: CompileProgress): Unit = {
+  def compile(sources: Array[File], outputDirs: Array[File], globalOpt: Option[Global], log: Logger, progress: CompileProgress): Unit = {
     sources foreach{ source =>
       require(source.getPath.endsWith("jawa"), "Wrong file extension to compile " + source)
       val file = new FgSourceFile(new PlainFile(source))
       val cu = parser(Right(file)).compilationUnit(true)
-      val css = new JavaByteCodeGenerator(javaVersionStr).generate(global, cu)
+      val css = new JavaByteCodeGenerator(javaVersionStr).generate(globalOpt, cu)
       css foreach {
         case (typ, bcs) =>
           outputDirs.foreach {
@@ -67,9 +67,4 @@ object JawaCompiler {
     }
   }
   private def isSourceName(name: String): Boolean = name.endsWith(".jawa") || name.endsWith(".java")
-}
-
-private[this] object IgnoreProgress extends CompileProgress {
-  def startUnit(unitPath: String) {}
-  def advance(current: Int, total: Int) = true
 }

@@ -61,10 +61,10 @@ class JavaByteCodeGenerator(javaVersion: Int) {
   
   def getClasses: IMap[JawaType, Array[Byte]] = classes.toMap
   
-  def generate(global: Global, cu: JawaCompilationUnit): IMap[JawaType, Array[Byte]] = {
+  def generate(globalOpt: Option[Global], cu: JawaCompilationUnit): IMap[JawaType, Array[Byte]] = {
     if(!cu.localTypResolved) throw new RuntimeException("Cannot generate bytecode for untyped code. Use GenerateTypedJawa() to transform untyped code to typed.")
     cu.topDecls foreach { cid =>
-      visitClass(global, cid, javaVersion)
+      visitClass(globalOpt, cid, javaVersion)
     }
     getClasses
   }
@@ -73,8 +73,11 @@ class JavaByteCodeGenerator(javaVersion: Int) {
     name.replaceAll("\\.", "/")
   }
   
-  private def visitClass(global: Global, cid: ClassOrInterfaceDeclaration, javaVersion: Int): Unit = {
-    val cw: ClassWriter = new TraceClassWriter(ClassWriter.COMPUTE_FRAMES | ClassWriter.COMPUTE_MAXS, global)
+  private def visitClass(globalOpt: Option[Global], cid: ClassOrInterfaceDeclaration, javaVersion: Int): Unit = {
+    val cw: ClassWriter = globalOpt match {
+      case Some(global) => new TraceClassWriter(ClassWriter.COMPUTE_FRAMES | ClassWriter.COMPUTE_MAXS, global)
+      case None => new ClassWriter(ClassWriter.COMPUTE_FRAMES | ClassWriter.COMPUTE_MAXS)
+    }
     val af: Int = AccessFlag.getAccessFlags(cid.accessModifier)
     var mod = AccessFlag.getJavaFlags(af)
     
