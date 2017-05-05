@@ -13,6 +13,7 @@ package org.argus.jawa.compiler.compile
 import scala.annotation.tailrec
 import java.io.File
 
+import hu.ssh.progressbar.ProgressBar
 import org.argus.jawa.compiler.compile.io.IO
 import org.argus.jawa.compiler.log.Logger
 import org.argus.jawa.core.Global
@@ -26,7 +27,7 @@ class AggressiveCompile(cacheFile: File) {
             javac: JavaCompiler,
             sources: IList[File],
             output: Output,
-            progress: CompileProgress,
+            progress: ProgressBar,
             javacOptions: IList[String] = Nil,
             globalOpt: Option[Global])(implicit log: Logger): Unit = {
     val outputDirs = outputDirectories(output)
