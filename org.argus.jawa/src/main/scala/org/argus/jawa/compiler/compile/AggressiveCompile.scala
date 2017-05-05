@@ -28,7 +28,7 @@ class AggressiveCompile(cacheFile: File) {
             output: Output,
             progress: CompileProgress,
             javacOptions: IList[String] = Nil,
-            global: Global)(implicit log: Logger): Unit = {
+            globalOpt: Option[Global])(implicit log: Logger): Unit = {
     val outputDirs = outputDirectories(output)
     outputDirs foreach IO.createDirectory
     val incSrc = sources
@@ -38,7 +38,7 @@ class AggressiveCompile(cacheFile: File) {
       if(jawaSrcs.nonEmpty) {
         val sources = jawaSrcs
         timed("Jawa compilation", log) {
-          compiler.compile(sources.toArray, outputDirs.toArray, global, log, progress)
+          compiler.compile(sources.toArray, outputDirs.toArray, globalOpt, log, progress)
         }
       }
     def compileJava() =
