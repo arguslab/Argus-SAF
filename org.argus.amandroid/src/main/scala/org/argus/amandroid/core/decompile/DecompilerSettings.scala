@@ -14,9 +14,9 @@ import java.io.{File, PrintStream}
 
 import hu.ssh.progressbar.ProgressBar
 import hu.ssh.progressbar.console.ConsoleProgressBar
-import org.argus.amandroid.core.AndroidConstants
+import org.argus.amandroid.core.{AndroidConstants, AndroidGlobalConfig}
 import org.argus.amandroid.core.dedex.JawaStyleCodeGeneratorListener
-import org.argus.jawa.core.{JawaType, LibraryAPISummary, Reporter}
+import org.argus.jawa.core.{DefaultLibraryAPISummary, JawaType, LibraryAPISummary, Reporter}
 import org.argus.jawa.core.util._
 
 object DecompileLevel extends Enumeration {
@@ -37,8 +37,8 @@ case class DecompilerSettings(
       .withFormat("[:bar] :percent% :elapsed ETA: :eta"))
 
 case class DecompileStrategy(
-    libraryAPISummary: LibraryAPISummary,
     layout: DecompileLayout,
+    libraryAPISummary: LibraryAPISummary = new DefaultLibraryAPISummary(AndroidGlobalConfig.settings.third_party_lib_file),
     sourceLevel: DecompileLevel.Value = DecompileLevel.UNTYPED,
     thirdPartyLibLevel: DecompileLevel.Value = DecompileLevel.SIGNATURE,
     removeSupportGen: Boolean = true) {

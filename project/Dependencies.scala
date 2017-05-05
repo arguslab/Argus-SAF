@@ -21,6 +21,7 @@ object Dependencies {
   import ArgusVersions._
 
   val sbtLaunch: ModuleID = "org.scala-sbt" % "sbt-launch" % sbtVersion
+  val scala_reflect: ModuleID = "org.scala-lang" % "scala-reflect" % scalaVersion
 
   val asm_all: ModuleID = "org.ow2.asm" % "asm-all" % "5.2"
 
@@ -57,6 +58,7 @@ object DependencyGroups {
     guava,
     commons_lang3,
     scalatest,
+    scala_reflect,
     asm_all,
     st4,
     antlr4_runtime,

@@ -14,8 +14,8 @@ import java.io.File
 
 import org.argus.amandroid.core.decompile._
 import org.argus.amandroid.core.util.ApkFileUtil
-import org.argus.amandroid.core.{AndroidGlobalConfig, ApkGlobal}
-import org.argus.jawa.core.{DefaultLibraryAPISummary, DefaultReporter, MsgLevel, PrintReporter}
+import org.argus.amandroid.core.ApkGlobal
+import org.argus.jawa.core.{DefaultReporter, MsgLevel, PrintReporter}
 import org.argus.saf.cli.util.CliLogger
 import org.argus.jawa.core.util._
 
@@ -38,7 +38,7 @@ object Decompiler {
             i += 1
             reporter.println(i + ":####" + apkUri + "####")
             val layout = DecompileLayout(outputUri)
-            val strategy = DecompileStrategy(new DefaultLibraryAPISummary(AndroidGlobalConfig.settings.third_party_lib_file), layout, srcLevel, libLevel)
+            val strategy = DecompileStrategy(layout, sourceLevel = srcLevel, thirdPartyLibLevel = libLevel)
             val settings = DecompilerSettings(debugMode = debug, forceDelete = forceDelete, strategy, reporter)
             try {
               ApkDecompiler.decompile(apkUri, settings)
@@ -55,7 +55,7 @@ object Decompiler {
             println(i + ":####" + dexUri + "####")
             val dexname = dexUri.substring(dexUri.lastIndexOf("/") + 1, dexUri.lastIndexOf("."))
             val layout = DecompileLayout(outputUri + "/" + dexname)
-            val strategy = DecompileStrategy(new DefaultLibraryAPISummary(AndroidGlobalConfig.settings.third_party_lib_file), layout, srcLevel, libLevel)
+            val strategy = DecompileStrategy(layout, sourceLevel = srcLevel, thirdPartyLibLevel = libLevel)
             val settings = DecompilerSettings(debugMode = debug, forceDelete = forceDelete, strategy, new DefaultReporter)
             try {
               Dex2JawaConverter.convert(dexUri, settings)
@@ -69,7 +69,7 @@ object Decompiler {
         case file =>
           reporter.println("Processing " + file)
           val layout = DecompileLayout(outputUri)
-          val strategy = DecompileStrategy(new DefaultLibraryAPISummary(AndroidGlobalConfig.settings.third_party_lib_file), layout, srcLevel, libLevel)
+          val strategy = DecompileStrategy(layout, sourceLevel = srcLevel, thirdPartyLibLevel = libLevel)
           val settings = DecompilerSettings(debugMode = debug, forceDelete = forceDelete, strategy, reporter)
           if(ApkGlobal.isValidApk(FileUtil.toUri(file))) {
             ApkDecompiler.decompile(FileUtil.toUri(file), settings)

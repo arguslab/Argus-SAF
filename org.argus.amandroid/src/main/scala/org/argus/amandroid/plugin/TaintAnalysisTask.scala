@@ -23,7 +23,7 @@ import org.argus.amandroid.plugin.oauth.OAuthSourceAndSinkManager
 import org.argus.amandroid.plugin.password.PasswordSourceAndSinkManager
 import org.argus.jawa.alir.dataDependenceAnalysis.InterProceduralDataDependenceAnalysis
 import org.argus.jawa.alir.taintAnalysis.TaintAnalysisResult
-import org.argus.jawa.core.{DefaultLibraryAPISummary, Reporter}
+import org.argus.jawa.core.Reporter
 import org.argus.jawa.core.util.FileUtil
 import org.argus.jawa.core.util._
 
@@ -40,7 +40,7 @@ case class TaintAnalysisTask(module: TaintAnalysisModules.Value, fileUris: ISet[
   def run: Option[TaintAnalysisResult[AndroidDataDependentTaintAnalysis.Node, InterProceduralDataDependenceAnalysis.Edge]] = {
     val yard = new ApkYard(reporter)
     val layout = DecompileLayout(outputUri)
-    val strategy = DecompileStrategy(new DefaultLibraryAPISummary(AndroidGlobalConfig.settings.third_party_lib_file), layout)
+    val strategy = DecompileStrategy(layout)
     val settings = DecompilerSettings(debugMode = false, forceDelete = forceDelete, strategy, reporter)
     val apks = fileUris.map(yard.loadApk(_, settings, collectInfo = true))
     val ssm = module match {

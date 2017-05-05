@@ -22,7 +22,7 @@ import org.argus.amandroid.plugin.ApiMisuseModules
 import org.argus.jawa.alir.Context
 import org.argus.jawa.alir.pta.suspark.InterproceduralSuperSpark
 import org.argus.jawa.core.util.IgnoreException
-import org.argus.jawa.core.{DefaultLibraryAPISummary, FileReporter, MsgLevel, NoReporter}
+import org.argus.jawa.core.{FileReporter, MsgLevel, NoReporter}
 import org.argus.saf.cli.util.CliLogger
 import org.argus.jawa.core.util._
 
@@ -65,7 +65,7 @@ object ApiMisuse {
           val yard = new ApkYard(reporter)
           val outputUri = FileUtil.toUri(outputPath)
           val layout = DecompileLayout(outputUri)
-          val strategy = DecompileStrategy(new DefaultLibraryAPISummary(AndroidGlobalConfig.settings.third_party_lib_file), layout)
+          val strategy = DecompileStrategy(layout)
           val settings = DecompilerSettings(debugMode = false, forceDelete = forceDelete, strategy, reporter)
           val apk = yard.loadApk(fileUri, settings, collectInfo = false)
           val (checker, buildIDFG) = module match {

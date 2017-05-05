@@ -11,11 +11,10 @@
 package org.argus.amandroid.plugin
 
 import org.argus.amandroid.alir.componentSummary.ApkYard
-import org.argus.amandroid.core.AndroidGlobalConfig
 import org.argus.amandroid.core.appInfo.AppInfoCollector
 import org.argus.amandroid.core.decompile.{ConverterUtil, DecompileLayout, DecompileStrategy, DecompilerSettings}
 import org.argus.amandroid.plugin.apiMisuse.{CryptographicMisuse, HideIcon, SSLTLSMisuse}
-import org.argus.jawa.core.{DefaultLibraryAPISummary, MsgLevel, NoReporter, PrintReporter}
+import org.argus.jawa.core.{MsgLevel, NoReporter, PrintReporter}
 import org.argus.jawa.core.util.FileUtil
 import org.scalatest.{FlatSpec, Matchers}
 
@@ -38,7 +37,7 @@ class ApiMisuseTest extends FlatSpec with Matchers {
       else new NoReporter
     val yard = new ApkYard(reporter)
     val layout = DecompileLayout(outputUri)
-    val strategy = DecompileStrategy(new DefaultLibraryAPISummary(AndroidGlobalConfig.settings.third_party_lib_file), layout)
+    val strategy = DecompileStrategy(layout)
     val settings = DecompilerSettings(debugMode = false, forceDelete = true, strategy, reporter)
     val apk = yard.loadApk(fileUri, settings, collectInfo = false)
     val checker = module match {

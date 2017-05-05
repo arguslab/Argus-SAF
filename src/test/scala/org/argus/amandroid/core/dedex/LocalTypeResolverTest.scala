@@ -229,7 +229,7 @@ class LocalTypeResolverTest extends FlatSpec with Matchers {
     val reporter = if(DEBUG) new PrintReporter(MsgLevel.INFO) else new PrintReporter(MsgLevel.NO)
     val dedex = new JawaDeDex
     val dexUri = FileUtil.toUri(filePath)
-    val settings = DecompilerSettings(debugMode = false, forceDelete = false, DecompileStrategy(NoLibraryAPISummary, DecompileLayout("")), new NoReporter)
+    val settings = DecompilerSettings(debugMode = false, forceDelete = false, DecompileStrategy(DecompileLayout(""), NoLibraryAPISummary), new NoReporter)
     dedex.decompile(dexUri, settings)
     val global = new Global("test", reporter)
     global.setJavaLib(getClass.getResource("/libs/android.jar").getPath)
