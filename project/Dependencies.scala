@@ -22,10 +22,7 @@ object Dependencies {
 
   val sbtLaunch: ModuleID = "org.scala-sbt" % "sbt-launch" % sbtVersion
 
-  val scala_reflect: ModuleID = "org.scala-lang" % "scala-reflect" % scalaVersion
-
-  val asm: ModuleID = "org.ow2.asm" % "asm" % "5.2"
-  val asm_util: ModuleID = "org.ow2.asm" % "asm-util" % "5.2"
+  val asm_all: ModuleID = "org.ow2.asm" % "asm-all" % "5.2"
 
   val antlr4_runtime: ModuleID = "org.antlr" % "antlr4-runtime" % "4.7"
 
@@ -59,10 +56,8 @@ object DependencyGroups {
     findbug,
     guava,
     commons_lang3,
-    scala_reflect,
     scalatest,
-    asm,
-    asm_util,
+    asm_all,
     st4,
     antlr4_runtime,
     jgrapht_core,
