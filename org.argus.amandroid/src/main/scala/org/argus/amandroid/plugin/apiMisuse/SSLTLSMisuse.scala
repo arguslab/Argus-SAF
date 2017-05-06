@@ -81,5 +81,4 @@ class SSLTLSMisuse extends ApiMisuseChecker {
     }
     ApiMisuseResult(name, result.toMap)
   }
-
 }
