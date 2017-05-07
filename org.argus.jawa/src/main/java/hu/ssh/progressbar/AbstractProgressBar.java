@@ -14,7 +14,7 @@ public abstract class AbstractProgressBar implements ProgressBar {
 	}
 
 	@Override
-	public final void start() {
+	public void start() {
 		refresh();
 	}
 
@@ -47,7 +47,7 @@ public abstract class AbstractProgressBar implements ProgressBar {
 	}
 
 	@Override
-	public final void complete() {
+	public void complete() {
 		setStartTimeIfNotStarted();
 
 		actualSteps = totalSteps;
