@@ -184,9 +184,8 @@ class JawaStyleCodeGenerator(ddFile: DexBackedDexFile, filter: (JawaType => Deco
       }
     }
     ProgressBarUtil.withProgressBar("Dedexing...", progressBar)(dexClasses, handleClass)
-    val global = new Global("Type", reporter)
-    global.setJavaLib(AndroidGlobalConfig.settings.lib_files)
-    def handleType: ((JawaType, String)) => (JawaType, String) = { case (typ, code) =>
+
+    def handleType(global: Global): ((JawaType, String)) => (JawaType, String) = { case (typ, code) =>
       val newcode = try {
         GenerateTypedJawa(code, global)
       } catch {
@@ -198,7 +197,11 @@ class JawaStyleCodeGenerator(ddFile: DexBackedDexFile, filter: (JawaType => Deco
       (typ, newcode)
     }
     if(needType.nonEmpty) {
-      result ++= ProgressBarUtil.withProgressBar("Resolving types...", progressBar)(needType.toSet, handleType)
+      val global = new Global("Type", reporter)
+      global.setJavaLib(AndroidGlobalConfig.settings.lib_files)
+      val codes: IMap[JawaType, String] = (result ++ needType).toMap
+      global.load(codes, NoLibraryAPISummary.isLibraryClass)
+      result ++= ProgressBarUtil.withProgressBar("Resolving types...", progressBar)(needType.toSet, handleType(global))
     }
     if(listener.isDefined) listener.get.onGenerateEnd(result.size, errorOccurred)
     result.toMap

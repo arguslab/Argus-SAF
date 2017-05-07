@@ -25,7 +25,7 @@ class DedexTest extends FlatSpec with Matchers {
     true
   }
 
-  val settings = DecompilerSettings(debugMode = false, forceDelete = false, DecompileStrategy(DecompileLayout(""), NoLibraryAPISummary), new NoReporter)
+  val settings = DecompilerSettings(debugMode = false, forceDelete = true, DecompileStrategy(DecompileLayout(""), NoLibraryAPISummary), new NoReporter)
 
   "Dedex data.dex" should "produce expected code" in {
     val dedex = new JawaDeDex
