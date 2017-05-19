@@ -10,6 +10,7 @@
 
 package org.argus.jawa.alir.callGraph
 
+import org.argus.jawa.alir.util.TopologicalSortUtil
 import org.argus.jawa.core.util.WorklistAlgorithm
 import org.argus.jawa.core.Signature
 import org.argus.jawa.core.util._
@@ -40,5 +41,11 @@ class CallGraph {
     }
     worklistAlgorithm.run(worklistAlgorithm.worklist = procs.toList)
     result.toSet
+  }
+
+  def topologicalSort(reverse: Boolean): IList[Signature] = {
+    val list = TopologicalSortUtil.sort[Signature](getCallMap)
+    if(reverse) list.reverse
+    else list
   }
 }

@@ -14,8 +14,11 @@ bintrayReleaseOnPublish in ThisBuild := false
 bintrayRepository in ThisBuild := "maven"
 bintrayPackage in ThisBuild := "argus-saf"
 
+libraryDependencies in ThisBuild += "org.scalatest" %% "scalatest" % "3.0.1" % "test"
+libraryDependencies in ThisBuild += "org.scala-lang" % "scala-compiler" % ArgusVersions.scalaVersion
+libraryDependencies in ThisBuild += "org.scala-lang" % "scala-library" % ArgusVersions.scalaVersion
+
 val argusSafSettings = Defaults.coreDefaultSettings ++ Seq(
-  libraryDependencies += "org.scala-lang" % "scala-compiler" % ArgusVersions.scalaVersion,
   scalacOptions ++= Seq("-unchecked", "-deprecation", "-feature")
 )
 

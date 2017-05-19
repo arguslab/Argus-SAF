@@ -42,7 +42,6 @@ object Dependencies {
   val json4s_native: ModuleID = "org.json4s" %% "json4s-native" % json4sVersion
   val json4s_ext: ModuleID = "org.json4s" %% "json4s-ext" % json4sVersion
 
-  val scalatest: ModuleID = "org.scalatest" %% "scalatest" % "3.0.1" % "test"
   val findbug: ModuleID = "com.google.code.findbugs" % "jsr305" % "3.0.+" % "compile"
 
   val akka_actor: ModuleID = "com.typesafe.akka" %% "akka-actor" % "2.4.17"
@@ -57,7 +56,6 @@ object DependencyGroups {
     findbug,
     guava,
     commons_lang3,
-    scalatest,
     scala_reflect,
     asm_all,
     st4,

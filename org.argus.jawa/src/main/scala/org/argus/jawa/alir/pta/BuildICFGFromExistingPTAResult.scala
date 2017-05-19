@@ -88,15 +88,14 @@ object BuildICFGFromExistingPTAResult {
               }
           }
           var bypassflag = false
-          calleeSet.foreach{
-            callee => 
-              icfg.getCallGraph.addCall(icn.getOwner, callee.callee)
-              val calleeProc = global.getMethod(callee.callee)
-              if(calleeProc.isDefined && !PTAScopeManager.shouldBypass(calleeProc.get.getDeclaringClass) && calleeProc.get.isConcrete) {
-                worklist ++= extendGraphWithConstructGraph(calleeProc.get, icn.context.copy, icfg)
-              } else {
-                bypassflag = true
-              }
+          calleeSet.foreach{ callee =>
+            icfg.getCallGraph.addCall(icn.getOwner, callee.callee)
+            val calleeProc = global.getMethod(callee.callee)
+            if(calleeProc.isDefined && !PTAScopeManager.shouldBypass(calleeProc.get.getDeclaringClass) && calleeProc.get.isConcrete) {
+              worklist ++= extendGraphWithConstructGraph(calleeProc.get, icn.context.copy, icfg)
+            } else {
+              bypassflag = true
+            }
           }
           if(calleeSet.isEmpty) bypassflag = true
           val callNode = icfg.getICFGCallNode(icn.context).asInstanceOf[ICFGInvokeNode]
