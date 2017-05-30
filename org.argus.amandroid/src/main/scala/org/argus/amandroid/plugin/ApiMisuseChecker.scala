@@ -10,7 +10,7 @@
 
 package org.argus.amandroid.plugin
 
-import org.argus.jawa.alir.dataFlowAnalysis.InterproceduralDataFlowGraph
+import org.argus.jawa.alir.dataFlowAnalysis.InterProceduralDataFlowGraph
 import org.argus.jawa.core.util.IMap
 import org.argus.jawa.core.Global
 
@@ -20,7 +20,7 @@ object ApiMisuseModules extends Enumeration {
 
 trait ApiMisuseChecker {
   def name: String
-  def check(global: Global, idfgOpt: Option[InterproceduralDataFlowGraph]): ApiMisuseResult
+  def check(global: Global, idfgOpt: Option[InterProceduralDataFlowGraph]): ApiMisuseResult
 }
 
 case class ApiMisuseResult(checkerName: String, misusedApis: IMap[(String, String), String]) {

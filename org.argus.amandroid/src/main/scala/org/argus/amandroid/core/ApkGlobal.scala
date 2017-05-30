@@ -18,7 +18,7 @@ import org.argus.amandroid.alir.componentSummary.ComponentSummaryTable
 import org.argus.amandroid.core.model.ApkModel
 import org.argus.jawa.alir.{AlirEdge, InterProceduralNode}
 import org.argus.jawa.alir.dataDependenceAnalysis.InterProceduralDataDependenceInfo
-import org.argus.jawa.alir.dataFlowAnalysis.InterproceduralDataFlowGraph
+import org.argus.jawa.alir.dataFlowAnalysis.InterProceduralDataFlowGraph
 import org.argus.jawa.alir.taintAnalysis.TaintAnalysisResult
 import org.argus.jawa.core.{Constants, Global, JawaType, Reporter}
 
@@ -131,12 +131,12 @@ class ApkGlobal(val model: ApkModel, reporter: Reporter) extends Global(model.na
     }
   }
 
-  private val idfgResults: MMap[JawaType, InterproceduralDataFlowGraph] = mmapEmpty
+  private val idfgResults: MMap[JawaType, InterProceduralDataFlowGraph] = mmapEmpty
 
-  def addIDFG(key: JawaType, idfg: InterproceduralDataFlowGraph): Unit = this.synchronized(this.idfgResults += (key -> idfg))
+  def addIDFG(key: JawaType, idfg: InterProceduralDataFlowGraph): Unit = this.synchronized(this.idfgResults += (key -> idfg))
   def hasIDFG(key: JawaType): Boolean = this.synchronized(this.idfgResults.contains(key))
-  def getIDFG(key: JawaType): Option[InterproceduralDataFlowGraph] = this.synchronized(this.idfgResults.get(key))
-  def getIDFGs: Map[JawaType, InterproceduralDataFlowGraph] = this.idfgResults.toMap
+  def getIDFG(key: JawaType): Option[InterProceduralDataFlowGraph] = this.synchronized(this.idfgResults.get(key))
+  def getIDFGs: Map[JawaType, InterProceduralDataFlowGraph] = this.idfgResults.toMap
 
   private val iddaResults: MMap[JawaType, InterProceduralDataDependenceInfo] = mmapEmpty
 

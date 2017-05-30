@@ -12,7 +12,7 @@ package org.argus.jawa.alir.pta.suspark
 
 import org.argus.jawa.alir.Context
 import org.argus.jawa.alir.controlFlowGraph.{ICFGInvokeNode, ICFGNode, InterProceduralControlFlowGraph}
-import org.argus.jawa.alir.dataFlowAnalysis.InterproceduralDataFlowGraph
+import org.argus.jawa.alir.dataFlowAnalysis.InterProceduralDataFlowGraph
 import org.argus.jawa.alir.interprocedural.Callee
 import org.argus.jawa.alir.pta.{Instance, PTAInstance, PTAScopeManager}
 import org.argus.jawa.core._
@@ -22,37 +22,36 @@ import org.argus.jawa.core.util._
 /**
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
  */
-object InterproceduralSuperSpark {
+object InterProceduralSuperSpark {
   
   def apply(
       global: Global, 
-      entryPoints: ISet[Signature]): InterproceduralDataFlowGraph = build(global, entryPoints)
+      entryPoints: ISet[Signature]): InterProceduralDataFlowGraph = build(global, entryPoints)
   
   type N = ICFGNode
   
   def build(
       global: Global, 
-      entryPoints: ISet[Signature]): InterproceduralDataFlowGraph = {
+      entryPoints: ISet[Signature]): InterProceduralDataFlowGraph = {
     val pag = new PointerAssignmentGraph[PtaNode]()
     val icfg = new InterProceduralControlFlowGraph[N]
     pta(global, pag, icfg, entryPoints)
-    InterproceduralDataFlowGraph(icfg, pag.pointsToMap)
+    InterProceduralDataFlowGraph(icfg, pag.pointsToMap)
   }
   
   def pta(
-           global: Global,
-           pag: PointerAssignmentGraph[PtaNode],
-           icfg: InterProceduralControlFlowGraph[N],
-           entryPoints: ISet[Signature]): Unit = {
-    entryPoints.foreach{
-      ep =>
-        val epmopt = global.getMethod(ep)
-        epmopt match {
-          case Some(epm) => 
-            if(epm.isConcrete)
-              doPTA(global, epm, pag, icfg)
-          case None =>
-        }
+      global: Global,
+      pag: PointerAssignmentGraph[PtaNode],
+      icfg: InterProceduralControlFlowGraph[N],
+      entryPoints: ISet[Signature]): Unit = {
+    entryPoints.foreach{ ep =>
+      val epmopt = global.getMethod(ep)
+      epmopt match {
+        case Some(epm) =>
+          if(epm.isConcrete)
+            doPTA(global, epm, pag, icfg)
+        case None =>
+      }
     }
   }
   

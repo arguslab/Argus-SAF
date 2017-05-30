@@ -17,14 +17,14 @@ import org.argus.amandroid.core.{AndroidConstants, ApkGlobal}
 import org.argus.jawa.alir.Context
 import org.argus.jawa.alir.controlFlowGraph._
 import org.argus.jawa.alir.dataDependenceAnalysis.{IDDGNode, MultiDataDependenceGraph}
-import org.argus.jawa.alir.dataFlowAnalysis.InterproceduralDataFlowGraph
+import org.argus.jawa.alir.dataFlowAnalysis.InterProceduralDataFlowGraph
 import org.argus.jawa.alir.pta.{Instance, VarSlot}
 import org.argus.jawa.compiler.parser.{AssignmentStatement, NameExpression}
 import org.argus.jawa.core._
 import org.argus.jawa.core.util._
 
 trait ComponentSummaryProvider {
-  def getIntentCaller(idfg: InterproceduralDataFlowGraph, intentValue: ISet[Instance], context: Context): ISet[IntentContent]
+  def getIntentCaller(idfg: InterProceduralDataFlowGraph, intentValue: ISet[Instance], context: Context): ISet[IntentContent]
 }
 
 /**
@@ -38,7 +38,7 @@ object ComponentSummaryTable {
     val ICC, RPC, STATIC_FIELD = Value
   }
   
-  def buildComponentSummaryTable(component: Component, idfg: InterproceduralDataFlowGraph): ComponentSummaryTable = {
+  def buildComponentSummaryTable(component: Component, idfg: InterProceduralDataFlowGraph): ComponentSummaryTable = {
     val apk = component.apk
     val summaryTable: ComponentSummaryTable = new ComponentSummaryTable(component)
     // Add component as icc callee

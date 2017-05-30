@@ -16,7 +16,7 @@ import org.argus.amandroid.core.decompile.ConverterUtil
 import org.argus.jawa.alir.Context
 import org.argus.jawa.alir.dataDependenceAnalysis.InterProceduralDataDependenceAnalysis
 import org.argus.jawa.alir.taintAnalysis.TaintAnalysisResult
-import org.argus.jawa.core.{MsgLevel, NoReporter, PrintReporter}
+import org.argus.jawa.core.{MsgLevel, PrintReporter}
 import org.scalatest.{FlatSpec, Matchers}
 import org.argus.jawa.core.util.FileUtil
 

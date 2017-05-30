@@ -17,4 +17,4 @@ import org.argus.jawa.alir.pta.PTAResult
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
  * @author <a href="mailto:sroy@k-state.edu">Sankardas Roy</a>
  */ 
-case class InterproceduralDataFlowGraph(icfg: InterProceduralControlFlowGraph[ICFGNode], ptaresult: PTAResult)
+case class InterProceduralDataFlowGraph(icfg: InterProceduralControlFlowGraph[ICFGNode], ptaresult: PTAResult)

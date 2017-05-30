@@ -12,7 +12,7 @@ package org.argus.jawa.alir.dataDependenceAnalysis
 
 import org.argus.jawa.alir.{AlirEdge, LibSideEffectProvider}
 import org.argus.jawa.alir.controlFlowGraph.{ICFGCallNode, ICFGExitNode, ICFGNormalNode}
-import org.argus.jawa.alir.dataFlowAnalysis.InterproceduralDataFlowGraph
+import org.argus.jawa.alir.dataFlowAnalysis.InterProceduralDataFlowGraph
 import org.argus.jawa.alir.interprocedural.IndirectCallee
 import org.argus.jawa.alir.pta.{ArraySlot, FieldSlot, PTAResult, VarSlot}
 import org.argus.jawa.alir.reachingDefinitionAnalysis.{DefDesc, LocDefDesc, ParamDefDesc}
@@ -50,9 +50,9 @@ object InterProceduralDataDependenceAnalysis {
   type Node = IDDGNode
   type Edge = AlirEdge[Node]
 
-  def apply(global: Global, idfg: InterproceduralDataFlowGraph): InterProceduralDataDependenceInfo = build(global, idfg)
+  def apply(global: Global, idfg: InterProceduralDataFlowGraph): InterProceduralDataDependenceInfo = build(global, idfg)
 
-  def build(global: Global, idfg: InterproceduralDataFlowGraph): InterProceduralDataDependenceInfo = {
+  def build(global: Global, idfg: InterProceduralDataFlowGraph): InterProceduralDataDependenceInfo = {
     val icfg = idfg.icfg
     val ptaresult = idfg.ptaresult
     val irdaResult = InterProceduralReachingDefinitionAnalysis(global, icfg)

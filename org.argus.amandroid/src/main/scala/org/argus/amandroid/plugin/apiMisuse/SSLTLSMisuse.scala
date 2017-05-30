@@ -11,7 +11,7 @@
 package org.argus.amandroid.plugin.apiMisuse
 
 import org.argus.amandroid.plugin.{ApiMisuseChecker, ApiMisuseResult}
-import org.argus.jawa.alir.dataFlowAnalysis.InterproceduralDataFlowGraph
+import org.argus.jawa.alir.dataFlowAnalysis.InterProceduralDataFlowGraph
 import org.argus.jawa.core.Global
 import org.argus.jawa.core.util._
 
@@ -66,7 +66,7 @@ class SSLTLSMisuse extends ApiMisuseChecker {
     "UnsecureTrustManagerFactory"
   )
     
-  def check(global: Global, idfg: Option[InterproceduralDataFlowGraph]): ApiMisuseResult = {
+  def check(global: Global, idfg: Option[InterProceduralDataFlowGraph]): ApiMisuseResult = {
     val result: MMap[(String, String), String] = mmapEmpty
     global.getApplicationClassCodes foreach { case (typ, file) =>
       if(badTrustManagerNames.contains(typ.simpleName)) {

@@ -11,7 +11,7 @@
 package org.argus.amandroid.plugin.apiMisuse
 
 import org.argus.amandroid.plugin.{ApiMisuseChecker, ApiMisuseResult}
-import org.argus.jawa.alir.dataFlowAnalysis.InterproceduralDataFlowGraph
+import org.argus.jawa.alir.dataFlowAnalysis.InterProceduralDataFlowGraph
 import org.argus.jawa.alir.util.ExplicitValueFinder
 import org.argus.jawa.compiler.parser.CallStatement
 import org.argus.jawa.core.{Global, JawaMethod}
@@ -25,7 +25,7 @@ class CryptographicMisuse extends ApiMisuseChecker {
 
   val name = "CryptographicMisuse"
 
-  def check(global: Global, idfgOpt: Option[InterproceduralDataFlowGraph]): ApiMisuseResult = {
+  def check(global: Global, idfgOpt: Option[InterProceduralDataFlowGraph]): ApiMisuseResult = {
     val misusedApis: MMap[(String, String), String] = mmapEmpty
     global.getApplicationClassCodes foreach { case (typ, f) =>
       if(f.code.contains("Ljavax/crypto/Cipher;.getInstance:(Ljava/lang/String;")) {

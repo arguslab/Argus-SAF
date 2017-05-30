@@ -17,9 +17,9 @@ import org.argus.amandroid.core.ApkGlobal
 import org.argus.amandroid.core.parser.{ComponentType, UriData}
 import org.argus.jawa.alir.Context
 import org.argus.jawa.alir.controlFlowGraph.{ICFGCallNode, ICFGEntryNode, ICFGExitNode}
-import org.argus.jawa.alir.dataFlowAnalysis.InterproceduralDataFlowGraph
+import org.argus.jawa.alir.dataFlowAnalysis.InterProceduralDataFlowGraph
 import org.argus.jawa.alir.pta.{ClassInstance, Instance, PTAConcreteStringInstance, VarSlot}
-import org.argus.jawa.alir.pta.suspark.InterproceduralSuperSpark
+import org.argus.jawa.alir.pta.suspark.InterProceduralSuperSpark
 import org.argus.jawa.core.{Global, JavaKnowledge, JawaType, Signature}
 
 /**
@@ -41,7 +41,7 @@ class LightweightCSTBuilder(global: Global) {
         val comp = global.getClassOrResolve(compTyp)
         val methods = comp.getDeclaredMethods.filter(m => m.isConcrete && !m.isPrivate)
         println("methods: " + methods.size)
-        val idfg = InterproceduralSuperSpark(global, methods.map(_.getSignature))
+        val idfg = InterProceduralSuperSpark(global, methods.map(_.getSignature))
         val context = new Context(apk.nameUri)
         val sig = new Signature(JavaKnowledge.formatTypeToSignature(comp.getType) + ".ent:()V")
         context.setContext(sig, compTyp.name)
@@ -59,7 +59,7 @@ class LightweightCSTBuilder(global: Global) {
     }
   }
   
-  private def collectIntentContent(componentType: JawaType, idfg: InterproceduralDataFlowGraph) = {
+  private def collectIntentContent(componentType: JawaType, idfg: InterProceduralDataFlowGraph) = {
     val cpIntentmap = intentContents.getOrElseUpdate(componentType, mmapEmpty)
     val allIntent = msetEmpty[Instance]
     val impreciseExplicit = msetEmpty[Instance]
@@ -328,7 +328,7 @@ class LightweightCSTBuilder(global: Global) {
     }
   }
   
-  private def buildCSTFromIDFG(apk: ApkGlobal, componentType: JawaType, idfg: InterproceduralDataFlowGraph) = {
+  private def buildCSTFromIDFG(apk: ApkGlobal, componentType: JawaType, idfg: InterProceduralDataFlowGraph) = {
     val summaryTable = ComponentSummaryTable.buildComponentSummaryTable(Component(apk, componentType), idfg)
     summaryTables(componentType) = summaryTable
   }

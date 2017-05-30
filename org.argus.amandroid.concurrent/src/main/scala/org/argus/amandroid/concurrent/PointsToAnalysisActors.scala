@@ -17,7 +17,7 @@ import org.argus.amandroid.alir.pta.reachingFactsAnalysis.{AndroidRFAConfig, And
 import org.argus.amandroid.core.ApkGlobal
 import org.argus.amandroid.serialization.stage.Staging
 import org.argus.jawa.alir.Context
-import org.argus.jawa.alir.dataFlowAnalysis.InterproceduralDataFlowGraph
+import org.argus.jawa.alir.dataFlowAnalysis.InterProceduralDataFlowGraph
 import org.argus.jawa.alir.pta.PTAResult
 import org.argus.jawa.alir.pta.reachingFactsAnalysis.RFAFactFactory
 import org.argus.jawa.core.util.MyTimeout
@@ -86,7 +86,7 @@ class PointsToAnalysisActor extends Actor with ActorLogging {
     
   }
   
-  private def rfa(ep: Signature, apk: ApkGlobal, timeout: Duration): InterproceduralDataFlowGraph = {
+  private def rfa(ep: Signature, apk: ApkGlobal, timeout: Duration): InterProceduralDataFlowGraph = {
     log.info("Start rfa for " + ep)
     val m = apk.resolveMethodCode(ep, apk.model.getEnvMap(ep.classTyp)._2)
     implicit val factory = new RFAFactFactory

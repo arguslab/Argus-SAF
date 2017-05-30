@@ -12,19 +12,19 @@ package org.argus.jawa.alir.pta
 
 import org.argus.jawa.alir.Context
 import org.argus.jawa.alir.controlFlowGraph.{ICFGCallNode, ICFGInvokeNode, ICFGNode, InterProceduralControlFlowGraph}
-import org.argus.jawa.alir.dataFlowAnalysis.InterproceduralDataFlowGraph
+import org.argus.jawa.alir.dataFlowAnalysis.InterProceduralDataFlowGraph
 import org.argus.jawa.alir.interprocedural.{CallHandler, Callee, InstanceCallee, StaticCallee}
 import org.argus.jawa.core._
 import org.argus.jawa.core.util._
 
 object BuildICFGFromExistingPTAResult {
   
-  def apply(global: Global, pta_results: IMap[Signature, PTAResult]): IMap[JawaType, InterproceduralDataFlowGraph] = build(global, pta_results)
+  def apply(global: Global, pta_results: IMap[Signature, PTAResult]): IMap[JawaType, InterProceduralDataFlowGraph] = build(global, pta_results)
   
   type N = ICFGNode
   
-  private def build(global: Global, pta_results: IMap[Signature, PTAResult]): IMap[JawaType, InterproceduralDataFlowGraph] = {
-    val result: MMap[JawaType, InterproceduralDataFlowGraph] = mmapEmpty
+  private def build(global: Global, pta_results: IMap[Signature, PTAResult]): IMap[JawaType, InterProceduralDataFlowGraph] = {
+    val result: MMap[JawaType, InterProceduralDataFlowGraph] = mmapEmpty
     pta_results foreach {
       case (ep, pta_result) =>
         val icfg = new InterProceduralControlFlowGraph[N]
@@ -33,7 +33,7 @@ object BuildICFGFromExistingPTAResult {
           case Some(epm) => 
             if(epm.isConcrete) {
               doBuild(global, epm, icfg, pta_result)
-              result(ep.getClassType) = InterproceduralDataFlowGraph(icfg, pta_result)
+              result(ep.getClassType) = InterProceduralDataFlowGraph(icfg, pta_result)
             }
           case None =>
         }

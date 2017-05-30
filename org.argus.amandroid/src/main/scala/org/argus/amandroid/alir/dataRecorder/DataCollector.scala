@@ -20,7 +20,7 @@ import org.stringtemplate.v4.STGroupString
 import org.argus.amandroid.core.parser.{ComponentType, IntentFilter, UriData}
 import org.argus.jawa.alir.{AlirEdge, Context, InterProceduralNode}
 import org.argus.jawa.alir.controlFlowGraph.ICFGCallNode
-import org.argus.jawa.alir.dataFlowAnalysis.InterproceduralDataFlowGraph
+import org.argus.jawa.alir.dataFlowAnalysis.InterProceduralDataFlowGraph
 import org.argus.jawa.alir.pta.VarSlot
 import org.argus.jawa.alir.taintAnalysis.TaintAnalysisResult
 import org.argus.jawa.compiler.parser.CallStatement
@@ -326,7 +326,7 @@ object DataCollector {
         var iccInfos = isetEmpty[IccInfo]
         if(!compRec.isUnknown){
           if(apk.hasIDFG(compTyp)) {
-            val InterproceduralDataFlowGraph(icfg, ptaresult) = apk.getIDFG(compTyp).get
+            val InterProceduralDataFlowGraph(icfg, ptaresult) = apk.getIDFG(compTyp).get
             val iccNodes = icfg.nodes.filter{
               node =>
                 node.isInstanceOf[ICFGCallNode] && node.asInstanceOf[ICFGCallNode].getCalleeSet.exists(c => InterComponentCommunicationModel.isIccOperation(c.callee))

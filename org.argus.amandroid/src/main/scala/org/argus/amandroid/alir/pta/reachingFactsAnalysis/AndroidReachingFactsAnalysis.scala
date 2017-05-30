@@ -46,7 +46,7 @@ class AndroidReachingFactsAnalysisBuilder(apk: ApkGlobal, clm: ClassLoadManager,
       entryPointProc: JawaMethod,
       initialFacts: ISet[RFAFact] = isetEmpty,
       initContext: Context,
-      switchAsOrderedMatch: Boolean): InterproceduralDataFlowGraph = {
+      switchAsOrderedMatch: Boolean): InterProceduralDataFlowGraph = {
     currentComponent = entryPointProc.getDeclaringClass
     val gen = new Gen
     val kill = new Kill
@@ -67,7 +67,7 @@ class AndroidReachingFactsAnalysisBuilder(apk: ApkGlobal, clm: ClassLoadManager,
     }
 //    icfg.toDot(new PrintWriter(System.out))
     ptaresult.addEntryPoint(entryPointProc.getSignature)
-    InterproceduralDataFlowGraph(icfg, ptaresult)
+    InterProceduralDataFlowGraph(icfg, ptaresult)
   }
   
   private def checkAndLoadClassFromHierarchy(me: JawaClass, s: ISet[RFAFact], currentNode: Node): Unit = {
@@ -549,6 +549,6 @@ object AndroidReachingFactsAnalysis {
       clm: ClassLoadManager,
       initContext: Context,
       switchAsOrderedMatch: Boolean = false,
-      timeout: Option[MyTimeout])(implicit factory: RFAFactFactory): InterproceduralDataFlowGraph
+      timeout: Option[MyTimeout])(implicit factory: RFAFactFactory): InterProceduralDataFlowGraph
     = new AndroidReachingFactsAnalysisBuilder(apk, clm, timeout).build(entryPointProc, initialFacts, initContext, switchAsOrderedMatch)
 }

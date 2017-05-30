@@ -11,7 +11,7 @@
 package org.argus.amandroid.plugin.apiMisuse
 
 import org.argus.amandroid.plugin.{ApiMisuseChecker, ApiMisuseResult}
-import org.argus.jawa.alir.dataFlowAnalysis.InterproceduralDataFlowGraph
+import org.argus.jawa.alir.dataFlowAnalysis.InterProceduralDataFlowGraph
 import org.argus.jawa.alir.util.ExplicitValueFinder
 import org.argus.jawa.compiler.parser.CallStatement
 import org.argus.jawa.core.{Global, JawaMethod, JawaType}
@@ -26,7 +26,7 @@ class HideIcon(mainActivity: JawaType) extends ApiMisuseChecker {
 
   val name = "HideIcon"
 
-  def check(global: Global, idfgOpt: Option[InterproceduralDataFlowGraph]): ApiMisuseResult = {
+  def check(global: Global, idfgOpt: Option[InterProceduralDataFlowGraph]): ApiMisuseResult = {
     val result: MMap[(String, String), String] = mmapEmpty
     val clazz = global.getClassOrResolve(mainActivity)
     if(!clazz.isSystemLibraryClass && clazz.isConcrete) {
