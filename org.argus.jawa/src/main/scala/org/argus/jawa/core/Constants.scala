@@ -22,21 +22,21 @@ object Constants {
 
   final val THREAD = "java.lang.Thread"
   final val RUNNABLE = "java.lang.Runnable"
-  final val THREAD_RUNNABLE = FieldFQN(new JawaType(THREAD), "runnable", new JawaType(RUNNABLE))
+  final val THREAD_RUNNABLE = "runnable"
 
   final val LIST = "java.util.List"
-  final val LIST_ITEMS = FieldFQN(new JawaType(LIST), "items", new JawaType(JavaKnowledge.JAVA_TOPLEVEL_OBJECT, 1))
+  final val LIST_ITEMS = "items"
   final val MAP = "java.util.Map"
-  final val MAP_ENTRIES = FieldFQN(new JawaType(MAP), "entries", new JawaType(JavaKnowledge.JAVA_TOPLEVEL_OBJECT, 1))
+  final val MAP_ENTRIES = "entries"
   final val SET = "java.util.Set"
-  final val SET_ITEMS = FieldFQN(new JawaType(SET), "items", new JawaType(JavaKnowledge.JAVA_TOPLEVEL_OBJECT, 1))
+  final val SET_ITEMS = "items"
   final val HASHSET = "java.util.HashSet"
-  final val HASHSET_ITEMS = FieldFQN(new JawaType(HASHSET), "items", new JawaType(JavaKnowledge.JAVA_TOPLEVEL_OBJECT, 1))
+  final val HASHSET_ITEMS = "items"
 
   final val STRING = "java.lang.String"
   final val STRING_BUILDER = "java.lang.StringBuilder"
-  final val STRING_BUILDER_VALUE = FieldFQN(new JawaType(STRING_BUILDER), "value", new JawaType(STRING))
+  final val STRING_BUILDER_VALUE = "value"
 
   final val CLASS = "java.lang.Class"
-  final val CLASS_NAME = FieldFQN(new JawaType(CLASS), "name", new JawaType(STRING))
+  final val CLASS_NAME = "name"
 }

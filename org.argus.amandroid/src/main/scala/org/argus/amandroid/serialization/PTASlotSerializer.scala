@@ -37,7 +37,7 @@ object PTASlotKeySerializer extends CustomKeySerializer[PTASlot](format => (
           case s: StaticFieldSlot =>
             compact(render("StaticFieldSlot" -> Extraction.decompose(s)))
           case s: FieldSlot =>
-            compact(render("FieldSlot" -> ("ins" -> Extraction.decompose(s.ins)) ~ ("fqn" -> Extraction.decompose(s.fqn))))
+            compact(render("FieldSlot" -> ("ins" -> Extraction.decompose(s.ins)) ~ ("fieldName" -> Extraction.decompose(s.fieldName))))
           case s: ArraySlot =>
             compact(render("ArraySlot" -> ("ins" -> Extraction.decompose(s.ins))))
           case s: InstanceSlot =>

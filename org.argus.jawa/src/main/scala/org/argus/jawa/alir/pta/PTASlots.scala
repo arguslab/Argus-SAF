@@ -43,12 +43,6 @@ final case class VarSlot(varName: String, isBase: Boolean, isArg: Boolean) exten
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
  * @author <a href="mailto:sroy@k-state.edu">Sankardas Roy</a>
  */
-//final case class ClassSlot(classtyp: JawaType) extends NameSlot(classtyp.jawaName)
-
-/**
- * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
- * @author <a href="mailto:sroy@k-state.edu">Sankardas Roy</a>
- */
 final case class StaticFieldSlot(fqn: FieldFQN) extends NameSlot(fqn.fqn)
 
 /**
@@ -63,8 +57,8 @@ abstract class HeapSlot(ins: Instance) extends PTASlot(ins){
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
  * @author <a href="mailto:sroy@k-state.edu">Sankardas Roy</a>
  */ 
-final case class FieldSlot(ins: Instance, fqn: FieldFQN) extends HeapSlot(ins){
-  override def toString: String = ins.toString + "." + fqn.fqn
+final case class FieldSlot(ins: Instance, fieldName: String) extends HeapSlot(ins){
+  override def toString: String = ins.toString + "." + fieldName
 }
 
 /**

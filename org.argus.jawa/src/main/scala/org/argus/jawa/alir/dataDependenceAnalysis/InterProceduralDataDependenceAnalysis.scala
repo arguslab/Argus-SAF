@@ -18,7 +18,7 @@ import org.argus.jawa.alir.pta.{ArraySlot, FieldSlot, PTAResult, VarSlot}
 import org.argus.jawa.alir.reachingDefinitionAnalysis.{DefDesc, LocDefDesc, ParamDefDesc}
 import org.argus.jawa.compiler.parser._
 import org.argus.jawa.core.io.NoPosition
-import org.argus.jawa.core.{FieldFQN, Global, JawaType}
+import org.argus.jawa.core.{Global, JawaType}
 import org.argus.jawa.core.util._
 
 /**
@@ -288,12 +288,7 @@ object InterProceduralDataDependenceAnalysis {
         baseValue.foreach{ ins =>
           result ++= iddg.findDefSite(ins.defSite)
           if(!ins.isNull) {
-            var fqn = new FieldFQN(ae.fieldSym.FQN, typ.get)
-            global.getField(fqn) match {
-              case Some(f) => fqn = f.FQN
-              case None =>
-            }
-            val fieldSlot = FieldSlot(ins, fqn)
+            val fieldSlot = FieldSlot(ins, ae.fieldName)
             val fieldValue = ptaresult.pointsToSet(fieldSlot, node.getContext)
             fieldValue.foreach(fIns => result ++= iddg.findDefSite(fIns.defSite))
           }

@@ -22,7 +22,7 @@ import org.argus.jawa.core.util._
  */ 
 object ReachingFactsAnalysisHelper {
   final val TITLE = "ReachingFactsAnalysisHelper"
-  def getFactMap(s: ISet[RFAFact])(implicit factory: RFAFactFactory): Map[Int, Set[Int]] = {
+  def getFactMap(s: ISet[RFAFact])(implicit factory: RFAFactFactory): Map[PTASlot, Set[Int]] = {
     s.groupBy(_.slot).mapValues(_.map(_.ins))
   }
 
@@ -31,7 +31,7 @@ object ReachingFactsAnalysisHelper {
   }
 
   def getRelatedFactsForArg(slot: VarSlot, s: ISet[RFAFact])(implicit factory: RFAFactFactory): ISet[RFAFact] = {
-    val bFacts = s.filter(fact=> slot.getId == fact.s.getId).map(fact => RFAFact(factory.getSlotNum(slot), fact.ins))
+    val bFacts = s.filter(fact=> slot.getId == fact.s.getId).map(fact => RFAFact(slot, fact.ins))
     val rhFacts = getRelatedHeapFactsFrom(bFacts, s)
     bFacts ++ rhFacts
   }
@@ -96,13 +96,12 @@ object ReachingFactsAnalysisHelper {
         else if(!calleeMethod.isStatic) calleeMethod.getSignature.getParameterTypes(i - 1)
         else calleeMethod.getSignature.getParameterTypes(i)
       val influencedFields = Set(Constants.ALL_FIELD_FQN(typ))
-      argValues.foreach {
-        ins => 
-          for(f <- influencedFields) {
-            val fs = FieldSlot(ins, f)
-            val uins = PTAInstance(JavaKnowledge.JAVA_TOPLEVEL_OBJECT_TYPE.toUnknown, currentContext, isNull_ = false)
-            genFacts += new RFAFact(fs, uins)
-          }
+      argValues.foreach { ins =>
+        for(f <- influencedFields) {
+          val fs = FieldSlot(ins, f.fieldName)
+          val uins = PTAInstance(JavaKnowledge.JAVA_TOPLEVEL_OBJECT_TYPE.toUnknown, currentContext, isNull_ = false)
+          genFacts += new RFAFact(fs, uins)
+        }
       }
     }
 //    killFacts ++= ReachingFactsAnalysisHelper.getRelatedHeapFacts(argValues, s)
@@ -152,31 +151,28 @@ object ReachingFactsAnalysisHelper {
   
   private def resolvePTAResultAccessExp(ae: AccessExpression, typ: JawaType, currentContext: Context, s: ISet[RFAFact], ptaresult: PTAResult, global: Global)(implicit factory: RFAFactFactory) = {
     val baseSlot = VarSlot(ae.base, isBase = true, isArg = false)
-    val baseValue = s.filter { fact => fact.s.getId == baseSlot.getId }.map{
-      f => 
-        ptaresult.addInstance(baseSlot, currentContext, f.v)
-        f.v
+    val baseValue = s.filter { fact => fact.s.getId == baseSlot.getId }.map{ f =>
+      ptaresult.addInstance(baseSlot, currentContext, f.v)
+      f.v
     }
-    baseValue.foreach{
-      ins =>
-        if(ins.isNull){}
-        else {
-          val fqn = global.resolveFQN(new FieldFQN(ae.fieldSym.FQN, typ))
-          val fieldSlot = FieldSlot(ins, fqn)
-          s.filter { fact => fact.s == fieldSlot }.foreach(f => ptaresult.addInstance(fieldSlot, currentContext, f.v))
-          s.foreach { fact =>
-            fact.s match {
-              case slot: FieldSlot if slot.ins == ins && slot.fqn.fieldName == Constants.ALL_FIELD && typ.isObject =>
-                val definingTyp = slot.fqn.typ
-                val defCls = global.getClassOrResolve(definingTyp)
-                if (defCls.hasField(fqn.fieldName)) {
-                  val uIns = PTAInstance(typ.toUnknown, fact.v.defSite, isNull_ = false)
-                  ptaresult.addInstance(fieldSlot, currentContext, uIns)
-                }
-              case _ =>
-            }
+    baseValue.foreach{ ins =>
+      if(ins.isNull){}
+      else {
+        val fieldSlot = FieldSlot(ins, ae.fieldName)
+        s.filter { fact => fact.s == fieldSlot }.foreach(f => ptaresult.addInstance(fieldSlot, currentContext, f.v))
+        s.foreach { fact =>
+          fact.s match {
+            case slot: FieldSlot if slot.ins == ins && slot.fieldName == Constants.ALL_FIELD && typ.isObject =>
+              val definingTyp = typ
+              val defCls = global.getClassOrResolve(definingTyp)
+              if (defCls.hasField(ae.fieldName)) {
+                val uIns = PTAInstance(typ.toUnknown, fact.v.defSite, isNull_ = false)
+                ptaresult.addInstance(fieldSlot, currentContext, uIns)
+              }
+            case _ =>
           }
         }
+      }
     }
   }
   
@@ -308,9 +304,8 @@ object ReachingFactsAnalysisHelper {
         baseValue.foreach { ins =>
           if(ins.isNull) {}
           else{
-            val fqn = global.resolveFQN(new FieldFQN(ae.fieldSym.FQN, typ.get))
-            if(baseValue.size>1) result(FieldSlot(ins, fqn)) = false
-            else result(FieldSlot(ins, fqn)) = true
+            if(baseValue.size>1) result(FieldSlot(ins, ae.fieldName)) = false
+            else result(FieldSlot(ins, ae.fieldName)) = true
           }
         }
       case ie: IndexingExpression =>
@@ -363,18 +358,16 @@ object ReachingFactsAnalysisHelper {
       case ae: AccessExpression =>
         val baseSlot = VarSlot(ae.base, isBase = true, isArg = false)
         val baseValue: ISet[Instance] = ptaResult.pointsToSet(baseSlot, currentContext)
-        baseValue.foreach{
-          ins =>
-            if(ins.isNull){}
-            else {
-              val fqn = global.resolveFQN(new FieldFQN(ae.fieldSym.FQN, typ.get))
-              val fieldSlot = FieldSlot(ins, fqn)
-              var fieldValue: ISet[Instance] = ptaResult.pointsToSet(fieldSlot, currentContext)
-              if(ins.isUnknown && typ.get.isObject) {
-                fieldValue += PTAInstance(typ.get.toUnknown, currentContext, isNull_ = false)
-              }
-              result ++= fieldValue
+        baseValue.foreach{ ins =>
+          if(ins.isNull){}
+          else {
+            val fieldSlot = FieldSlot(ins, ae.fieldName)
+            var fieldValue: ISet[Instance] = ptaResult.pointsToSet(fieldSlot, currentContext)
+            if(ins.isUnknown && typ.get.isObject) {
+              fieldValue += PTAInstance(typ.get.toUnknown, currentContext, isNull_ = false)
             }
+            result ++= fieldValue
+          }
         }
       case ie: IndexingExpression =>
         val baseSlot = VarSlot(ie.base, isBase = true, isArg = false)

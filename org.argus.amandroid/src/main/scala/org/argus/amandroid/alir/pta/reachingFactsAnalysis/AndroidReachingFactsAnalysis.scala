@@ -354,7 +354,7 @@ class AndroidReachingFactsAnalysisBuilder(apk: ApkGlobal, clm: ClassLoadManager,
             case VarSlot(a, b, true) => VarSlot(a, b, isArg = false)
             case a => a
           }
-          RFAFact(factory.getSlotNum(news), v)
+          RFAFact(news, v)
       }.toSet
       val kill: ISet[RFAFact] = killSet.map {
         case rfa @ RFAFact(_, v) =>
@@ -362,7 +362,7 @@ class AndroidReachingFactsAnalysisBuilder(apk: ApkGlobal, clm: ClassLoadManager,
             case VarSlot(a, b, true) => VarSlot(a, b, isArg = false)
             case a => a
           }
-          RFAFact(factory.getSlotNum(news), v)
+          RFAFact(news, v)
       }.toSet
       
       returnFacts = returnFacts -- kill ++ gen
@@ -480,42 +480,40 @@ class AndroidReachingFactsAnalysisBuilder(apk: ApkGlobal, clm: ClassLoadManager,
                     case VarSlot(a, b, true) => VarSlot(a, b, isArg = false)
                     case a => a
                   }
-                  kill += RFAFact(factory.getSlotNum(news), value)
+                  kill += RFAFact(news, value)
                 }
               }
             case None =>
           }
 
-          lhsSlotOpt.foreach {
-            lhsSlot =>
-              var values: ISet[Instance] = isetEmpty
-              retSlotOpt.foreach {
-                retSlot =>
-                  calleeVarFacts.foreach{
-                    case (s, v) =>
-                      if(s == retSlot){
-                        values += v
-                      }
-                  }
-              }
-              result ++= values.map(v => new RFAFact(lhsSlot, v))
-              val insnums = values.map(factory.getInstanceNum)
-              result ++= ReachingFactsAnalysisHelper.getRelatedHeapFacts(insnums, calleeS)
+          lhsSlotOpt.foreach { lhsSlot =>
+            var values: ISet[Instance] = isetEmpty
+            retSlotOpt.foreach {
+              retSlot =>
+                calleeVarFacts.foreach{
+                  case (s, v) =>
+                    if(s == retSlot){
+                      values += v
+                    }
+                }
+            }
+            result ++= values.map(v => new RFAFact(lhsSlot, v))
+            val insnums = values.map(factory.getInstanceNum)
+            result ++= ReachingFactsAnalysisHelper.getRelatedHeapFacts(insnums, calleeS)
           }
         case _: ICFGNode =>
       }
       /**
        * update pstresult with caller's return node and it's points-to info
        */
-      result.map {
-        rFact =>
-          if(!rFact.s.isInstanceOf[StaticFieldSlot]){
-            ptaresult.addInstance(rFact.s, callerNode.getContext, rFact.v)
-          }
-          rFact.s match{
-            case VarSlot(a, b, true) => new RFAFact(VarSlot(a, b, isArg = false), rFact.v)
-            case _ => rFact
-          }
+      result.map { rFact =>
+        if(!rFact.s.isInstanceOf[StaticFieldSlot]){
+          ptaresult.addInstance(rFact.s, callerNode.getContext, rFact.v)
+        }
+        rFact.s match{
+          case VarSlot(a, b, true) => new RFAFact(VarSlot(a, b, isArg = false), rFact.v)
+          case _ => rFact
+        }
       }.toSet -- kill
     }
   }

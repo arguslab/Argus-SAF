@@ -17,11 +17,9 @@ import org.argus.jawa.core.util._
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
  * @author <a href="mailto:sroy@k-state.edu">Sankardas Roy</a>
  */ 
-final case class RFAFact(slot: Int, ins: Int)(implicit factory: RFAFactFactory) {
-  def this(s: PTASlot, v: Instance)(implicit factory: RFAFactFactory) = this(factory.getSlotNum(s), factory.getInstanceNum(v))
-  def s: PTASlot = {
-    factory.getSlot(slot)
-  }
+final case class RFAFact(slot: PTASlot, ins: Int)(implicit factory: RFAFactFactory) {
+  def this(s: PTASlot, v: Instance)(implicit factory: RFAFactFactory) = this(s, factory.getInstanceNum(v))
+  def s: PTASlot = slot
   def v: Instance = {
     factory.getInstance(ins)
   }
@@ -30,22 +28,8 @@ final case class RFAFact(slot: Int, ins: Int)(implicit factory: RFAFactFactory) 
 }
 
 class RFAFactFactory {
-  private val slots: MList[PTASlot] = mlistEmpty
   private val instances: MList[Instance] = mlistEmpty
-  def getSlotNum(slot: PTASlot): Int = {
-    var n: Int = slots.indexOf(slot)
-    if(n < 0) {
-      n = slots.size
-      slots += slot
-    }
-    n
-  }
-  /**
-   * never call it using arbitrary num
-   */
-  def getSlot(num: Int): PTASlot = {
-    slots(num)
-  }
+
   def getInstanceNum(ins: Instance): Int = {
     var n: Int = instances.indexOf(ins)
     if(n < 0) {
