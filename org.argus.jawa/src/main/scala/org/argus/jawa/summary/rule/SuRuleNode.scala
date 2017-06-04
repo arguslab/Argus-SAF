@@ -8,7 +8,7 @@
  * Detailed contributors are listed in the CONTRIBUTOR.md
  */
 
-package org.argus.summary.rule
+package org.argus.jawa.summary.rule
 
 /**
   * Created by fgwei on 6/3/17.

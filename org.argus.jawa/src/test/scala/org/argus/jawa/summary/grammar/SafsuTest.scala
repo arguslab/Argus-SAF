@@ -8,7 +8,7 @@
  * Detailed contributors are listed in the CONTRIBUTOR.md
  */
 
-package org.argus.summary.grammar
+package org.argus.jawa.summary.grammar
 
 import java.io.StringReader
 
@@ -16,7 +16,7 @@ import org.antlr.v4.runtime._
 import org.antlr.v4.runtime.misc.ParseCancellationException
 import org.scalatest.{FlatSpec, Matchers}
 
-import collection.JavaConverters._
+import scala.collection.JavaConverters._
 import scala.language.implicitConversions
 
 /**
