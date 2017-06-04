@@ -1,4 +1,4 @@
-// Generated from /Users/fgwei/IdeaProjects/Argus-SAF/org.argus.summary/src/main/java/org/argus/summary/grammar/safsu.g4 by ANTLR 4.7
+// Generated from /Users/fgwei/IdeaProjects/Argus-SAF/org.argus.summary/src/main/java/org/argus/summary/grammar/Safsu.g4 by ANTLR 4.7
 package org.argus.summary.grammar;
 import org.antlr.v4.runtime.Lexer;
 import org.antlr.v4.runtime.CharStream;
@@ -10,7 +10,7 @@ import org.antlr.v4.runtime.dfa.DFA;
 import org.antlr.v4.runtime.misc.*;
 
 @SuppressWarnings({"all", "warnings", "unchecked", "unused", "cast"})
-public class safsuLexer extends Lexer {
+public class SafsuLexer extends Lexer {
 	static { RuntimeMetaData.checkVersion("4.7", RuntimeMetaData.VERSION); }
 
 	protected static final DFA[] _decisionToDFA;
@@ -73,13 +73,13 @@ public class safsuLexer extends Lexer {
 	}
 
 
-	public safsuLexer(CharStream input) {
+	public SafsuLexer(CharStream input) {
 		super(input);
 		_interp = new LexerATNSimulator(this,_ATN,_decisionToDFA,_sharedContextCache);
 	}
 
 	@Override
-	public String getGrammarFileName() { return "safsu.g4"; }
+	public String getGrammarFileName() { return "Safsu.g4"; }
 
 	@Override
 	public String[] getRuleNames() { return ruleNames; }

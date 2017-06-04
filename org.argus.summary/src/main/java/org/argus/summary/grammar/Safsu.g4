@@ -1,4 +1,4 @@
-grammar safsu;
+grammar Safsu;
 
 
 summaryFile : summary* EOF;

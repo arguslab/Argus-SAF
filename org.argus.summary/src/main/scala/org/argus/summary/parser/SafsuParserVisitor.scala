@@ -11,8 +11,8 @@
 package org.argus.summary.parser
 
 import org.antlr.v4.runtime.tree.ParseTree
-import org.argus.summary.grammar.safsuBaseVisitor
-import org.argus.summary.grammar.safsuParser._
+import org.argus.summary.grammar.SafsuBaseVisitor
+import org.argus.summary.grammar.SafsuParser._
 import org.argus.summary.rule._
 import org.argus.summary.util.Antlr4
 import collection.JavaConverters._
@@ -27,7 +27,7 @@ object SafsuParserVisitor {
 }
 
 class SafsuParserVisitor()
-  extends safsuBaseVisitor[SuRuleNode]
+  extends SafsuBaseVisitor[SuRuleNode]
   with Antlr4.Visitor {
 
   override def visitSummaryFile(ctx: SummaryFileContext): SuRuleNode =

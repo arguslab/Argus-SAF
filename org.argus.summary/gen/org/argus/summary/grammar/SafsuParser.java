@@ -1,4 +1,4 @@
-// Generated from /Users/fgwei/IdeaProjects/Argus-SAF/org.argus.summary/src/main/java/org/argus/summary/grammar/safsu.g4 by ANTLR 4.7
+// Generated from /Users/fgwei/IdeaProjects/Argus-SAF/org.argus.summary/src/main/java/org/argus/summary/grammar/Safsu.g4 by ANTLR 4.7
 package org.argus.summary.grammar;
 import org.antlr.v4.runtime.atn.*;
 import org.antlr.v4.runtime.dfa.DFA;
@@ -10,7 +10,7 @@ import java.util.Iterator;
 import java.util.ArrayList;
 
 @SuppressWarnings({"all", "warnings", "unchecked", "unused", "cast"})
-public class safsuParser extends Parser {
+public class SafsuParser extends Parser {
 	static { RuntimeMetaData.checkVersion("4.7", RuntimeMetaData.VERSION); }
 
 	protected static final DFA[] _decisionToDFA;
@@ -69,7 +69,7 @@ public class safsuParser extends Parser {
 	}
 
 	@Override
-	public String getGrammarFileName() { return "safsu.g4"; }
+	public String getGrammarFileName() { return "Safsu.g4"; }
 
 	@Override
 	public String[] getRuleNames() { return ruleNames; }
@@ -80,12 +80,12 @@ public class safsuParser extends Parser {
 	@Override
 	public ATN getATN() { return _ATN; }
 
-	public safsuParser(TokenStream input) {
+	public SafsuParser(TokenStream input) {
 		super(input);
 		_interp = new ParserATNSimulator(this,_ATN,_decisionToDFA,_sharedContextCache);
 	}
 	public static class SummaryFileContext extends ParserRuleContext {
-		public TerminalNode EOF() { return getToken(safsuParser.EOF, 0); }
+		public TerminalNode EOF() { return getToken(SafsuParser.EOF, 0); }
 		public List<SummaryContext> summary() {
 			return getRuleContexts(SummaryContext.class);
 		}
@@ -98,15 +98,15 @@ public class safsuParser extends Parser {
 		@Override public int getRuleIndex() { return RULE_summaryFile; }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof safsuListener ) ((safsuListener)listener).enterSummaryFile(this);
+			if ( listener instanceof SafsuListener ) ((SafsuListener)listener).enterSummaryFile(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof safsuListener ) ((safsuListener)listener).exitSummaryFile(this);
+			if ( listener instanceof SafsuListener ) ((SafsuListener)listener).exitSummaryFile(this);
 		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
-			if ( visitor instanceof safsuVisitor ) return ((safsuVisitor<? extends T>)visitor).visitSummaryFile(this);
+			if ( visitor instanceof SafsuVisitor ) return ((SafsuVisitor<? extends T>)visitor).visitSummaryFile(this);
 			else return visitor.visitChildren(this);
 		}
 	}
@@ -163,15 +163,15 @@ public class safsuParser extends Parser {
 		@Override public int getRuleIndex() { return RULE_summary; }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof safsuListener ) ((safsuListener)listener).enterSummary(this);
+			if ( listener instanceof SafsuListener ) ((SafsuListener)listener).enterSummary(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof safsuListener ) ((safsuListener)listener).exitSummary(this);
+			if ( listener instanceof SafsuListener ) ((SafsuListener)listener).exitSummary(this);
 		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
-			if ( visitor instanceof safsuVisitor ) return ((safsuVisitor<? extends T>)visitor).visitSummary(this);
+			if ( visitor instanceof SafsuVisitor ) return ((SafsuVisitor<? extends T>)visitor).visitSummary(this);
 			else return visitor.visitChildren(this);
 		}
 	}
@@ -217,22 +217,22 @@ public class safsuParser extends Parser {
 	}
 
 	public static class SignatureContext extends ParserRuleContext {
-		public TerminalNode UID() { return getToken(safsuParser.UID, 0); }
+		public TerminalNode UID() { return getToken(SafsuParser.UID, 0); }
 		public SignatureContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_signature; }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof safsuListener ) ((safsuListener)listener).enterSignature(this);
+			if ( listener instanceof SafsuListener ) ((SafsuListener)listener).enterSignature(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof safsuListener ) ((safsuListener)listener).exitSignature(this);
+			if ( listener instanceof SafsuListener ) ((SafsuListener)listener).exitSignature(this);
 		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
-			if ( visitor instanceof safsuVisitor ) return ((safsuVisitor<? extends T>)visitor).visitSignature(this);
+			if ( visitor instanceof SafsuVisitor ) return ((SafsuVisitor<? extends T>)visitor).visitSignature(this);
 			else return visitor.visitChildren(this);
 		}
 	}
@@ -271,15 +271,15 @@ public class safsuParser extends Parser {
 		@Override public int getRuleIndex() { return RULE_suRule; }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof safsuListener ) ((safsuListener)listener).enterSuRule(this);
+			if ( listener instanceof SafsuListener ) ((SafsuListener)listener).enterSuRule(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof safsuListener ) ((safsuListener)listener).exitSuRule(this);
+			if ( listener instanceof SafsuListener ) ((SafsuListener)listener).exitSuRule(this);
 		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
-			if ( visitor instanceof safsuVisitor ) return ((safsuVisitor<? extends T>)visitor).visitSuRule(this);
+			if ( visitor instanceof SafsuVisitor ) return ((SafsuVisitor<? extends T>)visitor).visitSuRule(this);
 			else return visitor.visitChildren(this);
 		}
 	}
@@ -328,15 +328,15 @@ public class safsuParser extends Parser {
 		@Override public int getRuleIndex() { return RULE_lhs; }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof safsuListener ) ((safsuListener)listener).enterLhs(this);
+			if ( listener instanceof SafsuListener ) ((SafsuListener)listener).enterLhs(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof safsuListener ) ((safsuListener)listener).exitLhs(this);
+			if ( listener instanceof SafsuListener ) ((SafsuListener)listener).exitLhs(this);
 		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
-			if ( visitor instanceof safsuVisitor ) return ((safsuVisitor<? extends T>)visitor).visitLhs(this);
+			if ( visitor instanceof SafsuVisitor ) return ((SafsuVisitor<? extends T>)visitor).visitLhs(this);
 			else return visitor.visitChildren(this);
 		}
 	}
@@ -408,15 +408,15 @@ public class safsuParser extends Parser {
 		@Override public int getRuleIndex() { return RULE_rhs; }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof safsuListener ) ((safsuListener)listener).enterRhs(this);
+			if ( listener instanceof SafsuListener ) ((SafsuListener)listener).enterRhs(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof safsuListener ) ((safsuListener)listener).exitRhs(this);
+			if ( listener instanceof SafsuListener ) ((SafsuListener)listener).exitRhs(this);
 		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
-			if ( visitor instanceof safsuVisitor ) return ((safsuVisitor<? extends T>)visitor).visitRhs(this);
+			if ( visitor instanceof SafsuVisitor ) return ((SafsuVisitor<? extends T>)visitor).visitRhs(this);
 			else return visitor.visitChildren(this);
 		}
 	}
@@ -470,22 +470,22 @@ public class safsuParser extends Parser {
 	}
 
 	public static class ArgContext extends ParserRuleContext {
-		public TerminalNode Digits() { return getToken(safsuParser.Digits, 0); }
+		public TerminalNode Digits() { return getToken(SafsuParser.Digits, 0); }
 		public ArgContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_arg; }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof safsuListener ) ((safsuListener)listener).enterArg(this);
+			if ( listener instanceof SafsuListener ) ((SafsuListener)listener).enterArg(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof safsuListener ) ((safsuListener)listener).exitArg(this);
+			if ( listener instanceof SafsuListener ) ((SafsuListener)listener).exitArg(this);
 		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
-			if ( visitor instanceof safsuVisitor ) return ((safsuVisitor<? extends T>)visitor).visitArg(this);
+			if ( visitor instanceof SafsuVisitor ) return ((SafsuVisitor<? extends T>)visitor).visitArg(this);
 			else return visitor.visitChildren(this);
 		}
 	}
@@ -519,9 +519,9 @@ public class safsuParser extends Parser {
 		public ArgContext arg() {
 			return getRuleContext(ArgContext.class,0);
 		}
-		public List<TerminalNode> ID() { return getTokens(safsuParser.ID); }
+		public List<TerminalNode> ID() { return getTokens(SafsuParser.ID); }
 		public TerminalNode ID(int i) {
-			return getToken(safsuParser.ID, i);
+			return getToken(SafsuParser.ID, i);
 		}
 		public FieldContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
@@ -529,15 +529,15 @@ public class safsuParser extends Parser {
 		@Override public int getRuleIndex() { return RULE_field; }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof safsuListener ) ((safsuListener)listener).enterField(this);
+			if ( listener instanceof SafsuListener ) ((SafsuListener)listener).enterField(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof safsuListener ) ((safsuListener)listener).exitField(this);
+			if ( listener instanceof SafsuListener ) ((SafsuListener)listener).exitField(this);
 		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
-			if ( visitor instanceof safsuVisitor ) return ((safsuVisitor<? extends T>)visitor).visitField(this);
+			if ( visitor instanceof SafsuVisitor ) return ((SafsuVisitor<? extends T>)visitor).visitField(this);
 			else return visitor.visitChildren(this);
 		}
 	}
@@ -581,9 +581,9 @@ public class safsuParser extends Parser {
 	}
 
 	public static class GlobalContext extends ParserRuleContext {
-		public List<TerminalNode> ID() { return getTokens(safsuParser.ID); }
+		public List<TerminalNode> ID() { return getTokens(SafsuParser.ID); }
 		public TerminalNode ID(int i) {
-			return getToken(safsuParser.ID, i);
+			return getToken(SafsuParser.ID, i);
 		}
 		public GlobalContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
@@ -591,15 +591,15 @@ public class safsuParser extends Parser {
 		@Override public int getRuleIndex() { return RULE_global; }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof safsuListener ) ((safsuListener)listener).enterGlobal(this);
+			if ( listener instanceof SafsuListener ) ((SafsuListener)listener).enterGlobal(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof safsuListener ) ((safsuListener)listener).exitGlobal(this);
+			if ( listener instanceof SafsuListener ) ((SafsuListener)listener).exitGlobal(this);
 		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
-			if ( visitor instanceof safsuVisitor ) return ((safsuVisitor<? extends T>)visitor).visitGlobal(this);
+			if ( visitor instanceof SafsuVisitor ) return ((SafsuVisitor<? extends T>)visitor).visitGlobal(this);
 			else return visitor.visitChildren(this);
 		}
 	}
@@ -645,9 +645,9 @@ public class safsuParser extends Parser {
 	}
 
 	public static class TypeContext extends ParserRuleContext {
-		public List<TerminalNode> ID() { return getTokens(safsuParser.ID); }
+		public List<TerminalNode> ID() { return getTokens(SafsuParser.ID); }
 		public TerminalNode ID(int i) {
-			return getToken(safsuParser.ID, i);
+			return getToken(SafsuParser.ID, i);
 		}
 		public LocationContext location() {
 			return getRuleContext(LocationContext.class,0);
@@ -658,15 +658,15 @@ public class safsuParser extends Parser {
 		@Override public int getRuleIndex() { return RULE_type; }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof safsuListener ) ((safsuListener)listener).enterType(this);
+			if ( listener instanceof SafsuListener ) ((SafsuListener)listener).enterType(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof safsuListener ) ((safsuListener)listener).exitType(this);
+			if ( listener instanceof SafsuListener ) ((SafsuListener)listener).exitType(this);
 		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
-			if ( visitor instanceof safsuVisitor ) return ((safsuVisitor<? extends T>)visitor).visitType(this);
+			if ( visitor instanceof SafsuVisitor ) return ((SafsuVisitor<? extends T>)visitor).visitType(this);
 			else return visitor.visitChildren(this);
 		}
 	}
@@ -728,15 +728,15 @@ public class safsuParser extends Parser {
 		@Override public int getRuleIndex() { return RULE_ret; }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof safsuListener ) ((safsuListener)listener).enterRet(this);
+			if ( listener instanceof SafsuListener ) ((SafsuListener)listener).enterRet(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof safsuListener ) ((safsuListener)listener).exitRet(this);
+			if ( listener instanceof SafsuListener ) ((SafsuListener)listener).exitRet(this);
 		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
-			if ( visitor instanceof safsuVisitor ) return ((safsuVisitor<? extends T>)visitor).visitRet(this);
+			if ( visitor instanceof SafsuVisitor ) return ((SafsuVisitor<? extends T>)visitor).visitRet(this);
 			else return visitor.visitChildren(this);
 		}
 	}
@@ -763,22 +763,22 @@ public class safsuParser extends Parser {
 	}
 
 	public static class LocationContext extends ParserRuleContext {
-		public TerminalNode ID() { return getToken(safsuParser.ID, 0); }
+		public TerminalNode ID() { return getToken(SafsuParser.ID, 0); }
 		public LocationContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_location; }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof safsuListener ) ((safsuListener)listener).enterLocation(this);
+			if ( listener instanceof SafsuListener ) ((SafsuListener)listener).enterLocation(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof safsuListener ) ((safsuListener)listener).exitLocation(this);
+			if ( listener instanceof SafsuListener ) ((SafsuListener)listener).exitLocation(this);
 		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
-			if ( visitor instanceof safsuVisitor ) return ((safsuVisitor<? extends T>)visitor).visitLocation(this);
+			if ( visitor instanceof SafsuVisitor ) return ((SafsuVisitor<? extends T>)visitor).visitLocation(this);
 			else return visitor.visitChildren(this);
 		}
 	}
