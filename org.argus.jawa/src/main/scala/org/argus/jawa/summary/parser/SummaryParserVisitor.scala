@@ -8,25 +8,26 @@
  * Detailed contributors are listed in the CONTRIBUTOR.md
  */
 
-package org.argus.summary.parser
+package org.argus.jawa.summary.parser
 
 import org.antlr.v4.runtime.tree.ParseTree
-import org.argus.summary.grammar.SafsuBaseVisitor
-import org.argus.summary.grammar.SafsuParser._
-import org.argus.summary.rule._
-import org.argus.summary.util.Antlr4
-import collection.JavaConverters._
+import org.argus.jawa.core.util.Antlr4
+import org.argus.jawa.summary.rule.{RuleRhs, SuArg, SuField, SuGlobal, SuLocation, SuRet, SuType, _}
+import org.argus.jawa.summary.grammar.SafsuBaseVisitor
+import org.argus.jawa.summary.grammar.SafsuParser._
+
+import scala.collection.JavaConverters._
 
 /**
   * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
   */
-object SafsuParserVisitor {
+object SummaryParserVisitor {
   def apply[T <: SuRuleNode](t: ParseTree): T =
-    new SafsuParserVisitor().
+    new SummaryParserVisitor().
       visit(t).asInstanceOf[T]
 }
 
-class SafsuParserVisitor()
+class SummaryParserVisitor()
   extends SafsuBaseVisitor[SuRuleNode]
   with Antlr4.Visitor {
 

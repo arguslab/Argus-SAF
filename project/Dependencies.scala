@@ -49,19 +49,16 @@ object Dependencies {
 object DependencyGroups {
   import Dependencies._
 
-  val summary: Seq[ModuleID] = Seq(
-    antlr4_runtime
-  )
-
   val jawa: Seq[ModuleID] = Seq(
     findbug,
     guava,
     commons_lang3,
+    antlr4_runtime,
     asm_all,
     st4,
     jgrapht_core,
     jgrapht_ext
-  ) ++ summary
+  )
 
   val amandroid: Seq[ModuleID] = Seq(
     ini4j,

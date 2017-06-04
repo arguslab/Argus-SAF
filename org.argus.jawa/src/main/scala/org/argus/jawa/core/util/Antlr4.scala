@@ -8,9 +8,9 @@
  * Detailed contributors are listed in the CONTRIBUTOR.md
  */
 
-package org.argus.summary.util
+package org.argus.jawa.core.util
 
-import org.argus.summary.rule.SuRuleNode
+import org.argus.jawa.summary.rule.SuRuleNode
 
 /**
   * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
