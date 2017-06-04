@@ -23,7 +23,7 @@ import scala.language.implicitConversions
   * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
   */
 class SafsuTest extends FlatSpec with Matchers {
-  import safsuLexer._
+  import SafsuLexer._
 
   implicit def string2TestString(s: String): TestString =
     new TestString(s)
@@ -80,7 +80,7 @@ class SafsuTest extends FlatSpec with Matchers {
       it should ("tokenize >>>" + s + "<<< as >>>" + expectedTokens + "<<<") in {
         val reader = new StringReader(s)
         val input = CharStreams.fromReader(reader)
-        val lexer = new safsuLexer(input)
+        val lexer = new SafsuLexer(input)
         val actualTokens: List[_ <: Token] = lexer.getAllTokens.asScala.toList
         val actualTokenTypes = actualTokens.map(_.getType)
         require(actualTokenTypes == expectedTokens, "Tokens do not match. Expected " + expectedTokens + ", but was " + actualTokenTypes)
@@ -112,9 +112,9 @@ class SafsuTest extends FlatSpec with Matchers {
   def parse(code: String): Unit = {
     val reader = new StringReader(code)
     val input = CharStreams.fromReader(reader)
-    val lexer = new safsuLexer(input)
+    val lexer = new SafsuLexer(input)
     val tokens = new CommonTokenStream(lexer)
-    val parser = new safsuParser(tokens)
+    val parser = new SafsuParser(tokens)
     parser.setErrorHandler(new BailErrorStrategy)
     try {
       parser.summaryFile()
