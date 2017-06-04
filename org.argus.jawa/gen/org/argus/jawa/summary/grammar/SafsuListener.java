@@ -78,16 +78,6 @@ public interface SafsuListener extends ParseTreeListener {
 	 */
 	void exitArg(SafsuParser.ArgContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link SafsuParser#field}.
-	 * @param ctx the parse tree
-	 */
-	void enterField(SafsuParser.FieldContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link SafsuParser#field}.
-	 * @param ctx the parse tree
-	 */
-	void exitField(SafsuParser.FieldContext ctx);
-	/**
 	 * Enter a parse tree produced by {@link SafsuParser#global}.
 	 * @param ctx the parse tree
 	 */
@@ -97,6 +87,46 @@ public interface SafsuListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitGlobal(SafsuParser.GlobalContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link SafsuParser#heap}.
+	 * @param ctx the parse tree
+	 */
+	void enterHeap(SafsuParser.HeapContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link SafsuParser#heap}.
+	 * @param ctx the parse tree
+	 */
+	void exitHeap(SafsuParser.HeapContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link SafsuParser#heapAccess}.
+	 * @param ctx the parse tree
+	 */
+	void enterHeapAccess(SafsuParser.HeapAccessContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link SafsuParser#heapAccess}.
+	 * @param ctx the parse tree
+	 */
+	void exitHeapAccess(SafsuParser.HeapAccessContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link SafsuParser#fieldAccess}.
+	 * @param ctx the parse tree
+	 */
+	void enterFieldAccess(SafsuParser.FieldAccessContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link SafsuParser#fieldAccess}.
+	 * @param ctx the parse tree
+	 */
+	void exitFieldAccess(SafsuParser.FieldAccessContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link SafsuParser#arrayAccess}.
+	 * @param ctx the parse tree
+	 */
+	void enterArrayAccess(SafsuParser.ArrayAccessContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link SafsuParser#arrayAccess}.
+	 * @param ctx the parse tree
+	 */
+	void exitArrayAccess(SafsuParser.ArrayAccessContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link SafsuParser#type}.
 	 * @param ctx the parse tree

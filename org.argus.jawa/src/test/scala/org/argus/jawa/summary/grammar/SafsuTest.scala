@@ -33,7 +33,7 @@ class SafsuTest extends FlatSpec with Matchers {
   // T__2 = 3 -- '='
   // T__3 = 4 -- 'arg'
   // T__4 = 5 -- '.'
-  // T__5 = 6 -- '@@'
+  // T__5 = 6 -- '[]'
   // T__6 = 7 -- '@'
   // T__7 = 8 -- 'ret'
   // UID = 9
@@ -46,8 +46,10 @@ class SafsuTest extends FlatSpec with Matchers {
   "`Lcom/my/Class;.do:()V`" producesTokens UID
   "arg:1" producesTokens (T__3, T__0, Digits)
   "arg:1.field.field2" producesTokens (T__3, T__0, Digits, T__4, ID, T__4, ID)
+  "arg:1[]" producesTokens (T__3, T__0, Digits, T__5)
+  "arg:1.field.field2[]" producesTokens (T__3, T__0, Digits, T__4, ID, T__4, ID, T__5)
   "ret" producesTokens T__7
-  "@@com.my.Class.Global" producesTokens (T__5, ID, T__4, ID, T__4, ID, T__4, ID)
+  "`com.my.Class.Global`" producesTokens UID
   "com.my.Class" producesTokens (ID, T__4, ID, T__4, ID)
   "com.my.Class@L1005" producesTokens (ID, T__4, ID, T__4, ID, T__6, ID)
   "arg:1=arg:2" producesTokens (T__3, T__0, Digits, T__2, T__3, T__0, Digits)
@@ -94,12 +96,24 @@ class SafsuTest extends FlatSpec with Matchers {
       """`Lcom/my/Class;.do:(LO1;LO2;)LO3;`:
         |  arg:1=arg:2
         |  ret=arg:1.field
+        |  arg:1.f1=arg:2.f2[]
+        |  ret=arg:1.field.f3[]
+        |  arg:1.f2=arg:2
+        |  ret=arg:1.field
+        |  arg:1[]=arg:2[][]
+        |  ret=arg:1.field[][].length
+        |  arg:1[][]=arg:2[]
+        |  ret=arg:1.field.f3
+        |  arg:1.f1=arg:2[]
+        |  arg:2[]=arg:1.field
+        |  arg:1=`com.my.Class.Glo`.f.f2[]
+        |  `com.my.Class.Glo`.f.f2[]=arg:1.field
         |;
       """.stripMargin)
   }
 
   "Parser" should "throw a parse exception on bad program" in {
-    an [RecognitionException] should be thrownBy {
+    an [ParseCancellationException] should be thrownBy {
       parse(
         """`Lcom/my/Class;.do:(LO1;LO2;)LO3;`:
           |  arg:1=
@@ -116,11 +130,6 @@ class SafsuTest extends FlatSpec with Matchers {
     val tokens = new CommonTokenStream(lexer)
     val parser = new SafsuParser(tokens)
     parser.setErrorHandler(new BailErrorStrategy)
-    try {
-      parser.summaryFile()
-    } catch {
-      case pce: ParseCancellationException =>
-        throw pce.getCause
-    }
+    parser.summaryFile()
   }
 }

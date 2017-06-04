@@ -11,8 +11,9 @@
 package org.argus.jawa.summary.parser
 
 import org.antlr.v4.runtime.tree.ParseTree
+import org.argus.jawa.core.Signature
 import org.argus.jawa.core.util.Antlr4
-import org.argus.jawa.summary.rule.{RuleRhs, SuArg, SuField, SuGlobal, SuLocation, SuRet, SuType, _}
+import org.argus.jawa.summary.rule._
 import org.argus.jawa.summary.grammar.SafsuBaseVisitor
 import org.argus.jawa.summary.grammar.SafsuParser._
 
@@ -38,31 +39,34 @@ class SummaryParserVisitor()
     }.toMap)
 
   override def visitSummary(ctx: SummaryContext): SuRuleNode =
-    Summary(getSignature(ctx.signature), getChildren(ctx.suRule.asScala))
+    Summary(new Signature(getUID(ctx.signature.UID.getText)), getChildren(ctx.suRule.asScala))
 
   override def visitSuRule(ctx: SuRuleContext): SuRuleNode =
     SuRule(getChild[RuleLhs](ctx.lhs), getChild[RuleRhs](ctx.rhs))
 
   override def visitArg(ctx: ArgContext): SuRuleNode =
-    SuArg(ctx.Digits.getText.toInt)
-
-  override def visitField(ctx: FieldContext): SuRuleNode =
-    SuField(getChild[SuArg](ctx.arg), ctx.ID.asScala.map(_.getText))
+    SuArg(ctx.Digits.getText.toInt, getOptChild[SuHeap](ctx.heap))
 
   override def visitGlobal(ctx: GlobalContext): SuRuleNode =
-    SuGlobal(ctx.ID.asScala.map(_.getText).mkString("."))
+    SuGlobal(getUID(ctx.UID.getText), getOptChild[SuHeap](ctx.heap))
+
+  override def visitHeap(ctx: HeapContext): SuRuleNode =
+    SuHeap(getChildren(ctx.heapAccess.asScala))
+
+  override def visitFieldAccess(ctx: FieldAccessContext): SuRuleNode =
+    SuFieldAccess(ctx.ID.getText)
+
+  override def visitArrayAccess(ctx: ArrayAccessContext): SuRuleNode =
+    SuArrayAccess()
 
   override def visitRet(ctx: RetContext): SuRuleNode =
     SuRet()
 
   override def visitType(ctx: TypeContext): SuRuleNode =
-    SuType(ctx.ID.asScala.map(_.getText).mkString("."), getOptChild[SuLocation](ctx.location))
+    SuType(ctx.ID.asScala.map(_.getText).mkString("."), getChild[SuLocation](ctx.location))
 
   override def visitLocation(ctx: LocationContext): SuRuleNode =
     SuLocation(ctx.ID.getText)
 
-  private def getSignature(ctx: SignatureContext): String = {
-    val r = ctx.getText
-    if (r.startsWith("`")) r.substring(1, r.length - 1) else r
-  }
+  private def getUID(text: String): String = text.substring(1, text.length - 1)
 }

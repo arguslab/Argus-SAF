@@ -13,7 +13,7 @@ package org.argus.jawa.summary.parser
 import java.io.StringReader
 
 import org.antlr.v4.runtime.misc.ParseCancellationException
-import org.antlr.v4.runtime.{BailErrorStrategy, CharStreams, CommonTokenStream, RecognitionException}
+import org.antlr.v4.runtime.{BailErrorStrategy, CharStreams, CommonTokenStream, NoViableAltException}
 import org.argus.jawa.summary.rule.SummaryFile
 import org.argus.jawa.summary.grammar.{SafsuLexer, SafsuParser}
 
@@ -24,7 +24,7 @@ object SummaryParser {
   def apply(source: String): SummaryFile =
     parse(source)
 
-  @throws[RecognitionException]
+  @throws[SummaryParserException]
   def parse(source: String): SummaryFile = {
     val reader = new StringReader(source)
     val input = CharStreams.fromReader(reader)
@@ -35,9 +35,14 @@ object SummaryParser {
     try {
       SummaryParserVisitor(parser.summaryFile())
     } catch {
+      case oie: IndexOutOfBoundsException =>
+        throw SummaryParserException(oie)
+      case nvae: NoViableAltException =>
+        throw SummaryParserException(nvae)
       case pce: ParseCancellationException =>
-        throw pce.getCause
+        throw SummaryParserException(pce.getCause)
     }
-
   }
 }
+
+case class SummaryParserException(cause: Throwable) extends Exception(cause.getMessage)

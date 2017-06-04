@@ -100,18 +100,6 @@ public class SafsuBaseListener implements SafsuListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterField(SafsuParser.FieldContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitField(SafsuParser.FieldContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
 	@Override public void enterGlobal(SafsuParser.GlobalContext ctx) { }
 	/**
 	 * {@inheritDoc}
@@ -119,6 +107,54 @@ public class SafsuBaseListener implements SafsuListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitGlobal(SafsuParser.GlobalContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterHeap(SafsuParser.HeapContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitHeap(SafsuParser.HeapContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterHeapAccess(SafsuParser.HeapAccessContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitHeapAccess(SafsuParser.HeapAccessContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterFieldAccess(SafsuParser.FieldAccessContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitFieldAccess(SafsuParser.FieldAccessContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterArrayAccess(SafsuParser.ArrayAccessContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitArrayAccess(SafsuParser.ArrayAccessContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *

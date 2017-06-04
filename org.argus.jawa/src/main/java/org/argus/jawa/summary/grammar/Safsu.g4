@@ -17,32 +17,43 @@ suRule
 
 lhs
   : arg
-  | field
   | global
   | ret
   ;
 
 rhs
   : arg
-  | field
   | global
   | type
   ;
 
 arg
-  : 'arg' ':' Digits             // arg1
-  ;
-
-field
-  : arg ('.' ID)+            // arg1.f1.f2
+  : 'arg' ':' Digits heap?         // arg:1 or arg:1:.f1 or arg1[] or arg1.f1[][]
   ;
 
 global
-  : '@@' ID ('.' ID)*             // @@com.my.Class.GlobalVariable
+  : UID heap?                      // `com.my.Class.GlobalVariable`
+  ;
+
+heap
+  : heapAccess+
+  ;
+
+heapAccess
+  : fieldAccess
+  | arrayAccess
+  ;
+
+fieldAccess
+  : '.' ID
+  ;
+
+arrayAccess
+  : '[]'
   ;
 
 type
-  : ID ('.' ID)* ('@' location)?    // com.my.Object@L123
+  : ID ('.' ID)* '@' location      // com.my.Object@L123
   ;
 
 ret
