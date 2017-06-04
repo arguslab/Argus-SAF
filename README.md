@@ -87,7 +87,7 @@ the directory where Scala plugin repository is and then import it as SBT project
    - if Scala Compile Server is disabled:
    `Settings > Build, Execution, Deployment > Compiler > Build process heap size`
    
-6. If you want to build Argus-SAF from command line, go to Argus-SAF repo directory and run
+6. Build Argus-SAF from command line: go to Argus-SAF repo directory and run
 
   ```
   $ tools/bin/sbt clean compile test
