@@ -1,8 +1,8 @@
-#Amandroid challenges
+# Amandroid challenges
 
 Before you take one of the challenges, please contact [`@fgwei`](https://github.com/fgwei) to let him aware. And put a mark (e.g., Resolving by [`@fgwei`](https://github.com/fgwei)) in the end of the challenge to avoid any situation of conflict. You can create a PR following guidance in [CONTRIBUTING.md](CONTRIBUTING.md) after you resolved it. 
 
-##Continuous tasks
+## Continuous tasks
 
 `#c1`. All the APIs should be documented. (Post by [`@fgwei`](https://github.com/fgwei))
 
@@ -10,7 +10,7 @@ Before you take one of the challenges, please contact [`@fgwei`](https://github.
 
 `#c3`. Amandroid documentations need to be revised. (Post by [`@fgwei`](https://github.com/fgwei))(Resolving by [`@fgwei`](https://github.com/fgwei))
 
-##org.argus.jawa.alir
+## org.argus.jawa.alir
 In package `org.argus.jawa.alir.pta.reachingFactsAnalysis.model`:
 
 - `#c4`. We need to add more models for java apis. (Post by [`@fgwei`](https://github.com/fgwei))
@@ -19,7 +19,7 @@ In package `org.argus.jawa.alir.pta.reachingFactsAnalysis.model`:
 
 `#c7`. In package `org.argus.jawa.alir.taintAnalysis`, we need to implement monotonic data flow analysis based on demand taint analysis, many situations need such analysis to get better performance. (Post by [`@fgwei`](https://github.com/fgwei))
 
-##org.argus.amandroid.core
+## org.argus.amandroid.core
 `#c8`. In package `org.argus.amandroid.core.parser`, the LayoutFileParser.scala and ManifestParser.scala only can handle plain text xml files. Better design is to read from raw xml files from apk directly, and parse the equivalent information as current parsers. (Important!) (Post by [`@fgwei`](https://github.com/fgwei))
 
 `#c9`. In package `org.argus.amandroid.core.appInfo`, the ReachableInfoCollector.scala need to be updated for adding more callbacks. (Post by [`@fgwei`](https://github.com/fgwei))
@@ -29,7 +29,7 @@ In package `org.argus.amandroid.core.dedex`,
 - `#c11`. Make the decompiling process faster. (Post by [`@fgwei`](https://github.com/fgwei))
 
 
-##org.argus.amandroid.alir
+## org.argus.amandroid.alir
 In package `org.argus.amandroid.alir.pta.reachingFactsAnalysis.model`:
 
 - `#c12`. We need to add more models for android apis. (Post by [`@fgwei`](https://github.com/fgwei))
