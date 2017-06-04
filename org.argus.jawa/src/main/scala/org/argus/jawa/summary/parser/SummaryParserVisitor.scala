@@ -41,8 +41,22 @@ class SummaryParserVisitor()
   override def visitSummary(ctx: SummaryContext): SuRuleNode =
     Summary(new Signature(getUID(ctx.signature.UID.getText)), getChildren(ctx.suRule.asScala))
 
-  override def visitSuRule(ctx: SuRuleContext): SuRuleNode =
-    SuRule(getChild[RuleLhs](ctx.lhs), getChild[RuleRhs](ctx.rhs))
+  override def visitClearRule(ctx: ClearRuleContext): SuRuleNode =
+    ClearRule({
+      if(ctx.suThis != null) getChild[SuThis](ctx.suThis)
+      else if(ctx.arg != null) getChild[SuArg](ctx.arg)
+      else getChild[SuGlobal](ctx.global)
+    })
+
+  override def visitBinaryRule(ctx: BinaryRuleContext): SuRuleNode =
+    BinaryRule(getChild[RuleLhs](ctx.lhs), ctx.ops.getText match {
+      case "+=" => Ops.`+=`
+      case "-=" => Ops.`-=`
+      case _ => Ops.`=`
+    }, getChild[RuleRhs](ctx.rhs))
+
+  override def visitSuThis(ctx: SuThisContext): SuRuleNode =
+    SuThis(getOptChild[SuHeap](ctx.heap))
 
   override def visitArg(ctx: ArgContext): SuRuleNode =
     SuArg(ctx.Digits.getText.toInt, getOptChild[SuHeap](ctx.heap))
@@ -60,13 +74,16 @@ class SummaryParserVisitor()
     SuArrayAccess()
 
   override def visitRet(ctx: RetContext): SuRuleNode =
-    SuRet()
+    SuRet(getOptChild[SuHeap](ctx.heap))
 
   override def visitType(ctx: TypeContext): SuRuleNode =
     SuType(ctx.ID.asScala.map(_.getText).mkString("."), getChild[SuLocation](ctx.location))
 
-  override def visitLocation(ctx: LocationContext): SuRuleNode =
-    SuLocation(ctx.ID.getText)
+  override def visitVirtualLocation(ctx: VirtualLocationContext): SuRuleNode =
+    SuVirtualLocation()
+
+  override def visitConcreteLocation(ctx: ConcreteLocationContext): SuRuleNode =
+    SuConcreteLocation(ctx.ID.getText)
 
   private def getUID(text: String): String = text.substring(1, text.length - 1)
 }

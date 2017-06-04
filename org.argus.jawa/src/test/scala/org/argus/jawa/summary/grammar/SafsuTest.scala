@@ -28,42 +28,46 @@ class SafsuTest extends FlatSpec with Matchers {
   implicit def string2TestString(s: String): TestString =
     new TestString(s)
 
-  // T__0 = 1 -- ':'
-  // T__1 = 2 -- ';'
-  // T__2 = 3 -- '='
-  // T__3 = 4 -- 'arg'
-  // T__4 = 5 -- '.'
-  // T__5 = 6 -- '[]'
-  // T__6 = 7 -- '@'
-  // T__7 = 8 -- 'ret'
-  // UID = 9
-  // ID = 10
-  // Digits = 11
-  // WS = 12
-  // COMMENT = 13
-  // LINE_COMMENT=14
+  val `:`=1
+  val `;`=2
+  val `~`=3
+  val `=`=4
+  val `+=`=5
+  val `-=`=6
+  val `this`=7
+  val `arg`=8
+  val `.`=9
+  val `[]`=10
+  val `@`=11
+  val `ret`=12
 
   "`Lcom/my/Class;.do:()V`" producesTokens UID
-  "arg:1" producesTokens (T__3, T__0, Digits)
-  "arg:1.field.field2" producesTokens (T__3, T__0, Digits, T__4, ID, T__4, ID)
-  "arg:1[]" producesTokens (T__3, T__0, Digits, T__5)
-  "arg:1.field.field2[]" producesTokens (T__3, T__0, Digits, T__4, ID, T__4, ID, T__5)
-  "ret" producesTokens T__7
+  "arg:1" producesTokens (`arg`, `:`, Digits)
+  "arg:1.field.field2" producesTokens (`arg`, `:`, Digits, `.`, ID, `.`, ID)
+  "arg:1[]" producesTokens (`arg`, `:`, Digits, `[]`)
+  "arg:1.field.field2[]" producesTokens (`arg`, `:`, Digits, `.`, ID, `.`, ID, `[]`)
+  "ret" producesTokens `ret`
+  "ret.f1" producesTokens (`ret`, `.`, ID)
   "`com.my.Class.Global`" producesTokens UID
-  "com.my.Class" producesTokens (ID, T__4, ID, T__4, ID)
-  "com.my.Class@L1005" producesTokens (ID, T__4, ID, T__4, ID, T__6, ID)
-  "arg:1=arg:2" producesTokens (T__3, T__0, Digits, T__2, T__3, T__0, Digits)
-  "arg:1=com.my.Class@L1005" producesTokens (T__3, T__0, Digits, T__2, ID, T__4, ID, T__4, ID, T__6, ID)
-  "`Lcom/my/Class;.do:(LO1;LO2;)V`:arg:1=arg:2;" producesTokens (UID, T__0, T__3, T__0, Digits, T__2, T__3, T__0, Digits, T__1)
+  "this.f1[]" producesTokens (`this`, `.`, ID, `[]`)
+  "com.my.Class" producesTokens (ID, `.`, ID, `.`, ID)
+  "com.my.Class@L1005" producesTokens (ID, `.`, ID, `.`, ID, `@`, ID)
+  "arg:1=arg:2" producesTokens (`arg`, `:`, Digits, `=`, `arg`, `:`, Digits)
+  "arg:1+=arg:2" producesTokens (`arg`, `:`, Digits, `+=`, `arg`, `:`, Digits)
+  "arg:1-=arg:2" producesTokens (`arg`, `:`, Digits, `-=`, `arg`, `:`, Digits)
+  "arg:1=com.my.Class@L1005" producesTokens (`arg`, `:`, Digits, `=`, ID, `.`, ID, `.`, ID, `@`, ID)
+  "~arg:1" producesTokens (`~`, `arg`, `:`, Digits)
+  "arg:1=com.my.Class@~" producesTokens (`arg`, `:`, Digits, `=`, ID, `.`, ID, `.`, ID, `@`, `~`)
+  "`Lcom/my/Class;.do:(LO1;LO2;)V`:arg:1=arg:2;" producesTokens (UID, `:`, `arg`, `:`, Digits, `=`, `arg`, `:`, Digits, `;`)
   """`Lcom/my/Class;.do:(LO1;LO2;)LO3;`:
-    |  arg:1=arg:2
+    |  arg:1+=arg:2
     |  ret=arg:1.field
     |;
   """.stripMargin producesTokens (
-    UID, T__0, WS,
-    T__3, T__0, Digits, T__2, T__3, T__0, Digits, WS,
-    T__7, T__2, T__3, T__0, Digits, T__4, ID, WS,
-    T__1, WS)
+    UID, `:`, WS,
+    `arg`, `:`, Digits, `+=`, `arg`, `:`, Digits, WS,
+    `ret`, `=`, `arg`, `:`, Digits, `.`, ID, WS,
+    `;`, WS)
   """/* block comment
     | */
   """.stripMargin producesTokens (COMMENT, WS)
@@ -98,16 +102,19 @@ class SafsuTest extends FlatSpec with Matchers {
         |  ret=arg:1.field
         |  arg:1.f1=arg:2.f2[]
         |  ret=arg:1.field.f3[]
-        |  arg:1.f2=arg:2
-        |  ret=arg:1.field
-        |  arg:1[]=arg:2[][]
+        |  arg:1.f2+=arg:2
+        |  ret+=arg:1.field
+        |  arg:1[]-=arg:2[][]
         |  ret=arg:1.field[][].length
-        |  arg:1[][]=arg:2[]
+        |  arg:1[][]-=arg:2[]
         |  ret=arg:1.field.f3
         |  arg:1.f1=arg:2[]
         |  arg:2[]=arg:1.field
         |  arg:1=`com.my.Class.Glo`.f.f2[]
         |  `com.my.Class.Glo`.f.f2[]=arg:1.field
+        |  ~arg:1.f1
+        |  this.f1[]=my.Class@L100
+        |  ret.f1=my.Class@~
         |;
       """.stripMargin)
   }

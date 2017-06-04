@@ -64,6 +64,42 @@ public class SafsuBaseListener implements SafsuListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
+	@Override public void enterClearRule(SafsuParser.ClearRuleContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitClearRule(SafsuParser.ClearRuleContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterBinaryRule(SafsuParser.BinaryRuleContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitBinaryRule(SafsuParser.BinaryRuleContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterOps(SafsuParser.OpsContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitOps(SafsuParser.OpsContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
 	@Override public void enterLhs(SafsuParser.LhsContext ctx) { }
 	/**
 	 * {@inheritDoc}
@@ -83,6 +119,18 @@ public class SafsuBaseListener implements SafsuListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitRhs(SafsuParser.RhsContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterSuThis(SafsuParser.SuThisContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitSuThis(SafsuParser.SuThisContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
@@ -191,6 +239,30 @@ public class SafsuBaseListener implements SafsuListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitLocation(SafsuParser.LocationContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterVirtualLocation(SafsuParser.VirtualLocationContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitVirtualLocation(SafsuParser.VirtualLocationContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterConcreteLocation(SafsuParser.ConcreteLocationContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitConcreteLocation(SafsuParser.ConcreteLocationContext ctx) { }
 
 	/**
 	 * {@inheritDoc}

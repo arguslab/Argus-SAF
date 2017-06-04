@@ -1,0 +1,41 @@
+`Ljava/util/Map;.clear:()V`:
+  ~this
+;
+
+`Ljava/util/Map;.clone:()Ljava/lang/Object;`:
+  ret = this
+;
+
+`Ljava/util/Map;.entrySet:()Ljava/util/Set;`:
+  ret = java.util.HashSet@~
+  ret.items = this.entries
+;
+
+`Ljava/util/Map;.get:(Ljava/lang/Object;)Ljava/lang/Object;`:
+  ret = this.entries.right // need to be improved
+;
+
+`Ljava/util/Map;.keySet:()Ljava/util/Set;`:
+  ret = java.util.HashSet@~
+  ret.items = this.entries.left
+;
+
+`Ljava/util/Map;.put:(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;`:
+  ret = this.entries.right
+  this.entries.left += arg:0
+  this.entries.right += arg:1
+;
+
+`Ljava/util/Map;.putAll:(Ljava/util/Map;)V`:
+  this.entries += arg:0.entries
+;
+
+`Ljava/util/Map;.remove:(Ljava/lang/Object;)Ljava/lang/Object;`:
+  ret = this.entries.right
+  this.entries.left -= arg:0
+;
+
+`Ljava/util/Map;.values:()Ljava/util/Collection;`:
+  ret = java.util.HashSet@~
+  ret.items = this.entries.right
+;

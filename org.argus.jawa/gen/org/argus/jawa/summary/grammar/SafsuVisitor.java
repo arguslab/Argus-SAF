@@ -35,6 +35,24 @@ public interface SafsuVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitSuRule(SafsuParser.SuRuleContext ctx);
 	/**
+	 * Visit a parse tree produced by {@link SafsuParser#clearRule}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitClearRule(SafsuParser.ClearRuleContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link SafsuParser#binaryRule}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitBinaryRule(SafsuParser.BinaryRuleContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link SafsuParser#ops}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitOps(SafsuParser.OpsContext ctx);
+	/**
 	 * Visit a parse tree produced by {@link SafsuParser#lhs}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
@@ -46,6 +64,12 @@ public interface SafsuVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitRhs(SafsuParser.RhsContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link SafsuParser#suThis}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitSuThis(SafsuParser.SuThisContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link SafsuParser#arg}.
 	 * @param ctx the parse tree
@@ -100,4 +124,16 @@ public interface SafsuVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitLocation(SafsuParser.LocationContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link SafsuParser#virtualLocation}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitVirtualLocation(SafsuParser.VirtualLocationContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link SafsuParser#concreteLocation}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitConcreteLocation(SafsuParser.ConcreteLocationContext ctx);
 }

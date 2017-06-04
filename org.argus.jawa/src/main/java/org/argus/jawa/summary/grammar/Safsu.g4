@@ -12,23 +12,44 @@ signature
   ;
 
 suRule
-  : lhs '=' rhs
+  : clearRule
+  | binaryRule
+  ;
+
+clearRule
+  : '~' (suThis | arg | global)    // clear heap of given element
+  ;
+
+binaryRule
+  : lhs ops rhs                    // rhs ops lhs
+  ;
+
+ops
+  : '='
+  | '+='
+  | '-='
   ;
 
 lhs
-  : arg
+  : suThis
+  | arg
   | global
   | ret
   ;
 
 rhs
-  : arg
+  : suThis
+  | arg
   | global
   | type
   ;
 
+suThis
+  : 'this' heap?                   // this or this.f1
+  ;
+
 arg
-  : 'arg' ':' Digits heap?         // arg:1 or arg:1:.f1 or arg1[] or arg1.f1[][]
+  : 'arg' ':' Digits heap?         // arg:1 or arg:1.f1 or arg1[] or arg1.f1[][]
   ;
 
 global
@@ -57,10 +78,19 @@ type
   ;
 
 ret
-  : 'ret'
+  : 'ret' heap?
   ;
 
 location
+  : virtualLocation
+  | concreteLocation
+  ;
+
+virtualLocation
+  : '~'
+  ;
+
+concreteLocation
   : ID
   ;
 

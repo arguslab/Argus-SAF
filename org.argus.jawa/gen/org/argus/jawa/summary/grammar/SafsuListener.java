@@ -48,6 +48,36 @@ public interface SafsuListener extends ParseTreeListener {
 	 */
 	void exitSuRule(SafsuParser.SuRuleContext ctx);
 	/**
+	 * Enter a parse tree produced by {@link SafsuParser#clearRule}.
+	 * @param ctx the parse tree
+	 */
+	void enterClearRule(SafsuParser.ClearRuleContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link SafsuParser#clearRule}.
+	 * @param ctx the parse tree
+	 */
+	void exitClearRule(SafsuParser.ClearRuleContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link SafsuParser#binaryRule}.
+	 * @param ctx the parse tree
+	 */
+	void enterBinaryRule(SafsuParser.BinaryRuleContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link SafsuParser#binaryRule}.
+	 * @param ctx the parse tree
+	 */
+	void exitBinaryRule(SafsuParser.BinaryRuleContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link SafsuParser#ops}.
+	 * @param ctx the parse tree
+	 */
+	void enterOps(SafsuParser.OpsContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link SafsuParser#ops}.
+	 * @param ctx the parse tree
+	 */
+	void exitOps(SafsuParser.OpsContext ctx);
+	/**
 	 * Enter a parse tree produced by {@link SafsuParser#lhs}.
 	 * @param ctx the parse tree
 	 */
@@ -67,6 +97,16 @@ public interface SafsuListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitRhs(SafsuParser.RhsContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link SafsuParser#suThis}.
+	 * @param ctx the parse tree
+	 */
+	void enterSuThis(SafsuParser.SuThisContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link SafsuParser#suThis}.
+	 * @param ctx the parse tree
+	 */
+	void exitSuThis(SafsuParser.SuThisContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link SafsuParser#arg}.
 	 * @param ctx the parse tree
@@ -157,4 +197,24 @@ public interface SafsuListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitLocation(SafsuParser.LocationContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link SafsuParser#virtualLocation}.
+	 * @param ctx the parse tree
+	 */
+	void enterVirtualLocation(SafsuParser.VirtualLocationContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link SafsuParser#virtualLocation}.
+	 * @param ctx the parse tree
+	 */
+	void exitVirtualLocation(SafsuParser.VirtualLocationContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link SafsuParser#concreteLocation}.
+	 * @param ctx the parse tree
+	 */
+	void enterConcreteLocation(SafsuParser.ConcreteLocationContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link SafsuParser#concreteLocation}.
+	 * @param ctx the parse tree
+	 */
+	void exitConcreteLocation(SafsuParser.ConcreteLocationContext ctx);
 }
