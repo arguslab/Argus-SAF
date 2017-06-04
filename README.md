@@ -48,9 +48,8 @@ libraryDependencies += "com.github.arguslab" %% "amandroid" % VERSION
 **Requirement: Java 8**
 
 1. Click [![Download](https://api.bintray.com/packages/arguslab/maven/argus-saf/images/download.svg)](https://bintray.com/arguslab/maven/argus-saf/_latestVersion)
-2. In arguslab bintray repo click Files > Version Folder
-3. Download argus-saf_***-version-assembly.jar
-4. Get usage by:
+2. Download argus-saf_***-version-assembly.jar
+3. Get usage by:
   
  ```
  $ java -jar argus-saf_***-version-assembly.jar
