@@ -68,7 +68,7 @@ lazy val argus_saf: Project =
   .settings(argusSafSettings)
   .settings(buildInfoSettings)
   .aggregate(
-    saf_library, jawa, amandroid
+    summary, jawa, amandroid
   )
   .settings(publishSettings)
   .settings(
@@ -86,24 +86,14 @@ lazy val argus_saf: Project =
     publishArtifact in (Compile, packageSrc) := false
   )
 
-lazy val saf_library: Project =
-  newProject("saf-library", file("org.argus.saf.library"))
-    .settings(libraryDependencies ++= DependencyGroups.saf_library)
-    .settings(
-      assemblyOption in assembly := (assemblyOption in assembly).value.copy(includeScala = false),
-      assemblyJarName in assembly := s"${name.value}-${version.value}.jar",
-      mainClass in assembly := None,
-      artifact in (Compile, assembly) ~= { art =>
-        art.copy(`classifier` = None)
-      },
-      addArtifact(artifact in (Compile, assembly), assembly),
-      publishArtifact in (Compile, packageBin) := false
-    )
+lazy val summary: Project =
+  newProject("summary", file("org.argus.summary"))
+    .settings(libraryDependencies ++= DependencyGroups.summary)
     .settings(publishSettings)
 
 lazy val jawa: Project =
   newProject("jawa", file("org.argus.jawa"))
-  .dependsOn(saf_library)
+  .dependsOn(summary)
   .settings(libraryDependencies ++= DependencyGroups.jawa)
   .settings(publishSettings)
 
@@ -129,7 +119,7 @@ releaseProcess := Seq(
   ReleaseStep(releaseStepTask(assembly)),
   tagRelease,
   publishArtifacts,
-  ReleaseStep(releaseStepTask(bintrayRelease in saf_library)),
+  ReleaseStep(releaseStepTask(bintrayRelease in summary)),
   ReleaseStep(releaseStepTask(bintrayRelease in jawa)),
   ReleaseStep(releaseStepTask(bintrayRelease in amandroid)),
   ReleaseStep(releaseStepTask(bintrayRelease in argus_saf)),

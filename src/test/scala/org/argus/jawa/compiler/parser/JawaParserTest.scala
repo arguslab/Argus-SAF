@@ -141,7 +141,9 @@ record `com.a.a.b.c.a`  @kind interface @AccessFlag PUBLIC_INTERFACE_ABSTRACT  {
   }
 
   val reporter = new DefaultReporter
+
   private def parser(s: Either[String, SourceFile]) = new JawaParser(JawaLexer.tokenise(s, reporter).toArray, reporter)
+
   private def parseLocation(s: String) = {
     val loc = parser(Left(s)).location
     if(reporter.hasErrors) throw new RuntimeException(reporter.problems.toString())
@@ -151,9 +153,8 @@ record `com.a.a.b.c.a`  @kind interface @AccessFlag PUBLIC_INTERFACE_ABSTRACT  {
   private def parseCompilationUnit(s: String) = {
     val cu = parser(Left(s)).compilationUnit(true)
     val allAsts = cu.getAllChildrenInclude
-    allAsts.foreach {
-      ast =>
-        if(!ast.isInstanceOf[CompilationUnit]) require(ast.enclosingTopLevelClass != null, ast + " should have top level class.")
+    allAsts.foreach { ast =>
+      if(!ast.isInstanceOf[CompilationUnit]) require(ast.enclosingTopLevelClass != null, ast + " should have top level class.")
     }
     if(reporter.hasErrors) throw new RuntimeException(reporter.problems.toString())
     cu

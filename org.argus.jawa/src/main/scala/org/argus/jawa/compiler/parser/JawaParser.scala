@@ -12,7 +12,7 @@ package org.argus.jawa.compiler.parser
 
 import org.argus.jawa.compiler.lexer._
 import org.argus.jawa.compiler.lexer.Tokens._
-import org.argus.jawa.core.io.SourceFile
+import org.argus.jawa.core.io.{NoPosition, SourceFile}
 import org.argus.jawa.core.{JavaKnowledge, Reporter}
 import org.argus.jawa.core.util._
 
@@ -930,39 +930,32 @@ class JawaParser(tokens: Array[Token], reporter: Reporter) extends JavaKnowledge
 }
 
 object JawaParser {
-  
-  import scala.reflect.runtime.{ universe => ru }
-  final val COMPILATION_UNIT_TYPE: scala.reflect.runtime.universe.Type = ru.typeOf[CompilationUnit]
-  final val CLASS_OR_INTERFACE_DECLARATION_TYPE: scala.reflect.runtime.universe.Type = ru.typeOf[ClassOrInterfaceDeclaration]
-  final val METHOD_DECLARATION_TYPE: scala.reflect.runtime.universe.Type = ru.typeOf[MethodDeclaration]
-  final val BODY_TYPE: scala.reflect.runtime.universe.Type = ru.typeOf[Body]
-  final val LOCATION_TYPE: scala.reflect.runtime.universe.Type = ru.typeOf[Location]
-  
   /**
    * parse the given source as a parsable ast node
    */
-  def parse[T <: ParsableAstNode : ru.TypeTag](source: Either[String, SourceFile], resolveBody: Boolean, reporter: Reporter): Either[T, JawaParserException] = {
+  def parse[T <: ParsableAstNode](source: Either[String, SourceFile], resolveBody: Boolean, reporter: Reporter, claz: Class[T]): Either[T, JawaParserException] = {
       val tokens = JawaLexer.tokenise(source, reporter)
-      parse(tokens, resolveBody, reporter)
+      parse(tokens, resolveBody, reporter, claz)
   }
   
-  def parse[T <: ParsableAstNode : ru.TypeTag](tokens: IList[Token], resolveBody: Boolean, reporter: Reporter): Either[T, JawaParserException] = {
+  def parse[T <: ParsableAstNode](tokens: IList[Token], resolveBody: Boolean, reporter: Reporter, claz: Class[T]): Either[T, JawaParserException] = {
     val parser = new JawaParser(tokens.toArray, reporter)
     try{
-      val pasable: T =
-        (ru.typeOf[T] match {
-            case t if t =:= COMPILATION_UNIT_TYPE =>
-              parser.compilationUnit(resolveBody)
-            case t if t =:= CLASS_OR_INTERFACE_DECLARATION_TYPE =>
-              parser.classOrInterfaceDeclaration(resolveBody)
-            case t if t =:= METHOD_DECLARATION_TYPE =>
-              parser.methodDeclaration(resolveBody)
-            case t if t =:= BODY_TYPE =>
-              parser.body(resolveBody)
-            case t if t=:= LOCATION_TYPE =>
-              parser.location
-        }).asInstanceOf[T]
-      Left(pasable)
+      val pasable = claz.getName match {
+        case "org.argus.jawa.compiler.parser.CompilationUnit" =>
+          parser.compilationUnit(resolveBody)
+        case "org.argus.jawa.compiler.parser.ClassOrInterfaceDeclaration" =>
+          parser.classOrInterfaceDeclaration(resolveBody)
+        case "org.argus.jawa.compiler.parser.MethodDeclaration" =>
+          parser.methodDeclaration(resolveBody)
+        case "org.argus.jawa.compiler.parser.Body" =>
+          parser.body(resolveBody)
+        case "org.argus.jawa.compiler.parser.Location" =>
+          parser.location
+        case a =>
+          throw new JawaParserException(NoPosition, s"Cannot parse given type $a")
+      }
+      Left(pasable.asInstanceOf[T])
     } catch {
       case e: JawaParserException =>
         reporter.error(e.pos, e.message)

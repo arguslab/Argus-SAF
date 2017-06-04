@@ -9,7 +9,6 @@
  */
 package org.argus.amandroid.core
 
-import org.argus.jawa.core.{FieldFQN, JawaType}
 import org.argus.jawa.core.util.IList
 
 /**

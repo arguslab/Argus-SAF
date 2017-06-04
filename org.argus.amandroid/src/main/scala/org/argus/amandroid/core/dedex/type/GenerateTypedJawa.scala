@@ -28,7 +28,7 @@ object GenerateTypedJawa {
 
   def apply(code: String, global: Global): String = {
     val sb: StringBuilder = new StringBuilder
-    JawaParser.parse[CompilationUnit](Left(code), resolveBody = true, global.reporter) match {
+    JawaParser.parse[CompilationUnit](Left(code), resolveBody = true, global.reporter, classOf[CompilationUnit]) match {
       case Left(cu) =>
         if(!cu.localTypResolved) {
           cu.topDecls foreach { clazz =>

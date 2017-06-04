@@ -193,7 +193,7 @@ record `com.ksu.passwordPassTest.MainActivity`  @kind class @AccessFlag PUBLIC  
         val actualTokenTypes = actualTokens.map(_.tokenType)
         require(actualTokenTypes.last == EOF, "Last token must be EOF, but was " + actualTokens.last.tokenType)
         require(actualTokenTypes.count(_ == EOF) == 1, "There must only be one EOF token")
-        val reconstitutedSource = actualTokens.init.map(_.rawtext).mkString
+        val reconstitutedSource = actualTokens.init.map(_.rawText).mkString
         require(!reporter.hasErrors, reporter.problems)
         require(actualTokenTypes.init == expectedTokens, "Tokens do not match. Expected " + expectedTokens + ", but was " + actualTokenTypes.init)
         require(s == reconstitutedSource, "tokens do not partition text correctly: " + s + " vs " + reconstitutedSource)

@@ -16,7 +16,6 @@ import java.net.URL
 import java.util.regex.PatternSyntaxException
 
 import scala.collection.{immutable, mutable}
-import scala.reflect.internal.util.StringOps.splitWhere
 import FileUtils.endsClass
 import FileUtils.endsJawaOrJava
 import org.argus.jawa.core.FatalError
@@ -199,6 +198,13 @@ abstract class Classpath extends ClassFileLookup {
   def validClassFile(name: String): Boolean = context.validClassFile(name)
   def validPackage(name: String): Boolean = context.validPackage(name)
   def validSourceFile(name: String): Boolean = context.validSourceFile(name)
+
+  def splitWhere(str: String, f: Char => Boolean, doDropIndex: Boolean = false): Option[(String, String)] =
+    splitAt(str, str indexWhere f, doDropIndex)
+
+  def splitAt(str: String, idx: Int, doDropIndex: Boolean = false): Option[(String, String)] =
+    if (idx == -1) None
+    else Some((str take idx, str drop (if (doDropIndex) idx + 1 else idx)))
 
   /**
    * Find a ClassRep given a class name of the form "package.subpackage.ClassName".

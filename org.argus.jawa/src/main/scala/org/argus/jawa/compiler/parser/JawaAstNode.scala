@@ -103,7 +103,7 @@ sealed trait JawaAstNode extends CaseClassReflector with JavaKnowledge {
         val line = token.line - startline
         val column = if(token.line == 0) token.column - startcolumn else token.column
         if(line != prevline) prevcolumn = 0
-        val text = token.rawtext
+        val text = token.rawText
         for(_ <- 1 to line - prevline){
           sb.append("\n")
         }
@@ -441,7 +441,7 @@ sealed trait Body extends ParsableAstNode
 
 case class UnresolvedBody(bodytokens: IList[Token]) extends Body {
   lazy val tokens: IList[Token] = flatten(bodytokens)
-  def resolve: ResolvedBody = JawaParser.parse[Body](tokens, resolveBody = true, new DefaultReporter) match {
+  def resolve: ResolvedBody = JawaParser.parse[Body](tokens, resolveBody = true, new DefaultReporter, classOf[Body]) match {
     case Left(body) => body.asInstanceOf[ResolvedBody]
     case Right(t) => throw t
   }

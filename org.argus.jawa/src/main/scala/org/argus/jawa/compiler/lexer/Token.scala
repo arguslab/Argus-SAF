@@ -13,13 +13,13 @@ package org.argus.jawa.compiler.lexer
 import org.argus.jawa.core.io.{RangePosition, SourceFile}
 
 /**
- * A token of Pilar source.
+ * A token of Jawa source.
  *
  * @param tokenType Token type.
  * @param pos Position in the text.
- * @param rawtext -- the text associated with the token.
+ * @param rawText the text associated with the token.
  */
-case class Token(tokenType: TokenType, pos: RangePosition, rawtext: String) {
+case class Token(tokenType: TokenType, pos: RangePosition, rawText: String) {
 
   private[lexer] var associatedWhitespaceAndComments_ : HiddenTokens = _
 
@@ -33,7 +33,7 @@ case class Token(tokenType: TokenType, pos: RangePosition, rawtext: String) {
   
   def offset: Int = pos.point
   
-  def length: Int = rawtext.length
+  def length: Int = rawText.length
 
   def lastCharacterOffset: Int = pos.point + length - 1
   
@@ -44,8 +44,8 @@ case class Token(tokenType: TokenType, pos: RangePosition, rawtext: String) {
   def text: String = {
     tokenType match {
       case Tokens.STATIC_ID | Tokens.ID =>
-        rawtext.replace("`", "")
-      case _ => rawtext
+        rawText.replace("`", "")
+      case _ => rawText
     }
   }
   

@@ -152,11 +152,11 @@ trait JawaResolver extends JavaKnowledge { self: Global =>
 
 object JawaResolver{
   def parseClass(code: String, reporter: Reporter): CompilationUnit = {
-    val model = JawaParser.parse[CompilationUnit](Left(code), resolveBody = false, reporter)
+    val model = JawaParser.parse[CompilationUnit](Left(code), resolveBody = false, reporter, classOf[CompilationUnit])
     model match{case Left(m) => m; case Right(e) => throw e}
   }
   def parseMethod(code: String, reporter: Reporter): MethodDeclaration = {
-    val md = JawaParser.parse[MethodDeclaration](Left(code), resolveBody = false, reporter)
+    val md = JawaParser.parse[MethodDeclaration](Left(code), resolveBody = false, reporter, classOf[MethodDeclaration])
     md match{case Left(m) => m; case Right(e) => throw e}
   }
 }

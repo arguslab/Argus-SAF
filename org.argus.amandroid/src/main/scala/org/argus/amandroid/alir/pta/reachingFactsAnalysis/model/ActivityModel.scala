@@ -288,10 +288,9 @@ class ActivityModel extends ModelCall {
     val thisValue = s.pointsToSet(thisSlot, currentContext)
     var newfacts = isetEmpty[RFAFact]
     val delfacts = isetEmpty[RFAFact]
-    thisValue.foreach{
-      tv =>
-        val mIntentSlot = FieldSlot(tv, AndroidConstants.ACTIVITY_INTENT)
-        val mIntentValue = s.pointsToSet(mIntentSlot, currentContext)
+    thisValue.foreach{ tv =>
+      val mIntentSlot = FieldSlot(tv, AndroidConstants.ACTIVITY_INTENT)
+      val mIntentValue = s.pointsToSet(mIntentSlot, currentContext)
 //        val mUnknownIntentSlot = FieldSlot(tv, "ALL")
 //        s.pointsToSet(mUnknownIntentSlot, currentContext) foreach {
 //          ins =>
@@ -302,7 +301,7 @@ class ActivityModel extends ModelCall {
 //            if(fields.contains("ALL")) mIntentValue += UnknownInstance(new NormalType(AndroidConstants.INTENT), defsite)
 //            if(fields.contains(AndroidConstants.ACTIVITY_INTENT)) mIntentValue += UnknownInstance(new NormalType(AndroidConstants.INTENT), defsite)
 //        }
-        newfacts ++= mIntentValue.map(miv=> new RFAFact(VarSlot(retVar, isBase = false, isArg = false), miv))
+      newfacts ++= mIntentValue.map(miv=> new RFAFact(VarSlot(retVar, isBase = false, isArg = false), miv))
     }
     (newfacts, delfacts)
   }

@@ -21,7 +21,6 @@ object Dependencies {
   import ArgusVersions._
 
   val sbtLaunch: ModuleID = "org.scala-sbt" % "sbt-launch" % sbtVersion
-  val scala_reflect: ModuleID = "org.scala-lang" % "scala-reflect" % scalaVersion
 
   val asm_all: ModuleID = "org.ow2.asm" % "asm-all" % "5.2"
 
@@ -50,19 +49,19 @@ object Dependencies {
 object DependencyGroups {
   import Dependencies._
 
-  val saf_library = Seq()
+  val summary: Seq[ModuleID] = Seq(
+    antlr4_runtime
+  )
 
   val jawa: Seq[ModuleID] = Seq(
     findbug,
     guava,
     commons_lang3,
-    scala_reflect,
     asm_all,
     st4,
-    antlr4_runtime,
     jgrapht_core,
     jgrapht_ext
-  ) ++ saf_library
+  ) ++ summary
 
   val amandroid: Seq[ModuleID] = Seq(
     ini4j,

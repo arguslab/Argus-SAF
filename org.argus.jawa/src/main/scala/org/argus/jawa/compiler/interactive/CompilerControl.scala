@@ -160,7 +160,7 @@ trait CompilerControl { self: Global =>
    *  compiler thread.
    */
   def parseCompilationUnit(source: SourceFile): Option[CompilationUnit] = {
-    JawaParser.parse[CompilationUnit](Right(source), resolveBody = true, reporter) match {
+    JawaParser.parse[CompilationUnit](Right(source), resolveBody = true, reporter, classOf[CompilationUnit]) match {
       case Left(cu) => Some(cu)
       case Right(_) => None
     }

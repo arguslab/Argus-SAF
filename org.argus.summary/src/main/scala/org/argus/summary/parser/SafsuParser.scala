@@ -8,16 +8,15 @@
  * Detailed contributors are listed in the CONTRIBUTOR.md
  */
 
-package org.argus.jawa.compiler.util
+package org.argus.summary.parser
 
 /**
- * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
- */
-object ReadClassFile {
-
-  class CustomClassLoader extends ClassLoader {
-    def loadClass(name: String, bytecodes: Array[Byte]): Class[_ <: Any] = {
-      defineClass(name, bytecodes, 0, bytecodes.length)
-    }
-  }
+  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
+  */
+object SafsuParser {
+//  def apply[T](source : Either[String, FileResourceUri],
+//               reporter : ErrorReporter,
+//               claz : Class[T] = classOf[Model],
+//               lineOffset : Int = 0) =
+//    parse[T](source, reporter, claz, lineOffset)
 }
