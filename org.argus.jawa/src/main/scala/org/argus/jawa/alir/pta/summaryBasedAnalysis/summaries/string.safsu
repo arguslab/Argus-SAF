@@ -1,0 +1,230 @@
+`Ljava/lang/String;.<clinit>:()V`:
+;
+`Ljava/lang/String;.<init>:()V`:
+;
+`Ljava/lang/String;.<init>:(II[C)V`:
+;
+`Ljava/lang/String;.<init>:(Ljava/lang/String;)V`:
+  this = arg:0
+;
+`Ljava/lang/String;.<init>:(Ljava/lang/String;C)V`:
+;
+`Ljava/lang/String;.<init>:(Ljava/lang/String;I)V`:
+;
+`Ljava/lang/String;.<init>:(Ljava/lang/String;Ljava/lang/String;)V`:
+;
+`Ljava/lang/String;.<init>:(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V`:
+;
+`Ljava/lang/String;.<init>:(Ljava/lang/StringBuffer;)V`:
+;
+`Ljava/lang/String;.<init>:(Ljava/lang/StringBuilder;)V`:
+;
+`Ljava/lang/String;.<init>:([B)V`:
+;
+`Ljava/lang/String;.<init>:([BI)V`:
+;
+`Ljava/lang/String;.<init>:([BII)V`:
+;
+`Ljava/lang/String;.<init>:([BIII)V`:
+;
+`Ljava/lang/String;.<init>:([BIILjava/lang/String;)V`:
+;
+`Ljava/lang/String;.<init>:([BIILjava/nio/charset/Charset;)V`:
+;
+`Ljava/lang/String;.<init>:([BLjava/lang/String;)V`:
+;
+`Ljava/lang/String;.<init>:([BLjava/nio/charset/Charset;)V`:
+;
+`Ljava/lang/String;.<init>:([C)V`:
+;
+`Ljava/lang/String;.<init>:([CII)V`:
+;
+`Ljava/lang/String;.<init>:([III)V`:
+;
+`Ljava/lang/String;.copyValueOf:([C)Ljava/lang/String;`:
+  ret = java.lang.String@~
+;
+`Ljava/lang/String;.copyValueOf:([CII)Ljava/lang/String;`:
+  ret = java.lang.String@~
+;
+`Ljava/lang/String;.failedBoundsCheck:(III)Ljava/lang/StringIndexOutOfBoundsException;`:
+  ret = java.lang.StringIndexOutOfBoundsException@~
+;
+`Ljava/lang/String;.fastIndexOf:(II)I`:
+;
+`Ljava/lang/String;.foldCase:(C)C`:
+;
+`Ljava/lang/String;.format:(Ljava/lang/String;[Ljava/lang/Object;)Ljava/lang/String;`:
+  ret = java.lang.String@~
+;
+`Ljava/lang/String;.format:(Ljava/util/Locale;Ljava/lang/String;[Ljava/lang/Object;)Ljava/lang/String;`:
+  ret = java.lang.String@~
+;
+`Ljava/lang/String;.indexAndLength:(I)Ljava/lang/StringIndexOutOfBoundsException;`:
+  ret = java.lang.StringIndexOutOfBoundsException@~
+;
+`Ljava/lang/String;.indexOf:(Ljava/lang/String;Ljava/lang/String;IIC)I`:
+;
+`Ljava/lang/String;.indexOfSupplementary:(II)I`:
+;
+`Ljava/lang/String;.lastIndexOfSupplementary:(II)I`:
+;
+`Ljava/lang/String;.startEndAndLength:(II)Ljava/lang/StringIndexOutOfBoundsException;`:
+  ret = java.lang.StringIndexOutOfBoundsException@~
+;
+`Ljava/lang/String;.valueOf:(C)Ljava/lang/String;`:
+  ret = java.lang.String@~
+;
+`Ljava/lang/String;.valueOf:(D)Ljava/lang/String;`:
+  ret = java.lang.String@~
+;
+`Ljava/lang/String;.valueOf:(F)Ljava/lang/String;`:
+  ret = java.lang.String@~
+;
+`Ljava/lang/String;.valueOf:(I)Ljava/lang/String;`:
+  ret = java.lang.String@~
+;
+`Ljava/lang/String;.valueOf:(J)Ljava/lang/String;`:
+  ret = java.lang.String@~
+;
+`Ljava/lang/String;.valueOf:(Ljava/lang/Object;)Ljava/lang/String;`:
+  ret = java.lang.String@~
+;
+`Ljava/lang/String;.valueOf:(Z)Ljava/lang/String;`:
+  ret = java.lang.String@~
+;
+`Ljava/lang/String;.valueOf:([C)Ljava/lang/String;`:
+  ret = java.lang.String@~
+;
+`Ljava/lang/String;.valueOf:([CII)Ljava/lang/String;`:
+  ret = java.lang.String@~
+;
+`Ljava/lang/String;._getChars:(II[CI)V`:
+;
+`Ljava/lang/String;.charAt:(I)C`:
+;
+`Ljava/lang/String;.codePointAt:(I)I`:
+;
+`Ljava/lang/String;.codePointBefore:(I)I`:
+;
+`Ljava/lang/String;.codePointCount:(II)I`:
+;
+`Ljava/lang/String;.compareTo:(Ljava/lang/Object;)I`:
+;
+`Ljava/lang/String;.compareTo:(Ljava/lang/String;)I`:
+;
+`Ljava/lang/String;.compareToIgnoreCase:(Ljava/lang/String;)I`:
+;
+`Ljava/lang/String;.concat:(Ljava/lang/String;)Ljava/lang/String;`:
+  ret = java.lang.String@~
+;
+`Ljava/lang/String;.contains:(Ljava/lang/CharSequence;)Z`:
+;
+`Ljava/lang/String;.contentEquals:(Ljava/lang/CharSequence;)Z`:
+;
+`Ljava/lang/String;.contentEquals:(Ljava/lang/StringBuffer;)Z`:
+;
+`Ljava/lang/String;.endsWith:(Ljava/lang/String;)Z`:
+;
+`Ljava/lang/String;.equals:(Ljava/lang/Object;)Z`:
+;
+`Ljava/lang/String;.equalsIgnoreCase:(Ljava/lang/String;)Z`:
+;
+`Ljava/lang/String;.getBytes:(II[BI)V`:
+;
+`Ljava/lang/String;.getBytes:()[B`:
+  ret = this.bytes
+;
+`Ljava/lang/String;.getBytes:(Ljava/lang/String;)[B`:
+  ret = this.bytes
+;
+`Ljava/lang/String;.getBytes:(Ljava/nio/charset/Charset;)[B`:
+  ret = this.bytes
+;
+`Ljava/lang/String;.getChars:(II[CI)V`:
+;
+`Ljava/lang/String;.hashCode:()I`:
+;
+`Ljava/lang/String;.indexOf:(I)I`:
+;
+`Ljava/lang/String;.indexOf:(II)I`:
+;
+`Ljava/lang/String;.indexOf:(Ljava/lang/String;)I`:
+;
+`Ljava/lang/String;.indexOf:(Ljava/lang/String;I)I`:
+;
+`Ljava/lang/String;.intern:()Ljava/lang/String;`:
+  ret = this
+;
+`Ljava/lang/String;.isEmpty:()Z`:
+;
+`Ljava/lang/String;.lastIndexOf:(I)I`:
+;
+`Ljava/lang/String;.lastIndexOf:(II)I`:
+;
+`Ljava/lang/String;.lastIndexOf:(Ljava/lang/String;)I`:
+;
+`Ljava/lang/String;.lastIndexOf:(Ljava/lang/String;I)I`:
+;
+`Ljava/lang/String;.length:()I`:
+;
+`Ljava/lang/String;.matches:(Ljava/lang/String;)Z`:
+;
+`Ljava/lang/String;.offsetByCodePoints:(II)I`:
+;
+`Ljava/lang/String;.regionMatches:(ILjava/lang/String;II)Z`:
+;
+`Ljava/lang/String;.regionMatches:(ZILjava/lang/String;II)Z`:
+;
+`Ljava/lang/String;.replace:(CC)Ljava/lang/String;`:
+  ret = java.lang.String@~
+;
+`Ljava/lang/String;.replace:(Ljava/lang/CharSequence;Ljava/lang/CharSequence;)Ljava/lang/String;`:
+  ret = java.lang.String@~
+;
+`Ljava/lang/String;.replaceAll:(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;`:
+  ret = java.lang.String@~
+;
+`Ljava/lang/String;.replaceFirst:(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;`:
+  ret = java.lang.String@~
+;
+`Ljava/lang/String;.split:(Ljava/lang/String;)[Ljava/lang/String;`:
+  ret = java.lang.String@~
+;
+`Ljava/lang/String;.split:(Ljava/lang/String;I)[Ljava/lang/String;`:
+  ret = java.lang.String@~
+;
+`Ljava/lang/String;.startsWith:(Ljava/lang/String;)Z`:
+;
+`Ljava/lang/String;.startsWith:(Ljava/lang/String;I)Z`:
+;
+`Ljava/lang/String;.subSequence:(II)Ljava/lang/CharSequence;`:
+  ret = java.lang.String@~
+;
+`Ljava/lang/String;.substring:(I)Ljava/lang/String;`:
+  ret = java.lang.String@~
+;
+`Ljava/lang/String;.substring:(II)Ljava/lang/String;`:
+  ret = java.lang.String@~
+;
+`Ljava/lang/String;.toCharArray:()[C`:
+  ret = Char[]@~
+;
+`Ljava/lang/String;.toLowerCase:()Ljava/lang/String;`:
+  ret = this
+;
+`Ljava/lang/String;.toLowerCase:(Ljava/util/Locale;)Ljava/lang/String;`:
+  ret = this
+;
+`Ljava/lang/String;.toString:()Ljava/lang/String;`:
+  ret = this
+;
+`Ljava/lang/String;.toUpperCase:()Ljava/lang/String;`:
+  ret = this
+;
+`Ljava/lang/String;.toUpperCase:(Ljava/util/Locale;)Ljava/lang/String;`:
+  ret = this
+;
+`Ljava/lang/String;.trim:()Ljava/lang/String;`:
+  ret = this
+;

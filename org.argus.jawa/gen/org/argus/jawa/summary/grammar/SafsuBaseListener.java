@@ -208,6 +208,18 @@ public class SafsuBaseListener implements SafsuListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
+	@Override public void enterInstance(SafsuParser.InstanceContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitInstance(SafsuParser.InstanceContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
 	@Override public void enterType(SafsuParser.TypeContext ctx) { }
 	/**
 	 * {@inheritDoc}
@@ -215,6 +227,30 @@ public class SafsuBaseListener implements SafsuListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitType(SafsuParser.TypeContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterJavaType(SafsuParser.JavaTypeContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitJavaType(SafsuParser.JavaTypeContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterStringLit(SafsuParser.StringLitContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitStringLit(SafsuParser.StringLitContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *

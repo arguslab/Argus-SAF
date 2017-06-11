@@ -41,7 +41,7 @@ rhs
   : suThis
   | arg
   | global
-  | type
+  | instance
   ;
 
 suThis
@@ -73,8 +73,22 @@ arrayAccess
   : '[]'
   ;
 
+instance
+  : type '@' location      // com.my.Object[]@L123
+  ;
+
 type
-  : ID ('.' ID)* '@' location      // com.my.Object@L123
+  : javaType
+  | stringLit
+  ;
+
+javaType
+  : ID ('.' ID)* arrayAccess*
+  ;
+
+stringLit
+  : STRING
+  | MSTRING
   ;
 
 ret
@@ -99,6 +113,19 @@ UID: '`' ( ~( '\n' | '\r' | '\t' | '\u000C' | '`' ) )* '`';
 ID: LETTER ( LETTER | DIGIT )*;
 
 Digits : DIGIT+ ;
+
+STRING
+  :  '"' ( EscapeSequence | ~('\\'|'"') )* '"'
+  ;
+
+MSTRING
+  : '"""' .*? '"""'
+  ;
+
+fragment
+EscapeSequence
+  : '\\' ('b'|'t'|'n'|'f'|'r'|'"'|'\''|'\\')
+  ;
 
 fragment
 DIGIT : '0'..'9' ;

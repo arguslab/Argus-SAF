@@ -16,7 +16,7 @@ import org.argus.amandroid.core.parser.{IntentFilter, IntentFilterDataBase}
 import org.argus.jawa.alir.Context
 import org.argus.jawa.alir.pta._
 import org.argus.jawa.alir.pta.reachingFactsAnalysis.model.ModelCall
-import org.argus.jawa.alir.pta.reachingFactsAnalysis.{RFAFact, RFAFactFactory, ReachingFactsAnalysisHelper}
+import org.argus.jawa.alir.pta.reachingFactsAnalysis.{RFAFact, SimHeap, ReachingFactsAnalysisHelper}
 import org.argus.jawa.core.{JawaMethod, JawaType}
 import org.argus.jawa.core.util._
 
@@ -45,7 +45,7 @@ class FrameworkMethodsModel extends ModelCall {
     else false
   }
 
-  def doModelCall(s: PTAResult, p: JawaMethod, args: List[String], retVar: String, currentContext: Context)(implicit factory: RFAFactFactory): (ISet[RFAFact], ISet[RFAFact], Boolean) = {
+  def doModelCall(s: PTAResult, p: JawaMethod, args: List[String], retVar: String, currentContext: Context)(implicit factory: SimHeap): (ISet[RFAFact], ISet[RFAFact], Boolean) = {
     val apk = p.getDeclaringClass.global.asInstanceOf[ApkGlobal]
     var newFacts = isetEmpty[RFAFact]
     val delFacts = isetEmpty[RFAFact]

@@ -17,8 +17,8 @@ import org.argus.jawa.core.util._
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
  * @author <a href="mailto:sroy@k-state.edu">Sankardas Roy</a>
  */ 
-final case class RFAFact(slot: PTASlot, ins: Int)(implicit factory: RFAFactFactory) {
-  def this(s: PTASlot, v: Instance)(implicit factory: RFAFactFactory) = this(s, factory.getInstanceNum(v))
+final case class RFAFact(slot: PTASlot, ins: Int)(implicit factory: SimHeap) {
+  def this(s: PTASlot, v: Instance)(implicit factory: SimHeap) = this(s, factory.getInstanceNum(v))
   def s: PTASlot = slot
   def v: Instance = {
     factory.getInstance(ins)
@@ -27,7 +27,7 @@ final case class RFAFact(slot: PTASlot, ins: Int)(implicit factory: RFAFactFacto
   override def toString: String = (s, v).toString()
 }
 
-class RFAFactFactory {
+class SimHeap {
   private val instances: MList[Instance] = mlistEmpty
 
   def getInstanceNum(ins: Instance): Int = {

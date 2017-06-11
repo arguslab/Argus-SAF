@@ -14,7 +14,7 @@ import org.argus.amandroid.core.AndroidConstants
 import org.argus.jawa.alir.Context
 import org.argus.jawa.alir.pta._
 import org.argus.jawa.alir.pta.reachingFactsAnalysis.model.ModelCall
-import org.argus.jawa.alir.pta.reachingFactsAnalysis.{RFAFact, RFAFactFactory}
+import org.argus.jawa.alir.pta.reachingFactsAnalysis.{RFAFact, SimHeap}
 import org.argus.jawa.core.{JawaMethod, JawaType}
 import org.argus.jawa.core.util._
 
@@ -26,7 +26,7 @@ class UriModel extends ModelCall {
   final val TITLE = "UriModel"
   def isModelCall(p: JawaMethod): Boolean = p.getDeclaringClass.getName.equals("android.net.Uri")
     
-  def doModelCall(s: PTAResult, p: JawaMethod, args: List[String], retVar: String, currentContext: Context)(implicit factory: RFAFactFactory): (ISet[RFAFact], ISet[RFAFact], Boolean) = {
+  def doModelCall(s: PTAResult, p: JawaMethod, args: List[String], retVar: String, currentContext: Context)(implicit factory: SimHeap): (ISet[RFAFact], ISet[RFAFact], Boolean) = {
     var newFacts = isetEmpty[RFAFact]
     var delFacts = isetEmpty[RFAFact]
     var byPassFlag = true
@@ -88,7 +88,7 @@ class UriModel extends ModelCall {
   /**
    * Landroid/net/Uri;.parse:(Ljava/lang/String;)Landroid/net/Uri;
    */
-  private def uriParse(s: PTAResult, args: List[String], retVar: String, currentContext: Context)(implicit factory: RFAFactFactory): (ISet[RFAFact], ISet[RFAFact]) = {
+  private def uriParse(s: PTAResult, args: List[String], retVar: String, currentContext: Context)(implicit factory: SimHeap): (ISet[RFAFact], ISet[RFAFact]) = {
     require(args.nonEmpty)
     val strSlot = VarSlot(args.head, isBase = false, isArg = true)
     val strValue = s.pointsToSet(strSlot, currentContext)

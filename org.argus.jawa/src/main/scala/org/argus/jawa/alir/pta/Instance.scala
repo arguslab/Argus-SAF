@@ -31,7 +31,7 @@ abstract class Instance{
 final case class ClassInstance(classtyp: JawaType, defSite: Context) extends Instance{
   override def clone(newDefSite: Context): Instance = ClassInstance(classtyp, newDefSite)
   def typ = new JawaType("java.lang.Class")
-  def getName = classtyp.jawaName
+  def getName: String = classtyp.jawaName
   override def ===(ins: Instance): Boolean = {
     ins match {
       case instance: ClassInstance => instance.getName.equals(getName)
@@ -40,12 +40,6 @@ final case class ClassInstance(classtyp: JawaType, defSite: Context) extends Ins
   }
   override def toString: String = getName + ".class@" + this.defSite.getCurrentLocUri
 }
-
-//final case class UnknownInstance(baseTyp: JawaType, defSite: Context) extends Instance{
-//  override def clone(newDefSite: Context): Instance = UnknownInstance(baseTyp, newDefSite)
-//  def typ: JawaType = baseTyp
-//  override def toString: String = baseTyp + "*" + "@" + defSite.getCurrentLocUri
-//}
 
 /**
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>

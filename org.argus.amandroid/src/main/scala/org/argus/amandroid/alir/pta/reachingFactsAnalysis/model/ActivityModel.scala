@@ -14,7 +14,7 @@ import org.argus.amandroid.core.AndroidConstants
 import org.argus.jawa.alir.Context
 import org.argus.jawa.alir.pta.reachingFactsAnalysis.model.ModelCall
 import org.argus.jawa.alir.pta.{FieldSlot, PTAResult, VarSlot}
-import org.argus.jawa.alir.pta.reachingFactsAnalysis.{RFAFact, RFAFactFactory}
+import org.argus.jawa.alir.pta.reachingFactsAnalysis.{RFAFact, SimHeap}
 import org.argus.jawa.core.JawaMethod
 import org.argus.jawa.core.util._
 
@@ -25,7 +25,7 @@ import org.argus.jawa.core.util._
 class ActivityModel extends ModelCall {
   def isModelCall(p: JawaMethod): Boolean = p.getDeclaringClass.getName.equals(AndroidConstants.ACTIVITY)
   
-  def doModelCall(s: PTAResult, p: JawaMethod, args: List[String], retVar: String, currentContext: Context)(implicit factory: RFAFactFactory): (ISet[RFAFact], ISet[RFAFact], Boolean) = {
+  def doModelCall(s: PTAResult, p: JawaMethod, args: List[String], retVar: String, currentContext: Context)(implicit factory: SimHeap): (ISet[RFAFact], ISet[RFAFact], Boolean) = {
     var newFacts = isetEmpty[RFAFact]
     var delFacts = isetEmpty[RFAFact]
     var byPassFlag = true
@@ -261,7 +261,7 @@ class ActivityModel extends ModelCall {
     (newFacts, delFacts, byPassFlag)
   }
   
-  private def setIntent(s: PTAResult, args: List[String], currentContext: Context)(implicit factory: RFAFactFactory): (ISet[RFAFact], ISet[RFAFact]) = {
+  private def setIntent(s: PTAResult, args: List[String], currentContext: Context)(implicit factory: SimHeap): (ISet[RFAFact], ISet[RFAFact]) = {
     require(args.size >1)
     val thisSlot = VarSlot(args.head, isBase = false, isArg = true)
     val thisValue = s.pointsToSet(thisSlot, currentContext)
@@ -282,7 +282,7 @@ class ActivityModel extends ModelCall {
     (newfacts, delfacts)
   }
   
-  private def getIntent(s: PTAResult, args: List[String], retVar: String, currentContext: Context)(implicit factory: RFAFactFactory): (ISet[RFAFact], ISet[RFAFact]) = {
+  private def getIntent(s: PTAResult, args: List[String], retVar: String, currentContext: Context)(implicit factory: SimHeap): (ISet[RFAFact], ISet[RFAFact]) = {
     require(args.nonEmpty)
     val thisSlot = VarSlot(args.head, isBase = false, isArg = true)
     val thisValue = s.pointsToSet(thisSlot, currentContext)

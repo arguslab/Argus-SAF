@@ -12,7 +12,7 @@ package org.argus.jawa.alir.pta.reachingFactsAnalysis.model
 
 import org.argus.jawa.alir.Context
 import org.argus.jawa.alir.pta.{FieldSlot, PTAResult, VarSlot}
-import org.argus.jawa.alir.pta.reachingFactsAnalysis.{RFAFact, RFAFactFactory}
+import org.argus.jawa.alir.pta.reachingFactsAnalysis.{RFAFact, SimHeap}
 import org.argus.jawa.core.{Constants, JawaMethod}
 import org.argus.jawa.core.util.{ISet, isetEmpty}
 
@@ -23,7 +23,7 @@ class ThreadModel extends ModelCall {
   val TITLE = "ThreadModel"
   def isModelCall(p: JawaMethod): Boolean = p.getDeclaringClass.getName.equals("java.lang.Thread")
 
-  def doModelCall(s: PTAResult, p: JawaMethod, args: List[String], retVar: String, currentContext: Context)(implicit factory: RFAFactFactory): (ISet[RFAFact], ISet[RFAFact], Boolean) = {
+  def doModelCall(s: PTAResult, p: JawaMethod, args: List[String], retVar: String, currentContext: Context)(implicit factory: SimHeap): (ISet[RFAFact], ISet[RFAFact], Boolean) = {
     var newFacts = isetEmpty[RFAFact]
     val delFacts = isetEmpty[RFAFact]
     var byPassFlag = true
@@ -96,7 +96,7 @@ class ThreadModel extends ModelCall {
     (newFacts, delFacts, byPassFlag)
   }
 
-  private def getRunnable(s: PTAResult, thisArg: String, arg: String, currentContext: Context)(implicit factory: RFAFactFactory): ISet[RFAFact] = {
+  private def getRunnable(s: PTAResult, thisArg: String, arg: String, currentContext: Context)(implicit factory: SimHeap): ISet[RFAFact] = {
     val thisSlot = VarSlot(thisArg, isBase = false, isArg = true)
     val thisValue = s.pointsToSet(thisSlot, currentContext)
     val runnableSlot = VarSlot(arg, isBase = false, isArg = true)

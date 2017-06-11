@@ -11,7 +11,7 @@
 package org.argus.jawa.alir.pta
 
 import org.argus.jawa.alir.reachingDefinitionAnalysis.Slot
-import org.argus.jawa.core.{FieldFQN, Signature}
+import org.argus.jawa.core.Signature
 
 /**
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
@@ -43,7 +43,7 @@ final case class VarSlot(varName: String, isBase: Boolean, isArg: Boolean) exten
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
  * @author <a href="mailto:sroy@k-state.edu">Sankardas Roy</a>
  */
-final case class StaticFieldSlot(fqn: FieldFQN) extends NameSlot(fqn.fqn)
+final case class StaticFieldSlot(fqn: String) extends NameSlot(fqn)
 
 /**
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>

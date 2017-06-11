@@ -12,7 +12,7 @@ package org.argus.jawa.alir.pta.reachingFactsAnalysis.model
 
 import org.argus.jawa.alir.Context
 import org.argus.jawa.alir.pta.{FieldSlot, PTAResult, VarSlot}
-import org.argus.jawa.alir.pta.reachingFactsAnalysis.{RFAFact, RFAFactFactory}
+import org.argus.jawa.alir.pta.reachingFactsAnalysis.{RFAFact, SimHeap}
 import org.argus.jawa.core.{Constants, JawaMethod, JawaType}
 import org.argus.jawa.core.util._
 
@@ -28,7 +28,7 @@ class ListModel extends ModelCall {
     }
   }
     
-  private def addItemToListField(s: PTAResult, args: List[String], itempar: Int, currentContext: Context)(implicit factory: RFAFactFactory): ISet[RFAFact] ={
+  private def addItemToListField(s: PTAResult, args: List[String], itempar: Int, currentContext: Context)(implicit factory: SimHeap): ISet[RFAFact] ={
     require(args.size > 1)
     var newfacts = isetEmpty[RFAFact]
     val thisSlot = VarSlot(args.head, isBase = false, isArg = true)
@@ -42,7 +42,7 @@ class ListModel extends ModelCall {
     newfacts 
   }
   
-  private def getListToRet(s: PTAResult, args: List[String], retVar: String, currentContext: Context)(implicit factory: RFAFactFactory): ISet[RFAFact] ={
+  private def getListToRet(s: PTAResult, args: List[String], retVar: String, currentContext: Context)(implicit factory: SimHeap): ISet[RFAFact] ={
     require(args.nonEmpty)
     var newfacts = isetEmpty[RFAFact]
     val thisSlot = VarSlot(args.head, isBase = false, isArg = true)
@@ -55,14 +55,14 @@ class ListModel extends ModelCall {
     newfacts
   }
   
-  private def cloneListToRet(s: PTAResult, args: List[String], retVar: String, currentContext: Context)(implicit factory: RFAFactFactory): ISet[RFAFact] ={
+  private def cloneListToRet(s: PTAResult, args: List[String], retVar: String, currentContext: Context)(implicit factory: SimHeap): ISet[RFAFact] ={
     require(args.nonEmpty)
     val thisSlot = VarSlot(args.head, isBase = false, isArg = true)
     val thisValue = s.pointsToSet(thisSlot, currentContext)
     thisValue.map{s => new RFAFact(VarSlot(retVar, isBase = false, isArg = false), s.clone(currentContext))}
   }
   
-  def doModelCall(s: PTAResult, p: JawaMethod, args: List[String], retVar: String, currentContext: Context)(implicit factory: RFAFactFactory): (ISet[RFAFact], ISet[RFAFact], Boolean) = {
+  def doModelCall(s: PTAResult, p: JawaMethod, args: List[String], retVar: String, currentContext: Context)(implicit factory: SimHeap): (ISet[RFAFact], ISet[RFAFact], Boolean) = {
     var newFacts = isetEmpty[RFAFact]
     val delFacts = isetEmpty[RFAFact]
     var byPassFlag = true

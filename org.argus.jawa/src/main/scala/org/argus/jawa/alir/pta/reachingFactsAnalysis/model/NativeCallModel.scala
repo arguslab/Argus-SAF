@@ -12,7 +12,7 @@ package org.argus.jawa.alir.pta.reachingFactsAnalysis.model
 
 import org.argus.jawa.alir.Context
 import org.argus.jawa.alir.pta._
-import org.argus.jawa.alir.pta.reachingFactsAnalysis.{RFAFact, RFAFactFactory}
+import org.argus.jawa.alir.pta.reachingFactsAnalysis.{RFAFact, SimHeap}
 import org.argus.jawa.core.{Constants, JawaMethod}
 import org.argus.jawa.core.util._
 
@@ -22,7 +22,7 @@ import org.argus.jawa.core.util._
 class NativeCallModel extends ModelCall {
    def isModelCall(p: JawaMethod): Boolean = p.isNative
    
-   def doModelCall(s: PTAResult, p: JawaMethod, args: List[String], retVar: String, currentContext: Context)(implicit factory: RFAFactFactory): (ISet[RFAFact], ISet[RFAFact], Boolean) = {
+   def doModelCall(s: PTAResult, p: JawaMethod, args: List[String], retVar: String, currentContext: Context)(implicit factory: SimHeap): (ISet[RFAFact], ISet[RFAFact], Boolean) = {
     var newFacts = isetEmpty[RFAFact]
     val delFacts = isetEmpty[RFAFact]
     var byPassFlag = true

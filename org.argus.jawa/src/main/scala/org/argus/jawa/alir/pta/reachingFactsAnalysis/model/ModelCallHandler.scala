@@ -12,13 +12,13 @@ package org.argus.jawa.alir.pta.reachingFactsAnalysis.model
 
 import org.argus.jawa.alir.Context
 import org.argus.jawa.alir.pta.PTAResult
-import org.argus.jawa.alir.pta.reachingFactsAnalysis.{RFAFact, RFAFactFactory, ReachingFactsAnalysisHelper}
+import org.argus.jawa.alir.pta.reachingFactsAnalysis.{RFAFact, SimHeap, ReachingFactsAnalysisHelper}
 import org.argus.jawa.core.{JawaMethod, ScopeManager}
 import org.argus.jawa.core.util._
 
 trait ModelCall {
   def isModelCall(p: JawaMethod): Boolean
-  def doModelCall(s: PTAResult, p: JawaMethod, args: List[String], retVar: String, currentContext: Context)(implicit factory: RFAFactFactory): (ISet[RFAFact], ISet[RFAFact], Boolean)
+  def doModelCall(s: PTAResult, p: JawaMethod, args: List[String], retVar: String, currentContext: Context)(implicit factory: SimHeap): (ISet[RFAFact], ISet[RFAFact], Boolean)
 }
 
 /**
@@ -53,7 +53,7 @@ class ModelCallHandler(scopeManager: ScopeManager) {
       calleeProc: JawaMethod, 
       args: List[String],
       retVar: Option[String],
-      currentContext: Context)(implicit factory: RFAFactFactory): (ISet[RFAFact], ISet[RFAFact]) = {
+      currentContext: Context)(implicit factory: SimHeap): (ISet[RFAFact], ISet[RFAFact]) = {
     val hackVar = retVar.getOrElse("hack")
     
     modelCalls.foreach{ model =>

@@ -14,7 +14,7 @@ import org.argus.amandroid.core.AndroidConstants
 import org.argus.jawa.alir.Context
 import org.argus.jawa.alir.pta._
 import org.argus.jawa.alir.pta.reachingFactsAnalysis.model.ModelCall
-import org.argus.jawa.alir.pta.reachingFactsAnalysis.{RFAFact, RFAFactFactory, ReachingFactsAnalysisHelper}
+import org.argus.jawa.alir.pta.reachingFactsAnalysis.{RFAFact, SimHeap, ReachingFactsAnalysisHelper}
 import org.argus.jawa.core.{Constants, JawaMethod, JawaType}
 import org.argus.jawa.core.util._
 
@@ -25,7 +25,7 @@ import org.argus.jawa.core.util._
 class BundleModel extends ModelCall {
   def isModelCall(r: JawaMethod): Boolean = r.getDeclaringClass.getName.equals(AndroidConstants.BUNDLE)
     
-  def doModelCall(s: PTAResult, p: JawaMethod, args: List[String], retVar: String, currentContext: Context)(implicit factory: RFAFactFactory): (ISet[RFAFact], ISet[RFAFact], Boolean) = {
+  def doModelCall(s: PTAResult, p: JawaMethod, args: List[String], retVar: String, currentContext: Context)(implicit factory: SimHeap): (ISet[RFAFact], ISet[RFAFact], Boolean) = {
     var newFacts = isetEmpty[RFAFact]
     val delFacts = isetEmpty[RFAFact]
     var byPassFlag = true
@@ -210,12 +210,12 @@ class BundleModel extends ModelCall {
     (newFacts, delFacts, byPassFlag)
   }
   
-  private def getPointStringToRet(retVar: String, currentContext: Context)(implicit factory: RFAFactFactory): RFAFact = {
+  private def getPointStringToRet(retVar: String, currentContext: Context)(implicit factory: SimHeap): RFAFact = {
     val newThisValue = PTAPointStringInstance(currentContext.copy)
     new RFAFact(VarSlot(retVar, isBase = false, isArg = false), newThisValue)
   }
     
-  private def initBundleFromBundle(s: PTAResult, args: List[String], retVar: String, currentContext: Context)(implicit factory: RFAFactFactory): ISet[RFAFact] ={
+  private def initBundleFromBundle(s: PTAResult, args: List[String], retVar: String, currentContext: Context)(implicit factory: SimHeap): ISet[RFAFact] ={
     require(args.size >1)
     val thisSlot = VarSlot(args.head, isBase = false, isArg = true)
     val thisValue = s.pointsToSet(thisSlot, currentContext)
@@ -232,14 +232,14 @@ class BundleModel extends ModelCall {
     }
   }
   
-  private def cloneBundle(s: PTAResult, args: List[String], retVar: String, currentContext: Context)(implicit factory: RFAFactFactory): ISet[RFAFact] ={
+  private def cloneBundle(s: PTAResult, args: List[String], retVar: String, currentContext: Context)(implicit factory: SimHeap): ISet[RFAFact] ={
     require(args.nonEmpty)
     val thisSlot = VarSlot(args.head, isBase = false, isArg = true)
     val thisValue = s.pointsToSet(thisSlot, currentContext)
     thisValue.map{s => new RFAFact(VarSlot(retVar, isBase = false, isArg = false), s.clone(currentContext))}
   }
   
-  private def forPair(s: PTAResult, args: List[String], retVar: String, currentContext: Context)(implicit factory: RFAFactFactory): ISet[RFAFact] ={
+  private def forPair(s: PTAResult, args: List[String], retVar: String, currentContext: Context)(implicit factory: SimHeap): ISet[RFAFact] ={
     val rf = ReachingFactsAnalysisHelper.getReturnFact(new JawaType("android.os.Bundle"), retVar, currentContext).get
     require(args.size >1)
     val param1Slot = VarSlot(args.head, isBase = false, isArg = true)
@@ -257,7 +257,7 @@ class BundleModel extends ModelCall {
     entries.map{s => new RFAFact(FieldSlot(rf.v, AndroidConstants.BUNDLE_ENTRIES), s)}
   }
   
-  private def getBundleKeySetToRet(s: PTAResult, args: List[String], retVar: String, currentContext: Context)(implicit factory: RFAFactFactory): ISet[RFAFact] ={
+  private def getBundleKeySetToRet(s: PTAResult, args: List[String], retVar: String, currentContext: Context)(implicit factory: SimHeap): ISet[RFAFact] ={
     var result = isetEmpty[RFAFact]
     require(args.nonEmpty)
     val thisSlot = VarSlot(args.head, isBase = false, isArg = true)
@@ -274,7 +274,7 @@ class BundleModel extends ModelCall {
     result
   }
   
-  private def getBundleValue(s: PTAResult, args: List[String], retVar: String, currentContext: Context)(implicit factory: RFAFactFactory): ISet[RFAFact] ={
+  private def getBundleValue(s: PTAResult, args: List[String], retVar: String, currentContext: Context)(implicit factory: SimHeap): ISet[RFAFact] ={
     var result = isetEmpty[RFAFact]
     require(args.size >1)
     val thisSlot = VarSlot(args.head, isBase = false, isArg = true)
@@ -302,7 +302,7 @@ class BundleModel extends ModelCall {
     result
   }
   
-  private def getBundleValueWithDefault(s: PTAResult, args: List[String], retVar: String, currentContext: Context)(implicit factory: RFAFactFactory): ISet[RFAFact] ={
+  private def getBundleValueWithDefault(s: PTAResult, args: List[String], retVar: String, currentContext: Context)(implicit factory: SimHeap): ISet[RFAFact] ={
     var result = isetEmpty[RFAFact]
     require(args.size >2)
     val thisSlot = VarSlot(args.head, isBase = false, isArg = true)
@@ -335,7 +335,7 @@ class BundleModel extends ModelCall {
     result
   }
   
-  private def putBundleValue(s: PTAResult, args: List[String], currentContext: Context)(implicit factory: RFAFactFactory): ISet[RFAFact] ={
+  private def putBundleValue(s: PTAResult, args: List[String], currentContext: Context)(implicit factory: SimHeap): ISet[RFAFact] ={
     var result = isetEmpty[RFAFact]
     require(args.size >2)
     val thisSlot = VarSlot(args.head, isBase = false, isArg = true)
@@ -364,7 +364,7 @@ class BundleModel extends ModelCall {
   
   
   
-  private def putAllBundleValues(s: PTAResult, args: List[String], currentContext: Context)(implicit factory: RFAFactFactory): ISet[RFAFact] ={
+  private def putAllBundleValues(s: PTAResult, args: List[String], currentContext: Context)(implicit factory: SimHeap): ISet[RFAFact] ={
     var result = isetEmpty[RFAFact]
     require(args.size >1)
     val thisSlot = VarSlot(args.head, isBase = false, isArg = true)

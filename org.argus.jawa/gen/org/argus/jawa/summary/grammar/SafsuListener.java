@@ -168,6 +168,16 @@ public interface SafsuListener extends ParseTreeListener {
 	 */
 	void exitArrayAccess(SafsuParser.ArrayAccessContext ctx);
 	/**
+	 * Enter a parse tree produced by {@link SafsuParser#instance}.
+	 * @param ctx the parse tree
+	 */
+	void enterInstance(SafsuParser.InstanceContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link SafsuParser#instance}.
+	 * @param ctx the parse tree
+	 */
+	void exitInstance(SafsuParser.InstanceContext ctx);
+	/**
 	 * Enter a parse tree produced by {@link SafsuParser#type}.
 	 * @param ctx the parse tree
 	 */
@@ -177,6 +187,26 @@ public interface SafsuListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitType(SafsuParser.TypeContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link SafsuParser#javaType}.
+	 * @param ctx the parse tree
+	 */
+	void enterJavaType(SafsuParser.JavaTypeContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link SafsuParser#javaType}.
+	 * @param ctx the parse tree
+	 */
+	void exitJavaType(SafsuParser.JavaTypeContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link SafsuParser#stringLit}.
+	 * @param ctx the parse tree
+	 */
+	void enterStringLit(SafsuParser.StringLitContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link SafsuParser#stringLit}.
+	 * @param ctx the parse tree
+	 */
+	void exitStringLit(SafsuParser.StringLitContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link SafsuParser#ret}.
 	 * @param ctx the parse tree

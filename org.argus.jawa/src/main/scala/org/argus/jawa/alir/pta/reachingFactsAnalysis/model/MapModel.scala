@@ -12,7 +12,7 @@ package org.argus.jawa.alir.pta.reachingFactsAnalysis.model
 
 import org.argus.jawa.alir.Context
 import org.argus.jawa.alir.pta._
-import org.argus.jawa.alir.pta.reachingFactsAnalysis.{RFAFact, RFAFactFactory, ReachingFactsAnalysisHelper}
+import org.argus.jawa.alir.pta.reachingFactsAnalysis.{RFAFact, SimHeap, ReachingFactsAnalysisHelper}
 import org.argus.jawa.core.{Constants, JawaMethod, JawaType}
 import org.argus.jawa.core.util._
 
@@ -34,14 +34,14 @@ class MapModel extends ModelCall {
 //    new RFAFact(VarSlot(retVar, isBase = false, isArg = false), newThisValue)
 //  }
 
-  private def cloneMap(s: PTAResult, args: List[String], retVar: String, currentContext: Context)(implicit factory: RFAFactFactory): ISet[RFAFact] ={
+  private def cloneMap(s: PTAResult, args: List[String], retVar: String, currentContext: Context)(implicit factory: SimHeap): ISet[RFAFact] ={
     require(args.nonEmpty)
     val thisSlot = VarSlot(args.head, isBase = false, isArg = true)
     val thisValue = s.pointsToSet(thisSlot, currentContext)
     thisValue.map{s => new RFAFact(VarSlot(retVar, isBase = false, isArg = false), s.clone(currentContext))}
   }
   
-  private def getMapEntrySetFactToRet(s: PTAResult, args: List[String], retVar: String, currentContext: Context)(implicit factory: RFAFactFactory): ISet[RFAFact] ={
+  private def getMapEntrySetFactToRet(s: PTAResult, args: List[String], retVar: String, currentContext: Context)(implicit factory: SimHeap): ISet[RFAFact] ={
     var result = isetEmpty[RFAFact]
     require(args.nonEmpty)
     val thisSlot = VarSlot(args.head, isBase = false, isArg = true)
@@ -53,7 +53,7 @@ class MapModel extends ModelCall {
     result
   }
   
-  private def getMapKeySetToRet(s: PTAResult, args: List[String], retVar: String, currentContext: Context)(implicit factory: RFAFactFactory): ISet[RFAFact] ={
+  private def getMapKeySetToRet(s: PTAResult, args: List[String], retVar: String, currentContext: Context)(implicit factory: SimHeap): ISet[RFAFact] ={
     var result = isetEmpty[RFAFact]
     require(args.nonEmpty)
     val thisSlot = VarSlot(args.head, isBase = false, isArg = true)
@@ -68,7 +68,7 @@ class MapModel extends ModelCall {
     result
   }
   
-  private def getMapValuesToRet(s: PTAResult, args: List[String], retVar: String, currentContext: Context)(implicit factory: RFAFactFactory): ISet[RFAFact] ={
+  private def getMapValuesToRet(s: PTAResult, args: List[String], retVar: String, currentContext: Context)(implicit factory: SimHeap): ISet[RFAFact] ={
     var result = isetEmpty[RFAFact]
     require(args.nonEmpty)
     val thisSlot = VarSlot(args.head, isBase = false, isArg = true)
@@ -84,7 +84,7 @@ class MapModel extends ModelCall {
     result
   }
   
-  private def getMapValue(s: PTAResult, args: List[String], retVar: String, currentContext: Context)(implicit factory: RFAFactFactory): ISet[RFAFact] ={
+  private def getMapValue(s: PTAResult, args: List[String], retVar: String, currentContext: Context)(implicit factory: SimHeap): ISet[RFAFact] ={
     val result = msetEmpty[RFAFact]
     require(args.size >1)
     val thisSlot = VarSlot(args.head, isBase = false, isArg = true)
@@ -104,7 +104,7 @@ class MapModel extends ModelCall {
     result.toSet
   } 
   
-  private def putMapValue(s: PTAResult, args: List[String], currentContext: Context)(implicit factory: RFAFactFactory): ISet[RFAFact] ={
+  private def putMapValue(s: PTAResult, args: List[String], currentContext: Context)(implicit factory: SimHeap): ISet[RFAFact] ={
     val result = msetEmpty[RFAFact]
     require(args.size >2)
     val thisSlot = VarSlot(args.head, isBase = false, isArg = true)
@@ -130,7 +130,7 @@ class MapModel extends ModelCall {
     result.toSet
   }
   
-  private def putAllMapValues(s: PTAResult, args: List[String], currentContext: Context)(implicit factory: RFAFactFactory): ISet[RFAFact] ={
+  private def putAllMapValues(s: PTAResult, args: List[String], currentContext: Context)(implicit factory: SimHeap): ISet[RFAFact] ={
     var result = isetEmpty[RFAFact]
     require(args.size >1)
     val thisSlot = VarSlot(args.head, isBase = false, isArg = true)
@@ -148,7 +148,7 @@ class MapModel extends ModelCall {
     result
   }
   
-  def doModelCall(s: PTAResult, p: JawaMethod, args: List[String], retVar: String, currentContext: Context)(implicit factory: RFAFactFactory): (ISet[RFAFact], ISet[RFAFact], Boolean) = {
+  def doModelCall(s: PTAResult, p: JawaMethod, args: List[String], retVar: String, currentContext: Context)(implicit factory: SimHeap): (ISet[RFAFact], ISet[RFAFact], Boolean) = {
     var newFacts = isetEmpty[RFAFact]
     val delFacts = isetEmpty[RFAFact]
     var byPassFlag = true

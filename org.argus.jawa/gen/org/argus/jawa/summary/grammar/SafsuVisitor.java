@@ -107,11 +107,29 @@ public interface SafsuVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitArrayAccess(SafsuParser.ArrayAccessContext ctx);
 	/**
+	 * Visit a parse tree produced by {@link SafsuParser#instance}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitInstance(SafsuParser.InstanceContext ctx);
+	/**
 	 * Visit a parse tree produced by {@link SafsuParser#type}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
 	T visitType(SafsuParser.TypeContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link SafsuParser#javaType}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitJavaType(SafsuParser.JavaTypeContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link SafsuParser#stringLit}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitStringLit(SafsuParser.StringLitContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link SafsuParser#ret}.
 	 * @param ctx the parse tree

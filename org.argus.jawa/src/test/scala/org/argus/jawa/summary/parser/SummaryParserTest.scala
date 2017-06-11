@@ -11,7 +11,7 @@
 package org.argus.jawa.summary.parser
 
 import org.argus.jawa.core.Signature
-import org.argus.jawa.summary.rule.{SuType, _}
+import org.argus.jawa.summary.rule._
 import org.scalatest.{FlatSpec, Matchers}
 
 /**
@@ -38,53 +38,8 @@ class SummaryParserTest extends FlatSpec with Matchers {
         |  `com.my.Class.Glo`.f.f2[]=arg:1.field
         |  ~arg:1.f1
         |  this.f1[]=arg:1
-        |  ret.f1=Class@~
-        |;
-      """.stripMargin.stripMargin)
-  }
-
-  "SummaryParser" should "not throw a parse exception on map model" in {
-    parse(
-      """`Ljava/util/Map;.clear:()V`:
-        |  ~this
-        |;
-        |
-        |`Ljava/util/Map;.clone:()Ljava/lang/Object;`:
-        |  ret = this
-        |;
-        |
-        |`Ljava/util/Map;.entrySet:()Ljava/util/Set;`:
-        |  ret = java.util.HashSet@~
-        |  ret.items = this.entries
-        |;
-        |
-        |`Ljava/util/Map;.get:(Ljava/lang/Object;)Ljava/lang/Object;`:
-        |  ret = this.entries.right // need to be improved
-        |;
-        |
-        |`Ljava/util/Map;.keySet:()Ljava/util/Set;`:
-        |  ret = java.util.HashSet@~
-        |  ret.items = this.entries.left
-        |;
-        |
-        |`Ljava/util/Map;.put:(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;`:
-        |  ret = this.entries.right
-        |  this.entries.left += arg:0
-        |  this.entries.right += arg:1
-        |;
-        |
-        |`Ljava/util/Map;.putAll:(Ljava/util/Map;)V`:
-        |  this.entries += arg:0.entries
-        |;
-        |
-        |`Ljava/util/Map;.remove:(Ljava/lang/Object;)Ljava/lang/Object;`:
-        |  ret = this.entries.right
-        |  this.entries.left -= arg:0
-        |;
-        |
-        |`Ljava/util/Map;.values:()Ljava/util/Collection;`:
-        |  ret = java.util.HashSet@~
-        |  ret.items = this.entries.right
+        |  ret.f1=Class[][]@~
+        |  ret.f2="String"@L1
         |;
       """.stripMargin.stripMargin)
   }
@@ -154,6 +109,7 @@ class SummaryParserTest extends FlatSpec with Matchers {
       """`Lcom/my/Class;.do:(LO1;LO2;)LO3;`:
         |  `my.Class.Glo` = my.Class@L100
         |  arg:1 = my.Class@~
+        |  arg:1.f1 = "str"@L1
         |;
       """.stripMargin)
     val s = sf.summaries.get(new Signature("Lcom/my/Class;.do:(LO1;LO2;)LO3;"))
@@ -161,13 +117,15 @@ class SummaryParserTest extends FlatSpec with Matchers {
       && s.get.rules.head.asInstanceOf[BinaryRule].lhs.isInstanceOf[SuGlobal]
       && s.get.rules.head.asInstanceOf[BinaryRule].lhs.asInstanceOf[SuGlobal].fqn == "my.Class.Glo")
     require(s.isDefined
-      && s.get.rules.head.asInstanceOf[BinaryRule].rhs.isInstanceOf[SuType]
-      && s.get.rules.head.asInstanceOf[BinaryRule].rhs.asInstanceOf[SuType].typ == "my.Class"
-      && s.get.rules.head.asInstanceOf[BinaryRule].rhs.asInstanceOf[SuType].loc.asInstanceOf[SuConcreteLocation].loc == "L100")
+      && s.get.rules.head.asInstanceOf[BinaryRule].rhs.isInstanceOf[SuInstance]
+      && s.get.rules.head.asInstanceOf[BinaryRule].rhs.asInstanceOf[SuInstance].typ.typ.jawaName == "my.Class"
+      && s.get.rules.head.asInstanceOf[BinaryRule].rhs.asInstanceOf[SuInstance].loc.asInstanceOf[SuConcreteLocation].loc == "L100")
     require(s.isDefined
-      && s.get.rules(1).asInstanceOf[BinaryRule].rhs.isInstanceOf[SuType]
-      && s.get.rules(1).asInstanceOf[BinaryRule].rhs.asInstanceOf[SuType].typ == "my.Class"
-      && s.get.rules(1).asInstanceOf[BinaryRule].rhs.asInstanceOf[SuType].loc.isInstanceOf[SuVirtualLocation])
+      && s.get.rules(1).asInstanceOf[BinaryRule].rhs.isInstanceOf[SuInstance]
+      && s.get.rules(1).asInstanceOf[BinaryRule].rhs.asInstanceOf[SuInstance].typ.typ.jawaName == "my.Class"
+      && s.get.rules(1).asInstanceOf[BinaryRule].rhs.asInstanceOf[SuInstance].loc.isInstanceOf[SuVirtualLocation])
+    require(s.isDefined
+      && s.get.rules(2).asInstanceOf[BinaryRule].rhs.asInstanceOf[SuInstance].typ.asInstanceOf[SuString].str == "str")
   }
 
   "SummaryParser" should "get nested field and array" in {

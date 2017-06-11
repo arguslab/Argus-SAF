@@ -12,18 +12,18 @@
 ;
 
 `Ljava/util/Map;.get:(Ljava/lang/Object;)Ljava/lang/Object;`:
-  ret = this.entries.right // need to be improved
+  ret = this.entries.value // need to be improved
 ;
 
 `Ljava/util/Map;.keySet:()Ljava/util/Set;`:
   ret = java.util.HashSet@~
-  ret.items = this.entries.left
+  ret.items = this.entries.key
 ;
 
 `Ljava/util/Map;.put:(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;`:
   ret = this.entries.right
-  this.entries.left += arg:0
-  this.entries.right += arg:1
+  this.entries.key += arg:0
+  this.entries.value += arg:1
 ;
 
 `Ljava/util/Map;.putAll:(Ljava/util/Map;)V`:
@@ -31,11 +31,11 @@
 ;
 
 `Ljava/util/Map;.remove:(Ljava/lang/Object;)Ljava/lang/Object;`:
-  ret = this.entries.right
-  this.entries.left -= arg:0
+  ret = this.entries.value
+  this.entries.key -= arg:0
 ;
 
 `Ljava/util/Map;.values:()Ljava/util/Collection;`:
   ret = java.util.HashSet@~
-  ret.items = this.entries.right
+  ret.items = this.entries.value
 ;

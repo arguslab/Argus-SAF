@@ -12,8 +12,8 @@ package org.argus.jawa.alir.pta.reachingFactsAnalysis.model
 
 import org.argus.jawa.alir.Context
 import org.argus.jawa.alir.pta._
-import org.argus.jawa.alir.pta.reachingFactsAnalysis.{RFAFact, RFAFactFactory, ReachingFactsAnalysisHelper}
-import org.argus.jawa.core.{JawaClass, JawaMethod, JawaType}
+import org.argus.jawa.alir.pta.reachingFactsAnalysis.{RFAFact, SimHeap, ReachingFactsAnalysisHelper}
+import org.argus.jawa.core.{JawaMethod, JawaType}
 import org.argus.jawa.core.util._
 
 /**
@@ -26,14 +26,14 @@ class StringModel extends ModelCall {
 //  private def getReturnFactsWithAlias(rType: JawaType, retVar: String, currentContext: Context, alias: ISet[Instance])(implicit factory: RFAFactFactory): ISet[RFAFact] =
 //    alias.map{a=> new RFAFact(VarSlot(retVar, isBase = false, isArg = false), a)}
 
-  private def getPointStringForThis(args: List[String], currentContext: Context)(implicit factory: RFAFactFactory): ISet[RFAFact] = {
+  private def getPointStringForThis(args: List[String], currentContext: Context)(implicit factory: SimHeap): ISet[RFAFact] = {
     require(args.nonEmpty)
     val thisSlot = VarSlot(args.head, isBase = false, isArg = true)
     val newThisValue = PTAPointStringInstance(currentContext.copy)
     Set(new RFAFact(thisSlot, newThisValue)) 
   }
 
-  private def getFactFromArgForThis(s: PTAResult, args: List[String], currentContext: Context)(implicit factory: RFAFactFactory): ISet[RFAFact] = {
+  private def getFactFromArgForThis(s: PTAResult, args: List[String], currentContext: Context)(implicit factory: SimHeap): ISet[RFAFact] = {
     require(args.size > 1)
     val thisSlot = VarSlot(args.head, isBase = false, isArg = true)
     val paramSlot = VarSlot(args(1), isBase = false, isArg = true)
@@ -41,13 +41,13 @@ class StringModel extends ModelCall {
   }
 
 
-  private def getOldFactForThis(s: PTAResult, args: List[String], currentContext: Context)(implicit factory: RFAFactFactory): ISet[RFAFact] = {
+  private def getOldFactForThis(s: PTAResult, args: List[String], currentContext: Context)(implicit factory: SimHeap): ISet[RFAFact] = {
     require(args.nonEmpty)
     val thisSlot = VarSlot(args.head, isBase = false, isArg = true)
     s.pointsToSet(thisSlot, currentContext).map(v => new RFAFact(thisSlot, v))  
   }
 
-  private def getPointStringForRet(retVar: String, currentContext: Context)(implicit factory: RFAFactFactory): ISet[RFAFact] ={
+  private def getPointStringForRet(retVar: String, currentContext: Context)(implicit factory: SimHeap): ISet[RFAFact] ={
     ReachingFactsAnalysisHelper.getReturnFact(new JawaType("java.lang.String"), retVar, currentContext) match{
       case Some(fact) =>           
         //deleteFacts += fact
@@ -58,7 +58,7 @@ class StringModel extends ModelCall {
    
   }
   
-  private def getFactFromThisForRet(s: PTAResult, args: List[String], retVar: String, currentContext: Context)(implicit factory: RFAFactFactory): ISet[RFAFact] ={
+  private def getFactFromThisForRet(s: PTAResult, args: List[String], retVar: String, currentContext: Context)(implicit factory: SimHeap): ISet[RFAFact] ={
     require(args.nonEmpty)
     ReachingFactsAnalysisHelper.getReturnFact(new JawaType("java.lang.String"), retVar, currentContext) match{
       case Some(fact) => 
@@ -68,7 +68,7 @@ class StringModel extends ModelCall {
     }
   }
   
-  def doModelCall(s: PTAResult, p: JawaMethod, args: List[String], retVar: String, currentContext: Context)(implicit factory: RFAFactFactory): (ISet[RFAFact], ISet[RFAFact], Boolean) = {
+  def doModelCall(s: PTAResult, p: JawaMethod, args: List[String], retVar: String, currentContext: Context)(implicit factory: SimHeap): (ISet[RFAFact], ISet[RFAFact], Boolean) = {
     var newFacts = isetEmpty[RFAFact]
     var deleteFacts = isetEmpty[RFAFact]
     var byPassFlag = true

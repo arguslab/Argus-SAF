@@ -12,7 +12,7 @@ package org.argus.jawa.alir.pta.reachingFactsAnalysis.model
 
 import org.argus.jawa.alir.Context
 import org.argus.jawa.alir.pta._
-import org.argus.jawa.alir.pta.reachingFactsAnalysis.{RFAFact, RFAFactFactory, ReachingFactsAnalysisHelper}
+import org.argus.jawa.alir.pta.reachingFactsAnalysis.{RFAFact, SimHeap, ReachingFactsAnalysisHelper}
 import org.argus.jawa.core.{Constants, JawaMethod, JawaType}
 import org.argus.jawa.core.util._
 
@@ -24,7 +24,7 @@ class StringBuilderModel extends ModelCall {
   
   def isModelCall(p: JawaMethod): Boolean = p.getDeclaringClass.getName.equals(Constants.STRING_BUILDER)
   
-  private def getReturnFactsWithAlias(rType: JawaType, retVar: String, currentContext: Context, alias: ISet[Instance])(implicit factory: RFAFactFactory): ISet[RFAFact] = 
+  private def getReturnFactsWithAlias(rType: JawaType, retVar: String, currentContext: Context, alias: ISet[Instance])(implicit factory: SimHeap): ISet[RFAFact] =
     alias.map{a=> new RFAFact(VarSlot(retVar, isBase = false, isArg = false), a)}
   
 //  private def getPointStringForThis(args: List[String], currentContext: Context)(implicit factory: RFAFactFactory): ISet[RFAFact] = {
@@ -48,7 +48,7 @@ class StringBuilderModel extends ModelCall {
 //    s.pointsToSet(thisSlot, currentContext).map(v => new RFAFact(thisSlot, v))
 //  }
   
-  private def getPointStringForRet(retVar: String, currentContext: Context)(implicit factory: RFAFactFactory): ISet[RFAFact] = {
+  private def getPointStringForRet(retVar: String, currentContext: Context)(implicit factory: SimHeap): ISet[RFAFact] = {
     ReachingFactsAnalysisHelper.getReturnFact(new JawaType("java.lang.String"), retVar, currentContext) match{
       case Some(fact) =>           
           //deleteFacts += fact
@@ -70,7 +70,7 @@ class StringBuilderModel extends ModelCall {
 //
 //  }
 
-  private def getPointStringToField(s: PTAResult, args: List[String], currentContext: Context)(implicit factory: RFAFactFactory): ISet[RFAFact] ={
+  private def getPointStringToField(s: PTAResult, args: List[String], currentContext: Context)(implicit factory: SimHeap): ISet[RFAFact] ={
     require(args.nonEmpty)
     var newfacts = isetEmpty[RFAFact]
     val thisSlot = VarSlot(args.head, isBase = false, isArg = true)
@@ -82,7 +82,7 @@ class StringBuilderModel extends ModelCall {
     newfacts
   }
   
-  private def getConcreteStringToField(str: String, s: PTAResult, args: List[String], currentContext: Context)(implicit factory: RFAFactFactory): ISet[RFAFact] ={
+  private def getConcreteStringToField(str: String, s: PTAResult, args: List[String], currentContext: Context)(implicit factory: SimHeap): ISet[RFAFact] ={
     require(args.nonEmpty)
     var newfacts = isetEmpty[RFAFact]
     val thisSlot = VarSlot(args.head, isBase = false, isArg = true)
@@ -95,7 +95,7 @@ class StringBuilderModel extends ModelCall {
     newfacts
   }
   
-  private def getFactFromArgToField(s: PTAResult, args: List[String], currentContext: Context)(implicit factory: RFAFactFactory): ISet[RFAFact] ={
+  private def getFactFromArgToField(s: PTAResult, args: List[String], currentContext: Context)(implicit factory: SimHeap): ISet[RFAFact] ={
     require(args.size > 1)
     var newfacts = isetEmpty[RFAFact]
       val thisSlot = VarSlot(args.head, isBase = false, isArg = true)
@@ -109,7 +109,7 @@ class StringBuilderModel extends ModelCall {
     newfacts
   }
  
-    private def getPointStringToFieldAndThisToRet(s: PTAResult, args: List[String], retVar: String, currentContext: Context)(implicit factory: RFAFactFactory): ISet[RFAFact] = {
+    private def getPointStringToFieldAndThisToRet(s: PTAResult, args: List[String], retVar: String, currentContext: Context)(implicit factory: SimHeap): ISet[RFAFact] = {
         require(args.nonEmpty)
       var newfacts = isetEmpty[RFAFact]   
       val thisSlot = VarSlot(args.head, isBase = false, isArg = true)
@@ -124,7 +124,7 @@ class StringBuilderModel extends ModelCall {
       newfacts
     }
     
-    private def getStringBuilderFieldFactToRet(s: PTAResult, args: List[String], retVar: String, currentContext: Context)(implicit factory: RFAFactFactory): ISet[RFAFact] ={
+    private def getStringBuilderFieldFactToRet(s: PTAResult, args: List[String], retVar: String, currentContext: Context)(implicit factory: SimHeap): ISet[RFAFact] ={
       require(args.nonEmpty)
       val thisSlot = VarSlot(args.head, isBase = false, isArg = true)
       val thisValues = s.pointsToSet(thisSlot, currentContext)
@@ -134,7 +134,7 @@ class StringBuilderModel extends ModelCall {
       } else isetEmpty
     }
     
-    private def getNewAndOldFieldFact(s: PTAResult, args: List[String], currentContext: Context)(implicit factory: RFAFactFactory): (ISet[RFAFact], ISet[RFAFact]) ={
+    private def getNewAndOldFieldFact(s: PTAResult, args: List[String], currentContext: Context)(implicit factory: SimHeap): (ISet[RFAFact], ISet[RFAFact]) ={
       var newfacts = isetEmpty[RFAFact]
       var deletefacts = isetEmpty[RFAFact]
       require(args.nonEmpty)
@@ -161,7 +161,7 @@ class StringBuilderModel extends ModelCall {
     
 
      
-  def doModelCall(s: PTAResult, p: JawaMethod, args: List[String], retVar: String, currentContext: Context)(implicit factory: RFAFactFactory): (ISet[RFAFact], ISet[RFAFact], Boolean) = {
+  def doModelCall(s: PTAResult, p: JawaMethod, args: List[String], retVar: String, currentContext: Context)(implicit factory: SimHeap): (ISet[RFAFact], ISet[RFAFact], Boolean) = {
     var newFacts = isetEmpty[RFAFact]
     val deleteFacts = isetEmpty[RFAFact]
     var byPassFlag = true

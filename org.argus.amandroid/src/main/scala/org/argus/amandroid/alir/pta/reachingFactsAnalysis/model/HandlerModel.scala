@@ -12,7 +12,7 @@ package org.argus.amandroid.alir.pta.reachingFactsAnalysis.model
 
 import org.argus.jawa.alir.Context
 import org.argus.jawa.alir.pta.PTAResult
-import org.argus.jawa.alir.pta.reachingFactsAnalysis.{RFAFact, RFAFactFactory}
+import org.argus.jawa.alir.pta.reachingFactsAnalysis.{RFAFact, SimHeap}
 import org.argus.jawa.alir.pta.reachingFactsAnalysis.model.ModelCall
 import org.argus.jawa.core.JawaMethod
 import org.argus.jawa.core.util._
@@ -23,7 +23,7 @@ import org.argus.jawa.core.util._
  */ 
 class HandlerModel extends ModelCall {
 	def isModelCall(p: JawaMethod): Boolean = p.getDeclaringClass.getName.equals("android.os.Handler")
-	def doModelCall(s: PTAResult, p: JawaMethod, args: List[String], retVar: String, currentContext: Context)(implicit factory: RFAFactFactory): (ISet[RFAFact], ISet[RFAFact], Boolean) = {
+	def doModelCall(s: PTAResult, p: JawaMethod, args: List[String], retVar: String, currentContext: Context)(implicit factory: SimHeap): (ISet[RFAFact], ISet[RFAFact], Boolean) = {
 	  val newFacts = isetEmpty[RFAFact]
 	  val delFacts = isetEmpty[RFAFact]
 	  val byPassFlag = true

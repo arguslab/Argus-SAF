@@ -22,7 +22,7 @@ import org.argus.jawa.alir.controlFlowGraph._
 import org.argus.jawa.alir.dataFlowAnalysis._
 import org.argus.jawa.alir.interprocedural.{CallHandler, Callee}
 import org.argus.jawa.alir.pta._
-import org.argus.jawa.alir.pta.reachingFactsAnalysis.{RFAFact, RFAFactFactory, ReachingFactsAnalysisHelper}
+import org.argus.jawa.alir.pta.reachingFactsAnalysis.{RFAFact, SimHeap, ReachingFactsAnalysisHelper}
 import org.argus.jawa.compiler.parser._
 import org.argus.jawa.core._
 
@@ -30,7 +30,7 @@ import org.argus.jawa.core._
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
  * @author <a href="mailto:sroy@k-state.edu">Sankardas Roy</a>
  */ 
-class AndroidReachingFactsAnalysisBuilder(apk: ApkGlobal, clm: ClassLoadManager, timeout: Option[MyTimeout])(implicit factory: RFAFactFactory) {
+class AndroidReachingFactsAnalysisBuilder(apk: ApkGlobal, clm: ClassLoadManager, timeout: Option[MyTimeout])(implicit factory: SimHeap) {
 
   import AndroidReachingFactsAnalysis._
   
@@ -547,6 +547,6 @@ object AndroidReachingFactsAnalysis {
       clm: ClassLoadManager,
       initContext: Context,
       switchAsOrderedMatch: Boolean = false,
-      timeout: Option[MyTimeout])(implicit factory: RFAFactFactory): InterProceduralDataFlowGraph
+      timeout: Option[MyTimeout])(implicit factory: SimHeap): InterProceduralDataFlowGraph
     = new AndroidReachingFactsAnalysisBuilder(apk, clm, timeout).build(entryPointProc, initialFacts, initContext, switchAsOrderedMatch)
 }

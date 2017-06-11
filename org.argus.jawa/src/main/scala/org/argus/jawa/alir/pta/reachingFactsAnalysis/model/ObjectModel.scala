@@ -12,7 +12,7 @@ package org.argus.jawa.alir.pta.reachingFactsAnalysis.model
 
 import org.argus.jawa.alir.Context
 import org.argus.jawa.alir.pta.{ClassInstance, PTAResult, VarSlot}
-import org.argus.jawa.alir.pta.reachingFactsAnalysis.{RFAFact, RFAFactFactory}
+import org.argus.jawa.alir.pta.reachingFactsAnalysis.{RFAFact, SimHeap}
 import org.argus.jawa.core.JawaMethod
 import org.argus.jawa.core.util._
 
@@ -23,7 +23,7 @@ class ObjectModel extends ModelCall {
   val TITLE = "ObjectModel"
   def isModelCall(p: JawaMethod): Boolean = p.getDeclaringClass.getName.equals("java.lang.Object")
     
-  def doModelCall(s: PTAResult, p: JawaMethod, args: List[String], retVar: String, currentContext: Context)(implicit factory: RFAFactFactory): (ISet[RFAFact], ISet[RFAFact], Boolean) = {
+  def doModelCall(s: PTAResult, p: JawaMethod, args: List[String], retVar: String, currentContext: Context)(implicit factory: SimHeap): (ISet[RFAFact], ISet[RFAFact], Boolean) = {
     var newFacts = isetEmpty[RFAFact]
     var delFacts = isetEmpty[RFAFact]
     var byPassFlag = true
@@ -38,7 +38,7 @@ class ObjectModel extends ModelCall {
     (newFacts, delFacts, byPassFlag)
   }
   
-  private def objectGetClass(s: PTAResult, args: List[String], retVar: String, currentContext: Context)(implicit factory: RFAFactFactory): (ISet[RFAFact], ISet[RFAFact]) = {
+  private def objectGetClass(s: PTAResult, args: List[String], retVar: String, currentContext: Context)(implicit factory: SimHeap): (ISet[RFAFact], ISet[RFAFact]) = {
     require(args.nonEmpty)
     val thisSlot = VarSlot(args.head, isBase = false, isArg = true)
     val thisValue = s.pointsToSet(thisSlot, currentContext)

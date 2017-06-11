@@ -14,7 +14,7 @@ import org.argus.amandroid.core.AndroidConstants
 import org.argus.jawa.alir.Context
 import org.argus.jawa.alir.pta._
 import org.argus.jawa.alir.pta.reachingFactsAnalysis.model.ModelCall
-import org.argus.jawa.alir.pta.reachingFactsAnalysis.{RFAFact, RFAFactFactory}
+import org.argus.jawa.alir.pta.reachingFactsAnalysis.{RFAFact, SimHeap}
 import org.argus.jawa.core._
 import org.argus.jawa.core.util._
 
@@ -26,7 +26,7 @@ class ComponentNameModel extends ModelCall {
   final val TITLE = "ComponentNameModel"
   def isModelCall(p: JawaMethod): Boolean = p.getDeclaringClass.getName.equals("android.content.ComponentName")
     
-  def doModelCall(s: PTAResult, p: JawaMethod, args: List[String], retVar: String, currentContext: Context)(implicit factory: RFAFactFactory): (ISet[RFAFact], ISet[RFAFact], Boolean) = {
+  def doModelCall(s: PTAResult, p: JawaMethod, args: List[String], retVar: String, currentContext: Context)(implicit factory: SimHeap): (ISet[RFAFact], ISet[RFAFact], Boolean) = {
     var newFacts = isetEmpty[RFAFact]
     val delFacts = isetEmpty[RFAFact]
     var byPassFlag = true
@@ -111,7 +111,7 @@ class ComponentNameModel extends ModelCall {
 //    getShortNameFromClassName(cValue, currentContext).map(cv=> RFAFact(VarSlot(retVar), cv))
 //  }
   
-  private def getClassNameFromComponentName(s: PTAResult, args: List[String], retVar: String, currentContext: Context)(implicit factory: RFAFactFactory): ISet[RFAFact] ={
+  private def getClassNameFromComponentName(s: PTAResult, args: List[String], retVar: String, currentContext: Context)(implicit factory: SimHeap): ISet[RFAFact] ={
     require(args.nonEmpty)
     val thisSlot = VarSlot(args.head, isBase = false, isArg = true)
     val thisValue = s.pointsToSet(thisSlot, currentContext)
@@ -121,7 +121,7 @@ class ComponentNameModel extends ModelCall {
     } else isetEmpty
   }
   
-  private def getShortClassNameFromComponentName(global: Global, s: PTAResult, args: List[String], retVar: String, currentContext: Context)(implicit factory: RFAFactFactory): ISet[RFAFact] ={
+  private def getShortClassNameFromComponentName(global: Global, s: PTAResult, args: List[String], retVar: String, currentContext: Context)(implicit factory: SimHeap): ISet[RFAFact] ={
     require(args.nonEmpty)
     val thisSlot = VarSlot(args.head, isBase = false, isArg = true)
     val thisValue = s.pointsToSet(thisSlot, currentContext)
@@ -149,7 +149,7 @@ class ComponentNameModel extends ModelCall {
     }
   }
 
-  private def getPackageNameFromComponentName(s: PTAResult, args: List[String], retVar: String, currentContext: Context)(implicit factory: RFAFactFactory): ISet[RFAFact] = {
+  private def getPackageNameFromComponentName(s: PTAResult, args: List[String], retVar: String, currentContext: Context)(implicit factory: SimHeap): ISet[RFAFact] = {
     require(args.nonEmpty)
     val thisSlot = VarSlot(args.head, isBase = false, isArg = true)
     val thisValue = s.pointsToSet(thisSlot, currentContext)
@@ -159,7 +159,7 @@ class ComponentNameModel extends ModelCall {
     } else isetEmpty
   }
 
-  private def initComponentNameWithCC(global: Global, s: PTAResult, args: List[String], currentContext: Context)(implicit factory: RFAFactFactory): ISet[RFAFact] ={
+  private def initComponentNameWithCC(global: Global, s: PTAResult, args: List[String], currentContext: Context)(implicit factory: SimHeap): ISet[RFAFact] ={
     require(args.size >2)
     val thisSlot = VarSlot(args.head, isBase = false, isArg = true)
     val thisValue = s.pointsToSet(thisSlot, currentContext)
@@ -213,7 +213,7 @@ class ComponentNameModel extends ModelCall {
     } else isetEmpty
 }
 
-  private def initComponentNameWithCS(global: Global, s: PTAResult, args: List[String], currentContext: Context)(implicit factory: RFAFactFactory): ISet[RFAFact] ={
+  private def initComponentNameWithCS(global: Global, s: PTAResult, args: List[String], currentContext: Context)(implicit factory: SimHeap): ISet[RFAFact] ={
     require(args.size >2)
     val thisSlot = VarSlot(args.head, isBase = false, isArg = true)
     val thisValue = s.pointsToSet(thisSlot, currentContext)
@@ -253,7 +253,7 @@ class ComponentNameModel extends ModelCall {
     }.reduce(iunion[RFAFact])
   }
   
-  private def initComponentNameWithSS(global: Global, s: PTAResult, args: List[String], currentContext: Context)(implicit factory: RFAFactFactory): ISet[RFAFact] = {
+  private def initComponentNameWithSS(global: Global, s: PTAResult, args: List[String], currentContext: Context)(implicit factory: SimHeap): ISet[RFAFact] = {
     require(args.size >2)
     val thisSlot = VarSlot(args.head, isBase = false, isArg = true)
     val thisValue = s.pointsToSet(thisSlot, currentContext)
@@ -331,7 +331,7 @@ class ComponentNameModel extends ModelCall {
     }.reduce(iunion[RFAFact])
   }
   
-  private def cloneComponentName(s: PTAResult, args: List[String], retVar: String, currentContext: Context)(implicit factory: RFAFactFactory): ISet[RFAFact] ={
+  private def cloneComponentName(s: PTAResult, args: List[String], retVar: String, currentContext: Context)(implicit factory: SimHeap): ISet[RFAFact] ={
     require(args.nonEmpty)
     val thisSlot = VarSlot(args.head, isBase = false, isArg = true)
     val thisValue = s.pointsToSet(thisSlot, currentContext)

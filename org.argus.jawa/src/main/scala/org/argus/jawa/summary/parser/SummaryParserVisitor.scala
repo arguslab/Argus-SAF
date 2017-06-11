@@ -11,7 +11,8 @@
 package org.argus.jawa.summary.parser
 
 import org.antlr.v4.runtime.tree.ParseTree
-import org.argus.jawa.core.Signature
+import org.apache.commons.lang3.StringEscapeUtils
+import org.argus.jawa.core.{JawaType, Signature}
 import org.argus.jawa.core.util.Antlr4
 import org.argus.jawa.summary.rule._
 import org.argus.jawa.summary.grammar.SafsuBaseVisitor
@@ -76,8 +77,31 @@ class SummaryParserVisitor()
   override def visitRet(ctx: RetContext): SuRuleNode =
     SuRet(getOptChild[SuHeap](ctx.heap))
 
-  override def visitType(ctx: TypeContext): SuRuleNode =
-    SuType(ctx.ID.asScala.map(_.getText).mkString("."), getChild[SuLocation](ctx.location))
+  override def visitInstance(ctx: InstanceContext): SuRuleNode =
+    SuInstance(getChild[SuType](ctx.`type`), getChild[SuLocation](ctx.location))
+
+  override def visitJavaType(ctx: JavaTypeContext): SuRuleNode =
+    SuJavaType({
+      val typ = ctx.ID.asScala.map(_.getText).mkString(".")
+      val map: Map[String, String] = Map()
+      val javaMap = map.asJava
+      val indices = ctx.arrayAccess.size
+      new JawaType(typ, indices)
+    })
+
+  override def visitStringLit(ctx: StringLitContext): SuRuleNode =
+    SuString({
+      if(ctx.STRING != null) {
+        val raw = ctx.STRING.getText
+        val text = raw.substring(1, raw.length - 1)
+        StringEscapeUtils.unescapeJava(text)
+      }
+      else {
+        val raw = ctx.MSTRING.getText
+        val text = raw.substring(3, raw.length - 3)
+        StringEscapeUtils.unescapeJava(text)
+      }
+    })
 
   override def visitVirtualLocation(ctx: VirtualLocationContext): SuRuleNode =
     SuVirtualLocation()

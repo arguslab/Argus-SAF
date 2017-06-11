@@ -13,7 +13,7 @@ package org.argus.amandroid.alir.pta.reachingFactsAnalysis
 import org.argus.amandroid.core.AndroidConstants
 import org.argus.jawa.alir.Context
 import org.argus.jawa.alir.pta._
-import org.argus.jawa.alir.pta.reachingFactsAnalysis.{RFAFact, RFAFactFactory}
+import org.argus.jawa.alir.pta.reachingFactsAnalysis.{RFAFact, SimHeap}
 import org.argus.jawa.core.{JavaKnowledge, JawaMethod, JawaType}
 import org.argus.jawa.core.util._
 
@@ -26,7 +26,7 @@ object AndroidRFAConfig {
    * generates and returns the initial facts corresponding to the "Intent" parameter of a dummyMain 
    * the generated fact says that the param Intent is generated at the Center.
    */
-  def getInitialFactsForMainEnvironment(dm: JawaMethod)(implicit factory: RFAFactFactory): ISet[RFAFact] = {
+  def getInitialFactsForMainEnvironment(dm: JawaMethod)(implicit factory: SimHeap): ISet[RFAFact] = {
     require(dm.getName == AndroidConstants.MAINCOMP_ENV || dm.getName == AndroidConstants.COMP_ENV)
     var result = isetEmpty[RFAFact]
     val intentSlot = VarSlot(dm.getParamName(0), isBase = false, isArg = false)

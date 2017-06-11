@@ -10,7 +10,7 @@
 
 package org.argus.jawa.summary.rule
 
-import org.argus.jawa.core.Signature
+import org.argus.jawa.core.{JawaType, Signature}
 
 /**
   * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
@@ -99,7 +99,26 @@ case class SuRet(heapOpt: Option[SuHeap]) extends RuleLhs
 /**
   * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
   */
-case class SuType(typ: String, loc: SuLocation) extends RuleRhs
+case class SuInstance(typ: SuType, loc: SuLocation) extends RuleRhs
+
+/**
+  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
+  */
+trait SuType extends SuRuleNode {
+  def typ: JawaType
+}
+
+/**
+  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
+  */
+case class SuJavaType(typ: JawaType) extends SuType
+
+/**
+  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
+  */
+case class SuString(str: String) extends SuType {
+  def typ: JawaType = new JawaType("java.lang.String")
+}
 
 /**
   * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>

@@ -51,13 +51,14 @@ class SafsuTest extends FlatSpec with Matchers {
   "`com.my.Class.Global`" producesTokens UID
   "this.f1[]" producesTokens (`this`, `.`, ID, `[]`)
   "com.my.Class" producesTokens (ID, `.`, ID, `.`, ID)
-  "com.my.Class@L1005" producesTokens (ID, `.`, ID, `.`, ID, `@`, ID)
+  "com.my.Class[]@L1005" producesTokens (ID, `.`, ID, `.`, ID, `[]`, `@`, ID)
   "arg:1=arg:2" producesTokens (`arg`, `:`, Digits, `=`, `arg`, `:`, Digits)
   "arg:1+=arg:2" producesTokens (`arg`, `:`, Digits, `+=`, `arg`, `:`, Digits)
   "arg:1-=arg:2" producesTokens (`arg`, `:`, Digits, `-=`, `arg`, `:`, Digits)
   "arg:1=com.my.Class@L1005" producesTokens (`arg`, `:`, Digits, `=`, ID, `.`, ID, `.`, ID, `@`, ID)
   "~arg:1" producesTokens (`~`, `arg`, `:`, Digits)
   "arg:1=com.my.Class@~" producesTokens (`arg`, `:`, Digits, `=`, ID, `.`, ID, `.`, ID, `@`, `~`)
+  """arg:1="string"@L1""" producesTokens (`arg`, `:`, Digits, `=`, STRING, `@`, ID)
   "`Lcom/my/Class;.do:(LO1;LO2;)V`:arg:1=arg:2;" producesTokens (UID, `:`, `arg`, `:`, Digits, `=`, `arg`, `:`, Digits, `;`)
   """`Lcom/my/Class;.do:(LO1;LO2;)LO3;`:
     |  arg:1+=arg:2
@@ -115,6 +116,7 @@ class SafsuTest extends FlatSpec with Matchers {
         |  ~arg:1.f1
         |  this.f1[]=my.Class@L100
         |  ret.f1=my.Class@~
+        |  ret.f2="String"@L1
         |;
       """.stripMargin)
   }

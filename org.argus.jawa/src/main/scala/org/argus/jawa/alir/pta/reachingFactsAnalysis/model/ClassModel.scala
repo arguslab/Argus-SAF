@@ -12,7 +12,7 @@ package org.argus.jawa.alir.pta.reachingFactsAnalysis.model
 
 import org.argus.jawa.alir.Context
 import org.argus.jawa.alir.pta._
-import org.argus.jawa.alir.pta.reachingFactsAnalysis.{RFAFact, RFAFactFactory}
+import org.argus.jawa.alir.pta.reachingFactsAnalysis.{RFAFact, SimHeap}
 import org.argus.jawa.core.{JavaKnowledge, JawaMethod}
 import org.argus.jawa.core.util._
 
@@ -23,7 +23,7 @@ class ClassModel extends ModelCall {
   val TITLE = "ClassModel"
 	def isModelCall(p: JawaMethod): Boolean = p.getDeclaringClass.getName.equals("java.lang.Class")
 	  
-	def doModelCall(s: PTAResult, p: JawaMethod, args: List[String], retVar: String, currentContext: Context)(implicit factory: RFAFactFactory): (ISet[RFAFact], ISet[RFAFact], Boolean) = {
+	def doModelCall(s: PTAResult, p: JawaMethod, args: List[String], retVar: String, currentContext: Context)(implicit factory: SimHeap): (ISet[RFAFact], ISet[RFAFact], Boolean) = {
 	  var newFacts = isetEmpty[RFAFact]
 	  var delFacts = isetEmpty[RFAFact]
 	  var byPassFlag = true
@@ -134,7 +134,7 @@ class ClassModel extends ModelCall {
 	/**
    * Ljava/lang/Class;.asSubclass:(Ljava/lang/Class;)Ljava/lang/Class;
    */
-  private def classAsSubClass(s: PTAResult, args: List[String], retVar: String, currentContext: Context)(implicit factory: RFAFactFactory): (ISet[RFAFact], ISet[RFAFact]) = {
+  private def classAsSubClass(s: PTAResult, args: List[String], retVar: String, currentContext: Context)(implicit factory: SimHeap): (ISet[RFAFact], ISet[RFAFact]) = {
     require(args.size >1)
     val thisSlot = VarSlot(args.head, isBase = false, isArg = true)
 	  val thisValue = s.pointsToSet(thisSlot, currentContext)
@@ -166,7 +166,7 @@ class ClassModel extends ModelCall {
   /**
 	 * Ljava/lang/Class;.forName:(Ljava/lang/String;)Ljava/lang/Class;   static
 	 */
-	private def classForName(s: PTAResult, args: List[String], retVar: String, currentContext: Context)(implicit factory: RFAFactFactory): (ISet[RFAFact], ISet[RFAFact]) = {
+	private def classForName(s: PTAResult, args: List[String], retVar: String, currentContext: Context)(implicit factory: SimHeap): (ISet[RFAFact], ISet[RFAFact]) = {
 	  // algo:thisValue.foreach.{ cIns => get value of (cIns.name") and create fact (retVar, value)}
     require(args.nonEmpty)
     val clazzNameSlot = VarSlot(args.head, isBase = false, isArg = true)
@@ -185,7 +185,7 @@ class ClassModel extends ModelCall {
     (newfacts, delfacts)
 	}
   
-  private def classNewInstance(s: PTAResult, args: List[String], retVar: String, currentContext: Context)(implicit factory: RFAFactFactory): (ISet[RFAFact], ISet[RFAFact]) = {
+  private def classNewInstance(s: PTAResult, args: List[String], retVar: String, currentContext: Context)(implicit factory: SimHeap): (ISet[RFAFact], ISet[RFAFact]) = {
     require(args.nonEmpty)
     val classSlot = VarSlot(args.head, isBase = false, isArg = true)
     val classValue = s.pointsToSet(classSlot, currentContext)
@@ -202,7 +202,7 @@ class ClassModel extends ModelCall {
 	/**
 	 * Ljava/lang/Class;.getName:()Ljava/lang/String;
 	 */
-	private def classGetName(s: PTAResult, args: List[String], retVar: String, currentContext: Context)(implicit factory: RFAFactFactory): (ISet[RFAFact], ISet[RFAFact]) = {
+	private def classGetName(s: PTAResult, args: List[String], retVar: String, currentContext: Context)(implicit factory: SimHeap): (ISet[RFAFact], ISet[RFAFact]) = {
 	  // algo:thisValue.foreach.{ cIns => get value of (cIns.name") and create fact (retVar, value)}
     require(args.nonEmpty)
     val thisSlot = VarSlot(args.head, isBase = false, isArg = true)

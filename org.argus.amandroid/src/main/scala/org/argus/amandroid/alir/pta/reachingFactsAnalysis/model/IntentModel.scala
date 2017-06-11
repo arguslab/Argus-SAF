@@ -14,7 +14,7 @@ import org.argus.amandroid.core.AndroidConstants
 import org.argus.jawa.alir.Context
 import org.argus.jawa.alir.pta._
 import org.argus.jawa.alir.pta.reachingFactsAnalysis.model.ModelCall
-import org.argus.jawa.alir.pta.reachingFactsAnalysis.{RFAFact, RFAFactFactory}
+import org.argus.jawa.alir.pta.reachingFactsAnalysis.{RFAFact, SimHeap}
 import org.argus.jawa.core._
 import org.argus.jawa.core.util._
 
@@ -27,7 +27,7 @@ class IntentModel extends ModelCall {
   
   def isModelCall(p: JawaMethod): Boolean = p.getDeclaringClass.getName.equals(AndroidConstants.INTENT)
   
-  def doModelCall(s: PTAResult, p: JawaMethod, args: List[String], retVar: String, currentContext: Context)(implicit factory: RFAFactFactory): (ISet[RFAFact], ISet[RFAFact], Boolean) = {
+  def doModelCall(s: PTAResult, p: JawaMethod, args: List[String], retVar: String, currentContext: Context)(implicit factory: SimHeap): (ISet[RFAFact], ISet[RFAFact], Boolean) = {
     var newFacts = isetEmpty[RFAFact]
     var delFacts = isetEmpty[RFAFact]
     var byPassFlag = true
@@ -352,7 +352,7 @@ class IntentModel extends ModelCall {
   /**
    * Landroid/content/Intent;.<init>:(Ljava/lang/String;)V
    */
-  private def intentInitWithIntent(s: PTAResult, args: List[String], currentContext: Context)(implicit factory: RFAFactFactory): (ISet[RFAFact], ISet[RFAFact]) = {
+  private def intentInitWithIntent(s: PTAResult, args: List[String], currentContext: Context)(implicit factory: SimHeap): (ISet[RFAFact], ISet[RFAFact]) = {
     require(args.size >1)
     val thisSlot = VarSlot(args.head, isBase = false, isArg = true)
     val thisValue = s.pointsToSet(thisSlot, currentContext)
@@ -400,7 +400,7 @@ class IntentModel extends ModelCall {
   /**
    * Landroid/content/Intent;.<init>:(Landroid/content/Intent;)V
    */
-  private def intentInitWithAction(s: PTAResult, args: List[String], currentContext: Context)(implicit factory: RFAFactFactory): (ISet[RFAFact], ISet[RFAFact]) = {
+  private def intentInitWithAction(s: PTAResult, args: List[String], currentContext: Context)(implicit factory: SimHeap): (ISet[RFAFact], ISet[RFAFact]) = {
     require(args.size >1)
     val thisSlot = VarSlot(args.head, isBase = false, isArg = true)
     val thisValue = s.pointsToSet(thisSlot, currentContext)
@@ -425,7 +425,7 @@ class IntentModel extends ModelCall {
   /**
    * Landroid/content/Intent;.<init>:(Ljava/lang/String;Landroid/net/Uri;)V
    */
-  private def intentInitWithActionAndData(s: PTAResult, args: List[String], currentContext: Context)(implicit factory: RFAFactFactory): (ISet[RFAFact], ISet[RFAFact]) = {
+  private def intentInitWithActionAndData(s: PTAResult, args: List[String], currentContext: Context)(implicit factory: SimHeap): (ISet[RFAFact], ISet[RFAFact]) = {
     require(args.size >2)
     val thisSlot = VarSlot(args.head, isBase = false, isArg = true)
     val thisValue = s.pointsToSet(thisSlot, currentContext)
@@ -459,7 +459,7 @@ class IntentModel extends ModelCall {
   /**
    * Landroid/content/Intent;.<init>:(Ljava/lang/String;Landroid/net/Uri;Landroid/content/Context;Ljava/lang/Class;)V
    */
-  private def intentInitWithActionDataAndComponent(global: Global, s: PTAResult, args: List[String], currentContext: Context)(implicit factory: RFAFactFactory): (ISet[RFAFact], ISet[RFAFact]) = {
+  private def intentInitWithActionDataAndComponent(global: Global, s: PTAResult, args: List[String], currentContext: Context)(implicit factory: SimHeap): (ISet[RFAFact], ISet[RFAFact]) = {
     require(args.size >4)
     val thisSlot = VarSlot(args.head, isBase = false, isArg = true)
     val thisValue = s.pointsToSet(thisSlot, currentContext)
@@ -533,7 +533,7 @@ class IntentModel extends ModelCall {
   /**
    * Landroid/content/Intent;.<init>:(Landroid/content/Context;Ljava/lang/Class;)V
    */
-  private def intentInitWithCC(global: Global, s: PTAResult, args: List[String], currentContext: Context)(implicit factory: RFAFactFactory): (ISet[RFAFact], ISet[RFAFact]) = {
+  private def intentInitWithCC(global: Global, s: PTAResult, args: List[String], currentContext: Context)(implicit factory: SimHeap): (ISet[RFAFact], ISet[RFAFact]) = {
     require(args.size >2)
     val thisSlot = VarSlot(args.head, isBase = false, isArg = true)
     val thisValue = s.pointsToSet(thisSlot, currentContext)
@@ -586,7 +586,7 @@ class IntentModel extends ModelCall {
   /**
    * Landroid/content/Intent;.addCategory:(Ljava/lang/String;)Landroid/content/Intent;
    */
-  private def intentAddCategory(s: PTAResult, args: List[String], retVar: String, currentContext: Context)(implicit factory: RFAFactFactory): (ISet[RFAFact], ISet[RFAFact]) = {
+  private def intentAddCategory(s: PTAResult, args: List[String], retVar: String, currentContext: Context)(implicit factory: SimHeap): (ISet[RFAFact], ISet[RFAFact]) = {
     require(args.size >1)
     val thisSlot = VarSlot(args.head, isBase = false, isArg = true)
     val thisValue = s.pointsToSet(thisSlot, currentContext)
@@ -627,7 +627,7 @@ class IntentModel extends ModelCall {
   /**
    * Landroid/content/Intent;.clone:()Ljava/lang/Object;
    */
-  private def intentClone(s: PTAResult, args: List[String], retVar: String, currentContext: Context)(implicit factory: RFAFactFactory): (ISet[RFAFact], ISet[RFAFact]) = {
+  private def intentClone(s: PTAResult, args: List[String], retVar: String, currentContext: Context)(implicit factory: SimHeap): (ISet[RFAFact], ISet[RFAFact]) = {
     require(args.nonEmpty)
     val thisSlot = VarSlot(args.head, isBase = false, isArg = true)
     val thisValue = s.pointsToSet(thisSlot, currentContext)
@@ -644,7 +644,7 @@ class IntentModel extends ModelCall {
   /**
    * Landroid/content/Intent;.setAction:(Ljava/lang/String;)Landroid/content/Intent;
    */
-  private def intentSetAction(s: PTAResult, args: List[String], retVar: String, currentContext: Context)(implicit factory: RFAFactFactory): (ISet[RFAFact], ISet[RFAFact]) = {
+  private def intentSetAction(s: PTAResult, args: List[String], retVar: String, currentContext: Context)(implicit factory: SimHeap): (ISet[RFAFact], ISet[RFAFact]) = {
     require(args.size >1)
     val thisSlot = VarSlot(args.head, isBase = false, isArg = true)
     val thisValue = s.pointsToSet(thisSlot, currentContext)
@@ -677,7 +677,7 @@ class IntentModel extends ModelCall {
   /**
    * Landroid/content/Intent;.setClass:(Landroid/content/Context;Ljava/lang/Class;)Landroid/content/Intent;
    */
-  private def intentSetClass(global: Global, s: PTAResult, args: List[String], retVar: String, currentContext: Context)(implicit factory: RFAFactFactory): (ISet[RFAFact], ISet[RFAFact]) = {
+  private def intentSetClass(global: Global, s: PTAResult, args: List[String], retVar: String, currentContext: Context)(implicit factory: SimHeap): (ISet[RFAFact], ISet[RFAFact]) = {
     require(args.size >2)
     val thisSlot = VarSlot(args.head, isBase = false, isArg = true)
     val thisValue =s.pointsToSet(thisSlot, currentContext)
@@ -732,7 +732,7 @@ class IntentModel extends ModelCall {
   /**
    * Landroid/content/Intent;.setClassName:(Landroid/content/Context;Ljava/lang/String;)Landroid/content/Intent;
    */
-  private def intentSetClassName(global: Global, s: PTAResult, args: List[String], retVar: String, currentContext: Context)(implicit factory: RFAFactFactory): (ISet[RFAFact], ISet[RFAFact]) = {
+  private def intentSetClassName(global: Global, s: PTAResult, args: List[String], retVar: String, currentContext: Context)(implicit factory: SimHeap): (ISet[RFAFact], ISet[RFAFact]) = {
     require(args.size >2)
     val thisSlot = VarSlot(args.head, isBase = false, isArg = true)
     val thisValue = s.pointsToSet(thisSlot, currentContext)
@@ -779,7 +779,7 @@ class IntentModel extends ModelCall {
   /**
    * Landroid/content/Intent;.setComponent:(Landroid/content/ComponentName;)Landroid/content/Intent;
    */
-  private def intentSetComponent(s: PTAResult, args: List[String], retVar: String, currentContext: Context)(implicit factory: RFAFactFactory): (ISet[RFAFact], ISet[RFAFact]) = {
+  private def intentSetComponent(s: PTAResult, args: List[String], retVar: String, currentContext: Context)(implicit factory: SimHeap): (ISet[RFAFact], ISet[RFAFact]) = {
     require(args.size >1)
     val thisSlot = VarSlot(args.head, isBase = false, isArg = true)
     val thisValue = s.pointsToSet(thisSlot, currentContext)
@@ -802,7 +802,7 @@ class IntentModel extends ModelCall {
   /**
    * Landroid/content/Intent;.setData:(Landroid/net/Uri;)Landroid/content/Intent;
    */
-  private def intentSetData(s: PTAResult, args: List[String], retVar: String, currentContext: Context)(implicit factory: RFAFactFactory): (ISet[RFAFact], ISet[RFAFact]) = {
+  private def intentSetData(s: PTAResult, args: List[String], retVar: String, currentContext: Context)(implicit factory: SimHeap): (ISet[RFAFact], ISet[RFAFact]) = {
     require(args.size >1)
     val thisSlot = VarSlot(args.head, isBase = false, isArg = true)
     val thisValue = s.pointsToSet(thisSlot, currentContext)
@@ -827,7 +827,7 @@ class IntentModel extends ModelCall {
   /**
    * Landroid/content/Intent;.setDataAndType:(Landroid/net/Uri;Ljava/lang/String;)Landroid/content/Intent;
    */
-  private def intentSetDataAndType(s: PTAResult, args: List[String], retVar: String, currentContext: Context)(implicit factory: RFAFactFactory): (ISet[RFAFact], ISet[RFAFact]) = {
+  private def intentSetDataAndType(s: PTAResult, args: List[String], retVar: String, currentContext: Context)(implicit factory: SimHeap): (ISet[RFAFact], ISet[RFAFact]) = {
     require(args.size >2)
     val thisSlot = VarSlot(args.head, isBase = false, isArg = true)
     val thisValue = s.pointsToSet(thisSlot, currentContext)
@@ -861,7 +861,7 @@ class IntentModel extends ModelCall {
   /**
    * Landroid/content/Intent;.setType:(Ljava/lang/String;)Landroid/content/Intent;
    */
-  private def intentSetType(s: PTAResult, args: List[String], retVar: String, currentContext: Context)(implicit factory: RFAFactFactory): (ISet[RFAFact], ISet[RFAFact]) = {
+  private def intentSetType(s: PTAResult, args: List[String], retVar: String, currentContext: Context)(implicit factory: SimHeap): (ISet[RFAFact], ISet[RFAFact]) = {
     require(args.size >1)
     val thisSlot = VarSlot(args.head, isBase = false, isArg = true)
     val thisValue = s.pointsToSet(thisSlot, currentContext)
@@ -918,7 +918,7 @@ class IntentModel extends ModelCall {
   /**
    * Landroid/content/Intent;.setFlags:(I)Landroid/content/Intent;
    */
-  private def intentSetFlags(s: PTAResult, args: List[String], retVar: String, currentContext: Context)(implicit factory: RFAFactFactory): (ISet[RFAFact], ISet[RFAFact]) = {
+  private def intentSetFlags(s: PTAResult, args: List[String], retVar: String, currentContext: Context)(implicit factory: SimHeap): (ISet[RFAFact], ISet[RFAFact]) = {
     require(args.size >1)
     val thisSlot = VarSlot(args.head, isBase = false, isArg = true)
     val thisValue = s.pointsToSet(thisSlot, currentContext)
@@ -934,7 +934,7 @@ class IntentModel extends ModelCall {
   /**
    * Landroid/content/Intent;.putExtra:(Ljava/lang/String;Ljava/lang/String;)Landroid/content/Intent;
    */
-  private def intentPutExtra(s: PTAResult, args: List[String], retVar: String, currentContext: Context)(implicit factory: RFAFactFactory): (ISet[RFAFact], ISet[RFAFact]) = {
+  private def intentPutExtra(s: PTAResult, args: List[String], retVar: String, currentContext: Context)(implicit factory: SimHeap): (ISet[RFAFact], ISet[RFAFact]) = {
     require(args.size >2)
     val thisSlot = VarSlot(args.head, isBase = false, isArg = true)
     val thisValue = s.pointsToSet(thisSlot, currentContext)
@@ -972,7 +972,7 @@ class IntentModel extends ModelCall {
   /**
    * Landroid/content/Intent;.getExtras:()Landroid/os/Bundle;
    */
-  private def intentGetExtras(s: PTAResult, args: List[String], retVar: String, currentContext: Context)(implicit factory: RFAFactFactory): (ISet[RFAFact], ISet[RFAFact]) = {
+  private def intentGetExtras(s: PTAResult, args: List[String], retVar: String, currentContext: Context)(implicit factory: SimHeap): (ISet[RFAFact], ISet[RFAFact]) = {
     require(args.nonEmpty)
     val thisSlot = VarSlot(args.head, isBase = false, isArg = true)
     val thisValue = s.pointsToSet(thisSlot, currentContext)
@@ -993,7 +993,7 @@ class IntentModel extends ModelCall {
   /**
    * Landroid/content/Intent;.getExtra:(Ljava/lang/String;)Ljava/lang/Object;
    */
-  private def intentGetExtra(s: PTAResult, args: List[String], retVar: String, currentContext: Context, desiredReturnTyp: JawaType)(implicit factory: RFAFactFactory): (ISet[RFAFact], ISet[RFAFact]) = {
+  private def intentGetExtra(s: PTAResult, args: List[String], retVar: String, currentContext: Context, desiredReturnTyp: JawaType)(implicit factory: SimHeap): (ISet[RFAFact], ISet[RFAFact]) = {
     require(args.size >1)
     val thisSlot = VarSlot(args.head, isBase = false, isArg = true)
     val thisValue = s.pointsToSet(thisSlot, currentContext)
@@ -1035,7 +1035,7 @@ class IntentModel extends ModelCall {
   /**
    * Landroid/content/Intent;.getExtra:(Ljava/lang/String;)Ljava/lang/Object;
    */
-  private def intentGetExtraWithDefault(s: PTAResult, args: List[String], retVar: String, currentContext: Context)(implicit factory: RFAFactFactory): (ISet[RFAFact], ISet[RFAFact]) = {
+  private def intentGetExtraWithDefault(s: PTAResult, args: List[String], retVar: String, currentContext: Context)(implicit factory: SimHeap): (ISet[RFAFact], ISet[RFAFact]) = {
     require(args.size >2)
     val thisSlot = VarSlot(args.head, isBase = false, isArg = true)
     val thisValue = s.pointsToSet(thisSlot, currentContext)
