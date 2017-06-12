@@ -7,7 +7,7 @@ branches:
   only:
   - master
 script:
-- sbt clean coverage test && sbt coverageReport && sbt coverageAggregate
+- sbt clean coverage "test-only -- -l org.scalatest.tags.Slow" && sbt coverageReport && sbt coverageAggregate
 after_success:
 - sbt codacyCoverage
 sudo: false
