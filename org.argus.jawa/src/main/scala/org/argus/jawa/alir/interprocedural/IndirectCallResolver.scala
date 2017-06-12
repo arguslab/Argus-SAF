@@ -54,8 +54,8 @@ class RunnableStartRun extends IndirectCall {
     val varFacts = factsToCallee.filter(f=>f.s.isInstanceOf[VarSlot])
     val result = msetEmpty[RFAFact]
     val killFacts = msetEmpty[RFAFact]
-    val argSlot = VarSlot(args.head, isBase = false, isArg = true)
-    val paramSlot = VarSlot(params.head, isBase = false, isArg = false)
+    val argSlot = VarSlot(args.head)
+    val paramSlot = VarSlot(params.head)
     varFacts.foreach { varFact =>
       if(varFact.s.getId == argSlot.getId) {
         val runnableSlot = FieldSlot(varFact.v, Constants.THREAD_RUNNABLE)
@@ -82,7 +82,7 @@ class ExecutorExecuteRun extends IndirectCall {
   }
 
   override def getCallTarget(global: Global, inss: ISet[Instance], callerContext: Context, args: IList[String], pTAResult: PTAResult): (ISet[(JawaMethod, Instance)], (ISet[RFAFact], IList[String], IList[String], SimHeap) => ISet[RFAFact]) = {
-    val varSlot = VarSlot(args(1), isBase = false, isArg = true)
+    val varSlot = VarSlot(args(1))
     val runnableInss = pTAResult.pointsToSet(varSlot, callerContext)
     val callees: MSet[(JawaMethod, Instance)] = msetEmpty
     runnableInss.foreach { runnableIns =>
@@ -101,8 +101,8 @@ class ExecutorExecuteRun extends IndirectCall {
   def mapFactsToCallee: (ISet[RFAFact], IList[String], IList[String], SimHeap) => ISet[RFAFact] = (factsToCallee, args, params, factory) => {
     val varFacts = factsToCallee.filter(f=>f.s.isInstanceOf[VarSlot])
     val result = msetEmpty[RFAFact]
-    val argSlot = VarSlot(args(1), isBase = false, isArg = true)
-    val paramSlot = VarSlot(params.head, isBase = false, isArg = false)
+    val argSlot = VarSlot(args(1))
+    val paramSlot = VarSlot(params.head)
     varFacts.foreach { varFact =>
       if(varFact.s.getId == argSlot.getId) {
         result += new RFAFact(paramSlot, varFact.v)(factory)
@@ -139,8 +139,8 @@ class HandlerMessage extends IndirectCall {
 
   def mapFactsToCallee: (ISet[RFAFact], IList[String], IList[String], SimHeap) => ISet[RFAFact] = (factsToCallee, args, params, factory) => {
     val varFacts = factsToCallee.filter(f=>f.s.isInstanceOf[VarSlot])
-    val argSlots = args.map(VarSlot(_, isBase = false, isArg = true))
-    val paramSlots = params.map(VarSlot(_, isBase = false, isArg = false))
+    val argSlots = args.map(VarSlot(_))
+    val paramSlots = params.map(VarSlot(_))
     val result = msetEmpty[RFAFact]
 
     for(i <- argSlots.indices){
@@ -181,8 +181,8 @@ class AsyncTask extends IndirectCall {
 
   def mapFactsToCallee: (ISet[RFAFact], IList[String], IList[String], SimHeap) => ISet[RFAFact] = (factsToCallee, args, params, factory) => {
     val varFacts = factsToCallee.filter(f=>f.s.isInstanceOf[VarSlot])
-    val argSlots = args.map(VarSlot(_, isBase = false, isArg = true))
-    val paramSlots = params.map(VarSlot(_, isBase = false, isArg = false))
+    val argSlots = args.map(VarSlot(_))
+    val paramSlots = params.map(VarSlot(_))
     val result = msetEmpty[RFAFact]
     for(i <- argSlots.indices){
       val argSlot = argSlots(i)

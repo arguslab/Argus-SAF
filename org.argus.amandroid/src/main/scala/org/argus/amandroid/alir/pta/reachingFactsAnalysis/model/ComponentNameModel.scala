@@ -56,10 +56,10 @@ class ComponentNameModel extends ModelCall {
       case "Landroid/content/ComponentName;.describeContents:()I" =>  //public
       case "Landroid/content/ComponentName;.equals:(Ljava/lang/Object;)Z" =>  //public
       case "Landroid/content/ComponentName;.flattenToShortString:()Ljava/lang/String;" =>  //public
-        newFacts += new RFAFact(VarSlot(retVar, isBase = false, isArg = false), PTAPointStringInstance(currentContext))
+        newFacts += new RFAFact(VarSlot(retVar), PTAPointStringInstance(currentContext))
         byPassFlag = false
       case "Landroid/content/ComponentName;.flattenToString:()Ljava/lang/String;" =>  //public
-        newFacts += new RFAFact(VarSlot(retVar, isBase = false, isArg = false), PTAPointStringInstance(currentContext))
+        newFacts += new RFAFact(VarSlot(retVar), PTAPointStringInstance(currentContext))
         byPassFlag = false
       case "Landroid/content/ComponentName;.getClassName:()Ljava/lang/String;" =>  //public
         newFacts ++=  getClassNameFromComponentName(s, args, retVar, currentContext)
@@ -74,13 +74,13 @@ class ComponentNameModel extends ModelCall {
       case "Landroid/content/ComponentName;.readFromParcel:(Landroid/os/Parcel;)Landroid/content/ComponentName;" =>  //public static
         //TODO: How to handle parcel
       case "Landroid/content/ComponentName;.toShortString:()Ljava/lang/String;" =>  //public
-        newFacts += new RFAFact(VarSlot(retVar, isBase = false, isArg = false), PTAPointStringInstance(currentContext))
+        newFacts += new RFAFact(VarSlot(retVar), PTAPointStringInstance(currentContext))
         byPassFlag = false
       case "Landroid/content/ComponentName;.toString:()Ljava/lang/String;" =>  //public
-        newFacts += new RFAFact(VarSlot(retVar, isBase = false, isArg = false), PTAPointStringInstance(currentContext))
+        newFacts += new RFAFact(VarSlot(retVar), PTAPointStringInstance(currentContext))
         byPassFlag = false
       case "Landroid/content/ComponentName;.unflattenFromString:(Ljava/lang/String;)Landroid/content/ComponentName;" =>  //public static
-        newFacts += new RFAFact(VarSlot(retVar, isBase = false, isArg = false), PTAPointStringInstance(currentContext))
+        newFacts += new RFAFact(VarSlot(retVar), PTAPointStringInstance(currentContext))
         byPassFlag = false
       case "Landroid/content/ComponentName;.writeToParcel:(Landroid/content/ComponentName;Landroid/os/Parcel;)V" =>  //public static
         //TODO: How to handle parcel
@@ -113,21 +113,21 @@ class ComponentNameModel extends ModelCall {
   
   private def getClassNameFromComponentName(s: PTAResult, args: List[String], retVar: String, currentContext: Context)(implicit factory: SimHeap): ISet[RFAFact] ={
     require(args.nonEmpty)
-    val thisSlot = VarSlot(args.head, isBase = false, isArg = true)
+    val thisSlot = VarSlot(args.head)
     val thisValue = s.pointsToSet(thisSlot, currentContext)
     if(thisValue.nonEmpty){
       val cValue = thisValue.map(tv=>s.pointsToSet(FieldSlot(tv, AndroidConstants.COMPONENTNAME_CLASS), currentContext)).reduce(iunion[Instance])
-      cValue.map(cv=> new RFAFact(VarSlot(retVar, isBase = false, isArg = false), cv))
+      cValue.map(cv=> new RFAFact(VarSlot(retVar), cv))
     } else isetEmpty
   }
   
   private def getShortClassNameFromComponentName(global: Global, s: PTAResult, args: List[String], retVar: String, currentContext: Context)(implicit factory: SimHeap): ISet[RFAFact] ={
     require(args.nonEmpty)
-    val thisSlot = VarSlot(args.head, isBase = false, isArg = true)
+    val thisSlot = VarSlot(args.head)
     val thisValue = s.pointsToSet(thisSlot, currentContext)
     if(thisValue.nonEmpty) {
         val cValue = thisValue.map(tv=>s.pointsToSet(FieldSlot(tv, AndroidConstants.COMPONENTNAME_CLASS), currentContext)).reduce(iunion[Instance])
-        getShortNameFromClassName(global, cValue, currentContext).map(cv=> new RFAFact(VarSlot(retVar, isBase = false, isArg = false), cv))
+        getShortNameFromClassName(global, cValue, currentContext).map(cv=> new RFAFact(VarSlot(retVar), cv))
     } else isetEmpty
   }
   
@@ -151,19 +151,19 @@ class ComponentNameModel extends ModelCall {
 
   private def getPackageNameFromComponentName(s: PTAResult, args: List[String], retVar: String, currentContext: Context)(implicit factory: SimHeap): ISet[RFAFact] = {
     require(args.nonEmpty)
-    val thisSlot = VarSlot(args.head, isBase = false, isArg = true)
+    val thisSlot = VarSlot(args.head)
     val thisValue = s.pointsToSet(thisSlot, currentContext)
     if(thisValue.nonEmpty){
       val cValue = thisValue.map(tv=>s.pointsToSet(FieldSlot(tv, AndroidConstants.COMPONENTNAME_PACKAGE), currentContext)).reduce(iunion[Instance])
-      cValue.map(cv=> new RFAFact(VarSlot(retVar, isBase = false, isArg = false), cv))
+      cValue.map(cv=> new RFAFact(VarSlot(retVar), cv))
     } else isetEmpty
   }
 
   private def initComponentNameWithCC(global: Global, s: PTAResult, args: List[String], currentContext: Context)(implicit factory: SimHeap): ISet[RFAFact] ={
     require(args.size >2)
-    val thisSlot = VarSlot(args.head, isBase = false, isArg = true)
+    val thisSlot = VarSlot(args.head)
     val thisValue = s.pointsToSet(thisSlot, currentContext)
-    val param2Slot = VarSlot(args(2), isBase = false, isArg = true)
+    val param2Slot = VarSlot(args(2))
     val param2Value = s.pointsToSet(param2Slot, currentContext)
     val clazzNames = 
       if(param2Value.isEmpty){
@@ -215,9 +215,9 @@ class ComponentNameModel extends ModelCall {
 
   private def initComponentNameWithCS(global: Global, s: PTAResult, args: List[String], currentContext: Context)(implicit factory: SimHeap): ISet[RFAFact] ={
     require(args.size >2)
-    val thisSlot = VarSlot(args.head, isBase = false, isArg = true)
+    val thisSlot = VarSlot(args.head)
     val thisValue = s.pointsToSet(thisSlot, currentContext)
-    val param2Slot = VarSlot(args(2), isBase = false, isArg = true)
+    val param2Slot = VarSlot(args(2))
     val param2Value = s.pointsToSet(param2Slot, currentContext)
     thisValue.map{
       tv =>
@@ -255,11 +255,11 @@ class ComponentNameModel extends ModelCall {
   
   private def initComponentNameWithSS(global: Global, s: PTAResult, args: List[String], currentContext: Context)(implicit factory: SimHeap): ISet[RFAFact] = {
     require(args.size >2)
-    val thisSlot = VarSlot(args.head, isBase = false, isArg = true)
+    val thisSlot = VarSlot(args.head)
     val thisValue = s.pointsToSet(thisSlot, currentContext)
-    val param1Slot = VarSlot(args(1), isBase = false, isArg = true)
+    val param1Slot = VarSlot(args(1))
     val param1Value = s.pointsToSet(param1Slot, currentContext)
-    val param2Slot = VarSlot(args(2), isBase = false, isArg = true)
+    val param2Slot = VarSlot(args(2))
     val param2Value = s.pointsToSet(param2Slot, currentContext)
     thisValue.map{
       tv =>
@@ -333,8 +333,8 @@ class ComponentNameModel extends ModelCall {
   
   private def cloneComponentName(s: PTAResult, args: List[String], retVar: String, currentContext: Context)(implicit factory: SimHeap): ISet[RFAFact] ={
     require(args.nonEmpty)
-    val thisSlot = VarSlot(args.head, isBase = false, isArg = true)
+    val thisSlot = VarSlot(args.head)
     val thisValue = s.pointsToSet(thisSlot, currentContext)
-    thisValue.map{s => new RFAFact(VarSlot(retVar, isBase = false, isArg = false), s.clone(currentContext))}
+    thisValue.map{s => new RFAFact(VarSlot(retVar), s.clone(currentContext))}
   }
 }

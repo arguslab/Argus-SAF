@@ -29,7 +29,7 @@ object AndroidRFAConfig {
   def getInitialFactsForMainEnvironment(dm: JawaMethod)(implicit factory: SimHeap): ISet[RFAFact] = {
     require(dm.getName == AndroidConstants.MAINCOMP_ENV || dm.getName == AndroidConstants.COMP_ENV)
     var result = isetEmpty[RFAFact]
-    val intentSlot = VarSlot(dm.getParamName(0), isBase = false, isArg = false)
+    val intentSlot = VarSlot(dm.getParamName(0))
     val context: Context = new Context(dm.getDeclaringClass.global.projectName)
     context.setContext(dm.getSignature, "L0000")
     val intentValue = PTAInstance(new JawaType(AndroidConstants.INTENT), context.copy)

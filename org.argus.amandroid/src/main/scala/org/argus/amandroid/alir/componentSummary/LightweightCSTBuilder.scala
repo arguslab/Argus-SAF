@@ -83,10 +83,10 @@ class LightweightCSTBuilder(global: Global) {
           callee =>
             callee.callee.signature match {
               case "Landroid/content/Intent;.<init>:(Landroid/content/Context;Ljava/lang/Class;)V" => //public constructor
-                val thisSlot = VarSlot(args.head, isBase = false, isArg = true)
+                val thisSlot = VarSlot(args.head)
                 val thisValue = ptaresult.pointsToSet(thisSlot, currentContext)
                 allIntent ++= thisValue
-                val param2Slot = VarSlot(args(2), isBase = false, isArg = true)
+                val param2Slot = VarSlot(args(2))
                 val param2Value = ptaresult.pointsToSet(param2Slot, currentContext)
                 param2Value.map {
                   case ci: ClassInstance =>
@@ -97,10 +97,10 @@ class LightweightCSTBuilder(global: Global) {
               case "Landroid/content/Intent;.<init>:(Landroid/content/Intent;)V" => //public constructor
               case "Landroid/content/Intent;.<init>:(Landroid/content/Intent;Z)V" => //private constructor
               case "Landroid/content/Intent;.<init>:(Ljava/lang/String;)V" => //public constructor
-                val thisSlot = VarSlot(args.head, isBase = false, isArg = true)
+                val thisSlot = VarSlot(args.head)
                 val thisValue = ptaresult.pointsToSet(thisSlot, currentContext)
                 allIntent ++= thisValue
-                val actionSlot = VarSlot(args(1), isBase = false, isArg = true)
+                val actionSlot = VarSlot(args(1))
                 val actionValue = ptaresult.pointsToSet(actionSlot, currentContext)
                 actionValue.foreach {
                   case psi: PTAConcreteStringInstance =>
@@ -109,12 +109,12 @@ class LightweightCSTBuilder(global: Global) {
                   case _ => impreciseImplicit ++= thisValue
                 }
               case "Landroid/content/Intent;.<init>:(Ljava/lang/String;Landroid/net/Uri;)V" => //public constructor
-                val thisSlot = VarSlot(args.head, isBase = false, isArg = true)
+                val thisSlot = VarSlot(args.head)
                 val thisValue = ptaresult.pointsToSet(thisSlot, currentContext)
                 allIntent ++= thisValue
-                val actionSlot = VarSlot(args(1), isBase = false, isArg = true)
+                val actionSlot = VarSlot(args(1))
                 val actionValue = ptaresult.pointsToSet(actionSlot, currentContext)
-                val dataSlot = VarSlot(args(2), isBase = false, isArg = true)
+                val dataSlot = VarSlot(args(2))
                 val dataValue = ptaresult.pointsToSet(dataSlot, currentContext)
                 actionValue.foreach {
                   case psi: PTAConcreteStringInstance =>
@@ -124,14 +124,14 @@ class LightweightCSTBuilder(global: Global) {
                 }
                 thisValue.map(unresolvedData.getOrElseUpdate(_, msetEmpty) ++= dataValue)
               case "Landroid/content/Intent;.<init>:(Ljava/lang/String;Landroid/net/Uri;Landroid/content/Context;Ljava/lang/Class;)V" => //public constructor
-                val thisSlot = VarSlot(args.head, isBase = false, isArg = true)
+                val thisSlot = VarSlot(args.head)
                 val thisValue = ptaresult.pointsToSet(thisSlot, currentContext)
                 allIntent ++= thisValue
-                val actionSlot = VarSlot(args(1), isBase = false, isArg = true)
+                val actionSlot = VarSlot(args(1))
                 val actionValue = ptaresult.pointsToSet(actionSlot, currentContext)
-                val dataSlot = VarSlot(args(2), isBase = false, isArg = true)
+                val dataSlot = VarSlot(args(2))
                 val dataValue = ptaresult.pointsToSet(dataSlot, currentContext)
-                val classSlot = VarSlot(args(4), isBase = false, isArg = true)
+                val classSlot = VarSlot(args(4))
                 val classValue = ptaresult.pointsToSet(classSlot, currentContext)
                 actionValue.foreach {
                   case psi: PTAConcreteStringInstance =>
@@ -147,10 +147,10 @@ class LightweightCSTBuilder(global: Global) {
                   case _ => impreciseExplicit ++= thisValue
                 }
               case "Landroid/content/Intent;.addCategory:(Ljava/lang/String;)Landroid/content/Intent;" => //public
-                val thisSlot = VarSlot(args.head, isBase = false, isArg = true)
+                val thisSlot = VarSlot(args.head)
                 val thisValue = ptaresult.pointsToSet(thisSlot, currentContext)
                 allIntent ++= thisValue
-                val categorySlot = VarSlot(args(1), isBase = false, isArg = true)
+                val categorySlot = VarSlot(args(1))
                 val categoryValue = ptaresult.pointsToSet(categorySlot, currentContext)
                 categoryValue.foreach {
                   case psi: PTAConcreteStringInstance =>
@@ -160,10 +160,10 @@ class LightweightCSTBuilder(global: Global) {
                 }
               case "Landroid/content/Intent;.addFlags:(I)Landroid/content/Intent;" => //public
               case "Landroid/content/Intent;.setAction:(Ljava/lang/String;)Landroid/content/Intent;" => //public
-                val thisSlot = VarSlot(args.head, isBase = false, isArg = true)
+                val thisSlot = VarSlot(args.head)
                 val thisValue = ptaresult.pointsToSet(thisSlot, currentContext)
                 allIntent ++= thisValue
-                val actionSlot = VarSlot(args(1), isBase = false, isArg = true)
+                val actionSlot = VarSlot(args(1))
                 val actionValue = ptaresult.pointsToSet(actionSlot, currentContext)
                 actionValue.foreach {
                   case psi: PTAConcreteStringInstance =>
@@ -172,10 +172,10 @@ class LightweightCSTBuilder(global: Global) {
                   case _ => impreciseImplicit ++= thisValue
                 }
               case "Landroid/content/Intent;.setClass:(Landroid/content/Context;Ljava/lang/Class;)Landroid/content/Intent;" => //public
-                val thisSlot = VarSlot(args.head, isBase = false, isArg = true)
+                val thisSlot = VarSlot(args.head)
                 val thisValue = ptaresult.pointsToSet(thisSlot, currentContext)
                 allIntent ++= thisValue
-                val classSlot = VarSlot(args(2), isBase = false, isArg = true)
+                val classSlot = VarSlot(args(2))
                 val classValue = ptaresult.pointsToSet(classSlot, currentContext)
                 classValue.map {
                   case ci: ClassInstance =>
@@ -185,10 +185,10 @@ class LightweightCSTBuilder(global: Global) {
                 }
               case "Landroid/content/Intent;.setClassName:(Landroid/content/Context;Ljava/lang/String;)Landroid/content/Intent;" |
                    "Landroid/content/Intent;.setClassName:(Ljava/lang/String;Ljava/lang/String;)Landroid/content/Intent;" => //public
-                val thisSlot = VarSlot(args.head, isBase = false, isArg = true)
+                val thisSlot = VarSlot(args.head)
                 val thisValue = ptaresult.pointsToSet(thisSlot, currentContext)
                 allIntent ++= thisValue
-                val classSlot = VarSlot(args(2), isBase = false, isArg = true)
+                val classSlot = VarSlot(args(2))
                 val classValue = ptaresult.pointsToSet(classSlot, currentContext)
                 classValue.map {
                   case psi: PTAConcreteStringInstance =>
@@ -197,28 +197,28 @@ class LightweightCSTBuilder(global: Global) {
                   case _ => impreciseExplicit ++= thisValue
                 }
               case "Landroid/content/Intent;.setComponent:(Landroid/content/ComponentName;)Landroid/content/Intent;" => //public
-                val thisSlot = VarSlot(args.head, isBase = false, isArg = true)
+                val thisSlot = VarSlot(args.head)
                 val thisValue = ptaresult.pointsToSet(thisSlot, currentContext)
                 allIntent ++= thisValue
-                val componentSlot = VarSlot(args(1), isBase = false, isArg = true)
+                val componentSlot = VarSlot(args(1))
                 val componentValue = ptaresult.pointsToSet(componentSlot, currentContext)
                 thisValue.map(unresolvedComp.getOrElseUpdate(_, msetEmpty) ++= componentValue)
               case "Landroid/content/Intent;.setData:(Landroid/net/Uri;)Landroid/content/Intent;" |
                    "Landroid/content/Intent;.setDataAndNormalize:(Landroid/net/Uri;)Landroid/content/Intent;" => //public
-                val thisSlot = VarSlot(args.head, isBase = false, isArg = true)
+                val thisSlot = VarSlot(args.head)
                 val thisValue = ptaresult.pointsToSet(thisSlot, currentContext)
                 allIntent ++= thisValue
-                val dataSlot = VarSlot(args(1), isBase = false, isArg = true)
+                val dataSlot = VarSlot(args(1))
                 val dataValue = ptaresult.pointsToSet(dataSlot, currentContext)
                 thisValue.map(unresolvedData.getOrElseUpdate(_, msetEmpty) ++= dataValue)
               case "Landroid/content/Intent;.setDataAndType:(Landroid/net/Uri;Ljava/lang/String;)Landroid/content/Intent;" |
                    "Landroid/content/Intent;.setDataAndTypeAndNormalize:(Landroid/net/Uri;Ljava/lang/String;)Landroid/content/Intent;" => //public
-                val thisSlot = VarSlot(args.head, isBase = false, isArg = true)
+                val thisSlot = VarSlot(args.head)
                 val thisValue = ptaresult.pointsToSet(thisSlot, currentContext)
                 allIntent ++= thisValue
-                val dataSlot = VarSlot(args(1), isBase = false, isArg = true)
+                val dataSlot = VarSlot(args(1))
                 val dataValue = ptaresult.pointsToSet(dataSlot, currentContext)
-                val typeSlot = VarSlot(args(2), isBase = false, isArg = true)
+                val typeSlot = VarSlot(args(2))
                 val typeValue = ptaresult.pointsToSet(typeSlot, currentContext)
                 thisValue.map(unresolvedData.getOrElseUpdate(_, msetEmpty) ++= dataValue)
                 typeValue.map {
@@ -231,10 +231,10 @@ class LightweightCSTBuilder(global: Global) {
               case "Landroid/content/Intent;.setPackage:(Ljava/lang/String;)Landroid/content/Intent;" => //public
               case "Landroid/content/Intent;.setType:(Ljava/lang/String;)Landroid/content/Intent;" |
                    "Landroid/content/Intent;.setTypeAndNormalize:(Ljava/lang/String;)Landroid/content/Intent;" => //public
-                val thisSlot = VarSlot(args.head, isBase = false, isArg = true)
+                val thisSlot = VarSlot(args.head)
                 val thisValue = ptaresult.pointsToSet(thisSlot, currentContext)
                 allIntent ++= thisValue
-                val typeSlot = VarSlot(args(1), isBase = false, isArg = true)
+                val typeSlot = VarSlot(args(1))
                 val typeValue = ptaresult.pointsToSet(typeSlot, currentContext)
                 typeValue.map {
                   case psi: PTAConcreteStringInstance =>
@@ -258,9 +258,9 @@ class LightweightCSTBuilder(global: Global) {
           callee =>
             callee.callee.signature match {
               case "Landroid/net/Uri;.parse:(Ljava/lang/String;)Landroid/net/Uri;" => //public static
-                val strSlot = VarSlot(args.head, isBase = false, isArg = true)
+                val strSlot = VarSlot(args.head)
                 val strValue = ptaresult.pointsToSet(strSlot, currentContext)
-                val retSlot = VarSlot(rets.head, isBase = false, isArg = false)
+                val retSlot = VarSlot(rets.head)
                 val retValue = ptaresult.pointsToSet(retSlot, currentContext)
                 unresolvedData.foreach {
                   case (intent, ds) =>
@@ -275,9 +275,9 @@ class LightweightCSTBuilder(global: Global) {
                     }
                 }
               case "Landroid/content/ComponentName;.<init>:(Landroid/content/Context;Ljava/lang/Class;)V" => //public constructor
-                val thisSlot = VarSlot(args.head, isBase = false, isArg = true)
+                val thisSlot = VarSlot(args.head)
                 val thisValue = ptaresult.pointsToSet(thisSlot, currentContext)
-                val componentSlot = VarSlot(args(2), isBase = false, isArg = true)
+                val componentSlot = VarSlot(args(2))
                 val componentValue = ptaresult.pointsToSet(componentSlot, currentContext)
                 unresolvedComp.foreach {
                   case (intent, comps) =>
@@ -292,9 +292,9 @@ class LightweightCSTBuilder(global: Global) {
                 }
               case "Landroid/content/ComponentName;.<init>:(Landroid/content/Context;Ljava/lang/String;)V" |
                    "Landroid/content/ComponentName;.<init>:(Ljava/lang/String;Ljava/lang/String;)V" => //public constructor
-                val thisSlot = VarSlot(args.head, isBase = false, isArg = true)
+                val thisSlot = VarSlot(args.head)
                 val thisValue = ptaresult.pointsToSet(thisSlot, currentContext)
-                val componentSlot = VarSlot(args(2), isBase = false, isArg = true)
+                val componentSlot = VarSlot(args(2))
                 val componentValue = ptaresult.pointsToSet(componentSlot, currentContext)
                 unresolvedComp.foreach {
                   case (intent, comps) =>

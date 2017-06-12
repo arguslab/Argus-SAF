@@ -72,10 +72,10 @@ class SummaryManager(implicit factory: SimHeap) {
     var slots: ISet[PTASlot] = isetEmpty
     rhs match {
       case st: SuThis =>
-        val thisSlot = VarSlot(recvOpt.getOrElse("hack"), isBase = false, isArg = false)
+        val thisSlot = VarSlot(recvOpt.getOrElse("hack"))
         slots = handleHeap(thisSlot, st.heapOpt, input)
       case sa: SuArg =>
-        val argSlot = VarSlot(args(sa.num), isBase = false, isArg = false)
+        val argSlot = VarSlot(args(sa.num))
         slots = handleHeap(argSlot, sa.heapOpt, input)
       case sg: SuGlobal =>
         val gSlot = StaticFieldSlot(sg.fqn)
@@ -106,16 +106,16 @@ class SummaryManager(implicit factory: SimHeap) {
     var slots: ISet[PTASlot] = isetEmpty
     lhs match {
       case st: SuThis =>
-        val thisSlot = VarSlot(recvOpt.getOrElse("hack"), isBase = false, isArg = false)
+        val thisSlot = VarSlot(recvOpt.getOrElse("hack"))
         slots = handleHeap(thisSlot, st.heapOpt, input)
       case sa: SuArg =>
-        val argSlot = VarSlot(args(sa.num), isBase = false, isArg = false)
+        val argSlot = VarSlot(args(sa.num))
         slots = handleHeap(argSlot, sa.heapOpt, input)
       case sg: SuGlobal =>
         val gSlot = StaticFieldSlot(sg.fqn)
         slots = handleHeap(gSlot, sg.heapOpt, input)
       case sr: SuRet =>
-        val retSlot = VarSlot(retOpt.getOrElse("hack"), isBase = false, isArg = false)
+        val retSlot = VarSlot(retOpt.getOrElse("hack"))
         slots = handleHeap(retSlot, sr.heapOpt, input)
     }
     slots

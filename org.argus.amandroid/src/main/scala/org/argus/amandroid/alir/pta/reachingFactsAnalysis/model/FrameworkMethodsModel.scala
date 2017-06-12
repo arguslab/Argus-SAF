@@ -87,14 +87,14 @@ class FrameworkMethodsModel extends ModelCall {
   private def registerReceiver(apk: ApkGlobal, s: PTAResult, args: List[String], retVar: String, currentContext: Context): ISet[RFAFact] ={
 //    val resullt = msetEmpty[RFAFact]
     require(args.size > 2)
-//    val thisSlot = VarSlot(args.head, isBase = false, isArg = true)
+//    val thisSlot = VarSlot(args.head)
 //    val thisValue = s.pointsToSet(thisSlot, currentContext)
-    val receiverSlot = VarSlot(args(1), isBase = false, isArg = true)
+    val receiverSlot = VarSlot(args(1))
     val receiverValue = s.pointsToSet(receiverSlot, currentContext)
-    val filterSlot = VarSlot(args(2), isBase = false, isArg = true)
+    val filterSlot = VarSlot(args(2))
     val filterValue = s.pointsToSet(filterSlot, currentContext)
     val permissionSlotOpt = 
-      if(args.lift(3).isDefined) Some(VarSlot(args(3), isBase = false, isArg = true))
+      if(args.lift(3).isDefined) Some(VarSlot(args(3)))
       else None
     val permissionValueOpt = 
       if(permissionSlotOpt.isDefined) Some(s.pointsToSet(permissionSlotOpt.get, currentContext))
@@ -148,7 +148,7 @@ class FrameworkMethodsModel extends ModelCall {
   private def getSystemService(apk: ApkGlobal, s: PTAResult, args: List[String], retVar: String, currentContext: Context): ISet[RFAFact] ={
     val result = isetEmpty[RFAFact]
     require(args.size >1)
-    val paramSlot = VarSlot(args(1), isBase = false, isArg = true)
+    val paramSlot = VarSlot(args(1))
     val paramValue = s.pointsToSet(paramSlot, currentContext)
     paramValue.foreach {
       case cstr@PTAConcreteStringInstance(text, _) =>

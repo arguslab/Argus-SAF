@@ -263,9 +263,9 @@ class ActivityModel extends ModelCall {
   
   private def setIntent(s: PTAResult, args: List[String], currentContext: Context)(implicit factory: SimHeap): (ISet[RFAFact], ISet[RFAFact]) = {
     require(args.size >1)
-    val thisSlot = VarSlot(args.head, isBase = false, isArg = true)
+    val thisSlot = VarSlot(args.head)
     val thisValue = s.pointsToSet(thisSlot, currentContext)
-    val intentSlot = VarSlot(args(1), isBase = false, isArg = true)
+    val intentSlot = VarSlot(args(1))
     val intentValue = s.pointsToSet(intentSlot, currentContext)
     var newfacts = isetEmpty[RFAFact]
     var delfacts = isetEmpty[RFAFact]
@@ -284,7 +284,7 @@ class ActivityModel extends ModelCall {
   
   private def getIntent(s: PTAResult, args: List[String], retVar: String, currentContext: Context)(implicit factory: SimHeap): (ISet[RFAFact], ISet[RFAFact]) = {
     require(args.nonEmpty)
-    val thisSlot = VarSlot(args.head, isBase = false, isArg = true)
+    val thisSlot = VarSlot(args.head)
     val thisValue = s.pointsToSet(thisSlot, currentContext)
     var newfacts = isetEmpty[RFAFact]
     val delfacts = isetEmpty[RFAFact]
@@ -301,7 +301,7 @@ class ActivityModel extends ModelCall {
 //            if(fields.contains("ALL")) mIntentValue += UnknownInstance(new NormalType(AndroidConstants.INTENT), defsite)
 //            if(fields.contains(AndroidConstants.ACTIVITY_INTENT)) mIntentValue += UnknownInstance(new NormalType(AndroidConstants.INTENT), defsite)
 //        }
-      newfacts ++= mIntentValue.map(miv=> new RFAFact(VarSlot(retVar, isBase = false, isArg = false), miv))
+      newfacts ++= mIntentValue.map(miv=> new RFAFact(VarSlot(retVar), miv))
     }
     (newfacts, delfacts)
   }

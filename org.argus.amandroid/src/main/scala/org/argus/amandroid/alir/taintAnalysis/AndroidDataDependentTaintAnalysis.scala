@@ -160,7 +160,7 @@ object AndroidDataDependentTaintAnalysis {
   private def extendIDDGForSinkApis(iddg: DataDependenceBaseGraph[InterProceduralDataDependenceAnalysis.Node], callArgNode: IDDGCallArgNode, ptaresult: PTAResult) = {
     val calleeSet = callArgNode.getCalleeSet
     calleeSet.foreach{ _ =>
-      val argSlot = VarSlot(callArgNode.argName, isBase = false, isArg = true)
+      val argSlot = VarSlot(callArgNode.argName)
       val argValue = ptaresult.pointsToSet(argSlot, callArgNode.getContext)
       val argRelatedValue = ptaresult.getRelatedHeapInstances(argValue, callArgNode.getContext)
       argRelatedValue.foreach{

@@ -97,9 +97,9 @@ class ThreadModel extends ModelCall {
   }
 
   private def getRunnable(s: PTAResult, thisArg: String, arg: String, currentContext: Context)(implicit factory: SimHeap): ISet[RFAFact] = {
-    val thisSlot = VarSlot(thisArg, isBase = false, isArg = true)
+    val thisSlot = VarSlot(thisArg)
     val thisValue = s.pointsToSet(thisSlot, currentContext)
-    val runnableSlot = VarSlot(arg, isBase = false, isArg = true)
+    val runnableSlot = VarSlot(arg)
     val runnableValue = s.pointsToSet(runnableSlot, currentContext)
     var newfacts = isetEmpty[RFAFact]
     thisValue.foreach{

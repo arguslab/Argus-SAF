@@ -31,20 +31,20 @@ class MapModel extends ModelCall {
 
 //  private def getPointStringToRet(retVar: String, currentContext: Context)(implicit factory: RFAFactFactory): RFAFact = {
 //    val newThisValue = PTAPointStringInstance(currentContext.copy)
-//    new RFAFact(VarSlot(retVar, isBase = false, isArg = false), newThisValue)
+//    new RFAFact(VarSlot(retVar), newThisValue)
 //  }
 
   private def cloneMap(s: PTAResult, args: List[String], retVar: String, currentContext: Context)(implicit factory: SimHeap): ISet[RFAFact] ={
     require(args.nonEmpty)
-    val thisSlot = VarSlot(args.head, isBase = false, isArg = true)
+    val thisSlot = VarSlot(args.head)
     val thisValue = s.pointsToSet(thisSlot, currentContext)
-    thisValue.map{s => new RFAFact(VarSlot(retVar, isBase = false, isArg = false), s.clone(currentContext))}
+    thisValue.map{s => new RFAFact(VarSlot(retVar), s.clone(currentContext))}
   }
   
   private def getMapEntrySetFactToRet(s: PTAResult, args: List[String], retVar: String, currentContext: Context)(implicit factory: SimHeap): ISet[RFAFact] ={
     var result = isetEmpty[RFAFact]
     require(args.nonEmpty)
-    val thisSlot = VarSlot(args.head, isBase = false, isArg = true)
+    val thisSlot = VarSlot(args.head)
     val thisValue = s.pointsToSet(thisSlot, currentContext)
     val strValue = thisValue.map{ins => s.pointsToSet(FieldSlot(ins, Constants.MAP_ENTRIES), currentContext)}.fold(isetEmpty)(iunion[Instance])
     val rf = ReachingFactsAnalysisHelper.getReturnFact(new JawaType(Constants.HASHSET), retVar, currentContext).get
@@ -56,7 +56,7 @@ class MapModel extends ModelCall {
   private def getMapKeySetToRet(s: PTAResult, args: List[String], retVar: String, currentContext: Context)(implicit factory: SimHeap): ISet[RFAFact] ={
     var result = isetEmpty[RFAFact]
     require(args.nonEmpty)
-    val thisSlot = VarSlot(args.head, isBase = false, isArg = true)
+    val thisSlot = VarSlot(args.head)
     val thisValue = s.pointsToSet(thisSlot, currentContext)
     val strValue = thisValue.map{ins => s.pointsToSet(FieldSlot(ins, Constants.MAP_ENTRIES), currentContext)}.fold(isetEmpty)(iunion[Instance])
     val rf = ReachingFactsAnalysisHelper.getReturnFact(new JawaType(Constants.HASHSET), retVar, currentContext).get
@@ -71,7 +71,7 @@ class MapModel extends ModelCall {
   private def getMapValuesToRet(s: PTAResult, args: List[String], retVar: String, currentContext: Context)(implicit factory: SimHeap): ISet[RFAFact] ={
     var result = isetEmpty[RFAFact]
     require(args.nonEmpty)
-    val thisSlot = VarSlot(args.head, isBase = false, isArg = true)
+    val thisSlot = VarSlot(args.head)
     val thisValue = s.pointsToSet(thisSlot, currentContext)
     val strValue = thisValue.map{ins => s.pointsToSet(FieldSlot(ins, Constants.MAP_ENTRIES), currentContext)}.fold(isetEmpty)(iunion[Instance])
     val rf = ReachingFactsAnalysisHelper.getReturnFact(new JawaType(Constants.HASHSET), retVar, currentContext).get
@@ -87,9 +87,9 @@ class MapModel extends ModelCall {
   private def getMapValue(s: PTAResult, args: List[String], retVar: String, currentContext: Context)(implicit factory: SimHeap): ISet[RFAFact] ={
     val result = msetEmpty[RFAFact]
     require(args.size >1)
-    val thisSlot = VarSlot(args.head, isBase = false, isArg = true)
+    val thisSlot = VarSlot(args.head)
     val thisValue = s.pointsToSet(thisSlot, currentContext)
-    val keySlot = VarSlot(args(1), isBase = false, isArg = true)
+    val keySlot = VarSlot(args(1))
     val keyValue = s.pointsToSet(keySlot, currentContext)
     if(thisValue.nonEmpty){
       val entValue = thisValue.map{ins => s.pointsToSet(FieldSlot(ins, Constants.MAP_ENTRIES), currentContext)}.fold(isetEmpty)(iunion[Instance])
@@ -97,7 +97,7 @@ class MapModel extends ModelCall {
         v =>
           require(v.isInstanceOf[PTATupleInstance])
           if(keyValue.exists { kIns => kIns === v.asInstanceOf[PTATupleInstance].left }){
-            result += new RFAFact(VarSlot(retVar, isBase = false, isArg = false), v.asInstanceOf[PTATupleInstance].right)
+            result += new RFAFact(VarSlot(retVar), v.asInstanceOf[PTATupleInstance].right)
           }
       }
     }
@@ -107,11 +107,11 @@ class MapModel extends ModelCall {
   private def putMapValue(s: PTAResult, args: List[String], currentContext: Context)(implicit factory: SimHeap): ISet[RFAFact] ={
     val result = msetEmpty[RFAFact]
     require(args.size >2)
-    val thisSlot = VarSlot(args.head, isBase = false, isArg = true)
+    val thisSlot = VarSlot(args.head)
     val thisValue = s.pointsToSet(thisSlot, currentContext)
-    val keySlot = VarSlot(args(1), isBase = false, isArg = true)
+    val keySlot = VarSlot(args(1))
     val keyValue = s.pointsToSet(keySlot, currentContext)
-    val valueSlot = VarSlot(args(2), isBase = false, isArg = true)
+    val valueSlot = VarSlot(args(2))
     val valueValue = s.pointsToSet(valueSlot, currentContext)
     val entrys = msetEmpty[Instance]
     keyValue.foreach{
@@ -133,9 +133,9 @@ class MapModel extends ModelCall {
   private def putAllMapValues(s: PTAResult, args: List[String], currentContext: Context)(implicit factory: SimHeap): ISet[RFAFact] ={
     var result = isetEmpty[RFAFact]
     require(args.size >1)
-    val thisSlot = VarSlot(args.head, isBase = false, isArg = true)
+    val thisSlot = VarSlot(args.head)
     val thisValue = s.pointsToSet(thisSlot, currentContext)
-    val slot2 = VarSlot(args(1), isBase = false, isArg = true)
+    val slot2 = VarSlot(args(1))
     val value2 = s.pointsToSet(slot2, currentContext)
     thisValue.foreach{
       ins =>

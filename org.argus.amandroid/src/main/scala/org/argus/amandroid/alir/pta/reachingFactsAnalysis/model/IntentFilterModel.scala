@@ -101,9 +101,9 @@ class IntentFilterModel extends ModelCall {
    */
   private def intentFilterInitWithAction(s: PTAResult, args: List[String], currentContext: Context)(implicit factory: SimHeap): (ISet[RFAFact], ISet[RFAFact]) = {
     require(args.size >1)
-    val thisSlot = VarSlot(args.head, isBase = false, isArg = true)
+    val thisSlot = VarSlot(args.head)
     val thisValue = s.pointsToSet(thisSlot, currentContext)
-    val actionSlot = VarSlot(args(1), isBase = false, isArg = true)
+    val actionSlot = VarSlot(args(1))
     val actionValue = s.pointsToSet(actionSlot, currentContext)
     var newfacts = isetEmpty[RFAFact]
     var delfacts = isetEmpty[RFAFact]

@@ -29,14 +29,8 @@ abstract class NameSlot(name: String) extends PTASlot(name) {
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
  * @author <a href="mailto:sroy@k-state.edu">Sankardas Roy</a>
  */
-final case class VarSlot(varName: String, isBase: Boolean, isArg: Boolean) extends NameSlot(varName) {
-  override def toString: String = {
-    val sb = new StringBuilder
-    if(isBase) sb.append("base:")
-    if(isArg) sb.append("arg:")
-    sb.append(varName)
-    sb.toString().intern()
-  }
+final case class VarSlot(varName: String) extends NameSlot(varName) {
+  override def toString: String = varName
 }
 
 /**

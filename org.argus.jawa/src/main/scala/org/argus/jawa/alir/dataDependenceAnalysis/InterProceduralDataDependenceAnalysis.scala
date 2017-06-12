@@ -92,7 +92,7 @@ object InterProceduralDataDependenceAnalysis {
             val icfgTarN = icfg.predecessors(icfgN)
             icfgTarN.foreach {
               case cn: ICFGCallNode =>
-                val retSlot = VarSlot(rn.retVarName, isBase = false, isArg = false)
+                val retSlot = VarSlot(rn.retVarName)
                 val retInss = ptaresult.pointsToSet(retSlot, rn.getContext)
                 val idEntNs = iddg.getIDDGCallArgNodes(cn).map(_.asInstanceOf[IDDGCallArgNode])
                 if (retInss.isEmpty) targetNodes ++= idEntNs
@@ -100,7 +100,7 @@ object InterProceduralDataDependenceAnalysis {
                   val argInss =
                     idEntNs.map {
                       n =>
-                        val argSlot = VarSlot(n.argName, isBase = false, isArg = true)
+                        val argSlot = VarSlot(n.argName)
                         ptaresult.getRelatedInstances(argSlot, n.getContext)
                     }
                   val poss = retInss.map {
@@ -153,7 +153,7 @@ object InterProceduralDataDependenceAnalysis {
       iddg: InterProceduralDataDependenceGraph[Node]): ISet[Node] = {
     val result = msetEmpty[Node]
     result ++= searchRda(global, callArgNode.argName, callArgNode, irdaFacts, iddg)
-    val argSlot = VarSlot(callArgNode.argName, isBase = false, isArg = true)
+    val argSlot = VarSlot(callArgNode.argName)
     val inss = ptaresult.pointsToSet(argSlot, callArgNode.getContext)
     inss.foreach(ins => result ++= iddg.findDefSite(ins.defSite))
     result.toSet
@@ -175,7 +175,7 @@ object InterProceduralDataDependenceAnalysis {
             if(LibSideEffectProvider.isDefined) LibSideEffectProvider.ipsear.result(calleeSig)
             else None
           for(i <- virtualBodyNode.argNames.indices) {
-            val argSlot = VarSlot(virtualBodyNode.argNames(i), isBase = false, isArg = true)
+            val argSlot = VarSlot(virtualBodyNode.argNames(i))
             val argInss = ptaresult.pointsToSet(argSlot, virtualBodyNode.getContext)
             argInss.foreach (ins => result ++= iddg.findDefSite(ins.defSite))
             if(sideEffectResult.isDefined) {
@@ -224,7 +224,7 @@ object InterProceduralDataDependenceAnalysis {
       case rs: ReturnStatement =>
         if (rs.varOpt.isDefined) {
           result ++= searchRda(global, rs.varOpt.get.varName, node, irdaFacts, iddg)
-          val slot = VarSlot(rs.varOpt.get.varName, isBase = false, isArg = false)
+          val slot = VarSlot(rs.varOpt.get.varName)
           val value = ptaresult.pointsToSet(slot, node.getContext)
           value.foreach{
             ins =>
@@ -275,7 +275,7 @@ object InterProceduralDataDependenceAnalysis {
     rhs match {
       case ne: NameExpression =>
         result ++= searchRda(global, ne.name, node, irdaFacts, iddg)
-        val slot = VarSlot(ne.name, isBase = false, isArg = false)
+        val slot = VarSlot(ne.name)
         val value = ptaresult.pointsToSet(slot, node.getContext)
         value.foreach{
           ins =>
@@ -283,7 +283,7 @@ object InterProceduralDataDependenceAnalysis {
         }
       case ae: AccessExpression =>
         result ++= searchRda(global, ae.base, node, irdaFacts, iddg)
-        val baseSlot = VarSlot(ae.base, isBase = true, isArg = false)
+        val baseSlot = VarSlot(ae.base)
         val baseValue = ptaresult.pointsToSet(baseSlot, node.getContext)
         baseValue.foreach{ ins =>
           result ++= iddg.findDefSite(ins.defSite)
@@ -295,7 +295,7 @@ object InterProceduralDataDependenceAnalysis {
         }
       case ie: IndexingExpression =>
         result ++= searchRda(global, ie.base, node, irdaFacts, iddg)
-        val baseSlot = VarSlot(ie.base, isBase = true, isArg = false)
+        val baseSlot = VarSlot(ie.base)
         val baseValue = ptaresult.pointsToSet(baseSlot, node.getContext)
         baseValue.foreach{ ins =>
           result ++= iddg.findDefSite(ins.defSite)
@@ -305,7 +305,7 @@ object InterProceduralDataDependenceAnalysis {
         }
       case ce: CastExpression =>
         result ++= searchRda(global, ce.varName, node, irdaFacts, iddg)
-        val slot = VarSlot(ce.varName, isBase = false, isArg = false)
+        val slot = VarSlot(ce.varName)
         val value = ptaresult.pointsToSet(slot, node.getContext)
         value.foreach { ins =>
           val defSite = ins.defSite
@@ -342,7 +342,7 @@ object InterProceduralDataDependenceAnalysis {
       iddg: InterProceduralDataDependenceGraph[Node]): ISet[Node] = {
     val result = msetEmpty[Node]
     result ++= searchRda(global, varName, node, irdaFacts, iddg)
-    val slot = VarSlot(varName, isBase = false, isArg = false)
+    val slot = VarSlot(varName)
     val value = ptaresult.pointsToSet(slot, node.getContext)
     value.foreach{
       ins =>

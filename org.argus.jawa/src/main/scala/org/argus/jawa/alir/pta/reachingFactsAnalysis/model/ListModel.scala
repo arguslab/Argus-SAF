@@ -31,9 +31,9 @@ class ListModel extends ModelCall {
   private def addItemToListField(s: PTAResult, args: List[String], itempar: Int, currentContext: Context)(implicit factory: SimHeap): ISet[RFAFact] ={
     require(args.size > 1)
     var newfacts = isetEmpty[RFAFact]
-    val thisSlot = VarSlot(args.head, isBase = false, isArg = true)
+    val thisSlot = VarSlot(args.head)
     val thisValues = s.pointsToSet(thisSlot, currentContext)
-    val paramSlot = VarSlot(args(itempar), isBase = false, isArg = true)
+    val paramSlot = VarSlot(args(itempar))
     val paramValues = s.pointsToSet(paramSlot, currentContext)
     thisValues.foreach{
       ins =>
@@ -45,21 +45,21 @@ class ListModel extends ModelCall {
   private def getListToRet(s: PTAResult, args: List[String], retVar: String, currentContext: Context)(implicit factory: SimHeap): ISet[RFAFact] ={
     require(args.nonEmpty)
     var newfacts = isetEmpty[RFAFact]
-    val thisSlot = VarSlot(args.head, isBase = false, isArg = true)
+    val thisSlot = VarSlot(args.head)
     val thisValue = s.pointsToSet(thisSlot, currentContext)
     val itemSlots = thisValue.map{s => FieldSlot(s, Constants.LIST_ITEMS)}
     itemSlots.foreach{
       islot =>
-        newfacts ++= s.pointsToSet(islot, currentContext).map(ins => new RFAFact(VarSlot(retVar, isBase = false, isArg = false), ins))
+        newfacts ++= s.pointsToSet(islot, currentContext).map(ins => new RFAFact(VarSlot(retVar), ins))
     }
     newfacts
   }
   
   private def cloneListToRet(s: PTAResult, args: List[String], retVar: String, currentContext: Context)(implicit factory: SimHeap): ISet[RFAFact] ={
     require(args.nonEmpty)
-    val thisSlot = VarSlot(args.head, isBase = false, isArg = true)
+    val thisSlot = VarSlot(args.head)
     val thisValue = s.pointsToSet(thisSlot, currentContext)
-    thisValue.map{s => new RFAFact(VarSlot(retVar, isBase = false, isArg = false), s.clone(currentContext))}
+    thisValue.map{s => new RFAFact(VarSlot(retVar), s.clone(currentContext))}
   }
   
   def doModelCall(s: PTAResult, p: JawaMethod, args: List[String], retVar: String, currentContext: Context)(implicit factory: SimHeap): (ISet[RFAFact], ISet[RFAFact], Boolean) = {

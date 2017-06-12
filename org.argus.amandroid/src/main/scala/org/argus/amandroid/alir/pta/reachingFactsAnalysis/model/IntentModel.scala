@@ -354,9 +354,9 @@ class IntentModel extends ModelCall {
    */
   private def intentInitWithIntent(s: PTAResult, args: List[String], currentContext: Context)(implicit factory: SimHeap): (ISet[RFAFact], ISet[RFAFact]) = {
     require(args.size >1)
-    val thisSlot = VarSlot(args.head, isBase = false, isArg = true)
+    val thisSlot = VarSlot(args.head)
     val thisValue = s.pointsToSet(thisSlot, currentContext)
-    val paramSlot = VarSlot(args(1), isBase = false, isArg = true)
+    val paramSlot = VarSlot(args(1))
     val paramValue = s.pointsToSet(paramSlot, currentContext)
     var newfacts = isetEmpty[RFAFact]
     val delfacts = isetEmpty[RFAFact]
@@ -402,9 +402,9 @@ class IntentModel extends ModelCall {
    */
   private def intentInitWithAction(s: PTAResult, args: List[String], currentContext: Context)(implicit factory: SimHeap): (ISet[RFAFact], ISet[RFAFact]) = {
     require(args.size >1)
-    val thisSlot = VarSlot(args.head, isBase = false, isArg = true)
+    val thisSlot = VarSlot(args.head)
     val thisValue = s.pointsToSet(thisSlot, currentContext)
-    val actionSlot = VarSlot(args(1), isBase = false, isArg = true)
+    val actionSlot = VarSlot(args(1))
     val actionValue = s.pointsToSet(actionSlot, currentContext)
     var newfacts = isetEmpty[RFAFact]
     val delfacts = isetEmpty[RFAFact]
@@ -427,11 +427,11 @@ class IntentModel extends ModelCall {
    */
   private def intentInitWithActionAndData(s: PTAResult, args: List[String], currentContext: Context)(implicit factory: SimHeap): (ISet[RFAFact], ISet[RFAFact]) = {
     require(args.size >2)
-    val thisSlot = VarSlot(args.head, isBase = false, isArg = true)
+    val thisSlot = VarSlot(args.head)
     val thisValue = s.pointsToSet(thisSlot, currentContext)
-    val actionSlot = VarSlot(args(1), isBase = false, isArg = true)
+    val actionSlot = VarSlot(args(1))
     val actionValue = s.pointsToSet(actionSlot, currentContext)
-    val dataSlot = VarSlot(args(2), isBase = false, isArg = true)
+    val dataSlot = VarSlot(args(2))
     val dataValue = s.pointsToSet(dataSlot, currentContext)
     var newfacts = isetEmpty[RFAFact]
     val delfacts = isetEmpty[RFAFact]
@@ -461,13 +461,13 @@ class IntentModel extends ModelCall {
    */
   private def intentInitWithActionDataAndComponent(global: Global, s: PTAResult, args: List[String], currentContext: Context)(implicit factory: SimHeap): (ISet[RFAFact], ISet[RFAFact]) = {
     require(args.size >4)
-    val thisSlot = VarSlot(args.head, isBase = false, isArg = true)
+    val thisSlot = VarSlot(args.head)
     val thisValue = s.pointsToSet(thisSlot, currentContext)
-    val actionSlot = VarSlot(args(1), isBase = false, isArg = true)
+    val actionSlot = VarSlot(args(1))
     val actionValue = s.pointsToSet(actionSlot, currentContext)
-    val dataSlot = VarSlot(args(2), isBase = false, isArg = true)
+    val dataSlot = VarSlot(args(2))
     val dataValue = s.pointsToSet(dataSlot, currentContext)
-    val classSlot = VarSlot(args(4), isBase = false, isArg = true)
+    val classSlot = VarSlot(args(4))
     val classValue = s.pointsToSet(classSlot, currentContext)
   
     val clazzNames = 
@@ -535,9 +535,9 @@ class IntentModel extends ModelCall {
    */
   private def intentInitWithCC(global: Global, s: PTAResult, args: List[String], currentContext: Context)(implicit factory: SimHeap): (ISet[RFAFact], ISet[RFAFact]) = {
     require(args.size >2)
-    val thisSlot = VarSlot(args.head, isBase = false, isArg = true)
+    val thisSlot = VarSlot(args.head)
     val thisValue = s.pointsToSet(thisSlot, currentContext)
-    val param2Slot = VarSlot(args(2), isBase = false, isArg = true)
+    val param2Slot = VarSlot(args(2))
     val param2Value = s.pointsToSet(param2Slot, currentContext)
     val clazzNames = 
       param2Value.map {
@@ -588,9 +588,9 @@ class IntentModel extends ModelCall {
    */
   private def intentAddCategory(s: PTAResult, args: List[String], retVar: String, currentContext: Context)(implicit factory: SimHeap): (ISet[RFAFact], ISet[RFAFact]) = {
     require(args.size >1)
-    val thisSlot = VarSlot(args.head, isBase = false, isArg = true)
+    val thisSlot = VarSlot(args.head)
     val thisValue = s.pointsToSet(thisSlot, currentContext)
-    val categorySlot = VarSlot(args(1), isBase = false, isArg = true)
+    val categorySlot = VarSlot(args(1))
     val categoryValue = s.pointsToSet(categorySlot, currentContext)
     var newfacts = isetEmpty[RFAFact]
     var delfacts = isetEmpty[RFAFact]
@@ -619,7 +619,7 @@ class IntentModel extends ModelCall {
               newfacts += new RFAFact(FieldSlot(hashsetIns,  Constants.HASHSET_ITEMS), cn)
           }
         }
-        newfacts += new RFAFact(VarSlot(retVar, isBase = false, isArg = false), tv)
+        newfacts += new RFAFact(VarSlot(retVar), tv)
     }
     (newfacts, delfacts)
   }
@@ -629,13 +629,13 @@ class IntentModel extends ModelCall {
    */
   private def intentClone(s: PTAResult, args: List[String], retVar: String, currentContext: Context)(implicit factory: SimHeap): (ISet[RFAFact], ISet[RFAFact]) = {
     require(args.nonEmpty)
-    val thisSlot = VarSlot(args.head, isBase = false, isArg = true)
+    val thisSlot = VarSlot(args.head)
     val thisValue = s.pointsToSet(thisSlot, currentContext)
     var newfacts = isetEmpty[RFAFact]
     val delfacts = isetEmpty[RFAFact]
     thisValue.foreach{
       tv =>
-        newfacts += new RFAFact(VarSlot(retVar, isBase = false, isArg = false), tv.clone(currentContext))
+        newfacts += new RFAFact(VarSlot(retVar), tv.clone(currentContext))
     }
     (newfacts, delfacts)
   }
@@ -646,9 +646,9 @@ class IntentModel extends ModelCall {
    */
   private def intentSetAction(s: PTAResult, args: List[String], retVar: String, currentContext: Context)(implicit factory: SimHeap): (ISet[RFAFact], ISet[RFAFact]) = {
     require(args.size >1)
-    val thisSlot = VarSlot(args.head, isBase = false, isArg = true)
+    val thisSlot = VarSlot(args.head)
     val thisValue = s.pointsToSet(thisSlot, currentContext)
-    val actionSlot = VarSlot(args(1), isBase = false, isArg = true)
+    val actionSlot = VarSlot(args(1))
     val actionValue = s.pointsToSet(actionSlot, currentContext)
     var newfacts = isetEmpty[RFAFact]
     val delfacts = isetEmpty[RFAFact]
@@ -668,7 +668,7 @@ class IntentModel extends ModelCall {
                 }
             }
         }
-        newfacts += new RFAFact(VarSlot(retVar, isBase = false, isArg = false), tv)
+        newfacts += new RFAFact(VarSlot(retVar), tv)
     }
     (newfacts, delfacts)
   }
@@ -679,9 +679,9 @@ class IntentModel extends ModelCall {
    */
   private def intentSetClass(global: Global, s: PTAResult, args: List[String], retVar: String, currentContext: Context)(implicit factory: SimHeap): (ISet[RFAFact], ISet[RFAFact]) = {
     require(args.size >2)
-    val thisSlot = VarSlot(args.head, isBase = false, isArg = true)
+    val thisSlot = VarSlot(args.head)
     val thisValue =s.pointsToSet(thisSlot, currentContext)
-    val param2Slot = VarSlot(args(2), isBase = false, isArg = true)
+    val param2Slot = VarSlot(args(2))
     val param2Value = s.pointsToSet(param2Slot, currentContext)
     val clazzNames = 
       param2Value.map {
@@ -698,7 +698,7 @@ class IntentModel extends ModelCall {
       tv =>
         val mComponentSlot = FieldSlot(tv, AndroidConstants.INTENT_COMPONENT)
         newfacts += new RFAFact(mComponentSlot, componentNameIns)
-        newfacts += new RFAFact(VarSlot(retVar, isBase = false, isArg = false), tv)
+        newfacts += new RFAFact(VarSlot(retVar), tv)
     }
     clazzNames.foreach {
       case cstr@PTAConcreteStringInstance(text, c) =>
@@ -734,9 +734,9 @@ class IntentModel extends ModelCall {
    */
   private def intentSetClassName(global: Global, s: PTAResult, args: List[String], retVar: String, currentContext: Context)(implicit factory: SimHeap): (ISet[RFAFact], ISet[RFAFact]) = {
     require(args.size >2)
-    val thisSlot = VarSlot(args.head, isBase = false, isArg = true)
+    val thisSlot = VarSlot(args.head)
     val thisValue = s.pointsToSet(thisSlot, currentContext)
-    val clazzSlot = VarSlot(args(2), isBase = false, isArg = true)
+    val clazzSlot = VarSlot(args(2))
     val clazzValue = s.pointsToSet(clazzSlot, currentContext)
     val componentNameIns = PTAInstance(new JawaType(AndroidConstants.COMPONENTNAME), currentContext)
     var newfacts = isetEmpty[RFAFact]
@@ -745,7 +745,7 @@ class IntentModel extends ModelCall {
       tv =>
         val mComponentSlot = FieldSlot(tv, AndroidConstants.INTENT_COMPONENT)
         newfacts += new RFAFact(mComponentSlot, componentNameIns)
-        newfacts += new RFAFact(VarSlot(retVar, isBase = false, isArg = false), tv)
+        newfacts += new RFAFact(VarSlot(retVar), tv)
     }
     clazzValue.foreach {
       case cstr@PTAConcreteStringInstance(text, c) =>
@@ -781,9 +781,9 @@ class IntentModel extends ModelCall {
    */
   private def intentSetComponent(s: PTAResult, args: List[String], retVar: String, currentContext: Context)(implicit factory: SimHeap): (ISet[RFAFact], ISet[RFAFact]) = {
     require(args.size >1)
-    val thisSlot = VarSlot(args.head, isBase = false, isArg = true)
+    val thisSlot = VarSlot(args.head)
     val thisValue = s.pointsToSet(thisSlot, currentContext)
-    val componentSlot = VarSlot(args(1), isBase = false, isArg = true)
+    val componentSlot = VarSlot(args(1))
     val componentValue = s.pointsToSet(componentSlot, currentContext)
     var newfacts = isetEmpty[RFAFact]
     val delfacts = isetEmpty[RFAFact]
@@ -794,7 +794,7 @@ class IntentModel extends ModelCall {
             newfacts += new RFAFact(FieldSlot(tv, AndroidConstants.INTENT_COMPONENT), component)
           }
       }
-      newfacts += new RFAFact(VarSlot(retVar, isBase = false, isArg = false), tv)
+      newfacts += new RFAFact(VarSlot(retVar), tv)
     }
     (newfacts, delfacts)
   }
@@ -804,9 +804,9 @@ class IntentModel extends ModelCall {
    */
   private def intentSetData(s: PTAResult, args: List[String], retVar: String, currentContext: Context)(implicit factory: SimHeap): (ISet[RFAFact], ISet[RFAFact]) = {
     require(args.size >1)
-    val thisSlot = VarSlot(args.head, isBase = false, isArg = true)
+    val thisSlot = VarSlot(args.head)
     val thisValue = s.pointsToSet(thisSlot, currentContext)
-    val dataSlot = VarSlot(args(1), isBase = false, isArg = true)
+    val dataSlot = VarSlot(args(1))
     val dataValue = s.pointsToSet(dataSlot, currentContext)
     var newfacts = isetEmpty[RFAFact]
     val delfacts = isetEmpty[RFAFact]
@@ -819,7 +819,7 @@ class IntentModel extends ModelCall {
                 newfacts += new RFAFact(FieldSlot(tv, AndroidConstants.INTENT_URI_DATA), data)
             }
         }
-        newfacts += new RFAFact(VarSlot(retVar, isBase = false, isArg = false), tv)
+        newfacts += new RFAFact(VarSlot(retVar), tv)
     }
     (newfacts, delfacts)
   }
@@ -829,11 +829,11 @@ class IntentModel extends ModelCall {
    */
   private def intentSetDataAndType(s: PTAResult, args: List[String], retVar: String, currentContext: Context)(implicit factory: SimHeap): (ISet[RFAFact], ISet[RFAFact]) = {
     require(args.size >2)
-    val thisSlot = VarSlot(args.head, isBase = false, isArg = true)
+    val thisSlot = VarSlot(args.head)
     val thisValue = s.pointsToSet(thisSlot, currentContext)
-    val dataSlot = VarSlot(args(1), isBase = false, isArg = true)
+    val dataSlot = VarSlot(args(1))
     val dataValue = s.pointsToSet(dataSlot, currentContext)
-    val typeSlot = VarSlot(args(2), isBase = false, isArg = true)
+    val typeSlot = VarSlot(args(2))
     val typeValue = s.pointsToSet(typeSlot, currentContext)
     var newfacts = isetEmpty[RFAFact]
     val delfacts = isetEmpty[RFAFact]
@@ -853,7 +853,7 @@ class IntentModel extends ModelCall {
                 newfacts += new RFAFact(FieldSlot(tv, AndroidConstants.INTENT_MTYPE), typ)
             }
         }
-        newfacts += new RFAFact(VarSlot(retVar, isBase = false, isArg = false), tv)
+        newfacts += new RFAFact(VarSlot(retVar), tv)
     }
     (newfacts, delfacts)
   }
@@ -863,9 +863,9 @@ class IntentModel extends ModelCall {
    */
   private def intentSetType(s: PTAResult, args: List[String], retVar: String, currentContext: Context)(implicit factory: SimHeap): (ISet[RFAFact], ISet[RFAFact]) = {
     require(args.size >1)
-    val thisSlot = VarSlot(args.head, isBase = false, isArg = true)
+    val thisSlot = VarSlot(args.head)
     val thisValue = s.pointsToSet(thisSlot, currentContext)
-    val typeSlot = VarSlot(args(1), isBase = false, isArg = true)
+    val typeSlot = VarSlot(args(1))
     val typeValue = s.pointsToSet(typeSlot, currentContext)
     var newfacts = isetEmpty[RFAFact]
     val delfacts = isetEmpty[RFAFact]
@@ -878,7 +878,7 @@ class IntentModel extends ModelCall {
                 newfacts += new RFAFact(FieldSlot(tv, AndroidConstants.INTENT_MTYPE), typ)
             }
         }
-        newfacts += new RFAFact(VarSlot(retVar, isBase = false, isArg = false), tv)
+        newfacts += new RFAFact(VarSlot(retVar), tv)
     }
     (newfacts, delfacts)
   }
@@ -888,9 +888,9 @@ class IntentModel extends ModelCall {
    */
 //  private def intentSetPackage(s: PTAResult, args: List[String], retVar: String, currentContext: Context)(implicit factory: RFAFactFactory): (ISet[RFAFact], ISet[RFAFact]) = {
 //    require(args.size >1)
-//    val thisSlot = VarSlot(args.head, isBase = false, isArg = true)
+//    val thisSlot = VarSlot(args.head)
 //    val thisValue = s.pointsToSet(thisSlot, currentContext)
-//    val packageSlot = VarSlot(args(1), isBase = false, isArg = true)
+//    val packageSlot = VarSlot(args(1))
 //    val packageValue = s.pointsToSet(packageSlot, currentContext)
 //    var newfacts = isetEmpty[RFAFact]
 //    val delfacts = isetEmpty[RFAFact]
@@ -910,7 +910,7 @@ class IntentModel extends ModelCall {
 //              }
 //          }
 //      }
-//      newfacts += new RFAFact(VarSlot(retVar, isBase = false, isArg = false), tv)
+//      newfacts += new RFAFact(VarSlot(retVar), tv)
 //    }
 //    (newfacts, delfacts)
 //  }
@@ -920,13 +920,13 @@ class IntentModel extends ModelCall {
    */
   private def intentSetFlags(s: PTAResult, args: List[String], retVar: String, currentContext: Context)(implicit factory: SimHeap): (ISet[RFAFact], ISet[RFAFact]) = {
     require(args.size >1)
-    val thisSlot = VarSlot(args.head, isBase = false, isArg = true)
+    val thisSlot = VarSlot(args.head)
     val thisValue = s.pointsToSet(thisSlot, currentContext)
     var newfacts = isetEmpty[RFAFact]
     val delfacts = isetEmpty[RFAFact]
     thisValue.foreach{
       tv =>
-        newfacts += new RFAFact(VarSlot(retVar, isBase = false, isArg = false), tv)
+        newfacts += new RFAFact(VarSlot(retVar), tv)
     }
     (newfacts, delfacts)
   }
@@ -936,11 +936,11 @@ class IntentModel extends ModelCall {
    */
   private def intentPutExtra(s: PTAResult, args: List[String], retVar: String, currentContext: Context)(implicit factory: SimHeap): (ISet[RFAFact], ISet[RFAFact]) = {
     require(args.size >2)
-    val thisSlot = VarSlot(args.head, isBase = false, isArg = true)
+    val thisSlot = VarSlot(args.head)
     val thisValue = s.pointsToSet(thisSlot, currentContext)
-    val keySlot = VarSlot(args(1), isBase = false, isArg = true)
+    val keySlot = VarSlot(args(1))
     val keyValue = s.pointsToSet(keySlot, currentContext)
-    val valueSlot = VarSlot(args(2), isBase = false, isArg = true)
+    val valueSlot = VarSlot(args(2))
     val valueValue = s.pointsToSet(valueSlot, currentContext)
     var newfacts = isetEmpty[RFAFact]
     val delfacts = isetEmpty[RFAFact]
@@ -964,7 +964,7 @@ class IntentModel extends ModelCall {
           }
           newfacts ++= entries.map(e => new RFAFact(FieldSlot(mev, AndroidConstants.BUNDLE_ENTRIES), e))
         }
-        newfacts += new RFAFact(VarSlot(retVar, isBase = false, isArg = false), tv)
+        newfacts += new RFAFact(VarSlot(retVar), tv)
     }
     (newfacts, delfacts)
   }
@@ -974,7 +974,7 @@ class IntentModel extends ModelCall {
    */
   private def intentGetExtras(s: PTAResult, args: List[String], retVar: String, currentContext: Context)(implicit factory: SimHeap): (ISet[RFAFact], ISet[RFAFact]) = {
     require(args.nonEmpty)
-    val thisSlot = VarSlot(args.head, isBase = false, isArg = true)
+    val thisSlot = VarSlot(args.head)
     val thisValue = s.pointsToSet(thisSlot, currentContext)
     var newfacts = isetEmpty[RFAFact]
     val delfacts = isetEmpty[RFAFact]
@@ -982,9 +982,9 @@ class IntentModel extends ModelCall {
       val mExtraSlot = FieldSlot(ins, AndroidConstants.INTENT_EXTRAS)
       val mExtraValue = s.pointsToSet(mExtraSlot, currentContext)
       if(mExtraValue.nonEmpty){
-        newfacts ++= mExtraValue.map{mev => new RFAFact(VarSlot(retVar, isBase = false, isArg = false), mev)}
+        newfacts ++= mExtraValue.map{mev => new RFAFact(VarSlot(retVar), mev)}
       } else {
-        newfacts += new RFAFact(VarSlot(retVar, isBase = false, isArg = false), PTAInstance(JavaKnowledge.getTypeFromJawaName(AndroidConstants.BUNDLE).toUnknown, currentContext.copy))
+        newfacts += new RFAFact(VarSlot(retVar), PTAInstance(JavaKnowledge.getTypeFromJawaName(AndroidConstants.BUNDLE).toUnknown, currentContext.copy))
       }
     }
     (newfacts, delfacts)
@@ -995,9 +995,9 @@ class IntentModel extends ModelCall {
    */
   private def intentGetExtra(s: PTAResult, args: List[String], retVar: String, currentContext: Context, desiredReturnTyp: JawaType)(implicit factory: SimHeap): (ISet[RFAFact], ISet[RFAFact]) = {
     require(args.size >1)
-    val thisSlot = VarSlot(args.head, isBase = false, isArg = true)
+    val thisSlot = VarSlot(args.head)
     val thisValue = s.pointsToSet(thisSlot, currentContext)
-    val keySlot = VarSlot(args(1), isBase = false, isArg = true)
+    val keySlot = VarSlot(args(1))
     val keyValue = s.pointsToSet(keySlot, currentContext)
     var newfacts = isetEmpty[RFAFact]
     val delfacts = isetEmpty[RFAFact]
@@ -1009,24 +1009,24 @@ class IntentModel extends ModelCall {
         else
           mExtraValue.map{ins => s.pointsToSet(FieldSlot(ins, AndroidConstants.BUNDLE_ENTRIES), currentContext)}.reduce(iunion[Instance])
       if(entValue.isEmpty && desiredReturnTyp.isObject) {
-        newfacts += new RFAFact(VarSlot(retVar, isBase = false, isArg = false), PTAInstance(desiredReturnTyp.toUnknown, currentContext.copy))
+        newfacts += new RFAFact(VarSlot(retVar), PTAInstance(desiredReturnTyp.toUnknown, currentContext.copy))
       } else if(keyValue.nonEmpty && !keyValue.exists(_.isInstanceOf[PTAPointStringInstance])) {
         val keys = keyValue.map{k => k.asInstanceOf[PTAConcreteStringInstance].string}
         entValue.foreach{
           v =>
             require(v.isInstanceOf[PTATupleInstance])
             if(keys.contains(v.asInstanceOf[PTATupleInstance].left.asInstanceOf[PTAConcreteStringInstance].string)){
-              newfacts += new RFAFact(VarSlot(retVar, isBase = false, isArg = false), v.asInstanceOf[PTATupleInstance].right)
+              newfacts += new RFAFact(VarSlot(retVar), v.asInstanceOf[PTATupleInstance].right)
             }
         }
       } else if(entValue.nonEmpty) {
         entValue.foreach {
           v =>
             require(v.isInstanceOf[PTATupleInstance])
-            newfacts += new RFAFact(VarSlot(retVar, isBase = false, isArg = false), v.asInstanceOf[PTATupleInstance].right)
+            newfacts += new RFAFact(VarSlot(retVar), v.asInstanceOf[PTATupleInstance].right)
         }
       } else {
-        newfacts += new RFAFact(VarSlot(retVar, isBase = false, isArg = false), PTAInstance(JavaKnowledge.JAVA_TOPLEVEL_OBJECT_TYPE.toUnknown, currentContext.copy))
+        newfacts += new RFAFact(VarSlot(retVar), PTAInstance(JavaKnowledge.JAVA_TOPLEVEL_OBJECT_TYPE.toUnknown, currentContext.copy))
       }
     }
     (newfacts, delfacts)
@@ -1037,11 +1037,11 @@ class IntentModel extends ModelCall {
    */
   private def intentGetExtraWithDefault(s: PTAResult, args: List[String], retVar: String, currentContext: Context)(implicit factory: SimHeap): (ISet[RFAFact], ISet[RFAFact]) = {
     require(args.size >2)
-    val thisSlot = VarSlot(args.head, isBase = false, isArg = true)
+    val thisSlot = VarSlot(args.head)
     val thisValue = s.pointsToSet(thisSlot, currentContext)
-    val keySlot = VarSlot(args(1), isBase = false, isArg = true)
+    val keySlot = VarSlot(args(1))
     val keyValue = s.pointsToSet(keySlot, currentContext)
-    val defaultSlot = VarSlot(args(2), isBase = false, isArg = true)
+    val defaultSlot = VarSlot(args(2))
     val defaultValue = s.pointsToSet(defaultSlot, currentContext)
     var newfacts = isetEmpty[RFAFact]
     val delfacts = isetEmpty[RFAFact]
@@ -1058,21 +1058,21 @@ class IntentModel extends ModelCall {
           v =>
             require(v.isInstanceOf[PTATupleInstance])
             if(keys.contains(v.asInstanceOf[PTATupleInstance].left.asInstanceOf[PTAConcreteStringInstance].string)){
-              newfacts += new RFAFact(VarSlot(retVar, isBase = false, isArg = false), v.asInstanceOf[PTATupleInstance].right)
+              newfacts += new RFAFact(VarSlot(retVar), v.asInstanceOf[PTATupleInstance].right)
             }
         }
       } else if(entValue.nonEmpty) {
         entValue.foreach{
           v =>
             require(v.isInstanceOf[PTATupleInstance])
-            newfacts += new RFAFact(VarSlot(retVar, isBase = false, isArg = false), v.asInstanceOf[PTATupleInstance].right)
+            newfacts += new RFAFact(VarSlot(retVar), v.asInstanceOf[PTATupleInstance].right)
         }
       } else {
-        newfacts += new RFAFact(VarSlot(retVar, isBase = false, isArg = false), PTAInstance(JavaKnowledge.JAVA_TOPLEVEL_OBJECT_TYPE.toUnknown, currentContext.copy))
+        newfacts += new RFAFact(VarSlot(retVar), PTAInstance(JavaKnowledge.JAVA_TOPLEVEL_OBJECT_TYPE.toUnknown, currentContext.copy))
       }
     }
     if(newfacts.isEmpty){
-      newfacts ++= defaultValue.map(new RFAFact(VarSlot(retVar, isBase = false, isArg = false), _))
+      newfacts ++= defaultValue.map(new RFAFact(VarSlot(retVar), _))
     }
     (newfacts, delfacts)
   }

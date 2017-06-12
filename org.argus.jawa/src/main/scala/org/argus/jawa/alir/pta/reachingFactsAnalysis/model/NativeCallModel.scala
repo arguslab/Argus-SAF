@@ -32,12 +32,12 @@ class NativeCallModel extends ModelCall {
         // algo:thisvalue.foreach {ins => set insRec's classObj field with a classIns whose type is java:lang:Class and name is same as ins's type
                  // then, create two facts (a) (retVarSlot, insRec.classObj), (b) ([insRec.classObj, "java:lang:Class.name"], concreteString(ins.typ))}
         require(args.nonEmpty)
-        val thisSlot = VarSlot(args.head, isBase = false, isArg = true)
+        val thisSlot = VarSlot(args.head)
         val thisValue = s.pointsToSet(thisSlot, currentContext)
         thisValue.foreach{
           ins =>
             val insClasObj = ClassInstance(ins.typ, currentContext)
-            newFacts += new RFAFact(VarSlot(retVar, isBase = false, isArg = false), insClasObj)
+            newFacts += new RFAFact(VarSlot(retVar), insClasObj)
             val strIns = PTAConcreteStringInstance(insClasObj.getName, insClasObj.defSite)
             newFacts += new RFAFact(FieldSlot(insClasObj, Constants.CLASS_NAME), strIns)
         }
@@ -45,7 +45,7 @@ class NativeCallModel extends ModelCall {
       case "Ljava/lang/Class;.getNameNative:()Ljava/lang/String;" =>
         // algo:thisValue.foreach.{ cIns => get value of (cIns.name") and create fact (retVar, value)}
         require(args.nonEmpty)
-        val thisSlot = VarSlot(args.head, isBase = false, isArg = true)
+        val thisSlot = VarSlot(args.head)
         val thisValue = s.pointsToSet(thisSlot, currentContext)
         thisValue.foreach{
           cIns =>
@@ -53,7 +53,7 @@ class NativeCallModel extends ModelCall {
             require(cIns.isInstanceOf[ClassInstance])
             val name = cIns.asInstanceOf[ClassInstance].getName
             val strIns = PTAConcreteStringInstance(name, cIns.defSite)
-              newFacts += new RFAFact(VarSlot(retVar, isBase = false, isArg = false), strIns)
+              newFacts += new RFAFact(VarSlot(retVar), strIns)
         }
         byPassFlag = false
       case _ =>

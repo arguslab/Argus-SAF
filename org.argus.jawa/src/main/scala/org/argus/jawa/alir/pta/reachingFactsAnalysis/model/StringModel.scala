@@ -24,26 +24,26 @@ class StringModel extends ModelCall {
   def isModelCall(p: JawaMethod): Boolean = p.getDeclaringClass.getName.equals("java.lang.String")
 
 //  private def getReturnFactsWithAlias(rType: JawaType, retVar: String, currentContext: Context, alias: ISet[Instance])(implicit factory: RFAFactFactory): ISet[RFAFact] =
-//    alias.map{a=> new RFAFact(VarSlot(retVar, isBase = false, isArg = false), a)}
+//    alias.map{a=> new RFAFact(VarSlot(retVar), a)}
 
   private def getPointStringForThis(args: List[String], currentContext: Context)(implicit factory: SimHeap): ISet[RFAFact] = {
     require(args.nonEmpty)
-    val thisSlot = VarSlot(args.head, isBase = false, isArg = true)
+    val thisSlot = VarSlot(args.head)
     val newThisValue = PTAPointStringInstance(currentContext.copy)
     Set(new RFAFact(thisSlot, newThisValue)) 
   }
 
   private def getFactFromArgForThis(s: PTAResult, args: List[String], currentContext: Context)(implicit factory: SimHeap): ISet[RFAFact] = {
     require(args.size > 1)
-    val thisSlot = VarSlot(args.head, isBase = false, isArg = true)
-    val paramSlot = VarSlot(args(1), isBase = false, isArg = true)
+    val thisSlot = VarSlot(args.head)
+    val paramSlot = VarSlot(args(1))
     s.pointsToSet(paramSlot, currentContext).map(v => new RFAFact(thisSlot, v)) 
   }
 
 
   private def getOldFactForThis(s: PTAResult, args: List[String], currentContext: Context)(implicit factory: SimHeap): ISet[RFAFact] = {
     require(args.nonEmpty)
-    val thisSlot = VarSlot(args.head, isBase = false, isArg = true)
+    val thisSlot = VarSlot(args.head)
     s.pointsToSet(thisSlot, currentContext).map(v => new RFAFact(thisSlot, v))  
   }
 
@@ -62,7 +62,7 @@ class StringModel extends ModelCall {
     require(args.nonEmpty)
     ReachingFactsAnalysisHelper.getReturnFact(new JawaType("java.lang.String"), retVar, currentContext) match{
       case Some(fact) => 
-        val thisSlot = VarSlot(args.head, isBase = false, isArg = true)
+        val thisSlot = VarSlot(args.head)
         s.pointsToSet(thisSlot, currentContext).map(v => new RFAFact(fact.s, v))
       case None =>  isetEmpty
     }
@@ -210,7 +210,7 @@ class StringModel extends ModelCall {
         byPassFlag = false
       case "Ljava/lang/String;.valueOf:(Ljava/lang/Object;)Ljava/lang/String;" =>
         require(args.nonEmpty)
-        val paramSlot = VarSlot(args.head, isBase = false, isArg = true)
+        val paramSlot = VarSlot(args.head)
         if(s.pointsToSet(paramSlot, currentContext).nonEmpty){
           var values: ISet[Instance] = isetEmpty
           s.pointsToSet(paramSlot, currentContext).foreach{
@@ -218,7 +218,7 @@ class StringModel extends ModelCall {
               if(ins.isInstanceOf[PTAConcreteStringInstance]) values += ins
               else values += PTAPointStringInstance(currentContext)
           }
-          newFacts ++= values.map{v=> new RFAFact(VarSlot(retVar, isBase = false, isArg = false), v)}
+          newFacts ++= values.map{v=> new RFAFact(VarSlot(retVar), v)}
         }
         byPassFlag = false
       case "Ljava/lang/String;.valueOf:(Z)Ljava/lang/String;" =>

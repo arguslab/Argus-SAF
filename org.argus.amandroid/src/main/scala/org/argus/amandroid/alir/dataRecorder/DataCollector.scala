@@ -336,7 +336,7 @@ object DataCollector {
                 apk.getMethod(iccNode.getOwner) match {
                   case Some(iccMethod) =>
                     val args = iccMethod.getBody.resolvedBody.locations(iccNode.locIndex).statement.asInstanceOf[CallStatement].args
-                    val intentSlot = VarSlot(args.head, isBase = false, isArg = true)
+                    val intentSlot = VarSlot(args.head)
                     val intentValues = ptaresult.pointsToSet(intentSlot, iccNode.context)
                     val intentcontents = IntentHelper.getIntentContents(ptaresult, intentValues, iccNode.getContext)
                     val compType = AndroidConstants.getIccCallType(iccNode.getCalleeSet.head.callee.getSubSignature)

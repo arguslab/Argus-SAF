@@ -28,7 +28,7 @@ object CallHandler {
     val calleeSet = msetEmpty[RFACallee]
     typ match {
       case "virtual" | "interface" | "super" | "direct" =>
-        val recv = VarSlot(cs.recvOpt.get, isBase = false, isArg = true)
+        val recv = VarSlot(cs.recvOpt.get)
         val recvValue: ISet[Instance] = ptaResult.pointsToSet(recv, callerContext)
         def handleUnknown(typ: JawaType) = try {
           val unknown = global.getClassOrResolve(typ)

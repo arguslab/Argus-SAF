@@ -31,9 +31,9 @@ class SetModel extends ModelCall {
   private def addItemToSetField(s: PTAResult, args: List[String], currentContext: Context)(implicit factory: SimHeap): ISet[RFAFact] = {
     require(args.size > 1)
     var newfacts = isetEmpty[RFAFact]
-    val thisSlot = VarSlot(args.head, isBase = false, isArg = true)
+    val thisSlot = VarSlot(args.head)
     val thisValues = s.pointsToSet(thisSlot, currentContext)
-    val paramSlot = VarSlot(args(1), isBase = false, isArg = true)
+    val paramSlot = VarSlot(args(1))
     val paramValues = s.pointsToSet(paramSlot, currentContext)
     thisValues.foreach{
       ins =>
@@ -44,9 +44,9 @@ class SetModel extends ModelCall {
   
   private def cloneSetToRet(s: PTAResult, args: List[String], retVar: String, currentContext: Context)(implicit factory: SimHeap): ISet[RFAFact] ={
     require(args.nonEmpty)
-    val thisSlot = VarSlot(args.head, isBase = false, isArg = true)
+    val thisSlot = VarSlot(args.head)
     val thisValue = s.pointsToSet(thisSlot, currentContext)
-    thisValue.map{s => new RFAFact(VarSlot(retVar, isBase = false, isArg = false), s.clone(currentContext))}
+    thisValue.map{s => new RFAFact(VarSlot(retVar), s.clone(currentContext))}
   }
   
   def doModelCall(s: PTAResult, p: JawaMethod, args: List[String], retVars: String, currentContext: Context)(implicit factory: SimHeap): (ISet[RFAFact], ISet[RFAFact], Boolean) = {

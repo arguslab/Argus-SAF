@@ -65,7 +65,7 @@ class CommunicationSourceAndSinkManager(sasFilePath: String) extends AndroidSour
         if(InterComponentCommunicationModel.isIccOperation(callee.callee)){
           sinkflag = true
           val args = apk.getMethod(invNode.getOwner).get.getBody.resolvedBody.locations(invNode.locIndex).statement.asInstanceOf[CallStatement].args
-          val intentSlot = VarSlot(args.head, isBase = false, isArg = true)
+          val intentSlot = VarSlot(args.head)
           val intentValues = ptaResult.pointsToSet(intentSlot, invNode.getContext)
           val intentContents = IntentHelper.getIntentContents(ptaResult, intentValues, invNode.getContext)
           val compType = AndroidConstants.getIccCallType(callee.callee.getSubSignature)

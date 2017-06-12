@@ -136,13 +136,13 @@ class ClassModel extends ModelCall {
    */
   private def classAsSubClass(s: PTAResult, args: List[String], retVar: String, currentContext: Context)(implicit factory: SimHeap): (ISet[RFAFact], ISet[RFAFact]) = {
     require(args.size >1)
-    val thisSlot = VarSlot(args.head, isBase = false, isArg = true)
+    val thisSlot = VarSlot(args.head)
 	  val thisValue = s.pointsToSet(thisSlot, currentContext)
 	  var newfacts = isetEmpty[RFAFact]
     val delfacts = isetEmpty[RFAFact]
 	  thisValue.foreach{
 	    tv =>
-	      newfacts += new RFAFact(VarSlot(retVar, isBase = false, isArg = false), tv)
+	      newfacts += new RFAFact(VarSlot(retVar), tv)
 	  }
     (newfacts, delfacts)
   }
@@ -152,13 +152,13 @@ class ClassModel extends ModelCall {
    */
 //  private def classCast(s: PTAResult, args: List[String], retVar: String, currentContext: Context)(implicit factory: RFAFactFactory): (ISet[RFAFact], ISet[RFAFact]) = {
 //    require(args.size >1)
-//    val paramSlot = VarSlot(args(1), isBase = false, isArg = true)
+//    val paramSlot = VarSlot(args(1))
 //	  val paramValue = s.pointsToSet(paramSlot, currentContext)
 //	  var newfacts = isetEmpty[RFAFact]
 //    val delfacts = isetEmpty[RFAFact]
 //	  paramValue.foreach{
 //	    pv =>
-//	      newfacts += new RFAFact(VarSlot(retVar, isBase = false, isArg = false), pv)
+//	      newfacts += new RFAFact(VarSlot(retVar), pv)
 //	  }
 //    (newfacts, delfacts)
 //  }
@@ -169,14 +169,14 @@ class ClassModel extends ModelCall {
 	private def classForName(s: PTAResult, args: List[String], retVar: String, currentContext: Context)(implicit factory: SimHeap): (ISet[RFAFact], ISet[RFAFact]) = {
 	  // algo:thisValue.foreach.{ cIns => get value of (cIns.name") and create fact (retVar, value)}
     require(args.nonEmpty)
-    val clazzNameSlot = VarSlot(args.head, isBase = false, isArg = true)
+    val clazzNameSlot = VarSlot(args.head)
     val clazzNameValue = s.pointsToSet(clazzNameSlot, currentContext)
     var newfacts = isetEmpty[RFAFact]
     val delfacts = isetEmpty[RFAFact]
     clazzNameValue.foreach {
 			case _@PTAConcreteStringInstance(text, _) =>
 				val classType = JavaKnowledge.getTypeFromJawaName(text)
-				newfacts += new RFAFact(VarSlot(retVar, isBase = false, isArg = false), ClassInstance(classType, currentContext))
+				newfacts += new RFAFact(VarSlot(retVar), ClassInstance(classType, currentContext))
 			case _@PTAPointStringInstance(_) =>
 			//            System.err.println(TITLE, "Get class use point string: " + pstr)
 			case _ =>
@@ -187,13 +187,13 @@ class ClassModel extends ModelCall {
   
   private def classNewInstance(s: PTAResult, args: List[String], retVar: String, currentContext: Context)(implicit factory: SimHeap): (ISet[RFAFact], ISet[RFAFact]) = {
     require(args.nonEmpty)
-    val classSlot = VarSlot(args.head, isBase = false, isArg = true)
+    val classSlot = VarSlot(args.head)
     val classValue = s.pointsToSet(classSlot, currentContext)
     var newfacts = isetEmpty[RFAFact]
     val delfacts = isetEmpty[RFAFact]
     classValue.foreach {
 			case _@ClassInstance(typ, _) =>
-				newfacts += new RFAFact(VarSlot(retVar, isBase = false, isArg = false), PTAInstance(typ, currentContext))
+				newfacts += new RFAFact(VarSlot(retVar), PTAInstance(typ, currentContext))
 			case _ =>
 		}
     (newfacts, delfacts)
@@ -205,7 +205,7 @@ class ClassModel extends ModelCall {
 	private def classGetName(s: PTAResult, args: List[String], retVar: String, currentContext: Context)(implicit factory: SimHeap): (ISet[RFAFact], ISet[RFAFact]) = {
 	  // algo:thisValue.foreach.{ cIns => get value of (cIns.name") and create fact (retVar, value)}
     require(args.nonEmpty)
-    val thisSlot = VarSlot(args.head, isBase = false, isArg = true)
+    val thisSlot = VarSlot(args.head)
     val thisValue = s.pointsToSet(thisSlot, currentContext)
     var newfacts = isetEmpty[RFAFact]
     val delfacts = isetEmpty[RFAFact]
@@ -213,10 +213,10 @@ class ClassModel extends ModelCall {
 			case cIns@(instance: ClassInstance) =>
 				val name = instance.getName
 				val strIns = PTAConcreteStringInstance(name, cIns.defSite)
-				newfacts += new RFAFact(VarSlot(retVar, isBase = false, isArg = false), strIns)
+				newfacts += new RFAFact(VarSlot(retVar), strIns)
 			case cIns =>
 				val strIns = PTAPointStringInstance(cIns.defSite)
-				newfacts += new RFAFact(VarSlot(retVar, isBase = false, isArg = false), strIns)
+				newfacts += new RFAFact(VarSlot(retVar), strIns)
 		}
     (newfacts, delfacts)
 	}

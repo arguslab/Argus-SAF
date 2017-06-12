@@ -105,7 +105,7 @@ object ComponentSummaryTable {
           if (AndroidConstants.isIccMethod(calleeSig.getSubSignature)) {
             // add icc call as icc caller
             val callTyp = AndroidConstants.getIccCallType(calleeSig.getSubSignature)
-            val intentSlot = VarSlot(cn.argNames(1), isBase = false, isArg = true)
+            val intentSlot = VarSlot(cn.argNames(1))
             val intentValue: ISet[Instance] = ptsmap.getOrElse(intentSlot, isetEmpty)
             val intentContents = IntentHelper.getIntentContents(idfg.ptaresult, intentValue, cn.context)
             intentContents foreach {

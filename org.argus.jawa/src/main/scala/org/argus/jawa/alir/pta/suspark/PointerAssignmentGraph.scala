@@ -310,7 +310,7 @@ class PointerAssignmentGraph[Node <: PtaNode]
             if(entryPoint) {
               val tName = ap.thisOpt.getOrElse("this")
               val ins = PTAInstance(ap.declaringClass.getType.toUnknown, context.copy)
-              pointsToMap.addInstance(VarSlot(tName, isBase = false, isArg = false), context.copy, ins)
+              pointsToMap.addInstance(VarSlot(tName), context.copy, ins)
               worklist += node
             }
             nodes += getNodeOrElse(vp.thisPExit, context.copy)
@@ -333,7 +333,7 @@ class PointerAssignmentGraph[Node <: PtaNode]
               pType match {
                 case ot: JawaType =>
                   val ins = PTAInstance(ot.toUnknown, context.copy)
-                  pointsToMap.addInstance(VarSlot(pName, isBase = false, isArg = false), context.copy, ins)
+                  pointsToMap.addInstance(VarSlot(pName), context.copy, ins)
                   worklist += paramNode
               }
             }
@@ -595,38 +595,38 @@ final case class PtaNode(point: Point, context: Context) extends InterProcedural
       case glo: Point with Loc with Static_Field =>
         Set(StaticFieldSlot(glo.staticFieldFQN.fqn))
       case arr: PointMyArrayL =>
-        val pts = ptaResult.pointsToSet(VarSlot(arr.arrayname, isBase = true, isArg = false), context)
+        val pts = ptaResult.pointsToSet(VarSlot(arr.arrayname), context)
         pts.map{ ins =>
           ArraySlot(ins)
         }
       case arr: PointMyArrayR =>
-        val pts = ptaResult.pointsToSet(VarSlot(arr.arrayname, isBase = true, isArg = false), context)
+        val pts = ptaResult.pointsToSet(VarSlot(arr.arrayname), context)
         pts.map{ ins =>
           ArraySlot(ins)
         }
       case fie: Point with Loc with Field =>
-        val pts = ptaResult.pointsToSet(VarSlot(fie.baseP.baseName, isBase = true, isArg = false), context)
+        val pts = ptaResult.pointsToSet(VarSlot(fie.baseP.baseName), context)
         pts.map{ ins =>
           FieldSlot(ins, fie.fqn.fieldName)
         }
       case bas: Point with Loc with Base =>
-        Set(VarSlot(bas.baseName, isBase = true, isArg = false))
+        Set(VarSlot(bas.baseName))
       case pl: PointL =>
-        Set(VarSlot(pl.varname, isBase = false, isArg = false))
+        Set(VarSlot(pl.varname))
       case pc: PointCastR =>
-        Set(VarSlot(pc.varname, isBase = false, isArg = false))
+        Set(VarSlot(pc.varname))
       case pr: PointR =>
-        Set(VarSlot(pr.varname, isBase = false, isArg = false))
+        Set(VarSlot(pr.varname))
       case pla: Point with Loc with Arg =>
-        Set(VarSlot(pla.argName, isBase = false, isArg = true))
+        Set(VarSlot(pla.argName))
       case pop: Point with Param =>
-        Set(VarSlot(pop.paramName, isBase = false, isArg = false))
+        Set(VarSlot(pop.paramName))
       case inp: Point with Invoke =>
         Set(InvokeSlot(inp.sig, inp.invokeTyp))
       case p: PointRet =>
-        Set(VarSlot(p.retname, isBase = false, isArg = false))
+        Set(VarSlot(p.retname))
       case _: PointMethodRet =>
-        Set(VarSlot("ret", isBase = false, isArg = false))
+        Set(VarSlot("ret"))
       case _ => throw new RuntimeException("No slot for such pta node: " + point + "@" + context)
     }
   }

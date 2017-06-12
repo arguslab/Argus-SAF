@@ -30,8 +30,8 @@ trait RFACallee extends Callee {
 abstract class DirectCallee extends RFACallee {
   def mapFactsToCallee: (ISet[RFAFact], IList[String], IList[String], SimHeap) => ISet[RFAFact] = (factsToCallee, args, params, factory) => {
     val varFacts = factsToCallee.filter(f=>f.s.isInstanceOf[VarSlot])
-    val argSlots = args.map(VarSlot(_, isBase = false, isArg = true))
-    val paramSlots = params.map(VarSlot(_, isBase = false, isArg = false))
+    val argSlots = args.map(VarSlot(_))
+    val paramSlots = params.map(VarSlot(_))
     val result = msetEmpty[RFAFact]
 
     for(i <- argSlots.indices){
