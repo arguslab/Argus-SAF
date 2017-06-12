@@ -15,7 +15,6 @@ project, which have the basic setup for a Argus-SAF enhanced project with demo c
 ```
 Argus-SAF/
 +--src/main/scala/org.argus.saf     Main class for argus-saf CLI.
-+--org.argus.saf.library            Libraries for Argus-SAF
 +--org.argus.jawa                   Core static analysis data structures, "*.class"&"*.jawa" file managing, jawa compiler, class hierarchy, method body resolving, flow analysis, etc.
 +--org.argus.amandroid              Android resource parsers, information collector, decompiler, environment method builder, flow analysis, etc.
 +--org.argus.amandroid.concurrent   Akka actors for Amandroid.
