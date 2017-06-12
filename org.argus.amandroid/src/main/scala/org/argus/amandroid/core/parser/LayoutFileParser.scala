@@ -18,7 +18,7 @@ import javax.xml.parsers.ParserConfigurationException
 import org.xml.sax.SAXException
 import javax.xml.parsers.DocumentBuilderFactory
 
-import org.w3c.dom.Node
+import org.w3c.dom.{Node, NodeList}
 import brut.androlib.res.data.ResTypeSpec
 import brut.androlib.res.data.ResResSpec
 import brut.androlib.res.decoder.ARSCDecoder.ARSCData
@@ -38,22 +38,21 @@ class LayoutFileParser(apk: ApkGlobal, packageName: String, arsc: ARSCFileParser
   private final val DEBUG = false
 
   private final val userControls: MMap[Int, LayoutControl] = mmapEmpty
-  private final val callbackMethods: MMap[FileResourceUri, MSet[String]] = mmapEmpty
-  private final val includes: MMap[FileResourceUri, MSet[Int]] = mmapEmpty
+  private final val callbackMethods: MMap[String, MSet[String]] = mmapEmpty
+  private final val includes: MMap[String, MSet[Int]] = mmapEmpty
   
   val data: ARSCData = arsc.getData
   val typs: MMap[String, ResTypeSpec] = mmapEmpty
   import collection.JavaConverters._
-  data.getPackages foreach {
-    pkg =>
-      try {
-        val f = pkg.getClass.getDeclaredField("mTypes")
-        f.setAccessible(true)
-        typs ++= f.get(pkg).asInstanceOf[java.util.LinkedHashMap[String, ResTypeSpec]].asScala
-      } catch {
-        case ie: InterruptedException => throw ie
-        case _: Exception =>
-      }
+  data.getPackages foreach { pkg =>
+    try {
+      val f = pkg.getClass.getDeclaredField("mTypes")
+      f.setAccessible(true)
+      typs ++= f.get(pkg).asInstanceOf[java.util.LinkedHashMap[String, ResTypeSpec]].asScala
+    } catch {
+      case ie: InterruptedException => throw ie
+      case _: Exception =>
+    }
   }
   
 //  private final val TYPE_NUMBER_VARIATION_PASSWORD = 0x00000010
@@ -111,7 +110,7 @@ class LayoutFileParser(apk: ApkGlobal, packageName: String, arsc: ARSCFileParser
    */
   private def isActionListener(name: String): Boolean = name.endsWith("onClick")
   
-  private def visitLayoutNode(fileUri: FileResourceUri, n: Node): (Int, Boolean) = {
+  private def visitLayoutNode(fileName: String, n: Node): (Int, Boolean) = {
     var id: Int = -1
     var isSensitive = false
     try {
@@ -132,13 +131,12 @@ class LayoutFileParser(apk: ApkGlobal, packageName: String, arsc: ARSCFileParser
           val tp = nobj
           isSensitive = tp.contains("Password")
         } else if(isActionListener(n) && nobj.isInstanceOf[String]) {
-          callbackMethods.getOrElseUpdate(fileUri, msetEmpty) += nobj
+          callbackMethods.getOrElseUpdate(fileName, msetEmpty) += nobj
         } else if(n.endsWith(":layout") && ntyp == Node.ELEMENT_NODE) {
-          this.includes.getOrElseUpdate(fileUri, msetEmpty) += Integer.parseInt(nobj)
+          this.includes.getOrElseUpdate(fileName, msetEmpty) += Integer.parseInt(nobj)
         }
       }
     } catch {
-      case ie: InterruptedException => throw ie
       case _: Exception =>
     }
     (id, isSensitive)
@@ -170,26 +168,30 @@ class LayoutFileParser(apk: ApkGlobal, packageName: String, arsc: ARSCFileParser
     None
   }
   
-  def loadLayoutFromTextXml(fileUri: FileResourceUri, layout_in: InputStream): Unit = {
+  def loadLayoutFromTextXml(fileName: String, layout_in: InputStream): Unit = {
     try {
       val db = DocumentBuilderFactory.newInstance().newDocumentBuilder()
       val doc = db.parse(layout_in)
       val rootElement = doc.getDocumentElement
-      val cns = rootElement.getChildNodes
-      for(i <- 0 until cns.getLength) {
-        val cn = cns.item(i)
-        val nname = cn.getNodeName
-        val theClass =
-          if(nname != null && !nname.startsWith("#")) {
-            getLayoutClass(nname.trim())
-          } else None
-        if (isLayoutClass(theClass) || isViewClass(theClass)) {
-          val (id, isSensitive) = visitLayoutNode(fileUri, cn)
-          if (id > 0)
-            userControls += (id -> LayoutControl(id, theClass.get.getType, isSensitive))
+      val worklistAlgorithm = new WorklistAlgorithm[NodeList] {
+        override def processElement(cns: NodeList): Unit = {
+          for(i <- 0 until cns.getLength) {
+            val cn = cns.item(i)
+            val nname = cn.getNodeName
+            val theClass =
+              if (nname != null && !nname.startsWith("#")) {
+                getLayoutClass(nname.trim())
+              } else None
+            if (isLayoutClass(theClass) || isViewClass(theClass)) {
+              val (id, isSensitive) = visitLayoutNode(fileName, cn)
+              if (id > 0)
+                userControls += (id -> LayoutControl(id, theClass.get.getType, isSensitive))
+            }
+            worklist = worklist :+ cn.getChildNodes
+          }
         }
       }
-      
+      worklistAlgorithm.run(worklistAlgorithm.worklist :+= rootElement.getChildNodes)
     } catch {
       case ex: IOException =>
         System.err.println("Could not parse layout: " + ex.getMessage)

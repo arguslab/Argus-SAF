@@ -17,7 +17,7 @@ import org.argus.amandroid.core.util.ApkFileUtil
 import org.argus.amandroid.core.ApkGlobal
 import org.argus.amandroid.plugin.{TaintAnalysisModules, TaintAnalysisTask}
 import org.argus.jawa.core.util.IgnoreException
-import org.argus.jawa.core.{FileReporter, MsgLevel, NoReporter, PrintReporter}
+import org.argus.jawa.core.{FileReporter, MsgLevel, PrintReporter}
 import org.argus.jawa.core.util._
 
 /**
@@ -44,24 +44,23 @@ object TaintAnalysis{
     val outputUri = FileUtil.toUri(outputPath)
     try{
       var i: Int = 0
-      apkFileUris.foreach{
-        fileUri =>
-          i += 1
-          try{
-            println("Analyzing #" + i + ":" + fileUri)
-            val reporter = 
-              if(debug) new FileReporter(getOutputDirUri(outputUri, fileUri), MsgLevel.INFO)
-              else new PrintReporter(MsgLevel.ERROR)
-            TaintAnalysisTask(module, Set(fileUri), outputUri, forceDelete, reporter).run
-            println("Done!")
-            if(debug) println("Debug info write into " + reporter.asInstanceOf[FileReporter].f)
-          } catch {
-            case _: IgnoreException => println("No interesting element found for " + module)
-            case e: Throwable =>
-              CliLogger.logError(new File(outputPath), "Error: " , e)
-          } finally {
-            System.gc()
-          }
+      apkFileUris.foreach{ fileUri =>
+        i += 1
+        try{
+          println("Analyzing #" + i + ":" + fileUri)
+          val reporter =
+            if(debug) new FileReporter(getOutputDirUri(outputUri, fileUri), MsgLevel.INFO)
+            else new PrintReporter(MsgLevel.ERROR)
+          TaintAnalysisTask(module, Set(fileUri), outputUri, forceDelete, reporter).run
+          println("Done!")
+          if(debug) println("Debug info write into " + reporter.asInstanceOf[FileReporter].f)
+        } catch {
+          case _: IgnoreException => println("No interesting element found for " + module)
+          case e: Throwable =>
+            CliLogger.logError(new File(outputPath), "Error: " , e)
+        } finally {
+          System.gc()
+        }
       }
     } catch {
       case e: Throwable => 
