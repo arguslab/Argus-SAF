@@ -92,7 +92,7 @@ class SummaryManager(implicit factory: SimHeap) {
           case jt: SuJavaType =>
             jt.typ.jawaName match {
               case "java.lang.String" => PTAPointStringInstance(newContext)
-              case _ => PTAInstance(jt.typ, newContext, isNull_ = false)
+              case _ => PTAInstance(jt.typ, newContext)
             }
           case st: SuString => PTAConcreteStringInstance(st.str, newContext)
         }

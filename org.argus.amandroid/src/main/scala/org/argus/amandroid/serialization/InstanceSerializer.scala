@@ -30,7 +30,7 @@ object InstanceSerializer extends CustomSerializer[Instance](format => (
         implicit val formats = format + ContextSerializer + JawaTypeSerializer
         ins match {
           case c: ClassInstance => "ClassInstance" -> ("classtyp" -> Extraction.decompose(c.classtyp)) ~ ("defSite" -> Extraction.decompose(c.defSite))
-          case c: PTAInstance => "PTAInstance" -> ("typ" -> Extraction.decompose(c.typ)) ~ ("defSite" -> Extraction.decompose(c.defSite)) ~ ("isNull_" -> c.isNull_)
+          case c: PTAInstance => "PTAInstance" -> ("typ" -> Extraction.decompose(c.typ)) ~ ("defSite" -> Extraction.decompose(c.defSite))
           case c: PTATupleInstance => "PTATupleInstance" -> ("left" -> Extraction.decompose(c.left)) ~ ("right" -> Extraction.decompose(c.right)) ~ ("defSite" -> Extraction.decompose(c.defSite))
           case c: PTAPointStringInstance => "PTAPointStringInstance" -> ("defSite" -> Extraction.decompose(c.defSite))
           case c: PTAConcreteStringInstance => "PTAConcreteStringInstance" -> ("string" -> c.string) ~ ("defSite" -> Extraction.decompose(c.defSite))

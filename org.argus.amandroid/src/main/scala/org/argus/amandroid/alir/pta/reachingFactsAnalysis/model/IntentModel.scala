@@ -479,7 +479,7 @@ class IntentModel extends ModelCall {
         } else throw new RuntimeException("Unexpected instance type: " + value)
       }
 
-    val componentNameIns = PTAInstance(new JawaType(AndroidConstants.COMPONENTNAME), currentContext, isNull_ = false)
+    val componentNameIns = PTAInstance(new JawaType(AndroidConstants.COMPONENTNAME), currentContext)
     var newfacts = isetEmpty[RFAFact]
     val delfacts = isetEmpty[RFAFact]
     thisValue.foreach{
@@ -515,7 +515,7 @@ class IntentModel extends ModelCall {
                 newfacts += new RFAFact(FieldSlot(componentNameIns, AndroidConstants.COMPONENTNAME_PACKAGE), pakStr)
                 newfacts += new RFAFact(FieldSlot(componentNameIns, AndroidConstants.COMPONENTNAME_CLASS), cstr)
               case None =>
-                val unknownIns = PTAInstance(recordTyp.toUnknown, c, isNull_ = false)
+                val unknownIns = PTAInstance(recordTyp.toUnknown, c)
                 newfacts += new RFAFact(FieldSlot(componentNameIns, AndroidConstants.COMPONENTNAME_PACKAGE), unknownIns)
                 newfacts += new RFAFact(FieldSlot(componentNameIns, AndroidConstants.COMPONENTNAME_CLASS), unknownIns)
             }
@@ -547,7 +547,7 @@ class IntentModel extends ModelCall {
           value
         } else throw new RuntimeException("Unexpected instance type: " + value)
       }
-    val componentNameIns = PTAInstance(new JawaType(AndroidConstants.COMPONENTNAME), currentContext, isNull_ = false)
+    val componentNameIns = PTAInstance(new JawaType(AndroidConstants.COMPONENTNAME), currentContext)
     var newfacts = isetEmpty[RFAFact]
     val delfacts = isetEmpty[RFAFact]
     thisValue.foreach{
@@ -569,7 +569,7 @@ class IntentModel extends ModelCall {
             newfacts += new RFAFact(FieldSlot(componentNameIns, AndroidConstants.COMPONENTNAME_PACKAGE), pakStr)
             newfacts += new RFAFact(FieldSlot(componentNameIns, AndroidConstants.COMPONENTNAME_CLASS), cstr)
           case None =>
-            val unknownIns = PTAInstance(recordTyp.toUnknown, c, isNull_ = false)
+            val unknownIns = PTAInstance(recordTyp.toUnknown, c)
             newfacts += new RFAFact(FieldSlot(componentNameIns, AndroidConstants.COMPONENTNAME_PACKAGE), unknownIns)
             newfacts += new RFAFact(FieldSlot(componentNameIns, AndroidConstants.COMPONENTNAME_CLASS), unknownIns)
         }
@@ -599,14 +599,14 @@ class IntentModel extends ModelCall {
         val mCategorySlot = FieldSlot(tv, AndroidConstants.INTENT_CATEGORIES)
         var mCategoryValue = s.pointsToSet(mCategorySlot, currentContext)
         if(mCategoryValue.isEmpty) {
-          val hashsetIns = PTAInstance(new JawaType(Constants.HASHSET), currentContext, isNull_ = false)
+          val hashsetIns = PTAInstance(new JawaType(Constants.HASHSET), currentContext)
           mCategoryValue += hashsetIns
           newfacts += new RFAFact(mCategorySlot, hashsetIns)
         }
         mCategoryValue.foreach{ cv =>
           var hashsetIns = cv
           if(cv.isNull){
-            hashsetIns = PTAInstance(new JawaType(Constants.HASHSET), currentContext, isNull_ = false)
+            hashsetIns = PTAInstance(new JawaType(Constants.HASHSET), currentContext)
             newfacts += new RFAFact(mCategorySlot, hashsetIns)
             delfacts += new RFAFact(mCategorySlot, cv)
           }
@@ -691,7 +691,7 @@ class IntentModel extends ModelCall {
           value
         } else throw new RuntimeException("Unexpected instance type: " + value)
       }
-    val componentNameIns = PTAInstance(new JawaType(AndroidConstants.COMPONENTNAME), currentContext, isNull_ = false)
+    val componentNameIns = PTAInstance(new JawaType(AndroidConstants.COMPONENTNAME), currentContext)
     var newfacts = isetEmpty[RFAFact]
     val delfacts = isetEmpty[RFAFact]
     thisValue.foreach{
@@ -714,7 +714,7 @@ class IntentModel extends ModelCall {
             newfacts += new RFAFact(FieldSlot(componentNameIns, AndroidConstants.COMPONENTNAME_PACKAGE), pakStr)
             newfacts += new RFAFact(FieldSlot(componentNameIns, AndroidConstants.COMPONENTNAME_CLASS), cstr)
           case None =>
-            val unknownIns = PTAInstance(recordTyp.toUnknown, c, isNull_ = false)
+            val unknownIns = PTAInstance(recordTyp.toUnknown, c)
             newfacts += new RFAFact(FieldSlot(componentNameIns, AndroidConstants.COMPONENTNAME_PACKAGE), unknownIns)
             newfacts += new RFAFact(FieldSlot(componentNameIns, AndroidConstants.COMPONENTNAME_CLASS), unknownIns)
         }
@@ -738,7 +738,7 @@ class IntentModel extends ModelCall {
     val thisValue = s.pointsToSet(thisSlot, currentContext)
     val clazzSlot = VarSlot(args(2), isBase = false, isArg = true)
     val clazzValue = s.pointsToSet(clazzSlot, currentContext)
-    val componentNameIns = PTAInstance(new JawaType(AndroidConstants.COMPONENTNAME), currentContext, isNull_ = false)
+    val componentNameIns = PTAInstance(new JawaType(AndroidConstants.COMPONENTNAME), currentContext)
     var newfacts = isetEmpty[RFAFact]
     val delfacts = isetEmpty[RFAFact]
     thisValue.foreach{
@@ -761,7 +761,7 @@ class IntentModel extends ModelCall {
             newfacts += new RFAFact(FieldSlot(componentNameIns, AndroidConstants.COMPONENTNAME_PACKAGE), pakStr)
             newfacts += new RFAFact(FieldSlot(componentNameIns, AndroidConstants.COMPONENTNAME_CLASS), cstr)
           case None =>
-            val unknownIns = PTAInstance(recordTyp.toUnknown, c, isNull_ = false)
+            val unknownIns = PTAInstance(recordTyp.toUnknown, c)
             newfacts += new RFAFact(FieldSlot(componentNameIns, AndroidConstants.COMPONENTNAME_PACKAGE), unknownIns)
             newfacts += new RFAFact(FieldSlot(componentNameIns, AndroidConstants.COMPONENTNAME_CLASS), unknownIns)
         }
@@ -944,7 +944,7 @@ class IntentModel extends ModelCall {
     val valueValue = s.pointsToSet(valueSlot, currentContext)
     var newfacts = isetEmpty[RFAFact]
     val delfacts = isetEmpty[RFAFact]
-    val bundleIns = PTAInstance(new JawaType(AndroidConstants.BUNDLE), currentContext, isNull_ = false)
+    val bundleIns = PTAInstance(new JawaType(AndroidConstants.BUNDLE), currentContext)
     thisValue.foreach{
       tv =>
         val mExtraSlot = FieldSlot(tv, AndroidConstants.INTENT_EXTRAS)
@@ -984,7 +984,7 @@ class IntentModel extends ModelCall {
       if(mExtraValue.nonEmpty){
         newfacts ++= mExtraValue.map{mev => new RFAFact(VarSlot(retVar, isBase = false, isArg = false), mev)}
       } else {
-        newfacts += new RFAFact(VarSlot(retVar, isBase = false, isArg = false), PTAInstance(JavaKnowledge.getTypeFromJawaName(AndroidConstants.BUNDLE).toUnknown, currentContext.copy, isNull_ = false))
+        newfacts += new RFAFact(VarSlot(retVar, isBase = false, isArg = false), PTAInstance(JavaKnowledge.getTypeFromJawaName(AndroidConstants.BUNDLE).toUnknown, currentContext.copy))
       }
     }
     (newfacts, delfacts)
@@ -1009,7 +1009,7 @@ class IntentModel extends ModelCall {
         else
           mExtraValue.map{ins => s.pointsToSet(FieldSlot(ins, AndroidConstants.BUNDLE_ENTRIES), currentContext)}.reduce(iunion[Instance])
       if(entValue.isEmpty && desiredReturnTyp.isObject) {
-        newfacts += new RFAFact(VarSlot(retVar, isBase = false, isArg = false), PTAInstance(desiredReturnTyp.toUnknown, currentContext.copy, isNull_ = false))
+        newfacts += new RFAFact(VarSlot(retVar, isBase = false, isArg = false), PTAInstance(desiredReturnTyp.toUnknown, currentContext.copy))
       } else if(keyValue.nonEmpty && !keyValue.exists(_.isInstanceOf[PTAPointStringInstance])) {
         val keys = keyValue.map{k => k.asInstanceOf[PTAConcreteStringInstance].string}
         entValue.foreach{
@@ -1026,7 +1026,7 @@ class IntentModel extends ModelCall {
             newfacts += new RFAFact(VarSlot(retVar, isBase = false, isArg = false), v.asInstanceOf[PTATupleInstance].right)
         }
       } else {
-        newfacts += new RFAFact(VarSlot(retVar, isBase = false, isArg = false), PTAInstance(JavaKnowledge.JAVA_TOPLEVEL_OBJECT_TYPE.toUnknown, currentContext.copy, isNull_ = false))
+        newfacts += new RFAFact(VarSlot(retVar, isBase = false, isArg = false), PTAInstance(JavaKnowledge.JAVA_TOPLEVEL_OBJECT_TYPE.toUnknown, currentContext.copy))
       }
     }
     (newfacts, delfacts)
@@ -1068,7 +1068,7 @@ class IntentModel extends ModelCall {
             newfacts += new RFAFact(VarSlot(retVar, isBase = false, isArg = false), v.asInstanceOf[PTATupleInstance].right)
         }
       } else {
-        newfacts += new RFAFact(VarSlot(retVar, isBase = false, isArg = false), PTAInstance(JavaKnowledge.JAVA_TOPLEVEL_OBJECT_TYPE.toUnknown, currentContext.copy, isNull_ = false))
+        newfacts += new RFAFact(VarSlot(retVar, isBase = false, isArg = false), PTAInstance(JavaKnowledge.JAVA_TOPLEVEL_OBJECT_TYPE.toUnknown, currentContext.copy))
       }
     }
     if(newfacts.isEmpty){

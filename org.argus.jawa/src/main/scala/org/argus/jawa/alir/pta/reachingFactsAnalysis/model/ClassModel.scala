@@ -193,7 +193,7 @@ class ClassModel extends ModelCall {
     val delfacts = isetEmpty[RFAFact]
     classValue.foreach {
 			case _@ClassInstance(typ, _) =>
-				newfacts += new RFAFact(VarSlot(retVar, isBase = false, isArg = false), PTAInstance(typ, currentContext, isNull_ = false))
+				newfacts += new RFAFact(VarSlot(retVar, isBase = false, isArg = false), PTAInstance(typ, currentContext))
 			case _ =>
 		}
     (newfacts, delfacts)

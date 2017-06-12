@@ -94,7 +94,7 @@ class UriModel extends ModelCall {
     val strValue = s.pointsToSet(strSlot, currentContext)
     var newfacts = isetEmpty[RFAFact]
     val delfacts = isetEmpty[RFAFact]
-    val stringUriIns = PTAInstance(new JawaType(AndroidConstants.URI_STRING_URI), currentContext, isNull_ = false)
+    val stringUriIns = PTAInstance(new JawaType(AndroidConstants.URI_STRING_URI), currentContext)
     newfacts += new RFAFact(VarSlot(retVar, isBase = false, isArg = false), stringUriIns)
     strValue.foreach {
       case cstr: PTAConcreteStringInstance =>

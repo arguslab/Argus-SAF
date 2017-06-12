@@ -195,7 +195,7 @@ object InterProceduralSuperSpark {
                   case fie: Point with Loc with Field =>
                     fie.fqn.typ match {
                       case obj if obj.isObject =>
-                        val ins = PTAInstance(obj.toUnknown, edge.source.context, isNull_ = false)
+                        val ins = PTAInstance(obj.toUnknown, edge.source.context)
                         edge.source.getSlots(pag.pointsToMap) foreach {
                           slot =>
                             pag.pointsToMap.addInstance(slot, pag.pointsToMap.heapContext, ins)
@@ -220,7 +220,7 @@ object InterProceduralSuperSpark {
                   case fie: Point with Loc with Static_Field =>
                     fie.staticFieldFQN.typ match {
                       case obj if obj.isObject =>
-                        val ins = PTAInstance(obj.toUnknown, edge.source.context, isNull_ = false)
+                        val ins = PTAInstance(obj.toUnknown, edge.source.context)
                         edge.source.getSlots(pag.pointsToMap) foreach {
                           slot =>
                             pag.pointsToMap.addInstance(slot, pag.pointsToMap.heapContext, ins)

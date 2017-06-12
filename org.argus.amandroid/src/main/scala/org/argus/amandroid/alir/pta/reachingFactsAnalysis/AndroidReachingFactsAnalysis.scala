@@ -57,7 +57,7 @@ class AndroidReachingFactsAnalysisBuilder(apk: ApkGlobal, clm: ClassLoadManager,
     val np = new Np(icfg)
     this.icfg = icfg
     icfg.collectCfgToBaseGraph(entryPointProc, initContext, isFirst = true)
-    val iota: ISet[RFAFact] = initialFacts + new RFAFact(StaticFieldSlot(FieldFQN(new JawaType("Analysis"), "RFAiota", JavaKnowledge.JAVA_TOPLEVEL_OBJECT_TYPE)), PTAInstance(JavaKnowledge.JAVA_TOPLEVEL_OBJECT_TYPE.toUnknown, initContext.copy, isNull_ = false))
+    val iota: ISet[RFAFact] = initialFacts + new RFAFact(StaticFieldSlot("Analysis.RFAiota"), PTAInstance(JavaKnowledge.JAVA_TOPLEVEL_OBJECT_TYPE.toUnknown, initContext.copy))
     try {
       MonotoneDataFlowAnalysisFramework[ICFGNode, RFAFact, Context](icfg,
         forward = true, lub = true, mbp, np, gen, kill, Some(callr), iota, initial)
@@ -116,7 +116,7 @@ class AndroidReachingFactsAnalysisBuilder(apk: ApkGlobal, clm: ClassLoadManager,
             val slot = ReachingFactsAnalysisHelper.getNameSlotFromNameExp(ne, typ, isBase = false, isArg = false, apk)
             slot match {
               case slot1: StaticFieldSlot =>
-                val recTyp = slot1.fqn.owner
+                val recTyp = JavaKnowledge.getClassTypeFromFieldFQN(slot1.fqn)
                 checkClass(recTyp, s, currentNode)
               case _ =>
             }
@@ -152,7 +152,7 @@ class AndroidReachingFactsAnalysisBuilder(apk: ApkGlobal, clm: ClassLoadManager,
         thrownExcNames.foreach{
           excName =>
             if(excName != ExceptionCenter.THROWABLE) {
-              val ins = PTAInstance(excName, currentContext.copy, isNull_ = false)
+              val ins = PTAInstance(excName, currentContext.copy)
               result += new RFAFact(VarSlot(ExceptionCenter.EXCEPTION_VAR_NAME, isBase = false, isArg = false), ins)
             }
         }

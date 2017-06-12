@@ -45,8 +45,8 @@ final case class ClassInstance(classtyp: JawaType, defSite: Context) extends Ins
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
  * @author <a href="mailto:sroy@k-state.edu">Sankardas Roy</a>
  */ 
-final case class PTAInstance(typ: JawaType, defSite: Context, isNull_ : Boolean) extends Instance {
-  override def clone(newDefSite: Context): Instance = PTAInstance(typ, newDefSite, isNull_)
+final case class PTAInstance(typ: JawaType, defSite: Context) extends Instance {
+  override def clone(newDefSite: Context): Instance = PTAInstance(typ, newDefSite)
   override def isUnknown: Boolean = typ.baseType.unknown
   override def toString: String = {
     val sb = new StringBuilder

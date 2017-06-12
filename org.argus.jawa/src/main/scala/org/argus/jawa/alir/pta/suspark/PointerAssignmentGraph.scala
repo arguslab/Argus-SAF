@@ -159,7 +159,7 @@ class PointerAssignmentGraph[Node <: PtaNode]
         val pinode = getNode(pi, context.copy)
         pinode.getSlots(pointsToMap).foreach {
           s =>
-            pointsToMap.addInstance(s, context.copy, PTAInstance(ot.toUnknown, context.copy, isNull_ = false))
+            pointsToMap.addInstance(s, context.copy, PTAInstance(ot.toUnknown, context.copy))
             worklist += pinode
         }
       case _ =>
@@ -292,13 +292,13 @@ class PointerAssignmentGraph[Node <: PtaNode]
             val ins = ClassInstance(pcr.classtyp, context.copy)
             pointsToMap.addInstance(InstanceSlot(ins), context.copy, ins)
           case per: PointExceptionR =>
-            val ins = PTAInstance(per.typ, context.copy, isNull_ = false)
+            val ins = PTAInstance(per.typ, context.copy)
             pointsToMap.addInstance(InstanceSlot(ins), context.copy, ins)
           case pso: PointStringO =>
             val ins = PTAConcreteStringInstance(pso.text, context.copy)
             pointsToMap.addInstance(InstanceSlot(ins), context.copy, ins)
           case po: PointO =>
-            val ins = PTAInstance(po.obj, context.copy, isNull_ = false)
+            val ins = PTAInstance(po.obj, context.copy)
             pointsToMap.addInstance(InstanceSlot(ins), context.copy, ins)
           case _ =>
         }
@@ -309,7 +309,7 @@ class PointerAssignmentGraph[Node <: PtaNode]
             nodes += node
             if(entryPoint) {
               val tName = ap.thisOpt.getOrElse("this")
-              val ins = PTAInstance(ap.declaringClass.getType.toUnknown, context.copy, isNull_ = false)
+              val ins = PTAInstance(ap.declaringClass.getType.toUnknown, context.copy)
               pointsToMap.addInstance(VarSlot(tName, isBase = false, isArg = false), context.copy, ins)
               worklist += node
             }
@@ -332,7 +332,7 @@ class PointerAssignmentGraph[Node <: PtaNode]
               val (pName, pType) = ap.params(pa.index)
               pType match {
                 case ot: JawaType =>
-                  val ins = PTAInstance(ot.toUnknown, context.copy, isNull_ = false)
+                  val ins = PTAInstance(ot.toUnknown, context.copy)
                   pointsToMap.addInstance(VarSlot(pName, isBase = false, isArg = false), context.copy, ins)
                   worklist += paramNode
               }
@@ -580,13 +580,13 @@ final case class PtaNode(point: Point, context: Context) extends InterProcedural
   def getSlots(ptaResult: PTAResult): ISet[PTASlot] = {
     point match {
       case po: PointO =>
-        Set(InstanceSlot(PTAInstance(po.obj, context.copy, isNull_ = false)))
+        Set(InstanceSlot(PTAInstance(po.obj, context.copy)))
       case pso: PointStringO =>
         Set(InstanceSlot(PTAConcreteStringInstance(pso.text, context.copy)))
       case pco: PointClassO =>
         Set(InstanceSlot(ClassInstance(pco.classtyp, context.copy)))
       case per: PointExceptionR =>
-        Set(InstanceSlot(PTAInstance(per.typ, context.copy, isNull_ = false)))
+        Set(InstanceSlot(PTAInstance(per.typ, context.copy)))
       case gla: Point with Loc with Static_Field with MyArray =>
         val pts = ptaResult.pointsToSet(StaticFieldSlot(gla.staticFieldFQN.fqn), context)
         pts.map{ ins =>

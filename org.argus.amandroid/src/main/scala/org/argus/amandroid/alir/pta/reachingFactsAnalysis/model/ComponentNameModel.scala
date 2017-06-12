@@ -140,12 +140,12 @@ class ComponentNameModel extends ModelCall {
           case Some(rec) =>
             PTAConcreteStringInstance(rec.getName, currentContext.copy)
           case None =>
-            PTAInstance(recordTyp.toUnknown, currentContext.copy, isNull_ = false)
+            PTAInstance(recordTyp.toUnknown, currentContext.copy)
         }
       case PTAPointStringInstance(_) =>
         PTAPointStringInstance(currentContext.copy)
       case _ =>
-        PTAInstance(JavaKnowledge.JAVA_TOPLEVEL_OBJECT_TYPE.toUnknown, currentContext.copy, isNull_ = false)
+        PTAInstance(JavaKnowledge.JAVA_TOPLEVEL_OBJECT_TYPE.toUnknown, currentContext.copy)
     }
   }
 
@@ -192,7 +192,7 @@ class ComponentNameModel extends ModelCall {
                     facts += new RFAFact(FieldSlot(tv, AndroidConstants.COMPONENTNAME_PACKAGE), pakStr)
                     facts += new RFAFact(FieldSlot(tv, AndroidConstants.COMPONENTNAME_CLASS), cstr)
                   case None =>
-                    val unknownIns = PTAInstance(recordTyp.toUnknown, currentContext.copy, isNull_ = false)
+                    val unknownIns = PTAInstance(recordTyp.toUnknown, currentContext.copy)
                     facts += new RFAFact(FieldSlot(tv, AndroidConstants.COMPONENTNAME_PACKAGE), unknownIns)
                     facts += new RFAFact(FieldSlot(tv, AndroidConstants.COMPONENTNAME_CLASS), unknownIns)
                 }

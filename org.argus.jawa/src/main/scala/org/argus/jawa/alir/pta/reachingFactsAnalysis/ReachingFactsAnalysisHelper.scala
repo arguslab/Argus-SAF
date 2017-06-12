@@ -81,7 +81,7 @@ object ReachingFactsAnalysisHelper {
       case ot if ot.jawaName == "java.lang.String" =>
         Some(PTAPointStringInstance(currentContext.copy))
       case ot if ot.isObject =>
-        Some(PTAInstance(ot, currentContext.copy, isNull_ = false))
+        Some(PTAInstance(ot, currentContext.copy))
     }
   }
   
@@ -104,7 +104,7 @@ object ReachingFactsAnalysisHelper {
       argValues.foreach { ins =>
         for(f <- influencedFields) {
           val fs = FieldSlot(ins, f.fieldName)
-          val uins = PTAInstance(JavaKnowledge.JAVA_TOPLEVEL_OBJECT_TYPE.toUnknown, currentContext, isNull_ = false)
+          val uins = PTAInstance(JavaKnowledge.JAVA_TOPLEVEL_OBJECT_TYPE.toUnknown, currentContext)
           genFacts += new RFAFact(fs, uins)
         }
       }
@@ -116,7 +116,7 @@ object ReachingFactsAnalysisHelper {
         val slot = VarSlot(retVar, isBase = false, isArg = false)
         val value =
           if(retTyp.jawaName == "java.lang.String") PTAPointStringInstance(currentContext)
-          else PTAInstance(ot.toUnknown, currentContext, isNull_ = false)
+          else PTAInstance(ot.toUnknown, currentContext)
         genFacts += new RFAFact(slot, value)
       case _ =>
     }
@@ -128,7 +128,7 @@ object ReachingFactsAnalysisHelper {
     val record = calleeMethod.getDeclaringClass
     record.getDeclaredStaticObjectTypeFields.foreach{
       field =>
-        result += new RFAFact(StaticFieldSlot(field.FQN.fqn), PTAInstance(field.getType.toUnknown, currentContext, isNull_ = false))
+        result += new RFAFact(StaticFieldSlot(field.FQN.fqn), PTAInstance(field.getType.toUnknown, currentContext))
     }
     result
   }
@@ -171,7 +171,7 @@ object ReachingFactsAnalysisHelper {
               val definingTyp = typ
               val defCls = global.getClassOrResolve(definingTyp)
               if (defCls.hasField(ae.fieldName)) {
-                val uIns = PTAInstance(typ.toUnknown, fact.v.defSite, isNull_ = false)
+                val uIns = PTAInstance(typ.toUnknown, fact.v.defSite)
                 ptaresult.addInstance(fieldSlot, currentContext, uIns)
               }
             case _ =>
@@ -200,7 +200,7 @@ object ReachingFactsAnalysisHelper {
           }
           if(temp.isEmpty){
             if(!(JavaKnowledge.isJavaPrimitive(ins.typ.baseTyp) && ins.typ.dimensions <= 1)) {
-              val uIns = PTAInstance(JawaType(ins.typ.baseType, ins.typ.dimensions - 1), currentContext, isNull_ = false)
+              val uIns = PTAInstance(JawaType(ins.typ.baseType, ins.typ.dimensions - 1), currentContext)
               ptaresult.addInstance(arraySlot, currentContext, uIns)
             }
           }
@@ -338,7 +338,7 @@ object ReachingFactsAnalysisHelper {
         result += ClassInstance(ce.typExp.typ, currentContext)
       case _: NullExpression =>
         val inst = if(typ.get.isArray) typ.get else typ.get.toUnknown
-        val ins = PTAInstance(inst, currentContext, isNull_ = true)
+        val ins = PTAInstance(inst, currentContext)
         val value: ISet[Instance] = Set(ins)
         result ++= value
       case le: LiteralExpression =>
@@ -348,7 +348,7 @@ object ReachingFactsAnalysisHelper {
           result ++= value
         } else if(le.isInt && le.getInt == 0){
           val inst = JavaKnowledge.JAVA_TOPLEVEL_OBJECT_TYPE.toUnknown
-          val ins = PTAInstance(inst, currentContext, isNull_ = true)
+          val ins = PTAInstance(inst, currentContext)
           val value: ISet[Instance] = Set(ins)
           result ++= value
         }
@@ -357,7 +357,7 @@ object ReachingFactsAnalysisHelper {
           if(ne.typ == new JawaType("java.lang.String")){
             PTAConcreteStringInstance("", currentContext.copy)
           } else {
-            PTAInstance(ne.typ, currentContext.copy, isNull_ = false)
+            PTAInstance(ne.typ, currentContext.copy)
           }
         result += ins
       case ae: AccessExpression =>
@@ -369,7 +369,7 @@ object ReachingFactsAnalysisHelper {
             val fieldSlot = FieldSlot(ins, ae.fieldName)
             var fieldValue: ISet[Instance] = ptaResult.pointsToSet(fieldSlot, currentContext)
             if(ins.isUnknown && typ.get.isObject) {
-              fieldValue += PTAInstance(typ.get.toUnknown, currentContext, isNull_ = false)
+              fieldValue += PTAInstance(typ.get.toUnknown, currentContext)
             }
             result ++= fieldValue
           }
@@ -389,7 +389,7 @@ object ReachingFactsAnalysisHelper {
               val newType = JawaType(originalType.baseType, dim)
               val newUnknown =
                 if(newType.jawaName == "java.lang.String") PTAPointStringInstance(currentContext)
-                else PTAInstance(newType.toUnknown, currentContext, isNull_ = false)
+                else PTAInstance(newType.toUnknown, currentContext)
               arrayValue += newUnknown
               result ++= arrayValue.toSet
             } else {
@@ -404,7 +404,7 @@ object ReachingFactsAnalysisHelper {
           if(castTyp.jawaName == "java.lang.String"){
             Some(PTAPointStringInstance(currentContext.copy))
           } else if (castTyp.isObject) {
-            Some(PTAInstance(castTyp, currentContext.copy, isNull_ = false))
+            Some(PTAInstance(castTyp, currentContext.copy))
           } else None
         insOpt match {
           case Some(ins) =>
@@ -413,7 +413,7 @@ object ReachingFactsAnalysisHelper {
             result ++= value.map{
               v =>
                 if(v.isUnknown){
-                  PTAInstance(ins.typ.toUnknown, v.defSite.copy, isNull_ = false)
+                  PTAInstance(ins.typ.toUnknown, v.defSite.copy)
                 } else {
                   v
                 }

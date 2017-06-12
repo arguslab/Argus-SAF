@@ -67,19 +67,19 @@ class SummaryManagerTest extends FlatSpec with Matchers {
     val recvContext = context.copy.setContext(callerSig, "L0")
     val expectedContext1 = context.copy.setContext(calleeSig, "L1")
     val expectedContext2 = context.copy.setContext(calleeSig, "L2")
-    val recvIns = PTAInstance(new JawaType("my.Class"), recvContext, isNull_ = false)
+    val recvIns = PTAInstance(new JawaType("my.Class"), recvContext)
     val expectedFacts: ISet[RFAFact] =
       Set(
         new RFAFact(VarSlot(recvName, isBase = false, isArg = false), recvIns),
-        new RFAFact(FieldSlot(recvIns, "f1"), PTAInstance(new JawaType("my.Class2"), expectedContext1, isNull_ = false)),
-        new RFAFact(FieldSlot(PTAInstance(new JawaType("my.Class2"), expectedContext1, isNull_ = false), "f2"), PTAInstance(new JawaType("my.Class3"), expectedContext2, isNull_ = false))
+        new RFAFact(FieldSlot(recvIns, "f1"), PTAInstance(new JawaType("my.Class2"), expectedContext1)),
+        new RFAFact(FieldSlot(PTAInstance(new JawaType("my.Class2"), expectedContext1), "f2"), PTAInstance(new JawaType("my.Class3"), expectedContext2))
       )
 
     val initialFacts: ISet[RFAFact] =
       Set(
         new RFAFact(VarSlot(recvName, isBase = false, isArg = false), recvIns),
-        new RFAFact(FieldSlot(recvIns, "f1"), PTAInstance(new JawaType("my.Class2"), context.copy.setContext(callerSig, "L100"), isNull_ = false)),
-        new RFAFact(FieldSlot(PTAInstance(new JawaType("my.Class2"), context.copy.setContext(callerSig, "L100"), isNull_ = false), "f2"), PTAInstance(new JawaType("my.Class3"), context.copy.setContext(callerSig, "L101"), isNull_ = false))
+        new RFAFact(FieldSlot(recvIns, "f1"), PTAInstance(new JawaType("my.Class2"), context.copy.setContext(callerSig, "L100"))),
+        new RFAFact(FieldSlot(PTAInstance(new JawaType("my.Class2"), context.copy.setContext(callerSig, "L100")), "f2"), PTAInstance(new JawaType("my.Class3"), context.copy.setContext(callerSig, "L101")))
       )
     val currentFacts: ISet[RFAFact] = sm.process(calleeSig, None, Some(recvName), ilistEmpty, initialFacts, context)
     assert(currentFacts.size == expectedFacts.size && currentFacts.diff(expectedFacts).isEmpty)
@@ -103,20 +103,20 @@ class SummaryManagerTest extends FlatSpec with Matchers {
     val recvContext = context.copy.setContext(callerSig, "L0")
     val expectedContext1 = context.copy.setContext(calleeSig, "L1")
     val expectedContext2 = context.copy.setContext(calleeSig, "L2")
-    val recvIns = PTAInstance(new JawaType("my.Class"), recvContext, isNull_ = false)
+    val recvIns = PTAInstance(new JawaType("my.Class"), recvContext)
     val expectedFacts: ISet[RFAFact] =
       Set(
         new RFAFact(VarSlot(recvName, isBase = false, isArg = false), recvIns),
-        new RFAFact(FieldSlot(recvIns, "f1"), PTAInstance(new JawaType("my.Class2"), expectedContext1, isNull_ = false)),
-        new RFAFact(FieldSlot(recvIns, "f2"), PTAInstance(new JawaType("my.Class2"), expectedContext2, isNull_ = false))
+        new RFAFact(FieldSlot(recvIns, "f1"), PTAInstance(new JawaType("my.Class2"), expectedContext1)),
+        new RFAFact(FieldSlot(recvIns, "f2"), PTAInstance(new JawaType("my.Class2"), expectedContext2))
       )
 
     val initialFacts: ISet[RFAFact] =
       Set(
         new RFAFact(VarSlot(recvName, isBase = false, isArg = false), recvIns),
-        new RFAFact(FieldSlot(recvIns, "f1"), PTAInstance(new JawaType("my.Class2"), expectedContext1, isNull_ = false)),
-        new RFAFact(FieldSlot(recvIns, "f1"), PTAInstance(new JawaType("my.Class2"), expectedContext2, isNull_ = false)),
-        new RFAFact(FieldSlot(recvIns, "f2"), PTAInstance(new JawaType("my.Class2"), expectedContext2, isNull_ = false))
+        new RFAFact(FieldSlot(recvIns, "f1"), PTAInstance(new JawaType("my.Class2"), expectedContext1)),
+        new RFAFact(FieldSlot(recvIns, "f1"), PTAInstance(new JawaType("my.Class2"), expectedContext2)),
+        new RFAFact(FieldSlot(recvIns, "f2"), PTAInstance(new JawaType("my.Class2"), expectedContext2))
       )
     val currentFacts: ISet[RFAFact] = sm.process(calleeSig, None, Some(recvName), ilistEmpty, initialFacts, context)
     assert(currentFacts.size == expectedFacts.size && currentFacts.diff(expectedFacts).isEmpty)
@@ -141,22 +141,70 @@ class SummaryManagerTest extends FlatSpec with Matchers {
     val recvContext = context.copy.setContext(callerSig, "L0")
     val expectedContext1 = context.copy.setContext(calleeSig, "L1")
     val expectedContext2 = context.copy.setContext(calleeSig, "L2")
-    val recvIns = PTAInstance(new JawaType("my.Class"), recvContext, isNull_ = false)
+    val recvIns = PTAInstance(new JawaType("my.Class"), recvContext)
     val expectedFacts: ISet[RFAFact] =
       Set(
         new RFAFact(VarSlot(recvName, isBase = false, isArg = false), recvIns),
-        new RFAFact(FieldSlot(recvIns, "f1"), PTAInstance(new JawaType("my.Class2"), expectedContext1, isNull_ = false))
+        new RFAFact(FieldSlot(recvIns, "f1"), PTAInstance(new JawaType("my.Class2"), expectedContext1))
       )
 
     val initialFacts: ISet[RFAFact] =
       Set(
         new RFAFact(VarSlot(recvName, isBase = false, isArg = false), recvIns),
-        new RFAFact(FieldSlot(recvIns, "f1"), PTAInstance(new JawaType("my.Class2"), expectedContext1, isNull_ = false)),
-        new RFAFact(FieldSlot(recvIns, "f1"), PTAInstance(new JawaType("my.Class2"), expectedContext2, isNull_ = false)),
-        new RFAFact(FieldSlot(recvIns, "f2"), PTAInstance(new JawaType("my.Class2"), expectedContext2, isNull_ = false)),
-        new RFAFact(FieldSlot(PTAInstance(new JawaType("my.Class2"), expectedContext2, isNull_ = false), "ff1"), PTAInstance(new JawaType("my.Class3"), context.copy.setContext(callerSig, "L100"), isNull_ = false))
+        new RFAFact(FieldSlot(recvIns, "f1"), PTAInstance(new JawaType("my.Class2"), expectedContext1)),
+        new RFAFact(FieldSlot(recvIns, "f1"), PTAInstance(new JawaType("my.Class2"), expectedContext2)),
+        new RFAFact(FieldSlot(recvIns, "f2"), PTAInstance(new JawaType("my.Class2"), expectedContext2)),
+        new RFAFact(FieldSlot(PTAInstance(new JawaType("my.Class2"), expectedContext2), "ff1"), PTAInstance(new JawaType("my.Class3"), context.copy.setContext(callerSig, "L100")))
       )
     val currentFacts: ISet[RFAFact] = sm.process(calleeSig, None, Some(recvName), ilistEmpty, initialFacts, context)
+    assert(currentFacts.size == expectedFacts.size && currentFacts.diff(expectedFacts).isEmpty)
+  }
+
+  "SummaryManager" should "handle args correctly" in {
+    val code =
+      """
+        |`Lmy/Class;.foo:(Lmy/Class2;Ljava/lang/String;)V`:
+        |  this.f1 += arg:0.f1
+        |  arg:0.f2 = "String"@L10
+        |  this.f2 = arg:1
+        |;
+      """.stripMargin
+    implicit val factory = new SimHeap
+    val sm = new SummaryManager
+    sm.register(code)
+
+    val callerSig = new Signature("Lmy/Class;.main:()V")
+    val calleeSig = new Signature("Lmy/Class;.foo:(Lmy/Class2;Ljava/lang/String;)V")
+    val recvName = "v1"
+    val argNames = List("v2", "v3")
+    val context = new Context("Test")
+    val recvContext = context.copy.setContext(callerSig, "L0")
+    val expectedContext1 = context.copy.setContext(calleeSig, "L1")
+    val expectedContext2 = context.copy.setContext(calleeSig, "L2")
+    val expectedContext3 = context.copy.setContext(calleeSig, "L3")
+    val expectedContext10 = context.copy.setContext(calleeSig, "L10")
+    val recvIns = PTAInstance(new JawaType("my.Class"), recvContext)
+    val arg0Ins = PTAInstance(new JawaType("my.Class2"), expectedContext1)
+    val arg1Ins = PTAConcreteStringInstance("taint", expectedContext3)
+    val expectedFacts: ISet[RFAFact] =
+      Set(
+        new RFAFact(VarSlot(recvName, isBase = false, isArg = false), recvIns),
+        new RFAFact(FieldSlot(recvIns, "f1"), PTAInstance(new JawaType("my.Class3"), expectedContext2)),
+        new RFAFact(FieldSlot(recvIns, "f2"), arg1Ins),
+        new RFAFact(VarSlot(argNames.head, isBase = false, isArg = false), arg0Ins),
+        new RFAFact(FieldSlot(arg0Ins, "f1"), PTAInstance(new JawaType("my.Class3"), expectedContext2)),
+        new RFAFact(FieldSlot(arg0Ins, "f2"), PTAConcreteStringInstance("String", expectedContext10)),
+        new RFAFact(VarSlot(argNames(1), isBase = false, isArg = false), arg1Ins)
+      )
+
+    val initialFacts: ISet[RFAFact] =
+      Set(
+        new RFAFact(VarSlot(recvName, isBase = false, isArg = false), recvIns),
+        new RFAFact(VarSlot(argNames.head, isBase = false, isArg = false), arg0Ins),
+        new RFAFact(FieldSlot(arg0Ins, "f1"), PTAInstance(new JawaType("my.Class3"), expectedContext2)),
+        new RFAFact(VarSlot(argNames(1), isBase = false, isArg = false), arg1Ins)
+      )
+    val currentFacts: ISet[RFAFact] = sm.process(calleeSig, None, Some(recvName), argNames, initialFacts, context)
     assert(currentFacts.size == expectedFacts.size && currentFacts.diff(expectedFacts).isEmpty)
   }
 }
