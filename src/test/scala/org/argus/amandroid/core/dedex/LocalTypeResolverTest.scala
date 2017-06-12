@@ -445,7 +445,7 @@ class LocalTypeResolverTest extends FlatSpec with Matchers {
     val apk = yard.loadApk(fileUri, settings, collectInfo = false)
     val compiler = new JawaCompiler("1.8")
     val srcFiles = apk.getApplicationClassCodes.map{ case (_, sf) => sf.file.file}
-    compiler.compile(srcFiles.toArray, Set(FileUtil.toFile(outputUri)).toArray, None, settings.progressBar)
+    compiler.compile(srcFiles.toArray, Set().toArray, None, settings.progressBar)
     ConverterUtil.cleanDir(outputUri)
     true
   }
