@@ -237,7 +237,7 @@ class BenchMarkTest extends FlatSpec with Matchers {
     assert(res.isDefined && res.get.getTaintedPaths.size == 3)
   }
 
-  "InterAppCommunication" should "have 19 taint paths" in {
+  "InterAppCommunication" should "have 19 taint paths" taggedAs Slow in {
     val echoer_path = getClass.getResource("/droid-bench/InterAppCommunication/Echoer.apk").getPath
     val sendsms_path = getClass.getResource("/droid-bench/InterAppCommunication/SendSMS.apk").getPath
     val forresult_path = getClass.getResource("/droid-bench/InterAppCommunication/StartActivityForResult1.apk").getPath
