@@ -5,7 +5,7 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
- * Detailed contributors are listed in the CONTRIBUTOR.md
+ * Detailed contributors are listed taggedAs Slow in the CONTRIBUTOR.md
  */
 
 package org.argus.amandroid.plugin
@@ -19,6 +19,7 @@ import org.argus.jawa.alir.taintAnalysis.TaintAnalysisResult
 import org.argus.jawa.core.{MsgLevel, PrintReporter}
 import org.scalatest.{FlatSpec, Matchers}
 import org.argus.jawa.core.util.FileUtil
+import org.scalatest.tagobjects.Slow
 
 /**
   * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
@@ -26,212 +27,212 @@ import org.argus.jawa.core.util.FileUtil
 class BenchMarkTest extends FlatSpec with Matchers {
   private final val DEBUG = false
 
-  "ICC_Explicit_NoSrc_NoSink" should "have 0 taint paths" in {
+  "ICC_Explicit_NoSrc_NoSink" should "have 0 taint paths" taggedAs Slow in {
     val res = taintAnalysis(getClass.getResource("/icc-bench/IccHandling/icc_explicit_nosrc_nosink.apk").getPath)
     assert(res.isDefined && res.get.getTaintedPaths.isEmpty)
   }
 
-  "ICC_Explicit_NoSrc_Sink" should "have 0 taint paths" in {
+  "ICC_Explicit_NoSrc_Sink" should "have 0 taint paths" taggedAs Slow in {
     val res = taintAnalysis(getClass.getResource("/icc-bench/IccHandling/icc_explicit_nosrc_sink.apk").getPath)
     assert(res.isDefined && res.get.getTaintedPaths.isEmpty)
   }
 
-  "ICC_Explicit_Src_NoSink" should "have 0 taint paths" in {
+  "ICC_Explicit_Src_NoSink" should "have 0 taint paths" taggedAs Slow in {
     val res = taintAnalysis(getClass.getResource("/icc-bench/IccHandling/icc_explicit_src_nosink.apk").getPath)
     assert(res.isDefined && res.get.getTaintedPaths.isEmpty)
   }
 
-  "ICC_Explicit_Src_Sink" should "have 1 taint path" in {
+  "ICC_Explicit_Src_Sink" should "have 1 taint path" taggedAs Slow in {
     val res = taintAnalysis(getClass.getResource("/icc-bench/IccHandling/icc_explicit_src_sink.apk").getPath)
     assert(res.isDefined && res.get.getTaintedPaths.size == 1)
   }
 
-  "ICC_Implicit_NoSrc_NoSink" should "have 0 taint paths" in {
+  "ICC_Implicit_NoSrc_NoSink" should "have 0 taint paths" taggedAs Slow in {
     val res = taintAnalysis(getClass.getResource("/icc-bench/IccHandling/icc_implicit_nosrc_nosink.apk").getPath)
     assert(res.isDefined && res.get.getTaintedPaths.isEmpty)
   }
 
-  "ICC_Implicit_NoSrc_Sink" should "have 0 taint paths" in {
+  "ICC_Implicit_NoSrc_Sink" should "have 0 taint paths" taggedAs Slow in {
     val res = taintAnalysis(getClass.getResource("/icc-bench/IccHandling/icc_implicit_nosrc_sink.apk").getPath)
     assert(res.isDefined && res.get.getTaintedPaths.isEmpty)
   }
 
-  "ICC_Implicit_Src_NoSink" should "have 1 taint path" in {
+  "ICC_Implicit_Src_NoSink" should "have 1 taint path" taggedAs Slow in {
     val res = taintAnalysis(getClass.getResource("/icc-bench/IccHandling/icc_implicit_src_nosink.apk").getPath)
     assert(res.isDefined && res.get.getTaintedPaths.size == 1)
   }
 
-  "ICC_Implicit_Src_Sink" should "have 2 taint paths" in {
+  "ICC_Implicit_Src_Sink" should "have 2 taint paths" taggedAs Slow in {
     val res = taintAnalysis(getClass.getResource("/icc-bench/IccHandling/icc_implicit_src_sink.apk").getPath)
     assert(res.isDefined && res.get.getTaintedPaths.size == 2)
   }
 
-  "ICC_IntentService" should "have 1 taint path" in {
+  "ICC_IntentService" should "have 1 taint path" taggedAs Slow in {
     val res = taintAnalysis(getClass.getResource("/icc-bench/IccHandling/icc_intentservice.apk").getPath)
     assert(res.isDefined && res.get.getTaintedPaths.size == 1)
   }
 
-  "ICC_Stateful" should "have 3 taint paths" in {
+  "ICC_Stateful" should "have 3 taint paths" taggedAs Slow in {
     val res = taintAnalysis(getClass.getResource("/icc-bench/IccHandling/icc_stateful.apk").getPath)
     assert(res.isDefined && res.get.getTaintedPaths.size == 3)
   }
 
-  "ICC_DynRegister1" should "have 2 taint paths" in {
+  "ICC_DynRegister1" should "have 2 taint paths" taggedAs Slow in {
     val res = taintAnalysis(getClass.getResource("/icc-bench/IccTargetFinding/icc_dynregister1.apk").getPath)
     assert(res.isDefined && res.get.getTaintedPaths.size == 2)
   }
 
-  "ICC_DynRegister2" should "have 3 taint paths" in {
+  "ICC_DynRegister2" should "have 3 taint paths" taggedAs Slow in {
     val res = taintAnalysis(getClass.getResource("/icc-bench/IccTargetFinding/icc_dynregister2.apk").getPath)
     assert(res.isDefined && res.get.getTaintedPaths.size == 3)
   }
 
-  "ICC_Explicit1" should "have 1 taint path" in {
+  "ICC_Explicit1" should "have 1 taint path" taggedAs Slow in {
     val res = taintAnalysis(getClass.getResource("/icc-bench/IccTargetFinding/icc_explicit1.apk").getPath)
     assert(res.isDefined && res.get.getTaintedPaths.size == 1)
   }
 
-  "ICC_Implicit1" should "have 2 taint paths" in {
+  "ICC_Implicit1" should "have 2 taint paths" taggedAs Slow in {
     val res = taintAnalysis(getClass.getResource("/icc-bench/IccTargetFinding/icc_implicit_action.apk").getPath)
     assert(res.isDefined && res.get.getTaintedPaths.size == 2)
   }
 
-  "ICC_Implicit2" should "have 2 taint paths" in {
+  "ICC_Implicit2" should "have 2 taint paths" taggedAs Slow in {
     val res = taintAnalysis(getClass.getResource("/icc-bench/IccTargetFinding/icc_implicit_category.apk").getPath)
     assert(res.isDefined && res.get.getTaintedPaths.size == 2)
   }
 
-  "ICC_Implicit3" should "have 2 taint paths" in {
+  "ICC_Implicit3" should "have 2 taint paths" taggedAs Slow in {
     val res = taintAnalysis(getClass.getResource("/icc-bench/IccTargetFinding/icc_implicit_data1.apk").getPath)
     assert(res.isDefined && res.get.getTaintedPaths.size == 2)
   }
 
-  "ICC_Implicit4" should "have 2 taint paths" in {
+  "ICC_Implicit4" should "have 2 taint paths" taggedAs Slow in {
     val res = taintAnalysis(getClass.getResource("/icc-bench/IccTargetFinding/icc_implicit_data2.apk").getPath)
     assert(res.isDefined && res.get.getTaintedPaths.size == 2)
   }
 
-  "ICC_Implicit5" should "have 3 taint paths" in {
+  "ICC_Implicit5" should "have 3 taint paths" taggedAs Slow in {
     val res = taintAnalysis(getClass.getResource("/icc-bench/IccTargetFinding/icc_implicit_mix1.apk").getPath)
     assert(res.isDefined && res.get.getTaintedPaths.size == 3)
   }
 
-  "ICC_Implicit6" should "have 2 taint paths" in {
+  "ICC_Implicit6" should "have 2 taint paths" taggedAs Slow in {
     val res = taintAnalysis(getClass.getResource("/icc-bench/IccTargetFinding/icc_implicit_mix2.apk").getPath)
     assert(res.isDefined && res.get.getTaintedPaths.size == 2)
   }
 
-  "ICC_RPC_Comprehensive" should "have 3 taint path" in {
+  "ICC_RPC_Comprehensive" should "have 3 taint path" taggedAs Slow in {
     val res = taintAnalysis(getClass.getResource("/icc-bench/Mixed/icc_rpc_comprehensive.apk").getPath)
     assert(res.isDefined && res.get.getTaintedPaths.size == 3)
   }
 
-  "RPC_LocalService" should "have 1 taint path" in {
+  "RPC_LocalService" should "have 1 taint path" taggedAs Slow in {
     val res = taintAnalysis(getClass.getResource("/icc-bench/RpcHandling/rpc_localservice.apk").getPath)
     assert(res.isDefined && res.get.getTaintedPaths.size == 1)
   }
 
-  "RPC_MessengerService" should "have 1 taint path" in {
+  "RPC_MessengerService" should "have 1 taint path" taggedAs Slow in {
     val res = taintAnalysis(getClass.getResource("/icc-bench/RpcHandling/rpc_messengerservice.apk").getPath)
     assert(res.isDefined && res.get.getTaintedPaths.size == 1)
   }
 
-  "RPC_RemoteService" should "have 1 taint path" in {
+  "RPC_RemoteService" should "have 1 taint path" taggedAs Slow in {
     val res = taintAnalysis(getClass.getResource("/icc-bench/RpcHandling/rpc_remoteservice.apk").getPath)
     assert(res.isDefined && res.get.getTaintedPaths.size == 1)
   }
 
-  "RPC_ReturnSensitive" should "have 1 taint path" in {
+  "RPC_ReturnSensitive" should "have 1 taint path" taggedAs Slow in {
     val res = taintAnalysis(getClass.getResource("/icc-bench/RpcHandling/rpc_returnsensitive.apk").getPath)
     assert(res.isDefined && res.get.getTaintedPaths.size == 1)
   }
 
-  "ActivityCommunication1" should "have 1 taint path" in {
+  "ActivityCommunication1" should "have 1 taint path" taggedAs Slow in {
     val res = taintAnalysis(getClass.getResource("/droid-bench/InterComponentCommunication/ActivityCommunication1.apk").getPath)
     assert(res.isDefined && res.get.getTaintedPaths.size == 1)
   }
 
-  "ActivityCommunication2" should "have 3 taint paths" in {
+  "ActivityCommunication2" should "have 3 taint paths" taggedAs Slow in {
     val res = taintAnalysis(getClass.getResource("/droid-bench/InterComponentCommunication/ActivityCommunication2.apk").getPath)
     assert(res.isDefined && res.get.getTaintedPaths.size == 3)
   }
 
-  "ActivityCommunication3" should "have 1 taint path" in {
+  "ActivityCommunication3" should "have 1 taint path" taggedAs Slow in {
     val res = taintAnalysis(getClass.getResource("/droid-bench/InterComponentCommunication/ActivityCommunication3.apk").getPath)
     assert(res.isDefined && res.get.getTaintedPaths.size == 1)
   }
 
-  "ActivityCommunication4" should "have 2 taint paths" in {
+  "ActivityCommunication4" should "have 2 taint paths" taggedAs Slow in {
     val res = taintAnalysis(getClass.getResource("/droid-bench/InterComponentCommunication/ActivityCommunication4.apk").getPath)
     assert(res.isDefined && res.get.getTaintedPaths.size == 2)
   }
 
-  "ActivityCommunication5" should "have 1 taint path" in {
+  "ActivityCommunication5" should "have 1 taint path" taggedAs Slow in {
     val res = taintAnalysis(getClass.getResource("/droid-bench/InterComponentCommunication/ActivityCommunication5.apk").getPath)
     assert(res.isDefined && res.get.getTaintedPaths.size == 1)
   }
 
-  "ActivityCommunication6" should "have 1 taint path" in {
+  "ActivityCommunication6" should "have 1 taint path" taggedAs Slow in {
     val res = taintAnalysis(getClass.getResource("/droid-bench/InterComponentCommunication/ActivityCommunication6.apk").getPath)
     assert(res.isDefined && res.get.getTaintedPaths.size == 1)
   }
 
-  "ActivityCommunication7" should "have 1 taint path" in {
+  "ActivityCommunication7" should "have 1 taint path" taggedAs Slow in {
     val res = taintAnalysis(getClass.getResource("/droid-bench/InterComponentCommunication/ActivityCommunication7.apk").getPath)
     assert(res.isDefined && res.get.getTaintedPaths.size == 1)
   }
 
-  "ActivityCommunication8" should "have 2 taint paths" in {
+  "ActivityCommunication8" should "have 2 taint paths" taggedAs Slow in {
     val res = taintAnalysis(getClass.getResource("/droid-bench/InterComponentCommunication/ActivityCommunication8.apk").getPath)
     assert(res.isDefined && res.get.getTaintedPaths.size == 2)
   }
 
-  "BroadcastTaintAndLeak1" should "have 2 taint paths" in {
+  "BroadcastTaintAndLeak1" should "have 2 taint paths" taggedAs Slow in {
     val res = taintAnalysis(getClass.getResource("/droid-bench/InterComponentCommunication/BroadcastTaintAndLeak1.apk").getPath)
     assert(res.isDefined && res.get.getTaintedPaths.size == 2)
   }
 
-  "ComponentNotInManifest1" should "have 0 taint paths" in {
+  "ComponentNotInManifest1" should "have 0 taint paths" taggedAs Slow in {
     val res = taintAnalysis(getClass.getResource("/droid-bench/InterComponentCommunication/ComponentNotInManifest1.apk").getPath)
     assert(res.isDefined && res.get.getTaintedPaths.isEmpty)
   }
 
-  "EventOrdering1" should "have 1 taint path" in {
+  "EventOrdering1" should "have 1 taint path" taggedAs Slow in {
     val res = taintAnalysis(getClass.getResource("/droid-bench/InterComponentCommunication/EventOrdering1.apk").getPath)
     assert(res.isDefined && res.get.getTaintedPaths.size == 1)
   }
 
-  "IntentSink1" should "have 1 taint path" in {
+  "IntentSink1" should "have 1 taint path" taggedAs Slow in {
     val res = taintAnalysis(getClass.getResource("/droid-bench/InterComponentCommunication/IntentSink1.apk").getPath)
     assert(res.isDefined && res.get.getTaintedPaths.size == 1)
   }
 
-  "IntentSink2" should "have 0 taint paths" in {
+  "IntentSink2" should "have 0 taint paths" taggedAs Slow in {
     val res = taintAnalysis(getClass.getResource("/droid-bench/InterComponentCommunication/IntentSink2.apk").getPath)
     assert(res.isDefined && res.get.getTaintedPaths.isEmpty)
   }
 
-  "IntentSource1" should "have 2 taint path" in {
+  "IntentSource1" should "have 2 taint path" taggedAs Slow in {
     val res = taintAnalysis(getClass.getResource("/droid-bench/InterComponentCommunication/IntentSource1.apk").getPath)
     assert(res.isDefined && res.get.getTaintedPaths.size == 2)
   }
 
-  "ServiceCommunication1" should "have 1 taint path" in {
+  "ServiceCommunication1" should "have 1 taint path" taggedAs Slow in {
     val res = taintAnalysis(getClass.getResource("/droid-bench/InterComponentCommunication/ServiceCommunication1.apk").getPath)
     assert(res.isDefined && res.get.getTaintedPaths.size == 1)
   }
 
-  "SharedPreferences1" should "have 1 taint path" in {
+  "SharedPreferences1" should "have 1 taint path" taggedAs Slow in {
     val res = taintAnalysis(getClass.getResource("/droid-bench/InterComponentCommunication/SharedPreferences1.apk").getPath)
     assert(res.isDefined && res.get.getTaintedPaths.size == 1)
   }
 
-  "Singletons1" should "have 0 taint paths" in {
+  "Singletons1" should "have 0 taint paths" taggedAs Slow in {
     val res = taintAnalysis(getClass.getResource("/droid-bench/InterComponentCommunication/Singletons1.apk").getPath)
     assert(res.isDefined && res.get.getTaintedPaths.isEmpty)
   }
 
-  "UnresolvableIntent1" should "have 3 taint paths" in {
+  "UnresolvableIntent1" should "have 3 taint paths" taggedAs Slow in {
     val res = taintAnalysis(getClass.getResource("/droid-bench/InterComponentCommunication/UnresolvableIntent1.apk").getPath)
     assert(res.isDefined && res.get.getTaintedPaths.size == 3)
   }
@@ -244,27 +245,27 @@ class BenchMarkTest extends FlatSpec with Matchers {
     assert(res.isDefined && res.get.getTaintedPaths.size == 19)
   }
 
-  "AsyncTask1" should "have 1 taint paths" in {
+  "AsyncTask1" should "have 1 taint paths" taggedAs Slow in {
     val res = taintAnalysis(getClass.getResource("/droid-bench/Threading/AsyncTask1.apk").getPath)
     assert(res.isDefined && res.get.getTaintedPaths.size == 1)
   }
 
-  "Executor1" should "have 1 taint paths" in {
+  "Executor1" should "have 1 taint paths" taggedAs Slow in {
     val res = taintAnalysis(getClass.getResource("/droid-bench/Threading/Executor1.apk").getPath)
     assert(res.isDefined && res.get.getTaintedPaths.size == 1)
   }
 
-  "JavaThread1" should "have 1 taint paths" in {
+  "JavaThread1" should "have 1 taint paths" taggedAs Slow in {
     val res = taintAnalysis(getClass.getResource("/droid-bench/Threading/JavaThread1.apk").getPath)
     assert(res.isDefined && res.get.getTaintedPaths.size == 1)
   }
 
-  "JavaThread2" should "have 1 taint paths" in {
+  "JavaThread2" should "have 1 taint paths" taggedAs Slow in {
     val res = taintAnalysis(getClass.getResource("/droid-bench/Threading/JavaThread2.apk").getPath)
     assert(res.isDefined && res.get.getTaintedPaths.size == 1)
   }
 
-  "Looper1" should "have 1 taint paths" in {
+  "Looper1" should "have 1 taint paths" taggedAs Slow in {
     val res = taintAnalysis(getClass.getResource("/droid-bench/Threading/Looper1.apk").getPath)
     assert(res.isDefined && res.get.getTaintedPaths.size == 1)
   }
