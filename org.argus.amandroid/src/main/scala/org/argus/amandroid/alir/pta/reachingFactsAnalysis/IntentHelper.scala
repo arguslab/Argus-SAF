@@ -18,7 +18,7 @@ import org.argus.amandroid.core.{AndroidConstants, ApkGlobal}
 import org.argus.amandroid.core.parser.UriData
 import org.argus.jawa.alir.Context
 import org.argus.jawa.alir.pta.{FieldSlot, Instance, PTAConcreteStringInstance, PTAResult}
-import org.argus.jawa.core.{Constants, JavaKnowledge, JawaType}
+import org.argus.jawa.core.{Constants, JawaType}
 
 /**
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
@@ -51,9 +51,9 @@ object IntentHelper {
         var preciseImplicit = true
         var componentNames = isetEmpty[String]
         val iFieldSlot = FieldSlot(intentIns, AndroidConstants.INTENT_COMPONENT)
-        s.pointsToSet(iFieldSlot, currentContext).foreach{ compIns =>
+        s.pointsToSet(after = false, currentContext, iFieldSlot).foreach{ compIns =>
           val cFieldSlot = FieldSlot(compIns, AndroidConstants.COMPONENTNAME_CLASS)
-          s.pointsToSet(cFieldSlot, currentContext).foreach {
+          s.pointsToSet(after = false, currentContext, cFieldSlot).foreach {
             case instance: PTAConcreteStringInstance =>
               componentNames += instance.string
             case _ => preciseExplicit = false
@@ -61,16 +61,16 @@ object IntentHelper {
         }
         var actions: ISet[String] = isetEmpty[String]
         val acFieldSlot = FieldSlot(intentIns, AndroidConstants.INTENT_ACTION)
-        s.pointsToSet(acFieldSlot, currentContext).foreach {
+        s.pointsToSet(after = false, currentContext, acFieldSlot).foreach {
           case instance: PTAConcreteStringInstance => actions += instance.string
           case _ => preciseImplicit = false
         }
         
         var categories = isetEmpty[String] // the code to get the valueSet of categories is to be added below
         val categoryFieldSlot = FieldSlot(intentIns, AndroidConstants.INTENT_CATEGORIES)
-        s.pointsToSet(categoryFieldSlot, currentContext).foreach{ cateIns =>
+        s.pointsToSet(after = false, currentContext, categoryFieldSlot).foreach{ cateIns =>
           val hashSetFieldSlot = FieldSlot(cateIns, Constants.HASHSET_ITEMS)
-          s.pointsToSet(hashSetFieldSlot, currentContext).foreach {
+          s.pointsToSet(after = false, currentContext, hashSetFieldSlot).foreach {
             case instance: PTAConcreteStringInstance => categories += instance.string
             case _ => preciseImplicit = false
           }
@@ -78,9 +78,9 @@ object IntentHelper {
         
         var datas: ISet[UriData] = isetEmpty
         val dataFieldSlot = FieldSlot(intentIns, AndroidConstants.INTENT_URI_DATA)
-        s.pointsToSet(dataFieldSlot, currentContext).foreach{ dataIns =>
+        s.pointsToSet(after = false, currentContext, dataFieldSlot).foreach{ dataIns =>
           val uriStringFieldSlot = FieldSlot(dataIns, AndroidConstants.URI_STRING_URI_URI_STRING)
-          s.pointsToSet(uriStringFieldSlot, currentContext).foreach {
+          s.pointsToSet(after = false, currentContext, uriStringFieldSlot).foreach {
             case instance: PTAConcreteStringInstance =>
               val uriString = instance.string
               var uriData = new UriData
@@ -92,7 +92,7 @@ object IntentHelper {
         
         var types:Set[String] = Set()
         val mtypFieldSlot = FieldSlot(intentIns, AndroidConstants.INTENT_MTYPE)
-        s.pointsToSet(mtypFieldSlot, currentContext).foreach {
+        s.pointsToSet(after = false, currentContext, mtypFieldSlot).foreach {
           case instance: PTAConcreteStringInstance => types += instance.string
           case _ => preciseImplicit = false
         }
@@ -203,14 +203,13 @@ object IntentHelper {
   
   private def findComps(apk: ApkGlobal, action:String, categories: Set[String], data:UriData, mType:String): ISet[JawaType] = {
     val components: MSet[JawaType] = msetEmpty
-    apk.model.getComponents.foreach {
-      ep =>
-        val iFilters = apk.model.getIntentFilterDB.getIntentFilters(ep)
-        if(iFilters.nonEmpty){
-          val matchedFilters = iFilters.filter(iFilter => iFilter.isMatchWith(action, categories, data, mType))
-          if(matchedFilters.nonEmpty)
-            components += ep
-        }
+    apk.model.getComponents.foreach { ep =>
+      val iFilters = apk.model.getIntentFilterDB.getIntentFilters(ep)
+      if(iFilters.nonEmpty){
+        val matchedFilters = iFilters.filter(iFilter => iFilter.isMatchWith(action, categories, data, mType))
+        if(matchedFilters.nonEmpty)
+          components += ep
+      }
     }
     components.toSet
   }

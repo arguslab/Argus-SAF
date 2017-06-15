@@ -12,13 +12,15 @@ package org.argus.jawa.alir.dataFlowAnalysis
 
 import org.argus.jawa.alir.{AlirLoc, Context}
 import org.argus.jawa.alir.controlFlowGraph._
-import org.argus.jawa.compiler.parser.{Location, ResolvedBody}
-import org.argus.jawa.core.util.{ISet, _}
+import org.argus.jawa.compiler.parser.{Location, MethodDeclaration, ResolvedBody, Statement}
+import org.argus.jawa.core.{Global, Signature}
+import org.argus.jawa.core.util._
 
 /**
   * Created by fgwei on 4/16/17.
   */
-class IntraNodeProvider[LatticeElement](cfg: IntraProceduralControlFlowGraph[CFGNode]) extends NodeProvider[CFGNode, LatticeElement, (String, Int)] {
+class IntraIngredientProvider[LatticeElement](md: MethodDeclaration, cfg: IntraProceduralControlFlowGraph[CFGNode]) extends IngredientProvider[CFGNode, LatticeElement, (String, Int)] {
+  override def getBody(sig: Signature): ResolvedBody = md.resolvedBody
   override def newLoc(currentNode: CFGNode with AlirLoc, newl: Location): (String, Int) = {
     (newl.locationUri, newl.locationIndex)
   }
@@ -57,12 +59,20 @@ class IntraNodeProvider[LatticeElement](cfg: IntraProceduralControlFlowGraph[CFG
     }
   }
 
+  def preProcess(node: CFGNode, statement: Statement, s: ISet[LatticeElement]): Unit = {}
+  def postProcess(map: IMap[CFGNode, ISet[LatticeElement]]): Unit = {}
+
   override def onPreVisitNode(node: CFGNode, preds: CSet[CFGNode]): Unit = {}
 
   override def onPostVisitNode(node: CFGNode, succs: CSet[CFGNode]): Unit = {}
 }
 
-class InterNodeProvider[LatticeElement](icfg: InterProceduralControlFlowGraph[ICFGNode]) extends NodeProvider[ICFGNode, LatticeElement, Context] {
+class InterIngredientProvider[LatticeElement](global: Global, icfg: InterProceduralControlFlowGraph[ICFGNode]) extends IngredientProvider[ICFGNode, LatticeElement, Context] {
+
+  def getBody(sig: Signature): ResolvedBody = {
+    global.getMethod(sig).get.getBody.resolvedBody
+  }
+
   override def newLoc(currentNode: ICFGNode with AlirLoc, newl: Location): Context =
     currentNode.getContext.copy.removeTopContext().setContext(currentNode.getOwner, newl.locationUri)
 
@@ -169,6 +179,8 @@ class InterNodeProvider[LatticeElement](icfg: InterProceduralControlFlowGraph[IC
     }
   }
 
+  def preProcess(node: ICFGNode, statement: Statement, s: ISet[LatticeElement]): Unit = {}
+  def postProcess(map: IMap[ICFGNode, ISet[LatticeElement]]): Unit = {}
   override def onPreVisitNode(node: ICFGNode, preds: CSet[ICFGNode]): Unit = {}
   override def onPostVisitNode(node: ICFGNode, succs: CSet[ICFGNode]): Unit = {}
 }

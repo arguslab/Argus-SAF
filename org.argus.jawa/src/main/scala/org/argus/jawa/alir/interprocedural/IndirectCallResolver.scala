@@ -35,7 +35,7 @@ class RunnableStartRun extends IndirectCall {
     val callees: MSet[(JawaMethod, Instance)] = msetEmpty
     inss.foreach { ins =>
       val fieldSlot = FieldSlot(ins, Constants.THREAD_RUNNABLE)
-      val runnableInss = pTAResult.pointsToSet(fieldSlot, callerContext)
+      val runnableInss = pTAResult.pointsToSet(after = false, callerContext, fieldSlot)
       runnableInss foreach { runnableIns =>
         val clazz = global.getClassOrResolve(runnableIns.typ)
         val runnable = global.getClassOrResolve(run.getClassType)
@@ -83,7 +83,7 @@ class ExecutorExecuteRun extends IndirectCall {
 
   override def getCallTarget(global: Global, inss: ISet[Instance], callerContext: Context, args: IList[String], pTAResult: PTAResult): (ISet[(JawaMethod, Instance)], (ISet[RFAFact], IList[String], IList[String], SimHeap) => ISet[RFAFact]) = {
     val varSlot = VarSlot(args(1))
-    val runnableInss = pTAResult.pointsToSet(varSlot, callerContext)
+    val runnableInss = pTAResult.pointsToSet(after = false, callerContext, varSlot)
     val callees: MSet[(JawaMethod, Instance)] = msetEmpty
     runnableInss.foreach { runnableIns =>
       val clazz = global.getClassOrResolve(runnableIns.typ)
@@ -139,8 +139,8 @@ class HandlerMessage extends IndirectCall {
 
   def mapFactsToCallee: (ISet[RFAFact], IList[String], IList[String], SimHeap) => ISet[RFAFact] = (factsToCallee, args, params, factory) => {
     val varFacts = factsToCallee.filter(f=>f.s.isInstanceOf[VarSlot])
-    val argSlots = args.map(VarSlot(_))
-    val paramSlots = params.map(VarSlot(_))
+    val argSlots = args.map(VarSlot)
+    val paramSlots = params.map(VarSlot)
     val result = msetEmpty[RFAFact]
 
     for(i <- argSlots.indices){
@@ -181,8 +181,8 @@ class AsyncTask extends IndirectCall {
 
   def mapFactsToCallee: (ISet[RFAFact], IList[String], IList[String], SimHeap) => ISet[RFAFact] = (factsToCallee, args, params, factory) => {
     val varFacts = factsToCallee.filter(f=>f.s.isInstanceOf[VarSlot])
-    val argSlots = args.map(VarSlot(_))
-    val paramSlots = params.map(VarSlot(_))
+    val argSlots = args.map(VarSlot)
+    val paramSlots = params.map(VarSlot)
     val result = msetEmpty[RFAFact]
     for(i <- argSlots.indices){
       val argSlot = argSlots(i)

@@ -41,14 +41,13 @@ class ObjectModel extends ModelCall {
   private def objectGetClass(s: PTAResult, args: List[String], retVar: String, currentContext: Context)(implicit factory: SimHeap): (ISet[RFAFact], ISet[RFAFact]) = {
     require(args.nonEmpty)
     val thisSlot = VarSlot(args.head)
-    val thisValue = s.pointsToSet(thisSlot, currentContext)
+    val thisValue = s.pointsToSet(after = false, currentContext, thisSlot)
     var newfacts = isetEmpty[RFAFact]
     val delfacts = isetEmpty[RFAFact]
-    thisValue.foreach{
-      cIns =>
-        val typ = cIns.typ
-        val strIns = ClassInstance(typ, cIns.defSite)
-        newfacts += new RFAFact(VarSlot(retVar), strIns)
+    thisValue.foreach{ cIns =>
+      val typ = cIns.typ
+      val strIns = ClassInstance(typ, cIns.defSite)
+      newfacts += new RFAFact(VarSlot(retVar), strIns)
     }
     (newfacts, delfacts)
   }

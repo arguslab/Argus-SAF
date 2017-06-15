@@ -264,20 +264,19 @@ class ActivityModel extends ModelCall {
   private def setIntent(s: PTAResult, args: List[String], currentContext: Context)(implicit factory: SimHeap): (ISet[RFAFact], ISet[RFAFact]) = {
     require(args.size >1)
     val thisSlot = VarSlot(args.head)
-    val thisValue = s.pointsToSet(thisSlot, currentContext)
+    val thisValue = s.pointsToSet(after = false, currentContext, thisSlot)
     val intentSlot = VarSlot(args(1))
-    val intentValue = s.pointsToSet(intentSlot, currentContext)
+    val intentValue = s.pointsToSet(after = false, currentContext, intentSlot)
     var newfacts = isetEmpty[RFAFact]
     var delfacts = isetEmpty[RFAFact]
-    thisValue.foreach{
-      tv =>
+    thisValue.foreach{ tv =>
         val mIntentSlot = FieldSlot(tv, AndroidConstants.ACTIVITY_INTENT)
-        if(thisValue.size == 1){
-          for (v <- s.pointsToSet(mIntentSlot, currentContext)) {
-            delfacts += new RFAFact(mIntentSlot, v)
-          }
+      if(thisValue.size == 1){
+        for (v <- s.pointsToSet(after = false, currentContext, mIntentSlot)) {
+          delfacts += new RFAFact(mIntentSlot, v)
         }
-        newfacts ++= intentValue.map(iv => new RFAFact(mIntentSlot, iv))
+      }
+      newfacts ++= intentValue.map(iv => new RFAFact(mIntentSlot, iv))
     }
     (newfacts, delfacts)
   }
@@ -285,12 +284,12 @@ class ActivityModel extends ModelCall {
   private def getIntent(s: PTAResult, args: List[String], retVar: String, currentContext: Context)(implicit factory: SimHeap): (ISet[RFAFact], ISet[RFAFact]) = {
     require(args.nonEmpty)
     val thisSlot = VarSlot(args.head)
-    val thisValue = s.pointsToSet(thisSlot, currentContext)
+    val thisValue = s.pointsToSet(after = false, currentContext, thisSlot)
     var newfacts = isetEmpty[RFAFact]
     val delfacts = isetEmpty[RFAFact]
     thisValue.foreach{ tv =>
       val mIntentSlot = FieldSlot(tv, AndroidConstants.ACTIVITY_INTENT)
-      val mIntentValue = s.pointsToSet(mIntentSlot, currentContext)
+      val mIntentValue = s.pointsToSet(after = false, currentContext, mIntentSlot)
 //        val mUnknownIntentSlot = FieldSlot(tv, "ALL")
 //        s.pointsToSet(mUnknownIntentSlot, currentContext) foreach {
 //          ins =>

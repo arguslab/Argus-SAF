@@ -32,12 +32,11 @@ class ListModel extends ModelCall {
     require(args.size > 1)
     var newfacts = isetEmpty[RFAFact]
     val thisSlot = VarSlot(args.head)
-    val thisValues = s.pointsToSet(thisSlot, currentContext)
+    val thisValues = s.pointsToSet(after = false, currentContext, thisSlot)
     val paramSlot = VarSlot(args(itempar))
-    val paramValues = s.pointsToSet(paramSlot, currentContext)
-    thisValues.foreach{
-      ins =>
-        newfacts ++= paramValues.map{p=> new RFAFact(FieldSlot(ins, Constants.LIST_ITEMS), p)}
+    val paramValues = s.pointsToSet(after = false, currentContext, paramSlot)
+    thisValues.foreach{ ins =>
+      newfacts ++= paramValues.map{p=> new RFAFact(FieldSlot(ins, Constants.LIST_ITEMS), p)}
     }
     newfacts 
   }
@@ -46,11 +45,10 @@ class ListModel extends ModelCall {
     require(args.nonEmpty)
     var newfacts = isetEmpty[RFAFact]
     val thisSlot = VarSlot(args.head)
-    val thisValue = s.pointsToSet(thisSlot, currentContext)
+    val thisValue = s.pointsToSet(after = false, currentContext, thisSlot)
     val itemSlots = thisValue.map{s => FieldSlot(s, Constants.LIST_ITEMS)}
-    itemSlots.foreach{
-      islot =>
-        newfacts ++= s.pointsToSet(islot, currentContext).map(ins => new RFAFact(VarSlot(retVar), ins))
+    itemSlots.foreach{ islot =>
+      newfacts ++= s.pointsToSet(after = false, currentContext, islot).map(ins => new RFAFact(VarSlot(retVar), ins))
     }
     newfacts
   }
@@ -58,7 +56,7 @@ class ListModel extends ModelCall {
   private def cloneListToRet(s: PTAResult, args: List[String], retVar: String, currentContext: Context)(implicit factory: SimHeap): ISet[RFAFact] ={
     require(args.nonEmpty)
     val thisSlot = VarSlot(args.head)
-    val thisValue = s.pointsToSet(thisSlot, currentContext)
+    val thisValue = s.pointsToSet(after = false, currentContext, thisSlot)
     thisValue.map{s => new RFAFact(VarSlot(retVar), s.clone(currentContext))}
   }
   

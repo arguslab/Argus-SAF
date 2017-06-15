@@ -27,27 +27,6 @@ class StringBuilderModel extends ModelCall {
   private def getReturnFactsWithAlias(rType: JawaType, retVar: String, currentContext: Context, alias: ISet[Instance])(implicit factory: SimHeap): ISet[RFAFact] =
     alias.map{a=> new RFAFact(VarSlot(retVar), a)}
   
-//  private def getPointStringForThis(args: List[String], currentContext: Context)(implicit factory: RFAFactFactory): ISet[RFAFact] = {
-//    require(args.nonEmpty)
-//    val thisSlot = VarSlot(args.head)
-//      val newThisValue = PTAPointStringInstance(currentContext.copy)
-//      Set(new RFAFact(thisSlot, newThisValue))
-//  }
-//
-//  private def getFactFromArgForThis(s: PTAResult, args: List[String], currentContext: Context)(implicit factory: RFAFactFactory): ISet[RFAFact] = {
-//    require(args.size > 1)
-//    val thisSlot = VarSlot(args.head)
-//    val paramSlot = VarSlot(args(1))
-//    s.pointsToSet(paramSlot, currentContext).map(v => new RFAFact(thisSlot, v))
-//  }
-  
-  
-//  private def getOldFactForThis(s: PTAResult, args: List[String], currentContext: Context)(implicit factory: RFAFactFactory): ISet[RFAFact] = {
-//    require(args.nonEmpty)
-//    val thisSlot = VarSlot(args(0), false, true)
-//    s.pointsToSet(thisSlot, currentContext).map(v => new RFAFact(thisSlot, v))
-//  }
-  
   private def getPointStringForRet(retVar: String, currentContext: Context)(implicit factory: SimHeap): ISet[RFAFact] = {
     ReachingFactsAnalysisHelper.getReturnFact(new JawaType("java.lang.String"), retVar, currentContext) match{
       case Some(fact) =>           
@@ -58,23 +37,12 @@ class StringBuilderModel extends ModelCall {
     }
    
   }
-  
-//  private def getFactFromThisForRet(s: PTAResult, args: List[String], retVarOpt: Option[String], currentContext: Context)(implicit factory: RFAFactFactory): ISet[RFAFact] ={
-//    require(args.nonEmpty)
-//    ReachingFactsAnalysisHelper.getReturnFact(new JawaType("java.lang.String"), retVarOpt.get, currentContext) match{
-//      case Some(fact) =>
-//        val thisSlot = VarSlot(args.head)
-//        s.pointsToSet(thisSlot, currentContext).map(v => new RFAFact(fact.s, v))
-//      case None =>  isetEmpty
-//    }
-//
-//  }
 
   private def getPointStringToField(s: PTAResult, args: List[String], currentContext: Context)(implicit factory: SimHeap): ISet[RFAFact] ={
     require(args.nonEmpty)
     var newfacts = isetEmpty[RFAFact]
     val thisSlot = VarSlot(args.head)
-    val thisValue = s.pointsToSet(thisSlot, currentContext)
+    val thisValue = s.pointsToSet(after = false, currentContext, thisSlot)
     val newStringIns = PTAPointStringInstance(currentContext)
     thisValue.foreach{ ins =>
       newfacts += new RFAFact(FieldSlot(ins, Constants.STRING_BUILDER_VALUE), newStringIns)
@@ -86,11 +54,10 @@ class StringBuilderModel extends ModelCall {
     require(args.nonEmpty)
     var newfacts = isetEmpty[RFAFact]
     val thisSlot = VarSlot(args.head)
-    val thisValue = s.pointsToSet(thisSlot, currentContext)
+    val thisValue = s.pointsToSet(after = false, currentContext, thisSlot)
     val newStringIns = PTAConcreteStringInstance(str, currentContext)
-    thisValue.foreach{
-      ins =>
-        newfacts += new RFAFact(FieldSlot(ins, Constants.STRING_BUILDER_VALUE), newStringIns)
+    thisValue.foreach{ ins =>
+      newfacts += new RFAFact(FieldSlot(ins, Constants.STRING_BUILDER_VALUE), newStringIns)
     }
     newfacts
   }
@@ -99,65 +66,61 @@ class StringBuilderModel extends ModelCall {
     require(args.size > 1)
     var newfacts = isetEmpty[RFAFact]
       val thisSlot = VarSlot(args.head)
-    val thisValue = s.pointsToSet(thisSlot, currentContext)
+    val thisValue = s.pointsToSet(after = false, currentContext, thisSlot)
     val paramSlot = VarSlot(args(1))
-    val paramValues = s.pointsToSet(paramSlot, currentContext)
-    thisValue.foreach{
-      ins =>
-        newfacts ++= paramValues.map{v => new RFAFact(FieldSlot(ins, Constants.STRING_BUILDER_VALUE), v)}
+    val paramValues = s.pointsToSet(after = false, currentContext, paramSlot)
+    thisValue.foreach{ ins =>
+      newfacts ++= paramValues.map{v => new RFAFact(FieldSlot(ins, Constants.STRING_BUILDER_VALUE), v)}
     }
     newfacts
   }
  
-    private def getPointStringToFieldAndThisToRet(s: PTAResult, args: List[String], retVar: String, currentContext: Context)(implicit factory: SimHeap): ISet[RFAFact] = {
-        require(args.nonEmpty)
-      var newfacts = isetEmpty[RFAFact]   
-      val thisSlot = VarSlot(args.head)
-      val thisValue = s.pointsToSet(thisSlot, currentContext)
-      val newStringIns = PTAPointStringInstance(currentContext)
-      thisValue.foreach{
-        ins =>
-          newfacts += new RFAFact(FieldSlot(ins, Constants.STRING_BUILDER_VALUE), newStringIns)
-      }
-      val facts = getReturnFactsWithAlias(new JawaType(Constants.STRING_BUILDER), retVar, currentContext, thisValue)
-      newfacts ++= facts
-      newfacts
+  private def getPointStringToFieldAndThisToRet(s: PTAResult, args: List[String], retVar: String, currentContext: Context)(implicit factory: SimHeap): ISet[RFAFact] = {
+    require(args.nonEmpty)
+    var newfacts = isetEmpty[RFAFact]
+    val thisSlot = VarSlot(args.head)
+    val thisValue = s.pointsToSet(after = false, currentContext, thisSlot)
+    val newStringIns = PTAPointStringInstance(currentContext)
+    thisValue.foreach{ ins =>
+      newfacts += new RFAFact(FieldSlot(ins, Constants.STRING_BUILDER_VALUE), newStringIns)
     }
-    
-    private def getStringBuilderFieldFactToRet(s: PTAResult, args: List[String], retVar: String, currentContext: Context)(implicit factory: SimHeap): ISet[RFAFact] ={
-      require(args.nonEmpty)
-      val thisSlot = VarSlot(args.head)
-      val thisValues = s.pointsToSet(thisSlot, currentContext)
-      if(thisValues.nonEmpty){
-          val strValues = thisValues.map{ins => s.pointsToSet(FieldSlot(ins, Constants.STRING_BUILDER_VALUE), currentContext)}.reduce(iunion[Instance])
-          strValues.map(v => new RFAFact(VarSlot(retVar), v))
-      } else isetEmpty
-    }
-    
-    private def getNewAndOldFieldFact(s: PTAResult, args: List[String], currentContext: Context)(implicit factory: SimHeap): (ISet[RFAFact], ISet[RFAFact]) ={
-      var newfacts = isetEmpty[RFAFact]
-      var deletefacts = isetEmpty[RFAFact]
-      require(args.nonEmpty)
-      val thisSlot = VarSlot(args.head)
-      val thisValue = s.pointsToSet(thisSlot, currentContext)
-      thisValue.foreach{
-        sbIns => 
-          val fieldValue = s.pointsToSet(FieldSlot(sbIns, Constants.STRING_BUILDER_VALUE), currentContext)
-          var newFieldValue = isetEmpty[Instance]
-          fieldValue.foreach {
-            case instance: PTAConcreteStringInstance =>
-              val newstr = instance.string.reverse
-              val newStringIns = PTAConcreteStringInstance(newstr, currentContext)
-              newFieldValue += newStringIns
+    val facts = getReturnFactsWithAlias(new JawaType(Constants.STRING_BUILDER), retVar, currentContext, thisValue)
+    newfacts ++= facts
+    newfacts
+  }
 
-            case fIns => newFieldValue += fIns
-          }
-          newfacts ++= newFieldValue.map(v => new RFAFact(FieldSlot(sbIns, Constants.STRING_BUILDER_VALUE), v))
-          if(fieldValue.nonEmpty)
-            deletefacts ++= fieldValue.map(v => new RFAFact(FieldSlot(sbIns, Constants.STRING_BUILDER_VALUE), v))
-        }
-      (newfacts  , deletefacts) 
+  private def getStringBuilderFieldFactToRet(s: PTAResult, args: List[String], retVar: String, currentContext: Context)(implicit factory: SimHeap): ISet[RFAFact] ={
+    require(args.nonEmpty)
+    val thisSlot = VarSlot(args.head)
+    val thisValues = s.pointsToSet(after = false, currentContext, thisSlot)
+    if(thisValues.nonEmpty){
+      val strValues = thisValues.map{ins => s.pointsToSet(after = false, currentContext, FieldSlot(ins, Constants.STRING_BUILDER_VALUE))}.reduce(iunion[Instance])
+      strValues.map(v => new RFAFact(VarSlot(retVar), v))
+    } else isetEmpty
+  }
+    
+  private def getNewAndOldFieldFact(s: PTAResult, args: List[String], currentContext: Context)(implicit factory: SimHeap): (ISet[RFAFact], ISet[RFAFact]) ={
+    var newfacts = isetEmpty[RFAFact]
+    var deletefacts = isetEmpty[RFAFact]
+    require(args.nonEmpty)
+    val thisSlot = VarSlot(args.head)
+    val thisValue = s.pointsToSet(after = false, currentContext, thisSlot)
+    thisValue.foreach{ sbIns =>
+      val fieldValue = s.pointsToSet(after = false, currentContext, FieldSlot(sbIns, Constants.STRING_BUILDER_VALUE))
+      var newFieldValue = isetEmpty[Instance]
+      fieldValue.foreach {
+        case instance: PTAConcreteStringInstance =>
+          val newstr = instance.string.reverse
+          val newStringIns = PTAConcreteStringInstance(newstr, currentContext)
+          newFieldValue += newStringIns
+        case fIns => newFieldValue += fIns
+      }
+      newfacts ++= newFieldValue.map(v => new RFAFact(FieldSlot(sbIns, Constants.STRING_BUILDER_VALUE), v))
+      if(fieldValue.nonEmpty)
+        deletefacts ++= fieldValue.map(v => new RFAFact(FieldSlot(sbIns, Constants.STRING_BUILDER_VALUE), v))
     }
+    (newfacts  , deletefacts)
+  }
     
 
      

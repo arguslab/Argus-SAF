@@ -13,7 +13,6 @@ package org.argus.jawa.alir.reachingDefinitionAnalysis
 import org.argus.jawa.alir.controlFlowGraph.{CFGLocationNode, CFGNode, IntraProceduralControlFlowGraph}
 import org.argus.jawa.alir.dataFlowAnalysis._
 import org.argus.jawa.compiler.parser._
-import org.argus.jawa.core.Signature
 import org.argus.jawa.core.util._
 
 /**
@@ -36,8 +35,7 @@ object ReachingDefinitionAnalysis {
       cfg: IntraProceduralControlFlowGraph[N],
       defRef: DefRef,
       initialFacts: ISet[RDFact]): Result = {
-    val mbp = new Mbp(md)
-    val np = new IntraNodeProvider[RDFact](cfg)
+    val ip = new IntraIngredientProvider[RDFact](md, cfg)
     val gen = new Gen(defRef)
     val kill = new Kill(defRef)
     val iota: ISet[RDFact] = {
@@ -59,12 +57,8 @@ object ReachingDefinitionAnalysis {
       result.toSet
     }
     val initial: ISet[RDFact] = isetEmpty
-    val result = MonotoneDataFlowAnalysisFramework[N, RDFact, LOC](cfg, forward = true, lub = true, mbp, np, gen, kill, None, iota, initial)
+    val result = MonotoneDataFlowAnalysisFramework[N, RDFact, LOC](cfg, forward = true, lub = true, ip, gen, kill, None, iota, initial)
     result
-  }
-
-  protected class Mbp(md: MethodDeclaration) extends MethodBodyProvider {
-    override def getBody(sig: Signature): ResolvedBody = md.resolvedBody
   }
 
   protected class Gen(defRef: DefRef)

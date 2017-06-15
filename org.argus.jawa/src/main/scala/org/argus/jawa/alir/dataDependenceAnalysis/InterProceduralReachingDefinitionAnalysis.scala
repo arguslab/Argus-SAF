@@ -15,7 +15,7 @@ import org.argus.jawa.alir.dataFlowAnalysis._
 import org.argus.jawa.alir.reachingDefinitionAnalysis._
 import org.argus.jawa.alir.{Context, JawaAlirInfoProvider}
 import org.argus.jawa.compiler.parser._
-import org.argus.jawa.core.{Global, Signature}
+import org.argus.jawa.core.Global
 import org.argus.jawa.core.util._
 
 /**
@@ -55,8 +55,7 @@ class InterProceduralReachingDefinitionAnalysis {
     val gen = new Gen
     val kill = new Kill
     val callr = Some(new Callr)
-    val mbp = new Mbp(global)
-    val np = new InterNodeProvider[IRDFact](icfg)
+    val ip = new InterIngredientProvider[IRDFact](global, icfg)
     this.icfg = icfg
     icfg.nodes.foreach{ node =>
       global.getMethod(node.getOwner) match {
@@ -81,7 +80,7 @@ class InterProceduralReachingDefinitionAnalysis {
     val iota: ISet[IRDFact] = isetEmpty + (((VarSlot("@@IRDA"), InitDefDesc), initialContext))
     val initial: ISet[IRDFact] = isetEmpty
     MonotoneDataFlowAnalysisFramework[Node, IRDFact, LOC](icfg,
-      forward = true, lub = true, mbp, np, gen, kill, callr, iota, initial)
+      forward = true, lub = true, ip, gen, kill, callr, iota, initial)
     factSet
   }
   
@@ -151,12 +150,6 @@ class InterProceduralReachingDefinitionAnalysis {
           s.filter(f => !redefGlobSlots.contains(f._1._1))
         case _ => s
       }
-    }
-  }
-  
-  class Mbp(global: Global) extends MethodBodyProvider {
-    def getBody(sig: Signature): ResolvedBody = {
-      global.getMethod(sig).get.getBody.resolvedBody
     }
   }
 

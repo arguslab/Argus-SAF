@@ -265,28 +265,27 @@ class DefaultAndroidSourceAndSinkManager(sasFilePath: String) extends AndroidSou
   def isIccSink(apk: ApkGlobal, invNode: ICFGInvokeNode, s: PTAResult): Boolean = {
     var sinkflag = false
     val calleeSet = invNode.getCalleeSet
-    calleeSet.foreach{
-      callee =>
-        if(InterComponentCommunicationModel.isIccOperation(callee.callee)){
-          val args = invNode.argNames
-          val intentSlot = VarSlot(args(1))
-          val intentValues = s.pointsToSet(intentSlot, invNode.getContext)
-          val intentContents = IntentHelper.getIntentContents(s, intentValues, invNode.getContext)
-          val compType = AndroidConstants.getIccCallType(callee.callee.getSubSignature)
-          val comMap = IntentHelper.mappingIntents(apk, intentContents, compType)
-          comMap.foreach{
-            case (_, comTypes) =>
-              if(comTypes.isEmpty) sinkflag = true
-              comTypes.foreach{
-                case (comType, typ) =>
-                  val com = apk.getClassOrResolve(comType)
-                  typ match {
-                    case IntentHelper.IntentType.EXPLICIT => if(com.isUnknown) sinkflag = true
-                    case IntentHelper.IntentType.IMPLICIT => sinkflag = true
-                  }
-              }
-          }
+    calleeSet.foreach{ callee =>
+      if(InterComponentCommunicationModel.isIccOperation(callee.callee)){
+        val args = invNode.argNames
+        val intentSlot = VarSlot(args(1))
+        val intentValues = s.pointsToSet(after = false, invNode.getContext, intentSlot)
+        val intentContents = IntentHelper.getIntentContents(s, intentValues, invNode.getContext)
+        val compType = AndroidConstants.getIccCallType(callee.callee.getSubSignature)
+        val comMap = IntentHelper.mappingIntents(apk, intentContents, compType)
+        comMap.foreach{
+          case (_, comTypes) =>
+            if(comTypes.isEmpty) sinkflag = true
+            comTypes.foreach{
+              case (comType, typ) =>
+                val com = apk.getClassOrResolve(comType)
+                typ match {
+                  case IntentHelper.IntentType.EXPLICIT => if(com.isUnknown) sinkflag = true
+                  case IntentHelper.IntentType.IMPLICIT => sinkflag = true
+                }
+            }
         }
+      }
     }
     sinkflag
   }

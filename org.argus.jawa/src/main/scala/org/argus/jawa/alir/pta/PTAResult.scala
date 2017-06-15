@@ -11,7 +11,6 @@
 package org.argus.jawa.alir.pta
 
 import org.argus.jawa.alir.Context
-import org.argus.jawa.core.Signature
 import org.argus.jawa.core.util._
 
 object PTAResult {
@@ -21,15 +20,12 @@ object PTAResult {
 class PTAResult {
   import PTAResult._
   
-  private val entryPoints: MSet[Signature] = msetEmpty
-  
-  def addEntryPoint(ep: Signature): Unit = this.entryPoints += ep
-  def addEntryPoints(eps: ISet[Signature]): Unit = this.entryPoints ++= eps
-  def getEntryPoints: ISet[Signature] = this.entryPoints.toSet
-  
-  private val ptMap: MMap[Context, MMap[PTASlot, MSet[Instance]]] = mmapEmpty
-  def pointsToMap: IMap[Context, PTSMap] = {
-    ptMap.map{
+  private val beforeMap: MMap[Context, MMap[PTASlot, MSet[Instance]]] = mmapEmpty
+  private val afterMap: MMap[Context, MMap[PTASlot, MSet[Instance]]] = mmapEmpty
+  private def ptMap(after: Boolean) = if(after) afterMap else beforeMap
+
+  def pointsToMap(after: Boolean): IMap[Context, PTSMap] = {
+    ptMap(after).map{
       case (c, m) =>
         (c, m.map{
           case (str, s) =>
@@ -38,64 +34,61 @@ class PTAResult {
     }.toMap
   }
   
-  def addPointsToMap(ptMap: IMap[Context, PTSMap]): Unit = {
+  def addPointsToMap(after: Boolean, ptMap: IMap[Context, PTSMap]): Unit = {
     ptMap.foreach {
       case (c, m) =>
         m.foreach {
           case (str, s) =>
-            addInstances(str, c, s)
+            addInstances(after, c, str, s)
         }
     }
   }
   
   def merge(result: PTAResult): PTAResult = {
-    addEntryPoints(result.getEntryPoints)
-    addPointsToMap(result.pointsToMap)
+    addPointsToMap(after = false, result.pointsToMap(false))
+    addPointsToMap(after = true, result.pointsToMap(true))
     this
   }
   
-  def setInstance(s: PTASlot, context: Context, i: Instance): Unit = {
-    ptMap.getOrElseUpdate(context, mmapEmpty).getOrElseUpdate(s, msetEmpty).clear()
-    ptMap(context)(s) += i
+  def setInstance(after: Boolean, context: Context, s: PTASlot, i: Instance): Unit = {
+    ptMap(after)(context)(s) = msetEmpty + i
   }
-  def setInstances(s: PTASlot, context: Context, is: ISet[Instance]): Unit = {
-    ptMap.getOrElseUpdate(context, mmapEmpty).getOrElseUpdate(s, msetEmpty).clear()
-    ptMap(context)(s) ++= is
+  def setInstances(after: Boolean, context: Context, s: PTASlot, is: ISet[Instance]): Unit = {
+    ptMap(after)(context)(s) = msetEmpty ++ is
   }
-  def addInstance(s: PTASlot, context: Context, i: Instance): Unit = ptMap.getOrElseUpdate(context, mmapEmpty).getOrElseUpdate(s, msetEmpty) += i
-  def addInstances(s: PTASlot, context: Context, is: ISet[Instance]): Unit = ptMap.getOrElseUpdate(context, mmapEmpty).getOrElseUpdate(s, msetEmpty) ++= is
-  def removeInstance(s: PTASlot, context: Context, i: Instance): Unit = {
-    ptMap.getOrElseUpdate(context, mmapEmpty).getOrElseUpdate(s, msetEmpty) -= i
-  }
-  def removeInstances(s: PTASlot, context: Context, is: ISet[Instance]): Unit = ptMap.getOrElseUpdate(context, mmapEmpty).getOrElseUpdate(s, msetEmpty) --= is
-  
-  def pointsToSet(s: PTASlot, context: Context): ISet[Instance] = {
-    ptMap.getOrElse(context, mmapEmpty).getOrElse(s, msetEmpty).toSet
-  }
-  def getPTSMap(context: Context): PTSMap = {
-    ptMap.getOrElseUpdate(context, mmapEmpty).map{
+  def addInstance(after: Boolean, context: Context, s: PTASlot, i: Instance): Unit = ptMap(after).getOrElseUpdate(context, mmapEmpty).getOrElseUpdate(s, msetEmpty) += i
+  def addInstances(after: Boolean, context: Context, s: PTASlot, is: ISet[Instance]): Unit = ptMap(after).getOrElseUpdate(context, mmapEmpty).getOrElseUpdate(s, msetEmpty) ++= is
+  def removeInstance(after: Boolean, context: Context, s: PTASlot, i: Instance): Unit =
+    ptMap(after).getOrElseUpdate(context, mmapEmpty).getOrElseUpdate(s, msetEmpty) -= i
+  def removeInstances(after: Boolean, context: Context, s: PTASlot, is: ISet[Instance]): Unit =
+    ptMap(after).getOrElseUpdate(context, mmapEmpty).getOrElseUpdate(s, msetEmpty) --= is
+  def pointsToSet(after: Boolean, context: Context, s: PTASlot): ISet[Instance] =
+    ptMap(after).getOrElse(context, mmapEmpty).getOrElse(s, msetEmpty).toSet
+  def getPTSMap(after: Boolean, context: Context): PTSMap = {
+    ptMap(after).getOrElseUpdate(context, mmapEmpty).map{
       case (str, s) =>
         (str, s.toSet)
     }.toMap
   }
 
-  def getRelatedInstances(s: PTASlot, context: Context): ISet[Instance] = {
-    val bValue = pointsToSet(s, context)
-    val rhValue = getRelatedHeapInstances(bValue, context)
+  def getRelatedInstances(after: Boolean, context: Context, s: PTASlot): ISet[Instance] = {
+    val bValue = pointsToSet(after, context, s)
+    val rhValue = getRelatedHeapInstances(after, context, bValue)
     bValue ++ rhValue
   }
-  def getRelatedHeapInstances(insts: ISet[Instance], context: Context): ISet[Instance] = {
-    val worklist: MList[Instance] = mlistEmpty ++ insts
+  def getRelatedHeapInstances(after: Boolean, context: Context, insts: ISet[Instance]): ISet[Instance] = {
     val processed: MSet[Instance] = msetEmpty
-    val result: MSet[Instance] = msetEmpty
-    while(worklist.nonEmpty){
-      val ins = worklist.remove(0)
-      processed += ins
-      val hMap = getPTSMap(context).filter{case (s, _) => s.isInstanceOf[HeapSlot] && s.asInstanceOf[HeapSlot].matchWithInstance(ins)}
-      val hInss = hMap.flatMap(_._2).toSet
-      result ++= hInss
-      worklist ++= hInss.diff(processed)
+    var result: ISet[Instance] = isetEmpty
+    val worklistAlgorithm = new WorklistAlgorithm[Instance] {
+      override def processElement(ins: Instance): Unit = {
+        processed += ins
+        val hMap = getPTSMap(after, context).filter{case (s, _) => s.isInstanceOf[HeapSlot] && s.asInstanceOf[HeapSlot].matchWithInstance(ins)}
+        val hInss = hMap.flatMap(_._2).toSet
+        result ++= hInss
+        worklist ++= hInss.diff(processed)
+      }
     }
-    result.toSet
+    worklistAlgorithm.run(worklistAlgorithm.worklist ++= insts)
+    result
   }
 }

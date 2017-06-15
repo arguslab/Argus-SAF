@@ -337,7 +337,7 @@ object DataCollector {
                   case Some(iccMethod) =>
                     val args = iccMethod.getBody.resolvedBody.locations(iccNode.locIndex).statement.asInstanceOf[CallStatement].args
                     val intentSlot = VarSlot(args.head)
-                    val intentValues = ptaresult.pointsToSet(intentSlot, iccNode.context)
+                    val intentValues = ptaresult.pointsToSet(after = false, iccNode.context, intentSlot)
                     val intentcontents = IntentHelper.getIntentContents(ptaresult, intentValues, iccNode.getContext)
                     val compType = AndroidConstants.getIccCallType(iccNode.getCalleeSet.head.callee.getSubSignature)
                     val comMap = IntentHelper.mappingIntents(apk, intentcontents, compType)

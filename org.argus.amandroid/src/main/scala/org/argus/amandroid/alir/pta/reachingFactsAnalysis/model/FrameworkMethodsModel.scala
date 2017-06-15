@@ -90,14 +90,14 @@ class FrameworkMethodsModel extends ModelCall {
 //    val thisSlot = VarSlot(args.head)
 //    val thisValue = s.pointsToSet(thisSlot, currentContext)
     val receiverSlot = VarSlot(args(1))
-    val receiverValue = s.pointsToSet(receiverSlot, currentContext)
+    val receiverValue = s.pointsToSet(after = false, currentContext, receiverSlot)
     val filterSlot = VarSlot(args(2))
-    val filterValue = s.pointsToSet(filterSlot, currentContext)
+    val filterValue = s.pointsToSet(after = false, currentContext, filterSlot)
     val permissionSlotOpt = 
       if(args.lift(3).isDefined) Some(VarSlot(args(3)))
       else None
     val permissionValueOpt = 
-      if(permissionSlotOpt.isDefined) Some(s.pointsToSet(permissionSlotOpt.get, currentContext))
+      if(permissionSlotOpt.isDefined) Some(s.pointsToSet(after = false, currentContext, permissionSlotOpt.get))
       else None
     val iDB = new IntentFilterDataBase
     receiverValue.foreach {
@@ -105,24 +105,23 @@ class FrameworkMethodsModel extends ModelCall {
       case rv =>
         val intentF = new IntentFilter(rv.typ)
         val comRec = apk.getClassOrResolve(rv.typ)
-        filterValue.foreach {
-          fv =>
-            val mActionsSlot = FieldSlot(fv, AndroidConstants.INTENTFILTER_ACTIONS)
-            val mActionsValue = s.pointsToSet(mActionsSlot, currentContext)
-            mActionsValue.foreach {
-              case PTAConcreteStringInstance(text, _) =>
-                intentF.addAction(text)
-              case _ =>
-                intentF.addAction("ANY")
-            }
-            val mCategoriesSlot = FieldSlot(fv, AndroidConstants.INTENTFILTER_CATEGORIES)
-            val mCategoriesValue = s.pointsToSet(mCategoriesSlot, currentContext)
-            mCategoriesValue.foreach {
-              case PTAConcreteStringInstance(text, _) =>
-                intentF.addCategory(text)
-              case _ =>
-                intentF.addCategory("ANY")
-            }
+        filterValue.foreach { fv =>
+          val mActionsSlot = FieldSlot(fv, AndroidConstants.INTENTFILTER_ACTIONS)
+          val mActionsValue = s.pointsToSet(after = false, currentContext, mActionsSlot)
+          mActionsValue.foreach {
+            case PTAConcreteStringInstance(text, _) =>
+              intentF.addAction(text)
+            case _ =>
+              intentF.addAction("ANY")
+          }
+          val mCategoriesSlot = FieldSlot(fv, AndroidConstants.INTENTFILTER_CATEGORIES)
+          val mCategoriesValue = s.pointsToSet(after = false, currentContext, mCategoriesSlot)
+          mCategoriesValue.foreach {
+            case PTAConcreteStringInstance(text, _) =>
+              intentF.addCategory(text)
+            case _ =>
+              intentF.addCategory("ANY")
+          }
         }
         val permission: MSet[String] = msetEmpty
         permissionValueOpt.foreach {
@@ -149,7 +148,7 @@ class FrameworkMethodsModel extends ModelCall {
     val result = isetEmpty[RFAFact]
     require(args.size >1)
     val paramSlot = VarSlot(args(1))
-    val paramValue = s.pointsToSet(paramSlot, currentContext)
+    val paramValue = s.pointsToSet(after = false, currentContext, paramSlot)
     paramValue.foreach {
       case cstr@PTAConcreteStringInstance(text, _) =>
         if(!systemServices.contains((currentContext, text))) {

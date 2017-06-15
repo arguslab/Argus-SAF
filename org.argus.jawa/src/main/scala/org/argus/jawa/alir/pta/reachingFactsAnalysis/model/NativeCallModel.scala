@@ -20,9 +20,9 @@ import org.argus.jawa.core.util._
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
  */ 
 class NativeCallModel extends ModelCall {
-   def isModelCall(p: JawaMethod): Boolean = p.isNative
+  def isModelCall(p: JawaMethod): Boolean = p.isNative
    
-   def doModelCall(s: PTAResult, p: JawaMethod, args: List[String], retVar: String, currentContext: Context)(implicit factory: SimHeap): (ISet[RFAFact], ISet[RFAFact], Boolean) = {
+  def doModelCall(s: PTAResult, p: JawaMethod, args: List[String], retVar: String, currentContext: Context)(implicit factory: SimHeap): (ISet[RFAFact], ISet[RFAFact], Boolean) = {
     var newFacts = isetEmpty[RFAFact]
     val delFacts = isetEmpty[RFAFact]
     var byPassFlag = true
@@ -33,27 +33,25 @@ class NativeCallModel extends ModelCall {
                  // then, create two facts (a) (retVarSlot, insRec.classObj), (b) ([insRec.classObj, "java:lang:Class.name"], concreteString(ins.typ))}
         require(args.nonEmpty)
         val thisSlot = VarSlot(args.head)
-        val thisValue = s.pointsToSet(thisSlot, currentContext)
-        thisValue.foreach{
-          ins =>
-            val insClasObj = ClassInstance(ins.typ, currentContext)
-            newFacts += new RFAFact(VarSlot(retVar), insClasObj)
-            val strIns = PTAConcreteStringInstance(insClasObj.getName, insClasObj.defSite)
-            newFacts += new RFAFact(FieldSlot(insClasObj, Constants.CLASS_NAME), strIns)
+        val thisValue = s.pointsToSet(after = false, currentContext, thisSlot)
+        thisValue.foreach{ ins =>
+          val insClasObj = ClassInstance(ins.typ, currentContext)
+          newFacts += new RFAFact(VarSlot(retVar), insClasObj)
+          val strIns = PTAConcreteStringInstance(insClasObj.getName, insClasObj.defSite)
+          newFacts += new RFAFact(FieldSlot(insClasObj, Constants.CLASS_NAME), strIns)
         }
         byPassFlag = false
       case "Ljava/lang/Class;.getNameNative:()Ljava/lang/String;" =>
         // algo:thisValue.foreach.{ cIns => get value of (cIns.name") and create fact (retVar, value)}
         require(args.nonEmpty)
         val thisSlot = VarSlot(args.head)
-        val thisValue = s.pointsToSet(thisSlot, currentContext)
-        thisValue.foreach{
-          cIns =>
-            println(cIns + " " + cIns.getClass)
-            require(cIns.isInstanceOf[ClassInstance])
-            val name = cIns.asInstanceOf[ClassInstance].getName
-            val strIns = PTAConcreteStringInstance(name, cIns.defSite)
-              newFacts += new RFAFact(VarSlot(retVar), strIns)
+        val thisValue = s.pointsToSet(after = false, currentContext, thisSlot)
+        thisValue.foreach{ cIns =>
+          println(cIns + " " + cIns.getClass)
+          require(cIns.isInstanceOf[ClassInstance])
+          val name = cIns.asInstanceOf[ClassInstance].getName
+          val strIns = PTAConcreteStringInstance(name, cIns.defSite)
+          newFacts += new RFAFact(VarSlot(retVar), strIns)
         }
         byPassFlag = false
       case _ =>

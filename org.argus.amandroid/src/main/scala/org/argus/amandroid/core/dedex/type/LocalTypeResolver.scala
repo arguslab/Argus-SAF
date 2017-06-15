@@ -108,9 +108,8 @@ object LocalTypeResolver {
   def apply(global: Global, md: MethodDeclaration): (IMap[Int, IMap[VarSlot, VarType]], IMap[Int, IMap[VarSlot, VarType]]) = build(global, md)
 
   def build(global: Global, md: MethodDeclaration): (IMap[Int, IMap[VarSlot, VarType]], IMap[Int, IMap[VarSlot, VarType]]) = {
-    val mbp = new Mbp(md)
     val cfg = JawaAlirInfoProvider.buildCfg(md, global)
-    val np = new IntraNodeProvider[TypeFact](cfg)
+    val ip = new IntraIngredientProvider[TypeFact](md, cfg)
     val def_types: MMap[Int, MMap[VarSlot, VarType]] = mmapEmpty
     val use_types: MMap[Int, MMap[VarSlot, VarType]] = mmapEmpty
     val defPoints: MMap[Position, VarType] = mmapEmpty
@@ -140,12 +139,8 @@ object LocalTypeResolver {
       result.toSet
     }
     val initial: ISet[TypeFact] = isetEmpty
-    MonotoneDataFlowAnalysisFramework[N, TypeFact, LOC](cfg, forward = true, lub = true, mbp, np, gen, kill, None, iota, initial)
+    MonotoneDataFlowAnalysisFramework[N, TypeFact, LOC](cfg, forward = true, lub = true, ip, gen, kill, None, iota, initial)
     (def_types.map{case (k, v) => k -> v.toMap}.toMap, use_types.map{case (k, v) => k -> v.toMap}.toMap)
-  }
-
-  protected class Mbp(md: MethodDeclaration) extends MethodBodyProvider {
-    override def getBody(sig: Signature): ResolvedBody = md.resolvedBody
   }
 
   protected class Gen(md: MethodDeclaration, def_types: MMap[Int, MMap[VarSlot, VarType]], use_types: MMap[Int, MMap[VarSlot, VarType]], defPoints: MMap[Position, VarType])

@@ -101,16 +101,15 @@ object ComponentSummaryTable {
         val messenger = apk.getClassOrResolve(new JawaType("android.os.Messenger"))
         callees foreach { callee =>
           val calleeSig = callee.callee
-          val ptsmap = idfg.ptaresult.getPTSMap(cn.context)
+          val ptsmap = idfg.ptaresult.getPTSMap(after = false, cn.context)
           if (AndroidConstants.isIccMethod(calleeSig.getSubSignature)) {
             // add icc call as icc caller
             val callTyp = AndroidConstants.getIccCallType(calleeSig.getSubSignature)
             val intentSlot = VarSlot(cn.argNames(1))
             val intentValue: ISet[Instance] = ptsmap.getOrElse(intentSlot, isetEmpty)
             val intentContents = IntentHelper.getIntentContents(idfg.ptaresult, intentValue, cn.context)
-            intentContents foreach {
-              intentContent =>
-                icc_summary.addCaller(cn, IntentCaller(component, callTyp, intentContent))
+            intentContents foreach { intentContent =>
+              icc_summary.addCaller(cn, IntentCaller(component, callTyp, intentContent))
             }
           }
           val calleeClazz = apk.getClassOrResolve(calleeSig.getClassType)

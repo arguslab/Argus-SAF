@@ -137,12 +137,11 @@ class ClassModel extends ModelCall {
   private def classAsSubClass(s: PTAResult, args: List[String], retVar: String, currentContext: Context)(implicit factory: SimHeap): (ISet[RFAFact], ISet[RFAFact]) = {
     require(args.size >1)
     val thisSlot = VarSlot(args.head)
-	  val thisValue = s.pointsToSet(thisSlot, currentContext)
+	  val thisValue = s.pointsToSet(after = false, currentContext, thisSlot)
 	  var newfacts = isetEmpty[RFAFact]
     val delfacts = isetEmpty[RFAFact]
-	  thisValue.foreach{
-	    tv =>
-	      newfacts += new RFAFact(VarSlot(retVar), tv)
+	  thisValue.foreach{ tv =>
+			newfacts += new RFAFact(VarSlot(retVar), tv)
 	  }
     (newfacts, delfacts)
   }
@@ -170,7 +169,7 @@ class ClassModel extends ModelCall {
 	  // algo:thisValue.foreach.{ cIns => get value of (cIns.name") and create fact (retVar, value)}
     require(args.nonEmpty)
     val clazzNameSlot = VarSlot(args.head)
-    val clazzNameValue = s.pointsToSet(clazzNameSlot, currentContext)
+    val clazzNameValue = s.pointsToSet(after = false, currentContext, clazzNameSlot)
     var newfacts = isetEmpty[RFAFact]
     val delfacts = isetEmpty[RFAFact]
     clazzNameValue.foreach {
@@ -188,7 +187,7 @@ class ClassModel extends ModelCall {
   private def classNewInstance(s: PTAResult, args: List[String], retVar: String, currentContext: Context)(implicit factory: SimHeap): (ISet[RFAFact], ISet[RFAFact]) = {
     require(args.nonEmpty)
     val classSlot = VarSlot(args.head)
-    val classValue = s.pointsToSet(classSlot, currentContext)
+    val classValue = s.pointsToSet(after = false, currentContext, classSlot)
     var newfacts = isetEmpty[RFAFact]
     val delfacts = isetEmpty[RFAFact]
     classValue.foreach {
@@ -206,7 +205,7 @@ class ClassModel extends ModelCall {
 	  // algo:thisValue.foreach.{ cIns => get value of (cIns.name") and create fact (retVar, value)}
     require(args.nonEmpty)
     val thisSlot = VarSlot(args.head)
-    val thisValue = s.pointsToSet(thisSlot, currentContext)
+    val thisValue = s.pointsToSet(after = false, currentContext, thisSlot)
     var newfacts = isetEmpty[RFAFact]
     val delfacts = isetEmpty[RFAFact]
     thisValue.foreach {

@@ -65,7 +65,6 @@ object InterProceduralSuperSpark {
     pag.constructGraph(ep, points, context.copy, entryPoint = true)
     icfg.collectCfgToBaseGraph(ep, context.copy)
     workListPropagation(global, pag, icfg)
-    pag.pointsToMap.addEntryPoint(ep.getSignature)
   }
   
   private def processStaticInfo(global: Global, pag: PointerAssignmentGraph[PtaNode], icfg: InterProceduralControlFlowGraph[N]) = {
@@ -186,56 +185,53 @@ object InterProceduralSuperSpark {
             case _ =>
           }
       }
-      pag.edges.foreach{
-        edge =>
-          pag.getEdgeType(edge) match{
-            case pag.EdgeType.FIELD_LOAD => // p.f -> q
-              if(pag.pointsToMap.pointsToSet(edge.source).isEmpty) {
-                edge.source.point match {
-                  case fie: Point with Loc with Field =>
-                    fie.fqn.typ match {
-                      case obj if obj.isObject =>
-                        val ins = PTAInstance(obj.toUnknown, edge.source.context)
-                        edge.source.getSlots(pag.pointsToMap) foreach {
-                          slot =>
-                            pag.pointsToMap.addInstance(slot, pag.pointsToMap.heapContext, ins)
-                        }
-                      case _ =>
-                    }
-                  case _ =>
-                }
+      pag.edges.foreach{ edge =>
+        pag.getEdgeType(edge) match{
+          case pag.EdgeType.FIELD_LOAD => // p.f -> q
+            if(pag.pointsToMap.pointsToSet(edge.source).isEmpty) {
+              edge.source.point match {
+                case fie: Point with Loc with Field =>
+                  fie.fqn.typ match {
+                    case obj if obj.isObject =>
+                      val ins = PTAInstance(obj.toUnknown, edge.source.context)
+                      edge.source.getSlots(pag.pointsToMap) foreach { slot =>
+                        pag.pointsToMap.addInstance(after = false, pag.pointsToMap.heapContext, slot, ins)
+                      }
+                    case _ =>
+                  }
+                case _ =>
               }
-              if(pag.pointsToMap.isDiff(edge.source, edge.target)){
-                pag.worklist += edge.target
-                pag.pointsToMap.propagatePointsToSet(edge.source, edge.target)
+            }
+            if(pag.pointsToMap.isDiff(edge.source, edge.target)){
+              pag.worklist += edge.target
+              pag.pointsToMap.propagatePointsToSet(edge.source, edge.target)
+            }
+          case pag.EdgeType.ARRAY_LOAD => // e.g. q = p[i]; Edge: p[i] -> q
+            if(pag.pointsToMap.isDiff(edge.source, edge.target)){
+              pag.worklist += edge.target
+              pag.pointsToMap.propagatePointsToSet(edge.source, edge.target)
+            }
+          case pag.EdgeType.STATIC_FIELD_LOAD => // e.g. q = @@p; Edge: @@p -> q
+            if(pag.pointsToMap.pointsToSet(edge.source).isEmpty) {
+              edge.source.point match {
+                case fie: Point with Loc with Static_Field =>
+                  fie.staticFieldFQN.typ match {
+                    case obj if obj.isObject =>
+                      val ins = PTAInstance(obj.toUnknown, edge.source.context)
+                      edge.source.getSlots(pag.pointsToMap) foreach { slot =>
+                        pag.pointsToMap.addInstance(after = false, pag.pointsToMap.heapContext, slot, ins)
+                      }
+                    case _ =>
+                  }
+                case _ =>
               }
-            case pag.EdgeType.ARRAY_LOAD => // e.g. q = p[i]; Edge: p[i] -> q
-              if(pag.pointsToMap.isDiff(edge.source, edge.target)){
-                pag.worklist += edge.target
-                pag.pointsToMap.propagatePointsToSet(edge.source, edge.target)
-              }
-            case pag.EdgeType.STATIC_FIELD_LOAD => // e.g. q = @@p; Edge: @@p -> q
-              if(pag.pointsToMap.pointsToSet(edge.source).isEmpty) {
-                edge.source.point match {
-                  case fie: Point with Loc with Static_Field =>
-                    fie.staticFieldFQN.typ match {
-                      case obj if obj.isObject =>
-                        val ins = PTAInstance(obj.toUnknown, edge.source.context)
-                        edge.source.getSlots(pag.pointsToMap) foreach {
-                          slot =>
-                            pag.pointsToMap.addInstance(slot, pag.pointsToMap.heapContext, ins)
-                        }
-                      case _ =>
-                    }
-                  case _ =>
-                }
-              }
-              if(pag.pointsToMap.isDiff(edge.source, edge.target)){
-                pag.worklist += edge.target
-                pag.pointsToMap.propagatePointsToSet(edge.source, edge.target)
-              }
-            case _ =>
-          }
+            }
+            if(pag.pointsToMap.isDiff(edge.source, edge.target)){
+              pag.worklist += edge.target
+              pag.pointsToMap.propagatePointsToSet(edge.source, edge.target)
+            }
+          case _ =>
+        }
       }
     }
   }

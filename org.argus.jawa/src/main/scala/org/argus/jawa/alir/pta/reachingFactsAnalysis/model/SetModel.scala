@@ -32,12 +32,11 @@ class SetModel extends ModelCall {
     require(args.size > 1)
     var newfacts = isetEmpty[RFAFact]
     val thisSlot = VarSlot(args.head)
-    val thisValues = s.pointsToSet(thisSlot, currentContext)
+    val thisValues = s.pointsToSet(after = false, currentContext, thisSlot)
     val paramSlot = VarSlot(args(1))
-    val paramValues = s.pointsToSet(paramSlot, currentContext)
-    thisValues.foreach{
-      ins =>
-        newfacts ++= paramValues.map{p=> new RFAFact(FieldSlot(ins, Constants.SET_ITEMS), p)}
+    val paramValues = s.pointsToSet(after = false, currentContext, paramSlot)
+    thisValues.foreach{ ins =>
+      newfacts ++= paramValues.map{p=> new RFAFact(FieldSlot(ins, Constants.SET_ITEMS), p)}
     }
     newfacts 
   }
@@ -45,7 +44,7 @@ class SetModel extends ModelCall {
   private def cloneSetToRet(s: PTAResult, args: List[String], retVar: String, currentContext: Context)(implicit factory: SimHeap): ISet[RFAFact] ={
     require(args.nonEmpty)
     val thisSlot = VarSlot(args.head)
-    val thisValue = s.pointsToSet(thisSlot, currentContext)
+    val thisValue = s.pointsToSet(after = false, currentContext, thisSlot)
     thisValue.map{s => new RFAFact(VarSlot(retVar), s.clone(currentContext))}
   }
   

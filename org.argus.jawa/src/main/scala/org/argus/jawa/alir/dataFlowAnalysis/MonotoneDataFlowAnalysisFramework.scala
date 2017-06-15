@@ -14,7 +14,7 @@ import org.argus.jawa.alir.{AlirLoc, AlirNode}
 import org.argus.jawa.alir.controlFlowGraph._
 import org.argus.jawa.compiler.parser._
 import org.argus.jawa.core.Signature
-import org.argus.jawa.core.util.{ISet, _}
+import org.argus.jawa.core.util._
 
 /**
   * @author <a href="mailto:robby@k-state.edu">Robby</a>
@@ -53,16 +53,10 @@ trait MonotonicFunction[N <: AlirNode, LatticeElement] {
 }
 
 /**
- * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
- */
-trait MethodBodyProvider {
-  def getBody(sig: Signature): ResolvedBody
-}
-
-/**
   * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
   */
-trait NodeProvider[N <: AlirNode, LatticeElement, LOC] {
+trait IngredientProvider[N <: AlirNode, LatticeElement, LOC] {
+  def getBody(sig: Signature): ResolvedBody
   def newLoc(currentNode: N with AlirLoc, newl: Location): LOC
   def next(currentNode: N with AlirLoc, body: ResolvedBody): N
   def node(l: Location, loc: LOC): N
@@ -74,6 +68,8 @@ trait NodeProvider[N <: AlirNode, LatticeElement, LOC] {
       startNode: N,
       mdaf: MonotoneDataFlowAnalysisBuilder[N, LatticeElement],
       callr: Option[CallResolver[N, LatticeElement]]): Unit
+  def preProcess(node: N, statement: Statement, s: ISet[LatticeElement]): Unit
+  def postProcess(map: IMap[N, ISet[LatticeElement]]): Unit
 }
 
 /**
@@ -99,8 +95,7 @@ object MonotoneDataFlowAnalysisFramework {
   def apply[N <: AlirNode, LatticeElement, LOC](
       cfg: ControlFlowGraph[N],
       forward: Boolean, lub: Boolean,
-      mbp: MethodBodyProvider,
-      np: NodeProvider[N, LatticeElement, LOC],
+      ip: IngredientProvider[N, LatticeElement, LOC],
       gen: MonotonicFunction[N, LatticeElement],
       kill: MonotonicFunction[N, LatticeElement],
       callr: Option[CallResolver[N, LatticeElement]],
@@ -108,14 +103,13 @@ object MonotoneDataFlowAnalysisFramework {
       initial: ISet[LatticeElement]): MonotoneDataFlowAnalysisResult[N, LatticeElement] = {
     val flow = if (forward) cfg else cfg.reverse
     val startNode = flow.entryNode
-    build(cfg, forward, lub, mbp, np, gen, kill, callr, startNode, iota, initial)
+    build(cfg, forward, lub, ip, gen, kill, callr, startNode, iota, initial)
   }
 
   def build[N <: AlirNode, LatticeElement, LOC](
       cfg: ControlFlowGraph[N],
       forward: Boolean, lub: Boolean,
-      mbp: MethodBodyProvider,
-      np: NodeProvider[N, LatticeElement, LOC],
+      ip: IngredientProvider[N, LatticeElement, LOC],
       gen: MonotonicFunction[N, LatticeElement],
       kill: MonotonicFunction[N, LatticeElement],
       callr: Option[CallResolver[N, LatticeElement]],
@@ -344,28 +338,28 @@ object MonotoneDataFlowAnalysisFramework {
       protected def visitForward(
           currentNode: N with AlirLoc,
           esl: Option[EntrySetListener[LatticeElement]]): IMap[N, DFF] = {
-        val body = mbp.getBody(currentNode.getOwner)
+        val body = ip.getBody(currentNode.getOwner)
         val l = body.locations(currentNode.locIndex)
 
-        val latticeMap: MMap[N, DFF] = mmapEmpty
+        var latticeMap: IMap[N, DFF] = imapEmpty
 
         def jumpF(s: DFF, j: Jump): Unit =
           j match {
             case j: IfStatement =>
               if (esl.isDefined) esl.get.ifJump(j, s)
               val ifGotoLoc = body.locations(j.targetLocation.locationIndex)
-              val ifGotoContext = np.newLoc(currentNode, ifGotoLoc)
-              val gn = np.node(ifGotoLoc, ifGotoContext)
+              val ifGotoContext = ip.newLoc(currentNode, ifGotoLoc)
+              val gn = ip.node(ifGotoLoc, ifGotoContext)
               latticeMap += (gn -> s)
-              val sn = np.next(currentNode, body)
+              val sn = ip.next(currentNode, body)
               if (esl.isDefined) esl.get.exitSet(s)
               latticeMap += (sn -> s)
             case j: SwitchStatement =>
               if (esl.isDefined) esl.get.switchJump(j, s)
               for (switchCase <- j.cases) {
                 val switchCaseLoc = body.locations(switchCase.targetLocation.locationIndex)
-                val switchCaseContext = np.newLoc(currentNode, switchCaseLoc)
-                val sn = np.node(switchCaseLoc, switchCaseContext)
+                val switchCaseContext = ip.newLoc(currentNode, switchCaseLoc)
+                val sn = ip.node(switchCaseLoc, switchCaseContext)
                 if (esl.isDefined) {
                   esl.get.switchCase(switchCase, s)
                   esl.get.exitSet(s)
@@ -373,14 +367,14 @@ object MonotoneDataFlowAnalysisFramework {
                 latticeMap += (sn -> s)
               }
               if (j.defaultCaseOpt.isEmpty) {
-                val sn = np.next(currentNode, body)
+                val sn = ip.next(currentNode, body)
                 if (esl.isDefined) esl.get.exitSet(s)
                 latticeMap += (sn -> s)
               } else {
                 val switchDefault = j.defaultCaseOpt.get
                 val switchDefaultLoc = body.locations(switchDefault.targetLocation.locationIndex)
-                val switchDefaultContext = np.newLoc(currentNode, switchDefaultLoc)
-                val sn = np.node(switchDefaultLoc, switchDefaultContext)
+                val switchDefaultContext = ip.newLoc(currentNode, switchDefaultLoc)
+                val sn = ip.node(switchDefaultLoc, switchDefaultContext)
                 if (esl.isDefined) {
                   esl.get.switchDefault(switchDefault, s)
                   esl.get.exitSet(s)
@@ -389,8 +383,8 @@ object MonotoneDataFlowAnalysisFramework {
               }
             case j: GotoStatement =>
               val gotoLoc = body.locations(j.targetLocation.locationIndex)
-              val gotoContext = np.newLoc(currentNode, gotoLoc)
-              val sn = np.node(gotoLoc, gotoContext)
+              val gotoContext = ip.newLoc(currentNode, gotoLoc)
+              val sn = ip.node(gotoLoc, gotoContext)
               if (esl.isDefined) {
                 esl.get.gotoJump(j, s)
                 esl.get.exitSet(s)
@@ -411,7 +405,7 @@ object MonotoneDataFlowAnalysisFramework {
                   case (calleeNode, calleeFacts) =>
                     latticeMap += (calleeNode -> calleeFacts)
                 }
-                val rn = np.returnNode(currentNode)
+                val rn = ip.returnNode(currentNode)
                 if (esl.isDefined) esl.get.exitSet(entrySet(rn))
                 latticeMap += (rn -> retFacts)
               } else {
@@ -421,7 +415,9 @@ object MonotoneDataFlowAnalysisFramework {
               }
           }
 
-        val s = fS(l.statement, entrySet(currentNode), currentNode)
+        val es = entrySet(currentNode)
+        ip.preProcess(currentNode, l.statement, es)
+        val s = fS(l.statement, es, currentNode)
         l.statement match {
           case j: Jump =>
             jumpF(s, j)
@@ -430,7 +426,8 @@ object MonotoneDataFlowAnalysisFramework {
             val succs = cfg.successors(currentNode)
             succs.foreach(succ=>latticeMap += (succ -> s))
         }
-        latticeMap.toMap
+        ip.postProcess(latticeMap)
+        latticeMap
       }
 
       def calculateResult(currentNode: N with AlirLoc,
@@ -449,7 +446,7 @@ object MonotoneDataFlowAnalysisFramework {
 
     val mdaf = new Mdaf(getEntrySet, initial)
     entrySetMap.put(startNode, iota)
-    np.process(startNode, mdaf, callr)
+    ip.process(startNode, mdaf, callr)
     mdaf
   }
 }

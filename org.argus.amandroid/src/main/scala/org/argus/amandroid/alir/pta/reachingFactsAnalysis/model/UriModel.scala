@@ -91,7 +91,7 @@ class UriModel extends ModelCall {
   private def uriParse(s: PTAResult, args: List[String], retVar: String, currentContext: Context)(implicit factory: SimHeap): (ISet[RFAFact], ISet[RFAFact]) = {
     require(args.nonEmpty)
     val strSlot = VarSlot(args.head)
-    val strValue = s.pointsToSet(strSlot, currentContext)
+    val strValue = s.pointsToSet(after = false, currentContext, strSlot)
     var newfacts = isetEmpty[RFAFact]
     val delfacts = isetEmpty[RFAFact]
     val stringUriIns = PTAInstance(new JawaType(AndroidConstants.URI_STRING_URI), currentContext)

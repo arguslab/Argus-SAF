@@ -54,7 +54,7 @@ class PasswordSourceAndSinkManager(sasFilePath: String) extends AndroidSourceAnd
           sinkFlag = true
           val args = invNode.argNames
           val intentSlot = VarSlot(args(1))
-          val intentValues = ptaResult.pointsToSet(intentSlot, invNode.getContext)
+          val intentValues = ptaResult.pointsToSet(after = false, invNode.getContext, intentSlot)
           val intentContents = IntentHelper.getIntentContents(ptaResult, intentValues, invNode.getContext)
           val compType = AndroidConstants.getIccCallType(callee.callee.getSubSignature)
           val comMap = IntentHelper.mappingIntents(apk, intentContents, compType)
