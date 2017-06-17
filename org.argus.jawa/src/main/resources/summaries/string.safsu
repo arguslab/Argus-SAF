@@ -3,43 +3,61 @@
 `Ljava/lang/String;.<init>:()V`:
 ;
 `Ljava/lang/String;.<init>:(II[C)V`:
+  this = java.lang.String@~
 ;
 `Ljava/lang/String;.<init>:(Ljava/lang/String;)V`:
   this = arg:0
 ;
 `Ljava/lang/String;.<init>:(Ljava/lang/String;C)V`:
+  this = java.lang.String@~
 ;
 `Ljava/lang/String;.<init>:(Ljava/lang/String;I)V`:
+  this = java.lang.String@~
 ;
 `Ljava/lang/String;.<init>:(Ljava/lang/String;Ljava/lang/String;)V`:
+  this = java.lang.String@~
 ;
 `Ljava/lang/String;.<init>:(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V`:
+  this = java.lang.String@~
 ;
 `Ljava/lang/String;.<init>:(Ljava/lang/StringBuffer;)V`:
+  this = arg:0.value
 ;
 `Ljava/lang/String;.<init>:(Ljava/lang/StringBuilder;)V`:
+  this = arg:0.value
 ;
 `Ljava/lang/String;.<init>:([B)V`:
+  this = java.lang.String@~
 ;
 `Ljava/lang/String;.<init>:([BI)V`:
+  this = java.lang.String@~
 ;
 `Ljava/lang/String;.<init>:([BII)V`:
+  this = java.lang.String@~
 ;
 `Ljava/lang/String;.<init>:([BIII)V`:
+  this = java.lang.String@~
 ;
 `Ljava/lang/String;.<init>:([BIILjava/lang/String;)V`:
+  this = java.lang.String@~
 ;
 `Ljava/lang/String;.<init>:([BIILjava/nio/charset/Charset;)V`:
+  this = java.lang.String@~
 ;
 `Ljava/lang/String;.<init>:([BLjava/lang/String;)V`:
+  this = java.lang.String@~
 ;
 `Ljava/lang/String;.<init>:([BLjava/nio/charset/Charset;)V`:
+  this = java.lang.String@~
 ;
 `Ljava/lang/String;.<init>:([C)V`:
+  this = java.lang.String@~
 ;
 `Ljava/lang/String;.<init>:([CII)V`:
+  this = java.lang.String@~
 ;
 `Ljava/lang/String;.<init>:([III)V`:
+  this = java.lang.String@~
 ;
 `Ljava/lang/String;.copyValueOf:([C)Ljava/lang/String;`:
   ret = java.lang.String@~
@@ -131,17 +149,19 @@
 `Ljava/lang/String;.equalsIgnoreCase:(Ljava/lang/String;)Z`:
 ;
 `Ljava/lang/String;.getBytes:(II[BI)V`:
+  arg:2 = byte[]@~
 ;
 `Ljava/lang/String;.getBytes:()[B`:
-  ret = this.bytes
+  ret = byte[]@~
 ;
 `Ljava/lang/String;.getBytes:(Ljava/lang/String;)[B`:
-  ret = this.bytes
+  ret = byte[]@~
 ;
 `Ljava/lang/String;.getBytes:(Ljava/nio/charset/Charset;)[B`:
-  ret = this.bytes
+  ret = byte[]@~
 ;
 `Ljava/lang/String;.getChars:(II[CI)V`:
+  arg:2 = char[]@~
 ;
 `Ljava/lang/String;.hashCode:()I`:
 ;
@@ -208,7 +228,7 @@
   ret = java.lang.String@~
 ;
 `Ljava/lang/String;.toCharArray:()[C`:
-  ret = Char[]@~
+  ret = char[]@~
 ;
 `Ljava/lang/String;.toLowerCase:()Ljava/lang/String;`:
   ret = this

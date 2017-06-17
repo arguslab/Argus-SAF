@@ -44,7 +44,7 @@ class SummaryManagerTest extends FlatSpec with Matchers {
         new RFAFact(VarSlot(retName), PTAConcreteStringInstance("String", expectedContext))
       )
 
-    val currentFacts: ISet[RFAFact] = sm.process(calleeSig, Some(retName), None, ilistEmpty, isetEmpty, context)
+    val currentFacts: ISet[RFAFact] = sm.process(calleeSig, Some(retName), None, ilistEmpty, isetEmpty[RFAFact], context)
     assert(currentFacts.size == expectedFacts.size && currentFacts.diff(expectedFacts).isEmpty)
   }
 
@@ -205,6 +205,32 @@ class SummaryManagerTest extends FlatSpec with Matchers {
         new RFAFact(VarSlot(argNames(1)), arg1Ins)
       )
     val currentFacts: ISet[RFAFact] = sm.process(calleeSig, None, Some(recvName), argNames, initialFacts, context)
+    assert(currentFacts.size == expectedFacts.size && currentFacts.diff(expectedFacts).isEmpty)
+  }
+
+  "SummaryManager" should "handle Global Variable correctly" in {
+    val code =
+      """
+        |`Lmy/Class;.foo:()V`:
+        |  `my.Class.Glo` += java.lang.String@L1
+        |  `my.Class.Glo` += "String"@L1
+        |;
+      """.stripMargin
+    implicit val factory = new SimHeap
+    val sm = new SummaryManager
+    sm.register(code)
+
+    val calleeSig = new Signature("Lmy/Class;.foo:()V")
+    val globalFQN = "my.Class.Glo"
+    val context = new Context("Test")
+    val expectedContext = context.copy.setContext(calleeSig, "L1")
+    val expectedFacts: ISet[RFAFact] =
+      Set(
+        new RFAFact(StaticFieldSlot(globalFQN), PTAPointStringInstance(expectedContext)),
+        new RFAFact(StaticFieldSlot(globalFQN), PTAConcreteStringInstance("String", expectedContext))
+      )
+
+    val currentFacts: ISet[RFAFact] = sm.process(calleeSig, None, None, ilistEmpty, isetEmpty[RFAFact], context)
     assert(currentFacts.size == expectedFacts.size && currentFacts.diff(expectedFacts).isEmpty)
   }
 }

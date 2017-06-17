@@ -12,7 +12,7 @@
 ;
 
 `Ljava/util/Map;.get:(Ljava/lang/Object;)Ljava/lang/Object;`:
-  ret = this.entries.value // need to be improved
+  ret = this.entries.value // can be improved
 ;
 
 `Ljava/util/Map;.keySet:()Ljava/util/Set;`:
@@ -21,7 +21,7 @@
 ;
 
 `Ljava/util/Map;.put:(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;`:
-  ret = this.entries.right
+  ret = this.entries.value
   this.entries.key += arg:0
   this.entries.value += arg:1
 ;
@@ -32,7 +32,6 @@
 
 `Ljava/util/Map;.remove:(Ljava/lang/Object;)Ljava/lang/Object;`:
   ret = this.entries.value
-  this.entries.key -= arg:0
 ;
 
 `Ljava/util/Map;.values:()Ljava/util/Collection;`:

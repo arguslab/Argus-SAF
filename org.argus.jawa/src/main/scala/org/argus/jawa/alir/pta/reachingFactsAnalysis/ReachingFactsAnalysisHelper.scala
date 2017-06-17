@@ -123,6 +123,40 @@ object ReachingFactsAnalysisHelper {
     (genFacts, killFacts)
   }
 
+  def getUnknownObject(calleeMethod: JawaMethod, s: ISet[RFAFact], args: Seq[String], retVar: String, currentContext: Context)(implicit factory: SimHeap): (ISet[RFAFact], ISet[RFAFact]) = {
+    var genFacts: ISet[RFAFact] = isetEmpty
+    val killFacts: ISet[RFAFact] = isetEmpty
+    val argSlots = args.map(arg=>VarSlot(arg))
+    for(i <- argSlots.indices){
+      val argSlot = argSlots(i)
+      val argValues = s.filter(f => f.s == argSlot).map(_.v)
+      val typ: JawaType =
+        if(!calleeMethod.isStatic && i == 0) calleeMethod.getDeclaringClass.typ
+        else if(!calleeMethod.isStatic) calleeMethod.getSignature.getParameterTypes(i - 1)
+        else calleeMethod.getSignature.getParameterTypes(i)
+      val influencedFields = Set(Constants.ALL_FIELD_FQN(typ))
+      argValues.foreach { ins =>
+        for(f <- influencedFields) {
+          val fs = FieldSlot(ins, f.fieldName)
+          val uins = PTAInstance(JavaKnowledge.JAVA_TOPLEVEL_OBJECT_TYPE.toUnknown, currentContext)
+          genFacts += new RFAFact(fs, uins)
+        }
+      }
+    }
+    //    killFacts ++= ReachingFactsAnalysisHelper.getRelatedHeapFacts(argValues, s)
+    val retTyp = calleeMethod.getReturnType
+    retTyp match {
+      case ot if ot.isObject =>
+        val slot = VarSlot(retVar)
+        val value =
+          if(retTyp.jawaName == "java.lang.String") PTAPointStringInstance(currentContext)
+          else PTAInstance(ot.toUnknown, currentContext)
+        genFacts += new RFAFact(slot, value)
+      case _ =>
+    }
+    (genFacts, killFacts)
+  }
+
   def getUnknownObjectForClinit(calleeMethod: JawaMethod, currentContext: Context)(implicit factory: SimHeap): ISet[RFAFact] = {
     var result: ISet[RFAFact] = isetEmpty
     val record = calleeMethod.getDeclaringClass

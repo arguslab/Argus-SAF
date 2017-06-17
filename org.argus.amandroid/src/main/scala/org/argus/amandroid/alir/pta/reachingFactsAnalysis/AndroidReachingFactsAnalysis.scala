@@ -22,7 +22,8 @@ import org.argus.jawa.alir.controlFlowGraph._
 import org.argus.jawa.alir.dataFlowAnalysis._
 import org.argus.jawa.alir.interprocedural.{CallHandler, Callee}
 import org.argus.jawa.alir.pta._
-import org.argus.jawa.alir.pta.reachingFactsAnalysis.{RFAFact, SimHeap, ReachingFactsAnalysisHelper}
+import org.argus.jawa.alir.pta.reachingFactsAnalysis.{RFAFact, ReachingFactsAnalysisHelper, SimHeap}
+import org.argus.jawa.alir.pta.summaryBasedAnalysis.SummaryManager
 import org.argus.jawa.compiler.parser._
 import org.argus.jawa.core._
 
@@ -40,6 +41,10 @@ class AndroidReachingFactsAnalysisBuilder(apk: ApkGlobal, clm: ClassLoadManager,
   val ptaresult = new PTAResult
 
   var currentComponent: JawaClass = _
+
+  val sm: SummaryManager = new SummaryManager()
+  sm.registerFileInternal("summaries/string.safsu")
+  sm.registerFileInternal("summaries/map.safsu")
 
   def build (
       entryPointProc: JawaMethod,
@@ -282,9 +287,12 @@ class AndroidReachingFactsAnalysisBuilder(apk: ApkGlobal, clm: ClassLoadManager,
           } else if (AndroidModelCallHandler.isRPCCall(apk, currentComponent.getType, calleeSig)) {
             // don't do anything for the RPC call now.
           } else { // for non-ICC-RPC model call
-            val (g, k) = AndroidModelCallHandler.doModelCall(ptaresult, calleep, args, cs.lhsOpt.map(_.lhs.varName), callerContext)
-            genSet ++= g
-            killSet ++= k
+            returnFacts = AndroidModelCallHandler.doModelCall(sm, s, calleep, cs.lhsOpt.map(_.lhs.varName), cs.recvOpt, cs.args, callerContext)
+            if(returnFacts.diff(s).isEmpty) {
+              val (g, k) = AndroidModelCallHandler.doModelCallOld(ptaresult, calleep, args, cs.lhsOpt.map(_.lhs.varName), callerContext)
+              genSet ++= g
+              killSet ++= k
+            }
           }
         } else {
           // for normal call

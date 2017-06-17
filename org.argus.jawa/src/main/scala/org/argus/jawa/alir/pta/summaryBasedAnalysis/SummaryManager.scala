@@ -10,6 +10,8 @@
 
 package org.argus.jawa.alir.pta.summaryBasedAnalysis
 
+import com.google.common.base.Charsets
+import com.google.common.io.Resources
 import org.argus.jawa.alir.Context
 import org.argus.jawa.alir.pta._
 import org.argus.jawa.alir.pta.reachingFactsAnalysis.{RFAFact, ReachingFactsAnalysisHelper, SimHeap}
@@ -24,34 +26,59 @@ import org.argus.jawa.summary.rule._
 class SummaryManager(implicit factory: SimHeap) {
   private val summaries: MMap[Signature, Summary] = mmapEmpty
   def register(signature: Signature, summary: Summary): Unit = summaries(signature) = summary
-  def register(suCode: String): Unit = {
+  def register(suCode: String): IMap[Signature, Summary] = {
     val su = SummaryParser(suCode)
     this.summaries ++= su.summaries
+    su.summaries
+  }
+
+  private var summaryFiles: IMap[String, IMap[Signature, Summary]] = imapEmpty
+  // Internal use only
+  def registerFileInternal(safsuPath: String): Unit = {
+    val url = Resources.getResource(safsuPath)
+    val code = Resources.toString(url, Charsets.UTF_8)
+    val summaries = register(code)
+    this.summaryFiles += FileUtil.filename(url.toString) -> summaries
+  }
+
+  /**
+    * Using summary file name to get corresponding summaries.
+    * @param fileName The file name like: string.safsu
+    */
+  def getSummaries(fileName: String): IMap[Signature, Summary] = {
+    this.summaryFiles.getOrElse(fileName, imapEmpty)
   }
 
   def process(sig: Signature, retOpt: Option[String], recvOpt: Option[String], args: IList[String], input: ISet[RFAFact], context: Context): ISet[RFAFact] = {
-    var output: ISet[RFAFact] = input
-    var kill: Boolean = false
     summaries.get(sig) match {
       case Some(summary) =>
-        summary.rules foreach {
-          case cr: ClearRule =>
-            val slots = processLhs(cr.v, retOpt, recvOpt, args, output)
-            output = output.filterNot(i => slots.contains(i.slot))
-          case br: BinaryRule =>
-            val facts = processBinaryRule(sig, br, retOpt, recvOpt, args, output, context)
-            br.ops match {
-              case Ops.`=` =>
-                val slots = facts.map(f => f.slot)
-                output = output.filterNot(i => slots.contains(i.slot)) ++ facts
-                kill = true
-              case Ops.`+=` => output ++= facts
-              case Ops.`-=` =>
-                output --= facts
-                kill = true
-            }
-        }
+        process(summary, retOpt, recvOpt, args, input, context)
       case None =>
+        isetEmpty
+    }
+  }
+
+  def process(summary: Summary, retOpt: Option[String], recvOpt: Option[String], args: IList[String], input: ISet[RFAFact], context: Context): ISet[RFAFact] = {
+    var output: ISet[RFAFact] = input
+    var kill: Boolean = false
+    summary.rules foreach {
+      case cr: ClearRule =>
+        val slots = processLhs(cr.v, retOpt, recvOpt, args, output)
+        val heaps = ReachingFactsAnalysisHelper.getRelatedHeapFactsFrom(output.filter(i => slots.contains(i.slot)), output)
+        output --= heaps
+        kill = true
+      case br: BinaryRule =>
+        val facts = processBinaryRule(summary.signature, br, retOpt, recvOpt, args, output, context)
+        br.ops match {
+          case Ops.`=` =>
+            val slots = facts.map(f => f.slot)
+            output = output.filterNot(i => slots.contains(i.slot)) ++ facts
+            kill = true
+          case Ops.`+=` => output ++= facts
+          case Ops.`-=` =>
+            output --= facts
+            kill = true
+        }
     }
     if(kill) ReachingFactsAnalysisHelper.cleanHeap(output)
     else output
