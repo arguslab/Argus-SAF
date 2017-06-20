@@ -33,12 +33,12 @@ class SummaryParserTest extends FlatSpec with Matchers {
         |  arg:1[][]=arg:2[]
         |  ret=arg:1.field.f3
         |  arg:1.f1=arg:2[]
-        |  arg:2[]=arg:1.field
+        |  arg:2[]=arg:1.field(arg:2)
         |  arg:1=`com.my.Class.Glo`.f.f2[]
         |  `com.my.Class.Glo`.f.f2[]=arg:1.field
         |  ~arg:1.f1
-        |  this.f1[]=arg:1
-        |  ret.f1=Class[][]@~
+        |  this.f1[]=arg:1()
+        |  ret.f1=Class?[][]@~
         |  ret.f2="String"@L1
         |;
       """.stripMargin.stripMargin)
@@ -70,10 +70,10 @@ class SummaryParserTest extends FlatSpec with Matchers {
         |  `my.Class.Glo2` = my.Class2@L100
         |;
       """.stripMargin)
-    require(sf.summaries.size == 2)
-    require(sf.summaries.contains(new Signature("Lcom/my/Class;.do:(LO1;LO2;)LO3;")))
-    require(sf.summaries.contains(new Signature("Lcom/my/Class;.do2:(LO1;LO2;)LO3;")))
-    require(sf.summaries.flatMap(_._2.rules).size == 8)
+    assert(sf.summaries.size == 2)
+    assert(sf.summaries.contains(new Signature("Lcom/my/Class;.do:(LO1;LO2;)LO3;")))
+    assert(sf.summaries.contains(new Signature("Lcom/my/Class;.do2:(LO1;LO2;)LO3;")))
+    assert(sf.summaries.flatMap(_._2.rules).size == 8)
   }
 
   "SummaryParser" should "get arg" in {
@@ -83,7 +83,7 @@ class SummaryParserTest extends FlatSpec with Matchers {
         |;
       """.stripMargin)
     val s = sf.summaries.get(new Signature("Lcom/my/Class;.do:(LO1;LO2;)LO3;"))
-    require(s.isDefined
+    assert(s.isDefined
       && s.get.rules.head.asInstanceOf[BinaryRule].lhs.asInstanceOf[SuArg].num == 1)
   }
 
@@ -94,10 +94,10 @@ class SummaryParserTest extends FlatSpec with Matchers {
         |;
       """.stripMargin)
     val s = sf.summaries.get(new Signature("Lcom/my/Class;.do:(LO1;LO2;)LO3;"))
-    require(s.isDefined
+    assert(s.isDefined
       && s.get.rules.head.asInstanceOf[BinaryRule].lhs.isInstanceOf[SuRet]
       && s.get.rules.head.asInstanceOf[BinaryRule].lhs.asInstanceOf[SuRet].heapOpt.get.indices.head.asInstanceOf[SuFieldAccess].fieldName == "f1")
-    require(s.isDefined
+    assert(s.isDefined
       && s.get.rules.head.asInstanceOf[BinaryRule].rhs.isInstanceOf[SuArg]
       && s.get.rules.head.asInstanceOf[BinaryRule].rhs.asInstanceOf[SuArg].heapOpt.isDefined
       && s.get.rules.head.asInstanceOf[BinaryRule].rhs.asInstanceOf[SuArg].heapOpt.get.indices.head.isInstanceOf[SuFieldAccess]
@@ -113,22 +113,22 @@ class SummaryParserTest extends FlatSpec with Matchers {
         |;
       """.stripMargin)
     val s = sf.summaries.get(new Signature("Lcom/my/Class;.do:(LO1;LO2;)LO3;"))
-    require(s.isDefined
+    assert(s.isDefined
       && s.get.rules.head.asInstanceOf[BinaryRule].lhs.isInstanceOf[SuGlobal]
       && s.get.rules.head.asInstanceOf[BinaryRule].lhs.asInstanceOf[SuGlobal].fqn == "my.Class.Glo")
-    require(s.isDefined
+    assert(s.isDefined
       && s.get.rules.head.asInstanceOf[BinaryRule].rhs.isInstanceOf[SuInstance]
       && s.get.rules.head.asInstanceOf[BinaryRule].rhs.asInstanceOf[SuInstance].typ.typ.jawaName == "my.Class"
       && s.get.rules.head.asInstanceOf[BinaryRule].rhs.asInstanceOf[SuInstance].loc.asInstanceOf[SuConcreteLocation].loc == "L100")
-    require(s.isDefined
+    assert(s.isDefined
       && s.get.rules(1).asInstanceOf[BinaryRule].rhs.isInstanceOf[SuInstance]
       && s.get.rules(1).asInstanceOf[BinaryRule].rhs.asInstanceOf[SuInstance].typ.typ.jawaName == "my.Class"
       && s.get.rules(1).asInstanceOf[BinaryRule].rhs.asInstanceOf[SuInstance].loc.isInstanceOf[SuVirtualLocation])
-    require(s.isDefined
+    assert(s.isDefined
       && s.get.rules(2).asInstanceOf[BinaryRule].rhs.asInstanceOf[SuInstance].typ.asInstanceOf[SuString].str == "str")
   }
 
-  "SummaryParser" should "get nested field and array" in {
+  "SummaryParser" should "get nested field and array and map" in {
     val sf = parse(
       """`Lcom/my/Class;.do:(LO1;LO2;)LO3;`:
         |  arg:1=arg:2
@@ -142,20 +142,24 @@ class SummaryParserTest extends FlatSpec with Matchers {
         |  arg:1[][]=arg:2[]
         |  ret=arg:1.field.f3
         |  arg:1.f1=arg:2[]
-        |  arg:2[]=arg:1.field
+        |  arg:2[]=arg:1.field(arg:1)
         |  arg:1=`com.my.Class.Glo`.f.f2[]
-        |  `com.my.Class.Glo`.f.f2[]=arg:1.field
+        |  `com.my.Class.Glo`.f.f2[]=arg:1.field()
         |  ~arg:1.f1
         |  this.f1[] = arg:1
         |;
       """.stripMargin)
     val s = sf.summaries.get(new Signature("Lcom/my/Class;.do:(LO1;LO2;)LO3;"))
-    require(s.isDefined
+    assert(s.isDefined
       && s.get.rules(3).asInstanceOf[BinaryRule].rhs.asInstanceOf[SuArg].heapOpt.get.indices(5).asInstanceOf[SuFieldAccess].fieldName == "f6")
-    require(s.isDefined
+    assert(s.isDefined
       && s.get.rules(14).asInstanceOf[ClearRule].v.asInstanceOf[SuArg].heapOpt.get.indices.head.asInstanceOf[SuFieldAccess].fieldName == "f1")
-    require(s.isDefined
+    assert(s.isDefined
       && s.get.rules(15).asInstanceOf[BinaryRule].lhs.asInstanceOf[SuThis].heapOpt.get.indices(1).isInstanceOf[SuArrayAccess])
+    assert(s.isDefined
+      && s.get.rules(11).asInstanceOf[BinaryRule].rhs.asInstanceOf[SuArg].heapOpt.get.indices(1).isInstanceOf[SuMapAccess])
+    assert(s.isDefined
+      && s.get.rules(13).asInstanceOf[BinaryRule].rhs.asInstanceOf[SuArg].heapOpt.get.indices(1).asInstanceOf[SuMapAccess].rhsOpt.isEmpty)
   }
 
   "SummaryParser" should "get ops" in {
@@ -167,9 +171,20 @@ class SummaryParserTest extends FlatSpec with Matchers {
         |;
       """.stripMargin)
     val s = sf.summaries.get(new Signature("Lcom/my/Class;.do:(LO1;LO2;)LO3;"))
-    require(s.isDefined
+    assert(s.isDefined
       && s.get.rules.head.asInstanceOf[BinaryRule].ops == Ops.`+=`
       && s.get.rules(1).asInstanceOf[BinaryRule].ops == Ops.`-=`)
+  }
+
+  "SummaryParser" should "handle unknown" in {
+    val sf = parse(
+      """`Lcom/my/Class;.do:(LO1;LO2;)LO3;`:
+        |  arg:1.f1 = my.Class?@~
+        |;
+      """.stripMargin)
+    val s = sf.summaries.get(new Signature("Lcom/my/Class;.do:(LO1;LO2;)LO3;"))
+    assert(s.isDefined
+      && s.get.rules.head.asInstanceOf[BinaryRule].rhs.asInstanceOf[SuInstance].typ.typ.baseType.unknown)
   }
 
   def parse(code: String): SummaryFile = {

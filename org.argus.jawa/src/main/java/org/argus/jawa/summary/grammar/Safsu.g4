@@ -63,6 +63,7 @@ heap
 heapAccess
   : fieldAccess
   | arrayAccess
+  | mapAccess
   ;
 
 fieldAccess
@@ -71,6 +72,10 @@ fieldAccess
 
 arrayAccess
   : '[]'
+  ;
+
+mapAccess
+  : '(' rhs? ')'          // "()" means all values
   ;
 
 instance
@@ -83,7 +88,11 @@ type
   ;
 
 javaType
-  : ID ('.' ID)* arrayAccess*
+  : ID ('.' ID)* unknown? arrayAccess*
+  ;
+
+unknown
+  : '?'
   ;
 
 stringLit

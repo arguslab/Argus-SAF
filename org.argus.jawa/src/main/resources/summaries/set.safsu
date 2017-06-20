@@ -1,0 +1,21 @@
+`Ljava/util/Set;.add:(Ljava/lang/Object;)Z`:
+  this.items += arg:0
+;
+`Ljava/util/Set;.clear:()V`:
+  ~this
+;
+`Ljava/util/Set;.clone:()Ljava/lang/Object;`:
+  ret = this
+;
+`Ljava/util/Set;.contains:(Ljava/lang/Object;)Z`:
+;
+`Ljava/util/Set;.isEmpty:()Z`:
+;
+`Ljava/util/Set;.iterator:()Ljava/util/Iterator;`:
+  ret = java.util.Iterator?@~
+;
+`Ljava/util/Set;.remove:(Ljava/lang/Object;)Z`:
+  this.items -= arg:0
+;
+`Ljava/util/Set;.size:()I`:
+;

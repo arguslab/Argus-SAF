@@ -1,0 +1,38 @@
+`Ljava/lang/Object;.<init>:()V`:
+;
+
+`Ljava/lang/Object;.clone:()Ljava/lang/Object;`:
+  ret = this
+;
+
+`Ljava/lang/Object;.equals:(Ljava/lang/Object;)B`:
+;
+
+`Ljava/lang/Object;.finalize:()V`:
+;
+
+`Ljava/lang/Object;.getClass:()Ljava/lang/Class;`:
+  ret = java.lang.Class@~
+;
+
+`Ljava/lang/Object;.hashCode:()I`:
+;
+
+`Ljava/lang/Object;.notify:()V`:
+;
+
+`Ljava/lang/Object;.notifyAll:()V`:
+;
+
+`Ljava/lang/Object;.toString:()Ljava/lang/String;`:
+  ret = java.lang.String@~
+;
+
+`Ljava/lang/Object;.wait:()V`:
+;
+
+`Ljava/lang/Object;.wait:(J)V`:
+;
+
+`Ljava/lang/Object;.wait:(JI)V`:
+;

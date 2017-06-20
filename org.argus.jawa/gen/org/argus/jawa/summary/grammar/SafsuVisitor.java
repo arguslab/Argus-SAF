@@ -107,6 +107,12 @@ public interface SafsuVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitArrayAccess(SafsuParser.ArrayAccessContext ctx);
 	/**
+	 * Visit a parse tree produced by {@link SafsuParser#mapAccess}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitMapAccess(SafsuParser.MapAccessContext ctx);
+	/**
 	 * Visit a parse tree produced by {@link SafsuParser#instance}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
@@ -124,6 +130,12 @@ public interface SafsuVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitJavaType(SafsuParser.JavaTypeContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link SafsuParser#unknown}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitUnknown(SafsuParser.UnknownContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link SafsuParser#stringLit}.
 	 * @param ctx the parse tree

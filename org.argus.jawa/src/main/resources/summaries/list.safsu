@@ -1,0 +1,95 @@
+`Ljava/util/List;.containsAll:(Ljava/util/Collection;)Z`:
+;
+
+`Ljava/util/List;.add:(ILjava/lang/Object;)V`:
+  this.items += arg:1
+;
+
+`Ljava/util/List;.equals:(Ljava/lang/Object;)Z`:
+;
+
+`Ljava/util/List;.add:(Ljava/lang/Object;)Z`:
+  this.items += arg:0
+;
+
+`Ljava/util/List;.addAll:(ILjava/util/Collection;)Z`:
+  this.items += arg:1.items
+;
+
+`Ljava/util/List;.hashCode:()I`:
+;
+
+`Ljava/util/List;.clear:()V`:
+  ~this
+;
+
+`Ljava/util/List;.contains:(Ljava/lang/Object;)Z`:
+;
+
+`Ljava/util/List;.lastIndexOf:(Ljava/lang/Object;)I`:
+;
+
+`Ljava/util/List;.remove:(Ljava/lang/Object;)Z`:
+  this.items -= arg:0
+;
+
+`Ljava/util/List;.set:(ILjava/lang/Object;)Ljava/lang/Object;`:
+  ret = this.items
+  this.items += arg:1
+;
+
+`Ljava/util/List;.retainAll:(Ljava/util/Collection;)Z`:
+  this.items -= arg:0.items
+;
+
+`Ljava/util/List;.iterator:()Ljava/util/Iterator;`:
+  ret = java.util.ListIterator?@~
+;
+
+`Ljava/util/List;.get:(I)Ljava/lang/Object;`:
+  ret = this.items
+;
+
+`Ljava/util/List;.subList:(II)Ljava/util/List;`:
+  ret = java.util.List?@~
+  ret.items = this.items
+;
+
+`Ljava/util/List;.listIterator:(I)Ljava/util/ListIterator;`:
+  ret = java.util.ListIterator?@~
+;
+
+`Ljava/util/List;.isEmpty:()Z`:
+;
+
+`Ljava/util/List;.toArray:([Ljava/lang/Object;)[Ljava/lang/Object;`:
+  ret = java.lang.Object[]@~
+  ret[] = this.items
+;
+
+`Ljava/util/List;.listIterator:()Ljava/util/ListIterator;`:
+  ret = java.util.ListIterator?@~
+;
+
+`Ljava/util/List;.size:()I`:
+;
+
+`Ljava/util/List;.indexOf:(Ljava/lang/Object;)I`:
+;
+
+`Ljava/util/List;.toArray:()[Ljava/lang/Object;`:
+  ret = java.lang.Object[]@~
+  ret[] = this.items
+;
+
+`Ljava/util/List;.removeAll:(Ljava/util/Collection;)Z`:
+  this.items -= arg:0.items
+;
+
+`Ljava/util/List;.remove:(I)Ljava/lang/Object;`:
+  ret = this.items
+;
+
+`Ljava/util/List;.addAll:(Ljava/util/Collection;)Z`:
+  this.items += arg:0.items
+;

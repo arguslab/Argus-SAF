@@ -14,10 +14,11 @@ import org.argus.jawa.alir.Context
 import org.argus.jawa.alir.pta.PTAResult
 import org.argus.jawa.alir.pta.reachingFactsAnalysis.{RFAFact, ReachingFactsAnalysisHelper, SimHeap}
 import org.argus.jawa.alir.pta.summaryBasedAnalysis.SummaryManager
-import org.argus.jawa.core.{JawaMethod, ScopeManager}
+import org.argus.jawa.core._
 import org.argus.jawa.core.util._
 
 trait ModelCall {
+  def safsuFile: String = null
   def isModelCall(p: JawaMethod): Boolean
   def doModelCall(s: PTAResult, p: JawaMethod, args: List[String], retVar: String, currentContext: Context)(implicit factory: SimHeap): (ISet[RFAFact], ISet[RFAFact], Boolean)
   def doModelCall(
@@ -27,7 +28,16 @@ trait ModelCall {
       retOpt: Option[String],
       recvOpt: Option[String],
       args: IList[String],
-      currentContext: Context)(implicit factory: SimHeap): (ISet[RFAFact], Boolean) = (s, false)
+      currentContext: Context)(implicit factory: SimHeap): (ISet[RFAFact], Boolean) = {
+    if(safsuFile == null) return (s, false)
+    val summaries = sm.getSummaries(safsuFile)
+    summaries.get(p.getSubSignature) match {
+      case Some(summary) =>
+        (sm.process(summary, retOpt, recvOpt, args, s, currentContext), true)
+      case None =>
+        (s, false)
+    }
+  }
 }
 
 /**
@@ -36,6 +46,8 @@ trait ModelCall {
 class ModelCallHandler(scopeManager: ScopeManager) {
 
   private val modelCalls: MList[ModelCall] = mlistEmpty
+  private val callResults: MMap[Signature, Boolean] = mmapEmpty
+  private val callModelMap: MMap[Signature, ModelCall] = mmapEmpty
   def registerModelCall(mc: ModelCall): Unit = modelCalls += mc
 
   registerModelCall(new StringBuilderModel)
@@ -52,7 +64,20 @@ class ModelCallHandler(scopeManager: ScopeManager) {
   /**
    * return true if the given callee procedure needs to be modeled
    */
-  def isModelCall(calleeProc: JawaMethod): Boolean = modelCalls.exists(_.isModelCall(calleeProc)) || scopeManager.shouldBypass(calleeProc.getDeclaringClass)
+  def isModelCall(calleeProc: JawaMethod): Boolean = {
+   callResults.get(calleeProc.getSignature) match {
+     case Some(r) => r
+     case None =>
+       val result = modelCalls.exists{ mc =>
+         if(mc.isModelCall(calleeProc)) {
+           callModelMap(calleeProc.getSignature) = mc
+           true
+         } else false
+       } || scopeManager.shouldBypass(calleeProc.getDeclaringClass)
+       callResults(calleeProc.getSignature) = result
+       result
+    }
+  }
 
   /**
     * instead of doing operation inside callee procedure's real code, we do it manually and return the result.
@@ -65,8 +90,8 @@ class ModelCallHandler(scopeManager: ScopeManager) {
       currentContext: Context)(implicit factory: SimHeap): (ISet[RFAFact], ISet[RFAFact]) = {
     val hackVar = retVar.getOrElse("hack")
 
-    modelCalls.foreach{ model =>
-      if(model.isModelCall(calleeProc)) {
+    callModelMap.get(calleeProc.getSignature) match {
+      case Some(model) =>
         var (newFacts, delFacts, byPassFlag) = model.doModelCall(s, calleeProc, args, hackVar, currentContext)
         if(byPassFlag) {
           val (newF, delF) = ReachingFactsAnalysisHelper.getUnknownObject(calleeProc, s, args, hackVar, currentContext)
@@ -74,7 +99,7 @@ class ModelCallHandler(scopeManager: ScopeManager) {
           delFacts ++= delF
         }
         return (newFacts, delFacts)
-      }
+      case None =>
     }
     if(scopeManager.shouldBypass(calleeProc.getDeclaringClass)) {
       val (newF, delF) = ReachingFactsAnalysisHelper.getUnknownObject(calleeProc, s, args, hackVar, currentContext)
@@ -84,6 +109,7 @@ class ModelCallHandler(scopeManager: ScopeManager) {
   }
 
   /**
+    * Always call isModelCall first.
     * instead of doing operation inside callee procedure's real code, we do it manually and return the result.
     */
   def doModelCall(
@@ -95,22 +121,93 @@ class ModelCallHandler(scopeManager: ScopeManager) {
       args: IList[String],
       currentContext: Context)(implicit factory: SimHeap): ISet[RFAFact] = {
 
-    modelCalls.foreach{ model =>
-      if(model.isModelCall(calleeProc)) {
-        var (facts, byPassFlag) = model.doModelCall(sm, s, calleeProc, retOpt, recvOpt, args, currentContext)
-//        if(byPassFlag) {
-//          val (newF, delF) = ReachingFactsAnalysisHelper.getUnknownObject(calleeProc, s, args, retOpt.getOrElse("hack"), currentContext)
-//          facts ++= newF
-//          facts ++= delF
-//        }
-        return facts
-      }
+    callModelMap.get(calleeProc.getSignature) match {
+      case Some(model) =>
+        val (facts, _) = model.doModelCall(sm, s, calleeProc, retOpt, recvOpt, args, currentContext)
+        //        if(byPassFlag) {
+        //          val (newF, delF) = ReachingFactsAnalysisHelper.getUnknownObject(calleeProc, s, args, retOpt.getOrElse("hack"), currentContext)
+        //          facts ++= newF
+        //          facts ++= delF
+        //        }
+        facts
+      case None => s
     }
-    s
 //    if(scopeManager.shouldBypass(calleeProc.getDeclaringClass)) {
 //      val (newF, delF) = ReachingFactsAnalysisHelper.getUnknownObject(calleeProc, s, args, retOpt.getOrElse("hack"), currentContext)
 //      return s ++ newF -- delF
 //    }
 //    throw new RuntimeException("given callee is not a model call: " + calleeProc)
+  }
+}
+
+/**
+  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
+  * @author <a href="mailto:sroy@k-state.edu">Sankardas Roy</a>
+  */
+class StringModel extends ModelCall {
+  def isModelCall(p: JawaMethod): Boolean = p.getDeclaringClass.getName.equals("java.lang.String")
+
+  override val safsuFile: String = "string.safsu"
+
+  def doModelCall(s: PTAResult, p: JawaMethod, args: List[String], retVar: String, currentContext: Context)(implicit factory: SimHeap): (ISet[RFAFact], ISet[RFAFact], Boolean) = {
+    (isetEmpty, isetEmpty, false)
+  }
+}
+
+/**
+  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
+  */
+class MapModel extends ModelCall {
+  def isModelCall(p: JawaMethod): Boolean = {
+    if(p.getDeclaringClass.isApplicationClass) false
+    else {
+      val map = p.getDeclaringClass.global.getClassOrResolve(new JawaType(Constants.MAP))
+      val res = p.getDeclaringClass.global.getClassHierarchy.getAllImplementersOf(map).contains(p.getDeclaringClass)
+      res
+    }
+  }
+
+  override val safsuFile: String = "map.safsu"
+
+  def doModelCall(s: PTAResult, p: JawaMethod, args: List[String], retVar: String, currentContext: Context)(implicit factory: SimHeap): (ISet[RFAFact], ISet[RFAFact], Boolean) = {
+    (isetEmpty, isetEmpty, false)
+  }
+}
+
+/**
+  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
+  */
+class SetModel extends ModelCall {
+  def isModelCall(p: JawaMethod): Boolean = {
+    if(p.getDeclaringClass.isApplicationClass) false
+    else {
+      val set = p.getDeclaringClass.global.getClassOrResolve(new JawaType(Constants.SET))
+      p.getDeclaringClass.global.getClassHierarchy.getAllImplementersOf(set).contains(p.getDeclaringClass)
+    }
+  }
+
+  override val safsuFile = "set.safsu"
+
+  def doModelCall(s: PTAResult, p: JawaMethod, args: List[String], retVars: String, currentContext: Context)(implicit factory: SimHeap): (ISet[RFAFact], ISet[RFAFact], Boolean) = {
+    (isetEmpty, isetEmpty, false)
+  }
+}
+
+/**
+  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
+  */
+class ListModel extends ModelCall {
+  def isModelCall(p: JawaMethod): Boolean = {
+    if(p.getDeclaringClass.isApplicationClass) false
+    else {
+      val list = p.getDeclaringClass.global.getClassOrResolve(new JawaType(Constants.LIST))
+      p.getDeclaringClass.global.getClassHierarchy.getAllImplementersOf(list).contains(p.getDeclaringClass)
+    }
+  }
+
+  override val safsuFile = "list.safsu"
+
+  def doModelCall(s: PTAResult, p: JawaMethod, args: List[String], retVar: String, currentContext: Context)(implicit factory: SimHeap): (ISet[RFAFact], ISet[RFAFact], Boolean) = {
+    (isetEmpty, isetEmpty, false)
   }
 }

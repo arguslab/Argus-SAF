@@ -44,6 +44,7 @@ final case class StaticFieldSlot(fqn: String) extends NameSlot(fqn)
  * @author <a href="mailto:sroy@k-state.edu">Sankardas Roy</a>
  */
 abstract class HeapSlot(ins: Instance) extends PTASlot(ins){
+  def instance: Instance = ins
   def matchWithInstance(ins: Instance): Boolean = this.ins == ins
 }
 
@@ -60,7 +61,15 @@ final case class FieldSlot(ins: Instance, fieldName: String) extends HeapSlot(in
  * @author <a href="mailto:sroy@k-state.edu">Sankardas Roy</a>
  */ 
 final case class ArraySlot(ins: Instance) extends HeapSlot(ins){
-  override def toString: String = ins.toString
+  override def toString: String = ins.toString + "[]"
+}
+
+/**
+  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
+  * @author <a href="mailto:sroy@k-state.edu">Sankardas Roy</a>
+  */
+final case class MapSlot(ins: Instance, key: Instance) extends HeapSlot(ins){
+  override def toString: String = ins.toString + "(" + key.toString + ")"
 }
 
 /**

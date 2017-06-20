@@ -38,7 +38,7 @@ object ReachingFactsAnalysisHelper {
 
   def getRelatedHeapFactsFrom(fromFacts: ISet[RFAFact], s: ISet[RFAFact])(implicit factory: SimHeap): ISet[RFAFact] = {
     val insts = fromFacts.map(f => f.ins)
-    getRelatedHeapFacts(insts, s)
+    getRelatedHeapFacts(insts, s) ++ fromFacts.filter(f => f.slot.isInstanceOf[MapSlot])
   }
   
   def getRelatedHeapFacts(insts: ISet[Int], s: ISet[RFAFact])(implicit factory: SimHeap): ISet[RFAFact] = {

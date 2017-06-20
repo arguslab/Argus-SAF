@@ -38,8 +38,11 @@ class SafsuTest extends FlatSpec with Matchers {
   val `arg`=8
   val `.`=9
   val `[]`=10
-  val `@`=11
-  val `ret`=12
+  val `(`=11
+  val `)`=12
+  val `@`=13
+  val `?`=14
+  val `ret`=15
 
   "`Lcom/my/Class;.do:()V`" producesTokens UID
   "arg:1" producesTokens (`arg`, `:`, Digits)
@@ -60,6 +63,8 @@ class SafsuTest extends FlatSpec with Matchers {
   "arg:1=com.my.Class@~" producesTokens (`arg`, `:`, Digits, `=`, ID, `.`, ID, `.`, ID, `@`, `~`)
   """arg:1="string"@L1""" producesTokens (`arg`, `:`, Digits, `=`, STRING, `@`, ID)
   "`Lcom/my/Class;.do:(LO1;LO2;)V`:arg:1=arg:2;" producesTokens (UID, `:`, `arg`, `:`, Digits, `=`, `arg`, `:`, Digits, `;`)
+  "arg:1(arg:3)=arg:2" producesTokens (`arg`, `:`, Digits, `(`, `arg`, `:`, Digits, `)`, `=`, `arg`, `:`, Digits)
+  "arg:1=com.my.Class?@L1005" producesTokens (`arg`, `:`, Digits, `=`, ID, `.`, ID, `.`, ID, `?`, `@`, ID)
   """`Lcom/my/Class;.do:(LO1;LO2;)LO3;`:
     |  arg:1+=arg:2
     |  ret=arg:1.field
@@ -90,7 +95,7 @@ class SafsuTest extends FlatSpec with Matchers {
         val lexer = new SafsuLexer(input)
         val actualTokens: List[_ <: Token] = lexer.getAllTokens.asScala.toList
         val actualTokenTypes = actualTokens.map(_.getType)
-        require(actualTokenTypes == expectedTokens, "Tokens do not match. Expected " + expectedTokens + ", but was " + actualTokenTypes)
+        assert(actualTokenTypes == expectedTokens, "Tokens do not match. Expected " + expectedTokens + ", but was " + actualTokenTypes)
       }
     }
 
@@ -110,12 +115,12 @@ class SafsuTest extends FlatSpec with Matchers {
         |  arg:1[][]-=arg:2[]
         |  ret=arg:1.field.f3
         |  arg:1.f1=arg:2[]
-        |  arg:2[]=arg:1.field
+        |  arg:2[]=arg:1.field(arg:2)
         |  arg:1=`com.my.Class.Glo`.f.f2[]
         |  `com.my.Class.Glo`.f.f2[]=arg:1.field
         |  ~arg:1.f1
         |  this.f1[]=my.Class@L100
-        |  ret.f1=my.Class@~
+        |  ret.f1=my.Class?@~
         |  ret.f2="String"@L1
         |;
       """.stripMargin)

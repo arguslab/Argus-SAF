@@ -45,6 +45,8 @@ class AndroidReachingFactsAnalysisBuilder(apk: ApkGlobal, clm: ClassLoadManager,
   val sm: SummaryManager = new SummaryManager()
   sm.registerFileInternal("summaries/string.safsu")
   sm.registerFileInternal("summaries/map.safsu")
+  sm.registerFileInternal("summaries/set.safsu")
+  sm.registerFileInternal("summaries/list.safsu")
 
   def build (
       entryPointProc: JawaMethod,

@@ -60,7 +60,7 @@ abstract class SuTestBase(fileName: String) extends FlatSpec with Matchers {
       signature.signature should "produce as expected" in {
         val summaries = sm.getSummaries(fileName)
         val output: ISet[RFAFact] =
-          summaries.get(signature) match {
+          summaries.get(signature.getSubSignature) match {
             case Some(summary) =>
               sm.process(summary, retOpt, recvOpt, args, input, currentContext)
             case None =>

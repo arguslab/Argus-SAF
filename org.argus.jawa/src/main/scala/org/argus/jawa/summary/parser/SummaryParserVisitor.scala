@@ -74,6 +74,9 @@ class SummaryParserVisitor()
   override def visitArrayAccess(ctx: ArrayAccessContext): SuRuleNode =
     SuArrayAccess()
 
+  override def visitMapAccess(ctx: MapAccessContext): SuRuleNode =
+    SuMapAccess(getOptChild[RuleRhs](ctx.rhs))
+
   override def visitRet(ctx: RetContext): SuRuleNode =
     SuRet(getOptChild[SuHeap](ctx.heap))
 
@@ -83,10 +86,11 @@ class SummaryParserVisitor()
   override def visitJavaType(ctx: JavaTypeContext): SuRuleNode =
     SuJavaType({
       val typ = ctx.ID.asScala.map(_.getText).mkString(".")
-      val map: Map[String, String] = Map()
-      val javaMap = map.asJava
+      val unknown = getOptChild(ctx.unknown).isDefined
       val indices = ctx.arrayAccess.size
-      new JawaType(typ, indices)
+      val jtyp = new JawaType(typ, indices)
+      if(unknown) jtyp.toUnknown
+      else jtyp
     })
 
   override def visitStringLit(ctx: StringLitContext): SuRuleNode =

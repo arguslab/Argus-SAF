@@ -208,6 +208,18 @@ public class SafsuBaseListener implements SafsuListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
+	@Override public void enterMapAccess(SafsuParser.MapAccessContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitMapAccess(SafsuParser.MapAccessContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
 	@Override public void enterInstance(SafsuParser.InstanceContext ctx) { }
 	/**
 	 * {@inheritDoc}
@@ -239,6 +251,18 @@ public class SafsuBaseListener implements SafsuListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitJavaType(SafsuParser.JavaTypeContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterUnknown(SafsuParser.UnknownContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitUnknown(SafsuParser.UnknownContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *

@@ -209,8 +209,8 @@ class ClassModel extends ModelCall {
     var newfacts = isetEmpty[RFAFact]
     val delfacts = isetEmpty[RFAFact]
     thisValue.foreach {
-			case cIns@(instance: ClassInstance) =>
-				val name = instance.getName
+			case cIns: ClassInstance =>
+				val name = cIns.getName
 				val strIns = PTAConcreteStringInstance(name, cIns.defSite)
 				newfacts += new RFAFact(VarSlot(retVar), strIns)
 			case cIns =>

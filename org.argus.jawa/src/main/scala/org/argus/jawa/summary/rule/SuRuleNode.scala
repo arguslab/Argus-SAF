@@ -94,6 +94,11 @@ case class SuArrayAccess() extends HeapAccess
 /**
   * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
   */
+case class SuMapAccess(rhsOpt: Option[RuleRhs]) extends HeapAccess
+
+/**
+  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
+  */
 case class SuRet(heapOpt: Option[SuHeap]) extends RuleLhs
 
 /**

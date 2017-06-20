@@ -24,6 +24,8 @@ import org.argus.jawa.summary.rule._
   * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
   */
 class SummaryManager(implicit factory: SimHeap) {
+
+  //  Map from signature to Summary
   private val summaries: MMap[Signature, Summary] = mmapEmpty
   def register(signature: Signature, summary: Summary): Unit = summaries(signature) = summary
   def register(suCode: String): IMap[Signature, Summary] = {
@@ -32,20 +34,21 @@ class SummaryManager(implicit factory: SimHeap) {
     su.summaries
   }
 
-  private var summaryFiles: IMap[String, IMap[Signature, Summary]] = imapEmpty
+  // Map from file name to sub signature to summary
+  private var summaryFiles: IMap[String, IMap[String, Summary]] = imapEmpty
   // Internal use only
   def registerFileInternal(safsuPath: String): Unit = {
     val url = Resources.getResource(safsuPath)
     val code = Resources.toString(url, Charsets.UTF_8)
-    val summaries = register(code)
-    this.summaryFiles += FileUtil.filename(url.toString) -> summaries
+    val s = SummaryParser(code).summaries.map{case (k, v) => k.getSubSignature -> v}
+    this.summaryFiles += FileUtil.filename(url.toString) -> s
   }
 
   /**
     * Using summary file name to get corresponding summaries.
     * @param fileName The file name like: string.safsu
     */
-  def getSummaries(fileName: String): IMap[Signature, Summary] = {
+  def getSummaries(fileName: String): IMap[String, Summary] = {
     this.summaryFiles.getOrElse(fileName, imapEmpty)
   }
 
@@ -63,7 +66,7 @@ class SummaryManager(implicit factory: SimHeap) {
     var kill: Boolean = false
     summary.rules foreach {
       case cr: ClearRule =>
-        val slots = processLhs(cr.v, retOpt, recvOpt, args, output)
+        val slots = processLhs(summary.signature, cr.v, retOpt, recvOpt, args, output, context)
         val heaps = ReachingFactsAnalysisHelper.getRelatedHeapFactsFrom(output.filter(i => slots.contains(i.slot)), output)
         output --= heaps
         kill = true
@@ -85,7 +88,7 @@ class SummaryManager(implicit factory: SimHeap) {
   }
 
   def processBinaryRule(sig: Signature, br: BinaryRule, retOpt: Option[String], recvOpt: Option[String], args: IList[String], input: ISet[RFAFact], context: Context): ISet[RFAFact] = {
-    val slots = processLhs(br.lhs, retOpt, recvOpt, args, input)
+    val slots = processLhs(sig, br.lhs, retOpt, recvOpt, args, input, context)
     val inss = processRhs(sig, br.rhs, recvOpt, args, input, context)
     slots.flatMap { slot =>
       inss.map { ins =>
@@ -100,13 +103,13 @@ class SummaryManager(implicit factory: SimHeap) {
     rhs match {
       case st: SuThis =>
         val thisSlot = VarSlot(recvOpt.getOrElse("hack"))
-        slots = handleHeap(thisSlot, st.heapOpt, input)
+        slots = handleHeap(sig, thisSlot, st.heapOpt, recvOpt, args, input, context, isLhs = false)
       case sa: SuArg =>
         val argSlot = VarSlot(args(sa.num))
-        slots = handleHeap(argSlot, sa.heapOpt, input)
+        slots = handleHeap(sig, argSlot, sa.heapOpt, recvOpt, args, input, context, isLhs = false)
       case sg: SuGlobal =>
         val gSlot = StaticFieldSlot(sg.fqn)
-        slots = handleHeap(gSlot, sg.heapOpt, input)
+        slots = handleHeap(sig, gSlot, sg.heapOpt, recvOpt, args, input, context, isLhs = false)
       case st: SuInstance =>
         val newContext =
           st.loc match {
@@ -129,26 +132,41 @@ class SummaryManager(implicit factory: SimHeap) {
     inss
   }
 
-  def processLhs(lhs: RuleLhs, retOpt: Option[String], recvOpt: Option[String], args: IList[String], input: ISet[RFAFact]): ISet[PTASlot] = {
+  def processLhs(
+      sig: Signature,
+      lhs: RuleLhs,
+      retOpt: Option[String],
+      recvOpt: Option[String],
+      args: IList[String],
+      input: ISet[RFAFact],
+      context: Context): ISet[PTASlot] = {
     var slots: ISet[PTASlot] = isetEmpty
     lhs match {
       case st: SuThis =>
         val thisSlot = VarSlot(recvOpt.getOrElse("hack"))
-        slots = handleHeap(thisSlot, st.heapOpt, input)
+        slots = handleHeap(sig, thisSlot, st.heapOpt, recvOpt, args, input, context, isLhs = true)
       case sa: SuArg =>
         val argSlot = VarSlot(args(sa.num))
-        slots = handleHeap(argSlot, sa.heapOpt, input)
+        slots = handleHeap(sig, argSlot, sa.heapOpt, recvOpt, args, input, context, isLhs = true)
       case sg: SuGlobal =>
         val gSlot = StaticFieldSlot(sg.fqn)
-        slots = handleHeap(gSlot, sg.heapOpt, input)
+        slots = handleHeap(sig, gSlot, sg.heapOpt, recvOpt, args, input, context, isLhs = true)
       case sr: SuRet =>
         val retSlot = VarSlot(retOpt.getOrElse("hack"))
-        slots = handleHeap(retSlot, sr.heapOpt, input)
+        slots = handleHeap(sig, retSlot, sr.heapOpt, recvOpt, args, input, context, isLhs = true)
     }
     slots
   }
 
-  def handleHeap(slot: NameSlot, heapOpt: Option[SuHeap], input: ISet[RFAFact]): ISet[PTASlot] = {
+  def handleHeap(
+      sig: Signature,
+      slot: NameSlot,
+      heapOpt: Option[SuHeap],
+      recvOpt: Option[String],
+      args: IList[String],
+      input: ISet[RFAFact],
+      context: Context,
+      isLhs: Boolean): ISet[PTASlot] = {
     var slots: ISet[PTASlot] = isetEmpty
     heapOpt match {
       case Some(heap) =>
@@ -160,6 +178,30 @@ class SummaryManager(implicit factory: SimHeap) {
           case _: SuArrayAccess =>
             val facts = input.filter(i => currentSlots.contains(i.slot))
             currentSlots = facts.map(fact => ArraySlot(fact.v))
+          case ma: SuMapAccess =>
+            val facts = input.filter(i => currentSlots.contains(i.slot))
+            val inss: ISet[Instance] = facts.map(f => f.v)
+            val keys: ISet[Instance] = ma.rhsOpt match {
+              case Some(rhs) =>
+                val rhsInss = processRhs(sig, rhs, recvOpt, args, input, context)
+                if(isLhs) rhsInss
+                else {
+                  val rhsTyps = rhsInss.map(i => i.typ)
+                  input.filter(i =>
+                    i.slot.isInstanceOf[MapSlot] &&
+                    rhsTyps.contains(i.slot.asInstanceOf[MapSlot].key.typ)
+                  ).map(i => i.slot.asInstanceOf[MapSlot].key)
+                }
+              case None =>
+                input.filter(i =>
+                  i.slot.isInstanceOf[MapSlot] &&
+                  inss.contains(i.slot.asInstanceOf[MapSlot].ins)).map(i => i.slot.asInstanceOf[MapSlot].key)
+            }
+            currentSlots = inss.flatMap{ ins =>
+              keys.map{ key =>
+                MapSlot(ins, key)
+              }
+            }
         }
         slots ++= currentSlots
       case None => slots += slot
