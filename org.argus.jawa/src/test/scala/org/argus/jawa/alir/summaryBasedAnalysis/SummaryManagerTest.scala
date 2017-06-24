@@ -145,7 +145,8 @@ class SummaryManagerTest extends FlatSpec with Matchers {
     val expectedFacts: ISet[RFAFact] =
       Set(
         new RFAFact(VarSlot(recvName), recvIns),
-        new RFAFact(FieldSlot(recvIns, "f1"), PTAInstance(new JawaType("my.Class2"), expectedContext1))
+        new RFAFact(FieldSlot(recvIns, "f1"), PTAInstance(new JawaType("my.Class2"), expectedContext1)),
+        new RFAFact(FieldSlot(recvIns, "f2"), PTAInstance(new JawaType("my.Class2"), expectedContext2))
       )
 
     val initialFacts: ISet[RFAFact] =

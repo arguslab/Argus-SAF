@@ -265,13 +265,13 @@ case class LocationSymbol(id: Token) extends RefSymbol with LocationSym {
 }
 
 case class ClassOrInterfaceDeclaration(
-                                        dclToken: Token,
-                                        cityp: TypeDefSymbol,
-                                        annotations: IList[Annotation],
-                                        extendsAndImplementsClausesOpt: Option[ExtendsAndImplementsClauses],
-                                        instanceFieldDeclarationBlock: InstanceFieldDeclarationBlock,
-                                        staticFields: IList[StaticFieldDeclaration],
-                                        methods: IList[MethodDeclaration]) extends Declaration with ParsableAstNode {
+    dclToken: Token,
+    cityp: TypeDefSymbol,
+    annotations: IList[Annotation],
+    extendsAndImplementsClausesOpt: Option[ExtendsAndImplementsClauses],
+    instanceFieldDeclarationBlock: InstanceFieldDeclarationBlock,
+    staticFields: IList[StaticFieldDeclaration],
+    methods: IList[MethodDeclaration]) extends Declaration with ParsableAstNode {
   lazy val tokens: IList[Token] = flatten(dclToken, cityp, annotations, extendsAndImplementsClausesOpt, instanceFieldDeclarationBlock, staticFields, methods)
   def isInterface: Boolean = {
     annotations.exists { a => a.key == "kind" && a.value == "interface" }

@@ -1,0 +1,247 @@
+`Ljava/lang/StringBuffer;.<init>:()V`:
+   this.value = ""@~
+;
+
+`Ljava/lang/StringBuffer;.<init>:(I)V`:
+   this.value = java.lang.String@~
+;
+
+`Ljava/lang/StringBuffer;.<init>:(Ljava/lang/CharSequence;)V`:
+   this.value = arg:0
+;
+
+`Ljava/lang/StringBuffer;.<init>:(Ljava/lang/String;)V`:
+  this.value = arg:0
+;
+
+`Ljava/lang/StringBuffer;.append:(C)Ljava/lang/Appendable;`:
+  this.value = java.lang.String@~
+  ret = this
+;
+
+`Ljava/lang/StringBuffer;.append:(C)Ljava/lang/StringBuffer;`:
+  this.value = java.lang.String@~
+  ret = this
+;
+
+`Ljava/lang/StringBuffer;.append:(D)Ljava/lang/StringBuffer;`:
+  this.value = java.lang.String@~
+  ret = this
+;
+
+`Ljava/lang/StringBuffer;.append:(F)Ljava/lang/StringBuffer;`:
+  this.value = java.lang.String@~
+  ret = this
+;
+
+`Ljava/lang/StringBuffer;.append:(I)Ljava/lang/StringBuffer;`:
+  this.value = java.lang.String@~
+  ret = this
+;
+
+`Ljava/lang/StringBuffer;.append:(J)Ljava/lang/StringBuffer;`:
+  this.value = java.lang.String@~
+  ret = this
+;
+
+`Ljava/lang/StringBuffer;.append:(Ljava/lang/CharSequence;)Ljava/lang/Appendable;`:
+  this.value = java.lang.String@~
+  ret = this
+;
+
+`Ljava/lang/StringBuffer;.append:(Ljava/lang/CharSequence;)Ljava/lang/StringBuffer;`:
+  this.value = java.lang.String@~
+  ret = this
+;
+
+`Ljava/lang/StringBuffer;.append:(Ljava/lang/CharSequence;II)Ljava/lang/Appendable;`:
+  this.value = java.lang.String@~
+  ret = this
+;
+
+`Ljava/lang/StringBuffer;.append:(Ljava/lang/CharSequence;II)Ljava/lang/StringBuffer;`:
+  this.value = java.lang.String@~
+  ret = this
+;
+
+`Ljava/lang/StringBuffer;.append:(Ljava/lang/Object;)Ljava/lang/StringBuffer;`:
+  this.value = java.lang.String@~
+  ret = this
+;
+
+`Ljava/lang/StringBuffer;.append:(Ljava/lang/String;)Ljava/lang/StringBuffer;`:
+  this.value = java.lang.String@~
+  ret = this
+;
+
+`Ljava/lang/StringBuffer;.append:(Ljava/lang/StringBuffer;)Ljava/lang/StringBuffer;`:
+  this.value = java.lang.String@~
+  ret = this
+;
+
+`Ljava/lang/StringBuffer;.append:(Z)Ljava/lang/StringBuffer;`:
+  this.value = java.lang.String@~
+  ret = this
+;
+
+`Ljava/lang/StringBuffer;.append:([C)Ljava/lang/StringBuffer;`:
+  this.value = java.lang.String@~
+  ret = this
+;
+
+`Ljava/lang/StringBuffer;.append:([CII)Ljava/lang/StringBuffer;`:
+  this.value = java.lang.String@~
+  ret = this
+;
+
+`Ljava/lang/StringBuffer;.appendCodePoint:(I)Ljava/lang/StringBuffer;`:
+  this.value = java.lang.String@~
+  ret = this
+;
+
+`Ljava/lang/StringBuffer;.capacity:()I`:
+;
+
+`Ljava/lang/StringBuffer;.charAt:(I)C`:
+;
+
+`Ljava/lang/StringBuffer;.codePointAt:(I)I`:
+;
+
+`Ljava/lang/StringBuffer;.codePointBefore:(I)I`:
+;
+
+`Ljava/lang/StringBuffer;.codePointCount:(II)I`:
+;
+
+`Ljava/lang/StringBuffer;.delete:(II)Ljava/lang/StringBuffer;`:
+ this.value = java.lang.String@~
+ ret = this
+;
+
+`Ljava/lang/StringBuffer;.deleteCharAt:(I)Ljava/lang/StringBuffer;`:
+  this.value = java.lang.String@~
+  ret = this
+;
+
+`Ljava/lang/StringBuffer;.ensureCapacity:(I)V`:
+;
+
+`Ljava/lang/StringBuffer;.getChars:(II[CI)V`:
+  arg:2 = char[]@~
+;
+
+`Ljava/lang/StringBuffer;.indexOf:(Ljava/lang/String;)I`:
+;
+
+`Ljava/lang/StringBuffer;.indexOf:(Ljava/lang/String;I)I`:
+;
+
+`Ljava/lang/StringBuffer;.insert:(IC)Ljava/lang/StringBuffer;`:
+  this.value = java.lang.String@~
+  ret = this
+;
+
+`Ljava/lang/StringBuffer;.insert:(ID)Ljava/lang/StringBuffer;`:
+  this.value = java.lang.String@~
+  ret = this
+;
+
+`Ljava/lang/StringBuffer;.insert:(IF)Ljava/lang/StringBuffer;`:
+  this.value = java.lang.String@~
+  ret = this
+;
+
+`Ljava/lang/StringBuffer;.insert:(II)Ljava/lang/StringBuffer;`:
+  this.value = java.lang.String@~
+  ret = this
+;
+
+`Ljava/lang/StringBuffer;.insert:(IJ)Ljava/lang/StringBuffer;`:
+  this.value = java.lang.String@~
+  ret = this
+;
+
+`Ljava/lang/StringBuffer;.insert:(ILjava/lang/CharSequence;)Ljava/lang/StringBuffer;`:
+  this.value = java.lang.String@~
+  ret = this
+;
+
+`Ljava/lang/StringBuffer;.insert:(ILjava/lang/CharSequence;II)Ljava/lang/StringBuffer;`:
+  this.value = java.lang.String@~
+  ret = this
+;
+
+`Ljava/lang/StringBuffer;.insert:(ILjava/lang/Object;)Ljava/lang/StringBuffer;`:
+  this.value = java.lang.String@~
+  ret = this
+;
+
+`Ljava/lang/StringBuffer;.insert:(ILjava/lang/String;)Ljava/lang/StringBuffer;`:
+  this.value = java.lang.String@~
+  ret = this
+;
+
+`Ljava/lang/StringBuffer;.insert:(IZ)Ljava/lang/StringBuffer;`:
+  this.value = java.lang.String@~
+  ret = this
+;
+
+`Ljava/lang/StringBuffer;.insert:(I[C)Ljava/lang/StringBuffer;`:
+  this.value = java.lang.String@~
+  ret = this
+;
+
+`Ljava/lang/StringBuffer;.insert:(I[CII)Ljava/lang/StringBuffer;`:
+  this.value = java.lang.String@~
+  ret = this
+;
+
+`Ljava/lang/StringBuffer;.lastIndexOf:(Ljava/lang/String;)I`:
+;
+
+`Ljava/lang/StringBuffer;.lastIndexOf:(Ljava/lang/String;I)I`:
+;
+
+`Ljava/lang/StringBuffer;.length:()I`:
+;
+
+`Ljava/lang/StringBuffer;.offsetByCodePoints:(II)I`:
+;
+
+`Ljava/lang/StringBuffer;.replace:(IILjava/lang/String;)Ljava/lang/StringBuffer;`:
+  this.value = java.lang.String@~
+  ret = this
+;
+
+`Ljava/lang/StringBuffer;.reverse:()Ljava/lang/StringBuffer;`:
+  this.value = java.lang.String@~
+  ret = this
+;
+
+`Ljava/lang/StringBuffer;.setCharAt:(IC)V`:
+  this.value = java.lang.String@~
+;
+
+`Ljava/lang/StringBuffer;.setLength:(I)V`:
+  this.value = java.lang.String@~
+;
+
+`Ljava/lang/StringBuffer;.subSequence:(II)Ljava/lang/CharSequence;`:
+  ret = java.lang.String@~
+;
+
+`Ljava/lang/StringBuffer;.substring:(I)Ljava/lang/String;`:
+  ret = java.lang.String@~
+;
+
+`Ljava/lang/StringBuffer;.substring:(II)Ljava/lang/String;`:
+  ret = java.lang.String@~
+;
+
+`Ljava/lang/StringBuffer;.toString:()Ljava/lang/String;`:
+  ret = this.value
+;
+
+`Ljava/lang/StringBuffer;.trimToSize:()V`:
+;

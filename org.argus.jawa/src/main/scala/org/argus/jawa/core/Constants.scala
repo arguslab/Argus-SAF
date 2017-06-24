@@ -36,6 +36,8 @@ object Constants {
   final val STRING = "java.lang.String"
   final val STRING_BUILDER = "java.lang.StringBuilder"
   final val STRING_BUILDER_VALUE = "value"
+  final val STRING_BUFFER = "java.lang.StringBuffer"
+  final val STRING_BUFFER_VALUE = "value"
 
   final val CLASS = "java.lang.Class"
   final val CLASS_NAME = "name"

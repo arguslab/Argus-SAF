@@ -42,6 +42,7 @@ rhs
   | arg
   | global
   | instance
+  | classOf
   ;
 
 suThis
@@ -82,13 +83,21 @@ instance
   : type '@' location      // com.my.Object[]@L123
   ;
 
+classOf
+  : 'classOf' rhs '@' location // classOf arg:0
+  ;
+
 type
   : javaType
   | stringLit
   ;
 
 javaType
-  : ID ('.' ID)* unknown? arrayAccess*
+  : ID ('.' ID)* (innerType)* unknown? arrayAccess*
+  ;
+
+innerType
+  : '$' ID
   ;
 
 unknown

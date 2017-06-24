@@ -65,6 +65,9 @@ class SummaryParserVisitor()
   override def visitGlobal(ctx: GlobalContext): SuRuleNode =
     SuGlobal(getUID(ctx.UID.getText), getOptChild[SuHeap](ctx.heap))
 
+  override def visitClassOf(ctx: ClassOfContext): SuRuleNode =
+    SuClassOf(getChild[RuleRhs](ctx.rhs), getChild[SuLocation](ctx.location))
+
   override def visitHeap(ctx: HeapContext): SuRuleNode =
     SuHeap(getChildren(ctx.heapAccess.asScala))
 
@@ -85,7 +88,9 @@ class SummaryParserVisitor()
 
   override def visitJavaType(ctx: JavaTypeContext): SuRuleNode =
     SuJavaType({
-      val typ = ctx.ID.asScala.map(_.getText).mkString(".")
+      val outerTyp: String = ctx.ID.asScala.map(id => id.getText).mkString(".")
+      val innerTyp: String = "$" + ctx.innerType().asScala.map(it => it.ID.getText).mkString("$")
+      val typ: String = outerTyp + {if(innerTyp != "$") innerTyp else ""}
       val unknown = getOptChild(ctx.unknown).isDefined
       val indices = ctx.arrayAccess.size
       val jtyp = new JawaType(typ, indices)

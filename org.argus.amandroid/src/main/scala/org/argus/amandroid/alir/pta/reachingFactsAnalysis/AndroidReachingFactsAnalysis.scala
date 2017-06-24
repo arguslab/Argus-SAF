@@ -43,10 +43,14 @@ class AndroidReachingFactsAnalysisBuilder(apk: ApkGlobal, clm: ClassLoadManager,
   var currentComponent: JawaClass = _
 
   val sm: SummaryManager = new SummaryManager()
-  sm.registerFileInternal("summaries/string.safsu")
-  sm.registerFileInternal("summaries/map.safsu")
-  sm.registerFileInternal("summaries/set.safsu")
-  sm.registerFileInternal("summaries/list.safsu")
+  sm.registerFileInternal("summaries/String.safsu")
+  sm.registerFileInternal("summaries/StringBuilder.safsu")
+  sm.registerFileInternal("summaries/StringBuffer.safsu")
+  sm.registerFileInternal("summaries/Map.safsu")
+  sm.registerFileInternal("summaries/Set.safsu")
+  sm.registerFileInternal("summaries/List.safsu")
+  sm.registerFileInternal("summaries/Thread.safsu")
+  sm.registerFileInternal("summaries/Bundle.safsu")
 
   def build (
       entryPointProc: JawaMethod,
@@ -114,10 +118,9 @@ class AndroidReachingFactsAnalysisBuilder(apk: ApkGlobal, clm: ClassLoadManager,
   protected def checkAndLoadClasses(a: Assignment, s: ISet[RFAFact], currentNode: Node): Unit = {
     a match {
       case as: AssignmentStatement =>
-        val typ = as.typOpt
         as.lhs match {
           case ne: NameExpression =>
-            val slot = ReachingFactsAnalysisHelper.getNameSlotFromNameExp(ne, typ)
+            val slot = ReachingFactsAnalysisHelper.getNameSlotFromNameExp(ne)
             slot match {
               case slot1: StaticFieldSlot =>
                 val recTyp = JavaKnowledge.getClassTypeFromFieldFQN(slot1.fqn)
@@ -131,7 +134,7 @@ class AndroidReachingFactsAnalysisBuilder(apk: ApkGlobal, clm: ClassLoadManager,
             val typ = ne.typ
             checkClass(typ, s, currentNode)
           case ne: NameExpression =>
-            val slot = ReachingFactsAnalysisHelper.getNameSlotFromNameExp(ne, typ)
+            val slot = ReachingFactsAnalysisHelper.getNameSlotFromNameExp(ne)
             if (slot.isInstanceOf[StaticFieldSlot]) {
               val fqn = ne.name
               val recTyp = JavaKnowledge.getClassTypeFromFieldFQN(fqn)
@@ -294,6 +297,8 @@ class AndroidReachingFactsAnalysisBuilder(apk: ApkGlobal, clm: ClassLoadManager,
               val (g, k) = AndroidModelCallHandler.doModelCallOld(ptaresult, calleep, args, cs.lhsOpt.map(_.lhs.varName), callerContext)
               genSet ++= g
               killSet ++= k
+            } else {
+              return (calleeFactsMap, returnFacts)
             }
           }
         } else {
@@ -457,12 +462,7 @@ class AndroidReachingFactsAnalysisBuilder(apk: ApkGlobal, clm: ClassLoadManager,
       }
     }
 
-    override def postProcess(map: IMap[ICFGNode, ISet[RFAFact]]): Unit = {
-      map.foreach{ case (node, s) =>
-        s.foreach { f =>
-          ptaresult.addInstance(after = false, node.getContext, f.s, f.v)
-        }
-      }
+    override def postProcess(node: ICFGNode, s: ISet[RFAFact]): Unit = {
     }
 
     override def onPreVisitNode(node: ICFGNode, preds: CSet[ICFGNode]): Unit = {

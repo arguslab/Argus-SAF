@@ -1,6 +1,5 @@
 `Ljava/lang/Class;.asSubclass:(Ljava/lang/Class;)Ljava/lang/Class;`: //public
-  ret = this
-  ret.name = arg:0.name
+  ret = arg:0
 ;
 
 `Ljava/lang/Class;.cast:(Ljava/lang/Object;)Ljava/lang/Object;`: //public
@@ -21,11 +20,12 @@
 ;
 
 `Ljava/lang/Class;.getAnnotation:(Ljava/lang/Class;)Ljava/lang/annotation/Annotation;`:  //public
-  ret = java.lang.annotation.Annotation@~
+  ret = java.lang.annotation.Annotation?@~
 ;
 
 `Ljava/lang/Class;.getAnnotations:()[Ljava/lang/annotation/Annotation;`:  //public
-  ret = java.lang.annotation.Annotation@~
+  ret = java.lang.annotation.Annotation[]@~
+  ret[] = java.lang.annotation.Annotation?@~
 ;
 
 `Ljava/lang/Class;.getCanonicalName:()Ljava/lang/String;`:  //public
@@ -33,16 +33,18 @@
 ;
 
 `Ljava/lang/Class;.getClassLoader:()Ljava/lang/ClassLoader;`:  //public
-  ret = java.lang.ClassLoader@~
+  ret = java.lang.ClassLoader?@~
 ;
 
 `Ljava/lang/Class;.getClasses:()[Ljava/lang/Class;`:  //public
   ret = java.lang.Class[]@~
   ret[] += java.lang.Class@~
+  ret[].name = java.lang.String@~
 ;
 
 `Ljava/lang/Class;.getComponentType:()Ljava/lang/Class;`:  //public native
   ret = java.lang.Class@~
+  ret.name = java.lang.String@~
 ;
 
 `Ljava/lang/Class;.getConstructor:([Ljava/lang/Class;)Ljava/lang/reflect/Constructor;`:  //public
@@ -50,7 +52,8 @@
 ;
 
 `Ljava/lang/Class;.getConstructors:()[Ljava/lang/reflect/Constructor;`:  //public
-  ret = java.lang.reflect.Constructor@~
+  ret = java.lang.reflect.Constructor[]@~
+  ret[] = java.lang.reflect.Constructor@~
 ;
 
 `Ljava/lang/Class;.getDeclaredAnnotations:()[Ljava/lang/annotation/Annotation;`:  //public native
@@ -61,6 +64,7 @@
 `Ljava/lang/Class;.getDeclaredClasses:()[Ljava/lang/Class;`:  //public
   ret = java.lang.Class[]@~
   ret[] += java.lang.Class@~
+  ret[].name = java.lang.String@~
 ;
 
 `Ljava/lang/Class;.getDeclaredConstructor:([Ljava/lang/Class;)Ljava/lang/reflect/Constructor;`:  //public
@@ -73,7 +77,8 @@
 ;
 
 `Ljava/lang/Class;.getDeclaredConstructors:()[Ljava/lang/reflect/Constructor;`:  //public
-  ret = java.lang.reflect.Constructor@~
+  ret = java.lang.reflect.Constructor[]@~
+  ret[] = java.lang.reflect.Constructor@~
 ;
 
 `Ljava/lang/Class;.getDeclaredField:(Ljava/lang/Class;Ljava/lang/String;)Ljava/lang/reflect/Field;`:  //static native
@@ -100,20 +105,22 @@
 
 `Ljava/lang/Class;.getDeclaredMethods:()[Ljava/lang/reflect/Method;`:  //public
   ret = java.lang.reflect.Method[]@~
-  ret[] = java.lang.reflect.Method[]@~
+  ret[] = java.lang.reflect.Method@~
 ;
 
 `Ljava/lang/Class;.getDeclaredMethods:(Ljava/lang/Class;Z)[Ljava/lang/reflect/Method;`:  //static native
   ret = java.lang.reflect.Method[]@~
-  ret[] = java.lang.reflect.Method[]@~
+  ret[] = java.lang.reflect.Method@~
 ;
 
 `Ljava/lang/Class;.getDeclaringClass:()Ljava/lang/Class;`:  //public native
   ret = java.lang.Class@~
+  ret.name = java.lang.String@~
 ;
 
 `Ljava/lang/Class;.getEnclosingClass:()Ljava/lang/Class;`:  //public native
   ret = java.lang.Class@~
+  ret.name = java.lang.String@~
 ;
 
 `Ljava/lang/Class;.getEnclosingConstructor:()Ljava/lang/reflect/Constructor;`:  //public native
@@ -125,7 +132,7 @@
 ;
 
 `Ljava/lang/Class;.getEnumConstants:()[Ljava/lang/Object;`:  //public
-  ret = java.lang.Object?[]@~
+  ret = java.lang.Object[]@~
   ret[] = java.lang.Object?@~
 ;
 
@@ -150,6 +157,7 @@
 `Ljava/lang/Class;.getInterfaces:()[Ljava/lang/Class;`:  //public native
   ret = java.lang.Class[]@~
   ret[] += java.lang.Class@~
+  ret[].name = java.lang.String@~
 ;
 
 `Ljava/lang/Class;.getMethod:(Ljava/lang/String;[Ljava/lang/Class;)Ljava/lang/reflect/Method;`:  //public
@@ -157,7 +165,8 @@
 ;
 
 `Ljava/lang/Class;.getMethods:()[Ljava/lang/reflect/Method;`:  //public
-  ret = java.lang.reflect.Method@~
+  ret = java.lang.reflect.Method[]@~
+  ret[] = java.lang.reflect.Method@~
 ;
 
 `Ljava/lang/Class;.getModifiers:()I`:  //public
@@ -184,7 +193,7 @@
 ;
 
 `Ljava/lang/Class;.getSigners:()[Ljava/lang/Object;`:  //public
-  ret = java.lang.Object?[]@~
+  ret = java.lang.Object[]@~
   ret[] += java.lang.Object?@~
 ;
 
@@ -194,6 +203,7 @@
 
 `Ljava/lang/Class;.getSuperclass:()Ljava/lang/Class;`:  //public native
   ret = java.lang.Class@~
+  ret.name = java.lang.String@~
 ;
 
 `Ljava/lang/Class;.getTypeParameters:()[Ljava/lang/reflect/TypeVariable;`:  //public declared_synchronized

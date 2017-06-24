@@ -71,6 +71,8 @@ case class SuArg(num: Int, heapOpt: Option[SuHeap]) extends RuleLhs with RuleRhs
   */
 case class SuGlobal(fqn: String, heapOpt: Option[SuHeap]) extends RuleLhs with RuleRhs
 
+case class SuClassOf(rhs: RuleRhs, loc: SuLocation) extends RuleRhs
+
 /**
   * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
   */

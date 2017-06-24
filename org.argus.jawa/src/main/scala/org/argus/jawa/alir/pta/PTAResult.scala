@@ -56,8 +56,21 @@ class PTAResult {
   def setInstances(after: Boolean, context: Context, s: PTASlot, is: ISet[Instance]): Unit = {
     ptMap(after)(context)(s) = msetEmpty ++ is
   }
+  def addSlot(after: Boolean, context: Context, s: PTASlot): Unit = ptMap(after).getOrElseUpdate(context, mmapEmpty).getOrElseUpdate(s, msetEmpty)
   def addInstance(after: Boolean, context: Context, s: PTASlot, i: Instance): Unit = ptMap(after).getOrElseUpdate(context, mmapEmpty).getOrElseUpdate(s, msetEmpty) += i
   def addInstances(after: Boolean, context: Context, s: PTASlot, is: ISet[Instance]): Unit = ptMap(after).getOrElseUpdate(context, mmapEmpty).getOrElseUpdate(s, msetEmpty) ++= is
+  def updateSlotIfPresent(after: Boolean, context: Context, s: PTASlot, i: Instance): Boolean = {
+    ptMap(after).get(context) match {
+      case Some(map) =>
+        map.get(s) match {
+          case Some(inss) =>
+            inss += i
+            true
+          case None => false
+        }
+      case None => false
+    }
+  }
   def removeInstance(after: Boolean, context: Context, s: PTASlot, i: Instance): Unit =
     ptMap(after).getOrElseUpdate(context, mmapEmpty).getOrElseUpdate(s, msetEmpty) -= i
   def removeInstances(after: Boolean, context: Context, s: PTASlot, is: ISet[Instance]): Unit =
@@ -90,5 +103,16 @@ class PTAResult {
     }
     worklistAlgorithm.run(worklistAlgorithm.worklist ++= insts)
     result
+  }
+
+  def pprint(after: Boolean): Unit = {
+    beforeMap.toList.sortBy(_._1.getCurrentLocUri).foreach {
+      case (c, map) =>
+        println(c.getCurrentLocUri + ":")
+        map.foreach {
+          case (s, inss) =>
+            println("  " + s + "---" + inss.mkString(", "))
+        }
+    }
   }
 }

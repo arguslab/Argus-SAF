@@ -15,7 +15,7 @@ import com.google.common.io.Resources
 import org.argus.jawa.alir.Context
 import org.argus.jawa.alir.pta._
 import org.argus.jawa.alir.pta.reachingFactsAnalysis.{RFAFact, ReachingFactsAnalysisHelper, SimHeap}
-import org.argus.jawa.core.Signature
+import org.argus.jawa.core.{JavaKnowledge, Signature}
 import org.argus.jawa.core.util._
 import org.argus.jawa.summary.parser.SummaryParser
 import org.argus.jawa.summary.rule._
@@ -46,7 +46,7 @@ class SummaryManager(implicit factory: SimHeap) {
 
   /**
     * Using summary file name to get corresponding summaries.
-    * @param fileName The file name like: string.safsu
+    * @param fileName The file name like: String.safsu
     */
   def getSummaries(fileName: String): IMap[String, Summary] = {
     this.summaryFiles.getOrElse(fileName, imapEmpty)
@@ -110,14 +110,24 @@ class SummaryManager(implicit factory: SimHeap) {
       case sg: SuGlobal =>
         val gSlot = StaticFieldSlot(sg.fqn)
         slots = handleHeap(sig, gSlot, sg.heapOpt, recvOpt, args, input, context, isLhs = false)
+      case sc: SuClassOf =>
+        val newContext = sc.loc match {
+          case scl: SuConcreteLocation =>
+            context.copy.setContext(sig, scl.loc)
+          case _: SuVirtualLocation =>
+            context
+        }
+        val rhsInss = processRhs(sig, sc.rhs, recvOpt, args, input, context)
+        inss ++= rhsInss.map { rhsins =>
+          PTAConcreteStringInstance(JavaKnowledge.formatTypeToName(rhsins.typ), newContext)
+        }
       case st: SuInstance =>
-        val newContext =
-          st.loc match {
-            case scl: SuConcreteLocation =>
-              context.copy.setContext(sig, scl.loc)
-            case _: SuVirtualLocation =>
-              context
-          }
+        val newContext = st.loc match {
+          case scl: SuConcreteLocation =>
+            context.copy.setContext(sig, scl.loc)
+          case _: SuVirtualLocation =>
+            context
+        }
         val ins = st.typ match {
           case jt: SuJavaType =>
             jt.typ.jawaName match {

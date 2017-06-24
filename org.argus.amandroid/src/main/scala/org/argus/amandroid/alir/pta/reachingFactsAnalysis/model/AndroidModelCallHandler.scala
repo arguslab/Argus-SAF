@@ -10,10 +10,13 @@
 
 package org.argus.amandroid.alir.pta.reachingFactsAnalysis.model
 
-import org.argus.amandroid.core.ApkGlobal
-import org.argus.jawa.alir.pta.PTAScopeManager
-import org.argus.jawa.alir.pta.reachingFactsAnalysis.model.ModelCallHandler
-import org.argus.jawa.core.{JawaType, Signature}
+import org.argus.amandroid.core.{AndroidConstants, ApkGlobal}
+import org.argus.jawa.alir.Context
+import org.argus.jawa.alir.pta.reachingFactsAnalysis.{RFAFact, SimHeap}
+import org.argus.jawa.alir.pta.{PTAResult, PTAScopeManager}
+import org.argus.jawa.alir.pta.reachingFactsAnalysis.model.{ModelCall, ModelCallHandler}
+import org.argus.jawa.core.util.{ISet, isetEmpty}
+import org.argus.jawa.core.{JawaMethod, JawaType, Signature}
 
 /**
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
@@ -41,4 +44,18 @@ object AndroidModelCallHandler extends ModelCallHandler(PTAScopeManager){
       && calleeSig.getSubSignature == "send:(Landroid/os/Message;)V") || apk.model.getRpcMethodMapping.exists{ case (typ, sigs) => currentComp != typ && sigs.contains(calleeSig)}
   }
 
+}
+
+/**
+  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
+  * @author <a href="mailto:sroy@k-state.edu">Sankardas Roy</a>
+  */
+class BundleModel extends ModelCall {
+  def isModelCall(r: JawaMethod): Boolean = r.getDeclaringClass.getName.equals(AndroidConstants.BUNDLE)
+
+  override val safsuFile = "Bundle.safsu"
+
+  def doModelCall(s: PTAResult, p: JawaMethod, args: List[String], retVar: String, currentContext: Context)(implicit factory: SimHeap): (ISet[RFAFact], ISet[RFAFact], Boolean) = {
+    (isetEmpty, isetEmpty, true)
+  }
 }

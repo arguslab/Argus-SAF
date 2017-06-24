@@ -350,4 +350,5 @@ object JavaKnowledge extends JavaKnowledge {
   def DOUBLE: JawaType = new JawaType("double")
   def CLASS: JawaType = new JawaType("java.lang.Class")
   def STRING: JawaType = new JawaType("java.lang.String")
+  def THREAD: JawaType = new JawaType("java.lang.Thread")
 }

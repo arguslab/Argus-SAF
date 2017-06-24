@@ -119,6 +119,12 @@ public interface SafsuVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitInstance(SafsuParser.InstanceContext ctx);
 	/**
+	 * Visit a parse tree produced by {@link SafsuParser#classOf}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitClassOf(SafsuParser.ClassOfContext ctx);
+	/**
 	 * Visit a parse tree produced by {@link SafsuParser#type}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
@@ -130,6 +136,12 @@ public interface SafsuVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitJavaType(SafsuParser.JavaTypeContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link SafsuParser#innerType}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitInnerType(SafsuParser.InnerTypeContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link SafsuParser#unknown}.
 	 * @param ctx the parse tree

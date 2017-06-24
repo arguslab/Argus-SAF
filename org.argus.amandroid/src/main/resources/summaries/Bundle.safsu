@@ -1,0 +1,368 @@
+`Landroid/os/Bundle;.<clinit>:()V`:
+;
+
+`Landroid/os/Bundle;.<init>:()V:`:
+;
+
+`Landroid/os/Bundle;.<init>:(I)V`:
+;
+
+`Landroid/os/Bundle;.<init>:(Landroid/os/Bundle;)V`:
+  this.key = arg:0.key
+;
+
+`Landroid/os/Bundle;.<init>:(Ljava/lang/ClassLoader;)V`:
+;
+
+`Landroid/os/Bundle;.clear:()V`:
+  ~this
+;
+
+`Landroid/os/Bundle;.clone:()Ljava/lang/Object;`:
+  ret = this
+;
+
+`Landroid/os/Bundle;.containsKey:(Ljava/lang/String;)Z`:
+;
+
+`Landroid/os/Bundle;.describeContents:()I`:
+;
+
+`Landroid/os/Bundle;.forPair:(Ljava/lang/String;Ljava/lang/String;)Landroid/os/Bundle;`:
+  ret = android.os.Bundle@~
+  ret.key = arg:0
+  ret(arg:0) = arg:1
+;
+
+`Landroid/os/Bundle;.get:(Ljava/lang/String;)Ljava/lang/Object;`:
+  ret = this(arg:0)
+;
+
+`Landroid/os/Bundle;.getBoolean:(Ljava/lang/String;)Z`:
+;
+
+`Landroid/os/Bundle;.getBoolean:(Ljava/lang/String;Z)Z`:
+;
+
+`Landroid/os/Bundle;.getBooleanArray:(Ljava/lang/String;)[Z`:
+  ret = this(arg:0)
+;
+
+`Landroid/os/Bundle;.getBundle:(Ljava/lang/String;)Landroid/os/Bundle;`:
+  ret = this(arg:0)
+;
+
+`Landroid/os/Bundle;.getByte:(Ljava/lang/String;)B`:
+;
+
+`Landroid/os/Bundle;.getByte:(Ljava/lang/String;B)Ljava/lang/Byte;`:
+;
+
+`Landroid/os/Bundle;.getByteArray:(Ljava/lang/String;)[B`:
+  ret = this(arg:0)
+;
+
+`Landroid/os/Bundle;.getChar:(Ljava/lang/String;)C`:
+;
+
+`Landroid/os/Bundle;.getChar:(Ljava/lang/String;C)C`:
+;
+
+`Landroid/os/Bundle;.getCharArray:(Ljava/lang/String;)[C`:
+  ret = this(arg:0)
+;
+
+`Landroid/os/Bundle;.getCharSequence:(Ljava/lang/String;)Ljava/lang/CharSequence;`:
+  ret = this(arg:0)
+;
+
+`Landroid/os/Bundle;.getCharSequence:(Ljava/lang/String;Ljava/lang/CharSequence;)Ljava/lang/CharSequence;`:
+  ret = this(arg:0)
+  ret += arg:1
+;
+
+`Landroid/os/Bundle;.getCharSequenceArray:(Ljava/lang/String;)[Ljava/lang/CharSequence;`:
+  ret = this(arg:0)
+;
+
+`Landroid/os/Bundle;.getCharSequenceArrayList:(Ljava/lang/String;)Ljava/util/ArrayList;`:
+  ret = this(arg:0)
+;
+
+`Landroid/os/Bundle;.getClassLoader:()Ljava/lang/ClassLoader;`:
+  ret = java.lang.ClassLoader?@~
+;
+
+`Landroid/os/Bundle;.getDouble:(Ljava/lang/String;)D`:
+;
+
+`Landroid/os/Bundle;.getDouble:(Ljava/lang/String;D)D`:
+;
+
+`Landroid/os/Bundle;.getDoubleArray:(Ljava/lang/String;)[D`:
+  ret = this(arg:0)
+;
+
+`Landroid/os/Bundle;.getFloat:(Ljava/lang/String;)F`:
+;
+
+`Landroid/os/Bundle;.getFloat:(Ljava/lang/String;F)F`:
+;
+
+`Landroid/os/Bundle;.getFloatArray:(Ljava/lang/String;)[F`:
+  ret = this(arg:0)
+;
+
+`Landroid/os/Bundle;.getIBinder:(Ljava/lang/String;)Landroid/os/IBinder;`:
+  ret = this(arg:0)
+;
+
+`Landroid/os/Bundle;.getInt:(Ljava/lang/String;)I`:
+;
+
+`Landroid/os/Bundle;.getInt:(Ljava/lang/String;I)I`:
+;
+
+`Landroid/os/Bundle;.getIntArray:(Ljava/lang/String;)[I`:
+  ret = this(arg:0)
+;
+
+`Landroid/os/Bundle;.getIntegerArrayList:(Ljava/lang/String;)Ljava/util/ArrayList;`:
+  ret = this(arg:0)
+;
+
+`Landroid/os/Bundle;.getLong:(Ljava/lang/String;)J`:
+;
+
+`Landroid/os/Bundle;.getLong:(Ljava/lang/String;J)J`:
+;
+
+`Landroid/os/Bundle;.getLongArray:(Ljava/lang/String;)[J`:
+  ret = this(arg:0)
+;
+
+`Landroid/os/Bundle;.getParcelable:(Ljava/lang/String;)Landroid/os/Parcelable;`:
+  ret = this(arg:0)
+;
+
+`Landroid/os/Bundle;.getParcelableArray:(Ljava/lang/String;)[Landroid/os/Parcelable;`:
+  ret = this(arg:0)
+;
+
+`Landroid/os/Bundle;.getParcelableArrayList:(Ljava/lang/String;)Ljava/util/ArrayList;`:
+  ret = this(arg:0)
+;
+
+`Landroid/os/Bundle;.getSerializable:(Ljava/lang/String;)Ljava/io/Serializable;`:
+  ret = this(arg:0)
+;
+
+`Landroid/os/Bundle;.getShort:(Ljava/lang/String;)S`:
+;
+
+`Landroid/os/Bundle;.getShort:(Ljava/lang/String;S)S`:
+;
+
+`Landroid/os/Bundle;.getShortArray:(Ljava/lang/String;)[S`:
+  ret = this(arg:0)
+;
+
+`Landroid/os/Bundle;.getSparseParcelableArray:(Ljava/lang/String;)Landroid/util/SparseArray;`:
+  ret = this(arg:0)
+;
+
+`Landroid/os/Bundle;.getString:(Ljava/lang/String;)Ljava/lang/String;`:
+  ret = this(arg:0)
+;
+
+`Landroid/os/Bundle;.getString:(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;`:
+  ret = this(arg:0)
+  ret += arg:1
+;
+
+`Landroid/os/Bundle;.getStringArray:(Ljava/lang/String;)[Ljava/lang/String;`:
+  ret = this(arg:0)
+;
+
+`Landroid/os/Bundle;.getStringArrayList:(Ljava/lang/String;)Ljava/util/ArrayList;`:
+  ret = this(arg:0)
+;
+
+`Landroid/os/Bundle;.hasFileDescriptors:()Z`:
+;
+
+`Landroid/os/Bundle;.isEmpty:()Z`:
+;
+
+`Landroid/os/Bundle;.isParcelled:()Z`:
+;
+
+`Landroid/os/Bundle;.keySet:()Ljava/util/Set;`:
+  ret = java.util.HashSet@~
+  ret.items = this.key
+;
+
+`Landroid/os/Bundle;.putAll:(Landroid/os/Bundle;)V`:
+  this.key += arg:0.key
+;
+
+`Landroid/os/Bundle;.putBoolean:(Ljava/lang/String;Z)V`:
+;
+
+`Landroid/os/Bundle;.putBooleanArray:(Ljava/lang/String;[Z)V`:
+  this.key += arg:0
+  this(arg:0) = arg:1
+;
+
+`Landroid/os/Bundle;.putBundle:(Ljava/lang/String;Landroid/os/Bundle;)V`:
+  this.key += arg:0
+  this(arg:0) = arg:1
+;
+
+`Landroid/os/Bundle;.putByte:(Ljava/lang/String;B)V`:
+;
+
+`Landroid/os/Bundle;.putByteArray:(Ljava/lang/String;[B)V`:
+  this.key += arg:0
+  this(arg:0) = arg:1
+;
+
+`Landroid/os/Bundle;.putChar:(Ljava/lang/String;C)V`:
+;
+
+`Landroid/os/Bundle;.putCharArray:(Ljava/lang/String;[C)V`:
+  this.key += arg:0
+  this(arg:0) = arg:1
+;
+
+`Landroid/os/Bundle;.putCharSequence:(Ljava/lang/String;Ljava/lang/CharSequence;)V`:
+  this.key += arg:0
+  this(arg:0) = arg:1
+;
+
+`Landroid/os/Bundle;.putCharSequenceArray:(Ljava/lang/String;[Ljava/lang/CharSequence;)V`:
+  this.key += arg:0
+  this(arg:0) = arg:1
+;
+
+`Landroid/os/Bundle;.putCharSequenceArrayList:(Ljava/lang/String;Ljava/util/ArrayList;)V`:
+  this.key += arg:0
+  this(arg:0) = arg:1
+;
+
+`Landroid/os/Bundle;.putDouble:(Ljava/lang/String;D)V`:
+;
+
+`Landroid/os/Bundle;.putDoubleArray:(Ljava/lang/String;[D)V`:
+  this.key += arg:0
+  this(arg:0) = arg:1
+;
+
+`Landroid/os/Bundle;.putFloat:(Ljava/lang/String;F)V`:
+;
+
+`Landroid/os/Bundle;.putFloatArray:(Ljava/lang/String;[F)V`:
+  this.key += arg:0
+  this(arg:0) = arg:1
+;
+
+`Landroid/os/Bundle;.putIBinder:(Ljava/lang/String;Landroid/os/IBinder;)V`:
+  this.key += arg:0
+  this(arg:0) = arg:1
+;
+
+`Landroid/os/Bundle;.putInt:(Ljava/lang/String;I)V`:
+;
+
+`Landroid/os/Bundle;.putIntArray:(Ljava/lang/String;[I)V`:
+  this.key += arg:0
+  this(arg:0) = arg:1
+;
+
+`Landroid/os/Bundle;.putIntegerArrayList:(Ljava/lang/String;Ljava/util/ArrayList;)V`:
+  this.key += arg:0
+  this(arg:0) = arg:1
+;
+
+`Landroid/os/Bundle;.putLong:(Ljava/lang/String;J)V`:
+;
+
+`Landroid/os/Bundle;.putLongArray:(Ljava/lang/String;[J)V`:
+  this.key += arg:0
+  this(arg:0) = arg:1
+;
+
+`Landroid/os/Bundle;.putParcelable:(Ljava/lang/String;Landroid/os/Parcelable;)V`:
+  this.key += arg:0
+  this(arg:0) = arg:1
+;
+
+`Landroid/os/Bundle;.putParcelableArray:(Ljava/lang/String;[Landroid/os/Parcelable;)V`:
+  this.key += arg:0
+  this(arg:0) = arg:1
+;
+
+`Landroid/os/Bundle;.putParcelableArrayList:(Ljava/lang/String;Ljava/util/ArrayList;)V`:
+  this.key += arg:0
+  this(arg:0) = arg:1
+;
+
+`Landroid/os/Bundle;.putSerializable:(Ljava/lang/String;Ljava/io/Serializable;)V`:
+  this.key += arg:0
+  this(arg:0) = arg:1
+;
+
+`Landroid/os/Bundle;.putShort:(Ljava/lang/String;S)V`:
+;
+
+`Landroid/os/Bundle;.putShortArray:(Ljava/lang/String;[S)V`:
+  this.key += arg:0
+  this(arg:0) = arg:1
+;
+
+`Landroid/os/Bundle;.putSparseParcelableArray:(Ljava/lang/String;Landroid/util/SparseArray;)V`:
+  this.key += arg:0
+  this(arg:0) = arg:1
+;
+
+`Landroid/os/Bundle;.putString:(Ljava/lang/String;Ljava/lang/String;)V`:
+  this.key += arg:0
+  this(arg:0) = arg:1
+;
+
+`Landroid/os/Bundle;.putStringArray:(Ljava/lang/String;[Ljava/lang/String;)V`:
+  this.key += arg:0
+  this(arg:0) = arg:1
+;
+
+`Landroid/os/Bundle;.putStringArrayList:(Ljava/lang/String;Ljava/util/ArrayList;)V`:
+  this.key += arg:0
+  this(arg:0) = arg:1
+;
+
+`Landroid/os/Bundle;.readFromParcel:(Landroid/os/Parcel;)V`:
+;
+
+`Landroid/os/Bundle;.remove:(Ljava/lang/String;)V`:
+  this.key -= arg:0
+  ~this(arg:0)
+;
+
+`Landroid/os/Bundle;.setAllowFds:(Z)Z`:
+;
+
+`Landroid/os/Bundle;.setClassLoader:(Ljava/lang/ClassLoader;)V`:
+;
+
+`Landroid/os/Bundle;.size:()I`:
+;
+
+`Landroid/os/Bundle;.toString:()Ljava/lang/String;`:
+  ret = java.lang.String@~
+;
+
+`Landroid/os/Bundle;.unparcel:()V`:
+;
+
+`Landroid/os/Bundle;.writeToParcel:(Landroid/os/Parcel;I)V`:
+;

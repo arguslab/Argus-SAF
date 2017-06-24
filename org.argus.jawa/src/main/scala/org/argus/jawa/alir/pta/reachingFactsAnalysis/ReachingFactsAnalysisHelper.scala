@@ -176,7 +176,9 @@ object ReachingFactsAnalysisHelper {
 
   def updatePTAResultLHS(lhs: Expression with LHS, currentContext: Context, s: ISet[RFAFact], ptaresult: PTAResult)(implicit factory: SimHeap): Unit = {
     lhs match {
-      case _: NameExpression =>
+      case ne: NameExpression =>
+//        val varSlot = getNameSlotFromNameExp(ne)
+//        ptaresult.addSlot(after = false, currentContext, varSlot)
       case ae: AccessExpression =>
         val baseSlot = VarSlot(ae.base)
         val baseValue = s.filter { fact => fact.s.getId == baseSlot.getId }.map(_.v)
@@ -268,7 +270,7 @@ object ReachingFactsAnalysisHelper {
           case Right(_) =>
         }
       case ne: NameExpression =>
-        val slot = getNameSlotFromNameExp(ne, typ)
+        val slot = getNameSlotFromNameExp(ne)
         slot match {
           case ss: StaticFieldSlot =>
             s.filter { fact => fact.s == ss }.foreach(f => ptaresult.addInstance(after = false, currentContext, ss, f.v))
@@ -328,7 +330,7 @@ object ReachingFactsAnalysisHelper {
     val result: MMap[PTASlot, Boolean] = mmapEmpty
     lhs match{
       case ne: NameExpression =>
-        val slot = getNameSlotFromNameExp(ne, typ)
+        val slot = getNameSlotFromNameExp(ne)
         result(slot) = true
       case ae: AccessExpression =>
         val baseSlot = VarSlot(ae.base)
@@ -357,7 +359,7 @@ object ReachingFactsAnalysisHelper {
     val result: MSet[Instance] = msetEmpty
     rhs match{
       case ne: NameExpression =>
-        val slot = getNameSlotFromNameExp(ne, typ)
+        val slot = getNameSlotFromNameExp(ne)
         val value: ISet[Instance] = ptaResult.pointsToSet(after = false, currentContext, slot)
         result ++= value
       case ce: ConstClassExpression =>
@@ -477,11 +479,10 @@ object ReachingFactsAnalysisHelper {
     result
   }
   
-  def getNameSlotFromNameExp(ne: NameExpression, typ: Option[JawaType]): NameSlot = {
+  def getNameSlotFromNameExp(ne: NameExpression): NameSlot = {
     val name = ne.name
     if(ne.isStatic){
-      val fqn = new FieldFQN(ne.name, typ.get)
-      StaticFieldSlot(fqn.fqn)
+      StaticFieldSlot(name)
     }
     else VarSlot(name)
   }

@@ -38,8 +38,9 @@ class SummaryParserTest extends FlatSpec with Matchers {
         |  `com.my.Class.Glo`.f.f2[]=arg:1.field
         |  ~arg:1.f1
         |  this.f1[]=arg:1()
-        |  ret.f1=Class?[][]@~
+        |  ret.f1=Class$InnerClass?[][]@~
         |  ret.f2="String"@L1
+        |  `com.my.Class.Glo`.f2=classOf this @~
         |;
       """.stripMargin.stripMargin)
   }
@@ -109,6 +110,7 @@ class SummaryParserTest extends FlatSpec with Matchers {
       """`Lcom/my/Class;.do:(LO1;LO2;)LO3;`:
         |  `my.Class.Glo` = my.Class@L100
         |  arg:1 = my.Class@~
+        |  arg:0 = my.Class$InnerClass@~
         |  arg:1.f1 = "str"@L1
         |;
       """.stripMargin)
@@ -125,7 +127,9 @@ class SummaryParserTest extends FlatSpec with Matchers {
       && s.get.rules(1).asInstanceOf[BinaryRule].rhs.asInstanceOf[SuInstance].typ.typ.jawaName == "my.Class"
       && s.get.rules(1).asInstanceOf[BinaryRule].rhs.asInstanceOf[SuInstance].loc.isInstanceOf[SuVirtualLocation])
     assert(s.isDefined
-      && s.get.rules(2).asInstanceOf[BinaryRule].rhs.asInstanceOf[SuInstance].typ.asInstanceOf[SuString].str == "str")
+      && s.get.rules(2).asInstanceOf[BinaryRule].rhs.asInstanceOf[SuInstance].typ.typ.jawaName == "my.Class$InnerClass")
+    assert(s.isDefined
+      && s.get.rules(3).asInstanceOf[BinaryRule].rhs.asInstanceOf[SuInstance].typ.asInstanceOf[SuString].str == "str")
   }
 
   "SummaryParser" should "get nested field and array and map" in {
@@ -185,6 +189,17 @@ class SummaryParserTest extends FlatSpec with Matchers {
     val s = sf.summaries.get(new Signature("Lcom/my/Class;.do:(LO1;LO2;)LO3;"))
     assert(s.isDefined
       && s.get.rules.head.asInstanceOf[BinaryRule].rhs.asInstanceOf[SuInstance].typ.typ.baseType.unknown)
+  }
+
+  "SummaryParser" should "handle classOf" in {
+    val sf = parse(
+      """`Lcom/my/Class;.do:(LO1;LO2;)LO3;`:
+        |  arg:1.f1 = classOf arg:0 @~
+        |;
+      """.stripMargin)
+    val s = sf.summaries.get(new Signature("Lcom/my/Class;.do:(LO1;LO2;)LO3;"))
+    assert(s.isDefined
+      && s.get.rules.head.asInstanceOf[BinaryRule].rhs.isInstanceOf[SuClassOf])
   }
 
   def parse(code: String): SummaryFile = {

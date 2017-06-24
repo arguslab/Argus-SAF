@@ -47,6 +47,7 @@ object ComponentBasedAnalysis {
                 implicit val factory = new SimHeap
                 val initialfacts = AndroidRFAConfig.getInitialFactsForMainEnvironment(ep)
                 val idfg = AndroidReachingFactsAnalysis(apk, ep, initialfacts, new ClassLoadManager, new Context(apk.nameUri), timeout = Some(new MyTimeout(timeout)))
+                idfg.ptaresult.pprint(false)
                 apk.addIDFG(component, idfg)
               case None =>
                 apk.reporter.error(TITLE, "Component " + component + " did not have environment! Some package or name mismatch maybe in the Manifest.")

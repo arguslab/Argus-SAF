@@ -13,6 +13,7 @@
 
 `Ljava/lang/Object;.getClass:()Ljava/lang/Class;`:
   ret = java.lang.Class@~
+  ret.name = classOf this @~
 ;
 
 `Ljava/lang/Object;.hashCode:()I`:

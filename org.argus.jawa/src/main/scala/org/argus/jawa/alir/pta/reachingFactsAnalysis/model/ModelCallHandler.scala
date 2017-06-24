@@ -51,6 +51,7 @@ class ModelCallHandler(scopeManager: ScopeManager) {
   def registerModelCall(mc: ModelCall): Unit = modelCalls += mc
 
   registerModelCall(new StringBuilderModel)
+  registerModelCall(new StringBufferModel)
   registerModelCall(new StringModel)
   registerModelCall(new ListModel)
   registerModelCall(new SetModel)
@@ -147,10 +148,39 @@ class ModelCallHandler(scopeManager: ScopeManager) {
 class StringModel extends ModelCall {
   def isModelCall(p: JawaMethod): Boolean = p.getDeclaringClass.getName.equals("java.lang.String")
 
-  override val safsuFile: String = "string.safsu"
+  override val safsuFile: String = "String.safsu"
 
   def doModelCall(s: PTAResult, p: JawaMethod, args: List[String], retVar: String, currentContext: Context)(implicit factory: SimHeap): (ISet[RFAFact], ISet[RFAFact], Boolean) = {
     (isetEmpty, isetEmpty, false)
+  }
+}
+
+/**
+  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
+  * @author <a href="mailto:sroy@k-state.edu">Sankardas Roy</a>
+  */
+class StringBuilderModel extends ModelCall {
+
+  def isModelCall(p: JawaMethod): Boolean = p.getDeclaringClass.getName.equals(Constants.STRING_BUILDER)
+
+  override val safsuFile: String = "StringBuilder.safsu"
+
+  def doModelCall(s: PTAResult, p: JawaMethod, args: List[String], retVar: String, currentContext: Context)(implicit factory: SimHeap): (ISet[RFAFact], ISet[RFAFact], Boolean) = {
+    (isetEmpty[RFAFact], isetEmpty[RFAFact], true)
+  }
+}
+
+/**
+  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
+  */
+class StringBufferModel extends ModelCall {
+
+  def isModelCall(p: JawaMethod): Boolean = p.getDeclaringClass.getName.equals(Constants.STRING_BUFFER)
+
+  override val safsuFile: String = "StringBuffer.safsu"
+
+  def doModelCall(s: PTAResult, p: JawaMethod, args: List[String], retVar: String, currentContext: Context)(implicit factory: SimHeap): (ISet[RFAFact], ISet[RFAFact], Boolean) = {
+    (isetEmpty[RFAFact], isetEmpty[RFAFact], true)
   }
 }
 
@@ -167,7 +197,7 @@ class MapModel extends ModelCall {
     }
   }
 
-  override val safsuFile: String = "map.safsu"
+  override val safsuFile: String = "Map.safsu"
 
   def doModelCall(s: PTAResult, p: JawaMethod, args: List[String], retVar: String, currentContext: Context)(implicit factory: SimHeap): (ISet[RFAFact], ISet[RFAFact], Boolean) = {
     (isetEmpty, isetEmpty, false)
@@ -186,7 +216,7 @@ class SetModel extends ModelCall {
     }
   }
 
-  override val safsuFile = "set.safsu"
+  override val safsuFile = "Set.safsu"
 
   def doModelCall(s: PTAResult, p: JawaMethod, args: List[String], retVars: String, currentContext: Context)(implicit factory: SimHeap): (ISet[RFAFact], ISet[RFAFact], Boolean) = {
     (isetEmpty, isetEmpty, false)
@@ -205,9 +235,45 @@ class ListModel extends ModelCall {
     }
   }
 
-  override val safsuFile = "list.safsu"
+  override val safsuFile = "List.safsu"
 
   def doModelCall(s: PTAResult, p: JawaMethod, args: List[String], retVar: String, currentContext: Context)(implicit factory: SimHeap): (ISet[RFAFact], ISet[RFAFact], Boolean) = {
     (isetEmpty, isetEmpty, false)
+  }
+}
+
+/**
+  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
+  */
+class ThreadModel extends ModelCall {
+  def isModelCall(p: JawaMethod): Boolean = p.getDeclaringClass.getName.equals("java.lang.Thread")
+
+  override val safsuFile = "Thread.safsu"
+
+  def doModelCall(s: PTAResult, p: JawaMethod, args: List[String], retVar: String, currentContext: Context)(implicit factory: SimHeap): (ISet[RFAFact], ISet[RFAFact], Boolean) = {
+    (isetEmpty[RFAFact], isetEmpty[RFAFact], true)
+  }
+
+}
+
+/**
+  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
+  */
+class NativeCallModel extends ModelCall {
+  def isModelCall(p: JawaMethod): Boolean = p.isNative
+
+  def doModelCall(s: PTAResult, p: JawaMethod, args: List[String], retVar: String, currentContext: Context)(implicit factory: SimHeap): (ISet[RFAFact], ISet[RFAFact], Boolean) = {
+    (isetEmpty[RFAFact], isetEmpty[RFAFact], true)
+  }
+}
+
+/**
+  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
+  */
+class UnknownCallModel extends ModelCall {
+  def isModelCall(p: JawaMethod): Boolean = p.isUnknown
+
+  def doModelCall(s: PTAResult, p: JawaMethod, args: List[String], retVar: String, currentContext: Context)(implicit factory: SimHeap): (ISet[RFAFact], ISet[RFAFact], Boolean) = {
+    (isetEmpty[RFAFact], isetEmpty[RFAFact], true)
   }
 }

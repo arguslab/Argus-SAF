@@ -1,0 +1,183 @@
+`Ljava/lang/Thread;.<init>:()V`:
+  this.runnable = this
+  this.name = java.lang.String@~
+;
+
+`Ljava/lang/Thread;.<init>:(Ljava/lang/Runnable;)V`:
+  this.runnable = arg:0
+  this.name = java.lang.String@~
+;
+
+`Ljava/lang/Thread;.<init>:(Ljava/lang/Runnable;Ljava/lang/String;)V`:
+  this.runnable = arg:0
+  this.name = arg:1
+;
+
+`Ljava/lang/Thread;.<init>:(Ljava/lang/String;)V`:
+  this.runnable = this
+  this.name = arg:0
+;
+
+`Ljava/lang/Thread;.<init>:(Ljava/lang/ThreadGroup;Ljava/lang/Runnable;Ljava/lang/String;)V`:
+  this.runnable = arg:1
+  this.name = arg:2
+;
+
+`Ljava/lang/Thread;.<init>:(Ljava/lang/ThreadGroup;Ljava/lang/Runnable;Ljava/lang/String;J)V`:
+  this.runnable = arg:1
+  this.name = arg:2
+;
+
+`Ljava/lang/Thread;.<init>:(Ljava/lang/ThreadGroup;Ljava/lang/String;)V`:
+  this.runnable = this
+  this.name = arg:1
+;
+
+`Ljava/lang/Thread;.activeCount:()I`:
+;
+
+`Ljava/lang/Thread;.checkAccess:()V`:
+;
+
+`Ljava/lang/Thread;.clone:()Ljava/lang/Object;`:
+  ret = this
+;
+
+`Ljava/lang/Thread;.countStackFrames:()I`:
+;
+
+`Ljava/lang/Thread;.currentThread:()Ljava/lang/Thread;`:
+  ret = java.lang.Thread?@~
+;
+
+`Ljava/lang/Thread;.destroy:()V`:
+;
+
+`Ljava/lang/Thread;.dumpStack:()V`:
+;
+
+`Ljava/lang/Thread;.enumerate:([Ljava/lang/Thread;)I`:
+;
+
+`Ljava/lang/Thread;.getAllStackTraces:()Ljava/util/Map;`:
+  ret = java.util.HashMap@~
+  ret.entries = java.util.HashMap$Entries@~
+  ret.entries.key = java.lang.Thread?@~
+  ret.entries(java.lang.Thread?@~) = java.lang.StackTrackElement[]@~
+  ret.entries(java.lang.Thread?@~)[] = java.lang.StackTrackElement@~
+;
+
+`Ljava/lang/Thread;.getContextClassLoader:()Ljava/lang/ClassLoader;`:
+  ret = java.lang.ClassLoader?@~
+;
+
+`Ljava/lang/Thread;.getDefaultUncaughtExceptionHandler:()Ljava/lang/Thread$UncaughtExceptionHandler;`:
+  ret = this.handler
+;
+
+`Ljava/lang/Thread;.getId:()J`:
+;
+
+`Ljava/lang/Thread;.getName:()Ljava/lang/String;`:
+  ret = this.name
+;
+
+`Ljava/lang/Thread;.getPriority:()I`:
+;
+
+`Ljava/lang/Thread;.getStackTrace:()[Ljava/lang/StackTraceElement;`:
+  ret = java.lang.StackTraceElement[]@~
+  ret[] = java.lang.StackTraceElement@~
+;
+
+`Ljava/lang/Thread;.getState:()Ljava/lang/Thread$State;`:
+  ret = java.lang.Thread$State@~
+;
+
+`Ljava/lang/Thread;.getThreadGroup:()Ljava/lang/ThreadGroup;`:
+  ret = java.lang.ThreadGroup@~
+;
+
+`Ljava/lang/Thread;.getUncaughtExceptionHandler:()Ljava/lang/Thread$UncaughtExceptionHandler;`:
+  ret = this.handler
+;
+
+`Ljava/lang/Thread;.holdsLock:(Ljava/lang/Object;)Z`:
+;
+
+`Ljava/lang/Thread;.interrupt:()V`:
+;
+
+`Ljava/lang/Thread;.interrupted:()Z`:
+;
+
+`Ljava/lang/Thread;.isAlive:()Z`:
+;
+
+`Ljava/lang/Thread;.isDaemon:()Z`:
+;
+
+`Ljava/lang/Thread;.isInterrupted:()Z`:
+;
+
+`Ljava/lang/Thread;.join:()V`:
+;
+
+`Ljava/lang/Thread;.join:(J)V`:
+;
+
+`Ljava/lang/Thread;.join:(JI)V`:
+;
+
+`Ljava/lang/Thread;.resume:()V`:
+;
+
+`Ljava/lang/Thread;.run:()V`:
+;
+
+`Ljava/lang/Thread;.setContextClassLoader:(Ljava/lang/ClassLoader;)V`:
+  this.loader = arg:0
+;
+
+`Ljava/lang/Thread;.setDaemon:(Z)V`:
+;
+
+`Ljava/lang/Thread;.setDefaultUncaughtExceptionHandler:(Ljava/lang/Thread$UncaughtExceptionHandler;)V`:
+  this.handler += arg:0
+;
+
+`Ljava/lang/Thread;.setName:(Ljava/lang/String;)V`:
+  this.name = arg:0
+;
+
+`Ljava/lang/Thread;.setPriority:(I)V`:
+;
+
+`Ljava/lang/Thread;.setUncaughtExceptionHandler:(Ljava/lang/Thread$UncaughtExceptionHandler;)V`:
+  this.handler += arg:0
+;
+
+`Ljava/lang/Thread;.sleep:(J)V`:
+;
+
+`Ljava/lang/Thread;.sleep:(JI)V`:
+;
+
+`Ljava/lang/Thread;.start:()V`:
+;
+
+`Ljava/lang/Thread;.stop:()V`:
+;
+
+`Ljava/lang/Thread;.stop:(Ljava/lang/Throwable;)V`:
+;
+
+`Ljava/lang/Thread;.suspend:()V`:
+;
+
+`Ljava/lang/Thread;.toString:()Ljava/lang/String;`:
+  ret = this.name
+;
+
+`Ljava/lang/Thread;.yield:()V`:
+;

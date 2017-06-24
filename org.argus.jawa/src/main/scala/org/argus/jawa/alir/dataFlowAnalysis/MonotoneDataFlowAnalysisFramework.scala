@@ -69,7 +69,7 @@ trait IngredientProvider[N <: AlirNode, LatticeElement, LOC] {
       mdaf: MonotoneDataFlowAnalysisBuilder[N, LatticeElement],
       callr: Option[CallResolver[N, LatticeElement]]): Unit
   def preProcess(node: N, statement: Statement, s: ISet[LatticeElement]): Unit
-  def postProcess(map: IMap[N, ISet[LatticeElement]]): Unit
+  def postProcess(node: N, s: ISet[LatticeElement]): Unit
 }
 
 /**
@@ -426,7 +426,7 @@ object MonotoneDataFlowAnalysisFramework {
             val succs = cfg.successors(currentNode)
             succs.foreach(succ=>latticeMap += (succ -> s))
         }
-        ip.postProcess(latticeMap)
+        ip.postProcess(currentNode, s)
         latticeMap
       }
 
