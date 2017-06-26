@@ -35,7 +35,7 @@ class RunnableStartRun extends IndirectCall {
     val callees: MSet[(JawaMethod, Instance)] = msetEmpty
     inss.foreach { ins =>
       val fieldSlot = FieldSlot(ins, Constants.THREAD_RUNNABLE)
-      val runnableInss = pTAResult.pointsToSet(after = false, callerContext, fieldSlot)
+      val runnableInss = pTAResult.pointsToSet(callerContext, fieldSlot)
       runnableInss foreach { runnableIns =>
         val clazz = global.getClassOrResolve(runnableIns.typ)
         val runnable = global.getClassOrResolve(run.getClassType)
@@ -83,7 +83,7 @@ class ExecutorExecuteRun extends IndirectCall {
 
   override def getCallTarget(global: Global, inss: ISet[Instance], callerContext: Context, args: IList[String], pTAResult: PTAResult): (ISet[(JawaMethod, Instance)], (ISet[RFAFact], IList[String], IList[String], SimHeap) => ISet[RFAFact]) = {
     val varSlot = VarSlot(args(1))
-    val runnableInss = pTAResult.pointsToSet(after = false, callerContext, varSlot)
+    val runnableInss = pTAResult.pointsToSet(callerContext, varSlot)
     val callees: MSet[(JawaMethod, Instance)] = msetEmpty
     runnableInss.foreach { runnableIns =>
       val clazz = global.getClassOrResolve(runnableIns.typ)

@@ -59,7 +59,7 @@ class OAuthSourceAndSinkManager(sasFilePath: String) extends AndroidSourceAndSin
           sinkflag = true
           val args = apk.getMethod(invNode.getOwner).get.getBody.resolvedBody.locations(invNode.locIndex).statement.asInstanceOf[CallStatement].args
           val intentSlot = VarSlot(args.head)
-          val intentValues = ptaresult.pointsToSet(after = false, invNode.getContext, intentSlot)
+          val intentValues = ptaresult.pointsToSet(invNode.getContext, intentSlot)
           val intentContents = IntentHelper.getIntentContents(ptaresult, intentValues, invNode.getContext)
           val compType = AndroidConstants.getIccCallType(callee.callee.getSubSignature)
           val comMap = IntentHelper.mappingIntents(apk, intentContents, compType)

@@ -7,7 +7,7 @@
  *
  * Detailed contributors are listed in the CONTRIBUTOR.md
  */
-package org.argus.amandroid.core.pilarCodeGenerator
+package org.argus.amandroid.core.jawaCodeGenerator
 
 import org.argus.jawa.core.util._
 import org.argus.amandroid.core.parser.{ComponentInfo, ComponentType}
@@ -19,7 +19,6 @@ import org.argus.jawa.core.pilarCodeGenerator.MethodGenerator
  * @author <a href="mailto:sroy@k-state.edu">Sankardas Roy</a>
  */ 
 class AndroidEnvironmentGenerator(global: Global) extends MethodGenerator(global) {
-//  private final val TITLE = "AndroidEnvironmentGenerator"
   private var componentInfos: Set[ComponentInfo] = Set()
   
   def setComponentInfos(componentInfos: Set[ComponentInfo]): Unit = this.componentInfos = componentInfos

@@ -1,0 +1,184 @@
+`Landroid/content/IntentFilter;.<clinit>:()V`:
+;
+
+`Landroid/content/IntentFilter;.<init>:()V`:
+  this.mData = android.net.Uri@~
+;
+
+`Landroid/content/IntentFilter;.<init>:(Landroid/content/IntentFilter;)V`:
+  this.mData = android.net.Uri@~
+;
+
+`Landroid/content/IntentFilter;.<init>:(Ljava/lang/String;)V`:
+  this.mActions = arg:0
+  this.mData = android.net.Uri@~
+;
+
+`Landroid/content/IntentFilter;.<init>:(Ljava/lang/String;Ljava/lang/String;)V`:
+  this.mActions = arg:0
+  this.mType = arg:1
+  this.mData = android.net.Uri@~
+;
+
+`Landroid/content/IntentFilter;.actionsIterator:()Ljava/util/Iterator;`:
+  ret = java.util.ArrayList@~
+  ret.items = this.mActions
+;
+
+`Landroid/content/IntentFilter;.addAction:(Ljava/lang/String;)V`:
+  this.mActions += arg:0
+;
+
+`Landroid/content/IntentFilter;.addCategory:(Ljava/lang/String;)V`:
+  this.mCategories += arg:0
+;
+
+`Landroid/content/IntentFilter;.addDataAuthority:(Ljava/lang/String;Ljava/lang/String;)V`:
+  this.mData.host = arg:0
+  this.mData.port = arg:1
+;
+
+`Landroid/content/IntentFilter;.addDataPath:(Ljava/lang/String;I)V`:
+  this.mData.path = arg:0
+;
+
+`Landroid/content/IntentFilter;.addDataScheme:(Ljava/lang/String;)V`:
+  this.mData.scheme = arg:0
+;
+
+`Landroid/content/IntentFilter;.addDataType:(Ljava/lang/String;)V`:
+  this.mType = arg:0
+;
+
+`Landroid/content/IntentFilter;.authoritiesIterator:()Ljava/util/Iterator;`:
+  ret = java.util.ArrayList@~
+  ret.items = this.mData.host
+;
+
+`Landroid/content/IntentFilter;.categoriesIterator:()Ljava/util/Iterator;`:
+  ret = java.util.ArrayList@~
+  ret.items = this.mCategories
+;
+
+`Landroid/content/IntentFilter;.countActions:()I`:
+;
+
+`Landroid/content/IntentFilter;.countCategories:()I`:
+;
+
+`Landroid/content/IntentFilter;.countDataAuthorities:()I`:
+;
+
+`Landroid/content/IntentFilter;.countDataPaths:()I`:
+;
+
+`Landroid/content/IntentFilter;.countDataSchemes:()I`:
+;
+
+`Landroid/content/IntentFilter;.countDataTypes:()I`:
+;
+
+`Landroid/content/IntentFilter;.create:(Ljava/lang/String;Ljava/lang/String;)Landroid/content/IntentFilter;`:
+  ret = android.content.IntentFilter@~
+  ret.mActions = arg:0
+  ret.mType = arg:1
+;
+
+`Landroid/content/IntentFilter;.debugCheck:()Z`:
+;
+
+`Landroid/content/IntentFilter;.describeContents:()I`:
+;
+
+`Landroid/content/IntentFilter;.dump:(Landroid/util/Printer;Ljava/lang/String;)V`:
+;
+
+`Landroid/content/IntentFilter;.getAction:(I)Ljava/lang/String;`:
+  ret = this.mActions
+;
+
+`Landroid/content/IntentFilter;.getCategory:(I)Ljava/lang/String;`:
+  ret = this.mCategories
+;
+
+`Landroid/content/IntentFilter;.getDataAuthority:(I)Landroid/content/IntentFilter$AuthorityEntry;`:
+  ret = android.content.IntentFilter$AuthorityEntry@~
+;
+
+`Landroid/content/IntentFilter;.getDataPath:(I)Landroid/os/PatternMatcher;`:
+  ret = android.os.PatternMatcher@~
+;
+
+`Landroid/content/IntentFilter;.getDataScheme:(I)Ljava/lang/String;`:
+  ret = this.mData.scheme
+;
+
+`Landroid/content/IntentFilter;.getDataType:(I)Ljava/lang/String;`:
+  ret = this.mType
+;
+
+`Landroid/content/IntentFilter;.getPriority:()I`:
+;
+
+`Landroid/content/IntentFilter;.hasAction:(Ljava/lang/String;)Z`:
+;
+
+`Landroid/content/IntentFilter;.hasCategory:(Ljava/lang/String;)Z`:
+;
+
+`Landroid/content/IntentFilter;.hasDataAuthority:(Landroid/net/Uri;)Z`:
+;
+
+`Landroid/content/IntentFilter;.hasDataPath:(Ljava/lang/String;)Z`:
+;
+
+`Landroid/content/IntentFilter;.hasDataScheme:(Ljava/lang/String;)Z`:
+;
+
+`Landroid/content/IntentFilter;.hasDataType:(Ljava/lang/String;)Z`:
+;
+
+`Landroid/content/IntentFilter;.match:(Landroid/content/ContentResolver;Landroid/content/Intent;ZLjava/lang/String;)I`:
+;
+
+`Landroid/content/IntentFilter;.match:(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Landroid/net/Uri;Ljava/util/Set;Ljava/lang/String;)I`:
+;
+
+`Landroid/content/IntentFilter;.matchAction:(Ljava/lang/String;)Z`:
+;
+
+`Landroid/content/IntentFilter;.matchCategories:(Ljava/util/Set;)Ljava/lang/String;`:
+;
+
+`Landroid/content/IntentFilter;.matchData:(Ljava/lang/String;Ljava/lang/String;Landroid/net/Uri;)I`:
+;
+
+`Landroid/content/IntentFilter;.matchDataAuthority:(Landroid/net/Uri;)I`:
+;
+
+`Landroid/content/IntentFilter;.pathsIterator:()Ljava/util/Iterator;`:
+  ret = java.util.ArrayList@~
+  ret.item = this.mData.path
+;
+
+`Landroid/content/IntentFilter;.readFromXml:(Lorg/xmlpull/v1/XmlPullParser;)V`:
+;
+
+`Landroid/content/IntentFilter;.schemesIterator:()Ljava/util/Iterator;`:
+  ret = java.util.ArrayList@~
+  ret.item = this.mData.scheme
+;
+
+`Landroid/content/IntentFilter;.setPriority:(I)V`:
+;
+
+`Landroid/content/IntentFilter;.typesIterator:()Ljava/util/Iterator;`:
+  ret = java.util.ArrayList@~
+  ret.item = this.mType
+;
+
+`Landroid/content/IntentFilter;.writeToParcel:(Landroid/os/Parcel;I)V`:
+;
+
+`Landroid/content/IntentFilter;.writeToXml:(Lorg/xmlpull/v1/XmlSerializer;)V`:
+;

@@ -10,8 +10,12 @@
 
 package org.argus.amandroid.alir.pta.reachingFactsAnalysis
 
-import org.argus.amandroid.core.AndroidGlobalConfig
+import org.argus.amandroid.core.{AndroidConstants, AndroidGlobalConfig}
 import org.argus.jawa.alir.Context
+import org.argus.jawa.alir.pta._
+import org.argus.jawa.alir.pta.reachingFactsAnalysis.{RFAFact, SimHeap}
+import org.argus.jawa.core.{JawaMethod, JawaType}
+import org.argus.jawa.core.util.{ISet, isetEmpty}
 
 /**
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
@@ -22,4 +26,35 @@ object AndroidReachingFactsAnalysisConfig {
   final var resolve_static_init: Boolean = AndroidGlobalConfig.settings.static_init
   final var parallel: Boolean = AndroidGlobalConfig.settings.parallel
   Context.init_context_length(AndroidGlobalConfig.settings.k_context)
+
+  /**
+    * generates and returns the initial facts corresponding to the "Intent" parameter of a dummyMain
+    * the generated fact says that the param Intent is generated at the Center.
+    */
+  def getInitialFactsForMainEnvironment(dm: JawaMethod)(implicit factory: SimHeap): ISet[RFAFact] = {
+    require(dm.getName == AndroidConstants.MAINCOMP_ENV || dm.getName == AndroidConstants.COMP_ENV)
+    var result = isetEmpty[RFAFact]
+    val intentSlot = VarSlot(dm.getParamName(0))
+    val context: Context = new Context(dm.getDeclaringClass.global.projectName)
+    context.setContext(dm.getSignature, "L0000")
+    val intentValue = PTAInstance(new JawaType(AndroidConstants.INTENT), context)
+    result += new RFAFact(intentSlot, intentValue)
+    val mActionSlot = FieldSlot(intentValue, AndroidConstants.INTENT_ACTION)
+    val mActionValue = PTAPointStringInstance(context)
+    result += new RFAFact(mActionSlot, mActionValue)
+    val mCategoriesSlot = FieldSlot(intentValue, AndroidConstants.INTENT_CATEGORIES)
+    val mCategoriesValue = PTAPointStringInstance(context)
+    result += new RFAFact(mCategoriesSlot, mCategoriesValue)
+    val mTypeSlot = FieldSlot(intentValue, AndroidConstants.INTENT_MTYPE)
+    val mTypeValue = PTAPointStringInstance(context)
+    result += new RFAFact(mTypeSlot, mTypeValue)
+    val mDataSlot = FieldSlot(intentValue, AndroidConstants.INTENT_URI_DATA)
+    val mDataValue = PTAPointStringInstance(context)
+    result += new RFAFact(mDataSlot, mDataValue)
+    val mExtrasSlot = FieldSlot(intentValue, AndroidConstants.INTENT_EXTRAS)
+    val mExtrasValue = PTAInstance(new JawaType(AndroidConstants.BUNDLE), context)
+    result += new RFAFact(mExtrasSlot, mExtrasValue)
+    result
+  }
+
 }

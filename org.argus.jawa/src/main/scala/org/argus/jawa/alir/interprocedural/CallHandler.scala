@@ -29,7 +29,7 @@ object CallHandler {
     typ match {
       case "virtual" | "interface" | "super" | "direct" =>
         val recv = VarSlot(cs.recvOpt.get)
-        val recvValue: ISet[Instance] = ptaResult.pointsToSet(after = false, callerContext, recv)
+        val recvValue: ISet[Instance] = ptaResult.pointsToSet(callerContext, recv)
         def handleUnknown(typ: JawaType) = try {
           val unknown = global.getClassOrResolve(typ)
           val unknown_base = global.getClassOrResolve(typ.removeUnknown())

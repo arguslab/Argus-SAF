@@ -10,54 +10,85 @@
 
 package org.argus.amandroid.alir.pta.reachingFactsAnalysis.model
 
-import org.argus.amandroid.alir.pta.reachingFactsAnalysis.IntentHelper
 import org.argus.amandroid.core.{AndroidConstants, ApkGlobal}
+import org.argus.amandroid.core.appInfo.AppInfoCollector
+import org.argus.amandroid.core.parser.{IntentFilter, IntentFilterDataBase}
 import org.argus.jawa.alir.Context
-import org.argus.jawa.alir.pta.{PTAResult, VarSlot}
 import org.argus.jawa.alir.pta.reachingFactsAnalysis.RFAFact
-import org.argus.jawa.core.{JawaMethod, Signature}
-import org.argus.jawa.core.util._
+import org.argus.jawa.alir.pta.{FieldSlot, PTAConcreteStringInstance, PTAResult, VarSlot}
+import org.argus.jawa.core.Signature
+import org.argus.jawa.core.util.{ISet, MSet, isetEmpty, msetEmpty}
+
 
 /**
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
  * @author <a href="mailto:sroy@k-state.edu">Sankardas Roy</a>
  */ 
 object InterComponentCommunicationModel {
-  final val TITLE = "InterComponentCommunicationModel"
   def isIccOperation(proc: Signature): Boolean = {
-    var flag = false
-    AndroidConstants.getIccMethods.foreach{
-      item =>
-        if(proc.getSubSignature == item)
-         flag = true
+    AndroidConstants.getIccMethods.foreach{ item =>
+      if(proc.getSubSignature == item)
+       return true
     }
-    flag
+    false
   }
 
-//  def doIccCall(apk: ApkGlobal, s: PTAResult, calleeSig: Signature, args: List[String], retVars: Seq[String], currentContext: Context): (ISet[RFAFact], ISet[JawaMethod]) = {
-//    require(args.size > 1)
-//    val intentSlot = VarSlot(args(1))
-//    val intentValues = s.pointsToSet(intentSlot, currentContext)
-//    val intentcontents = IntentHelper.getIntentContents(s, intentValues, currentContext)
-//    val compType: AndroidConstants.CompType.Value = AndroidConstants.getIccCallType(calleeSig.getSubSignature)
-//    val comMap = IntentHelper.mappingIntents(apk, intentcontents, compType)
-//    val targets: MSet[JawaMethod] = msetEmpty
-//    comMap.foreach{
-//      case (_, comTypes) =>
-//        comTypes.foreach{
-//          case (comType, _) =>
-//            val com = apk.getClassOrResolve(comType)
-//            com.getMethod(AndroidConstants.MAINCOMP_ENV_SUBSIG) match{
-//              case Some(r) => targets += r
-//              case None =>
-//                com.getMethod(AndroidConstants.COMP_ENV_SUBSIG) match{
-//                  case Some(r) => targets += r
-//                  case None =>
-//                }
-//            }
-//        }
-//    }
-//    (isetEmpty, targets.toSet)
-//  }
+  def isRegisterReceiver(sig: Signature): Boolean = {
+    sig.getSubSignature == "registerReceiver:(Landroid/content/BroadcastReceiver;Landroid/content/IntentFilter;)Landroid/content/Intent;" ||
+    sig.getSubSignature == "registerReceiver:(Landroid/content/BroadcastReceiver;Landroid/content/IntentFilter;Ljava/lang/String;Landroid/os/Handler;)Landroid/content/Intent;"
+  }
 
+  def registerReceiver(apk: ApkGlobal, s: PTAResult, retVarOpt: Option[String], recvOpt: Option[String], args: List[String], currentContext: Context): ISet[RFAFact] ={
+    require(args.size >= 2)
+    val receiverSlot = VarSlot(args.head)
+    val receiverValue = s.pointsToSet(currentContext, receiverSlot)
+    val filterSlot = VarSlot(args(1))
+    val filterValue = s.pointsToSet(currentContext, filterSlot)
+    val permissionSlotOpt =
+      if(args.lift(2).isDefined) Some(VarSlot(args(2)))
+      else None
+    val permissionValueOpt =
+      if(permissionSlotOpt.isDefined) Some(s.pointsToSet(currentContext, permissionSlotOpt.get))
+      else None
+    val iDB = new IntentFilterDataBase
+    receiverValue.foreach {
+      case ui if ui.isUnknown =>
+      case rv =>
+        val intentF = new IntentFilter(rv.typ)
+        val comRec = apk.getClassOrResolve(rv.typ)
+        filterValue.foreach { fv =>
+          val mActionsSlot = FieldSlot(fv, AndroidConstants.INTENTFILTER_ACTIONS)
+          val mActionsValue = s.pointsToSet(currentContext, mActionsSlot)
+          mActionsValue.foreach {
+            case PTAConcreteStringInstance(text, _) =>
+              intentF.addAction(text)
+            case _ =>
+              intentF.addAction("ANY")
+          }
+          val mCategoriesSlot = FieldSlot(fv, AndroidConstants.INTENTFILTER_CATEGORIES)
+          val mCategoriesValue = s.pointsToSet(currentContext, mCategoriesSlot)
+          mCategoriesValue.foreach {
+            case PTAConcreteStringInstance(text, _) =>
+              intentF.addCategory(text)
+            case _ =>
+              intentF.addCategory("ANY")
+          }
+        }
+        val permission: MSet[String] = msetEmpty
+        permissionValueOpt.foreach { pvs =>
+          pvs foreach {
+            case PTAConcreteStringInstance(text, _) =>
+              permission += text
+            case _ =>
+          }
+        }
+        iDB.updateIntentFmap(intentF)
+        if (!apk.model.hasEnv(rv.typ)) {
+          AppInfoCollector.dynamicRegisterReceiver(apk, comRec, iDB, permission.toSet)
+        } else {
+          apk.model.updateIntentFilterDB(iDB)
+        }
+    }
+    isetEmpty
+  }
 }

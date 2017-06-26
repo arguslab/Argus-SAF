@@ -269,7 +269,7 @@ class DefaultAndroidSourceAndSinkManager(sasFilePath: String) extends AndroidSou
       if(InterComponentCommunicationModel.isIccOperation(callee.callee)){
         val args = invNode.argNames
         val intentSlot = VarSlot(args(1))
-        val intentValues = s.pointsToSet(after = false, invNode.getContext, intentSlot)
+        val intentValues = s.pointsToSet(invNode.getContext, intentSlot)
         val intentContents = IntentHelper.getIntentContents(s, intentValues, invNode.getContext)
         val compType = AndroidConstants.getIccCallType(callee.callee.getSubSignature)
         val comMap = IntentHelper.mappingIntents(apk, intentContents, compType)

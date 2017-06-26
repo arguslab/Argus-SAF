@@ -8,7 +8,7 @@
  * Detailed contributors are listed in the CONTRIBUTOR.md
  */
 
-package org.argus.amandroid.core.pilarCodeGenerator
+package org.argus.amandroid.core.jawaCodeGenerator
 
 import org.argus.jawa.core.{Global, JawaClass, JawaType, Signature}
 import org.argus.jawa.core.pilarCodeGenerator.MethodGenerator

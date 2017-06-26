@@ -139,6 +139,13 @@ class SummaryManager(implicit factory: SimHeap) {
         inss += ins
     }
     inss ++= input.filter(i => slots.contains(i.slot)).map(i => i.v)
+    if(inss.isEmpty) { // Just to make the flow continue
+      val ins = sig.getReturnType.jawaName match {
+        case "java.lang.String" => PTAPointStringInstance(context)
+        case _ => PTAInstance(sig.getReturnType, context)
+      }
+      inss += ins
+    }
     inss
   }
 
@@ -181,37 +188,37 @@ class SummaryManager(implicit factory: SimHeap) {
     heapOpt match {
       case Some(heap) =>
         var currentSlots: ISet[PTASlot] = Set(slot)
-        heap.indices.foreach {
-          case fa: SuFieldAccess =>
-            val facts = input.filter(i => currentSlots.contains(i.slot))
-            currentSlots = facts.map(fact => FieldSlot(fact.v, fa.fieldName))
-          case _: SuArrayAccess =>
-            val facts = input.filter(i => currentSlots.contains(i.slot))
-            currentSlots = facts.map(fact => ArraySlot(fact.v))
-          case ma: SuMapAccess =>
-            val facts = input.filter(i => currentSlots.contains(i.slot))
-            val inss: ISet[Instance] = facts.map(f => f.v)
-            val keys: ISet[Instance] = ma.rhsOpt match {
-              case Some(rhs) =>
-                val rhsInss = processRhs(sig, rhs, recvOpt, args, input, context)
-                if(isLhs) rhsInss
-                else {
-                  val rhsTyps = rhsInss.map(i => i.typ)
+        heap.indices.foreach { heapAccess =>
+          val facts = input.filter(i => currentSlots.contains(i.slot))
+          heapAccess match {
+            case fa: SuFieldAccess =>
+              currentSlots = facts.map(fact => FieldSlot(fact.v, fa.fieldName))
+            case _: SuArrayAccess =>
+              currentSlots = facts.map(fact => ArraySlot(fact.v))
+            case ma: SuMapAccess =>
+              val inss: ISet[Instance] = facts.map(f => f.v)
+              val keys: ISet[Instance] = ma.rhsOpt match {
+                case Some(rhs) =>
+                  val rhsInss = processRhs(sig, rhs, recvOpt, args, input, context)
+                  if (isLhs) rhsInss
+                  else {
+                    val rhsTyps = rhsInss.map(i => i.typ)
+                    input.filter(i =>
+                      i.slot.isInstanceOf[MapSlot] &&
+                        rhsTyps.contains(i.slot.asInstanceOf[MapSlot].key.typ)
+                    ).map(i => i.slot.asInstanceOf[MapSlot].key)
+                  }
+                case None =>
                   input.filter(i =>
                     i.slot.isInstanceOf[MapSlot] &&
-                    rhsTyps.contains(i.slot.asInstanceOf[MapSlot].key.typ)
-                  ).map(i => i.slot.asInstanceOf[MapSlot].key)
-                }
-              case None =>
-                input.filter(i =>
-                  i.slot.isInstanceOf[MapSlot] &&
-                  inss.contains(i.slot.asInstanceOf[MapSlot].ins)).map(i => i.slot.asInstanceOf[MapSlot].key)
-            }
-            currentSlots = inss.flatMap{ ins =>
-              keys.map{ key =>
-                MapSlot(ins, key)
+                      inss.contains(i.slot.asInstanceOf[MapSlot].ins)).map(i => i.slot.asInstanceOf[MapSlot].key)
               }
-            }
+              currentSlots = inss.flatMap { ins =>
+                keys.map { key =>
+                  MapSlot(ins, key)
+                }
+              }
+          }
         }
         slots ++= currentSlots
       case None => slots += slot

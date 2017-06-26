@@ -11,11 +11,8 @@
 package org.argus.amandroid.alir.pta.reachingFactsAnalysis.model
 
 import org.argus.amandroid.core.{AndroidConstants, ApkGlobal}
-import org.argus.jawa.alir.Context
-import org.argus.jawa.alir.pta.reachingFactsAnalysis.{RFAFact, SimHeap}
-import org.argus.jawa.alir.pta.{PTAResult, PTAScopeManager}
+import org.argus.jawa.alir.pta.PTAScopeManager
 import org.argus.jawa.alir.pta.reachingFactsAnalysis.model.{ModelCall, ModelCallHandler}
-import org.argus.jawa.core.util.{ISet, isetEmpty}
 import org.argus.jawa.core.{JawaMethod, JawaType, Signature}
 
 /**
@@ -25,13 +22,12 @@ import org.argus.jawa.core.{JawaMethod, JawaType, Signature}
 object AndroidModelCallHandler extends ModelCallHandler(PTAScopeManager){
 
   registerModelCall(new BundleModel)
-  registerModelCall(new HandlerModel)
   registerModelCall(new ComponentNameModel)
   registerModelCall(new IntentFilterModel)
   registerModelCall(new IntentModel)
   registerModelCall(new UriModel)
-  registerModelCall(new FrameworkMethodsModel)
   registerModelCall(new ActivityModel)
+  registerModelCall(new ContextModel)
   
   def isICCCall(calleeSig: Signature): Boolean = {
     InterComponentCommunicationModel.isIccOperation(calleeSig)
@@ -51,11 +47,66 @@ object AndroidModelCallHandler extends ModelCallHandler(PTAScopeManager){
   * @author <a href="mailto:sroy@k-state.edu">Sankardas Roy</a>
   */
 class BundleModel extends ModelCall {
+  def safsuFile = "Bundle.safsu"
   def isModelCall(r: JawaMethod): Boolean = r.getDeclaringClass.getName.equals(AndroidConstants.BUNDLE)
+}
 
-  override val safsuFile = "Bundle.safsu"
+/**
+  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
+  * @author <a href="mailto:sroy@k-state.edu">Sankardas Roy</a>
+  */
+class ComponentNameModel extends ModelCall {
+  def safsuFile: String = "ComponentName.safsu"
+  def isModelCall(p: JawaMethod): Boolean = p.getDeclaringClass.getName.equals("android.content.ComponentName")
+}
 
-  def doModelCall(s: PTAResult, p: JawaMethod, args: List[String], retVar: String, currentContext: Context)(implicit factory: SimHeap): (ISet[RFAFact], ISet[RFAFact], Boolean) = {
-    (isetEmpty, isetEmpty, true)
+/**
+  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
+  * @author <a href="mailto:sroy@k-state.edu">Sankardas Roy</a>
+  */
+class UriModel extends ModelCall {
+  def safsuFile: String = "Uri.safsu"
+  def isModelCall(p: JawaMethod): Boolean = p.getDeclaringClass.getName.equals("android.net.Uri")
+}
+
+/**
+  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
+  * @author <a href="mailto:sroy@k-state.edu">Sankardas Roy</a>
+  */
+class ActivityModel extends ModelCall {
+  def safsuFile: String = "Activity.safsu"
+  def isModelCall(p: JawaMethod): Boolean = p.getDeclaringClass.getName.equals(AndroidConstants.ACTIVITY)
+}
+
+/**
+  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
+  * @author <a href="mailto:sroy@k-state.edu">Sankardas Roy</a>
+  */
+class IntentModel extends ModelCall {
+  def safsuFile: String = "Intent.safsu"
+  def isModelCall(p: JawaMethod): Boolean = p.getDeclaringClass.getName.equals(AndroidConstants.INTENT)
+}
+
+/**
+  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
+  * @author <a href="mailto:sroy@k-state.edu">Sankardas Roy</a>
+  */
+class IntentFilterModel extends ModelCall {
+  def safsuFile: String = "IntentFilter.safsu"
+  def isModelCall(p: JawaMethod): Boolean = p.getDeclaringClass.getName.equals(AndroidConstants.INTENTFILTER)
+}
+
+/**
+  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
+  * @author <a href="mailto:sroy@k-state.edu">Sankardas Roy</a>
+  */
+class ContextModel extends ModelCall {
+  def safsuFile: String = "Context.safsu"
+  def isModelCall(p: JawaMethod): Boolean = {
+    if(p.getDeclaringClass.isApplicationClass) false
+    else {
+      val contextRec = p.getDeclaringClass.global.getClassOrResolve(new JawaType("android.content.Context"))
+      p.getDeclaringClass.global.getClassHierarchy.isClassRecursivelySubClassOfIncluding(p.getDeclaringClass, contextRec)
+    }
   }
 }

@@ -66,7 +66,7 @@ class CommunicationSourceAndSinkManager(sasFilePath: String) extends AndroidSour
           sinkflag = true
           val args = apk.getMethod(invNode.getOwner).get.getBody.resolvedBody.locations(invNode.locIndex).statement.asInstanceOf[CallStatement].args
           val intentSlot = VarSlot(args.head)
-          val intentValues = ptaResult.pointsToSet(after = false, invNode.getContext, intentSlot)
+          val intentValues = ptaResult.pointsToSet(invNode.getContext, intentSlot)
           val intentContents = IntentHelper.getIntentContents(ptaResult, intentValues, invNode.getContext)
           val compType = AndroidConstants.getIccCallType(callee.callee.getSubSignature)
           val comMap = IntentHelper.mappingIntents(apk, intentContents, compType)

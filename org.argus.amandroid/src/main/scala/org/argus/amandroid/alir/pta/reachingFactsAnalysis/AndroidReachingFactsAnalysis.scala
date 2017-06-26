@@ -15,7 +15,7 @@ import org.argus.jawa.core.util._
 import scala.collection.immutable.BitSet
 import java.util.concurrent.TimeoutException
 
-import org.argus.amandroid.alir.pta.reachingFactsAnalysis.model.AndroidModelCallHandler
+import org.argus.amandroid.alir.pta.reachingFactsAnalysis.model.{AndroidModelCallHandler, InterComponentCommunicationModel}
 import org.argus.amandroid.core.ApkGlobal
 import org.argus.jawa.alir.Context
 import org.argus.jawa.alir.controlFlowGraph._
@@ -39,10 +39,13 @@ class AndroidReachingFactsAnalysisBuilder(apk: ApkGlobal, clm: ClassLoadManager,
   
   var icfg: InterProceduralControlFlowGraph[Node] = _
   val ptaresult = new PTAResult
+  private val registerReceiverNodes: MSet[ICFGCallNode] = msetEmpty
 
   var currentComponent: JawaClass = _
 
   val sm: SummaryManager = new SummaryManager()
+  sm.registerFileInternal("summaries/Object.safsu")
+  sm.registerFileInternal("summaries/Class.safsu")
   sm.registerFileInternal("summaries/String.safsu")
   sm.registerFileInternal("summaries/StringBuilder.safsu")
   sm.registerFileInternal("summaries/StringBuffer.safsu")
@@ -51,6 +54,12 @@ class AndroidReachingFactsAnalysisBuilder(apk: ApkGlobal, clm: ClassLoadManager,
   sm.registerFileInternal("summaries/List.safsu")
   sm.registerFileInternal("summaries/Thread.safsu")
   sm.registerFileInternal("summaries/Bundle.safsu")
+  sm.registerFileInternal("summaries/Activity.safsu")
+  sm.registerFileInternal("summaries/ComponentName.safsu")
+  sm.registerFileInternal("summaries/Uri.safsu")
+  sm.registerFileInternal("summaries/Intent.safsu")
+  sm.registerFileInternal("summaries/IntentFilter.safsu")
+  sm.registerFileInternal("summaries/Context.safsu")
 
   def build (
       entryPointProc: JawaMethod,
@@ -73,6 +82,9 @@ class AndroidReachingFactsAnalysisBuilder(apk: ApkGlobal, clm: ClassLoadManager,
     } catch {
       case te: TimeoutException =>
         apk.reporter.warning(TITLE, entryPointProc.getSignature + " " + te.getMessage)
+    }
+    registerReceiverNodes.foreach { node =>
+      InterComponentCommunicationModel.registerReceiver(apk, ptaresult, node.retNameOpt, node.argNames.headOption, node.argNames.tail, node.context)
     }
 //    icfg.toDot(new PrintWriter(System.out))
     InterProceduralDataFlowGraph(icfg, ptaresult)
@@ -156,12 +168,11 @@ class AndroidReachingFactsAnalysisBuilder(apk: ApkGlobal, clm: ClassLoadManager,
     a match{
       case _: AssignmentStatement =>
         val thrownExcNames = ExceptionCenter.getExceptionMayThrowFromStatement(a)
-        thrownExcNames.foreach{
-          excName =>
-            if(excName != ExceptionCenter.THROWABLE) {
-              val ins = PTAInstance(excName, currentContext.copy)
-              result += new RFAFact(VarSlot(ExceptionCenter.EXCEPTION_VAR_NAME), ins)
-            }
+        thrownExcNames.foreach{ excName =>
+          if(excName != ExceptionCenter.THROWABLE) {
+            val ins = PTAInstance(excName, currentContext.copy)
+            result += new RFAFact(VarSlot(ExceptionCenter.EXCEPTION_VAR_NAME), ins)
+          }
         }
       case _ =>
     }
@@ -200,11 +211,12 @@ class AndroidReachingFactsAnalysisBuilder(apk: ApkGlobal, clm: ClassLoadManager,
           case None => imapEmpty
         }
         checkAndLoadClasses(a, s, currentNode)
-        val values = ReachingFactsAnalysisHelper.processRHS(rhs, typ, currentNode.getContext, ptaresult)
+        val (values, extraFacts) = ReachingFactsAnalysisHelper.processRHS(rhs, typ, currentNode.getContext, ptaresult)
         slots.foreach {
           case (slot, _) =>
             result ++= values.map{v => new RFAFact(slot, v)}
         }
+        result ++= extraFacts
         val heapUnknownFacts = ReachingFactsAnalysisHelper.getHeapUnknownFacts(rhs, currentNode.getContext, ptaresult)
         result ++= heapUnknownFacts
       }
@@ -293,12 +305,8 @@ class AndroidReachingFactsAnalysisBuilder(apk: ApkGlobal, clm: ClassLoadManager,
             // don't do anything for the RPC call now.
           } else { // for non-ICC-RPC model call
             returnFacts = AndroidModelCallHandler.doModelCall(sm, s, calleep, cs.lhsOpt.map(_.lhs.varName), cs.recvOpt, cs.args, callerContext)
-            if(returnFacts.diff(s).isEmpty) {
-              val (g, k) = AndroidModelCallHandler.doModelCallOld(ptaresult, calleep, args, cs.lhsOpt.map(_.lhs.varName), callerContext)
-              genSet ++= g
-              killSet ++= k
-            } else {
-              return (calleeFactsMap, returnFacts)
+            if(InterComponentCommunicationModel.isRegisterReceiver(calleeSig)) {
+              registerReceiverNodes += callerNode.asInstanceOf[ICFGCallNode]
             }
           }
         } else {
@@ -318,20 +326,18 @@ class AndroidReachingFactsAnalysisBuilder(apk: ApkGlobal, clm: ClassLoadManager,
         if(icfg.hasEdge(icfgCallnode, icfgReturnnode)) {
           icfg.deleteEdge(icfgCallnode, icfgReturnnode)
         }
-      } else pureNormalFlagMap(callerNode) = pureNormalFlag
-
-      cs.lhsOpt match {
-        case Some(lhs) =>
-          val slotsWithMark = ReachingFactsAnalysisHelper.processLHS(lhs, None, callerContext, ptaresult).toSet
-          for (rdf <- s) {
-            //if it is a strong definition, we can kill the existing definition
-            if (slotsWithMark.contains(rdf.s, true)) {
-              killSet += rdf
+        cs.lhsOpt match {
+          case Some(lhs) =>
+            val slotsWithMark = ReachingFactsAnalysisHelper.processLHS(lhs, None, callerContext, ptaresult).toSet
+            for (rdf <- s) {
+              //if it is a strong definition, we can kill the existing definition
+              if (slotsWithMark.contains(rdf.s, true)) {
+                killSet += rdf
+              }
             }
-          }
-        case None =>
-      }
-
+          case None =>
+        }
+      } else pureNormalFlagMap(callerNode) = pureNormalFlag
       returnFacts = returnFacts -- killSet ++ genSet
       (calleeFactsMap, returnFacts)
     }
@@ -343,7 +349,7 @@ class AndroidReachingFactsAnalysisBuilder(apk: ApkGlobal, clm: ClassLoadManager,
       for(i <- args.indices) {
         val arg = args(i)
         val slot = VarSlot(arg)
-        val value = ptaresult.pointsToSet(after = false, callerContext, slot)
+        val value = ptaresult.pointsToSet(callerContext, slot)
         calleeFacts ++= value.map { r => new RFAFact(VarSlot(slot.varName), r) }
         val instnums = value.map(factory.getInstanceNum)
         calleeFacts ++= ReachingFactsAnalysisHelper.getRelatedHeapFacts(instnums, s)
@@ -409,14 +415,13 @@ class AndroidReachingFactsAnalysisBuilder(apk: ApkGlobal, clm: ClassLoadManager,
 
           lhsSlotOpt.foreach { lhsSlot =>
             var values: ISet[Instance] = isetEmpty
-            retSlotOpt.foreach {
-              retSlot =>
-                calleeVarFacts.foreach{
-                  case (s, v) =>
-                    if(s == retSlot){
-                      values += v
-                    }
-                }
+            retSlotOpt.foreach { retSlot =>
+              calleeVarFacts.foreach{
+                case (s, v) =>
+                  if(s == retSlot){
+                    values += v
+                  }
+              }
             }
             result ++= values.map(v => new RFAFact(lhsSlot, v))
             val insnums = values.map(factory.getInstanceNum)
@@ -440,7 +445,7 @@ class AndroidReachingFactsAnalysisBuilder(apk: ApkGlobal, clm: ClassLoadManager,
           ReachingFactsAnalysisHelper.updatePTAResultLHS(a.lhs, node.getContext, s, ptaresult)
         case _: EmptyStatement =>
         case m: MonitorStatement =>
-          ReachingFactsAnalysisHelper.updatePTAResultVar(m.varSymbol.varName, node.getContext, s, ptaresult, after = false)
+          ReachingFactsAnalysisHelper.updatePTAResultVar(m.varSymbol.varName, node.getContext, s, ptaresult)
         case j: Jump =>
           j match {
             case cs: CallStatement =>
@@ -451,14 +456,14 @@ class AndroidReachingFactsAnalysisBuilder(apk: ApkGlobal, clm: ClassLoadManager,
             case rs: ReturnStatement =>
               rs.varOpt match {
                 case Some(v) =>
-                  ReachingFactsAnalysisHelper.updatePTAResultVar(v.varName, node.getContext, s, ptaresult, after = false)
+                  ReachingFactsAnalysisHelper.updatePTAResultVar(v.varName, node.getContext, s, ptaresult)
                 case None =>
               }
             case ss: SwitchStatement =>
-              ReachingFactsAnalysisHelper.updatePTAResultVar(ss.condition.varName, node.getContext, s, ptaresult, after = false)
+              ReachingFactsAnalysisHelper.updatePTAResultVar(ss.condition.varName, node.getContext, s, ptaresult)
           }
         case t: ThrowStatement =>
-          ReachingFactsAnalysisHelper.updatePTAResultVar(t.varSymbol.varName, node.getContext, s, ptaresult, after = false)
+          ReachingFactsAnalysisHelper.updatePTAResultVar(t.varSymbol.varName, node.getContext, s, ptaresult)
       }
     }
 

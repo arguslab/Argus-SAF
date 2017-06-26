@@ -27,20 +27,6 @@ abstract class Instance{
   def clone(newDefSite: Context): Instance
 }
 
-
-final case class ClassInstance(classtyp: JawaType, defSite: Context) extends Instance{
-  override def clone(newDefSite: Context): Instance = ClassInstance(classtyp, newDefSite)
-  def typ = new JawaType("java.lang.Class")
-  def getName: String = classtyp.jawaName
-  override def ===(ins: Instance): Boolean = {
-    ins match {
-      case instance: ClassInstance => instance.getName.equals(getName)
-      case _ => false
-    }
-  }
-  override def toString: String = getName + ".class@" + this.defSite.getCurrentLocUri
-}
-
 /**
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
  * @author <a href="mailto:sroy@k-state.edu">Sankardas Roy</a>
@@ -48,21 +34,6 @@ final case class ClassInstance(classtyp: JawaType, defSite: Context) extends Ins
 final case class PTAInstance(typ: JawaType, defSite: Context) extends Instance {
   override def clone(newDefSite: Context): Instance = PTAInstance(typ, newDefSite)
   override def isUnknown: Boolean = typ.baseType.unknown
-  override def toString: String = {
-    val sb = new StringBuilder
-    sb.append(this.typ + "@")
-    sb.append(this.defSite.getCurrentLocUri)
-    sb.toString.intern()
-  }
-}
-
-/**
- * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
- * @author <a href="mailto:sroy@k-state.edu">Sankardas Roy</a>
- */ 
-final case class PTATupleInstance(left: Instance, right: Instance, defSite: Context) extends Instance {
-  override def clone(newDefSite: Context): Instance = PTATupleInstance(left, right, newDefSite)
-  def typ: JawaType = new JawaType("Tuple")
   override def toString: String = {
     val sb = new StringBuilder
     sb.append(this.typ + "@")

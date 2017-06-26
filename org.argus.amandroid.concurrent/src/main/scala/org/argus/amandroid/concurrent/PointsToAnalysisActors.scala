@@ -13,7 +13,7 @@ package org.argus.amandroid.concurrent
 import java.util.concurrent.TimeoutException
 
 import akka.actor._
-import org.argus.amandroid.alir.pta.reachingFactsAnalysis.{AndroidRFAConfig, AndroidReachingFactsAnalysis}
+import org.argus.amandroid.alir.pta.reachingFactsAnalysis.{AndroidReachingFactsAnalysisConfig, AndroidReachingFactsAnalysis}
 import org.argus.amandroid.core.ApkGlobal
 import org.argus.amandroid.serialization.stage.Staging
 import org.argus.jawa.alir.Context
@@ -90,7 +90,7 @@ class PointsToAnalysisActor extends Actor with ActorLogging {
     log.info("Start rfa for " + ep)
     val m = apk.resolveMethodCode(ep, apk.model.getEnvMap(ep.classTyp)._2)
     implicit val factory = new SimHeap
-    val initialfacts = AndroidRFAConfig.getInitialFactsForMainEnvironment(m)
+    val initialfacts = AndroidReachingFactsAnalysisConfig.getInitialFactsForMainEnvironment(m)
     val idfg = AndroidReachingFactsAnalysis(apk, m, initialfacts, new ClassLoadManager, new Context(apk.projectName), timeout = timeout match{case fd: FiniteDuration => Some(new MyTimeout(fd)) case _ => None })
     idfg
   }

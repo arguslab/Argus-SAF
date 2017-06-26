@@ -1,0 +1,84 @@
+`Landroid/content/ComponentName;.<clinit>:()V`:
+;
+
+`Landroid/content/ComponentName;.<init>:(Landroid/content/Context;Ljava/lang/Class;)V`:
+  this.mClass = arg:1.name
+;
+
+`Landroid/content/ComponentName;.<init>:(Landroid/content/Context;Ljava/lang/String;)V`:
+  this.mClass = arg:1
+;
+
+`Landroid/content/ComponentName;.<init>:(Landroid/os/Parcel;)V`:
+;
+
+`Landroid/content/ComponentName;.<init>:(Ljava/lang/String;Ljava/lang/String;)V`:
+  this.mClass = arg:1
+;
+
+`Landroid/content/ComponentName;.clone:()Landroid/content/ComponentName;`:
+  ret = this
+;
+
+`Landroid/content/ComponentName;.clone:()Ljava/lang/Object;`:
+  ret = this
+;
+
+`Landroid/content/ComponentName;.compareTo:(Landroid/content/ComponentName;)I`:
+;
+
+`Landroid/content/ComponentName;.compareTo:(Ljava/lang/Object;)I`:
+;
+
+`Landroid/content/ComponentName;.describeContents:()I`:
+;
+
+`Landroid/content/ComponentName;.equals:(Ljava/lang/Object;)Z`:
+;
+
+`Landroid/content/ComponentName;.flattenToShortString:()Ljava/lang/String;`:
+  ret = this.mClass
+;
+
+`Landroid/content/ComponentName;.flattenToString:()Ljava/lang/String;`:
+  ret = this.mClass
+;
+
+`Landroid/content/ComponentName;.getClassName:()Ljava/lang/String;`:
+  ret = this.mClass
+;
+
+`Landroid/content/ComponentName;.getPackageName:()Ljava/lang/String;`:
+  ret = java.lang.String@~
+;
+
+`Landroid/content/ComponentName;.getShortClassName:()Ljava/lang/String;`:
+  ret = this.mClass
+;
+
+`Landroid/content/ComponentName;.hashCode:()I`:
+;
+
+`Landroid/content/ComponentName;.readFromParcel:(Landroid/os/Parcel;)Landroid/content/ComponentName;`:
+  ret = android.content.ComponentName@~
+  ret.mClass = java.lang.String@~
+;
+
+`Landroid/content/ComponentName;.toShortString:()Ljava/lang/String;`:
+  ret = this.mClass
+;
+
+`Landroid/content/ComponentName;.toString:()Ljava/lang/String;`:
+  ret = this.mClass
+;
+
+`Landroid/content/ComponentName;.unflattenFromString:(Ljava/lang/String;)Landroid/content/ComponentName;`:
+  ret = android.content.ComponentName@~
+  ret.mClass = java.lang.String@~
+;
+
+`Landroid/content/ComponentName;.writeToParcel:(Landroid/content/ComponentName;Landroid/os/Parcel;)V`:
+;
+
+`Landroid/content/ComponentName;.writeToParcel:(Landroid/os/Parcel;I)V`:
+;

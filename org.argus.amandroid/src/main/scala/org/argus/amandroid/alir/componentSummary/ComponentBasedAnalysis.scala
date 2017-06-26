@@ -13,7 +13,7 @@ package org.argus.amandroid.alir.componentSummary
 import org.argus.jawa.core.util._
 import java.util.concurrent.TimeoutException
 
-import org.argus.amandroid.alir.pta.reachingFactsAnalysis.{AndroidRFAConfig, AndroidReachingFactsAnalysis, AndroidReachingFactsAnalysisConfig}
+import org.argus.amandroid.alir.pta.reachingFactsAnalysis.{AndroidReachingFactsAnalysis, AndroidReachingFactsAnalysisConfig}
 import org.argus.amandroid.alir.taintAnalysis.{AndroidDataDependentTaintAnalysis, AndroidSourceAndSinkManager}
 import org.argus.amandroid.core.ApkGlobal
 import org.argus.jawa.alir.Context
@@ -45,9 +45,9 @@ object ComponentBasedAnalysis {
               case Some((esig, _)) =>
                 val ep = apk.getMethod(esig).get
                 implicit val factory = new SimHeap
-                val initialfacts = AndroidRFAConfig.getInitialFactsForMainEnvironment(ep)
+                val initialfacts = AndroidReachingFactsAnalysisConfig.getInitialFactsForMainEnvironment(ep)
                 val idfg = AndroidReachingFactsAnalysis(apk, ep, initialfacts, new ClassLoadManager, new Context(apk.nameUri), timeout = Some(new MyTimeout(timeout)))
-                idfg.ptaresult.pprint(false)
+//                idfg.ptaresult.pprint()
                 apk.addIDFG(component, idfg)
               case None =>
                 apk.reporter.error(TITLE, "Component " + component + " did not have environment! Some package or name mismatch maybe in the Manifest.")

@@ -1,0 +1,659 @@
+`Landroid/content/Intent;.<clinit>:()V`:
+;
+
+`Landroid/content/Intent;.<init>:()V`:
+  this.mExtras = android.os.Bundle@~
+  this.mExtras.entries = android.os.Bundle$Entries@~
+;
+
+`Landroid/content/Intent;.<init>:(Landroid/content/Context;Ljava/lang/Class;)V`:
+  this.mComponent = android.content.ComponentName@~
+  this.mComponent.mClass = arg:1.name
+  this.mExtras = android.os.Bundle@~
+  this.mExtras.entries = android.os.Bundle$Entries@~
+;
+
+`Landroid/content/Intent;.<init>:(Landroid/content/Intent;)V`:
+  this.mAction = arg:0.mAction
+  this.mType = arg:0.mType
+  this.mData = arg:0.mData
+  this.mCategories = arg:0.mCategories
+  this.mExtras = arg:0.mExtras
+;
+
+`Landroid/content/Intent;.<init>:(Ljava/lang/String;)V`:
+  this.mAction = arg:0
+  this.mExtras = android.os.Bundle@~
+  this.mExtras.entries = android.os.Bundle$Entries@~
+;
+
+`Landroid/content/Intent;.<init>:(Ljava/lang/String;Landroid/net/Uri;)V`:
+  this.mAction = arg:0
+  this.mData = arg:1
+  this.mExtras = android.os.Bundle@~
+  this.mExtras.entries = android.os.Bundle$Entries@~
+;
+
+`Landroid/content/Intent;.<init>:(Ljava/lang/String;Landroid/net/Uri;Landroid/content/Context;Ljava/lang/Class;)V`:
+  this.mAction = arg:0
+  this.mData = arg:1
+  this.mComponent = android.content.ComponentName@~
+  this.mComponent.mClass = arg:3.name
+  this.mExtras = android.os.Bundle@~
+  this.mExtras.entries = android.os.Bundle$Entries@~
+;
+
+`Landroid/content/Intent;.addCategory:(Ljava/lang/String;)Landroid/content/Intent;`:
+  this.mCategories += arg:0
+  ret = this
+;
+
+`Landroid/content/Intent;.addFlags:(I)Landroid/content/Intent;`:
+  ret = this
+;
+
+`Landroid/content/Intent;.clone:()Ljava/lang/Object;`:
+  ret = android.content.Intent@~
+  ret.mComponent = this.mComponent
+  ret.mAction = this.mAction
+  ret.mType = this.mType
+  ret.mData = this.mData
+  ret.mCategories = this.mCategories
+  ret.mExtras = this.mExtras
+;
+
+`Landroid/content/Intent;.cloneFilter:()Landroid/content/Intent;`:
+  ret = android.content.Intent@~
+  ret.mComponent = this.mComponent
+  ret.mAction = this.mAction
+  ret.mType = this.mType
+  ret.mData = this.mData
+  ret.mCategories = this.mCategories
+;
+
+`Landroid/content/Intent;.createChooser:(Landroid/content/Intent;Ljava/lang/CharSequence;)Landroid/content/Intent;`:
+  ret = arg:0
+;
+
+`Landroid/content/Intent;.describeContents:()I`:
+;
+
+`Landroid/content/Intent;.fillIn:(Landroid/content/Intent;I)I`:
+  this.mComponent = arg:0.mComponent
+  this.mAction = arg:0.mAction
+  this.mType = arg:0.mType
+  this.mData = arg:0.mData
+  this.mCategories = arg:0.mCategories
+  this.mExtras = arg:0.mExtras
+;
+
+`Landroid/content/Intent;.filterEquals:(Landroid/content/Intent;)Z`:
+;
+
+`Landroid/content/Intent;.filterHashCode:()I`:
+;
+
+`Landroid/content/Intent;.getAction:()Ljava/lang/String;`:
+  ret = this.mAction
+;
+
+`Landroid/content/Intent;.getBooleanArrayExtra:(Ljava/lang/String;)[Z`:
+  ret = this.mExtras.entries(arg:0)
+;
+
+`Landroid/content/Intent;.getBooleanExtra:(Ljava/lang/String;Z)Z`:
+;
+
+`Landroid/content/Intent;.getBundleExtra:(Ljava/lang/String;)Landroid/os/Bundle;`:
+  ret = this.mExtras.entries(arg:0)
+;
+
+`Landroid/content/Intent;.getByteArrayExtra:(Ljava/lang/String;)[B`:
+  ret = this.mExtras.entries(arg:0)
+;
+
+`Landroid/content/Intent;.getByteExtra:(Ljava/lang/String;B)B`:
+;
+
+`Landroid/content/Intent;.getCategories:()Ljava/util/Set;`:
+  ret = java.util.HashSet@~
+  ret.items = this.mCategories
+;
+
+`Landroid/content/Intent;.getCharArrayExtra:(Ljava/lang/String;)[C`:
+  ret = this.mExtras.entries(arg:0)
+;
+
+`Landroid/content/Intent;.getCharExtra:(Ljava/lang/String;C)C`:
+;
+
+`Landroid/content/Intent;.getCharSequenceArrayExtra:(Ljava/lang/String;)[Ljava/lang/CharSequence;`:
+  ret = this.mExtras.entries(arg:0)
+;
+
+`Landroid/content/Intent;.getCharSequenceArrayListExtra:(Ljava/lang/String;)Ljava/util/ArrayList;`:
+  ret = this.mExtras.entries(arg:0)
+;
+
+`Landroid/content/Intent;.getCharSequenceExtra:(Ljava/lang/String;)Ljava/lang/CharSequence;`:
+  ret = this.mExtras.entries(arg:0)
+;
+
+`Landroid/content/Intent;.getClipData:()Landroid/content/ClipData;`:
+  ret = android.content.ClipData@~
+;
+
+`Landroid/content/Intent;.getComponent:()Landroid/content/ComponentName;`:
+  ret = this.mComponent
+;
+
+`Landroid/content/Intent;.getData:()Landroid/net/Uri;`:
+  ret = this.mData
+;
+
+`Landroid/content/Intent;.getDataString:()Ljava/lang/String;`:
+  ret = this.mData.uri
+;
+
+`Landroid/content/Intent;.getDoubleArrayExtra:(Ljava/lang/String;)[D`:
+  ret = this.mExtras.entries(arg:0)
+;
+
+`Landroid/content/Intent;.getDoubleExtra:(Ljava/lang/String;D)D`:
+;
+
+`Landroid/content/Intent;.getExtra:(Ljava/lang/String;)Ljava/lang/Object;`:
+  ret = this.mExtras.entries(arg:0)
+;
+
+`Landroid/content/Intent;.getExtra:(Ljava/lang/String;Ljava/lang/Object;)Ljava/lang/Object;`:
+  ret = this.mExtras.entries(arg:0)
+  ret += arg:1
+;
+
+`Landroid/content/Intent;.getExtras:()Landroid/os/Bundle;`:
+  ret = this.mExtras.entries
+;
+
+`Landroid/content/Intent;.getFlags:()I`:
+;
+
+`Landroid/content/Intent;.getFloatArrayExtra:(Ljava/lang/String;)[F`:
+  ret = this.mExtras.entries(arg:0)
+;
+
+`Landroid/content/Intent;.getFloatExtra:(Ljava/lang/String;F)F`:
+;
+
+`Landroid/content/Intent;.getIBinderExtra:(Ljava/lang/String;)Landroid/os/IBinder;`:
+  ret = this.mExtras.entries(arg:0)
+;
+
+`Landroid/content/Intent;.getIntArrayExtra:(Ljava/lang/String;)[I`:
+  ret = this.mExtras.entries(arg:0)
+;
+
+`Landroid/content/Intent;.getIntExtra:(Ljava/lang/String;I)I`:
+;
+
+`Landroid/content/Intent;.getIntegerArrayListExtra:(Ljava/lang/String;)Ljava/util/ArrayList;`:
+  ret = this.mExtras.entries(arg:0)
+;
+
+`Landroid/content/Intent;.getIntent:(Ljava/lang/String;)Landroid/content/Intent;`:
+  ret = this.mExtras.entries(arg:0)
+;
+
+`Landroid/content/Intent;.getIntentOld:(Ljava/lang/String;)Landroid/content/Intent;`:
+  ret = this.mExtras.entries(arg:0)
+;
+
+`Landroid/content/Intent;.getLongArrayExtra:(Ljava/lang/String;)[J`:
+  ret = this.mExtras.entries(arg:0)
+;
+
+`Landroid/content/Intent;.getLongExtra:(Ljava/lang/String;J)J`:
+;
+
+`Landroid/content/Intent;.getPackage:()Ljava/lang/String;`:
+  ret = java.lang.String@~
+;
+
+`Landroid/content/Intent;.getParcelableArrayExtra:(Ljava/lang/String;)[Landroid/os/Parcelable;`:
+  ret = this.mExtras.entries(arg:0)
+;
+
+`Landroid/content/Intent;.getParcelableArrayListExtra:(Ljava/lang/String;)Ljava/util/ArrayList;`:
+  ret = this.mExtras.entries(arg:0)
+;
+
+`Landroid/content/Intent;.getParcelableExtra:(Ljava/lang/String;)Landroid/os/Parcelable;`:
+  ret = this.mExtras.entries(arg:0)
+;
+
+`Landroid/content/Intent;.getScheme:()Ljava/lang/String;`:
+  ret = java.lang.String@~
+;
+
+`Landroid/content/Intent;.getSelector:()Landroid/content/Intent;`:
+  ret = this
+;
+
+`Landroid/content/Intent;.getSerializableExtra:(Ljava/lang/String;)Ljava/io/Serializable;`:
+  ret = this.mExtras.entries(arg:0)
+;
+
+`Landroid/content/Intent;.getShortArrayExtra:(Ljava/lang/String;)[S`:
+  ret = this.mExtras.entries(arg:0)
+;
+
+`Landroid/content/Intent;.getShortExtra:(Ljava/lang/String;S)S`:
+;
+
+`Landroid/content/Intent;.getSourceBounds:()Landroid/graphics/Rect;`:
+  ret = android.graphics.Rect@~
+;
+
+`Landroid/content/Intent;.getStringArrayExtra:(Ljava/lang/String;)[Ljava/lang/String;`:
+  ret = this.mExtras.entries(arg:0)
+;
+
+`Landroid/content/Intent;.getStringArrayListExtra:(Ljava/lang/String;)Ljava/util/ArrayList;`:
+  ret = this.mExtras.entries(arg:0)
+;
+
+`Landroid/content/Intent;.getStringExtra:(Ljava/lang/String;)Ljava/lang/String;`:
+  ret = this.mExtras.entries(arg:0)
+;
+
+`Landroid/content/Intent;.getType:()Ljava/lang/String;`:
+  ret = this.mType
+;
+
+`Landroid/content/Intent;.hasCategory:(Ljava/lang/String;)Z`:
+;
+
+`Landroid/content/Intent;.hasExtra:(Ljava/lang/String;)Z`:
+;
+
+`Landroid/content/Intent;.hasFileDescriptors:()Z`:
+;
+
+`Landroid/content/Intent;.isExcludingStopped:()Z`:
+;
+
+`Landroid/content/Intent;.makeMainActivity:(Landroid/content/ComponentName;)Landroid/content/Intent;`:
+  ret = android.content.Intent@~
+  ret.mComponent = arg:0
+;
+
+`Landroid/content/Intent;.makeMainSelectorActivity:(Ljava/lang/String;Ljava/lang/String;)Landroid/content/Intent;`:
+  ret = android.content.Intent@~
+  ret.mAction = arg:0
+  ret.mCategories = arg:1
+;
+
+`Landroid/content/Intent;.makeRestartActivityTask:(Landroid/content/ComponentName;)Landroid/content/Intent;`:
+  ret = android.content.Intent@~
+  ret.mComponent = arg:0
+;
+
+`Landroid/content/Intent;.migrateExtraStreamToClipData:()Z`:
+;
+
+`Landroid/content/Intent;.normalizeMimeType:(Ljava/lang/String;)Ljava/lang/String;`:
+  ret = this.mType
+;
+
+`Landroid/content/Intent;.parseIntent:(Landroid/content/res/Resources;Lorg/xmlpull/v1/XmlPullParser;Landroid/util/AttributeSet;)Landroid/content/Intent;`:
+  ret = android.content.Intent@~
+  ret.mComponent = android.content.ComponentName@~
+  ret.mAction = java.lang.String@~
+  ret.mType = java.lang.String@~
+  ret.mData = android.net.Uri@~
+  ret.mData.uri = java.lang.String@~
+  ret.mCategories = java.lang.String@~
+  ret.mExtras = android.os.Bundle@~
+  this.mExtras.entries = android.os.Bundle$Entries@~
+;
+
+`Landroid/content/Intent;.parseUri:(Ljava/lang/String;I)Landroid/content/Intent;`:
+  ret = android.content.Intent@~
+  ret.mData = android.net.Uri@~
+  ret.mData.uri = arg:0
+;
+
+`Landroid/content/Intent;.putCharSequenceArrayListExtra:(Ljava/lang/String;Ljava/util/ArrayList;)Landroid/content/Intent;`:
+  this.mExtras.entries(arg:0) = arg:1
+  ret = this
+;
+
+`Landroid/content/Intent;.putExtra:(Ljava/lang/String;B)Landroid/content/Intent;`:
+  ret = this
+;
+
+`Landroid/content/Intent;.putExtra:(Ljava/lang/String;C)Landroid/content/Intent;`:
+  ret = this
+;
+
+`Landroid/content/Intent;.putExtra:(Ljava/lang/String;D)Landroid/content/Intent;`:
+  ret = this
+;
+
+`Landroid/content/Intent;.putExtra:(Ljava/lang/String;F)Landroid/content/Intent;`:
+  this.mExtras.entries.key = arg:0
+  this.mExtras.entries(arg:0) = arg:1
+  ret = this
+;
+
+`Landroid/content/Intent;.putExtra:(Ljava/lang/String;I)Landroid/content/Intent;`:
+  ret = this
+;
+
+`Landroid/content/Intent;.putExtra:(Ljava/lang/String;J)Landroid/content/Intent;`:
+  ret = this
+;
+
+`Landroid/content/Intent;.putExtra:(Ljava/lang/String;Landroid/os/Bundle;)Landroid/content/Intent;`:
+  this.mExtras.entries.key = arg:0
+  this.mExtras.entries(arg:0) = arg:1
+  ret = this
+;
+
+`Landroid/content/Intent;.putExtra:(Ljava/lang/String;Landroid/os/IBinder;)Landroid/content/Intent;`:
+  this.mExtras.entries.key = arg:0
+  this.mExtras.entries(arg:0) = arg:1
+  ret = this
+;
+
+`Landroid/content/Intent;.putExtra:(Ljava/lang/String;Landroid/os/Parcelable;)Landroid/content/Intent;`:
+  this.mExtras.entries.key = arg:0
+  this.mExtras.entries(arg:0) = arg:1
+  ret = this
+;
+
+`Landroid/content/Intent;.putExtra:(Ljava/lang/String;Ljava/io/Serializable;)Landroid/content/Intent;`:
+  this.mExtras.entries.key = arg:0
+  this.mExtras.entries(arg:0) = arg:1
+  ret = this
+;
+
+`Landroid/content/Intent;.putExtra:(Ljava/lang/String;Ljava/lang/CharSequence;)Landroid/content/Intent;`:
+  this.mExtras.entries.key = arg:0
+  this.mExtras.entries(arg:0) = arg:1
+  ret = this
+;
+
+`Landroid/content/Intent;.putExtra:(Ljava/lang/String;Ljava/lang/String;)Landroid/content/Intent;`:
+  this.mExtras.entries.key = arg:0
+  this.mExtras.entries(arg:0) = arg:1
+  ret = this
+;
+
+`Landroid/content/Intent;.putExtra:(Ljava/lang/String;S)Landroid/content/Intent;`:
+  ret = this
+;
+
+`Landroid/content/Intent;.putExtra:(Ljava/lang/String;Z)Landroid/content/Intent;`:
+  ret = this
+;
+
+`Landroid/content/Intent;.putExtra:(Ljava/lang/String;[B)Landroid/content/Intent;`:
+  this.mExtras.entries.key = arg:0
+  this.mExtras.entries(arg:0) = arg:1
+  ret = this
+;
+
+`Landroid/content/Intent;.putExtra:(Ljava/lang/String;[C)Landroid/content/Intent;`:
+  this.mExtras.entries.key = arg:0
+  this.mExtras.entries(arg:0) = arg:1
+  ret = this
+;
+
+`Landroid/content/Intent;.putExtra:(Ljava/lang/String;[D)Landroid/content/Intent;`:
+  this.mExtras.entries.key = arg:0
+  this.mExtras.entries(arg:0) = arg:1
+  ret = this
+;
+
+`Landroid/content/Intent;.putExtra:(Ljava/lang/String;[F)Landroid/content/Intent;`:
+  this.mExtras.entries.key = arg:0
+  this.mExtras.entries(arg:0) = arg:1
+  ret = this
+;
+
+`Landroid/content/Intent;.putExtra:(Ljava/lang/String;[I)Landroid/content/Intent;`:
+  this.mExtras.entries.key = arg:0
+  this.mExtras.entries(arg:0) = arg:1
+  ret = this
+;
+
+`Landroid/content/Intent;.putExtra:(Ljava/lang/String;[J)Landroid/content/Intent;`:
+  this.mExtras.entries.key = arg:0
+  this.mExtras.entries(arg:0) = arg:1
+  ret = this
+;
+
+`Landroid/content/Intent;.putExtra:(Ljava/lang/String;[Landroid/os/Parcelable;)Landroid/content/Intent;`:
+  this.mExtras.entries.key = arg:0
+  this.mExtras.entries(arg:0) = arg:1
+  ret = this
+;
+
+`Landroid/content/Intent;.putExtra:(Ljava/lang/String;[Ljava/lang/CharSequence;)Landroid/content/Intent;`:
+  this.mExtras.entries.key = arg:0
+  this.mExtras.entries(arg:0) = arg:1
+  ret = this
+;
+
+`Landroid/content/Intent;.putExtra:(Ljava/lang/String;[Ljava/lang/String;)Landroid/content/Intent;`:
+  this.mExtras.entries.key = arg:0
+  this.mExtras.entries(arg:0) = arg:1
+  ret = this
+;
+
+`Landroid/content/Intent;.putExtra:(Ljava/lang/String;[S)Landroid/content/Intent;`:
+  this.mExtras.entries.key = arg:0
+  this.mExtras.entries(arg:0) = arg:1
+  ret = this
+;
+
+`Landroid/content/Intent;.putExtra:(Ljava/lang/String;[Z)Landroid/content/Intent;`:
+  this.mExtras.entries.key = arg:0
+  this.mExtras.entries(arg:0) = arg:1
+  ret = this
+;
+
+`Landroid/content/Intent;.putExtras:(Landroid/content/Intent;)Landroid/content/Intent;`:
+  this.mExtras.entries.key = arg:0
+  this.mExtras.entries += arg:0.mExtras.entries
+  ret = this
+;
+
+`Landroid/content/Intent;.putExtras:(Landroid/os/Bundle;)Landroid/content/Intent;`:
+  this.mExtras.entries.key = arg:0
+  this.mExtras.entries += arg:0.entries
+  ret = this
+;
+
+`Landroid/content/Intent;.putIntegerArrayListExtra:(Ljava/lang/String;Ljava/util/ArrayList;)Landroid/content/Intent;`:
+  this.mExtras.entries.key = arg:0
+  this.mExtras.entries(arg:0) = arg:1
+  ret = this
+;
+
+`Landroid/content/Intent;.putParcelableArrayListExtra:(Ljava/lang/String;Ljava/util/ArrayList;)Landroid/content/Intent;`:
+  this.mExtras.entries.key = arg:0
+  this.mExtras.entries(arg:0) = arg:1
+  ret = this
+;
+
+`Landroid/content/Intent;.putStringArrayListExtra:(Ljava/lang/String;Ljava/util/ArrayList;)Landroid/content/Intent;`:
+  this.mExtras.entries.key = arg:0
+  this.mExtras.entries(arg:0) = arg:1
+  ret = this
+;
+
+`Landroid/content/Intent;.readFromParcel:(Landroid/os/Parcel;)V`:
+  ret.mComponent = android.content.ComponentName@~
+  ret.mAction = java.lang.String@~
+  ret.mType = java.lang.String@~
+  ret.mData = android.net.Uri@~
+  ret.mData.uri = java.lang.String@~
+  ret.mCategories = java.lang.String@~
+  ret.mExtras = android.os.Bundle@~
+  this.mExtras.entries = android.os.Bundle$Entries@~
+;
+
+`Landroid/content/Intent;.removeCategory:(Ljava/lang/String;)V`:
+  this.mCategories -= arg:0
+;
+
+`Landroid/content/Intent;.removeExtra:(Ljava/lang/String;)V`:
+  this.mExtra.entries.key -= arg:0
+  ~this.mExtra.entries(arg:0)
+;
+
+`Landroid/content/Intent;.replaceExtras:(Landroid/content/Intent;)Landroid/content/Intent;`:
+  this.mExtra = arg:0.mExtra
+  ret = this
+;
+
+`Landroid/content/Intent;.replaceExtras:(Landroid/os/Bundle;)Landroid/content/Intent;`:
+  this.mExtra = arg:0
+  ret = this
+;
+
+`Landroid/content/Intent;.resolveActivity:(Landroid/content/pm/PackageManager;)Landroid/content/ComponentName;`:
+  ret = this.mComponent
+;
+
+`Landroid/content/Intent;.resolveActivityInfo:(Landroid/content/pm/PackageManager;I)Landroid/content/pm/ActivityInfo;`:
+  ret = android.content.pm.ActivityInfo@~
+;
+
+`Landroid/content/Intent;.resolveType:(Landroid/content/ContentResolver;)Ljava/lang/String;`:
+  ret = java.lang.String@~
+;
+
+`Landroid/content/Intent;.resolveType:(Landroid/content/Context;)Ljava/lang/String;`:
+  ret = java.lang.String@~
+;
+
+`Landroid/content/Intent;.resolveTypeIfNeeded:(Landroid/content/ContentResolver;)Ljava/lang/String;`:
+  ret = java.lang.String@~
+;
+
+`Landroid/content/Intent;.setAction:(Ljava/lang/String;)Landroid/content/Intent;`:
+  this.mAction = arg:0
+  ret = this
+;
+
+`Landroid/content/Intent;.setAllowFds:(Z)V`:
+;
+
+`Landroid/content/Intent;.setClass:(Landroid/content/Context;Ljava/lang/Class;)Landroid/content/Intent;`:
+  this.mComponent = android.content.ComponentName@~
+  this.mComponent.mClass = arg:1.name
+  ret = this
+;
+
+`Landroid/content/Intent;.setClassName:(Landroid/content/Context;Ljava/lang/String;)Landroid/content/Intent;`:
+  this.mComponent = android.content.ComponentName@~
+  this.mComponent.mClass = arg:1
+  ret = this
+;
+
+`Landroid/content/Intent;.setClassName:(Ljava/lang/String;Ljava/lang/String;)Landroid/content/Intent;`:
+  this.mComponent = android.content.ComponentName@~
+  this.mComponent.mClass = arg:1
+  ret = this
+;
+
+`Landroid/content/Intent;.setClipData:(Landroid/content/ClipData;)V`:
+;
+
+`Landroid/content/Intent;.setComponent:(Landroid/content/ComponentName;)Landroid/content/Intent;`:
+  this.mComponent = arg:0
+  ret = this
+;
+
+`Landroid/content/Intent;.setData:(Landroid/net/Uri;)Landroid/content/Intent;`:
+  this.mData = arg:0
+  ret = this
+;
+
+`Landroid/content/Intent;.setDataAndNormalize:(Landroid/net/Uri;)Landroid/content/Intent;`:
+  this.mData = arg:0
+  ret = this
+;
+
+`Landroid/content/Intent;.setDataAndType:(Landroid/net/Uri;Ljava/lang/String;)Landroid/content/Intent;`:
+  this.mData = arg:0
+  this.mType = arg:1
+  ret = this
+;
+
+`Landroid/content/Intent;.setDataAndTypeAndNormalize:(Landroid/net/Uri;Ljava/lang/String;)Landroid/content/Intent;`:
+  this.mData = arg:0
+  this.mType = arg:1
+  ret = this
+;
+
+`Landroid/content/Intent;.setExtrasClassLoader:(Ljava/lang/ClassLoader;)V`:
+;
+
+`Landroid/content/Intent;.setFlags:(I)Landroid/content/Intent;`:
+  ret = this
+;
+
+`Landroid/content/Intent;.setPackage:(Ljava/lang/String;)Landroid/content/Intent;`:
+  ret = this
+;
+
+`Landroid/content/Intent;.setSelector:(Landroid/content/Intent;)V`:
+;
+
+`Landroid/content/Intent;.setSourceBounds:(Landroid/graphics/Rect;)V`:
+;
+
+`Landroid/content/Intent;.setType:(Ljava/lang/String;)Landroid/content/Intent;`:
+  this.mType = arg:0
+  ret = this
+;
+
+`Landroid/content/Intent;.setTypeAndNormalize:(Ljava/lang/String;)Landroid/content/Intent;`:
+  this.mType = arg:0
+  ret = this
+;
+
+`Landroid/content/Intent;.toInsecureString:()Ljava/lang/String;`:
+  ret = java.lang.String@~
+;
+
+`Landroid/content/Intent;.toInsecureStringWithClip:()Ljava/lang/String;`:
+  ret = java.lang.String@~
+;
+
+`Landroid/content/Intent;.toShortString:(Ljava/lang/StringBuilder;ZZZZ)V`:
+  arg:0.value = java.lang.String@~
+;
+
+`Landroid/content/Intent;.toShortString:(ZZZZ)Ljava/lang/String;`:
+  ret = java.lang.String@~
+;
+
+`Landroid/content/Intent;.toString:()Ljava/lang/String;`:
+  ret = java.lang.String@~
+;
+
+`Landroid/content/Intent;.toURI:()Ljava/lang/String;`:
+  ret = java.lang.String@~
+;
+
+`Landroid/content/Intent;.toUri:(I)Ljava/lang/String;`:
+  ret = java.lang.String@~
+;
+
+`Landroid/content/Intent;.writeToParcel:(Landroid/os/Parcel;I)V`:
+;

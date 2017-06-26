@@ -21,16 +21,13 @@ object PTAResultSerializer extends CustomSerializer[PTAResult](format => (
     {
       case jv: JValue =>
         implicit val formats = format + PTASlotKeySerializer + InstanceSerializer + SignatureSerializer + ContextSerializer + ContextKeySerializer
-        val beforePointsToMap = (jv \ "beforePointsToMap").extract[IMap[Context, PTSMap]]
-        val afterPointsToMap = (jv \ "afterPointsToMap").extract[IMap[Context, PTSMap]]
+        val pointsToMap = (jv \ "pointsToMap").extract[IMap[Context, PTSMap]]
         val pta_result = new PTAResult
-        pta_result.addPointsToMap(after = false, beforePointsToMap)
-        pta_result.addPointsToMap(after = false, afterPointsToMap)
+        pta_result.addPointsToMap(pointsToMap)
         pta_result
     }, {
       case pta_result: PTAResult =>
         implicit val formats = format + PTASlotKeySerializer + InstanceSerializer + SignatureSerializer + ContextSerializer + ContextKeySerializer
-        ("beforePointsToMap" -> Extraction.decompose(pta_result.pointsToMap(after = false))) ~
-        ("afterPointsToMap" -> Extraction.decompose(pta_result.pointsToMap(after = true)))
+        "pointsToMap" -> Extraction.decompose(pta_result.pointsToMap)
     }
 ))

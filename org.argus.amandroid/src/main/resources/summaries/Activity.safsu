@@ -1,0 +1,11 @@
+`Landroid/app/Activity;.getIntent:()Landroid/content/Intent;`:
+  ret = this.mIntent
+;
+
+`Landroid/app/Activity;.setIntent:(Landroid/content/Intent;)V`:
+  this.mIntent = arg:0
+;
+
+`Landroid/app/Activity;.getApplication:()Landroid/app/Application;`:
+  ret = android.app.Application@~
+;

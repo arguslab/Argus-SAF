@@ -112,9 +112,7 @@ case class JawaType(baseType: JawaBaseType, dimensions: Int) extends JavaKnowled
     result.toList
   }
 
-  override def toString: String = {
-    name
-  }
+  override def toString: String = name
 }
 
 case class InvalidTypeException(msg: String) extends RuntimeException(msg)

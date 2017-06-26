@@ -1,0 +1,19 @@
+`Landroid/content/Context;.getSystemService:(Ljava/lang/String;)Ljava/lang/Object;`:
+  ret = java.lang.Object?@~
+;
+
+`Landroid/content/ContextWrapper;.getBaseContext:()Landroid/content/Context;`:
+  ret = this.mBase
+;
+
+`Landroid/content/ContextWrapper;.getApplicationContext:()Landroid/content/Context;`:
+  ret = this.mBase
+;
+
+`Landroid/content/ContextWrapper;.registerReceiver:(Landroid/content/BroadcastReceiver;Landroid/content/IntentFilter;)Landroid/content/Intent;`:
+  ret = this.mIntent
+;
+
+`Landroid/content/ContextWrapper;.registerReceiver:(Landroid/content/BroadcastReceiver;Landroid/content/IntentFilter;Ljava/lang/String;Landroid/os/Handler;)Landroid/content/Intent;`:
+  ret = this.mIntent
+;

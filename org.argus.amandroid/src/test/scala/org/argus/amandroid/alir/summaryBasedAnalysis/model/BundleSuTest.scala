@@ -16,51 +16,79 @@ import org.argus.jawa.alir.pta.reachingFactsAnalysis.RFAFact
 import org.argus.jawa.core.JawaType
 
 /**
-  * Created by fgwei on 6/15/23.
+  * Created by fgwei on 6/23/17.
   */
 class BundleSuTest extends SuTestBase("Bundle.safsu") {
 
   val thisInstance = PTAInstance(new JawaType(AndroidConstants.BUNDLE), defContext)
   val thisFact = new RFAFact(VarSlot("v0"), thisInstance)
+  val thisEntriesInstance = PTAInstance(new JawaType("android.os.Bundle$Entries"), defContext)
+  val thisEntriesFact = new RFAFact(FieldSlot(thisInstance, "entries"), thisEntriesInstance)
   val thisKeyInstance = PTAConcreteStringInstance("key", defContext)
-  val thisKeyFact = new RFAFact(FieldSlot(thisInstance, "key"), thisKeyInstance)
+  val thisKeyFact = new RFAFact(FieldSlot(thisEntriesInstance, "key"), thisKeyInstance)
+  val thisValueInstance = PTAConcreteStringInstance("value", defContext)
+  val thisValueFact = new RFAFact(MapSlot(thisEntriesInstance, thisKeyInstance), thisValueInstance)
 
   "Landroid/os/Bundle;.<clinit>:()V" with_input () produce ()
 
-  "Landroid/os/Bundle;.<init>:()V" with_input () produce ()
+  "Landroid/os/Bundle;.<init>:()V" with_input (
+    thisFact,
+  ) produce (
+    thisFact,
+    new RFAFact(FieldSlot(thisInstance, "entries"), PTAInstance(new JawaType("android.os.Bundle$Entries"), currentContext))
+  )
 
-  "Landroid/os/Bundle;.<init>:(I)V" with_input () produce ()
+  "Landroid/os/Bundle;.<init>:(I)V" with_input (
+    thisFact,
+  ) produce (
+    thisFact,
+    new RFAFact(FieldSlot(thisInstance, "entries"), PTAInstance(new JawaType("android.os.Bundle$Entries"), currentContext))
+  )
 
   "Landroid/os/Bundle;.<init>:(Landroid/os/Bundle;)V" with_input (
     thisFact,
     new RFAFact(VarSlot("v1"), PTAInstance(new JawaType(AndroidConstants.BUNDLE), defContext2)),
-    new RFAFact(FieldSlot(PTAInstance(new JawaType(AndroidConstants.BUNDLE), defContext2), "key"), PTAPointStringInstance(defContext3)),
-    new RFAFact(MapSlot(PTAInstance(new JawaType(AndroidConstants.BUNDLE), defContext2), PTAPointStringInstance(defContext3)), PTAPointStringInstance(defContext4))
+    new RFAFact(FieldSlot(PTAInstance(new JawaType(AndroidConstants.BUNDLE), defContext2), "entries"), PTAInstance(new JawaType("android.os.Bundle$Entries"), defContext2)),
+    new RFAFact(FieldSlot(PTAInstance(new JawaType("android.os.Bundle$Entries"), defContext2), "key"), PTAPointStringInstance(defContext3)),
+    new RFAFact(MapSlot(PTAInstance(new JawaType("android.os.Bundle$Entries"), defContext2), PTAPointStringInstance(defContext3)), PTAPointStringInstance(defContext4))
   ) produce (
     thisFact,
-    new RFAFact(FieldSlot(thisInstance, "key"), PTAPointStringInstance(defContext3)),
+    new RFAFact(FieldSlot(thisInstance, "entries"), PTAInstance(new JawaType("android.os.Bundle$Entries"), defContext2)),
     new RFAFact(VarSlot("v1"), PTAInstance(new JawaType(AndroidConstants.BUNDLE), defContext2)),
-    new RFAFact(FieldSlot(PTAInstance(new JawaType(AndroidConstants.BUNDLE), defContext2), "key"), PTAPointStringInstance(defContext3)),
-    new RFAFact(MapSlot(PTAInstance(new JawaType(AndroidConstants.BUNDLE), defContext2), PTAPointStringInstance(defContext3)), PTAPointStringInstance(defContext4))
+    new RFAFact(FieldSlot(PTAInstance(new JawaType(AndroidConstants.BUNDLE), defContext2), "entries"), PTAInstance(new JawaType("android.os.Bundle$Entries"), defContext2)),
+    new RFAFact(FieldSlot(PTAInstance(new JawaType("android.os.Bundle$Entries"), defContext2), "key"), PTAPointStringInstance(defContext3)),
+    new RFAFact(MapSlot(PTAInstance(new JawaType("android.os.Bundle$Entries"), defContext2), PTAPointStringInstance(defContext3)), PTAPointStringInstance(defContext4))
   )
 
-  "Landroid/os/Bundle;.<init>:(Ljava/lang/ClassLoader;)V" with_input () produce ()
+  "Landroid/os/Bundle;.<init>:(Ljava/lang/ClassLoader;)V" with_input (
+    thisFact,
+  ) produce (
+    thisFact,
+    new RFAFact(FieldSlot(thisInstance, "entries"), PTAInstance(new JawaType("android.os.Bundle$Entries"), currentContext))
+  )
 
   "Landroid/os/Bundle;.clear:()V" with_input (
     thisFact,
-    new RFAFact(FieldSlot(thisInstance, "key"), PTAPointStringInstance(defContext2)),
-    new RFAFact(MapSlot(thisInstance, PTAPointStringInstance(defContext2)), PTAPointStringInstance(defContext3))
-  ) produce thisFact
+    thisEntriesFact,
+    thisKeyFact,
+    thisValueFact
+  ) produce (
+    thisFact,
+    thisEntriesFact
+  )
 
   "Landroid/os/Bundle;.clone:()Ljava/lang/Object;" with_input (
     thisFact,
-    new RFAFact(FieldSlot(thisInstance, "key"), PTAPointStringInstance(defContext2)),
-    new RFAFact(MapSlot(thisInstance, PTAPointStringInstance(defContext2)), PTAPointStringInstance(defContext3))
+    thisEntriesFact,
+    thisKeyFact,
+    thisValueFact
   ) produce (
     thisFact,
-    new RFAFact(FieldSlot(thisInstance, "key"), PTAPointStringInstance(defContext2)),
-    new RFAFact(MapSlot(thisInstance, PTAPointStringInstance(defContext2)), PTAPointStringInstance(defContext3)),
-    new RFAFact(VarSlot("temp"), PTAInstance(new JawaType(AndroidConstants.BUNDLE), defContext))
+    thisEntriesFact,
+    thisKeyFact,
+    thisValueFact,
+    new RFAFact(VarSlot("temp"), PTAInstance(new JawaType(AndroidConstants.BUNDLE), currentContext)),
+    new RFAFact(FieldSlot(PTAInstance(new JawaType(AndroidConstants.BUNDLE), currentContext), "entries"), thisEntriesInstance)
   )
 
   "Landroid/os/Bundle;.containsKey:(Ljava/lang/String;)Z" with_input () produce ()
@@ -74,21 +102,24 @@ class BundleSuTest extends SuTestBase("Bundle.safsu") {
     new RFAFact(VarSlot("v1"), PTAConcreteStringInstance("key", defContext2)),
     new RFAFact(VarSlot("v2"), PTAConcreteStringInstance("value", defContext3)),
     new RFAFact(VarSlot("temp"), PTAInstance(new JawaType(AndroidConstants.BUNDLE), currentContext)),
-    new RFAFact(FieldSlot(PTAInstance(new JawaType(AndroidConstants.BUNDLE), currentContext), "key"), PTAConcreteStringInstance("key", defContext2)),
-    new RFAFact(MapSlot(PTAInstance(new JawaType(AndroidConstants.BUNDLE), currentContext), PTAConcreteStringInstance("key", defContext2)), PTAConcreteStringInstance("value", defContext3))
+    new RFAFact(FieldSlot(PTAInstance(new JawaType(AndroidConstants.BUNDLE), currentContext), "entries"), PTAInstance(new JawaType("android.os.Bundle$Entries"), currentContext)),
+    new RFAFact(FieldSlot(PTAInstance(new JawaType("android.os.Bundle$Entries"), currentContext), "key"), PTAConcreteStringInstance("key", defContext2)),
+    new RFAFact(MapSlot(PTAInstance(new JawaType("android.os.Bundle$Entries"), currentContext), PTAConcreteStringInstance("key", defContext2)), PTAConcreteStringInstance("value", defContext3))
   )
 
   "Landroid/os/Bundle;.get:(Ljava/lang/String;)Ljava/lang/Object;" with_input (
     thisFact,
-    new RFAFact(FieldSlot(thisInstance, "key"), PTAPointStringInstance(defContext2)),
-    new RFAFact(MapSlot(thisInstance, PTAPointStringInstance(defContext2)), PTAPointStringInstance(defContext3)),
-    new RFAFact(VarSlot("v1"), PTAPointStringInstance(defContext2))
+    thisEntriesFact,
+    thisKeyFact,
+    thisValueFact,
+    new RFAFact(VarSlot("v1"), PTAConcreteStringInstance("key", defContext2))
   ) produce (
     thisFact,
-    new RFAFact(FieldSlot(thisInstance, "key"), PTAPointStringInstance(defContext2)),
-    new RFAFact(MapSlot(thisInstance, PTAPointStringInstance(defContext2)), PTAPointStringInstance(defContext3)),
-    new RFAFact(VarSlot("v1"), PTAPointStringInstance(defContext2)),
-    new RFAFact(VarSlot("temp"), PTAPointStringInstance(defContext3))
+    thisEntriesFact,
+    thisKeyFact,
+    thisValueFact,
+    new RFAFact(VarSlot("v1"), PTAConcreteStringInstance("key", defContext2)),
+    new RFAFact(VarSlot("temp"), PTAConcreteStringInstance("value", defContext))
   )
 
   "Landroid/os/Bundle;.getBoolean:(Ljava/lang/String;)Z" with_input () produce ()
@@ -97,26 +128,30 @@ class BundleSuTest extends SuTestBase("Bundle.safsu") {
 
   "Landroid/os/Bundle;.getBooleanArray:(Ljava/lang/String;)[Z" with_input (
     thisFact,
+    thisEntriesFact,
     thisKeyFact,
-    new RFAFact(MapSlot(thisInstance, thisKeyInstance), PTAInstance(new JawaType("boolean", 1), defContext)),
+    new RFAFact(MapSlot(thisEntriesInstance, thisKeyInstance), PTAInstance(new JawaType("boolean", 1), defContext)),
     new RFAFact(VarSlot("v1"), PTAConcreteStringInstance("key", defContext2))
   ) produce (
     thisFact,
+    thisEntriesFact,
     thisKeyFact,
-    new RFAFact(MapSlot(thisInstance, thisKeyInstance), PTAInstance(new JawaType("boolean", 1), defContext)),
+    new RFAFact(MapSlot(thisEntriesInstance, thisKeyInstance), PTAInstance(new JawaType("boolean", 1), defContext)),
     new RFAFact(VarSlot("v1"), PTAConcreteStringInstance("key", defContext2)),
     new RFAFact(VarSlot("temp"), PTAInstance(new JawaType("boolean", 1), defContext))
   )
 
   "Landroid/os/Bundle;.getBundle:(Ljava/lang/String;)Landroid/os/Bundle;" with_input (
     thisFact,
+    thisEntriesFact,
     thisKeyFact,
-    new RFAFact(MapSlot(thisInstance, thisKeyInstance), PTAInstance(new JawaType(AndroidConstants.BUNDLE), defContext)),
+    new RFAFact(MapSlot(thisEntriesInstance, thisKeyInstance), PTAInstance(new JawaType(AndroidConstants.BUNDLE), defContext)),
     new RFAFact(VarSlot("v1"), PTAConcreteStringInstance("key", defContext2))
   ) produce (
     thisFact,
+    thisEntriesFact,
     thisKeyFact,
-    new RFAFact(MapSlot(thisInstance, thisKeyInstance), PTAInstance(new JawaType(AndroidConstants.BUNDLE), defContext)),
+    new RFAFact(MapSlot(thisEntriesInstance, thisKeyInstance), PTAInstance(new JawaType(AndroidConstants.BUNDLE), defContext)),
     new RFAFact(VarSlot("v1"), PTAConcreteStringInstance("key", defContext2)),
     new RFAFact(VarSlot("temp"), PTAInstance(new JawaType(AndroidConstants.BUNDLE), defContext))
   )
@@ -127,13 +162,15 @@ class BundleSuTest extends SuTestBase("Bundle.safsu") {
 
   "Landroid/os/Bundle;.getByteArray:(Ljava/lang/String;)[B" with_input (
     thisFact,
+    thisEntriesFact,
     thisKeyFact,
-    new RFAFact(MapSlot(thisInstance, thisKeyInstance), PTAInstance(new JawaType("byte", 1), defContext)),
+    new RFAFact(MapSlot(thisEntriesInstance, thisKeyInstance), PTAInstance(new JawaType("byte", 1), defContext)),
     new RFAFact(VarSlot("v1"), PTAConcreteStringInstance("key", defContext2))
   ) produce (
     thisFact,
+    thisEntriesFact,
     thisKeyFact,
-    new RFAFact(MapSlot(thisInstance, thisKeyInstance), PTAInstance(new JawaType("byte", 1), defContext)),
+    new RFAFact(MapSlot(thisEntriesInstance, thisKeyInstance), PTAInstance(new JawaType("byte", 1), defContext)),
     new RFAFact(VarSlot("v1"), PTAConcreteStringInstance("key", defContext2)),
     new RFAFact(VarSlot("temp"), PTAInstance(new JawaType("byte", 1), defContext))
   )
@@ -144,40 +181,46 @@ class BundleSuTest extends SuTestBase("Bundle.safsu") {
 
   "Landroid/os/Bundle;.getCharArray:(Ljava/lang/String;)[C" with_input (
     thisFact,
+    thisEntriesFact,
     thisKeyFact,
-    new RFAFact(MapSlot(thisInstance, thisKeyInstance), PTAInstance(new JawaType("char", 1), defContext)),
+    new RFAFact(MapSlot(thisEntriesInstance, thisKeyInstance), PTAInstance(new JawaType("char", 1), defContext)),
     new RFAFact(VarSlot("v1"), PTAConcreteStringInstance("key", defContext2))
   ) produce (
     thisFact,
+    thisEntriesFact,
     thisKeyFact,
-    new RFAFact(MapSlot(thisInstance, thisKeyInstance), PTAInstance(new JawaType("char", 1), defContext)),
+    new RFAFact(MapSlot(thisEntriesInstance, thisKeyInstance), PTAInstance(new JawaType("char", 1), defContext)),
     new RFAFact(VarSlot("v1"), PTAConcreteStringInstance("key", defContext2)),
     new RFAFact(VarSlot("temp"), PTAInstance(new JawaType("char", 1), defContext))
   )
 
   "Landroid/os/Bundle;.getCharSequence:(Ljava/lang/String;)Ljava/lang/CharSequence;" with_input (
     thisFact,
+    thisEntriesFact,
     thisKeyFact,
-    new RFAFact(MapSlot(thisInstance, thisKeyInstance), PTAConcreteStringInstance("value", defContext)),
+    new RFAFact(MapSlot(thisEntriesInstance, thisKeyInstance), PTAConcreteStringInstance("value", defContext)),
     new RFAFact(VarSlot("v1"), PTAConcreteStringInstance("key", defContext2))
   ) produce (
     thisFact,
+    thisEntriesFact,
     thisKeyFact,
-    new RFAFact(MapSlot(thisInstance, thisKeyInstance), PTAConcreteStringInstance("value", defContext)),
+    new RFAFact(MapSlot(thisEntriesInstance, thisKeyInstance), PTAConcreteStringInstance("value", defContext)),
     new RFAFact(VarSlot("v1"), PTAConcreteStringInstance("key", defContext2)),
     new RFAFact(VarSlot("temp"), PTAConcreteStringInstance("value", defContext))
   )
 
   "Landroid/os/Bundle;.getCharSequence:(Ljava/lang/String;Ljava/lang/CharSequence;)Ljava/lang/CharSequence;" with_input (
     thisFact,
+    thisEntriesFact,
     thisKeyFact,
-    new RFAFact(MapSlot(thisInstance, thisKeyInstance), PTAConcreteStringInstance("value", defContext)),
+    new RFAFact(MapSlot(thisEntriesInstance, thisKeyInstance), PTAConcreteStringInstance("value", defContext)),
     new RFAFact(VarSlot("v1"), PTAConcreteStringInstance("key", defContext2)),
     new RFAFact(VarSlot("v2"), PTAConcreteStringInstance("value", defContext3))
   ) produce (
     thisFact,
+    thisEntriesFact,
     thisKeyFact,
-    new RFAFact(MapSlot(thisInstance, thisKeyInstance), PTAConcreteStringInstance("value", defContext)),
+    new RFAFact(MapSlot(thisEntriesInstance, thisKeyInstance), PTAConcreteStringInstance("value", defContext)),
     new RFAFact(VarSlot("v1"), PTAConcreteStringInstance("key", defContext2)),
     new RFAFact(VarSlot("v2"), PTAConcreteStringInstance("value", defContext3)),
     new RFAFact(VarSlot("temp"), PTAConcreteStringInstance("value", defContext)),
@@ -186,38 +229,44 @@ class BundleSuTest extends SuTestBase("Bundle.safsu") {
 
   "Landroid/os/Bundle;.getCharSequenceArray:(Ljava/lang/String;)[Ljava/lang/CharSequence;" with_input (
     thisFact,
+    thisEntriesFact,
     thisKeyFact,
-    new RFAFact(MapSlot(thisInstance, thisKeyInstance), PTAInstance(new JawaType("java.lang.String", 1), defContext)),
+    new RFAFact(MapSlot(thisEntriesInstance, thisKeyInstance), PTAInstance(new JawaType("java.lang.String", 1), defContext)),
     new RFAFact(VarSlot("v1"), PTAConcreteStringInstance("key", defContext2))
   ) produce (
     thisFact,
+    thisEntriesFact,
     thisKeyFact,
-    new RFAFact(MapSlot(thisInstance, thisKeyInstance), PTAInstance(new JawaType("java.lang.String", 1), defContext)),
+    new RFAFact(MapSlot(thisEntriesInstance, thisKeyInstance), PTAInstance(new JawaType("java.lang.String", 1), defContext)),
     new RFAFact(VarSlot("v1"), PTAConcreteStringInstance("key", defContext2)),
     new RFAFact(VarSlot("temp"), PTAInstance(new JawaType("java.lang.String", 1), defContext))
   )
 
   "Landroid/os/Bundle;.getCharSequenceArrayList:(Ljava/lang/String;)Ljava/util/ArrayList;" with_input (
     thisFact,
+    thisEntriesFact,
     thisKeyFact,
-    new RFAFact(MapSlot(thisInstance, thisKeyInstance), PTAInstance(new JawaType("java.util.ArrayList"), defContext)),
+    new RFAFact(MapSlot(thisEntriesInstance, thisKeyInstance), PTAInstance(new JawaType("java.util.ArrayList"), defContext)),
     new RFAFact(VarSlot("v1"), PTAConcreteStringInstance("key", defContext2))
   ) produce (
     thisFact,
+    thisEntriesFact,
     thisKeyFact,
-    new RFAFact(MapSlot(thisInstance, thisKeyInstance), PTAInstance(new JawaType("java.util.ArrayList"), defContext)),
+    new RFAFact(MapSlot(thisEntriesInstance, thisKeyInstance), PTAInstance(new JawaType("java.util.ArrayList"), defContext)),
     new RFAFact(VarSlot("v1"), PTAConcreteStringInstance("key", defContext2)),
     new RFAFact(VarSlot("temp"), PTAInstance(new JawaType("java.util.ArrayList"), defContext))
   )
 
   "Landroid/os/Bundle;.getClassLoader:()Ljava/lang/ClassLoader;" with_input (
     thisFact,
+    thisEntriesFact,
     thisKeyFact,
-    new RFAFact(MapSlot(thisInstance, thisKeyInstance), PTAInstance(new JawaType("boolean", 1), defContext)),
+    new RFAFact(MapSlot(thisEntriesInstance, thisKeyInstance), PTAInstance(new JawaType("boolean", 1), defContext)),
   ) produce (
     thisFact,
+    thisEntriesFact,
     thisKeyFact,
-    new RFAFact(MapSlot(thisInstance, thisKeyInstance), PTAInstance(new JawaType("boolean", 1), defContext)),
+    new RFAFact(MapSlot(thisEntriesInstance, thisKeyInstance), PTAInstance(new JawaType("boolean", 1), defContext)),
     new RFAFact(VarSlot("temp"), PTAInstance(new JawaType("java.lang.ClassLoader").toUnknown, currentContext))
   )
 
@@ -227,13 +276,15 @@ class BundleSuTest extends SuTestBase("Bundle.safsu") {
 
   "Landroid/os/Bundle;.getDoubleArray:(Ljava/lang/String;)[D" with_input (
     thisFact,
+    thisEntriesFact,
     thisKeyFact,
-    new RFAFact(MapSlot(thisInstance, thisKeyInstance), PTAInstance(new JawaType("double", 1), defContext)),
+    new RFAFact(MapSlot(thisEntriesInstance, thisKeyInstance), PTAInstance(new JawaType("double", 1), defContext)),
     new RFAFact(VarSlot("v1"), PTAConcreteStringInstance("key", defContext2))
   ) produce (
     thisFact,
+    thisEntriesFact,
     thisKeyFact,
-    new RFAFact(MapSlot(thisInstance, thisKeyInstance), PTAInstance(new JawaType("double", 1), defContext)),
+    new RFAFact(MapSlot(thisEntriesInstance, thisKeyInstance), PTAInstance(new JawaType("double", 1), defContext)),
     new RFAFact(VarSlot("v1"), PTAConcreteStringInstance("key", defContext2)),
     new RFAFact(VarSlot("temp"), PTAInstance(new JawaType("double", 1), defContext))
   )
@@ -244,26 +295,30 @@ class BundleSuTest extends SuTestBase("Bundle.safsu") {
 
   "Landroid/os/Bundle;.getFloatArray:(Ljava/lang/String;)[F" with_input (
     thisFact,
+    thisEntriesFact,
     thisKeyFact,
-    new RFAFact(MapSlot(thisInstance, thisKeyInstance), PTAInstance(new JawaType("float", 1), defContext)),
+    new RFAFact(MapSlot(thisEntriesInstance, thisKeyInstance), PTAInstance(new JawaType("float", 1), defContext)),
     new RFAFact(VarSlot("v1"), PTAConcreteStringInstance("key", defContext2))
   ) produce (
     thisFact,
+    thisEntriesFact,
     thisKeyFact,
-    new RFAFact(MapSlot(thisInstance, thisKeyInstance), PTAInstance(new JawaType("float", 1), defContext)),
+    new RFAFact(MapSlot(thisEntriesInstance, thisKeyInstance), PTAInstance(new JawaType("float", 1), defContext)),
     new RFAFact(VarSlot("v1"), PTAConcreteStringInstance("key", defContext2)),
     new RFAFact(VarSlot("temp"), PTAInstance(new JawaType("float", 1), defContext))
   )
 
   "Landroid/os/Bundle;.getIBinder:(Ljava/lang/String;)Landroid/os/IBinder;" with_input (
     thisFact,
+    thisEntriesFact,
     thisKeyFact,
-    new RFAFact(MapSlot(thisInstance, thisKeyInstance), PTAInstance(new JawaType("android.os.Binder"), defContext)),
+    new RFAFact(MapSlot(thisEntriesInstance, thisKeyInstance), PTAInstance(new JawaType("android.os.Binder"), defContext)),
     new RFAFact(VarSlot("v1"), PTAConcreteStringInstance("key", defContext2))
   ) produce (
     thisFact,
+    thisEntriesFact,
     thisKeyFact,
-    new RFAFact(MapSlot(thisInstance, thisKeyInstance), PTAInstance(new JawaType("android.os.Binder"), defContext)),
+    new RFAFact(MapSlot(thisEntriesInstance, thisKeyInstance), PTAInstance(new JawaType("android.os.Binder"), defContext)),
     new RFAFact(VarSlot("v1"), PTAConcreteStringInstance("key", defContext2)),
     new RFAFact(VarSlot("temp"), PTAInstance(new JawaType("android.os.Binder"), defContext))
   )
@@ -274,26 +329,30 @@ class BundleSuTest extends SuTestBase("Bundle.safsu") {
 
   "Landroid/os/Bundle;.getIntArray:(Ljava/lang/String;)[I" with_input (
     thisFact,
+    thisEntriesFact,
     thisKeyFact,
-    new RFAFact(MapSlot(thisInstance, thisKeyInstance), PTAInstance(new JawaType("int", 1), defContext)),
+    new RFAFact(MapSlot(thisEntriesInstance, thisKeyInstance), PTAInstance(new JawaType("int", 1), defContext)),
     new RFAFact(VarSlot("v1"), PTAConcreteStringInstance("key", defContext2))
   ) produce (
     thisFact,
+    thisEntriesFact,
     thisKeyFact,
-    new RFAFact(MapSlot(thisInstance, thisKeyInstance), PTAInstance(new JawaType("int", 1), defContext)),
+    new RFAFact(MapSlot(thisEntriesInstance, thisKeyInstance), PTAInstance(new JawaType("int", 1), defContext)),
     new RFAFact(VarSlot("v1"), PTAConcreteStringInstance("key", defContext2)),
     new RFAFact(VarSlot("temp"), PTAInstance(new JawaType("int", 1), defContext))
   )
 
   "Landroid/os/Bundle;.getIntegerArrayList:(Ljava/lang/String;)Ljava/util/ArrayList;" with_input (
     thisFact,
+    thisEntriesFact,
     thisKeyFact,
-    new RFAFact(MapSlot(thisInstance, thisKeyInstance), PTAInstance(new JawaType("java.util.ArrayList"), defContext)),
+    new RFAFact(MapSlot(thisEntriesInstance, thisKeyInstance), PTAInstance(new JawaType("java.util.ArrayList"), defContext)),
     new RFAFact(VarSlot("v1"), PTAConcreteStringInstance("key", defContext2))
   ) produce (
     thisFact,
+    thisEntriesFact,
     thisKeyFact,
-    new RFAFact(MapSlot(thisInstance, thisKeyInstance), PTAInstance(new JawaType("java.util.ArrayList"), defContext)),
+    new RFAFact(MapSlot(thisEntriesInstance, thisKeyInstance), PTAInstance(new JawaType("java.util.ArrayList"), defContext)),
     new RFAFact(VarSlot("v1"), PTAConcreteStringInstance("key", defContext2)),
     new RFAFact(VarSlot("temp"), PTAInstance(new JawaType("java.util.ArrayList"), defContext))
   )
@@ -304,65 +363,75 @@ class BundleSuTest extends SuTestBase("Bundle.safsu") {
 
   "Landroid/os/Bundle;.getLongArray:(Ljava/lang/String;)[J" with_input (
     thisFact,
+    thisEntriesFact,
     thisKeyFact,
-    new RFAFact(MapSlot(thisInstance, thisKeyInstance), PTAInstance(new JawaType("long", 1), defContext)),
+    new RFAFact(MapSlot(thisEntriesInstance, thisKeyInstance), PTAInstance(new JawaType("long", 1), defContext)),
     new RFAFact(VarSlot("v1"), PTAConcreteStringInstance("key", defContext2))
   ) produce (
     thisFact,
+    thisEntriesFact,
     thisKeyFact,
-    new RFAFact(MapSlot(thisInstance, thisKeyInstance), PTAInstance(new JawaType("long", 1), defContext)),
+    new RFAFact(MapSlot(thisEntriesInstance, thisKeyInstance), PTAInstance(new JawaType("long", 1), defContext)),
     new RFAFact(VarSlot("v1"), PTAConcreteStringInstance("key", defContext2)),
     new RFAFact(VarSlot("temp"), PTAInstance(new JawaType("long", 1), defContext))
   )
 
   "Landroid/os/Bundle;.getParcelable:(Ljava/lang/String;)Landroid/os/Parcelable;" with_input (
     thisFact,
+    thisEntriesFact,
     thisKeyFact,
-    new RFAFact(MapSlot(thisInstance, thisKeyInstance), PTAInstance(new JawaType("android.os.Parcelable").toUnknown, defContext)),
+    new RFAFact(MapSlot(thisEntriesInstance, thisKeyInstance), PTAInstance(new JawaType("android.os.Parcelable").toUnknown, defContext)),
     new RFAFact(VarSlot("v1"), PTAConcreteStringInstance("key", defContext2))
   ) produce (
     thisFact,
+    thisEntriesFact,
     thisKeyFact,
-    new RFAFact(MapSlot(thisInstance, thisKeyInstance), PTAInstance(new JawaType("android.os.Parcelable").toUnknown, defContext)),
+    new RFAFact(MapSlot(thisEntriesInstance, thisKeyInstance), PTAInstance(new JawaType("android.os.Parcelable").toUnknown, defContext)),
     new RFAFact(VarSlot("v1"), PTAConcreteStringInstance("key", defContext2)),
     new RFAFact(VarSlot("temp"), PTAInstance(new JawaType("android.os.Parcelable").toUnknown, defContext))
   )
 
   "Landroid/os/Bundle;.getParcelableArray:(Ljava/lang/String;)[Landroid/os/Parcelable;" with_input (
     thisFact,
+    thisEntriesFact,
     thisKeyFact,
-    new RFAFact(MapSlot(thisInstance, thisKeyInstance), PTAInstance(new JawaType("android.os.Parcelable", 1), defContext)),
+    new RFAFact(MapSlot(thisEntriesInstance, thisKeyInstance), PTAInstance(new JawaType("android.os.Parcelable", 1), defContext)),
     new RFAFact(VarSlot("v1"), PTAConcreteStringInstance("key", defContext2))
   ) produce (
     thisFact,
+    thisEntriesFact,
     thisKeyFact,
-    new RFAFact(MapSlot(thisInstance, thisKeyInstance), PTAInstance(new JawaType("android.os.Parcelable", 1), defContext)),
+    new RFAFact(MapSlot(thisEntriesInstance, thisKeyInstance), PTAInstance(new JawaType("android.os.Parcelable", 1), defContext)),
     new RFAFact(VarSlot("v1"), PTAConcreteStringInstance("key", defContext2)),
     new RFAFact(VarSlot("temp"), PTAInstance(new JawaType("android.os.Parcelable", 1), defContext))
   )
 
   "Landroid/os/Bundle;.getParcelableArrayList:(Ljava/lang/String;)Ljava/util/ArrayList;" with_input (
     thisFact,
+    thisEntriesFact,
     thisKeyFact,
-    new RFAFact(MapSlot(thisInstance, thisKeyInstance), PTAInstance(new JawaType("java.util.ArrayList"), defContext)),
+    new RFAFact(MapSlot(thisEntriesInstance, thisKeyInstance), PTAInstance(new JawaType("java.util.ArrayList"), defContext)),
     new RFAFact(VarSlot("v1"), PTAConcreteStringInstance("key", defContext2))
   ) produce (
     thisFact,
+    thisEntriesFact,
     thisKeyFact,
-    new RFAFact(MapSlot(thisInstance, thisKeyInstance), PTAInstance(new JawaType("java.util.ArrayList"), defContext)),
+    new RFAFact(MapSlot(thisEntriesInstance, thisKeyInstance), PTAInstance(new JawaType("java.util.ArrayList"), defContext)),
     new RFAFact(VarSlot("v1"), PTAConcreteStringInstance("key", defContext2)),
     new RFAFact(VarSlot("temp"), PTAInstance(new JawaType("java.util.ArrayList"), defContext))
   )
 
   "Landroid/os/Bundle;.getSerializable:(Ljava/lang/String;)Ljava/io/Serializable;" with_input (
     thisFact,
+    thisEntriesFact,
     thisKeyFact,
-    new RFAFact(MapSlot(thisInstance, thisKeyInstance), PTAInstance(new JawaType("java.io.Serializable").toUnknown, defContext)),
+    new RFAFact(MapSlot(thisEntriesInstance, thisKeyInstance), PTAInstance(new JawaType("java.io.Serializable").toUnknown, defContext)),
     new RFAFact(VarSlot("v1"), PTAConcreteStringInstance("key", defContext2))
   ) produce (
     thisFact,
+    thisEntriesFact,
     thisKeyFact,
-    new RFAFact(MapSlot(thisInstance, thisKeyInstance), PTAInstance(new JawaType("java.io.Serializable").toUnknown, defContext)),
+    new RFAFact(MapSlot(thisEntriesInstance, thisKeyInstance), PTAInstance(new JawaType("java.io.Serializable").toUnknown, defContext)),
     new RFAFact(VarSlot("v1"), PTAConcreteStringInstance("key", defContext2)),
     new RFAFact(VarSlot("temp"), PTAInstance(new JawaType("java.io.Serializable").toUnknown, defContext))
   )
@@ -373,53 +442,61 @@ class BundleSuTest extends SuTestBase("Bundle.safsu") {
 
   "Landroid/os/Bundle;.getShortArray:(Ljava/lang/String;)[S" with_input (
     thisFact,
+    thisEntriesFact,
     thisKeyFact,
-    new RFAFact(MapSlot(thisInstance, thisKeyInstance), PTAInstance(new JawaType("short", 1), defContext)),
+    new RFAFact(MapSlot(thisEntriesInstance, thisKeyInstance), PTAInstance(new JawaType("short", 1), defContext)),
     new RFAFact(VarSlot("v1"), PTAConcreteStringInstance("key", defContext2))
   ) produce (
     thisFact,
+    thisEntriesFact,
     thisKeyFact,
-    new RFAFact(MapSlot(thisInstance, thisKeyInstance), PTAInstance(new JawaType("short", 1), defContext)),
+    new RFAFact(MapSlot(thisEntriesInstance, thisKeyInstance), PTAInstance(new JawaType("short", 1), defContext)),
     new RFAFact(VarSlot("v1"), PTAConcreteStringInstance("key", defContext2)),
     new RFAFact(VarSlot("temp"), PTAInstance(new JawaType("short", 1), defContext))
   )
 
   "Landroid/os/Bundle;.getSparseParcelableArray:(Ljava/lang/String;)Landroid/util/SparseArray;" with_input (
     thisFact,
+    thisEntriesFact,
     thisKeyFact,
-    new RFAFact(MapSlot(thisInstance, thisKeyInstance), PTAInstance(new JawaType("android.util.SparseArray"), defContext)),
+    new RFAFact(MapSlot(thisEntriesInstance, thisKeyInstance), PTAInstance(new JawaType("android.util.SparseArray"), defContext)),
     new RFAFact(VarSlot("v1"), PTAConcreteStringInstance("key", defContext2))
   ) produce (
     thisFact,
+    thisEntriesFact,
     thisKeyFact,
-    new RFAFact(MapSlot(thisInstance, thisKeyInstance), PTAInstance(new JawaType("android.util.SparseArray"), defContext)),
+    new RFAFact(MapSlot(thisEntriesInstance, thisKeyInstance), PTAInstance(new JawaType("android.util.SparseArray"), defContext)),
     new RFAFact(VarSlot("v1"), PTAConcreteStringInstance("key", defContext2)),
     new RFAFact(VarSlot("temp"), PTAInstance(new JawaType("android.util.SparseArray"), defContext))
   )
 
   "Landroid/os/Bundle;.getString:(Ljava/lang/String;)Ljava/lang/String;" with_input (
     thisFact,
+    thisEntriesFact,
     thisKeyFact,
-    new RFAFact(MapSlot(thisInstance, thisKeyInstance), PTAConcreteStringInstance("value", defContext)),
+    new RFAFact(MapSlot(thisEntriesInstance, thisKeyInstance), PTAConcreteStringInstance("value", defContext)),
     new RFAFact(VarSlot("v1"), PTAConcreteStringInstance("key", defContext2))
   ) produce (
     thisFact,
+    thisEntriesFact,
     thisKeyFact,
-    new RFAFact(MapSlot(thisInstance, thisKeyInstance), PTAConcreteStringInstance("value", defContext)),
+    new RFAFact(MapSlot(thisEntriesInstance, thisKeyInstance), PTAConcreteStringInstance("value", defContext)),
     new RFAFact(VarSlot("v1"), PTAConcreteStringInstance("key", defContext2)),
     new RFAFact(VarSlot("temp"), PTAConcreteStringInstance("value", defContext))
   )
 
   "Landroid/os/Bundle;.getString:(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;" with_input (
     thisFact,
+    thisEntriesFact,
     thisKeyFact,
-    new RFAFact(MapSlot(thisInstance, thisKeyInstance), PTAConcreteStringInstance("value", defContext)),
+    new RFAFact(MapSlot(thisEntriesInstance, thisKeyInstance), PTAConcreteStringInstance("value", defContext)),
     new RFAFact(VarSlot("v1"), PTAConcreteStringInstance("key", defContext2)),
     new RFAFact(VarSlot("v2"), PTAConcreteStringInstance("value", defContext3))
   ) produce (
     thisFact,
+    thisEntriesFact,
     thisKeyFact,
-    new RFAFact(MapSlot(thisInstance, thisKeyInstance), PTAConcreteStringInstance("value", defContext)),
+    new RFAFact(MapSlot(thisEntriesInstance, thisKeyInstance), PTAConcreteStringInstance("value", defContext)),
     new RFAFact(VarSlot("v1"), PTAConcreteStringInstance("key", defContext2)),
     new RFAFact(VarSlot("v2"), PTAConcreteStringInstance("value", defContext3)),
     new RFAFact(VarSlot("temp"), PTAConcreteStringInstance("value", defContext)),
@@ -428,26 +505,30 @@ class BundleSuTest extends SuTestBase("Bundle.safsu") {
 
   "Landroid/os/Bundle;.getStringArray:(Ljava/lang/String;)[Ljava/lang/String;" with_input (
     thisFact,
+    thisEntriesFact,
     thisKeyFact,
-    new RFAFact(MapSlot(thisInstance, thisKeyInstance), PTAInstance(new JawaType("java.lang.String", 1), defContext)),
+    new RFAFact(MapSlot(thisEntriesInstance, thisKeyInstance), PTAInstance(new JawaType("java.lang.String", 1), defContext)),
     new RFAFact(VarSlot("v1"), PTAConcreteStringInstance("key", defContext2))
   ) produce (
     thisFact,
+    thisEntriesFact,
     thisKeyFact,
-    new RFAFact(MapSlot(thisInstance, thisKeyInstance), PTAInstance(new JawaType("java.lang.String", 1), defContext)),
+    new RFAFact(MapSlot(thisEntriesInstance, thisKeyInstance), PTAInstance(new JawaType("java.lang.String", 1), defContext)),
     new RFAFact(VarSlot("v1"), PTAConcreteStringInstance("key", defContext2)),
     new RFAFact(VarSlot("temp"), PTAInstance(new JawaType("java.lang.String", 1), defContext))
   )
 
   "Landroid/os/Bundle;.getStringArrayList:(Ljava/lang/String;)Ljava/util/ArrayList;" with_input (
     thisFact,
+    thisEntriesFact,
     thisKeyFact,
-    new RFAFact(MapSlot(thisInstance, thisKeyInstance), PTAInstance(new JawaType("java.util.ArrayList"), defContext)),
+    new RFAFact(MapSlot(thisEntriesInstance, thisKeyInstance), PTAInstance(new JawaType("java.util.ArrayList"), defContext)),
     new RFAFact(VarSlot("v1"), PTAConcreteStringInstance("key", defContext2))
   ) produce (
     thisFact,
+    thisEntriesFact,
     thisKeyFact,
-    new RFAFact(MapSlot(thisInstance, thisKeyInstance), PTAInstance(new JawaType("java.util.ArrayList"), defContext)),
+    new RFAFact(MapSlot(thisEntriesInstance, thisKeyInstance), PTAInstance(new JawaType("java.util.ArrayList"), defContext)),
     new RFAFact(VarSlot("v1"), PTAConcreteStringInstance("key", defContext2)),
     new RFAFact(VarSlot("temp"), PTAInstance(new JawaType("java.util.ArrayList"), defContext))
   )
@@ -460,311 +541,361 @@ class BundleSuTest extends SuTestBase("Bundle.safsu") {
 
   "Landroid/os/Bundle;.keySet:()Ljava/util/Set;" with_input (
     thisFact,
+    thisEntriesFact,
     thisKeyFact,
-    new RFAFact(MapSlot(thisInstance, thisKeyInstance), PTAInstance(new JawaType("java.util.ArrayList"), defContext))
+    new RFAFact(MapSlot(thisEntriesInstance, thisKeyInstance), PTAInstance(new JawaType("java.util.ArrayList"), defContext))
   ) produce (
     thisFact,
+    thisEntriesFact,
     thisKeyFact,
-    new RFAFact(MapSlot(thisInstance, thisKeyInstance), PTAInstance(new JawaType("java.util.ArrayList"), defContext)),
+    new RFAFact(MapSlot(thisEntriesInstance, thisKeyInstance), PTAInstance(new JawaType("java.util.ArrayList"), defContext)),
     new RFAFact(VarSlot("temp"), PTAInstance(new JawaType("java.util.HashSet"), currentContext)),
     new RFAFact(FieldSlot(PTAInstance(new JawaType("java.util.HashSet"), currentContext), "items"), thisKeyInstance)
   )
 
   "Landroid/os/Bundle;.putAll:(Landroid/os/Bundle;)V" with_input (
     thisFact,
+    thisEntriesFact,
     thisKeyFact,
-    new RFAFact(MapSlot(thisInstance, thisKeyInstance), PTAInstance(new JawaType("java.util.ArrayList"), defContext)),
+    thisValueFact,
     new RFAFact(VarSlot("v1"), PTAInstance(new JawaType(AndroidConstants.BUNDLE), defContext2)),
-    new RFAFact(FieldSlot(PTAInstance(new JawaType(AndroidConstants.BUNDLE), defContext2), "key"), PTAConcreteStringInstance("key", defContext2)),
-    new RFAFact(MapSlot(PTAInstance(new JawaType(AndroidConstants.BUNDLE), defContext2), PTAConcreteStringInstance("key", defContext2)), PTAInstance(new JawaType("java.util.ArrayList"), defContext2))
+    new RFAFact(FieldSlot(PTAInstance(new JawaType(AndroidConstants.BUNDLE), defContext2), "entries"), PTAInstance(new JawaType("android.os.Bundle$Entries"), defContext2)),
+    new RFAFact(FieldSlot(PTAInstance(new JawaType("android.os.Bundle$Entries"), defContext2), "key"), PTAConcreteStringInstance("key", defContext2)),
+    new RFAFact(MapSlot(PTAInstance(new JawaType("android.os.Bundle$Entries"), defContext2), PTAConcreteStringInstance("key", defContext2)), PTAInstance(new JawaType("java.util.ArrayList"), defContext2))
   ) produce (
     thisFact,
+    thisEntriesFact,
     thisKeyFact,
-    new RFAFact(FieldSlot(thisInstance, "key"), PTAConcreteStringInstance("key", defContext2)),
-    new RFAFact(MapSlot(thisInstance, thisKeyInstance), PTAInstance(new JawaType("java.util.ArrayList"), defContext)),
+    thisValueFact,
+    new RFAFact(FieldSlot(thisInstance, "entries"), PTAInstance(new JawaType("android.os.Bundle$Entries"), defContext2)),
     new RFAFact(VarSlot("v1"), PTAInstance(new JawaType(AndroidConstants.BUNDLE), defContext2)),
-    new RFAFact(FieldSlot(PTAInstance(new JawaType(AndroidConstants.BUNDLE), defContext2), "key"), PTAConcreteStringInstance("key", defContext2)),
-    new RFAFact(MapSlot(PTAInstance(new JawaType(AndroidConstants.BUNDLE), defContext2), PTAConcreteStringInstance("key", defContext2)), PTAInstance(new JawaType("java.util.ArrayList"), defContext2))
+    new RFAFact(FieldSlot(PTAInstance(new JawaType(AndroidConstants.BUNDLE), defContext2), "entries"), PTAInstance(new JawaType("android.os.Bundle$Entries"), defContext2)),
+    new RFAFact(FieldSlot(PTAInstance(new JawaType("android.os.Bundle$Entries"), defContext2), "key"), PTAConcreteStringInstance("key", defContext2)),
+    new RFAFact(MapSlot(PTAInstance(new JawaType("android.os.Bundle$Entries"), defContext2), PTAConcreteStringInstance("key", defContext2)), PTAInstance(new JawaType("java.util.ArrayList"), defContext2))
   )
 
   "Landroid/os/Bundle;.putBoolean:(Ljava/lang/String;Z)V" with_input () produce ()
 
   "Landroid/os/Bundle;.putBooleanArray:(Ljava/lang/String;[Z)V" with_input (
     thisFact,
+    thisEntriesFact,
     new RFAFact(VarSlot("v1"), PTAConcreteStringInstance("key", defContext2)),
     new RFAFact(VarSlot("v2"), PTAInstance(new JawaType("boolean", 1), defContext3))
   ) produce (
     thisFact,
+    thisEntriesFact,
     new RFAFact(VarSlot("v1"), PTAConcreteStringInstance("key", defContext2)),
     new RFAFact(VarSlot("v2"), PTAInstance(new JawaType("boolean", 1), defContext3)),
-    new RFAFact(FieldSlot(thisInstance, "key"), PTAConcreteStringInstance("key", defContext2)),
-    new RFAFact(MapSlot(thisInstance, PTAConcreteStringInstance("key", defContext2)), PTAInstance(new JawaType("boolean", 1), defContext3))
+    new RFAFact(FieldSlot(thisEntriesInstance, "key"), PTAConcreteStringInstance("key", defContext2)),
+    new RFAFact(MapSlot(thisEntriesInstance, PTAConcreteStringInstance("key", defContext2)), PTAInstance(new JawaType("boolean", 1), defContext3))
   )
 
   "Landroid/os/Bundle;.putBundle:(Ljava/lang/String;Landroid/os/Bundle;)V" with_input (
     thisFact,
+    thisEntriesFact,
     new RFAFact(VarSlot("v1"), PTAConcreteStringInstance("key", defContext2)),
     new RFAFact(VarSlot("v2"), PTAInstance(new JawaType(AndroidConstants.BUNDLE), defContext3))
   ) produce (
     thisFact,
+    thisEntriesFact,
     new RFAFact(VarSlot("v1"), PTAConcreteStringInstance("key", defContext2)),
     new RFAFact(VarSlot("v2"), PTAInstance(new JawaType(AndroidConstants.BUNDLE), defContext3)),
-    new RFAFact(FieldSlot(thisInstance, "key"), PTAConcreteStringInstance("key", defContext2)),
-    new RFAFact(MapSlot(thisInstance, PTAConcreteStringInstance("key", defContext2)), PTAInstance(new JawaType(AndroidConstants.BUNDLE), defContext3))
+    new RFAFact(FieldSlot(thisEntriesInstance, "key"), PTAConcreteStringInstance("key", defContext2)),
+    new RFAFact(MapSlot(thisEntriesInstance, PTAConcreteStringInstance("key", defContext2)), PTAInstance(new JawaType(AndroidConstants.BUNDLE), defContext3))
   )
 
   "Landroid/os/Bundle;.putByte:(Ljava/lang/String;B)V" with_input () produce ()
 
   "Landroid/os/Bundle;.putByteArray:(Ljava/lang/String;[B)V" with_input (
     thisFact,
+    thisEntriesFact,
     new RFAFact(VarSlot("v1"), PTAConcreteStringInstance("key", defContext2)),
     new RFAFact(VarSlot("v2"), PTAInstance(new JawaType("byte", 1), defContext3))
   ) produce (
     thisFact,
+    thisEntriesFact,
     new RFAFact(VarSlot("v1"), PTAConcreteStringInstance("key", defContext2)),
     new RFAFact(VarSlot("v2"), PTAInstance(new JawaType("byte", 1), defContext3)),
-    new RFAFact(FieldSlot(thisInstance, "key"), PTAConcreteStringInstance("key", defContext2)),
-    new RFAFact(MapSlot(thisInstance, PTAConcreteStringInstance("key", defContext2)), PTAInstance(new JawaType("byte", 1), defContext3))
+    new RFAFact(FieldSlot(thisEntriesInstance, "key"), PTAConcreteStringInstance("key", defContext2)),
+    new RFAFact(MapSlot(thisEntriesInstance, PTAConcreteStringInstance("key", defContext2)), PTAInstance(new JawaType("byte", 1), defContext3))
   )
 
   "Landroid/os/Bundle;.putChar:(Ljava/lang/String;C)V" with_input () produce ()
 
   "Landroid/os/Bundle;.putCharArray:(Ljava/lang/String;[C)V" with_input (
     thisFact,
+    thisEntriesFact,
     new RFAFact(VarSlot("v1"), PTAConcreteStringInstance("key", defContext2)),
     new RFAFact(VarSlot("v2"), PTAInstance(new JawaType("char", 1), defContext3))
   ) produce (
     thisFact,
+    thisEntriesFact,
     new RFAFact(VarSlot("v1"), PTAConcreteStringInstance("key", defContext2)),
     new RFAFact(VarSlot("v2"), PTAInstance(new JawaType("char", 1), defContext3)),
-    new RFAFact(FieldSlot(thisInstance, "key"), PTAConcreteStringInstance("key", defContext2)),
-    new RFAFact(MapSlot(thisInstance, PTAConcreteStringInstance("key", defContext2)), PTAInstance(new JawaType("char", 1), defContext3))
+    new RFAFact(FieldSlot(thisEntriesInstance, "key"), PTAConcreteStringInstance("key", defContext2)),
+    new RFAFact(MapSlot(thisEntriesInstance, PTAConcreteStringInstance("key", defContext2)), PTAInstance(new JawaType("char", 1), defContext3))
   )
 
   "Landroid/os/Bundle;.putCharSequence:(Ljava/lang/String;Ljava/lang/CharSequence;)V" with_input (
     thisFact,
+    thisEntriesFact,
     new RFAFact(VarSlot("v1"), PTAConcreteStringInstance("key", defContext2)),
     new RFAFact(VarSlot("v2"), PTAConcreteStringInstance("value", defContext3))
   ) produce (
     thisFact,
+    thisEntriesFact,
     new RFAFact(VarSlot("v1"), PTAConcreteStringInstance("key", defContext2)),
     new RFAFact(VarSlot("v2"), PTAConcreteStringInstance("value", defContext3)),
-    new RFAFact(FieldSlot(thisInstance, "key"), PTAConcreteStringInstance("key", defContext2)),
-    new RFAFact(MapSlot(thisInstance, PTAConcreteStringInstance("key", defContext2)), PTAConcreteStringInstance("value", defContext3))
+    new RFAFact(FieldSlot(thisEntriesInstance, "key"), PTAConcreteStringInstance("key", defContext2)),
+    new RFAFact(MapSlot(thisEntriesInstance, PTAConcreteStringInstance("key", defContext2)), PTAConcreteStringInstance("value", defContext3))
   )
 
   "Landroid/os/Bundle;.putCharSequenceArray:(Ljava/lang/String;[Ljava/lang/CharSequence;)V" with_input (
     thisFact,
+    thisEntriesFact,
     new RFAFact(VarSlot("v1"), PTAConcreteStringInstance("key", defContext2)),
     new RFAFact(VarSlot("v2"), PTAInstance(new JawaType("java.lang.String", 1), defContext3))
   ) produce (
     thisFact,
+    thisEntriesFact,
     new RFAFact(VarSlot("v1"), PTAConcreteStringInstance("key", defContext2)),
     new RFAFact(VarSlot("v2"), PTAInstance(new JawaType("java.lang.String", 1), defContext3)),
-    new RFAFact(FieldSlot(thisInstance, "key"), PTAConcreteStringInstance("key", defContext2)),
-    new RFAFact(MapSlot(thisInstance, PTAConcreteStringInstance("key", defContext2)), PTAInstance(new JawaType("java.lang.String", 1), defContext3))
+    new RFAFact(FieldSlot(thisEntriesInstance, "key"), PTAConcreteStringInstance("key", defContext2)),
+    new RFAFact(MapSlot(thisEntriesInstance, PTAConcreteStringInstance("key", defContext2)), PTAInstance(new JawaType("java.lang.String", 1), defContext3))
   )
 
   "Landroid/os/Bundle;.putCharSequenceArrayList:(Ljava/lang/String;Ljava/util/ArrayList;)V" with_input (
     thisFact,
+    thisEntriesFact,
     new RFAFact(VarSlot("v1"), PTAConcreteStringInstance("key", defContext2)),
     new RFAFact(VarSlot("v2"), PTAInstance(new JawaType("java.util.ArrayList"), defContext3))
   ) produce (
     thisFact,
+    thisEntriesFact,
     new RFAFact(VarSlot("v1"), PTAConcreteStringInstance("key", defContext2)),
     new RFAFact(VarSlot("v2"), PTAInstance(new JawaType("java.util.ArrayList"), defContext3)),
-    new RFAFact(FieldSlot(thisInstance, "key"), PTAConcreteStringInstance("key", defContext2)),
-    new RFAFact(MapSlot(thisInstance, PTAConcreteStringInstance("key", defContext2)), PTAInstance(new JawaType("java.util.ArrayList"), defContext3))
+    new RFAFact(FieldSlot(thisEntriesInstance, "key"), PTAConcreteStringInstance("key", defContext2)),
+    new RFAFact(MapSlot(thisEntriesInstance, PTAConcreteStringInstance("key", defContext2)), PTAInstance(new JawaType("java.util.ArrayList"), defContext3))
   )
 
   "Landroid/os/Bundle;.putDouble:(Ljava/lang/String;D)V" with_input () produce ()
 
   "Landroid/os/Bundle;.putDoubleArray:(Ljava/lang/String;[D)V" with_input (
     thisFact,
+    thisEntriesFact,
     new RFAFact(VarSlot("v1"), PTAConcreteStringInstance("key", defContext2)),
     new RFAFact(VarSlot("v2"), PTAInstance(new JawaType("double", 1), defContext3))
   ) produce (
     thisFact,
+    thisEntriesFact,
     new RFAFact(VarSlot("v1"), PTAConcreteStringInstance("key", defContext2)),
     new RFAFact(VarSlot("v2"), PTAInstance(new JawaType("double", 1), defContext3)),
-    new RFAFact(FieldSlot(thisInstance, "key"), PTAConcreteStringInstance("key", defContext2)),
-    new RFAFact(MapSlot(thisInstance, PTAConcreteStringInstance("key", defContext2)), PTAInstance(new JawaType("double", 1), defContext3))
+    new RFAFact(FieldSlot(thisEntriesInstance, "key"), PTAConcreteStringInstance("key", defContext2)),
+    new RFAFact(MapSlot(thisEntriesInstance, PTAConcreteStringInstance("key", defContext2)), PTAInstance(new JawaType("double", 1), defContext3))
   )
 
   "Landroid/os/Bundle;.putFloat:(Ljava/lang/String;F)V" with_input () produce ()
 
   "Landroid/os/Bundle;.putFloatArray:(Ljava/lang/String;[F)V" with_input (
     thisFact,
+    thisEntriesFact,
     new RFAFact(VarSlot("v1"), PTAConcreteStringInstance("key", defContext2)),
     new RFAFact(VarSlot("v2"), PTAInstance(new JawaType("float", 1), defContext3))
   ) produce (
     thisFact,
+    thisEntriesFact,
     new RFAFact(VarSlot("v1"), PTAConcreteStringInstance("key", defContext2)),
     new RFAFact(VarSlot("v2"), PTAInstance(new JawaType("float", 1), defContext3)),
-    new RFAFact(FieldSlot(thisInstance, "key"), PTAConcreteStringInstance("key", defContext2)),
-    new RFAFact(MapSlot(thisInstance, PTAConcreteStringInstance("key", defContext2)), PTAInstance(new JawaType("float", 1), defContext3))
+    new RFAFact(FieldSlot(thisEntriesInstance, "key"), PTAConcreteStringInstance("key", defContext2)),
+    new RFAFact(MapSlot(thisEntriesInstance, PTAConcreteStringInstance("key", defContext2)), PTAInstance(new JawaType("float", 1), defContext3))
   )
 
   "Landroid/os/Bundle;.putIBinder:(Ljava/lang/String;Landroid/os/IBinder;)V" with_input (
     thisFact,
+    thisEntriesFact,
     new RFAFact(VarSlot("v1"), PTAConcreteStringInstance("key", defContext2)),
     new RFAFact(VarSlot("v2"), PTAInstance(new JawaType("android.os.Binder"), defContext3))
   ) produce (
     thisFact,
+    thisEntriesFact,
     new RFAFact(VarSlot("v1"), PTAConcreteStringInstance("key", defContext2)),
     new RFAFact(VarSlot("v2"), PTAInstance(new JawaType("android.os.Binder"), defContext3)),
-    new RFAFact(FieldSlot(thisInstance, "key"), PTAConcreteStringInstance("key", defContext2)),
-    new RFAFact(MapSlot(thisInstance, PTAConcreteStringInstance("key", defContext2)), PTAInstance(new JawaType("android.os.Binder"), defContext3))
+    new RFAFact(FieldSlot(thisEntriesInstance, "key"), PTAConcreteStringInstance("key", defContext2)),
+    new RFAFact(MapSlot(thisEntriesInstance, PTAConcreteStringInstance("key", defContext2)), PTAInstance(new JawaType("android.os.Binder"), defContext3))
   )
 
   "Landroid/os/Bundle;.putInt:(Ljava/lang/String;I)V" with_input () produce ()
 
   "Landroid/os/Bundle;.putIntArray:(Ljava/lang/String;[I)V" with_input (
     thisFact,
+    thisEntriesFact,
     new RFAFact(VarSlot("v1"), PTAConcreteStringInstance("key", defContext2)),
     new RFAFact(VarSlot("v2"), PTAInstance(new JawaType("int", 1), defContext3))
   ) produce (
     thisFact,
+    thisEntriesFact,
     new RFAFact(VarSlot("v1"), PTAConcreteStringInstance("key", defContext2)),
     new RFAFact(VarSlot("v2"), PTAInstance(new JawaType("int", 1), defContext3)),
-    new RFAFact(FieldSlot(thisInstance, "key"), PTAConcreteStringInstance("key", defContext2)),
-    new RFAFact(MapSlot(thisInstance, PTAConcreteStringInstance("key", defContext2)), PTAInstance(new JawaType("int", 1), defContext3))
+    new RFAFact(FieldSlot(thisEntriesInstance, "key"), PTAConcreteStringInstance("key", defContext2)),
+    new RFAFact(MapSlot(thisEntriesInstance, PTAConcreteStringInstance("key", defContext2)), PTAInstance(new JawaType("int", 1), defContext3))
   )
 
   "Landroid/os/Bundle;.putIntegerArrayList:(Ljava/lang/String;Ljava/util/ArrayList;)V" with_input (
     thisFact,
+    thisEntriesFact,
     new RFAFact(VarSlot("v1"), PTAConcreteStringInstance("key", defContext2)),
     new RFAFact(VarSlot("v2"), PTAInstance(new JawaType("java.util.ArrayList"), defContext3))
   ) produce (
     thisFact,
+    thisEntriesFact,
     new RFAFact(VarSlot("v1"), PTAConcreteStringInstance("key", defContext2)),
     new RFAFact(VarSlot("v2"), PTAInstance(new JawaType("java.util.ArrayList"), defContext3)),
-    new RFAFact(FieldSlot(thisInstance, "key"), PTAConcreteStringInstance("key", defContext2)),
-    new RFAFact(MapSlot(thisInstance, PTAConcreteStringInstance("key", defContext2)), PTAInstance(new JawaType("java.util.ArrayList"), defContext3))
+    new RFAFact(FieldSlot(thisEntriesInstance, "key"), PTAConcreteStringInstance("key", defContext2)),
+    new RFAFact(MapSlot(thisEntriesInstance, PTAConcreteStringInstance("key", defContext2)), PTAInstance(new JawaType("java.util.ArrayList"), defContext3))
   )
 
   "Landroid/os/Bundle;.putLong:(Ljava/lang/String;J)V" with_input () produce ()
 
   "Landroid/os/Bundle;.putLongArray:(Ljava/lang/String;[J)V" with_input (
     thisFact,
+    thisEntriesFact,
     new RFAFact(VarSlot("v1"), PTAConcreteStringInstance("key", defContext2)),
     new RFAFact(VarSlot("v2"), PTAInstance(new JawaType("long", 1), defContext3))
   ) produce (
     thisFact,
+    thisEntriesFact,
     new RFAFact(VarSlot("v1"), PTAConcreteStringInstance("key", defContext2)),
     new RFAFact(VarSlot("v2"), PTAInstance(new JawaType("long", 1), defContext3)),
-    new RFAFact(FieldSlot(thisInstance, "key"), PTAConcreteStringInstance("key", defContext2)),
-    new RFAFact(MapSlot(thisInstance, PTAConcreteStringInstance("key", defContext2)), PTAInstance(new JawaType("long", 1), defContext3))
+    new RFAFact(FieldSlot(thisEntriesInstance, "key"), PTAConcreteStringInstance("key", defContext2)),
+    new RFAFact(MapSlot(thisEntriesInstance, PTAConcreteStringInstance("key", defContext2)), PTAInstance(new JawaType("long", 1), defContext3))
   )
 
   "Landroid/os/Bundle;.putParcelable:(Ljava/lang/String;Landroid/os/Parcelable;)V" with_input (
     thisFact,
+    thisEntriesFact,
     new RFAFact(VarSlot("v1"), PTAConcreteStringInstance("key", defContext2)),
     new RFAFact(VarSlot("v2"), PTAInstance(new JawaType("android.os.Parcelable").toUnknown, defContext3))
   ) produce (
     thisFact,
+    thisEntriesFact,
     new RFAFact(VarSlot("v1"), PTAConcreteStringInstance("key", defContext2)),
     new RFAFact(VarSlot("v2"), PTAInstance(new JawaType("android.os.Parcelable").toUnknown, defContext3)),
-    new RFAFact(FieldSlot(thisInstance, "key"), PTAConcreteStringInstance("key", defContext2)),
-    new RFAFact(MapSlot(thisInstance, PTAConcreteStringInstance("key", defContext2)), PTAInstance(new JawaType("android.os.Parcelable").toUnknown, defContext3))
+    new RFAFact(FieldSlot(thisEntriesInstance, "key"), PTAConcreteStringInstance("key", defContext2)),
+    new RFAFact(MapSlot(thisEntriesInstance, PTAConcreteStringInstance("key", defContext2)), PTAInstance(new JawaType("android.os.Parcelable").toUnknown, defContext3))
   )
 
   "Landroid/os/Bundle;.putParcelableArray:(Ljava/lang/String;[Landroid/os/Parcelable;)V" with_input (
     thisFact,
+    thisEntriesFact,
     new RFAFact(VarSlot("v1"), PTAConcreteStringInstance("key", defContext2)),
     new RFAFact(VarSlot("v2"), PTAInstance(new JawaType("android.os.Parcelable", 1), defContext3))
   ) produce (
     thisFact,
+    thisEntriesFact,
     new RFAFact(VarSlot("v1"), PTAConcreteStringInstance("key", defContext2)),
     new RFAFact(VarSlot("v2"), PTAInstance(new JawaType("android.os.Parcelable", 1), defContext3)),
-    new RFAFact(FieldSlot(thisInstance, "key"), PTAConcreteStringInstance("key", defContext2)),
-    new RFAFact(MapSlot(thisInstance, PTAConcreteStringInstance("key", defContext2)), PTAInstance(new JawaType("android.os.Parcelable", 1), defContext3))
+    new RFAFact(FieldSlot(thisEntriesInstance, "key"), PTAConcreteStringInstance("key", defContext2)),
+    new RFAFact(MapSlot(thisEntriesInstance, PTAConcreteStringInstance("key", defContext2)), PTAInstance(new JawaType("android.os.Parcelable", 1), defContext3))
   )
 
   "Landroid/os/Bundle;.putParcelableArrayList:(Ljava/lang/String;Ljava/util/ArrayList;)V" with_input (
     thisFact,
+    thisEntriesFact,
     new RFAFact(VarSlot("v1"), PTAConcreteStringInstance("key", defContext2)),
     new RFAFact(VarSlot("v2"), PTAInstance(new JawaType("java.util.ArrayList"), defContext3))
   ) produce (
     thisFact,
+    thisEntriesFact,
     new RFAFact(VarSlot("v1"), PTAConcreteStringInstance("key", defContext2)),
     new RFAFact(VarSlot("v2"), PTAInstance(new JawaType("java.util.ArrayList"), defContext3)),
-    new RFAFact(FieldSlot(thisInstance, "key"), PTAConcreteStringInstance("key", defContext2)),
-    new RFAFact(MapSlot(thisInstance, PTAConcreteStringInstance("key", defContext2)), PTAInstance(new JawaType("java.util.ArrayList"), defContext3))
+    new RFAFact(FieldSlot(thisEntriesInstance, "key"), PTAConcreteStringInstance("key", defContext2)),
+    new RFAFact(MapSlot(thisEntriesInstance, PTAConcreteStringInstance("key", defContext2)), PTAInstance(new JawaType("java.util.ArrayList"), defContext3))
   )
 
   "Landroid/os/Bundle;.putSerializable:(Ljava/lang/String;Ljava/io/Serializable;)V" with_input (
     thisFact,
+    thisEntriesFact,
     new RFAFact(VarSlot("v1"), PTAConcreteStringInstance("key", defContext2)),
     new RFAFact(VarSlot("v2"), PTAInstance(new JawaType("java.io.Serializable").toUnknown, defContext3))
   ) produce (
     thisFact,
+    thisEntriesFact,
     new RFAFact(VarSlot("v1"), PTAConcreteStringInstance("key", defContext2)),
     new RFAFact(VarSlot("v2"), PTAInstance(new JawaType("java.io.Serializable").toUnknown, defContext3)),
-    new RFAFact(FieldSlot(thisInstance, "key"), PTAConcreteStringInstance("key", defContext2)),
-    new RFAFact(MapSlot(thisInstance, PTAConcreteStringInstance("key", defContext2)), PTAInstance(new JawaType("java.io.Serializable").toUnknown, defContext3))
+    new RFAFact(FieldSlot(thisEntriesInstance, "key"), PTAConcreteStringInstance("key", defContext2)),
+    new RFAFact(MapSlot(thisEntriesInstance, PTAConcreteStringInstance("key", defContext2)), PTAInstance(new JawaType("java.io.Serializable").toUnknown, defContext3))
   )
 
   "Landroid/os/Bundle;.putShort:(Ljava/lang/String;S)V" with_input () produce ()
 
   "Landroid/os/Bundle;.putShortArray:(Ljava/lang/String;[S)V" with_input (
     thisFact,
+    thisEntriesFact,
     new RFAFact(VarSlot("v1"), PTAConcreteStringInstance("key", defContext2)),
     new RFAFact(VarSlot("v2"), PTAInstance(new JawaType("short", 1), defContext3))
   ) produce (
     thisFact,
+    thisEntriesFact,
     new RFAFact(VarSlot("v1"), PTAConcreteStringInstance("key", defContext2)),
     new RFAFact(VarSlot("v2"), PTAInstance(new JawaType("short", 1), defContext3)),
-    new RFAFact(FieldSlot(thisInstance, "key"), PTAConcreteStringInstance("key", defContext2)),
-    new RFAFact(MapSlot(thisInstance, PTAConcreteStringInstance("key", defContext2)), PTAInstance(new JawaType("short", 1), defContext3))
+    new RFAFact(FieldSlot(thisEntriesInstance, "key"), PTAConcreteStringInstance("key", defContext2)),
+    new RFAFact(MapSlot(thisEntriesInstance, PTAConcreteStringInstance("key", defContext2)), PTAInstance(new JawaType("short", 1), defContext3))
   )
 
   "Landroid/os/Bundle;.putSparseParcelableArray:(Ljava/lang/String;Landroid/util/SparseArray;)V" with_input (
     thisFact,
+    thisEntriesFact,
     new RFAFact(VarSlot("v1"), PTAConcreteStringInstance("key", defContext2)),
     new RFAFact(VarSlot("v2"), PTAInstance(new JawaType("android.util.SparseArray"), defContext3))
   ) produce (
     thisFact,
+    thisEntriesFact,
     new RFAFact(VarSlot("v1"), PTAConcreteStringInstance("key", defContext2)),
     new RFAFact(VarSlot("v2"), PTAInstance(new JawaType("android.util.SparseArray"), defContext3)),
-    new RFAFact(FieldSlot(thisInstance, "key"), PTAConcreteStringInstance("key", defContext2)),
-    new RFAFact(MapSlot(thisInstance, PTAConcreteStringInstance("key", defContext2)), PTAInstance(new JawaType("android.util.SparseArray"), defContext3))
+    new RFAFact(FieldSlot(thisEntriesInstance, "key"), PTAConcreteStringInstance("key", defContext2)),
+    new RFAFact(MapSlot(thisEntriesInstance, PTAConcreteStringInstance("key", defContext2)), PTAInstance(new JawaType("android.util.SparseArray"), defContext3))
   )
 
   "Landroid/os/Bundle;.putString:(Ljava/lang/String;Ljava/lang/String;)V" with_input (
     thisFact,
+    thisEntriesFact,
     new RFAFact(VarSlot("v1"), PTAConcreteStringInstance("key", defContext2)),
     new RFAFact(VarSlot("v2"), PTAConcreteStringInstance("value", defContext3))
   ) produce (
     thisFact,
+    thisEntriesFact,
     new RFAFact(VarSlot("v1"), PTAConcreteStringInstance("key", defContext2)),
     new RFAFact(VarSlot("v2"), PTAConcreteStringInstance("value", defContext3)),
-    new RFAFact(FieldSlot(thisInstance, "key"), PTAConcreteStringInstance("key", defContext2)),
-    new RFAFact(MapSlot(thisInstance, PTAConcreteStringInstance("key", defContext2)), PTAConcreteStringInstance("value", defContext3))
+    new RFAFact(FieldSlot(thisEntriesInstance, "key"), PTAConcreteStringInstance("key", defContext2)),
+    new RFAFact(MapSlot(thisEntriesInstance, PTAConcreteStringInstance("key", defContext2)), PTAConcreteStringInstance("value", defContext3))
   )
 
   "Landroid/os/Bundle;.putStringArray:(Ljava/lang/String;[Ljava/lang/String;)V" with_input (
     thisFact,
+    thisEntriesFact,
     new RFAFact(VarSlot("v1"), PTAConcreteStringInstance("key", defContext2)),
     new RFAFact(VarSlot("v2"), PTAInstance(new JawaType("java.lang.String", 1), defContext3))
   ) produce (
     thisFact,
+    thisEntriesFact,
     new RFAFact(VarSlot("v1"), PTAConcreteStringInstance("key", defContext2)),
     new RFAFact(VarSlot("v2"), PTAInstance(new JawaType("java.lang.String", 1), defContext3)),
-    new RFAFact(FieldSlot(thisInstance, "key"), PTAConcreteStringInstance("key", defContext2)),
-    new RFAFact(MapSlot(thisInstance, PTAConcreteStringInstance("key", defContext2)), PTAInstance(new JawaType("java.lang.String", 1), defContext3))
+    new RFAFact(FieldSlot(thisEntriesInstance, "key"), PTAConcreteStringInstance("key", defContext2)),
+    new RFAFact(MapSlot(thisEntriesInstance, PTAConcreteStringInstance("key", defContext2)), PTAInstance(new JawaType("java.lang.String", 1), defContext3))
   )
 
   "Landroid/os/Bundle;.putStringArrayList:(Ljava/lang/String;Ljava/util/ArrayList;)V" with_input (
     thisFact,
+    thisEntriesFact,
     new RFAFact(VarSlot("v1"), PTAConcreteStringInstance("key", defContext2)),
     new RFAFact(VarSlot("v2"), PTAInstance(new JawaType("java.util.ArrayList"), defContext3))
   ) produce (
     thisFact,
+    thisEntriesFact,
     new RFAFact(VarSlot("v1"), PTAConcreteStringInstance("key", defContext2)),
     new RFAFact(VarSlot("v2"), PTAInstance(new JawaType("java.util.ArrayList"), defContext3)),
-    new RFAFact(FieldSlot(thisInstance, "key"), PTAConcreteStringInstance("key", defContext2)),
-    new RFAFact(MapSlot(thisInstance, PTAConcreteStringInstance("key", defContext2)), PTAInstance(new JawaType("java.util.ArrayList"), defContext3))
+    new RFAFact(FieldSlot(thisEntriesInstance, "key"), PTAConcreteStringInstance("key", defContext2)),
+    new RFAFact(MapSlot(thisEntriesInstance, PTAConcreteStringInstance("key", defContext2)), PTAInstance(new JawaType("java.util.ArrayList"), defContext3))
   )
 
   "Landroid/os/Bundle;.readFromParcel:(Landroid/os/Parcel;)V" with_input () produce ()
@@ -772,11 +903,13 @@ class BundleSuTest extends SuTestBase("Bundle.safsu") {
 
   "Landroid/os/Bundle;.remove:(Ljava/lang/String;)V" with_input (
     thisFact,
+    thisEntriesFact,
     thisKeyFact,
-    new RFAFact(MapSlot(thisInstance, thisKeyInstance), PTAInstance(new JawaType("java.util.ArrayList"), defContext)),
+    thisValueFact,
     new RFAFact(VarSlot("v1"), PTAConcreteStringInstance("key", defContext))
   ) produce (
     thisFact,
+    thisEntriesFact,
     new RFAFact(VarSlot("v1"), PTAConcreteStringInstance("key", defContext))
   )
 
@@ -788,12 +921,14 @@ class BundleSuTest extends SuTestBase("Bundle.safsu") {
 
   "Landroid/os/Bundle;.toString:()Ljava/lang/String;" with_input (
     thisFact,
+    thisEntriesFact,
     thisKeyFact,
-    new RFAFact(MapSlot(thisInstance, thisKeyInstance), PTAInstance(new JawaType("java.util.ArrayList"), defContext))
+    thisValueFact
   ) produce (
     thisFact,
+    thisEntriesFact,
     thisKeyFact,
-    new RFAFact(MapSlot(thisInstance, thisKeyInstance), PTAInstance(new JawaType("java.util.ArrayList"), defContext)),
+    thisValueFact,
     new RFAFact(VarSlot("temp"), PTAPointStringInstance(currentContext))
   )
 

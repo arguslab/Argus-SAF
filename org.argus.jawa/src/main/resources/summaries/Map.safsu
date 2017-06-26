@@ -1,42 +1,59 @@
+`Ljava/util/HashMap;.<init>:()V`:
+  this.entries = java.util.HashMap$Entries@~
+;
+
+`Ljava/util/HashMap;.<init>:(IF)V`:
+  this.entries = java.util.HashMap$Entries@~
+;
+
+`Ljava/util/HashMap;.<init>:(I)V`:
+  this.entries = java.util.HashMap$Entries@~
+;
+
+`Ljava/util/HashMap;.<init>:(Ljava/util/Map;)V`:
+  this.entries += arg:0.entries
+;
+
 `Ljava/util/Map;.clear:()V`:
-  ~this
+  ~this.entries
 ;
 
 `Ljava/util/Map;.clone:()Ljava/lang/Object;`:
-  ret = this
+  ret = java.util.HashMap@~
+  ret.entries = this.entries
 ;
 
 `Ljava/util/Map;.entrySet:()Ljava/util/Set;`:
   ret = java.util.HashSet@~
-  ret.items = this.key
+  ret.items = this.entries
 ;
 
 `Ljava/util/Map;.get:(Ljava/lang/Object;)Ljava/lang/Object;`:
-  ret = this(arg:0)
+  ret = this.entries(arg:0)
 ;
 
 `Ljava/util/Map;.keySet:()Ljava/util/Set;`:
   ret = java.util.HashSet@~
-  ret.items = this.key
+  ret.items = this.entries.key
 ;
 
 `Ljava/util/Map;.put:(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;`:
-  ret = this()
-  this.key += arg:0
-  this(arg:0) = arg:1
+  ret = this.entries()
+  this.entries.key += arg:0
+  this.entries(arg:0) = arg:1
 ;
 
 `Ljava/util/Map;.putAll:(Ljava/util/Map;)V`:
-  this.key += arg:0.key
+  this.entries += arg:0.entries
 ;
 
 `Ljava/util/Map;.remove:(Ljava/lang/Object;)Ljava/lang/Object;`:
-  ret = this(arg:0)
-  this.key -= arg:0
-  ~this(arg:0)
+  ret = this.entries(arg:0)
+  this.entries.key -= arg:0
+  ~this.entries(arg:0)
 ;
 
 `Ljava/util/Map;.values:()Ljava/util/Collection;`:
   ret = java.util.HashSet@~
-  ret.items = this()
+  ret.items = this.entries()
 ;

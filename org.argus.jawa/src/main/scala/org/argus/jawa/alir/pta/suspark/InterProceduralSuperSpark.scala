@@ -195,7 +195,7 @@ object InterProceduralSuperSpark {
                     case obj if obj.isObject =>
                       val ins = PTAInstance(obj.toUnknown, edge.source.context)
                       edge.source.getSlots(pag.pointsToMap) foreach { slot =>
-                        pag.pointsToMap.addInstance(after = false, pag.pointsToMap.heapContext, slot, ins)
+                        pag.pointsToMap.addInstance(pag.pointsToMap.heapContext, slot, ins)
                       }
                     case _ =>
                   }
@@ -219,7 +219,7 @@ object InterProceduralSuperSpark {
                     case obj if obj.isObject =>
                       val ins = PTAInstance(obj.toUnknown, edge.source.context)
                       edge.source.getSlots(pag.pointsToMap) foreach { slot =>
-                        pag.pointsToMap.addInstance(after = false, pag.pointsToMap.heapContext, slot, ins)
+                        pag.pointsToMap.addInstance(pag.pointsToMap.heapContext, slot, ins)
                       }
                     case _ =>
                   }

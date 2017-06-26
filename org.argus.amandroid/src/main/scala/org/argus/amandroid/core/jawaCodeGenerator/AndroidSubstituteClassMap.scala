@@ -7,7 +7,7 @@
  *
  * Detailed contributors are listed in the CONTRIBUTOR.md
  */
-package org.argus.amandroid.core.pilarCodeGenerator
+package org.argus.amandroid.core.jawaCodeGenerator
 
 import org.argus.jawa.core.JawaType
 import org.argus.jawa.core.util._

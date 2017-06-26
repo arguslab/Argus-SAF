@@ -161,8 +161,8 @@ object AndroidDataDependentTaintAnalysis {
     val calleeSet = callArgNode.getCalleeSet
     calleeSet.foreach{ _ =>
       val argSlot = VarSlot(callArgNode.argName)
-      val argValue = ptaresult.pointsToSet(after = false, callArgNode.getContext, argSlot)
-      val argRelatedValue = ptaresult.getRelatedHeapInstances(after = false, callArgNode.getContext, argValue)
+      val argValue = ptaresult.pointsToSet(callArgNode.getContext, argSlot)
+      val argRelatedValue = ptaresult.getRelatedHeapInstances(callArgNode.getContext, argValue)
       argRelatedValue.foreach{ ins =>
         if(ins.defSite != callArgNode.getContext){
           iddg.findDefSite(ins.defSite) match {

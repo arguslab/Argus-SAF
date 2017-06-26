@@ -1,0 +1,168 @@
+`Landroid/net/Uri;.<clinit>:()V`:
+;
+
+`Landroid/net/Uri;.buildUpon:()Landroid/net/Uri$Builder;`:
+  ret = android.net.Uri$Builder@~
+;
+
+`Landroid/net/Uri;.compareTo:(Landroid/net/Uri;)I`:
+;
+
+`Landroid/net/Uri;.compareTo:(Ljava/lang/Object;)I`:
+;
+
+`Landroid/net/Uri;.decode:(Ljava/lang/String;)Ljava/lang/String;`:
+  ret = arg:0
+;
+
+`Landroid/net/Uri;.encode:(Ljava/lang/String;)Ljava/lang/String;`:
+  ret = arg:0
+;
+
+`Landroid/net/Uri;.encode:(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;`:
+  ret = java.lang.String@~
+;
+
+`Landroid/net/Uri;.equals:(Ljava/lang/Object;)Z`:
+;
+
+`Landroid/net/Uri;.fromFile:(Ljava/io/File;)Landroid/net/Uri;`:
+  ret = android.net.Uri@~
+  ret.uri = java.lang.String@~
+;
+
+`Landroid/net/Uri;.fromParts:(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Landroid/net/Uri;`:
+  ret = android.net.Uri@~
+  ret.uri = java.lang.String@~
+;
+
+`Landroid/net/Uri;.getAuthority:()Ljava/lang/String;`:
+  ret = java.lang.String@~
+;
+
+`Landroid/net/Uri;.getBooleanQueryParameter:(Ljava/lang/String;Z)Z`:
+;
+
+`Landroid/net/Uri;.getCanonicalUri:()Landroid/net/Uri;`:
+  ret = this
+;
+
+`Landroid/net/Uri;.getEncodedAuthority:()Ljava/lang/String;`:
+  ret = java.lang.String@~
+;
+
+`Landroid/net/Uri;.getEncodedFragment:()Ljava/lang/String;`:
+  ret = java.lang.String@~
+;
+
+`Landroid/net/Uri;.getEncodedPath:()Ljava/lang/String;`:
+  ret = java.lang.String@~
+;
+
+`Landroid/net/Uri;.getEncodedQuery:()Ljava/lang/String;`:
+  ret = java.lang.String@~
+;
+
+`Landroid/net/Uri;.getEncodedSchemeSpecificPart:()Ljava/lang/String;`:
+  ret = java.lang.String@~
+;
+
+`Landroid/net/Uri;.getEncodedUserInfo:()Ljava/lang/String;`:
+  ret = java.lang.String@~
+;
+
+`Landroid/net/Uri;.getFragment:()Ljava/lang/String;`:
+  ret = java.lang.String@~
+;
+
+`Landroid/net/Uri;.getHost:()Ljava/lang/String;`:
+  ret = java.lang.String@~
+;
+
+`Landroid/net/Uri;.getLastPathSegment:()Ljava/lang/String;`:
+  ret = java.lang.String@~
+;
+
+`Landroid/net/Uri;.getPath:()Ljava/lang/String;`:
+  ret = java.lang.String@~
+;
+
+`Landroid/net/Uri;.getPathSegments:()Ljava/util/List;`:
+  ret = java.lang.String@~
+;
+
+`Landroid/net/Uri;.getPort:()I`:
+;
+
+`Landroid/net/Uri;.getQuery:()Ljava/lang/String;`:
+  ret = java.lang.String@~
+;
+
+`Landroid/net/Uri;.getQueryParameter:(Ljava/lang/String;)Ljava/lang/String;`:
+  ret = java.lang.String@~
+;
+
+`Landroid/net/Uri;.getQueryParameterNames:()Ljava/util/Set;`:
+  ret = java.util.HashSet@~
+  ret.items = java.lang.String@~
+;
+
+`Landroid/net/Uri;.getQueryParameters:(Ljava/lang/String;)Ljava/util/List;`:
+  ret = java.util.ArrayList@~
+  ret.items = java.lang.String@~
+;
+
+`Landroid/net/Uri;.getScheme:()Ljava/lang/String;`:
+  ret = java.lang.String@~
+;
+
+`Landroid/net/Uri;.getSchemeSpecificPart:()Ljava/lang/String;`:
+  ret = java.lang.String@~
+;
+
+`Landroid/net/Uri;.getUserInfo:()Ljava/lang/String;`:
+  ret = java.lang.String@~
+;
+
+`Landroid/net/Uri;.hashCode:()I`:
+;
+
+`Landroid/net/Uri;.isAbsolute:()Z`:
+;
+
+`Landroid/net/Uri;.isAllowed:(CLjava/lang/String;)Z`:
+;
+
+`Landroid/net/Uri;.isHierarchical:()Z`:
+;
+
+`Landroid/net/Uri;.isOpaque:()Z`:
+;
+
+`Landroid/net/Uri;.isRelative:()Z`:
+;
+
+`Landroid/net/Uri;.normalizeScheme:()Landroid/net/Uri;`:
+  ret = this
+;
+
+`Landroid/net/Uri;.parse:(Ljava/lang/String;)Landroid/net/Uri;`:
+  ret = android.net.Uri@~
+  ret.uri = arg:0
+;
+
+`Landroid/net/Uri;.toSafeString:()Ljava/lang/String;`:
+  ret = this.uri
+;
+
+`Landroid/net/Uri;.toString:()Ljava/lang/String;`:
+  ret = this.uri
+;
+
+`Landroid/net/Uri;.withAppendedPath:(Landroid/net/Uri;Ljava/lang/String;)Landroid/net/Uri;`:
+  ret = android.net.Uri@~
+  ret.uri = java.lang.String@~
+;
+
+`Landroid/net/Uri;.writeToParcel:(Landroid/os/Parcel;Landroid/net/Uri;)V`:
+;

@@ -19,9 +19,7 @@ object InstanceSerializer extends CustomSerializer[Instance](format => (
       case jv: JValue =>
         implicit val formats = format + ContextSerializer + JawaTypeSerializer
         jv match {
-          case JObject(List(JField("ClassInstance", v))) => Extraction.extract[ClassInstance](v)
           case JObject(List(JField("PTAInstance", v))) => Extraction.extract[PTAInstance](v)
-          case JObject(List(JField("PTATupleInstance", v))) => Extraction.extract[PTATupleInstance](v)
           case JObject(List(JField("PTAPointStringInstance", v))) => Extraction.extract[PTAPointStringInstance](v)
           case JObject(List(JField("PTAConcreteStringInstance", v))) => Extraction.extract[PTAConcreteStringInstance](v)
         }
@@ -29,9 +27,7 @@ object InstanceSerializer extends CustomSerializer[Instance](format => (
       case ins: Instance =>
         implicit val formats = format + ContextSerializer + JawaTypeSerializer
         ins match {
-          case c: ClassInstance => "ClassInstance" -> ("classtyp" -> Extraction.decompose(c.classtyp)) ~ ("defSite" -> Extraction.decompose(c.defSite))
           case c: PTAInstance => "PTAInstance" -> ("typ" -> Extraction.decompose(c.typ)) ~ ("defSite" -> Extraction.decompose(c.defSite))
-          case c: PTATupleInstance => "PTATupleInstance" -> ("left" -> Extraction.decompose(c.left)) ~ ("right" -> Extraction.decompose(c.right)) ~ ("defSite" -> Extraction.decompose(c.defSite))
           case c: PTAPointStringInstance => "PTAPointStringInstance" -> ("defSite" -> Extraction.decompose(c.defSite))
           case c: PTAConcreteStringInstance => "PTAConcreteStringInstance" -> ("string" -> c.string) ~ ("defSite" -> Extraction.decompose(c.defSite))
         }

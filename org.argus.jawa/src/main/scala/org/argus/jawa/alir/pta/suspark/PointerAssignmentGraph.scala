@@ -30,7 +30,7 @@ class PointsToMap extends PTAResult {
     */
   def transferPointsToSet(n1: PtaNode, n2: PtaNode): Unit = {
     n2.getSlots(this) foreach {
-      addInstances(after = false, n2.getContext, _, pointsToSet(n1))
+      addInstances(n2.getContext, _, pointsToSet(n1))
     }
   }
 
@@ -39,7 +39,7 @@ class PointsToMap extends PTAResult {
     */
   def transferPointsToSet(n: PtaNode, d: ISet[Instance]): Unit = {
     n.getSlots(this) foreach {
-      addInstances(after = false, n.getContext, _, d)
+      addInstances(n.getContext, _, d)
     }
   }
 
@@ -52,11 +52,11 @@ class PointsToMap extends PTAResult {
   def propagatePointsToSet(n1: PtaNode, n2: PtaNode): Unit = {
     n2.getSlots(this) foreach {
       case arr: ArraySlot =>
-        addInstances(after = false, heapContext, arr, pointsToSet(n1))
+        addInstances(heapContext, arr, pointsToSet(n1))
       case fie: FieldSlot =>
-        addInstances(after = false, heapContext, fie, pointsToSet(n1))
+        addInstances(heapContext, fie, pointsToSet(n1))
       case slot =>
-        setInstances(after = false, n2.getContext, slot, pointsToSet(n1))
+        setInstances(n2.getContext, slot, pointsToSet(n1))
     }
   }
 
@@ -67,9 +67,9 @@ class PointsToMap extends PTAResult {
     val slots = n.getSlots(this)
     if (slots.nonEmpty) {
       slots.map {
-        case s@(_: ArraySlot) => pointsToSet(after = false, heapContext, s)
-        case s@(_: FieldSlot) => pointsToSet(after = false, heapContext, s)
-        case s => pointsToSet(after = false, n.getContext, s)
+        case s@(_: ArraySlot) => pointsToSet(heapContext, s)
+        case s@(_: FieldSlot) => pointsToSet(heapContext, s)
+        case s => pointsToSet(n.getContext, s)
       }.reduce(iunion[Instance])
     } else isetEmpty
   }
@@ -158,7 +158,7 @@ class PointerAssignmentGraph[Node <: PtaNode]
       case ot: JawaType =>
         val pinode = getNode(pi, context)
         pinode.getSlots(pointsToMap).foreach { s =>
-          pointsToMap.addInstance(after = false, context, s, PTAInstance(ot.toUnknown, context))
+          pointsToMap.addInstance(context, s, PTAInstance(ot.toUnknown, context))
           worklist += pinode
         }
       case _ =>
@@ -278,17 +278,17 @@ class PointerAssignmentGraph[Node <: PtaNode]
             val baseNode = getNodeOrElse(pfr.baseP, context)
             nodes += baseNode
           case pcr: PointClassO =>
-            val ins = ClassInstance(pcr.classtyp, context)
-            pointsToMap.addInstance(after = false, context, InstanceSlot(ins), ins)
+            val ins = PTAInstance(JavaKnowledge.CLASS, context)
+            pointsToMap.addInstance(context, InstanceSlot(ins), ins)
           case per: PointExceptionR =>
             val ins = PTAInstance(per.typ, context)
-            pointsToMap.addInstance(after = false, context, InstanceSlot(ins), ins)
+            pointsToMap.addInstance(context, InstanceSlot(ins), ins)
           case pso: PointStringO =>
             val ins = PTAConcreteStringInstance(pso.text, context)
-            pointsToMap.addInstance(after = false, context, InstanceSlot(ins), ins)
+            pointsToMap.addInstance(context, InstanceSlot(ins), ins)
           case po: PointO =>
             val ins = PTAInstance(po.obj, context)
-            pointsToMap.addInstance(after = false, context, InstanceSlot(ins), ins)
+            pointsToMap.addInstance(context, InstanceSlot(ins), ins)
           case _ =>
         }
       case procP: Point with Method =>
@@ -299,7 +299,7 @@ class PointerAssignmentGraph[Node <: PtaNode]
             if(entryPoint) {
               val tName = ap.thisOpt.getOrElse("this")
               val ins = PTAInstance(ap.declaringClass.getType.toUnknown, context)
-              pointsToMap.addInstance(after = false, context, VarSlot(tName), ins)
+              pointsToMap.addInstance(context, VarSlot(tName), ins)
               worklist += node
             }
             nodes += getNodeOrElse(vp.thisPExit, context)
@@ -322,7 +322,7 @@ class PointerAssignmentGraph[Node <: PtaNode]
               pType match {
                 case ot: JawaType =>
                   val ins = PTAInstance(ot.toUnknown, context)
-                  pointsToMap.addInstance(after = false, context, VarSlot(pName), ins)
+                  pointsToMap.addInstance(context, VarSlot(pName), ins)
                   worklist += paramNode
               }
             }
@@ -571,28 +571,28 @@ final case class PtaNode(point: Point, context: Context) extends InterProcedural
       case pso: PointStringO =>
         Set(InstanceSlot(PTAConcreteStringInstance(pso.text, context)))
       case pco: PointClassO =>
-        Set(InstanceSlot(ClassInstance(pco.classtyp, context)))
+        Set(InstanceSlot(PTAInstance(JavaKnowledge.CLASS, context)))
       case per: PointExceptionR =>
         Set(InstanceSlot(PTAInstance(per.typ, context)))
       case gla: Point with Loc with Static_Field with MyArray =>
-        val pts = ptaResult.pointsToSet(after = false, context, StaticFieldSlot(gla.staticFieldFQN.fqn))
+        val pts = ptaResult.pointsToSet(context, StaticFieldSlot(gla.staticFieldFQN.fqn))
         pts.map{ ins =>
           ArraySlot(ins)
         }
       case glo: Point with Loc with Static_Field =>
         Set(StaticFieldSlot(glo.staticFieldFQN.fqn))
       case arr: PointMyArrayL =>
-        val pts = ptaResult.pointsToSet(after = false, context, VarSlot(arr.arrayname))
+        val pts = ptaResult.pointsToSet(context, VarSlot(arr.arrayname))
         pts.map{ ins =>
           ArraySlot(ins)
         }
       case arr: PointMyArrayR =>
-        val pts = ptaResult.pointsToSet(after = false, context, VarSlot(arr.arrayname))
+        val pts = ptaResult.pointsToSet(context, VarSlot(arr.arrayname))
         pts.map{ ins =>
           ArraySlot(ins)
         }
       case fie: Point with Loc with Field =>
-        val pts = ptaResult.pointsToSet(after = false, context, VarSlot(fie.baseP.baseName))
+        val pts = ptaResult.pointsToSet(context, VarSlot(fie.baseP.baseName))
         pts.map{ ins =>
           FieldSlot(ins, fie.fqn.fieldName)
         }
