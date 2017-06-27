@@ -212,9 +212,9 @@ class BenchMarkTest extends FlatSpec with Matchers {
     assert(res.isDefined && res.get.getTaintedPaths.isEmpty)
   }
 
-  "IntentSource1" should "have 1 taint path" taggedAs Slow in {
+  "IntentSource1" should "have 2 taint path" taggedAs Slow in {
     val res = taintAnalysis(getClass.getResource("/droid-bench/InterComponentCommunication/IntentSource1.apk").getPath)
-    assert(res.isDefined && res.get.getTaintedPaths.size == 1)
+    assert(res.isDefined && res.get.getTaintedPaths.size == 2)
   }
 
   "ServiceCommunication1" should "have 1 taint path" taggedAs Slow in {
