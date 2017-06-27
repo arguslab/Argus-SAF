@@ -20,7 +20,7 @@ import org.argus.jawa.core.{JavaKnowledge, JawaType}
   */
 class ComponentNameSuTest extends SuTestBase("ComponentName.safsu") {
 
-  val thisInstance = PTAInstance(new JawaType(AndroidConstants.COMPONENTNAME), defContext)
+  val thisInstance = PTAInstance(new JawaType(AndroidConstants.COMPONENT_NAME), defContext)
   val thisFact = new RFAFact(VarSlot("v0"), thisInstance)
   val thisMClassInstance = PTAConcreteStringInstance("my.Class", defContext)
   val thisMClassFact = new RFAFact(FieldSlot(thisInstance, "mClass"), thisMClassInstance)
@@ -137,8 +137,8 @@ class ComponentNameSuTest extends SuTestBase("ComponentName.safsu") {
   ) produce (
     thisFact,
     thisMClassFact,
-    new RFAFact(VarSlot("temp"), PTAInstance(new JawaType(AndroidConstants.COMPONENTNAME), currentContext)),
-    new RFAFact(FieldSlot(PTAInstance(new JawaType(AndroidConstants.COMPONENTNAME), currentContext), "mClass"), PTAPointStringInstance(currentContext))
+    new RFAFact(VarSlot("temp"), PTAInstance(new JawaType(AndroidConstants.COMPONENT_NAME), currentContext)),
+    new RFAFact(FieldSlot(PTAInstance(new JawaType(AndroidConstants.COMPONENT_NAME), currentContext), "mClass"), PTAPointStringInstance(currentContext))
   )
 
   "Landroid/content/ComponentName;.toShortString:()Ljava/lang/String;" with_input (
@@ -165,8 +165,8 @@ class ComponentNameSuTest extends SuTestBase("ComponentName.safsu") {
   ) produce (
     thisFact,
     thisMClassFact,
-    new RFAFact(VarSlot("temp"), PTAInstance(new JawaType(AndroidConstants.COMPONENTNAME), currentContext)),
-    new RFAFact(FieldSlot(PTAInstance(new JawaType(AndroidConstants.COMPONENTNAME), currentContext), "mClass"), PTAPointStringInstance(currentContext))
+    new RFAFact(VarSlot("temp"), PTAInstance(new JawaType(AndroidConstants.COMPONENT_NAME), currentContext)),
+    new RFAFact(FieldSlot(PTAInstance(new JawaType(AndroidConstants.COMPONENT_NAME), currentContext), "mClass"), PTAPointStringInstance(currentContext))
   )
 
   "Landroid/content/ComponentName;.writeToParcel:(Landroid/content/ComponentName;Landroid/os/Parcel;)V" with_input () produce ()

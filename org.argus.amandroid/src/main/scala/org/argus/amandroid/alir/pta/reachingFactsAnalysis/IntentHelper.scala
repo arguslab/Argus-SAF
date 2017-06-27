@@ -52,7 +52,7 @@ object IntentHelper {
         var componentNames = isetEmpty[String]
         val iFieldSlot = FieldSlot(intentIns, AndroidConstants.INTENT_COMPONENT)
         s.pointsToSet(currentContext, iFieldSlot).foreach{ compIns =>
-          val cFieldSlot = FieldSlot(compIns, AndroidConstants.COMPONENTNAME_CLASS)
+          val cFieldSlot = FieldSlot(compIns, AndroidConstants.COMPONENT_NAME_CLASS)
           s.pointsToSet(currentContext, cFieldSlot).foreach {
             case instance: PTAConcreteStringInstance =>
               componentNames += instance.string

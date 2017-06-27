@@ -57,7 +57,7 @@ object InterComponentCommunicationModel {
         val intentF = new IntentFilter(rv.typ)
         val comRec = apk.getClassOrResolve(rv.typ)
         filterValue.foreach { fv =>
-          val mActionsSlot = FieldSlot(fv, AndroidConstants.INTENTFILTER_ACTIONS)
+          val mActionsSlot = FieldSlot(fv, AndroidConstants.INTENT_FILTER_ACTIONS)
           val mActionsValue = s.pointsToSet(currentContext, mActionsSlot)
           mActionsValue.foreach {
             case PTAConcreteStringInstance(text, _) =>
@@ -65,7 +65,7 @@ object InterComponentCommunicationModel {
             case _ =>
               intentF.addAction("ANY")
           }
-          val mCategoriesSlot = FieldSlot(fv, AndroidConstants.INTENTFILTER_CATEGORIES)
+          val mCategoriesSlot = FieldSlot(fv, AndroidConstants.INTENT_FILTER_CATEGORIES)
           val mCategoriesValue = s.pointsToSet(currentContext, mCategoriesSlot)
           mCategoriesValue.foreach {
             case PTAConcreteStringInstance(text, _) =>

@@ -89,7 +89,11 @@ class SummaryManager(implicit factory: SimHeap) {
 
   def processBinaryRule(sig: Signature, br: BinaryRule, retOpt: Option[String], recvOpt: Option[String], args: IList[String], input: ISet[RFAFact], context: Context): ISet[RFAFact] = {
     val slots = processLhs(sig, br.lhs, retOpt, recvOpt, args, input, context)
-    val inss = processRhs(sig, br.rhs, recvOpt, args, input, context)
+    val isReturn = retOpt match {
+      case Some(ret) => slots.exists(s => s.getId == ret)
+      case None => false
+    }
+    val inss = processRhs(sig, br.rhs, recvOpt, args, input, context, isReturn)
     slots.flatMap { slot =>
       inss.map { ins =>
         new RFAFact(slot, ins)
@@ -97,7 +101,7 @@ class SummaryManager(implicit factory: SimHeap) {
     }
   }
 
-  def processRhs(sig: Signature, rhs: RuleRhs, recvOpt: Option[String], args: IList[String], input: ISet[RFAFact], context: Context): ISet[Instance] = {
+  def processRhs(sig: Signature, rhs: RuleRhs, recvOpt: Option[String], args: IList[String], input: ISet[RFAFact], context: Context, isReturn: Boolean): ISet[Instance] = {
     var inss: ISet[Instance] = isetEmpty
     var slots: ISet[PTASlot] = isetEmpty
     rhs match {
@@ -117,7 +121,7 @@ class SummaryManager(implicit factory: SimHeap) {
           case _: SuVirtualLocation =>
             context
         }
-        val rhsInss = processRhs(sig, sc.rhs, recvOpt, args, input, context)
+        val rhsInss = processRhs(sig, sc.rhs, recvOpt, args, input, context, isReturn = false)
         inss ++= rhsInss.map { rhsins =>
           PTAConcreteStringInstance(JavaKnowledge.formatTypeToName(rhsins.typ), newContext)
         }
@@ -139,7 +143,7 @@ class SummaryManager(implicit factory: SimHeap) {
         inss += ins
     }
     inss ++= input.filter(i => slots.contains(i.slot)).map(i => i.v)
-    if(inss.isEmpty) { // Just to make the flow continue
+    if(isReturn && inss.isEmpty) { // Just to make the flow continue
       val ins = sig.getReturnType.jawaName match {
         case "java.lang.String" => PTAPointStringInstance(context)
         case _ => PTAInstance(sig.getReturnType, context)
@@ -199,7 +203,7 @@ class SummaryManager(implicit factory: SimHeap) {
               val inss: ISet[Instance] = facts.map(f => f.v)
               val keys: ISet[Instance] = ma.rhsOpt match {
                 case Some(rhs) =>
-                  val rhsInss = processRhs(sig, rhs, recvOpt, args, input, context)
+                  val rhsInss = processRhs(sig, rhs, recvOpt, args, input, context, isReturn = false)
                   if (isLhs) rhsInss
                   else {
                     val rhsTyps = rhsInss.map(i => i.typ)

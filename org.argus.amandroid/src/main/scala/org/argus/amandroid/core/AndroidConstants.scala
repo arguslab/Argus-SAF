@@ -86,8 +86,8 @@ object AndroidConstants {
   
 	def getDynRegisterMethods: IList[String] = List(REGISTER_RECEIVER1, REGISTER_RECEIVER2)
 
-  final lazy val COMPONENTNAME = "android.content.ComponentName"
-  final lazy val COMPONENTNAME_CLASS = "mClass"
+  final lazy val COMPONENT_NAME = "android.content.ComponentName"
+  final lazy val COMPONENT_NAME_CLASS = "mClass"
 
 	final lazy val INTENT = "android.content.Intent"
 	final lazy val INTENT_COMPONENT = "mComponent"
@@ -102,9 +102,9 @@ object AndroidConstants {
 	final lazy val INTENT_EXTRAS = "mExtras"
 	final lazy val INTENT_PACKAGE = "mPackage"
 	  
-	final lazy val INTENTFILTER = "android.content.IntentFilter"
-	final lazy val INTENTFILTER_ACTIONS  = "mActions"
-	final lazy val INTENTFILTER_CATEGORIES = "mCategories"
+	final lazy val INTENT_FILTER = "android.content.IntentFilter"
+	final lazy val INTENT_FILTER_ACTIONS  = "mActions"
+	final lazy val INTENT_FILTER_CATEGORIES = "mCategories"
 	  
 	final lazy val ACTIVITY_FINDVIEWBYID = "Landroid/app/Activity;.findViewById:(I)Landroid/view/View;"
 	final lazy val VIEW_FINDVIEWBYID = "Landroid/view/View;.findViewById:(I)Landroid/view/View;"

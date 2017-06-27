@@ -93,7 +93,7 @@ class IntentModel extends ModelCall {
   */
 class IntentFilterModel extends ModelCall {
   def safsuFile: String = "IntentFilter.safsu"
-  def isModelCall(p: JawaMethod): Boolean = p.getDeclaringClass.getName.equals(AndroidConstants.INTENTFILTER)
+  def isModelCall(p: JawaMethod): Boolean = p.getDeclaringClass.getName.equals(AndroidConstants.INTENT_FILTER)
 }
 
 /**
