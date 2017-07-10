@@ -41,7 +41,11 @@ trait JawaClasspathManager extends JavaKnowledge { self: Global =>
     * load code from given file
     */
   def load(fileUri: FileResourceUri, isLib: (JawaType => Boolean)): Unit = {
-    val source = new FgSourceFile(new PlainFile(FileUtil.toFile(fileUri)))
+    load(FileUtil.toFile(fileUri), isLib)
+  }
+
+  def load(filePath: Path, isLib: (JawaType => Boolean)): Unit = {
+    val source = new FgSourceFile(new PlainFile(filePath))
     val codes = source.getClassCodes
     val classTypes: MSet[JawaType] = msetEmpty
     codes.foreach{ code =>

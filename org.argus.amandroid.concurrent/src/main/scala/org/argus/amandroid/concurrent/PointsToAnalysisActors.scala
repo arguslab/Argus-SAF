@@ -13,10 +13,13 @@ package org.argus.amandroid.concurrent
 import java.util.concurrent.TimeoutException
 
 import akka.actor._
-import org.argus.amandroid.alir.pta.reachingFactsAnalysis.{AndroidReachingFactsAnalysisConfig, AndroidReachingFactsAnalysis}
+import org.argus.amandroid.alir.pta.model.AndroidModelCallHandler
+import org.argus.amandroid.alir.pta.reachingFactsAnalysis.{AndroidReachingFactsAnalysis, AndroidReachingFactsAnalysisConfig}
+import org.argus.amandroid.alir.pta.summaryBasedAnalysis.AndroidSummaryProvider
 import org.argus.amandroid.core.ApkGlobal
 import org.argus.amandroid.serialization.stage.Staging
 import org.argus.jawa.alir.Context
+import org.argus.jawa.alir.controlFlowGraph.{ICFGNode, InterProceduralControlFlowGraph}
 import org.argus.jawa.alir.dataFlowAnalysis.InterProceduralDataFlowGraph
 import org.argus.jawa.alir.pta.PTAResult
 import org.argus.jawa.alir.pta.reachingFactsAnalysis.SimHeap
@@ -91,8 +94,11 @@ class PointsToAnalysisActor extends Actor with ActorLogging {
     val m = apk.resolveMethodCode(ep, apk.model.getEnvMap(ep.classTyp)._2)
     implicit val factory = new SimHeap
     val initialfacts = AndroidReachingFactsAnalysisConfig.getInitialFactsForMainEnvironment(m)
-    val idfg = AndroidReachingFactsAnalysis(apk, m, initialfacts, new ClassLoadManager, new Context(apk.projectName), timeout = timeout match{case fd: FiniteDuration => Some(new MyTimeout(fd)) case _ => None })
-    idfg
+    val icfg = new InterProceduralControlFlowGraph[ICFGNode]
+    val ptaresult = new PTAResult
+    val sp = new AndroidSummaryProvider(apk)
+    val analysis = new AndroidReachingFactsAnalysis(apk, icfg, ptaresult, AndroidModelCallHandler, sp.getSummaryManager, new ClassLoadManager, AndroidReachingFactsAnalysisConfig.resolve_static_init, timeout = timeout match{case fd: FiniteDuration => Some(new MyTimeout(fd)) case _ => None })
+    analysis.build(m, initialfacts, new Context(apk.nameUri))
   }
   
 }

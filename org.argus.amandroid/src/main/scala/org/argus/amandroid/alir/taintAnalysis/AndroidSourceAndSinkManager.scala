@@ -11,7 +11,7 @@
 package org.argus.amandroid.alir.taintAnalysis
 
 import org.argus.amandroid.alir.pta.reachingFactsAnalysis.IntentHelper
-import org.argus.amandroid.alir.pta.reachingFactsAnalysis.model.InterComponentCommunicationModel
+import org.argus.amandroid.alir.pta.model.InterComponentCommunicationModel
 import org.argus.amandroid.core.{AndroidConstants, ApkGlobal}
 import org.argus.jawa.alir.InterProceduralNode
 import org.argus.jawa.alir.controlFlowGraph._

@@ -11,7 +11,7 @@
 package org.argus.amandroid.plugin.communication
 
 import org.argus.amandroid.alir.pta.reachingFactsAnalysis.IntentHelper
-import org.argus.amandroid.alir.pta.reachingFactsAnalysis.model.InterComponentCommunicationModel
+import org.argus.amandroid.alir.pta.model.InterComponentCommunicationModel
 import org.argus.amandroid.alir.taintAnalysis.AndroidSourceAndSinkManager
 import org.argus.amandroid.core.{AndroidConstants, ApkGlobal}
 import org.argus.jawa.alir.controlFlowGraph.{ICFGInvokeNode, ICFGNode}

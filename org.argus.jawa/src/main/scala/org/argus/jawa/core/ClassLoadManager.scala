@@ -22,9 +22,9 @@ class ClassLoadManager {
    */
   private var classes: IList[JawaClass] = ilistEmpty
 
-  def reset() = classes = ilistEmpty
+  def reset(): Unit = classes = ilistEmpty
 
-  protected def addClass(clazz: JawaClass) = {
+  protected def addClass(clazz: JawaClass): Unit = {
     this.synchronized(
       this.classes :+= clazz
     )

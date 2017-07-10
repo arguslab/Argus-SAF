@@ -42,12 +42,12 @@ object BuildICFGFromExistingPTAResult {
   }
   
   private def doBuild(
-                       global: Global,
-                       ep: JawaMethod,
-                       icfg: InterProceduralControlFlowGraph[N],
-                       pta_result: PTAResult): Unit = {
+      global: Global,
+      ep: JawaMethod,
+      icfg: InterProceduralControlFlowGraph[N],
+      pta_result: PTAResult): Unit = {
     val context: Context = new Context(global.projectName)
-    val nodes = icfg.collectCfgToBaseGraph(ep, context.copy, isFirst = true)
+    val nodes = icfg.collectCfgToBaseGraph(ep, context, isFirst = true, needReturnNode = true)
     val worklist: MList[N] = mlistEmpty ++ nodes
     val processed: MSet[N] = msetEmpty
     while(worklist.nonEmpty) {
@@ -114,8 +114,8 @@ object BuildICFGFromExistingPTAResult {
   private def extendGraphWithConstructGraph(calleeProc: JawaMethod, 
       callerContext: Context, 
       icfg: InterProceduralControlFlowGraph[N]): ISet[N] = {
-    val nodes = icfg.collectCfgToBaseGraph(calleeProc, callerContext.copy)
-    icfg.extendGraph(calleeProc.getSignature, callerContext.copy)
+    val nodes = icfg.collectCfgToBaseGraph(calleeProc, callerContext, isFirst = false, needReturnNode = true)
+    icfg.extendGraph(calleeProc.getSignature, callerContext, needReturnNode = true)
     nodes
   }
 }

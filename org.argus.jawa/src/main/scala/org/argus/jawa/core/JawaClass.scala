@@ -213,6 +213,17 @@ case class JawaClass(global: Global, typ: JawaType, accessFlags: Int) extends Ja
         }
     }
   }
+
+  /**
+    * get field from this class by the given name
+    */
+  def getField(name: String): Option[JawaField] = {
+    if(!isValidFieldName(name)){
+      global.reporter.error(TITLE, "field name is not valid " + name)
+      return None
+    }
+    getFields.find(_.getName == name)
+  }
   
   /**
    * get field declared in this class by the given name

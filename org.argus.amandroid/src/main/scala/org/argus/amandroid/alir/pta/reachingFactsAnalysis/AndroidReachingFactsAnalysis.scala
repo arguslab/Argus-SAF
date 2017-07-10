@@ -12,17 +12,15 @@ package org.argus.amandroid.alir.pta.reachingFactsAnalysis
 
 import org.argus.jawa.core.util._
 
-import scala.collection.immutable.BitSet
-import java.util.concurrent.TimeoutException
-
-import org.argus.amandroid.alir.pta.reachingFactsAnalysis.model.{AndroidModelCallHandler, InterComponentCommunicationModel}
+import org.argus.amandroid.alir.pta.model.{AndroidModelCallHandler, InterComponentCommunicationModel}
 import org.argus.amandroid.core.ApkGlobal
 import org.argus.jawa.alir.Context
 import org.argus.jawa.alir.controlFlowGraph._
 import org.argus.jawa.alir.dataFlowAnalysis._
 import org.argus.jawa.alir.interprocedural.{CallHandler, Callee}
 import org.argus.jawa.alir.pta._
-import org.argus.jawa.alir.pta.reachingFactsAnalysis.{RFAFact, ReachingFactsAnalysisHelper, SimHeap}
+import org.argus.jawa.alir.pta.model.ModelCallHandler
+import org.argus.jawa.alir.pta.reachingFactsAnalysis.{RFAFact, ReachingFactsAnalysis, ReachingFactsAnalysisHelper, SimHeap}
 import org.argus.jawa.alir.pta.summaryBasedAnalysis.SummaryManager
 import org.argus.jawa.compiler.parser._
 import org.argus.jawa.core._
@@ -31,250 +29,35 @@ import org.argus.jawa.core._
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
  * @author <a href="mailto:sroy@k-state.edu">Sankardas Roy</a>
  */ 
-class AndroidReachingFactsAnalysisBuilder(apk: ApkGlobal, clm: ClassLoadManager, timeout: Option[MyTimeout])(implicit factory: SimHeap) {
+class AndroidReachingFactsAnalysis(
+    apk: ApkGlobal,
+    icfg: InterProceduralControlFlowGraph[ICFGNode],
+    ptaresult: PTAResult,
+    handler: ModelCallHandler,
+    sm: SummaryManager,
+    clm: ClassLoadManager,
+    resolve_static_init: Boolean,
+    timeout: Option[MyTimeout])(implicit heap: SimHeap) extends ReachingFactsAnalysis(apk, icfg, ptaresult, handler, sm, clm, resolve_static_init, timeout) {
 
-  import AndroidReachingFactsAnalysis._
-  
-  final val TITLE = "AndroidReachingFactsAnalysisBuilder"
-  
-  var icfg: InterProceduralControlFlowGraph[Node] = _
-  val ptaresult = new PTAResult
   private val registerReceiverNodes: MSet[ICFGCallNode] = msetEmpty
 
   var currentComponent: JawaClass = _
 
-  val sm: SummaryManager = new SummaryManager()
-  sm.registerFileInternal("summaries/Object.safsu")
-  sm.registerFileInternal("summaries/Class.safsu")
-  sm.registerFileInternal("summaries/String.safsu")
-  sm.registerFileInternal("summaries/StringBuilder.safsu")
-  sm.registerFileInternal("summaries/StringBuffer.safsu")
-  sm.registerFileInternal("summaries/Map.safsu")
-  sm.registerFileInternal("summaries/Set.safsu")
-  sm.registerFileInternal("summaries/List.safsu")
-  sm.registerFileInternal("summaries/Thread.safsu")
-  sm.registerFileInternal("summaries/Bundle.safsu")
-  sm.registerFileInternal("summaries/Activity.safsu")
-  sm.registerFileInternal("summaries/ComponentName.safsu")
-  sm.registerFileInternal("summaries/Uri.safsu")
-  sm.registerFileInternal("summaries/Intent.safsu")
-  sm.registerFileInternal("summaries/IntentFilter.safsu")
-  sm.registerFileInternal("summaries/Context.safsu")
-
   def build (
       entryPointProc: JawaMethod,
       initialFacts: ISet[RFAFact] = isetEmpty,
-      initContext: Context,
-      switchAsOrderedMatch: Boolean): InterProceduralDataFlowGraph = {
+      initContext: Context): InterProceduralDataFlowGraph = {
     currentComponent = entryPointProc.getDeclaringClass
-    val gen = new Gen
-    val kill = new Kill
-    val callr = new Callr
-    val initial: ISet[RFAFact] = isetEmpty
-    val icfg = new InterProceduralControlFlowGraph[ICFGNode]
-    val ip = new Ip(icfg)
-    this.icfg = icfg
-    icfg.collectCfgToBaseGraph(entryPointProc, initContext, isFirst = true)
-    val iota: ISet[RFAFact] = initialFacts + new RFAFact(StaticFieldSlot("Analysis.RFAiota"), PTAInstance(JavaKnowledge.JAVA_TOPLEVEL_OBJECT_TYPE.toUnknown, initContext.copy))
-    try {
-      MonotoneDataFlowAnalysisFramework[ICFGNode, RFAFact, Context](icfg,
-        forward = true, lub = true, ip, gen, kill, Some(callr), iota, initial)
-    } catch {
-      case te: TimeoutException =>
-        apk.reporter.warning(TITLE, entryPointProc.getSignature + " " + te.getMessage)
-    }
+    val idfg = process(entryPointProc, initialFacts, initContext, new Callr)
     registerReceiverNodes.foreach { node =>
       InterComponentCommunicationModel.registerReceiver(apk, ptaresult, node.retNameOpt, node.argNames.headOption, node.argNames.tail, node.context)
     }
-//    icfg.toDot(new PrintWriter(System.out))
-    InterProceduralDataFlowGraph(icfg, ptaresult)
-  }
-
-  private def checkAndLoadClassFromHierarchy(me: JawaClass, s: ISet[RFAFact], currentNode: Node): Unit = {
-    if(me.hasSuperClass){
-      checkAndLoadClassFromHierarchy(me.getSuperClass, s, currentNode)
-    }
-    val bitset = currentNode.getLoadedClassBitSet
-    if(!clm.isLoaded(me, bitset)) {
-      currentNode.setLoadedClassBitSet(clm.loadClass(me, bitset))
-//      val newbitset = currentNode.getLoadedClassBitSet
-      if(me.declaresStaticInitializer) {
-        val p = me.getStaticInitializer.get
-        if(AndroidReachingFactsAnalysisConfig.resolve_static_init) {
-          if(AndroidModelCallHandler.isModelCall(p)) {
-            ReachingFactsAnalysisHelper.getUnknownObjectForClinit(p, currentNode.getContext)
-          } else if(!this.icfg.isProcessed(p.getSignature, currentNode.getContext)) { // for normal call
-            val nodes = this.icfg.collectCfgToBaseGraph(p, currentNode.getContext)
-            nodes.foreach{n => n.setLoadedClassBitSet(clm.loadClass(me, bitset))}
-            val clinitVirEntryContext = currentNode.getContext.copy.setContext(p.getSignature, "Entry")
-            val clinitVirExitContext = currentNode.getContext.copy.setContext(p.getSignature, "Exit")
-            val clinitEntry = this.icfg.getICFGEntryNode(clinitVirEntryContext)
-            val clinitExit = this.icfg.getICFGExitNode(clinitVirExitContext)
-            this.icfg.addEdge(currentNode, clinitEntry)
-            this.icfg.addEdge(clinitExit, currentNode)
-          }
-        }
-      }
-    }
-  }
-
-  private def checkClass(recTyp: JawaType, s: ISet[RFAFact], currentNode: Node): Unit = {
-    val rec = apk.getClassOrResolve(recTyp)
-    checkAndLoadClassFromHierarchy(rec, s, currentNode)
-  }
-
-  /**
-   * A.<clinit>() will be called under four kinds of situation: v0 = new A, A.f = v1, v2 = A.f, and A.foo()
-   * also for v0 = new B where B is descendant of A, first we call A.<clinit>, later B.<clinit>.
-   */
-  protected def checkAndLoadClasses(a: Assignment, s: ISet[RFAFact], currentNode: Node): Unit = {
-    a match {
-      case as: AssignmentStatement =>
-        as.lhs match {
-          case ne: NameExpression =>
-            val slot = ReachingFactsAnalysisHelper.getNameSlotFromNameExp(ne)
-            slot match {
-              case slot1: StaticFieldSlot =>
-                val recTyp = JavaKnowledge.getClassTypeFromFieldFQN(slot1.fqn)
-                checkClass(recTyp, s, currentNode)
-              case _ =>
-            }
-          case _ =>
-        }
-        as.rhs match {
-          case ne: NewExpression =>
-            val typ = ne.typ
-            checkClass(typ, s, currentNode)
-          case ne: NameExpression =>
-            val slot = ReachingFactsAnalysisHelper.getNameSlotFromNameExp(ne)
-            if (slot.isInstanceOf[StaticFieldSlot]) {
-              val fqn = ne.name
-              val recTyp = JavaKnowledge.getClassTypeFromFieldFQN(fqn)
-              checkClass(recTyp, s, currentNode)
-            }
-          case _ =>
-        }
-      case cs: CallStatement =>
-        val kind = cs.kind
-        if (kind == "static") {
-          val recTyp = a.asInstanceOf[CallStatement].signature.getClassType
-          checkClass(recTyp, s, currentNode)
-        }
-    }
-  }
-
-  def getExceptionFacts(a: Assignment, s: ISet[RFAFact], currentContext: Context): ISet[RFAFact] = {
-    var result = isetEmpty[RFAFact]
-    a match{
-      case _: AssignmentStatement =>
-        val thrownExcNames = ExceptionCenter.getExceptionMayThrowFromStatement(a)
-        thrownExcNames.foreach{ excName =>
-          if(excName != ExceptionCenter.THROWABLE) {
-            val ins = PTAInstance(excName, currentContext.copy)
-            result += new RFAFact(VarSlot(ExceptionCenter.EXCEPTION_VAR_NAME), ins)
-          }
-        }
-      case _ =>
-    }
-    result
-  }
-
-  protected def isInterestingAssignment(a: Assignment): Boolean = {
-    a match{
-      case as: AssignmentStatement =>
-        as.rhs match {
-          case _: CastExpression => true
-          case _: ConstClassExpression => true
-          case _: ExceptionExpression => true
-          case _: NewExpression => true
-          case _: NullExpression => true
-          case _ =>
-            as.kind == "object"
-        }
-      case _ => false
-    }
-  }
-
-  class Gen extends MonotonicFunction[Node, RFAFact] {
-
-    private def handleAssignmentStatement(s: ISet[RFAFact], a: AssignmentStatement, currentNode: Node): ISet[RFAFact] = {
-      val typ = a match {
-        case as: AssignmentStatement => as.typOpt
-        case _ => None
-      }
-      var result: ISet[RFAFact] = isetEmpty
-      if(isInterestingAssignment(a)) {
-        val lhsOpt = a.getLhs
-        val rhs = a.getRhs
-        val slots: IMap[PTASlot, Boolean] = lhsOpt match {
-          case Some(lhs) => ReachingFactsAnalysisHelper.processLHS(lhs, typ, currentNode.getContext, ptaresult)
-          case None => imapEmpty
-        }
-        checkAndLoadClasses(a, s, currentNode)
-        val (values, extraFacts) = ReachingFactsAnalysisHelper.processRHS(rhs, typ, currentNode.getContext, ptaresult)
-        slots.foreach {
-          case (slot, _) =>
-            result ++= values.map{v => new RFAFact(slot, v)}
-        }
-        result ++= extraFacts
-        val heapUnknownFacts = ReachingFactsAnalysisHelper.getHeapUnknownFacts(rhs, currentNode.getContext, ptaresult)
-        result ++= heapUnknownFacts
-      }
-      val exceptionFacts: ISet[RFAFact] = getExceptionFacts(a, s, currentNode.getContext)
-      result ++= exceptionFacts
-      result
-    }
-
-    def apply(s: ISet[RFAFact], e: Statement, currentNode: Node): ISet[RFAFact] = {
-      var result: ISet[RFAFact] = isetEmpty
-      e match{
-        case as: AssignmentStatement =>
-          result ++= handleAssignmentStatement(s, as, currentNode)
-        case ta: ThrowStatement =>
-          val slot = VarSlot(ta.varSymbol.varName)
-          val value = s.filter(_.s == slot).map(_.v)
-          result ++= value.map(new RFAFact(VarSlot(ExceptionCenter.EXCEPTION_VAR_NAME), _))
-        case _ =>
-      }
-      result
-    }
-  }
-
-  class Kill
-      extends MonotonicFunction[Node, RFAFact] {
-
-    private def handleAssignmentStatement(s: ISet[RFAFact], a: AssignmentStatement, currentNode: Node): ISet[RFAFact] = {
-      val typ = a match {
-        case as: AssignmentStatement => as.typOpt
-        case _ => None
-      }
-      var result = s
-      val lhsOpt = a.getLhs
-      lhsOpt match {
-        case Some(lhs) =>
-          val slotsWithMark = ReachingFactsAnalysisHelper.processLHS(lhs, typ, currentNode.getContext, ptaresult).toSet
-          for (rdf @ RFAFact(_, _) <- s) {
-            //if it is a strong definition, we can kill the existing definition
-            if (slotsWithMark.contains(rdf.s, true)) {
-              result = result - rdf
-            }
-          }
-        case None =>
-      }
-
-      result
-    }
-
-    def apply(s: ISet[RFAFact], e: Statement, currentNode: Node): ISet[RFAFact] = {
-      e match {
-        case as: AssignmentStatement => handleAssignmentStatement(s, as, currentNode)
-        case _ => s
-      }
-    }
+    idfg
   }
 
   class Callr extends CallResolver[Node, RFAFact] {
-    val pureNormalFlagMap: MMap[ICFGNode, Boolean] = mmapEmpty
+    val pureNormalFlagMap: MMap[Node, Boolean] = mmapEmpty
+    val returnMap: MMap[Signature, VarSlot] = mmapEmpty
     /**
      * It returns the facts for each callee entry node and caller return node
      */
@@ -313,12 +96,12 @@ class AndroidReachingFactsAnalysisBuilder(apk: ApkGlobal, clm: ClassLoadManager,
           // for normal call
           if (calleep.isConcrete) {
             if (!icfg.isProcessed(calleeSig, callerContext)) {
-              icfg.collectCfgToBaseGraph[String](calleep, callerContext, isFirst = false)
-              icfg.extendGraph(calleeSig, callerContext)
+              icfg.collectCfgToBaseGraph[String](calleep, callerContext, isFirst = false, needReturnNode = true)
+              icfg.extendGraph(calleeSig, callerContext, needReturnNode = true)
             }
             val factsForCallee = getFactsForCallee(s, cs, calleep, callerContext)
             killSet ++= factsForCallee
-            calleeFactsMap += (icfg.entryNode(calleeSig, callerContext) -> callee.mapFactsToCallee(factsForCallee, args, (calleep.thisOpt ++ calleep.getParamNames).toList, factory))
+            calleeFactsMap += (icfg.entryNode(calleeSig, callerContext) -> callee.mapFactsToCallee(factsForCallee, args, (calleep.thisOpt ++ calleep.getParamNames).toList, heap))
           }
         }
       }
@@ -351,7 +134,7 @@ class AndroidReachingFactsAnalysisBuilder(apk: ApkGlobal, clm: ClassLoadManager,
         val slot = VarSlot(arg)
         val value = ptaresult.pointsToSet(callerContext, slot)
         calleeFacts ++= value.map { r => new RFAFact(VarSlot(slot.varName), r) }
-        val instnums = value.map(factory.getInstanceNum)
+        val instnums = value.map(heap.getInstanceNum)
         calleeFacts ++= ReachingFactsAnalysisHelper.getRelatedHeapFacts(instnums, s)
       }
       calleeFacts.toSet
@@ -361,7 +144,7 @@ class AndroidReachingFactsAnalysisBuilder(apk: ApkGlobal, clm: ClassLoadManager,
       loc.statement.isInstanceOf[ReturnStatement]
     }
 
-    def getAndMapFactsForCaller(calleeS: ISet[RFAFact], callerNode: Node, calleeExitNode: Node): ISet[RFAFact] ={
+    def getAndMapFactsForCaller(calleeS: ISet[RFAFact], callerNode: Node, calleeExitNode: Node): ISet[RFAFact] = {
       val result = msetEmpty[RFAFact]
       val kill = msetEmpty[RFAFact]
       /**
@@ -377,15 +160,20 @@ class AndroidReachingFactsAnalysisBuilder(apk: ApkGlobal, clm: ClassLoadManager,
           val calleeVarFacts = calleeS.filter(_.s.isInstanceOf[VarSlot]).map{f=>(f.s.asInstanceOf[VarSlot], f.v)}
           val cs = apk.getMethod(crn.getOwner).get.getBody.resolvedBody.locations(crn.locIndex).statement.asInstanceOf[CallStatement]
           val lhsSlotOpt: Option[VarSlot] = cs.lhsOpt.map{lhs=>VarSlot(lhs.lhs.varName)}
-          var retSlotOpt: Option[VarSlot] = None
-          calleeMethod.getBody.resolvedBody.locations.foreach { loc=>
-            if(isReturnJump(loc)){
-              val rj = loc.statement.asInstanceOf[ReturnStatement]
-              rj.varOpt match{
-                case Some(n) => retSlotOpt =  Some(VarSlot(n.varName))
-                case None =>
+          val retSlotOpt: Option[VarSlot] = returnMap.get(calleeMethod.getSignature) match {
+            case Some(v) => Some(v)
+            case None =>
+              calleeMethod.getBody.resolvedBody.locations.find(l => isReturnJump(l)) match {
+                case Some(r) =>
+                  r.statement.asInstanceOf[ReturnStatement].varOpt match {
+                    case Some(n) =>
+                      val s = VarSlot(n.varName)
+                      returnMap(calleeMethod.getSignature) = s
+                      Some(s)
+                    case None => None
+                  }
+                case None => None
               }
-            }
           }
           val argSlots = (cs.recvOpt ++ cs.args).toList.map(VarSlot)
           for(i <- argSlots.indices) {
@@ -397,7 +185,7 @@ class AndroidReachingFactsAnalysisBuilder(apk: ApkGlobal, clm: ClassLoadManager,
                   values += v
             }
             result ++= values.map(v=> new RFAFact(argSlot, v))
-            val insnums = values.map(factory.getInstanceNum)
+            val insnums = values.map(heap.getInstanceNum)
             result ++= ReachingFactsAnalysisHelper.getRelatedHeapFacts(insnums, calleeS)
           }
           // kill the strong update for caller return node
@@ -424,80 +212,12 @@ class AndroidReachingFactsAnalysisBuilder(apk: ApkGlobal, clm: ClassLoadManager,
               }
             }
             result ++= values.map(v => new RFAFact(lhsSlot, v))
-            val insnums = values.map(factory.getInstanceNum)
+            val insnums = values.map(heap.getInstanceNum)
             result ++= ReachingFactsAnalysisHelper.getRelatedHeapFacts(insnums, calleeS)
           }
         case _: ICFGNode =>
       }
-      /**
-       * update pstresult with caller's return node and it's points-to info
-       */
       result.toSet -- kill
     }
   }
-
-  class Ip(icfg: InterProceduralControlFlowGraph[ICFGNode]) extends InterIngredientProvider[RFAFact](apk, icfg) {
-
-    override def preProcess(node: ICFGNode, statement: Statement, s: ISet[RFAFact]): Unit = {
-      statement match {
-        case a: AssignmentStatement =>
-          ReachingFactsAnalysisHelper.updatePTAResultRHS(a.rhs, a.typOpt, node.getContext, s, ptaresult)
-          ReachingFactsAnalysisHelper.updatePTAResultLHS(a.lhs, node.getContext, s, ptaresult)
-        case _: EmptyStatement =>
-        case m: MonitorStatement =>
-          ReachingFactsAnalysisHelper.updatePTAResultVar(m.varSymbol.varName, node.getContext, s, ptaresult)
-        case j: Jump =>
-          j match {
-            case cs: CallStatement =>
-              ReachingFactsAnalysisHelper.updatePTAResultCallJump(cs, node.getContext, s, ptaresult)
-            case _: GotoStatement =>
-            case is: IfStatement =>
-              ReachingFactsAnalysisHelper.updatePTAResultExp(is.cond, None, node.getContext, s, ptaresult)
-            case rs: ReturnStatement =>
-              rs.varOpt match {
-                case Some(v) =>
-                  ReachingFactsAnalysisHelper.updatePTAResultVar(v.varName, node.getContext, s, ptaresult)
-                case None =>
-              }
-            case ss: SwitchStatement =>
-              ReachingFactsAnalysisHelper.updatePTAResultVar(ss.condition.varName, node.getContext, s, ptaresult)
-          }
-        case t: ThrowStatement =>
-          ReachingFactsAnalysisHelper.updatePTAResultVar(t.varSymbol.varName, node.getContext, s, ptaresult)
-      }
-    }
-
-    override def postProcess(node: ICFGNode, s: ISet[RFAFact]): Unit = {
-    }
-
-    override def onPreVisitNode(node: ICFGNode, preds: CSet[ICFGNode]): Unit = {
-      val bitset = if(preds.nonEmpty)preds.map{_.getLoadedClassBitSet}.reduce{ (x, y) => x.intersect(y)} else BitSet.empty
-      node.setLoadedClassBitSet(bitset)
-    }
-
-    override def onPostVisitNode(node: ICFGNode, succs: CSet[ICFGNode]): Unit = {
-      timeout foreach (_.isTimeoutThrow())
-    }
-  }
-  
-}
-
-
-
-/**
- * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
- * @author <a href="mailto:sroy@k-state.edu">Sankardas Roy</a>
- */ 
-object AndroidReachingFactsAnalysis {
-  type Node = ICFGNode
-  type Result = MonotoneDataFlowAnalysisResult[Node, RFAFact]
-  def apply(
-      apk: ApkGlobal,
-      entryPointProc: JawaMethod,
-      initialFacts: ISet[RFAFact] = isetEmpty,
-      clm: ClassLoadManager,
-      initContext: Context,
-      switchAsOrderedMatch: Boolean = false,
-      timeout: Option[MyTimeout])(implicit factory: SimHeap): InterProceduralDataFlowGraph
-    = new AndroidReachingFactsAnalysisBuilder(apk, clm, timeout).build(entryPointProc, initialFacts, initContext, switchAsOrderedMatch)
 }

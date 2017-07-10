@@ -14,7 +14,7 @@ import org.argus.jawa.alir.Context
 import org.argus.jawa.alir.pta._
 import org.argus.jawa.alir.pta.reachingFactsAnalysis.{RFAFact, SimHeap}
 import org.argus.jawa.alir.pta.summaryBasedAnalysis.SummaryManager
-import org.argus.jawa.core.{JawaType, Signature}
+import org.argus.jawa.core.{DefaultReporter, Global, JawaType, Signature}
 import org.argus.jawa.core.util._
 import org.scalatest.{FlatSpec, Matchers}
 
@@ -22,6 +22,8 @@ import org.scalatest.{FlatSpec, Matchers}
   * Created by fgwei on 6/8/17.
   */
 class SummaryManagerTest extends FlatSpec with Matchers {
+  val reporter = new DefaultReporter
+  val global = new Global("Test", reporter)
   "SummaryManager" should "handle += correctly" in {
     val code =
       """
@@ -31,7 +33,7 @@ class SummaryManagerTest extends FlatSpec with Matchers {
         |;
       """.stripMargin
     implicit val factory = new SimHeap
-    val sm = new SummaryManager
+    val sm = new SummaryManager(global)
     sm.register(code)
 
     val calleeSig = new Signature("Lmy/Class;.foo:()Ljava/lang/String;")
@@ -57,7 +59,7 @@ class SummaryManagerTest extends FlatSpec with Matchers {
         |;
       """.stripMargin
     implicit val factory = new SimHeap
-    val sm = new SummaryManager
+    val sm = new SummaryManager(global)
     sm.register(code)
 
     val callerSig = new Signature("Lmy/Class;.main:()V")
@@ -93,7 +95,7 @@ class SummaryManagerTest extends FlatSpec with Matchers {
         |;
       """.stripMargin
     implicit val factory = new SimHeap
-    val sm = new SummaryManager
+    val sm = new SummaryManager(global)
     sm.register(code)
 
     val callerSig = new Signature("Lmy/Class;.main:()V")
@@ -131,7 +133,7 @@ class SummaryManagerTest extends FlatSpec with Matchers {
         |;
       """.stripMargin
     implicit val factory = new SimHeap
-    val sm = new SummaryManager
+    val sm = new SummaryManager(global)
     sm.register(code)
 
     val callerSig = new Signature("Lmy/Class;.main:()V")
@@ -171,7 +173,7 @@ class SummaryManagerTest extends FlatSpec with Matchers {
         |;
       """.stripMargin
     implicit val factory = new SimHeap
-    val sm = new SummaryManager
+    val sm = new SummaryManager(global)
     sm.register(code)
 
     val callerSig = new Signature("Lmy/Class;.main:()V")
@@ -218,7 +220,7 @@ class SummaryManagerTest extends FlatSpec with Matchers {
         |;
       """.stripMargin
     implicit val factory = new SimHeap
-    val sm = new SummaryManager
+    val sm = new SummaryManager(global)
     sm.register(code)
 
     val calleeSig = new Signature("Lmy/Class;.foo:()V")

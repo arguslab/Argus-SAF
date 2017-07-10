@@ -13,7 +13,7 @@ package org.argus.amandroid.alir.summaryBasedAnalysis.model
 import org.argus.jawa.alir.Context
 import org.argus.jawa.alir.pta.reachingFactsAnalysis.{RFAFact, SimHeap}
 import org.argus.jawa.alir.pta.summaryBasedAnalysis.SummaryManager
-import org.argus.jawa.core.Signature
+import org.argus.jawa.core.{DefaultReporter, Global, Signature}
 import org.argus.jawa.core.util.{IList, ISet, isetEmpty}
 import org.scalatest.{FlatSpec, Matchers}
 
@@ -24,7 +24,10 @@ import scala.language.implicitConversions
   */
 abstract class SuTestBase(fileName: String) extends FlatSpec with Matchers {
   implicit val heap: SimHeap = new SimHeap
-  val sm: SummaryManager = new SummaryManager()
+  val reporter = new DefaultReporter
+  val global = new Global("Test", reporter)
+  global.setJavaLib(getClass.getResource("/libs/android.jar").getPath)
+  val sm: SummaryManager = new SummaryManager(global)
   sm.registerFileInternal("summaries/" + fileName)
 
   val context: Context = new Context("SuTest")

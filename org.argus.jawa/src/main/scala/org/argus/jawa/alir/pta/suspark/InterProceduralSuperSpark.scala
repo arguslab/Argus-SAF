@@ -63,7 +63,7 @@ object InterProceduralSuperSpark {
     val points = new PointsCollector().points(ep.getSignature, ep.getBody)
     val context: Context = new Context(global.projectName)
     pag.constructGraph(ep, points, context.copy, entryPoint = true)
-    icfg.collectCfgToBaseGraph(ep, context.copy)
+    icfg.collectCfgToBaseGraph(ep, context.copy, isFirst = true, needReturnNode = true)
     workListPropagation(global, pag, icfg)
   }
   
@@ -288,12 +288,12 @@ object InterProceduralSuperSpark {
     val calleeSig = calleeProc.getSignature
     if(!pag.isProcessed(calleeSig, callerContext)){
       val points = new PointsCollector().points(calleeSig, calleeProc.getBody)
-      pag.constructGraph(calleeProc, points, callerContext.copy, entryPoint = false)
-      icfg.collectCfgToBaseGraph(calleeProc, callerContext.copy)
+      pag.constructGraph(calleeProc, points, callerContext, entryPoint = false)
+      icfg.collectCfgToBaseGraph(calleeProc, callerContext, isFirst = false, needReturnNode = true)
     }
     val methodPoint = pag.getPointMethod(calleeSig, callerContext)
     require(methodPoint != null)
-    pag.extendGraph(methodPoint, pi, callerContext.copy)
-    icfg.extendGraph(calleeSig, callerContext.copy)
+    pag.extendGraph(methodPoint, pi, callerContext)
+    icfg.extendGraph(calleeSig, callerContext, needReturnNode = true)
   }
 }

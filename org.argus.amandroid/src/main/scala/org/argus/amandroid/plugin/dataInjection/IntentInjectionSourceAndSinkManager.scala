@@ -10,7 +10,7 @@
 
 package org.argus.amandroid.plugin.dataInjection
 
-import org.argus.amandroid.alir.pta.reachingFactsAnalysis.model.InterComponentCommunicationModel
+import org.argus.amandroid.alir.pta.model.InterComponentCommunicationModel
 import org.argus.amandroid.alir.taintAnalysis.AndroidSourceAndSinkManager
 import org.argus.amandroid.core.ApkGlobal
 import org.argus.jawa.alir.controlFlowGraph.{ICFGInvokeNode, ICFGNode}

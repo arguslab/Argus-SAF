@@ -13,7 +13,7 @@ package org.argus.amandroid.alir.dataRecorder
 import java.util
 
 import org.argus.amandroid.alir.pta.reachingFactsAnalysis.IntentHelper
-import org.argus.amandroid.alir.pta.reachingFactsAnalysis.model.InterComponentCommunicationModel
+import org.argus.amandroid.alir.pta.model.InterComponentCommunicationModel
 import org.argus.amandroid.core.{AndroidConstants, ApkGlobal}
 import org.argus.jawa.core.util._
 import org.stringtemplate.v4.STGroupString

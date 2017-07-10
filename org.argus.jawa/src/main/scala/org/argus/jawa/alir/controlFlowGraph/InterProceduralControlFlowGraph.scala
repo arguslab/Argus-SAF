@@ -122,39 +122,39 @@ class InterProceduralControlFlowGraph[Node <: ICFGNode] extends ControlFlowGraph
     this.processed ++= icfg.processed
   }
   
-  def collectCfgToBaseGraph[VirtualLabel](calleeProc: JawaMethod, callerContext: Context, isFirst: Boolean = false): ISet[Node] = {
-    this.synchronized{
-      val calleeSig = calleeProc.getSignature
-      val body = calleeProc.getBody.resolvedBody
-      val cfg = JawaAlirInfoProvider.getCfg(calleeProc)
-      var nodes = isetEmpty[Node]
-      cfg.nodes map {
-        case CFGVirtualNode(label) =>
-          label match {
-            case "Entry" =>
-              val entryNode = addICFGEntryNode(callerContext.copy.setContext(calleeSig, "Entry"))
-              entryNode.setOwner(calleeProc.getSignature)
-              nodes += entryNode
-              if (isFirst) this.entryN = entryNode
-            case "Exit" =>
-              val exitNode = addICFGExitNode(callerContext.copy.setContext(calleeSig, "Exit"))
-              exitNode.setOwner(calleeProc.getSignature)
-              nodes += exitNode
-              if (isFirst) this.exitN = exitNode
-            case a => throw new RuntimeException("unexpected virtual label: " + a)
-          }
-        case ln: CFGLocationNode =>
-          val l = body.locations(ln.locIndex)
-          if (isCall(l)) {
-            val cs = l.statement.asInstanceOf[CallStatement]
-            val c = addICFGCallNode(callerContext.copy.setContext(calleeSig, ln.locUri))
-            c.setOwner(calleeProc.getSignature)
-            c.asInstanceOf[ICFGInvokeNode].argNames = (cs.recvOpt ++ cs.args).toList
-            c.asInstanceOf[ICFGInvokeNode].retNameOpt = cs.lhsOpt.map(_.lhs.varName)
-            c.asInstanceOf[ICFGLocNode].setLocIndex(ln.locIndex)
-            c.asInstanceOf[ICFGInvokeNode].setCalleeSig(cs.signature)
-            c.asInstanceOf[ICFGInvokeNode].setCallType(cs.kind)
-            nodes += c
+  def collectCfgToBaseGraph[VirtualLabel](calleeProc: JawaMethod, callerContext: Context, isFirst: Boolean, needReturnNode: Boolean): ISet[Node] = {
+    val calleeSig = calleeProc.getSignature
+    val body = calleeProc.getBody.resolvedBody
+    val cfg = JawaAlirInfoProvider.getCfg(calleeProc)
+    var nodes = isetEmpty[Node]
+    cfg.nodes map {
+      case CFGVirtualNode(label) =>
+        label match {
+          case "Entry" =>
+            val entryNode = addICFGEntryNode(callerContext.copy.setContext(calleeSig, "Entry"))
+            entryNode.setOwner(calleeProc.getSignature)
+            nodes += entryNode
+            if (isFirst) this.entryN = entryNode
+          case "Exit" =>
+            val exitNode = addICFGExitNode(callerContext.copy.setContext(calleeSig, "Exit"))
+            exitNode.setOwner(calleeProc.getSignature)
+            nodes += exitNode
+            if (isFirst) this.exitN = exitNode
+          case a => throw new RuntimeException("unexpected virtual label: " + a)
+        }
+      case ln: CFGLocationNode =>
+        val l = body.locations(ln.locIndex)
+        if (isCall(l)) {
+          val cs = l.statement.asInstanceOf[CallStatement]
+          val c = addICFGCallNode(callerContext.copy.setContext(calleeSig, ln.locUri))
+          c.setOwner(calleeProc.getSignature)
+          c.asInstanceOf[ICFGInvokeNode].argNames = (cs.recvOpt ++ cs.args).toList
+          c.asInstanceOf[ICFGInvokeNode].retNameOpt = cs.lhsOpt.map(_.lhs.varName)
+          c.asInstanceOf[ICFGLocNode].setLocIndex(ln.locIndex)
+          c.asInstanceOf[ICFGInvokeNode].setCalleeSig(cs.signature)
+          c.asInstanceOf[ICFGInvokeNode].setCallType(cs.kind)
+          nodes += c
+          if(needReturnNode) {
             val r = addICFGReturnNode(callerContext.copy.setContext(calleeSig, ln.locUri))
             r.setOwner(calleeProc.getSignature)
             r.asInstanceOf[ICFGInvokeNode].argNames = (cs.recvOpt ++ cs.args).toList
@@ -164,126 +164,118 @@ class InterProceduralControlFlowGraph[Node <: ICFGNode] extends ControlFlowGraph
             r.asInstanceOf[ICFGInvokeNode].setCallType(cs.kind)
             nodes += r
             addEdge(c, r)
-          } else {
-            val node = addICFGNormalNode(callerContext.copy.setContext(calleeSig, ln.locUri))
-            node.setOwner(calleeProc.getSignature)
-            //                node.setCode(code)
-            node.asInstanceOf[ICFGLocNode].setLocIndex(ln.locIndex)
-            nodes += node
           }
-      }
-      for (e <- cfg.edges) {
-        val entryNode = getICFGEntryNode(callerContext.copy.setContext(calleeSig, "Entry"))
-        val exitNode = getICFGExitNode(callerContext.copy.setContext(calleeSig, "Exit"))
-        e.source match{
-          case _: CFGVirtualNode =>
-            e.target match{
-              case _: CFGVirtualNode =>
-                addEdge(entryNode, exitNode)
-              case lnt: CFGLocationNode =>
-                val lt = body.locations(lnt.locIndex)
+        } else {
+          val node = addICFGNormalNode(callerContext.copy.setContext(calleeSig, ln.locUri))
+          node.setOwner(calleeProc.getSignature)
+          node.asInstanceOf[ICFGLocNode].setLocIndex(ln.locIndex)
+          nodes += node
+        }
+    }
+    for (e <- cfg.edges) {
+      val entryNode = getICFGEntryNode(callerContext.copy.setContext(calleeSig, "Entry"))
+      val exitNode = getICFGExitNode(callerContext.copy.setContext(calleeSig, "Exit"))
+      e.source match {
+        case _: CFGVirtualNode =>
+          e.target match{
+            case _: CFGVirtualNode =>
+              addEdge(entryNode, exitNode)
+            case lnt: CFGLocationNode =>
+              val lt = body.locations(lnt.locIndex)
+              if(isCall(lt)){
+                val callNodeTarget = getICFGCallNode(callerContext.copy.setContext(calleeSig, lnt.locUri))
+                addEdge(entryNode, callNodeTarget)
+              } else {
+                val targetNode = getICFGNormalNode(callerContext.copy.setContext(calleeSig, lnt.locUri))
+                addEdge(entryNode, targetNode)
+              }
+            case nt =>
+              val targetNode = getICFGNormalNode(callerContext.copy.setContext(calleeSig, nt.toString))
+              addEdge(entryNode, targetNode)
+          }
+        case lns: CFGLocationNode =>
+          val ls = body.locations(lns.locIndex)
+          e.target match{
+            case CFGVirtualNode(_) =>
+              if(isCall(ls)){
+                val nodeSource =
+                  if(needReturnNode) getICFGReturnNode(callerContext.copy.setContext(calleeSig, lns.locUri))
+                  else getICFGCallNode(callerContext.copy.setContext(calleeSig, lns.locUri))
+                addEdge(nodeSource, exitNode)
+              } else {
+                val sourceNode = getICFGNormalNode(callerContext.copy.setContext(calleeSig, lns.locUri))
+                addEdge(sourceNode, exitNode)
+              }
+            case lnt: CFGLocationNode =>
+              val lt = body.locations(lnt.locIndex)
+              if(isCall(ls)){
+                val nodeSource =
+                  if(needReturnNode) getICFGReturnNode(callerContext.copy.setContext(calleeSig, lns.locUri))
+                  else getICFGCallNode(callerContext.copy.setContext(calleeSig, lns.locUri))
                 if(isCall(lt)){
                   val callNodeTarget = getICFGCallNode(callerContext.copy.setContext(calleeSig, lnt.locUri))
-                  addEdge(entryNode, callNodeTarget)
+                  addEdge(nodeSource, callNodeTarget)
                 } else {
                   val targetNode = getICFGNormalNode(callerContext.copy.setContext(calleeSig, lnt.locUri))
-                  addEdge(entryNode, targetNode)
+                  addEdge(nodeSource, targetNode)
                 }
-              case nt =>
-                val targetNode = getICFGNormalNode(callerContext.copy.setContext(calleeSig, nt.toString))
-                addEdge(entryNode, targetNode)
-            }
-          case lns: CFGLocationNode =>
-            val ls = body.locations(lns.locIndex)
-            e.target match{
-              case CFGVirtualNode(_) =>
-                if(isCall(ls)){
-                  val returnNodeSource = getICFGReturnNode(callerContext.copy.setContext(calleeSig, lns.locUri))
-                  addEdge(returnNodeSource, exitNode)
+              } else {
+                val sourceNode = getICFGNormalNode(callerContext.copy.setContext(calleeSig, lns.locUri))
+                if(isCall(lt)){
+                  val callNodeTarget = getICFGCallNode(callerContext.copy.setContext(calleeSig, lnt.locUri))
+                  addEdge(sourceNode, callNodeTarget)
                 } else {
-                  val sourceNode = getICFGNormalNode(callerContext.copy.setContext(calleeSig, lns.locUri))
-                  addEdge(sourceNode, exitNode)
-                }
-              case lnt: CFGLocationNode =>
-                val lt = body.locations(lnt.locIndex)
-                if(isCall(ls)){
-                  val returnNodeSource = getICFGReturnNode(callerContext.copy.setContext(calleeSig, lns.locUri))
-                  if(isCall(lt)){
-                    val callNodeTarget = getICFGCallNode(callerContext.copy.setContext(calleeSig, lnt.locUri))
-                    addEdge(returnNodeSource, callNodeTarget)
-                  } else {
-                    val targetNode = getICFGNormalNode(callerContext.copy.setContext(calleeSig, lnt.locUri))
-                    addEdge(returnNodeSource, targetNode)
-                  }
-                } else {
-                  val sourceNode = getICFGNormalNode(callerContext.copy.setContext(calleeSig, lns.locUri))
-                  if(isCall(lt)){
-                    val callNodeTarget = getICFGCallNode(callerContext.copy.setContext(calleeSig, lnt.locUri))
-                    addEdge(sourceNode, callNodeTarget)
-                  } else {
-                    val targetNode = getICFGNormalNode(callerContext.copy.setContext(calleeSig, lnt.locUri))
-                    addEdge(sourceNode, targetNode)
-                  }
-                }
-              case nt =>
-                val targetNode = getICFGNormalNode(callerContext.copy.setContext(calleeSig, nt.toString))
-                if(isCall(ls)){
-                  val returnNodeSource = getICFGReturnNode(callerContext.copy.setContext(calleeSig, lns.locUri))
-                  addEdge(returnNodeSource, targetNode)
-                } else {
-                  val sourceNode = getICFGNormalNode(callerContext.copy.setContext(calleeSig, lns.locUri))
+                  val targetNode = getICFGNormalNode(callerContext.copy.setContext(calleeSig, lnt.locUri))
                   addEdge(sourceNode, targetNode)
                 }
-            }
-        }
+              }
+            case nt =>
+              val targetNode = getICFGNormalNode(callerContext.copy.setContext(calleeSig, nt.toString))
+              if(isCall(ls)){
+                val nodeSource =
+                  if(needReturnNode) getICFGReturnNode(callerContext.copy.setContext(calleeSig, lns.locUri))
+                  else getICFGCallNode(callerContext.copy.setContext(calleeSig, lns.locUri))
+                addEdge(nodeSource, targetNode)
+              } else {
+                val sourceNode = getICFGNormalNode(callerContext.copy.setContext(calleeSig, lns.locUri))
+                addEdge(sourceNode, targetNode)
+              }
+          }
       }
-      addProcessed(calleeProc.getSignature, callerContext, nodes)
-      nodes
     }
+    addProcessed(calleeProc.getSignature, callerContext, nodes)
+    nodes
   }
   
-  def extendGraph(calleeSig: Signature, callerContext: Context): Node = {
+  def extendGraph(calleeSig: Signature, callerContext: Context, needReturnNode: Boolean): Node = {
     val callNode = getICFGCallNode(callerContext)
-    val returnNode = getICFGReturnNode(callerContext)
+    val returnNode =
+      if(needReturnNode) getICFGReturnNode(callerContext)
+      else callNode
     val calleeEntryContext = callerContext.copy
     calleeEntryContext.setContext(calleeSig, "Entry")
     val calleeExitContext = callerContext.copy
     calleeExitContext.setContext(calleeSig, "Exit")
     val targetNode = getICFGEntryNode(calleeEntryContext)
     val retSrcNode = getICFGExitNode(calleeExitContext)
-    this.synchronized{
-      if(!hasEdge(callNode, targetNode))
-        addEdge(callNode, targetNode)
-      if(!hasEdge(retSrcNode, returnNode))
-        addEdge(retSrcNode, returnNode)
-    }
-    targetNode
-  }
-  
-  def extendGraphOneWay(calleeSig: Signature, callerContext: Context, typ: String = null): Node = {
-    val callNode = getICFGCallNode(callerContext)
-    val calleeEntryContext = callerContext.copy
-    calleeEntryContext.setContext(calleeSig, "Entry")
-    val targetNode = getICFGEntryNode(calleeEntryContext)
-    this.synchronized{
-      if(!hasEdge(callNode, targetNode))
-        addEdge(callNode, targetNode, typ)
-    }
+    if(!hasEdge(callNode, targetNode))
+      addEdge(callNode, targetNode)
+    if(!hasEdge(retSrcNode, returnNode))
+      addEdge(retSrcNode, returnNode)
     targetNode
   }
   
   def toApiGraph(global: Global): InterProceduralControlFlowGraph[Node] = {
-    val ns = nodes filter{
-      n =>
-        n match{
-          case cn: ICFGCallNode =>
-            cn.getCalleeSet.exists {
-              c => 
-                val clazz = global.getClassOrResolve(c.callee.getClassType)
-                !clazz.isSystemLibraryClass
-            }
-          case _ => true
-        }
+    val ns = nodes filter{ n =>
+      n match{
+        case cn: ICFGCallNode =>
+          cn.getCalleeSet.exists {
+            c =>
+              val clazz = global.getClassOrResolve(c.callee.getClassType)
+              !clazz.isSystemLibraryClass
+          }
+        case _ => true
+      }
     }
     ns foreach compressByDelNode
     this

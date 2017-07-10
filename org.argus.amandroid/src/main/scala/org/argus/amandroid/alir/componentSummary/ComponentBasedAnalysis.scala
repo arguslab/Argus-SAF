@@ -13,12 +13,17 @@ package org.argus.amandroid.alir.componentSummary
 import org.argus.jawa.core.util._
 import java.util.concurrent.TimeoutException
 
+import org.argus.amandroid.alir.pta.model.AndroidModelCallHandler
 import org.argus.amandroid.alir.pta.reachingFactsAnalysis.{AndroidReachingFactsAnalysis, AndroidReachingFactsAnalysisConfig}
+import org.argus.amandroid.alir.pta.summaryBasedAnalysis.AndroidSummaryProvider
 import org.argus.amandroid.alir.taintAnalysis.{AndroidDataDependentTaintAnalysis, AndroidSourceAndSinkManager}
 import org.argus.amandroid.core.ApkGlobal
 import org.argus.jawa.alir.Context
+import org.argus.jawa.alir.controlFlowGraph.{ICFGNode, InterProceduralControlFlowGraph}
 import org.argus.jawa.alir.dataDependenceAnalysis._
+import org.argus.jawa.alir.pta.PTAResult
 import org.argus.jawa.alir.pta.reachingFactsAnalysis.SimHeap
+import org.argus.jawa.alir.pta.summaryBasedAnalysis.SummaryManager
 import org.argus.jawa.alir.taintAnalysis.TaintAnalysisResult
 import org.argus.jawa.core.util.{MyTimeout, WorklistAlgorithm}
 import org.argus.jawa.core.{ClassLoadManager, JawaType}
@@ -44,9 +49,16 @@ object ComponentBasedAnalysis {
             apk.model.getEnvMap.get(component) match {
               case Some((esig, _)) =>
                 val ep = apk.getMethod(esig).get
-                implicit val factory = new SimHeap
+                implicit val heap = new SimHeap
                 val initialfacts = AndroidReachingFactsAnalysisConfig.getInitialFactsForMainEnvironment(ep)
-                val idfg = AndroidReachingFactsAnalysis(apk, ep, initialfacts, new ClassLoadManager, new Context(apk.nameUri), timeout = Some(new MyTimeout(timeout)))
+                val icfg = new InterProceduralControlFlowGraph[ICFGNode]
+                val ptaresult = new PTAResult
+                val sp = new AndroidSummaryProvider(apk)
+                val analysis = new AndroidReachingFactsAnalysis(
+                  apk, icfg, ptaresult, AndroidModelCallHandler, sp.getSummaryManager, new ClassLoadManager,
+                  AndroidReachingFactsAnalysisConfig.resolve_static_init,
+                  timeout = Some(new MyTimeout(timeout)))
+                val idfg = analysis.build(ep, initialfacts, new Context(apk.nameUri))
 //                idfg.ptaresult.pprint()
                 apk.addIDFG(component, idfg)
               case None =>

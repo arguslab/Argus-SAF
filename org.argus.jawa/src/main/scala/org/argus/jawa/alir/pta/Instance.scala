@@ -13,6 +13,16 @@ package org.argus.jawa.alir.pta
 import org.argus.jawa.alir.Context
 import org.argus.jawa.core.JawaType
 
+object Instance {
+  def getInstance(typ: JawaType, context: Context, toUnknown: Boolean): Instance = {
+    typ.jawaName match {
+      case "java.lang.String" => PTAPointStringInstance(context)
+      case _ =>
+        val t = if(toUnknown) typ.toUnknown else typ
+        PTAInstance(t, context)
+    }
+  }
+}
 
 /**
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>

@@ -150,7 +150,7 @@ public final class ConsoleProgressBar extends AbstractProgressBar {
 	 *            the width of the progress bar
 	 * @return the configured replacers
 	 */
-	public static Set<Replacer> getDefaultReplacers(final int progressBarWidth) {
+	private static Set<Replacer> getDefaultReplacers(final int progressBarWidth) {
 		return ImmutableSet.of(
 				new BarReplacer(progressBarWidth),
 				new PercentageReplacer(),

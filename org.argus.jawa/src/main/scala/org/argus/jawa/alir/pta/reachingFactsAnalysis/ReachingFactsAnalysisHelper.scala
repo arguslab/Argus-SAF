@@ -119,10 +119,16 @@ object ReachingFactsAnalysisHelper {
     (genFacts, killFacts)
   }
 
-  def getUnknownObject(calleeMethod: JawaMethod, s: ISet[RFAFact], args: Seq[String], retVar: String, currentContext: Context)(implicit factory: SimHeap): (ISet[RFAFact], ISet[RFAFact]) = {
+  def getUnknownObject(
+      calleeMethod: JawaMethod,
+      s: ISet[RFAFact],
+      retOpt: Option[String],
+      recvOpt: Option[String],
+      args: Seq[String],
+      currentContext: Context)(implicit factory: SimHeap): (ISet[RFAFact], ISet[RFAFact]) = {
     var genFacts: ISet[RFAFact] = isetEmpty
     val killFacts: ISet[RFAFact] = isetEmpty
-    val argSlots = args.map(arg=>VarSlot(arg))
+    val argSlots = (recvOpt ++ args).toList.map(arg=>VarSlot(arg))
     for(i <- argSlots.indices){
       val argSlot = argSlots(i)
       val argValues = s.filter(f => f.s == argSlot).map(_.v)
@@ -139,16 +145,19 @@ object ReachingFactsAnalysisHelper {
         }
       }
     }
-    //    killFacts ++= ReachingFactsAnalysisHelper.getRelatedHeapFacts(argValues, s)
-    val retTyp = calleeMethod.getReturnType
-    retTyp match {
-      case ot if ot.isObject =>
-        val slot = VarSlot(retVar)
-        val value =
-          if(retTyp.jawaName == "java.lang.String") PTAPointStringInstance(currentContext)
-          else PTAInstance(ot.toUnknown, currentContext)
-        genFacts += new RFAFact(slot, value)
-      case _ =>
+    retOpt match {
+      case Some(retVar) =>
+        val retTyp = calleeMethod.getReturnType
+        retTyp match {
+          case ot if ot.isObject =>
+            val slot = VarSlot(retVar)
+            val value =
+              if(retTyp.jawaName == "java.lang.String") PTAPointStringInstance(currentContext)
+              else PTAInstance(ot.toUnknown, currentContext)
+            genFacts += new RFAFact(slot, value)
+          case _ =>
+        }
+      case None =>
     }
     (genFacts, killFacts)
   }
@@ -156,9 +165,24 @@ object ReachingFactsAnalysisHelper {
   def getUnknownObjectForClinit(calleeMethod: JawaMethod, currentContext: Context)(implicit factory: SimHeap): ISet[RFAFact] = {
     var result: ISet[RFAFact] = isetEmpty
     val record = calleeMethod.getDeclaringClass
-    record.getDeclaredStaticObjectTypeFields.foreach{
-      field =>
-        result += new RFAFact(StaticFieldSlot(field.FQN.fqn), PTAInstance(field.getType.toUnknown, currentContext))
+    record.getDeclaredStaticObjectTypeFields.foreach{ field =>
+      result += new RFAFact(StaticFieldSlot(field.FQN.fqn), PTAInstance(field.getType.toUnknown, currentContext))
+    }
+    result
+  }
+
+  def getExceptionFacts(a: Assignment, s: ISet[RFAFact], currentContext: Context)(implicit factory: SimHeap): ISet[RFAFact] = {
+    var result: ISet[RFAFact] = isetEmpty
+    a match{
+      case _: AssignmentStatement =>
+        val thrownExcNames = ExceptionCenter.getExceptionMayThrowFromStatement(a)
+        thrownExcNames.foreach{ excName =>
+          if(excName != ExceptionCenter.THROWABLE) {
+            val ins = PTAInstance(excName, currentContext.copy)
+            result += new RFAFact(VarSlot(ExceptionCenter.EXCEPTION_VAR_NAME), ins)
+          }
+        }
+      case _ =>
     }
     result
   }

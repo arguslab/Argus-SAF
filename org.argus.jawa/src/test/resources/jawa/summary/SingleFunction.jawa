@@ -1,0 +1,15 @@
+record `com.hugo.test.SingleFunction` @kind class @AccessFlag PUBLIC {
+}
+procedure `void` `com.hugo.test.SingleFunction.<init>`(`com.hugo.test.SingleFunction` `this` @kind this) @owner ^`com.hugo.test.SingleFunction` @signature `Lcom/hugo/test/SingleFunction;.<init>:()V` @AccessFlag PUBLIC_CONSTRUCTOR {
+
+    #L1.  call `java.lang.Object.<init>`(`this`) @signature `Ljava/lang/Object;.<init>:()V` @classDescriptor ^`java.lang.Object` @kind direct;
+    #L2.  return  @kind void;
+}
+procedure `java.lang.String` `com.hugo.test.SingleFunction.main`(`java.util.Set` `set` @kind object) @owner ^`com.hugo.test.SingleFunction` @signature `Lcom/hugo/test/SingleFunction;.main:(Ljava/util/Set;)Ljava/lang/String;` @AccessFlag PUBLIC_STATIC {
+    `boolean` temp;
+    `java.lang.String` String_v0;
+
+    #L3.  String_v0:= "Hello World!" @kind object;
+    #L4.  call temp:= `java.util.Set.add`(`set`, String_v0) @signature `Ljava/util/Set;.add:(Ljava/lang/Object;)Z` @classDescriptor ^`java.util.Set` @kind virtual;
+    #L5.  return String_v0;
+}
