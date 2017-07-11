@@ -18,6 +18,16 @@ public interface SafsuListener extends ParseTreeListener {
 	 */
 	void exitSummaryFile(SafsuParser.SummaryFileContext ctx);
 	/**
+	 * Enter a parse tree produced by {@link SafsuParser#defaultType}.
+	 * @param ctx the parse tree
+	 */
+	void enterDefaultType(SafsuParser.DefaultTypeContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link SafsuParser#defaultType}.
+	 * @param ctx the parse tree
+	 */
+	void exitDefaultType(SafsuParser.DefaultTypeContext ctx);
+	/**
 	 * Enter a parse tree produced by {@link SafsuParser#summary}.
 	 * @param ctx the parse tree
 	 */

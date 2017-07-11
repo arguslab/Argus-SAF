@@ -1,3 +1,6 @@
+java.lang.Thread:runnable:java.lang.Runnable?;
+java.lang.Thread:name:java.lang.String;
+
 `Ljava/lang/Thread;.<init>:()V`:
   this.runnable = this
   this.name = java.lang.String@~

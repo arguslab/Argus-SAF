@@ -28,6 +28,18 @@ public class SafsuBaseListener implements SafsuListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
+	@Override public void enterDefaultType(SafsuParser.DefaultTypeContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitDefaultType(SafsuParser.DefaultTypeContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
 	@Override public void enterSummary(SafsuParser.SummaryContext ctx) { }
 	/**
 	 * {@inheritDoc}

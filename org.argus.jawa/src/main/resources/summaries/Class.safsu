@@ -1,3 +1,5 @@
+java.lang.Class:name:java.lang.String;
+
 `Ljava/lang/Class;.asSubclass:(Ljava/lang/Class;)Ljava/lang/Class;`: //public
   ret = arg:0
 ;

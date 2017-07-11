@@ -1,3 +1,5 @@
+java.lang.StringBuilder:value:java.lang.String;
+
 `Ljava/lang/StringBuilder;.<init>:()V`:
    this.value = ""@~
 ;

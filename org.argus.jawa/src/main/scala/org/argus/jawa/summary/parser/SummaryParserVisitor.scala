@@ -33,11 +33,21 @@ class SummaryParserVisitor()
   extends SafsuBaseVisitor[SuRuleNode]
   with Antlr4.Visitor {
 
-  override def visitSummaryFile(ctx: SummaryFileContext): SuRuleNode =
-    SummaryFile(ctx.summary.asScala.map{ s =>
-      val summary = getChild[Summary](s)
-      (summary.signature, summary)
-    }.toMap)
+  override def visitSummaryFile(ctx: SummaryFileContext): SuRuleNode = {
+    var defaultTypes: Map[JawaType, Map[String, JawaType]] = Map()
+    ctx.defaultType().asScala.foreach { dt =>
+      val baseType = getChild[SuJavaType](dt.javaType(0)).typ
+      val fieldName = dt.ID.getText
+      val fieldType = getChild[SuJavaType](dt.javaType(1)).typ
+      defaultTypes += baseType -> (defaultTypes.getOrElse(baseType, Map()) + (fieldName -> fieldType))
+    }
+    SummaryFile(
+      defaultTypes,
+      ctx.summary.asScala.map { s =>
+        val summary = getChild[Summary](s)
+        (summary.signature, summary)
+      }.toMap)
+  }
 
   override def visitSummary(ctx: SummaryContext): SuRuleNode =
     Summary(new Signature(getUID(ctx.signature.UID.getText)), getChildren(ctx.suRule.asScala))

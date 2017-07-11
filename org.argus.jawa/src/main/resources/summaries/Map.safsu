@@ -1,3 +1,6 @@
+java.util.HashMap:entries:java.util.HashMap$Entries;
+java.util.HashMap:key:java.lang.Object?;
+
 `Ljava/util/HashMap;.<init>:()V`:
   this.entries = java.util.HashMap$Entries@~
 ;

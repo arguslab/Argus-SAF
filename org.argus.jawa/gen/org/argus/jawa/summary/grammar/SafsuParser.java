@@ -21,19 +21,19 @@ public class SafsuParser extends Parser {
 		T__9=10, T__10=11, T__11=12, T__12=13, T__13=14, T__14=15, T__15=16, T__16=17, 
 		UID=18, ID=19, Digits=20, STRING=21, MSTRING=22, WS=23, COMMENT=24, LINE_COMMENT=25;
 	public static final int
-		RULE_summaryFile = 0, RULE_summary = 1, RULE_signature = 2, RULE_suRule = 3, 
-		RULE_clearRule = 4, RULE_binaryRule = 5, RULE_ops = 6, RULE_lhs = 7, RULE_rhs = 8, 
-		RULE_suThis = 9, RULE_arg = 10, RULE_global = 11, RULE_heap = 12, RULE_heapAccess = 13, 
-		RULE_fieldAccess = 14, RULE_arrayAccess = 15, RULE_mapAccess = 16, RULE_instance = 17, 
-		RULE_classOf = 18, RULE_type = 19, RULE_javaType = 20, RULE_innerType = 21, 
-		RULE_unknown = 22, RULE_stringLit = 23, RULE_ret = 24, RULE_location = 25, 
-		RULE_virtualLocation = 26, RULE_concreteLocation = 27;
+		RULE_summaryFile = 0, RULE_defaultType = 1, RULE_summary = 2, RULE_signature = 3, 
+		RULE_suRule = 4, RULE_clearRule = 5, RULE_binaryRule = 6, RULE_ops = 7, 
+		RULE_lhs = 8, RULE_rhs = 9, RULE_suThis = 10, RULE_arg = 11, RULE_global = 12, 
+		RULE_heap = 13, RULE_heapAccess = 14, RULE_fieldAccess = 15, RULE_arrayAccess = 16, 
+		RULE_mapAccess = 17, RULE_instance = 18, RULE_classOf = 19, RULE_type = 20, 
+		RULE_javaType = 21, RULE_innerType = 22, RULE_unknown = 23, RULE_stringLit = 24, 
+		RULE_ret = 25, RULE_location = 26, RULE_virtualLocation = 27, RULE_concreteLocation = 28;
 	public static final String[] ruleNames = {
-		"summaryFile", "summary", "signature", "suRule", "clearRule", "binaryRule", 
-		"ops", "lhs", "rhs", "suThis", "arg", "global", "heap", "heapAccess", 
-		"fieldAccess", "arrayAccess", "mapAccess", "instance", "classOf", "type", 
-		"javaType", "innerType", "unknown", "stringLit", "ret", "location", "virtualLocation", 
-		"concreteLocation"
+		"summaryFile", "defaultType", "summary", "signature", "suRule", "clearRule", 
+		"binaryRule", "ops", "lhs", "rhs", "suThis", "arg", "global", "heap", 
+		"heapAccess", "fieldAccess", "arrayAccess", "mapAccess", "instance", "classOf", 
+		"type", "javaType", "innerType", "unknown", "stringLit", "ret", "location", 
+		"virtualLocation", "concreteLocation"
 	};
 
 	private static final String[] _LITERAL_NAMES = {
@@ -96,6 +96,12 @@ public class SafsuParser extends Parser {
 	}
 	public static class SummaryFileContext extends ParserRuleContext {
 		public TerminalNode EOF() { return getToken(SafsuParser.EOF, 0); }
+		public List<DefaultTypeContext> defaultType() {
+			return getRuleContexts(DefaultTypeContext.class);
+		}
+		public DefaultTypeContext defaultType(int i) {
+			return getRuleContext(DefaultTypeContext.class,i);
+		}
 		public List<SummaryContext> summary() {
 			return getRuleContexts(SummaryContext.class);
 		}
@@ -128,22 +134,94 @@ public class SafsuParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(59);
+			setState(61);
+			_errHandler.sync(this);
+			_la = _input.LA(1);
+			while (_la==ID) {
+				{
+				{
+				setState(58);
+				defaultType();
+				}
+				}
+				setState(63);
+				_errHandler.sync(this);
+				_la = _input.LA(1);
+			}
+			setState(67);
 			_errHandler.sync(this);
 			_la = _input.LA(1);
 			while (_la==UID) {
 				{
 				{
-				setState(56);
+				setState(64);
 				summary();
 				}
 				}
-				setState(61);
+				setState(69);
 				_errHandler.sync(this);
 				_la = _input.LA(1);
 			}
-			setState(62);
+			setState(70);
 			match(EOF);
+			}
+		}
+		catch (RecognitionException re) {
+			_localctx.exception = re;
+			_errHandler.reportError(this, re);
+			_errHandler.recover(this, re);
+		}
+		finally {
+			exitRule();
+		}
+		return _localctx;
+	}
+
+	public static class DefaultTypeContext extends ParserRuleContext {
+		public List<JavaTypeContext> javaType() {
+			return getRuleContexts(JavaTypeContext.class);
+		}
+		public JavaTypeContext javaType(int i) {
+			return getRuleContext(JavaTypeContext.class,i);
+		}
+		public TerminalNode ID() { return getToken(SafsuParser.ID, 0); }
+		public DefaultTypeContext(ParserRuleContext parent, int invokingState) {
+			super(parent, invokingState);
+		}
+		@Override public int getRuleIndex() { return RULE_defaultType; }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof SafsuListener ) ((SafsuListener)listener).enterDefaultType(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof SafsuListener ) ((SafsuListener)listener).exitDefaultType(this);
+		}
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof SafsuVisitor ) return ((SafsuVisitor<? extends T>)visitor).visitDefaultType(this);
+			else return visitor.visitChildren(this);
+		}
+	}
+
+	public final DefaultTypeContext defaultType() throws RecognitionException {
+		DefaultTypeContext _localctx = new DefaultTypeContext(_ctx, getState());
+		enterRule(_localctx, 2, RULE_defaultType);
+		try {
+			enterOuterAlt(_localctx, 1);
+			{
+			setState(72);
+			javaType();
+			setState(73);
+			match(T__0);
+			setState(74);
+			match(ID);
+			setState(75);
+			match(T__0);
+			setState(76);
+			javaType();
+			setState(77);
+			match(T__1);
 			}
 		}
 		catch (RecognitionException re) {
@@ -188,30 +266,30 @@ public class SafsuParser extends Parser {
 
 	public final SummaryContext summary() throws RecognitionException {
 		SummaryContext _localctx = new SummaryContext(_ctx, getState());
-		enterRule(_localctx, 2, RULE_summary);
+		enterRule(_localctx, 4, RULE_summary);
 		int _la;
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(64);
+			setState(79);
 			signature();
-			setState(65);
+			setState(80);
 			match(T__0);
-			setState(69);
+			setState(84);
 			_errHandler.sync(this);
 			_la = _input.LA(1);
 			while ((((_la) & ~0x3f) == 0 && ((1L << _la) & ((1L << T__2) | (1L << T__6) | (1L << T__7) | (1L << T__16) | (1L << UID))) != 0)) {
 				{
 				{
-				setState(66);
+				setState(81);
 				suRule();
 				}
 				}
-				setState(71);
+				setState(86);
 				_errHandler.sync(this);
 				_la = _input.LA(1);
 			}
-			setState(72);
+			setState(87);
 			match(T__1);
 			}
 		}
@@ -249,11 +327,11 @@ public class SafsuParser extends Parser {
 
 	public final SignatureContext signature() throws RecognitionException {
 		SignatureContext _localctx = new SignatureContext(_ctx, getState());
-		enterRule(_localctx, 4, RULE_signature);
+		enterRule(_localctx, 6, RULE_signature);
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(74);
+			setState(89);
 			match(UID);
 			}
 		}
@@ -296,15 +374,15 @@ public class SafsuParser extends Parser {
 
 	public final SuRuleContext suRule() throws RecognitionException {
 		SuRuleContext _localctx = new SuRuleContext(_ctx, getState());
-		enterRule(_localctx, 6, RULE_suRule);
+		enterRule(_localctx, 8, RULE_suRule);
 		try {
-			setState(78);
+			setState(93);
 			_errHandler.sync(this);
 			switch (_input.LA(1)) {
 			case T__2:
 				enterOuterAlt(_localctx, 1);
 				{
-				setState(76);
+				setState(91);
 				clearRule();
 				}
 				break;
@@ -314,7 +392,7 @@ public class SafsuParser extends Parser {
 			case UID:
 				enterOuterAlt(_localctx, 2);
 				{
-				setState(77);
+				setState(92);
 				binaryRule();
 				}
 				break;
@@ -364,30 +442,30 @@ public class SafsuParser extends Parser {
 
 	public final ClearRuleContext clearRule() throws RecognitionException {
 		ClearRuleContext _localctx = new ClearRuleContext(_ctx, getState());
-		enterRule(_localctx, 8, RULE_clearRule);
+		enterRule(_localctx, 10, RULE_clearRule);
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(80);
+			setState(95);
 			match(T__2);
-			setState(84);
+			setState(99);
 			_errHandler.sync(this);
 			switch (_input.LA(1)) {
 			case T__6:
 				{
-				setState(81);
+				setState(96);
 				suThis();
 				}
 				break;
 			case T__7:
 				{
-				setState(82);
+				setState(97);
 				arg();
 				}
 				break;
 			case UID:
 				{
-				setState(83);
+				setState(98);
 				global();
 				}
 				break;
@@ -438,15 +516,15 @@ public class SafsuParser extends Parser {
 
 	public final BinaryRuleContext binaryRule() throws RecognitionException {
 		BinaryRuleContext _localctx = new BinaryRuleContext(_ctx, getState());
-		enterRule(_localctx, 10, RULE_binaryRule);
+		enterRule(_localctx, 12, RULE_binaryRule);
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(86);
+			setState(101);
 			lhs();
-			setState(87);
+			setState(102);
 			ops();
-			setState(88);
+			setState(103);
 			rhs();
 			}
 		}
@@ -483,12 +561,12 @@ public class SafsuParser extends Parser {
 
 	public final OpsContext ops() throws RecognitionException {
 		OpsContext _localctx = new OpsContext(_ctx, getState());
-		enterRule(_localctx, 12, RULE_ops);
+		enterRule(_localctx, 14, RULE_ops);
 		int _la;
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(90);
+			setState(105);
 			_la = _input.LA(1);
 			if ( !((((_la) & ~0x3f) == 0 && ((1L << _la) & ((1L << T__3) | (1L << T__4) | (1L << T__5))) != 0)) ) {
 			_errHandler.recoverInline(this);
@@ -545,36 +623,36 @@ public class SafsuParser extends Parser {
 
 	public final LhsContext lhs() throws RecognitionException {
 		LhsContext _localctx = new LhsContext(_ctx, getState());
-		enterRule(_localctx, 14, RULE_lhs);
+		enterRule(_localctx, 16, RULE_lhs);
 		try {
-			setState(96);
+			setState(111);
 			_errHandler.sync(this);
 			switch (_input.LA(1)) {
 			case T__6:
 				enterOuterAlt(_localctx, 1);
 				{
-				setState(92);
+				setState(107);
 				suThis();
 				}
 				break;
 			case T__7:
 				enterOuterAlt(_localctx, 2);
 				{
-				setState(93);
+				setState(108);
 				arg();
 				}
 				break;
 			case UID:
 				enterOuterAlt(_localctx, 3);
 				{
-				setState(94);
+				setState(109);
 				global();
 				}
 				break;
 			case T__16:
 				enterOuterAlt(_localctx, 4);
 				{
-				setState(95);
+				setState(110);
 				ret();
 				}
 				break;
@@ -630,29 +708,29 @@ public class SafsuParser extends Parser {
 
 	public final RhsContext rhs() throws RecognitionException {
 		RhsContext _localctx = new RhsContext(_ctx, getState());
-		enterRule(_localctx, 16, RULE_rhs);
+		enterRule(_localctx, 18, RULE_rhs);
 		try {
-			setState(103);
+			setState(118);
 			_errHandler.sync(this);
 			switch (_input.LA(1)) {
 			case T__6:
 				enterOuterAlt(_localctx, 1);
 				{
-				setState(98);
+				setState(113);
 				suThis();
 				}
 				break;
 			case T__7:
 				enterOuterAlt(_localctx, 2);
 				{
-				setState(99);
+				setState(114);
 				arg();
 				}
 				break;
 			case UID:
 				enterOuterAlt(_localctx, 3);
 				{
-				setState(100);
+				setState(115);
 				global();
 				}
 				break;
@@ -661,14 +739,14 @@ public class SafsuParser extends Parser {
 			case MSTRING:
 				enterOuterAlt(_localctx, 4);
 				{
-				setState(101);
+				setState(116);
 				instance();
 				}
 				break;
 			case T__13:
 				enterOuterAlt(_localctx, 5);
 				{
-				setState(102);
+				setState(117);
 				classOf();
 				}
 				break;
@@ -712,19 +790,19 @@ public class SafsuParser extends Parser {
 
 	public final SuThisContext suThis() throws RecognitionException {
 		SuThisContext _localctx = new SuThisContext(_ctx, getState());
-		enterRule(_localctx, 18, RULE_suThis);
+		enterRule(_localctx, 20, RULE_suThis);
 		int _la;
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(105);
+			setState(120);
 			match(T__6);
-			setState(107);
+			setState(122);
 			_errHandler.sync(this);
 			_la = _input.LA(1);
 			if ((((_la) & ~0x3f) == 0 && ((1L << _la) & ((1L << T__8) | (1L << T__9) | (1L << T__10))) != 0)) {
 				{
-				setState(106);
+				setState(121);
 				heap();
 				}
 			}
@@ -768,23 +846,23 @@ public class SafsuParser extends Parser {
 
 	public final ArgContext arg() throws RecognitionException {
 		ArgContext _localctx = new ArgContext(_ctx, getState());
-		enterRule(_localctx, 20, RULE_arg);
+		enterRule(_localctx, 22, RULE_arg);
 		int _la;
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(109);
+			setState(124);
 			match(T__7);
-			setState(110);
+			setState(125);
 			match(T__0);
-			setState(111);
+			setState(126);
 			match(Digits);
-			setState(113);
+			setState(128);
 			_errHandler.sync(this);
 			_la = _input.LA(1);
 			if ((((_la) & ~0x3f) == 0 && ((1L << _la) & ((1L << T__8) | (1L << T__9) | (1L << T__10))) != 0)) {
 				{
-				setState(112);
+				setState(127);
 				heap();
 				}
 			}
@@ -828,19 +906,19 @@ public class SafsuParser extends Parser {
 
 	public final GlobalContext global() throws RecognitionException {
 		GlobalContext _localctx = new GlobalContext(_ctx, getState());
-		enterRule(_localctx, 22, RULE_global);
+		enterRule(_localctx, 24, RULE_global);
 		int _la;
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(115);
+			setState(130);
 			match(UID);
-			setState(117);
+			setState(132);
 			_errHandler.sync(this);
 			_la = _input.LA(1);
 			if ((((_la) & ~0x3f) == 0 && ((1L << _la) & ((1L << T__8) | (1L << T__9) | (1L << T__10))) != 0)) {
 				{
-				setState(116);
+				setState(131);
 				heap();
 				}
 			}
@@ -886,22 +964,22 @@ public class SafsuParser extends Parser {
 
 	public final HeapContext heap() throws RecognitionException {
 		HeapContext _localctx = new HeapContext(_ctx, getState());
-		enterRule(_localctx, 24, RULE_heap);
+		enterRule(_localctx, 26, RULE_heap);
 		int _la;
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(120); 
+			setState(135); 
 			_errHandler.sync(this);
 			_la = _input.LA(1);
 			do {
 				{
 				{
-				setState(119);
+				setState(134);
 				heapAccess();
 				}
 				}
-				setState(122); 
+				setState(137); 
 				_errHandler.sync(this);
 				_la = _input.LA(1);
 			} while ( (((_la) & ~0x3f) == 0 && ((1L << _la) & ((1L << T__8) | (1L << T__9) | (1L << T__10))) != 0) );
@@ -949,29 +1027,29 @@ public class SafsuParser extends Parser {
 
 	public final HeapAccessContext heapAccess() throws RecognitionException {
 		HeapAccessContext _localctx = new HeapAccessContext(_ctx, getState());
-		enterRule(_localctx, 26, RULE_heapAccess);
+		enterRule(_localctx, 28, RULE_heapAccess);
 		try {
-			setState(127);
+			setState(142);
 			_errHandler.sync(this);
 			switch (_input.LA(1)) {
 			case T__8:
 				enterOuterAlt(_localctx, 1);
 				{
-				setState(124);
+				setState(139);
 				fieldAccess();
 				}
 				break;
 			case T__9:
 				enterOuterAlt(_localctx, 2);
 				{
-				setState(125);
+				setState(140);
 				arrayAccess();
 				}
 				break;
 			case T__10:
 				enterOuterAlt(_localctx, 3);
 				{
-				setState(126);
+				setState(141);
 				mapAccess();
 				}
 				break;
@@ -1013,13 +1091,13 @@ public class SafsuParser extends Parser {
 
 	public final FieldAccessContext fieldAccess() throws RecognitionException {
 		FieldAccessContext _localctx = new FieldAccessContext(_ctx, getState());
-		enterRule(_localctx, 28, RULE_fieldAccess);
+		enterRule(_localctx, 30, RULE_fieldAccess);
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(129);
+			setState(144);
 			match(T__8);
-			setState(130);
+			setState(145);
 			match(ID);
 			}
 		}
@@ -1056,11 +1134,11 @@ public class SafsuParser extends Parser {
 
 	public final ArrayAccessContext arrayAccess() throws RecognitionException {
 		ArrayAccessContext _localctx = new ArrayAccessContext(_ctx, getState());
-		enterRule(_localctx, 30, RULE_arrayAccess);
+		enterRule(_localctx, 32, RULE_arrayAccess);
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(132);
+			setState(147);
 			match(T__9);
 			}
 		}
@@ -1100,24 +1178,24 @@ public class SafsuParser extends Parser {
 
 	public final MapAccessContext mapAccess() throws RecognitionException {
 		MapAccessContext _localctx = new MapAccessContext(_ctx, getState());
-		enterRule(_localctx, 32, RULE_mapAccess);
+		enterRule(_localctx, 34, RULE_mapAccess);
 		int _la;
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(134);
+			setState(149);
 			match(T__10);
-			setState(136);
+			setState(151);
 			_errHandler.sync(this);
 			_la = _input.LA(1);
 			if ((((_la) & ~0x3f) == 0 && ((1L << _la) & ((1L << T__6) | (1L << T__7) | (1L << T__13) | (1L << UID) | (1L << ID) | (1L << STRING) | (1L << MSTRING))) != 0)) {
 				{
-				setState(135);
+				setState(150);
 				rhs();
 				}
 			}
 
-			setState(138);
+			setState(153);
 			match(T__11);
 			}
 		}
@@ -1160,15 +1238,15 @@ public class SafsuParser extends Parser {
 
 	public final InstanceContext instance() throws RecognitionException {
 		InstanceContext _localctx = new InstanceContext(_ctx, getState());
-		enterRule(_localctx, 34, RULE_instance);
+		enterRule(_localctx, 36, RULE_instance);
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(140);
+			setState(155);
 			type();
-			setState(141);
+			setState(156);
 			match(T__12);
-			setState(142);
+			setState(157);
 			location();
 			}
 		}
@@ -1211,17 +1289,17 @@ public class SafsuParser extends Parser {
 
 	public final ClassOfContext classOf() throws RecognitionException {
 		ClassOfContext _localctx = new ClassOfContext(_ctx, getState());
-		enterRule(_localctx, 36, RULE_classOf);
+		enterRule(_localctx, 38, RULE_classOf);
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(144);
+			setState(159);
 			match(T__13);
-			setState(145);
+			setState(160);
 			rhs();
-			setState(146);
+			setState(161);
 			match(T__12);
-			setState(147);
+			setState(162);
 			location();
 			}
 		}
@@ -1264,15 +1342,15 @@ public class SafsuParser extends Parser {
 
 	public final TypeContext type() throws RecognitionException {
 		TypeContext _localctx = new TypeContext(_ctx, getState());
-		enterRule(_localctx, 38, RULE_type);
+		enterRule(_localctx, 40, RULE_type);
 		try {
-			setState(151);
+			setState(166);
 			_errHandler.sync(this);
 			switch (_input.LA(1)) {
 			case ID:
 				enterOuterAlt(_localctx, 1);
 				{
-				setState(149);
+				setState(164);
 				javaType();
 				}
 				break;
@@ -1280,7 +1358,7 @@ public class SafsuParser extends Parser {
 			case MSTRING:
 				enterOuterAlt(_localctx, 2);
 				{
-				setState(150);
+				setState(165);
 				stringLit();
 				}
 				break;
@@ -1340,64 +1418,64 @@ public class SafsuParser extends Parser {
 
 	public final JavaTypeContext javaType() throws RecognitionException {
 		JavaTypeContext _localctx = new JavaTypeContext(_ctx, getState());
-		enterRule(_localctx, 40, RULE_javaType);
+		enterRule(_localctx, 42, RULE_javaType);
 		int _la;
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(153);
+			setState(168);
 			match(ID);
-			setState(158);
+			setState(173);
 			_errHandler.sync(this);
 			_la = _input.LA(1);
 			while (_la==T__8) {
 				{
 				{
-				setState(154);
+				setState(169);
 				match(T__8);
-				setState(155);
+				setState(170);
 				match(ID);
 				}
 				}
-				setState(160);
+				setState(175);
 				_errHandler.sync(this);
 				_la = _input.LA(1);
 			}
-			setState(164);
+			setState(179);
 			_errHandler.sync(this);
 			_la = _input.LA(1);
 			while (_la==T__14) {
 				{
 				{
-				setState(161);
+				setState(176);
 				innerType();
 				}
 				}
-				setState(166);
+				setState(181);
 				_errHandler.sync(this);
 				_la = _input.LA(1);
 			}
-			setState(168);
+			setState(183);
 			_errHandler.sync(this);
 			_la = _input.LA(1);
 			if (_la==T__15) {
 				{
-				setState(167);
+				setState(182);
 				unknown();
 				}
 			}
 
-			setState(173);
+			setState(188);
 			_errHandler.sync(this);
 			_la = _input.LA(1);
 			while (_la==T__9) {
 				{
 				{
-				setState(170);
+				setState(185);
 				arrayAccess();
 				}
 				}
-				setState(175);
+				setState(190);
 				_errHandler.sync(this);
 				_la = _input.LA(1);
 			}
@@ -1437,13 +1515,13 @@ public class SafsuParser extends Parser {
 
 	public final InnerTypeContext innerType() throws RecognitionException {
 		InnerTypeContext _localctx = new InnerTypeContext(_ctx, getState());
-		enterRule(_localctx, 42, RULE_innerType);
+		enterRule(_localctx, 44, RULE_innerType);
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(176);
+			setState(191);
 			match(T__14);
-			setState(177);
+			setState(192);
 			match(ID);
 			}
 		}
@@ -1480,11 +1558,11 @@ public class SafsuParser extends Parser {
 
 	public final UnknownContext unknown() throws RecognitionException {
 		UnknownContext _localctx = new UnknownContext(_ctx, getState());
-		enterRule(_localctx, 44, RULE_unknown);
+		enterRule(_localctx, 46, RULE_unknown);
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(179);
+			setState(194);
 			match(T__15);
 			}
 		}
@@ -1523,12 +1601,12 @@ public class SafsuParser extends Parser {
 
 	public final StringLitContext stringLit() throws RecognitionException {
 		StringLitContext _localctx = new StringLitContext(_ctx, getState());
-		enterRule(_localctx, 46, RULE_stringLit);
+		enterRule(_localctx, 48, RULE_stringLit);
 		int _la;
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(181);
+			setState(196);
 			_la = _input.LA(1);
 			if ( !(_la==STRING || _la==MSTRING) ) {
 			_errHandler.recoverInline(this);
@@ -1576,19 +1654,19 @@ public class SafsuParser extends Parser {
 
 	public final RetContext ret() throws RecognitionException {
 		RetContext _localctx = new RetContext(_ctx, getState());
-		enterRule(_localctx, 48, RULE_ret);
+		enterRule(_localctx, 50, RULE_ret);
 		int _la;
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(183);
+			setState(198);
 			match(T__16);
-			setState(185);
+			setState(200);
 			_errHandler.sync(this);
 			_la = _input.LA(1);
 			if ((((_la) & ~0x3f) == 0 && ((1L << _la) & ((1L << T__8) | (1L << T__9) | (1L << T__10))) != 0)) {
 				{
-				setState(184);
+				setState(199);
 				heap();
 				}
 			}
@@ -1634,22 +1712,22 @@ public class SafsuParser extends Parser {
 
 	public final LocationContext location() throws RecognitionException {
 		LocationContext _localctx = new LocationContext(_ctx, getState());
-		enterRule(_localctx, 50, RULE_location);
+		enterRule(_localctx, 52, RULE_location);
 		try {
-			setState(189);
+			setState(204);
 			_errHandler.sync(this);
 			switch (_input.LA(1)) {
 			case T__2:
 				enterOuterAlt(_localctx, 1);
 				{
-				setState(187);
+				setState(202);
 				virtualLocation();
 				}
 				break;
 			case ID:
 				enterOuterAlt(_localctx, 2);
 				{
-				setState(188);
+				setState(203);
 				concreteLocation();
 				}
 				break;
@@ -1690,11 +1768,11 @@ public class SafsuParser extends Parser {
 
 	public final VirtualLocationContext virtualLocation() throws RecognitionException {
 		VirtualLocationContext _localctx = new VirtualLocationContext(_ctx, getState());
-		enterRule(_localctx, 52, RULE_virtualLocation);
+		enterRule(_localctx, 54, RULE_virtualLocation);
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(191);
+			setState(206);
 			match(T__2);
 			}
 		}
@@ -1732,11 +1810,11 @@ public class SafsuParser extends Parser {
 
 	public final ConcreteLocationContext concreteLocation() throws RecognitionException {
 		ConcreteLocationContext _localctx = new ConcreteLocationContext(_ctx, getState());
-		enterRule(_localctx, 54, RULE_concreteLocation);
+		enterRule(_localctx, 56, RULE_concreteLocation);
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(193);
+			setState(208);
 			match(ID);
 			}
 		}
@@ -1752,65 +1830,71 @@ public class SafsuParser extends Parser {
 	}
 
 	public static final String _serializedATN =
-		"\3\u608b\ua72a\u8133\ub9ed\u417c\u3be7\u7786\u5964\3\33\u00c6\4\2\t\2"+
+		"\3\u608b\ua72a\u8133\ub9ed\u417c\u3be7\u7786\u5964\3\33\u00d5\4\2\t\2"+
 		"\4\3\t\3\4\4\t\4\4\5\t\5\4\6\t\6\4\7\t\7\4\b\t\b\4\t\t\t\4\n\t\n\4\13"+
 		"\t\13\4\f\t\f\4\r\t\r\4\16\t\16\4\17\t\17\4\20\t\20\4\21\t\21\4\22\t\22"+
 		"\4\23\t\23\4\24\t\24\4\25\t\25\4\26\t\26\4\27\t\27\4\30\t\30\4\31\t\31"+
-		"\4\32\t\32\4\33\t\33\4\34\t\34\4\35\t\35\3\2\7\2<\n\2\f\2\16\2?\13\2\3"+
-		"\2\3\2\3\3\3\3\3\3\7\3F\n\3\f\3\16\3I\13\3\3\3\3\3\3\4\3\4\3\5\3\5\5\5"+
-		"Q\n\5\3\6\3\6\3\6\3\6\5\6W\n\6\3\7\3\7\3\7\3\7\3\b\3\b\3\t\3\t\3\t\3\t"+
-		"\5\tc\n\t\3\n\3\n\3\n\3\n\3\n\5\nj\n\n\3\13\3\13\5\13n\n\13\3\f\3\f\3"+
-		"\f\3\f\5\ft\n\f\3\r\3\r\5\rx\n\r\3\16\6\16{\n\16\r\16\16\16|\3\17\3\17"+
-		"\3\17\5\17\u0082\n\17\3\20\3\20\3\20\3\21\3\21\3\22\3\22\5\22\u008b\n"+
-		"\22\3\22\3\22\3\23\3\23\3\23\3\23\3\24\3\24\3\24\3\24\3\24\3\25\3\25\5"+
-		"\25\u009a\n\25\3\26\3\26\3\26\7\26\u009f\n\26\f\26\16\26\u00a2\13\26\3"+
-		"\26\7\26\u00a5\n\26\f\26\16\26\u00a8\13\26\3\26\5\26\u00ab\n\26\3\26\7"+
-		"\26\u00ae\n\26\f\26\16\26\u00b1\13\26\3\27\3\27\3\27\3\30\3\30\3\31\3"+
-		"\31\3\32\3\32\5\32\u00bc\n\32\3\33\3\33\5\33\u00c0\n\33\3\34\3\34\3\35"+
-		"\3\35\3\35\2\2\36\2\4\6\b\n\f\16\20\22\24\26\30\32\34\36 \"$&(*,.\60\62"+
-		"\64\668\2\4\3\2\6\b\3\2\27\30\2\u00c3\2=\3\2\2\2\4B\3\2\2\2\6L\3\2\2\2"+
-		"\bP\3\2\2\2\nR\3\2\2\2\fX\3\2\2\2\16\\\3\2\2\2\20b\3\2\2\2\22i\3\2\2\2"+
-		"\24k\3\2\2\2\26o\3\2\2\2\30u\3\2\2\2\32z\3\2\2\2\34\u0081\3\2\2\2\36\u0083"+
-		"\3\2\2\2 \u0086\3\2\2\2\"\u0088\3\2\2\2$\u008e\3\2\2\2&\u0092\3\2\2\2"+
-		"(\u0099\3\2\2\2*\u009b\3\2\2\2,\u00b2\3\2\2\2.\u00b5\3\2\2\2\60\u00b7"+
-		"\3\2\2\2\62\u00b9\3\2\2\2\64\u00bf\3\2\2\2\66\u00c1\3\2\2\28\u00c3\3\2"+
-		"\2\2:<\5\4\3\2;:\3\2\2\2<?\3\2\2\2=;\3\2\2\2=>\3\2\2\2>@\3\2\2\2?=\3\2"+
-		"\2\2@A\7\2\2\3A\3\3\2\2\2BC\5\6\4\2CG\7\3\2\2DF\5\b\5\2ED\3\2\2\2FI\3"+
-		"\2\2\2GE\3\2\2\2GH\3\2\2\2HJ\3\2\2\2IG\3\2\2\2JK\7\4\2\2K\5\3\2\2\2LM"+
-		"\7\24\2\2M\7\3\2\2\2NQ\5\n\6\2OQ\5\f\7\2PN\3\2\2\2PO\3\2\2\2Q\t\3\2\2"+
-		"\2RV\7\5\2\2SW\5\24\13\2TW\5\26\f\2UW\5\30\r\2VS\3\2\2\2VT\3\2\2\2VU\3"+
-		"\2\2\2W\13\3\2\2\2XY\5\20\t\2YZ\5\16\b\2Z[\5\22\n\2[\r\3\2\2\2\\]\t\2"+
-		"\2\2]\17\3\2\2\2^c\5\24\13\2_c\5\26\f\2`c\5\30\r\2ac\5\62\32\2b^\3\2\2"+
-		"\2b_\3\2\2\2b`\3\2\2\2ba\3\2\2\2c\21\3\2\2\2dj\5\24\13\2ej\5\26\f\2fj"+
-		"\5\30\r\2gj\5$\23\2hj\5&\24\2id\3\2\2\2ie\3\2\2\2if\3\2\2\2ig\3\2\2\2"+
-		"ih\3\2\2\2j\23\3\2\2\2km\7\t\2\2ln\5\32\16\2ml\3\2\2\2mn\3\2\2\2n\25\3"+
-		"\2\2\2op\7\n\2\2pq\7\3\2\2qs\7\26\2\2rt\5\32\16\2sr\3\2\2\2st\3\2\2\2"+
-		"t\27\3\2\2\2uw\7\24\2\2vx\5\32\16\2wv\3\2\2\2wx\3\2\2\2x\31\3\2\2\2y{"+
-		"\5\34\17\2zy\3\2\2\2{|\3\2\2\2|z\3\2\2\2|}\3\2\2\2}\33\3\2\2\2~\u0082"+
-		"\5\36\20\2\177\u0082\5 \21\2\u0080\u0082\5\"\22\2\u0081~\3\2\2\2\u0081"+
-		"\177\3\2\2\2\u0081\u0080\3\2\2\2\u0082\35\3\2\2\2\u0083\u0084\7\13\2\2"+
-		"\u0084\u0085\7\25\2\2\u0085\37\3\2\2\2\u0086\u0087\7\f\2\2\u0087!\3\2"+
-		"\2\2\u0088\u008a\7\r\2\2\u0089\u008b\5\22\n\2\u008a\u0089\3\2\2\2\u008a"+
-		"\u008b\3\2\2\2\u008b\u008c\3\2\2\2\u008c\u008d\7\16\2\2\u008d#\3\2\2\2"+
-		"\u008e\u008f\5(\25\2\u008f\u0090\7\17\2\2\u0090\u0091\5\64\33\2\u0091"+
-		"%\3\2\2\2\u0092\u0093\7\20\2\2\u0093\u0094\5\22\n\2\u0094\u0095\7\17\2"+
-		"\2\u0095\u0096\5\64\33\2\u0096\'\3\2\2\2\u0097\u009a\5*\26\2\u0098\u009a"+
-		"\5\60\31\2\u0099\u0097\3\2\2\2\u0099\u0098\3\2\2\2\u009a)\3\2\2\2\u009b"+
-		"\u00a0\7\25\2\2\u009c\u009d\7\13\2\2\u009d\u009f\7\25\2\2\u009e\u009c"+
-		"\3\2\2\2\u009f\u00a2\3\2\2\2\u00a0\u009e\3\2\2\2\u00a0\u00a1\3\2\2\2\u00a1"+
-		"\u00a6\3\2\2\2\u00a2\u00a0\3\2\2\2\u00a3\u00a5\5,\27\2\u00a4\u00a3\3\2"+
-		"\2\2\u00a5\u00a8\3\2\2\2\u00a6\u00a4\3\2\2\2\u00a6\u00a7\3\2\2\2\u00a7"+
-		"\u00aa\3\2\2\2\u00a8\u00a6\3\2\2\2\u00a9\u00ab\5.\30\2\u00aa\u00a9\3\2"+
-		"\2\2\u00aa\u00ab\3\2\2\2\u00ab\u00af\3\2\2\2\u00ac\u00ae\5 \21\2\u00ad"+
-		"\u00ac\3\2\2\2\u00ae\u00b1\3\2\2\2\u00af\u00ad\3\2\2\2\u00af\u00b0\3\2"+
-		"\2\2\u00b0+\3\2\2\2\u00b1\u00af\3\2\2\2\u00b2\u00b3\7\21\2\2\u00b3\u00b4"+
-		"\7\25\2\2\u00b4-\3\2\2\2\u00b5\u00b6\7\22\2\2\u00b6/\3\2\2\2\u00b7\u00b8"+
-		"\t\3\2\2\u00b8\61\3\2\2\2\u00b9\u00bb\7\23\2\2\u00ba\u00bc\5\32\16\2\u00bb"+
-		"\u00ba\3\2\2\2\u00bb\u00bc\3\2\2\2\u00bc\63\3\2\2\2\u00bd\u00c0\5\66\34"+
-		"\2\u00be\u00c0\58\35\2\u00bf\u00bd\3\2\2\2\u00bf\u00be\3\2\2\2\u00c0\65"+
-		"\3\2\2\2\u00c1\u00c2\7\5\2\2\u00c2\67\3\2\2\2\u00c3\u00c4\7\25\2\2\u00c4"+
-		"9\3\2\2\2\25=GPVbimsw|\u0081\u008a\u0099\u00a0\u00a6\u00aa\u00af\u00bb"+
-		"\u00bf";
+		"\4\32\t\32\4\33\t\33\4\34\t\34\4\35\t\35\4\36\t\36\3\2\7\2>\n\2\f\2\16"+
+		"\2A\13\2\3\2\7\2D\n\2\f\2\16\2G\13\2\3\2\3\2\3\3\3\3\3\3\3\3\3\3\3\3\3"+
+		"\3\3\4\3\4\3\4\7\4U\n\4\f\4\16\4X\13\4\3\4\3\4\3\5\3\5\3\6\3\6\5\6`\n"+
+		"\6\3\7\3\7\3\7\3\7\5\7f\n\7\3\b\3\b\3\b\3\b\3\t\3\t\3\n\3\n\3\n\3\n\5"+
+		"\nr\n\n\3\13\3\13\3\13\3\13\3\13\5\13y\n\13\3\f\3\f\5\f}\n\f\3\r\3\r\3"+
+		"\r\3\r\5\r\u0083\n\r\3\16\3\16\5\16\u0087\n\16\3\17\6\17\u008a\n\17\r"+
+		"\17\16\17\u008b\3\20\3\20\3\20\5\20\u0091\n\20\3\21\3\21\3\21\3\22\3\22"+
+		"\3\23\3\23\5\23\u009a\n\23\3\23\3\23\3\24\3\24\3\24\3\24\3\25\3\25\3\25"+
+		"\3\25\3\25\3\26\3\26\5\26\u00a9\n\26\3\27\3\27\3\27\7\27\u00ae\n\27\f"+
+		"\27\16\27\u00b1\13\27\3\27\7\27\u00b4\n\27\f\27\16\27\u00b7\13\27\3\27"+
+		"\5\27\u00ba\n\27\3\27\7\27\u00bd\n\27\f\27\16\27\u00c0\13\27\3\30\3\30"+
+		"\3\30\3\31\3\31\3\32\3\32\3\33\3\33\5\33\u00cb\n\33\3\34\3\34\5\34\u00cf"+
+		"\n\34\3\35\3\35\3\36\3\36\3\36\2\2\37\2\4\6\b\n\f\16\20\22\24\26\30\32"+
+		"\34\36 \"$&(*,.\60\62\64\668:\2\4\3\2\6\b\3\2\27\30\2\u00d2\2?\3\2\2\2"+
+		"\4J\3\2\2\2\6Q\3\2\2\2\b[\3\2\2\2\n_\3\2\2\2\fa\3\2\2\2\16g\3\2\2\2\20"+
+		"k\3\2\2\2\22q\3\2\2\2\24x\3\2\2\2\26z\3\2\2\2\30~\3\2\2\2\32\u0084\3\2"+
+		"\2\2\34\u0089\3\2\2\2\36\u0090\3\2\2\2 \u0092\3\2\2\2\"\u0095\3\2\2\2"+
+		"$\u0097\3\2\2\2&\u009d\3\2\2\2(\u00a1\3\2\2\2*\u00a8\3\2\2\2,\u00aa\3"+
+		"\2\2\2.\u00c1\3\2\2\2\60\u00c4\3\2\2\2\62\u00c6\3\2\2\2\64\u00c8\3\2\2"+
+		"\2\66\u00ce\3\2\2\28\u00d0\3\2\2\2:\u00d2\3\2\2\2<>\5\4\3\2=<\3\2\2\2"+
+		">A\3\2\2\2?=\3\2\2\2?@\3\2\2\2@E\3\2\2\2A?\3\2\2\2BD\5\6\4\2CB\3\2\2\2"+
+		"DG\3\2\2\2EC\3\2\2\2EF\3\2\2\2FH\3\2\2\2GE\3\2\2\2HI\7\2\2\3I\3\3\2\2"+
+		"\2JK\5,\27\2KL\7\3\2\2LM\7\25\2\2MN\7\3\2\2NO\5,\27\2OP\7\4\2\2P\5\3\2"+
+		"\2\2QR\5\b\5\2RV\7\3\2\2SU\5\n\6\2TS\3\2\2\2UX\3\2\2\2VT\3\2\2\2VW\3\2"+
+		"\2\2WY\3\2\2\2XV\3\2\2\2YZ\7\4\2\2Z\7\3\2\2\2[\\\7\24\2\2\\\t\3\2\2\2"+
+		"]`\5\f\7\2^`\5\16\b\2_]\3\2\2\2_^\3\2\2\2`\13\3\2\2\2ae\7\5\2\2bf\5\26"+
+		"\f\2cf\5\30\r\2df\5\32\16\2eb\3\2\2\2ec\3\2\2\2ed\3\2\2\2f\r\3\2\2\2g"+
+		"h\5\22\n\2hi\5\20\t\2ij\5\24\13\2j\17\3\2\2\2kl\t\2\2\2l\21\3\2\2\2mr"+
+		"\5\26\f\2nr\5\30\r\2or\5\32\16\2pr\5\64\33\2qm\3\2\2\2qn\3\2\2\2qo\3\2"+
+		"\2\2qp\3\2\2\2r\23\3\2\2\2sy\5\26\f\2ty\5\30\r\2uy\5\32\16\2vy\5&\24\2"+
+		"wy\5(\25\2xs\3\2\2\2xt\3\2\2\2xu\3\2\2\2xv\3\2\2\2xw\3\2\2\2y\25\3\2\2"+
+		"\2z|\7\t\2\2{}\5\34\17\2|{\3\2\2\2|}\3\2\2\2}\27\3\2\2\2~\177\7\n\2\2"+
+		"\177\u0080\7\3\2\2\u0080\u0082\7\26\2\2\u0081\u0083\5\34\17\2\u0082\u0081"+
+		"\3\2\2\2\u0082\u0083\3\2\2\2\u0083\31\3\2\2\2\u0084\u0086\7\24\2\2\u0085"+
+		"\u0087\5\34\17\2\u0086\u0085\3\2\2\2\u0086\u0087\3\2\2\2\u0087\33\3\2"+
+		"\2\2\u0088\u008a\5\36\20\2\u0089\u0088\3\2\2\2\u008a\u008b\3\2\2\2\u008b"+
+		"\u0089\3\2\2\2\u008b\u008c\3\2\2\2\u008c\35\3\2\2\2\u008d\u0091\5 \21"+
+		"\2\u008e\u0091\5\"\22\2\u008f\u0091\5$\23\2\u0090\u008d\3\2\2\2\u0090"+
+		"\u008e\3\2\2\2\u0090\u008f\3\2\2\2\u0091\37\3\2\2\2\u0092\u0093\7\13\2"+
+		"\2\u0093\u0094\7\25\2\2\u0094!\3\2\2\2\u0095\u0096\7\f\2\2\u0096#\3\2"+
+		"\2\2\u0097\u0099\7\r\2\2\u0098\u009a\5\24\13\2\u0099\u0098\3\2\2\2\u0099"+
+		"\u009a\3\2\2\2\u009a\u009b\3\2\2\2\u009b\u009c\7\16\2\2\u009c%\3\2\2\2"+
+		"\u009d\u009e\5*\26\2\u009e\u009f\7\17\2\2\u009f\u00a0\5\66\34\2\u00a0"+
+		"\'\3\2\2\2\u00a1\u00a2\7\20\2\2\u00a2\u00a3\5\24\13\2\u00a3\u00a4\7\17"+
+		"\2\2\u00a4\u00a5\5\66\34\2\u00a5)\3\2\2\2\u00a6\u00a9\5,\27\2\u00a7\u00a9"+
+		"\5\62\32\2\u00a8\u00a6\3\2\2\2\u00a8\u00a7\3\2\2\2\u00a9+\3\2\2\2\u00aa"+
+		"\u00af\7\25\2\2\u00ab\u00ac\7\13\2\2\u00ac\u00ae\7\25\2\2\u00ad\u00ab"+
+		"\3\2\2\2\u00ae\u00b1\3\2\2\2\u00af\u00ad\3\2\2\2\u00af\u00b0\3\2\2\2\u00b0"+
+		"\u00b5\3\2\2\2\u00b1\u00af\3\2\2\2\u00b2\u00b4\5.\30\2\u00b3\u00b2\3\2"+
+		"\2\2\u00b4\u00b7\3\2\2\2\u00b5\u00b3\3\2\2\2\u00b5\u00b6\3\2\2\2\u00b6"+
+		"\u00b9\3\2\2\2\u00b7\u00b5\3\2\2\2\u00b8\u00ba\5\60\31\2\u00b9\u00b8\3"+
+		"\2\2\2\u00b9\u00ba\3\2\2\2\u00ba\u00be\3\2\2\2\u00bb\u00bd\5\"\22\2\u00bc"+
+		"\u00bb\3\2\2\2\u00bd\u00c0\3\2\2\2\u00be\u00bc\3\2\2\2\u00be\u00bf\3\2"+
+		"\2\2\u00bf-\3\2\2\2\u00c0\u00be\3\2\2\2\u00c1\u00c2\7\21\2\2\u00c2\u00c3"+
+		"\7\25\2\2\u00c3/\3\2\2\2\u00c4\u00c5\7\22\2\2\u00c5\61\3\2\2\2\u00c6\u00c7"+
+		"\t\3\2\2\u00c7\63\3\2\2\2\u00c8\u00ca\7\23\2\2\u00c9\u00cb\5\34\17\2\u00ca"+
+		"\u00c9\3\2\2\2\u00ca\u00cb\3\2\2\2\u00cb\65\3\2\2\2\u00cc\u00cf\58\35"+
+		"\2\u00cd\u00cf\5:\36\2\u00ce\u00cc\3\2\2\2\u00ce\u00cd\3\2\2\2\u00cf\67"+
+		"\3\2\2\2\u00d0\u00d1\7\5\2\2\u00d19\3\2\2\2\u00d2\u00d3\7\25\2\2\u00d3"+
+		";\3\2\2\2\26?EV_eqx|\u0082\u0086\u008b\u0090\u0099\u00a8\u00af\u00b5\u00b9"+
+		"\u00be\u00ca\u00ce";
 	public static final ATN _ATN =
 		new ATNDeserializer().deserialize(_serializedATN.toCharArray());
 	static {

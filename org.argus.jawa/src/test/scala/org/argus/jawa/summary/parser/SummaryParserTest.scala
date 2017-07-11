@@ -10,7 +10,7 @@
 
 package org.argus.jawa.summary.parser
 
-import org.argus.jawa.core.Signature
+import org.argus.jawa.core.{JawaType, Signature}
 import org.argus.jawa.summary.rule._
 import org.scalatest.{FlatSpec, Matchers}
 
@@ -21,7 +21,9 @@ class SummaryParserTest extends FlatSpec with Matchers {
 
   "SummaryParser" should "not throw a parse exception on complete program" in {
     parse(
-      """`Lcom/my/Class;.do:(LO1;LO2;)LO3;`:
+      """android.content.Context:mBase:android.content.Context;
+        |
+        |`Lcom/my/Class;.do:(LO1;LO2;)LO3;`:
         |  arg:1=arg:2
         |  ret=arg:1.field
         |  arg:1.f1=arg:2.f2[]
@@ -54,6 +56,18 @@ class SummaryParserTest extends FlatSpec with Matchers {
           |;
         """.stripMargin)
     }
+  }
+
+  "SummaryParser" should "handle default type" in {
+    val sf = parse(
+      """android.content.Context:mBase:android.content.Context;
+        |android.content.Context:mName:java.lang.String;
+        |android.content.ContextWrapper:mIntent:android.content.Intent;
+      """.stripMargin)
+    assert(sf.defaultTypes.size == 2)
+    assert(sf.defaultTypes.contains(new JawaType("android.content.Context")))
+    assert(sf.defaultTypes(new JawaType("android.content.Context"))("mBase") == new JawaType("android.content.Context"))
+    assert(sf.defaultTypes(new JawaType("android.content.Context"))("mName") == new JawaType("java.lang.String"))
   }
 
   "SummaryParser" should "have expected output" in {

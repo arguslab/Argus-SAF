@@ -1,7 +1,11 @@
 grammar Safsu;
 
 
-summaryFile : summary* EOF;
+summaryFile : defaultType* summary* EOF;
+
+defaultType
+  : javaType ':' ID ':' javaType ';'
+  ;
 
 summary
   : signature ':' suRule* ';'

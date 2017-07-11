@@ -1,3 +1,5 @@
+android.net.Uri:uri:java.lang.String;
+
 `Landroid/net/Uri;.<clinit>:()V`:
 ;
 

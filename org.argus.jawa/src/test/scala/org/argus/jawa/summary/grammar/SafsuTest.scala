@@ -46,6 +46,7 @@ class SafsuTest extends FlatSpec with Matchers {
   val `?`=16
   val `ret`=17
 
+  "android.content.Context:mBase:android.content.Context;" producesTokens (ID, `.`, ID, `.`, ID, `:`, ID, `:`, ID, `.`, ID, `.`, ID, `;`)
   "`Lcom/my/Class;.do:()V`" producesTokens UID
   "arg:1" producesTokens (`arg`, `:`, Digits)
   "arg:1.field.field2" producesTokens (`arg`, `:`, Digits, `.`, ID, `.`, ID)
@@ -107,7 +108,9 @@ class SafsuTest extends FlatSpec with Matchers {
 
   "Parser" should "not throw a parse exception on complete program" in {
     parse(
-      """`Lcom/my/Class;.do:(LO1;LO2;)LO3;`:
+      """android.content.Context:mBase:android.content.Context;
+        |
+        |`Lcom/my/Class;.do:(LO1;LO2;)LO3;`:
         |  arg:1=arg:2
         |  ret=arg:1.field
         |  arg:1.f1=arg:2.f2[]

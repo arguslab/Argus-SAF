@@ -1,3 +1,6 @@
+android.content.Context:mBase:android.content.Context;
+android.content.ContextWrapper:mIntent:android.content.Intent;
+
 `Landroid/content/Context;.getSystemService:(Ljava/lang/String;)Ljava/lang/Object;`:
   ret = java.lang.Object?@~
 ;

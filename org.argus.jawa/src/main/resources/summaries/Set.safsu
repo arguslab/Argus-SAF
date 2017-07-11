@@ -1,3 +1,5 @@
+java.util.Set:items:java.lang.Object?;
+
 `Ljava/util/Set;.add:(Ljava/lang/Object;)Z`:
   this.items += arg:0
 ;

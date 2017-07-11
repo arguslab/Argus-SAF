@@ -30,6 +30,9 @@ class SummaryManager(global: Global)(implicit heap: SimHeap) {
   def register(signature: Signature, summary: Summary): Unit = summaries(signature) = summary
   def register(suCode: String): IMap[Signature, Summary] = {
     val su = SummaryParser(suCode)
+    su.defaultTypes.foreach { case (baseType, fields) =>
+      addDefaultTypes(baseType, fields)
+    }
     this.summaries ++= su.summaries
     su.summaries
   }
@@ -41,7 +44,11 @@ class SummaryManager(global: Global)(implicit heap: SimHeap) {
   def registerFileInternal(safsuPath: String): Unit = {
     val url = Resources.getResource(safsuPath)
     val code = Resources.toString(url, Charsets.UTF_8)
-    val s = SummaryParser(code).summaries.map{case (k, v) => k.getSubSignature -> v}
+    val su = SummaryParser(code)
+    su.defaultTypes.foreach { case (baseType, fields) =>
+      addDefaultTypes(baseType, fields)
+    }
+    val s = su.summaries.map{case (k, v) => k.getSubSignature -> v}
     this.summaryFiles += FileUtil.filename(url.toString) -> s
   }
 
@@ -151,6 +158,16 @@ class SummaryManager(global: Global)(implicit heap: SimHeap) {
         inss += ins
     }
     inss ++= input.filter(i => slots.contains(i.slot)).map(i => i.v)
+    if(inss.isEmpty) {
+      slots.foreach {
+        case hs: HeapSlot =>
+          extraFacts ++= createHeapInstance(hs, context).map {i =>
+            new RFAFact(hs, i)
+          }
+          inss ++= extraFacts.filter(i => slots.contains(i.slot)).map(i => i.v)
+        case _ =>
+      }
+    }
     inss
   }
 
@@ -220,10 +237,21 @@ class SummaryManager(global: Global)(implicit heap: SimHeap) {
                   if (isLhs) rhsInss
                   else {
                     val rhsTyps = rhsInss.map(i => i.typ)
-                    input.filter(i =>
-                      i.slot.isInstanceOf[MapSlot] &&
-                        rhsTyps.contains(i.slot.asInstanceOf[MapSlot].key.typ)
-                    ).map(i => i.slot.asInstanceOf[MapSlot].key)
+                    var instances =
+                      input.filter(i =>
+                        i.slot.isInstanceOf[MapSlot] &&
+                          rhsTyps.contains(i.slot.asInstanceOf[MapSlot].key.typ)
+                      ).map(i => i.slot.asInstanceOf[MapSlot].key)
+                    if(instances.isEmpty) { // try to find the key, if does not find, insert the key back to continue the flow.
+                      rhsInss.foreach { i =>
+                        inss.foreach{ ins =>
+                          extraFacts += new RFAFact(FieldSlot(ins, "key"), i)
+                          extraFacts += new RFAFact(MapSlot(ins, i), PTAInstance(JavaKnowledge.JAVA_TOPLEVEL_OBJECT_TYPE.toUnknown, context))
+                        }
+                      }
+                      instances = rhsInss
+                    }
+                    instances
                   }
                 case None =>
                   input.filter(i =>
@@ -248,7 +276,7 @@ class SummaryManager(global: Global)(implicit heap: SimHeap) {
       case fs: FieldSlot =>
         val baseClass = global.getClassOrResolve(fs.instance.typ)
         baseClass.getField(fs.fieldName) match {
-          case Some(f) => Some(Instance.getInstance(f.getType, context, toUnknown = true))
+          case Some(f) => Some(Instance.getInstance(f.getType, context, toUnknown = false))
           case None => Some(Instance.getInstance(JavaKnowledge.JAVA_TOPLEVEL_OBJECT_TYPE, context, toUnknown = true))
         }
       case as: ArraySlot =>

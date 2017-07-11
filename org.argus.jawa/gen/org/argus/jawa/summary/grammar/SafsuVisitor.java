@@ -17,6 +17,12 @@ public interface SafsuVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitSummaryFile(SafsuParser.SummaryFileContext ctx);
 	/**
+	 * Visit a parse tree produced by {@link SafsuParser#defaultType}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitDefaultType(SafsuParser.DefaultTypeContext ctx);
+	/**
 	 * Visit a parse tree produced by {@link SafsuParser#summary}.
 	 * @param ctx the parse tree
 	 * @return the visitor result

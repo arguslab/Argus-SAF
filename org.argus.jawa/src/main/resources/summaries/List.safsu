@@ -1,3 +1,5 @@
+java.util.List:items:java.lang.Object?;
+
 `Ljava/util/List;.containsAll:(Ljava/util/Collection;)Z`:
 ;
 

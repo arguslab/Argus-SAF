@@ -20,7 +20,7 @@ sealed trait SuRuleNode
 /**
   * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
   */
-case class SummaryFile(summaries: Map[Signature, Summary]) extends SuRuleNode
+case class SummaryFile(defaultTypes: Map[JawaType, Map[String, JawaType]], summaries: Map[Signature, Summary]) extends SuRuleNode
 
 /**
   * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>

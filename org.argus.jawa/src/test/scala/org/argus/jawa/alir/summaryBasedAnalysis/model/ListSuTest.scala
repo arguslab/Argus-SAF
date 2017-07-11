@@ -12,7 +12,7 @@ package org.argus.jawa.alir.summaryBasedAnalysis.model
 
 import org.argus.jawa.alir.pta._
 import org.argus.jawa.alir.pta.reachingFactsAnalysis.RFAFact
-import org.argus.jawa.core.JawaType
+import org.argus.jawa.core.{JavaKnowledge, JawaType}
 
 /**
   * Created by fgwei on 6/15/17.
@@ -119,11 +119,10 @@ class ListSuTest extends SuTestBase("List.safsu") {
 
   "Ljava/util/List;.get:(I)Ljava/lang/Object;" with_input (
     thisFact,
-    new RFAFact(FieldSlot(thisInstance, "items"), PTAConcreteStringInstance("String", defContext2))
   ) produce (
     thisFact,
-    new RFAFact(FieldSlot(thisInstance, "items"), PTAConcreteStringInstance("String", defContext2)),
-    new RFAFact(VarSlot("temp"), PTAConcreteStringInstance("String", defContext2))
+    new RFAFact(FieldSlot(thisInstance, "items"), PTAInstance(JavaKnowledge.JAVA_TOPLEVEL_OBJECT_TYPE.toUnknown, currentContext)),
+    new RFAFact(VarSlot("temp"), PTAInstance(JavaKnowledge.JAVA_TOPLEVEL_OBJECT_TYPE.toUnknown, currentContext))
   )
 
   "Ljava/util/List;.subList:(II)Ljava/util/List;" with_input (

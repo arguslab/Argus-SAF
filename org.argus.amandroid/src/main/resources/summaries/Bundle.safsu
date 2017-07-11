@@ -1,3 +1,6 @@
+android.os.Bundle:entries:android.os.Bundle$Entries;
+android.os.Bundle:key:java.lang.Object?;
+
 `Landroid/os/Bundle;.<clinit>:()V`:
 ;
 

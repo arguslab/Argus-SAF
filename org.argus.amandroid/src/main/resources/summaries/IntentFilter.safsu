@@ -1,3 +1,8 @@
+android.content.IntentFilter:mAction:java.lang.String;
+android.content.IntentFilter:mType:java.lang.String;
+android.content.IntentFilter:mData:android.net.Uri;
+android.content.IntentFilter:mCategories:java.lang.String;
+
 `Landroid/content/IntentFilter;.<clinit>:()V`:
 ;
 

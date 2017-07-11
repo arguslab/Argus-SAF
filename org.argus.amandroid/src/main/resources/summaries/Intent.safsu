@@ -1,3 +1,10 @@
+android.content.Intent:mExtras:android.os.Bundle;
+android.content.Intent:mComponent:android.content.ComponentName;
+android.content.Intent:mAction:java.lang.String;
+android.content.Intent:mType:java.lang.String;
+android.content.Intent:mData:android.net.Uri;
+android.content.Intent:mCategories:java.lang.String;
+
 `Landroid/content/Intent;.<clinit>:()V`:
 ;
 
