@@ -82,6 +82,7 @@ trait CallResolver[N <: AlirNode, LatticeElement] {
    */
   def resolveCall(s: ISet[LatticeElement], cs: CallStatement, callerNode: N): (IMap[N, ISet[LatticeElement]], ISet[LatticeElement])
   def getAndMapFactsForCaller(calleeS: ISet[LatticeElement], callerNode: N, calleeExitNode: N): ISet[LatticeElement]
+  def needReturnNode(): Boolean
 }
 
 /**
@@ -405,9 +406,13 @@ object MonotoneDataFlowAnalysisFramework {
                   case (calleeNode, calleeFacts) =>
                     latticeMap += (calleeNode -> calleeFacts)
                 }
-                val rn = ip.returnNode(currentNode)
-                if (esl.isDefined) esl.get.exitSet(entrySet(rn))
-                latticeMap += (rn -> retFacts)
+                if (esl.isDefined) esl.get.exitSet(retFacts)
+                if(callr.get.needReturnNode()) {
+                  val rn = ip.returnNode(currentNode)
+                  latticeMap += (rn -> retFacts)
+                } else {
+                  cfg.successors(currentNode).foreach(succ=>latticeMap += (succ -> retFacts))
+                }
               } else {
                 if(esl.isDefined) esl.get.exitSet(s)
                 val succs = cfg.successors(currentNode)

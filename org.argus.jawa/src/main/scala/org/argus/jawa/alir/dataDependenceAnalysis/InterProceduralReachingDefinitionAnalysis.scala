@@ -178,6 +178,8 @@ class InterProceduralReachingDefinitionAnalysis {
     def getAndMapFactsForCaller(calleeS: ISet[IRDFact], callerNode: Node, calleeExitNode: Node): ISet[IRDFact] = {
       calleeS
     }
+
+    def needReturnNode(): Boolean = true
     
   }
   

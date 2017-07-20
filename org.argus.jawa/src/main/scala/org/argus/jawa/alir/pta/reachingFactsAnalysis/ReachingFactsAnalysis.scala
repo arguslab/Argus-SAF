@@ -16,7 +16,7 @@ import org.argus.jawa.alir.Context
 import org.argus.jawa.alir.controlFlowGraph.{ICFGNode, InterProceduralControlFlowGraph}
 import org.argus.jawa.alir.dataFlowAnalysis._
 import org.argus.jawa.alir.pta.model.ModelCallHandler
-import org.argus.jawa.alir.pta.summaryBasedAnalysis.SummaryManager
+import org.argus.jawa.alir.summaryBasedAnalysis.SummaryManager
 import org.argus.jawa.alir.pta._
 import org.argus.jawa.compiler.parser._
 import org.argus.jawa.core.util._
@@ -39,6 +39,8 @@ class ReachingFactsAnalysis(
 
   type Node = ICFGNode
 
+  var mdf: MonotoneDataFlowAnalysisResult[ICFGNode, RFAFact] = _
+
   def process (
       entryPointProc: JawaMethod,
       initialFacts: ISet[RFAFact] = isetEmpty,
@@ -48,10 +50,10 @@ class ReachingFactsAnalysis(
     val kill = new Kill
     val initial: ISet[RFAFact] = isetEmpty
     val ip = new Ip(icfg)
-    icfg.collectCfgToBaseGraph(entryPointProc, initContext, isFirst = true, needReturnNode = true)
+    icfg.collectCfgToBaseGraph(entryPointProc, initContext, isFirst = true, callr.needReturnNode())
     val iota: ISet[RFAFact] = initialFacts + new RFAFact(StaticFieldSlot("Analysis.RFAiota"), PTAInstance(JavaKnowledge.JAVA_TOPLEVEL_OBJECT_TYPE.toUnknown, initContext.copy))
     try {
-      MonotoneDataFlowAnalysisFramework[ICFGNode, RFAFact, Context](icfg,
+      mdf = MonotoneDataFlowAnalysisFramework[ICFGNode, RFAFact, Context](icfg,
         forward = true, lub = true, ip, gen, kill, Some(callr), iota, initial)
     } catch {
       case te: TimeoutException =>

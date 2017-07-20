@@ -670,7 +670,7 @@ sealed trait Expression extends JawaAstNode
   */
 sealed trait LHS
 
-/** LHS expressions:
+/** RHS expressions:
   *   AccessExpression
   *   BinaryExpression
   *   CallRhs

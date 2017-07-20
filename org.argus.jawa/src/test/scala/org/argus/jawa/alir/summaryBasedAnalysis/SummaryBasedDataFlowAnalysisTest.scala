@@ -13,7 +13,6 @@ package org.argus.jawa.alir.summaryBasedAnalysis
 import hu.ssh.progressbar.console.ConsoleProgressBar
 import org.argus.jawa.alir.pta.model.ModelCallHandler
 import org.argus.jawa.alir.pta.reachingFactsAnalysis.{RFAFact, SimHeap}
-import org.argus.jawa.alir.pta.summaryBasedAnalysis.{JawaSummaryProvider, SummaryBasedDataFlowAnalysis, SummaryManager}
 import org.argus.jawa.alir.reachability.SignatureBasedCallGraph
 import org.argus.jawa.core._
 import org.argus.jawa.core.util._
@@ -31,7 +30,7 @@ class SummaryBasedDataFlowAnalysisTest extends FlatSpec with Matchers {
     new TestFile(file)
   }
 
-  "/jawa/summary/SingleFunction.jawa" ep "Lcom/hugo/test/SingleFunction;.main:(Ljava/util/Set;)Ljava/lang/String;" with_input () produce ""
+  "/jawa/summary/SingleFunction.jawa" ep "Lcom/hugo/test/SingleFunction;.clearArg:(Ljava/util/Set;)V" with_input () produce ""
 
   class TestFile(file: String) {
     var entrypoint: Signature = _

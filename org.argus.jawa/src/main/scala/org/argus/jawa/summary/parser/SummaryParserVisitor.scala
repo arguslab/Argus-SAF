@@ -46,7 +46,8 @@ class SummaryParserVisitor()
       ctx.summary.asScala.map { s =>
         val summary = getChild[Summary](s)
         (summary.signature, summary)
-      }.toMap)
+      }.toMap
+    )
   }
 
   override def visitSummary(ctx: SummaryContext): SuRuleNode =

@@ -1,11 +1,21 @@
 record `com.hugo.test.SingleFunction` @kind class @AccessFlag PUBLIC {
+    `java.util.Set` `com.hugo.test.SingleFunction.myset` @AccessFlag PUBLIC;
 }
-procedure `void` `com.hugo.test.SingleFunction.<init>`(`com.hugo.test.SingleFunction` `this` @kind this) @owner ^`com.hugo.test.SingleFunction` @signature `Lcom/hugo/test/SingleFunction;.<init>:()V` @AccessFlag PUBLIC_CONSTRUCTOR {
 
-    #L1.  call `java.lang.Object.<init>`(`this`) @signature `Ljava/lang/Object;.<init>:()V` @classDescriptor ^`java.lang.Object` @kind direct;
-    #L2.  return  @kind void;
+procedure `void` `com.hugo.test.SingleFunction.clearArg`(`java.util.Set` `set` @kind object) @owner ^`com.hugo.test.SingleFunction` @signature `Lcom/hugo/test/SingleFunction;.clearArg:(Ljava/util/Set;)V` @AccessFlag PUBLIC_STATIC {
+
+    #L1.  call `java.util.Set.clear`(`set`) @signature `Ljava/util/Set;.clear:()V` @classDescriptor ^`java.util.Set` @kind virtual;
+    #L2.  return;
 }
-procedure `java.lang.String` `com.hugo.test.SingleFunction.main`(`java.util.Set` `set` @kind object) @owner ^`com.hugo.test.SingleFunction` @signature `Lcom/hugo/test/SingleFunction;.main:(Ljava/util/Set;)Ljava/lang/String;` @AccessFlag PUBLIC_STATIC {
+
+procedure `void` `com.hugo.test.SingleFunction.clearField`(`com.hugo.test.SingleFunction` `sf` @kind object) @owner ^`com.hugo.test.SingleFunction` @signature `Lcom/hugo/test/SingleFunction;.clearField:(Lcom/hugo/test/SingleFunction;)V` @AccessFlag PUBLIC_STATIC {
+
+    #L1.  set_v0:= `sf`.`com.hugo.test.SingleFunction.myset` @kind object @type ^`java.util.Set`;
+    #L4.  call temp:= `java.util.Set.clear`(set_v0) @signature `Ljava/util/Set;.add:(Ljava/lang/Object;)Z` @classDescriptor ^`java.util.Set` @kind virtual;
+    #L5.  return;
+}
+
+procedure `java.lang.String` `com.hugo.test.SingleFunction.add`(`java.util.Set` `set` @kind object) @owner ^`com.hugo.test.SingleFunction` @signature `Lcom/hugo/test/SingleFunction;.add:(Ljava/util/Set;)Ljava/lang/String;` @AccessFlag PUBLIC_STATIC {
     `boolean` temp;
     `java.lang.String` String_v0;
 

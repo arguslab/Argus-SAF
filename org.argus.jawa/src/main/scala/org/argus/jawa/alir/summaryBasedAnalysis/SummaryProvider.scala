@@ -8,7 +8,7 @@
  * Detailed contributors are listed in the CONTRIBUTOR.md
  */
 
-package org.argus.jawa.alir.pta.summaryBasedAnalysis
+package org.argus.jawa.alir.summaryBasedAnalysis
 
 import org.argus.jawa.alir.pta.reachingFactsAnalysis.SimHeap
 import org.argus.jawa.core.Global

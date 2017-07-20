@@ -8,7 +8,7 @@
  * Detailed contributors are listed in the CONTRIBUTOR.md
  */
 
-package org.argus.jawa.alir.pta.summaryBasedAnalysis
+package org.argus.jawa.alir.summaryBasedAnalysis
 
 import com.google.common.base.Charsets
 import com.google.common.io.Resources

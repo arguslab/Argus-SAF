@@ -86,6 +86,7 @@ class PTAResult {
     val rhValue = getRelatedHeapInstances(context, bValue)
     bValue ++ rhValue
   }
+
   def getRelatedHeapInstances(context: Context, insts: ISet[Instance]): ISet[Instance] = {
     val processed: MSet[Instance] = msetEmpty
     var result: ISet[Instance] = isetEmpty

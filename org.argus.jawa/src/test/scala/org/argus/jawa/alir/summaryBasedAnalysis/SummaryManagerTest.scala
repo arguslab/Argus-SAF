@@ -13,7 +13,6 @@ package org.argus.jawa.alir.summaryBasedAnalysis
 import org.argus.jawa.alir.Context
 import org.argus.jawa.alir.pta._
 import org.argus.jawa.alir.pta.reachingFactsAnalysis.{RFAFact, SimHeap}
-import org.argus.jawa.alir.pta.summaryBasedAnalysis.SummaryManager
 import org.argus.jawa.core.{DefaultReporter, Global, JawaType, Signature}
 import org.argus.jawa.core.util._
 import org.scalatest.{FlatSpec, Matchers}

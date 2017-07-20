@@ -8,7 +8,7 @@
  * Detailed contributors are listed in the CONTRIBUTOR.md
  */
 
-package org.argus.jawa.alir.pta.summaryBasedAnalysis
+package org.argus.jawa.alir.summaryBasedAnalysis
 
 import hu.ssh.progressbar.ProgressBar
 import org.argus.jawa.alir.Context
@@ -35,6 +35,7 @@ class SummaryBasedDataFlowAnalysis(
     handler: ModelCallHandler, resolve_static_init: Boolean,
     progressBar: ProgressBar)(implicit heap: SimHeap) {
 
+  // Summary based analysis is context-insensitive
   Context.init_context_length(0)
   private val icfg: InterProceduralControlFlowGraph[ICFGNode] = new InterProceduralControlFlowGraph[ICFGNode]
   private val ptaresult = new PTAResult
@@ -43,7 +44,7 @@ class SummaryBasedDataFlowAnalysis(
   def build(cg: CallGraph): InterProceduralDataFlowGraph = {
     val orderedWUs: IList[WorkUnit] = TopologicalSortUtil.sort(cg.getCallMap).map{ sig =>
       val method = global.getMethodOrResolve(sig).getOrElse(throw new RuntimeException("Method is not exist: " + sig))
-      new WorkUnit(method)
+      new WorkUnit(method, sm, handler)
     }.reverse
     ProgressBarUtil.withProgressBar("Summary based data flow analysis...", progressBar)(orderedWUs, processWU)
     ptaresult.pprint()
@@ -52,17 +53,10 @@ class SummaryBasedDataFlowAnalysis(
 
   private def processWU: WorkUnit => Unit = { wu =>
     if(!handler.isModelCall(wu.method)) {
-      val summary = wu.generateSummary(analysis, isetEmpty, new Context(global.projectName), new Callr)
-
+      val initContext = new Context(global.projectName)
+      val summary = wu.generateSummary(analysis, initContext, new Callr)
+      println(summary)
     }
-  }
-
-  private def generateInitFacts(method: JawaMethod, context: Context): ISet[RFAFact] = {
-    var facts: ISet[RFAFact] = isetEmpty
-    method.getParams.foreach { case (name, typ) =>
-      val fact = new RFAFact(VarSlot(name), PTAInstance(typ.toUnknown, context))
-    }
-    facts
   }
 
   class Callr extends CallResolver[ICFGNode, RFAFact] {
@@ -76,7 +70,6 @@ class SummaryBasedDataFlowAnalysis(
       val icfgCallnode = icfg.getICFGCallNode(callerContext)
       icfgCallnode.asInstanceOf[ICFGCallNode].setCalleeSet(calleeSet.map(_.asInstanceOf[Callee]))
       var returnFacts: ISet[RFAFact] = s
-
       calleeSet.foreach { callee =>
         val calleeSig: Signature = callee.callee
         icfg.getCallGraph.addCall(callerNode.getOwner, calleeSig)
@@ -97,5 +90,7 @@ class SummaryBasedDataFlowAnalysis(
     }
 
     def getAndMapFactsForCaller(calleeS: ISet[RFAFact], callerNode: ICFGNode, calleeExitNode: ICFGNode): ISet[RFAFact] = isetEmpty
+
+    def needReturnNode(): Boolean = false
   }
 }

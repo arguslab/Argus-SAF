@@ -12,7 +12,7 @@ package org.argus.amandroid.alir.summaryBasedAnalysis.model
 
 import org.argus.jawa.alir.Context
 import org.argus.jawa.alir.pta.reachingFactsAnalysis.{RFAFact, SimHeap}
-import org.argus.jawa.alir.pta.summaryBasedAnalysis.SummaryManager
+import org.argus.jawa.alir.summaryBasedAnalysis.SummaryManager
 import org.argus.jawa.core.{DefaultReporter, Global, Signature}
 import org.argus.jawa.core.util.{IList, ISet, isetEmpty}
 import org.scalatest.{FlatSpec, Matchers}

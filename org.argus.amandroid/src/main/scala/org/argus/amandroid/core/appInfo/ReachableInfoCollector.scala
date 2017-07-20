@@ -281,7 +281,9 @@ class ReachableInfoCollector(val global: Global, entryPointTypes: ISet[JawaType]
     for (i <- collectAllInterfaces(clazz)) {
       if(this.androidCallbacks.contains(i.getName)){
         i.getDeclaredMethods.foreach{ proc =>
-          checkAndAddMethod(getMethodFromHierarchy(baseClass, proc.getSubSignature), lifecycleElement)
+          getMethodFromHierarchy(baseClass, proc.getSubSignature).foreach { m =>
+            checkAndAddMethod(m, lifecycleElement)
+          }
         }
       }
     }
@@ -306,10 +308,10 @@ class ReachableInfoCollector(val global: Global, entryPointTypes: ISet[JawaType]
     else ar.getInterfaces ++ ar.getInterfaces.flatMap{i => collectAllInterfaces(i)}
   }
 
-  private def getMethodFromHierarchy(r :JawaClass, subSig: String): JawaMethod = {
-    if(r.declaresMethod(subSig)) r.getMethod(subSig).get
+  private def getMethodFromHierarchy(r :JawaClass, subSig: String): Option[JawaMethod] = {
+    if(r.declaresMethod(subSig)) r.getMethod(subSig)
     else if(r.hasSuperClass) getMethodFromHierarchy(r.getSuperClass, subSig)
-    else throw new RuntimeException("Could not find procedure: " + subSig)
+    else None
   }
 
   private def initAndroidCallbacks = {

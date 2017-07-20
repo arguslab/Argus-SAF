@@ -12,7 +12,7 @@ package org.argus.jawa.alir.pta.model
 
 import org.argus.jawa.alir.Context
 import org.argus.jawa.alir.pta.reachingFactsAnalysis.{RFAFact, ReachingFactsAnalysisHelper, SimHeap}
-import org.argus.jawa.alir.pta.summaryBasedAnalysis.SummaryManager
+import org.argus.jawa.alir.summaryBasedAnalysis.SummaryManager
 import org.argus.jawa.core._
 import org.argus.jawa.core.util._
 
@@ -76,6 +76,13 @@ class ModelCallHandler(scopeManager: ScopeManager) {
        callResults(calleeProc.getSignature) = result
        result
     }
+  }
+
+  /**
+    * Always call isModelCall first.
+    */
+  def getModelCall(calleeProc: JawaMethod): Option[ModelCall] = {
+    callModelMap.get(calleeProc.getSignature)
   }
 
   /**

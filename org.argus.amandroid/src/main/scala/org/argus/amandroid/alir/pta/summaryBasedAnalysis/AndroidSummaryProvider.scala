@@ -12,7 +12,7 @@ package org.argus.amandroid.alir.pta.summaryBasedAnalysis
 
 import org.argus.amandroid.core.ApkGlobal
 import org.argus.jawa.alir.pta.reachingFactsAnalysis.SimHeap
-import org.argus.jawa.alir.pta.summaryBasedAnalysis.JawaSummaryProvider
+import org.argus.jawa.alir.summaryBasedAnalysis.JawaSummaryProvider
 
 /**
   * Created by fgwei on 7/1/17.
