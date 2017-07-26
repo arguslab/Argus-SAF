@@ -90,6 +90,8 @@ class ReachingFactsAnalysis(
       if(isInterestingAssignment(a)) {
         val lhsOpt = a.getLhs
         val rhs = a.getRhs
+        val heapUnknownFacts = ReachingFactsAnalysisHelper.getHeapUnknownFacts(rhs, typ, currentNode.getContext, ptaresult)
+        result ++= heapUnknownFacts
         val slots: IMap[PTASlot, Boolean] = lhsOpt match {
           case Some(lhs) => ReachingFactsAnalysisHelper.processLHS(lhs, typ, currentNode.getContext, ptaresult)
           case None => imapEmpty
@@ -100,8 +102,6 @@ class ReachingFactsAnalysis(
             result ++= values.map{v => new RFAFact(slot, v)}
         }
         result ++= extraFacts
-        val heapUnknownFacts = ReachingFactsAnalysisHelper.getHeapUnknownFacts(rhs, currentNode.getContext, ptaresult)
-        result ++= heapUnknownFacts
       }
       val exceptionFacts: ISet[RFAFact] = ReachingFactsAnalysisHelper.getExceptionFacts(a, s, currentNode.getContext)
       result ++= exceptionFacts

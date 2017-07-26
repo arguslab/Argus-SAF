@@ -46,11 +46,6 @@ object Ops extends Enumeration {
   */
 case class BinaryRule(lhs: RuleLhs, ops: Ops.Value, rhs: RuleRhs) extends SuRule
 
-trait HeapBase extends RuleLhs {
-  def heapOpt: Option[SuHeap]
-  def make(heapAccesses: Seq[HeapAccess]): HeapBase
-}
-
 /**
   * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
   */
@@ -64,7 +59,15 @@ trait RuleRhs extends SuRuleNode
 /**
   * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
   */
-case class SuThis(heapOpt: Option[SuHeap]) extends RuleRhs with HeapBase {
+trait HeapBase extends RuleLhs with RuleRhs {
+  def heapOpt: Option[SuHeap]
+  def make(heapAccesses: Seq[HeapAccess]): HeapBase
+}
+
+/**
+  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
+  */
+case class SuThis(heapOpt: Option[SuHeap]) extends HeapBase {
   def make(heapAccesses: Seq[HeapAccess]): HeapBase = {
     val heap: Seq[HeapAccess] = heapOpt match {
       case Some(h) => h.indices ++ heapAccesses
@@ -77,7 +80,7 @@ case class SuThis(heapOpt: Option[SuHeap]) extends RuleRhs with HeapBase {
 /**
   * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
   */
-case class SuArg(num: Int, heapOpt: Option[SuHeap]) extends RuleRhs with HeapBase {
+case class SuArg(num: Int, heapOpt: Option[SuHeap]) extends HeapBase {
   def make(heapAccesses: Seq[HeapAccess]): HeapBase = {
     val heap: Seq[HeapAccess] = heapOpt match {
       case Some(h) => h.indices ++ heapAccesses
@@ -90,7 +93,7 @@ case class SuArg(num: Int, heapOpt: Option[SuHeap]) extends RuleRhs with HeapBas
 /**
   * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
   */
-case class SuGlobal(fqn: String, heapOpt: Option[SuHeap]) extends RuleRhs with HeapBase {
+case class SuGlobal(fqn: String, heapOpt: Option[SuHeap]) extends HeapBase {
   def make(heapAccesses: Seq[HeapAccess]): HeapBase = {
     val heap: Seq[HeapAccess] = heapOpt match {
       case Some(h) => h.indices ++ heapAccesses
@@ -130,15 +133,7 @@ case class SuMapAccess(rhsOpt: Option[RuleRhs]) extends HeapAccess
 /**
   * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
   */
-case class SuRet(heapOpt: Option[SuHeap]) extends HeapBase {
-  def make(heapAccesses: Seq[HeapAccess]): HeapBase = {
-    val heap: Seq[HeapAccess] = heapOpt match {
-      case Some(h) => h.indices ++ heapAccesses
-      case None => heapAccesses
-    }
-    SuRet(Some(SuHeap(heap)))
-  }
-}
+case class SuRet() extends RuleLhs
 
 /**
   * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>

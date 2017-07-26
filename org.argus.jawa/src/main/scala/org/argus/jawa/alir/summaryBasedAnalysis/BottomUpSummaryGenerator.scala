@@ -14,7 +14,7 @@ import hu.ssh.progressbar.ProgressBar
 import org.argus.jawa.alir.Context
 import org.argus.jawa.alir.callGraph.CallGraph
 import org.argus.jawa.alir.controlFlowGraph.{ICFGCallNode, ICFGNode, InterProceduralControlFlowGraph}
-import org.argus.jawa.alir.dataFlowAnalysis.{CallResolver, InterProceduralDataFlowGraph}
+import org.argus.jawa.alir.dataFlowAnalysis.CallResolver
 import org.argus.jawa.alir.interprocedural.{CallHandler, Callee}
 import org.argus.jawa.alir.pta._
 import org.argus.jawa.alir.pta.model.ModelCallHandler
@@ -30,7 +30,7 @@ import scala.language.postfixOps
 /**
   * Created by fgwei on 6/27/17.
   */
-class SummaryBasedDataFlowAnalysis(
+class BottomUpSummaryGenerator(
     global: Global, sm: SummaryManager,
     handler: ModelCallHandler, resolve_static_init: Boolean,
     progressBar: ProgressBar)(implicit heap: SimHeap) {
@@ -41,21 +41,20 @@ class SummaryBasedDataFlowAnalysis(
   private val ptaresult = new PTAResult
   private val analysis = new ReachingFactsAnalysis(global, icfg, ptaresult, handler, sm, new ClassLoadManager, resolve_static_init, Some(new MyTimeout(5 minutes)))
 
-  def build(cg: CallGraph): InterProceduralDataFlowGraph = {
-    val orderedWUs: IList[WorkUnit] = TopologicalSortUtil.sort(cg.getCallMap).map{ sig =>
-      val method = global.getMethodOrResolve(sig).getOrElse(throw new RuntimeException("Method is not exist: " + sig))
+  def build(cg: CallGraph): Unit = {
+    val orderedWUs: IList[WorkUnit] = TopologicalSortUtil.sort(cg.getCallMap).map { sig =>
+      val method = global.getMethodOrResolve(sig).getOrElse(throw new RuntimeException("Method does not exist: " + sig))
       new WorkUnit(method, sm, handler)
     }.reverse
     ProgressBarUtil.withProgressBar("Summary based data flow analysis...", progressBar)(orderedWUs, processWU)
     ptaresult.pprint()
-    InterProceduralDataFlowGraph(icfg, ptaresult)
   }
 
   private def processWU: WorkUnit => Unit = { wu =>
     if(!handler.isModelCall(wu.method)) {
       val initContext = new Context(global.projectName)
       val summary = wu.generateSummary(analysis, initContext, new Callr)
-      println(summary)
+      sm.register(wu.method.getSignature, summary)
     }
   }
 

@@ -105,13 +105,12 @@ class SummaryParserTest extends FlatSpec with Matchers {
   "SummaryParser" should "get field and ret" in {
     val sf = parse(
       """`Lcom/my/Class;.do:(LO1;LO2;)LO3;`:
-        |  ret.f1=arg:1.field
+        |  ret=arg:1.field
         |;
       """.stripMargin)
     val s = sf.summaries.get(new Signature("Lcom/my/Class;.do:(LO1;LO2;)LO3;"))
     assert(s.isDefined
-      && s.get.rules.head.asInstanceOf[BinaryRule].lhs.isInstanceOf[SuRet]
-      && s.get.rules.head.asInstanceOf[BinaryRule].lhs.asInstanceOf[SuRet].heapOpt.get.indices.head.asInstanceOf[SuFieldAccess].fieldName == "f1")
+      && s.get.rules.head.asInstanceOf[BinaryRule].lhs.isInstanceOf[SuRet])
     assert(s.isDefined
       && s.get.rules.head.asInstanceOf[BinaryRule].rhs.isInstanceOf[SuArg]
       && s.get.rules.head.asInstanceOf[BinaryRule].rhs.asInstanceOf[SuArg].heapOpt.isDefined

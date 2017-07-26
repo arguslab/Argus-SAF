@@ -23,7 +23,6 @@ import org.argus.jawa.alir.controlFlowGraph.{ICFGNode, InterProceduralControlFlo
 import org.argus.jawa.alir.dataDependenceAnalysis._
 import org.argus.jawa.alir.pta.PTAResult
 import org.argus.jawa.alir.pta.reachingFactsAnalysis.SimHeap
-import org.argus.jawa.alir.summaryBasedAnalysis.SummaryManager
 import org.argus.jawa.alir.taintAnalysis.TaintAnalysisResult
 import org.argus.jawa.core.util.{MyTimeout, WorklistAlgorithm}
 import org.argus.jawa.core.{ClassLoadManager, JawaType}

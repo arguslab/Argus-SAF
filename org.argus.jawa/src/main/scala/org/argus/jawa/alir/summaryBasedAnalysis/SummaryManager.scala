@@ -191,9 +191,8 @@ class SummaryManager(global: Global)(implicit heap: SimHeap) {
       case sg: SuGlobal =>
         val gSlot = StaticFieldSlot(sg.fqn)
         slots = handleHeap(sig, gSlot, sg.heapOpt, recvOpt, args, input, context, extraFacts, isLhs = true)
-      case sr: SuRet =>
-        val retSlot = VarSlot(retOpt.getOrElse("hack"))
-        slots = handleHeap(sig, retSlot, sr.heapOpt, recvOpt, args, input, context, extraFacts, isLhs = true)
+      case _: SuRet =>
+        slots += VarSlot(retOpt.getOrElse("hack"))
     }
     slots
   }

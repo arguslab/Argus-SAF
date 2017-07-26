@@ -91,11 +91,7 @@ class WorkUnit(val method: JawaMethod, sm: SummaryManager, handler: ModelCallHan
     l.statement match {
       case as: AssignmentStatement =>
         updateHeapMap(as, context)
-
       case cs: CallStatement =>
-        val argInss: IMap[String, ISet[Instance]] = (cs.recvOpt ++ cs.args).map { arg =>
-          (arg, ptaresult.pointsToSet(context, VarSlot(arg)))
-        }.toMap
         val callees = node.asInstanceOf[ICFGInvokeNode].getCalleeSet
         callees foreach { callee =>
           val calleeSig = callee.callee
@@ -103,14 +99,14 @@ class WorkUnit(val method: JawaMethod, sm: SummaryManager, handler: ModelCallHan
           if(handler.isModelCall(calleep)) {
             handler.getModelCall(calleep) match {
               case Some(mc) =>
-                processModelCall(mc, calleeSig, cs.recvOpt, cs.arg, context, rules)
+                processModelCall(mc, calleeSig, cs.lhsOpt.map(l => l.lhs.varName), cs.recvOpt, cs.arg, context, rules)
               case None =>
             }
           } else {
 
           }
         }
-      case rs: ReturnStatement =>
+      case _: ReturnStatement =>
       case _ =>
     }
   }
@@ -118,6 +114,7 @@ class WorkUnit(val method: JawaMethod, sm: SummaryManager, handler: ModelCallHan
   private def processModelCall(
       mc: ModelCall,
       signature: Signature,
+      retOpt: Option[String],
       recvOpt: Option[String],
       args: Int => String,
       context: Context,
@@ -129,10 +126,128 @@ class WorkUnit(val method: JawaMethod, sm: SummaryManager, handler: ModelCallHan
           case cr: ClearRule =>
             handleClearRule(cr, recvOpt, args, context, rules)
           case br: BinaryRule =>
-            br.lhs
+            handleBinaryRule(br, recvOpt, args, context, rules)
         }
       case None =>
     }
+  }
+
+  private def processVarSlot(
+      slot: VarSlot,
+      hb: HeapBase,
+      recvOpt: Option[String],
+      args: Int => String,
+      context: Context): Option[HeapBase] = {
+    val inss = ptaresult.pointsToSet(context, slot)
+    val bases = inss.flatMap(ins => heapMap.get(ins))
+    bases.headOption match {
+      case Some(base) =>
+        val heapAccesses: Seq[HeapAccess] = hb.heapOpt match {
+          case Some(suHeap) =>
+            suHeap.indices.map {
+              case sm: SuMapAccess if sm.rhsOpt.isDefined =>
+                SuMapAccess(handleRhs(sm.rhsOpt.get, recvOpt, args, context))
+              case a => a
+            }
+          case None => Seq()
+        }
+        Some(if(heapAccesses.isEmpty) base else base.make(heapAccesses))
+      case None =>
+        None
+    }
+  }
+
+  private def handleHeapBase(
+      hb: HeapBase,
+      recvOpt: Option[String],
+      args: Int => String,
+      context: Context): Option[HeapBase] = {
+    var newBaseOpt: Option[HeapBase] = None
+    hb match {
+      case _: SuThis =>
+        newBaseOpt = processVarSlot(VarSlot(recvOpt.getOrElse("hack")), hb, recvOpt, args, context)
+      case sa: SuArg =>
+        newBaseOpt = processVarSlot(VarSlot(args(sa.num)), hb, recvOpt, args, context)
+      case g: SuGlobal =>
+        newBaseOpt = Some(g)
+    }
+    newBaseOpt
+  }
+
+  private def getRhsInstance(
+      rr: RuleRhs,
+      recvOpt: Option[String],
+      args: Int => String,
+      context: Context): ISet[Instance] = {
+    var inss: ISet[Instance] = isetEmpty
+    rr match {
+      case hb: HeapBase =>
+        inss ++= getHeapInstance(hb, recvOpt, args, context)
+      case sc: SuClassOf =>
+        val newContext = sc.loc match {
+          case scl: SuConcreteLocation =>
+            context.copy.setContext(method.getSignature, scl.loc)
+          case _: SuVirtualLocation =>
+            context
+        }
+        inss += PTAInstance(JavaKnowledge.CLASS, newContext)
+      case si: SuInstance =>
+        val newContext = si.loc match {
+          case scl: SuConcreteLocation =>
+            context.copy.setContext(method.getSignature, scl.loc)
+          case _: SuVirtualLocation =>
+            context
+        }
+        inss += PTAInstance(si.typ.typ, newContext)
+    }
+    inss
+  }
+
+  private def getHeapInstance(
+      hb: HeapBase,
+      recvOpt: Option[String],
+      args: Int => String,
+      context: Context): ISet[Instance] = {
+    var inss: ISet[Instance] = isetEmpty
+    hb match {
+      case _: SuThis =>
+        inss = ptaresult.pointsToSet(context, VarSlot(recvOpt.getOrElse("hack")))
+      case a: SuArg =>
+        inss = ptaresult.pointsToSet(context, VarSlot(args(a.num)))
+      case g: SuGlobal =>
+        inss = ptaresult.pointsToSet(context, StaticFieldSlot(g.fqn))
+    }
+    hb.heapOpt match {
+      case Some(h) =>
+        h.indices.foreach {
+          case sf: SuFieldAccess =>
+            inss = inss.flatMap { ins =>
+              ptaresult.pointsToSet(context, FieldSlot(ins, sf.fieldName))
+            }
+          case _: SuArrayAccess =>
+            inss = inss.flatMap { ins =>
+              ptaresult.pointsToSet(context, ArraySlot(ins))
+            }
+          case sm: SuMapAccess =>
+            val keyInss: MSet[Instance] = msetEmpty
+            sm.rhsOpt match {
+              case Some(rhs) =>
+                keyInss ++= getRhsInstance(rhs, recvOpt, args, context)
+              case None =>
+            }
+            if(keyInss.isEmpty) {
+              inss = ptaresult.getRelatedHeapInstances(context, inss)
+            } else {
+              inss = inss.flatMap { ins =>
+                keyInss.flatMap { key =>
+                  ptaresult.pointsToSet(context, MapSlot(ins, key))
+                }
+              }
+            }
+        }
+      case None =>
+    }
+    inss
   }
 
   private def handleClearRule(
@@ -141,65 +256,81 @@ class WorkUnit(val method: JawaMethod, sm: SummaryManager, handler: ModelCallHan
       args: Int => String,
       context: Context,
       rules: MList[SuRule]) = {
-    cr.v match {
-      case _: SuThis =>
-        val inss = ptaresult.pointsToSet(context, VarSlot(recvOpt.getOrElse("hack")))
-        val bases = inss.flatMap(ins => heapMap.get(ins))
-        println(heapMap)
-        println(inss)
-        println(bases)
-        bases.headOption match {
-          case Some(base) =>
-            val heapAccesses: Seq[HeapAccess] = cr.v.heapOpt match {
-              case Some(suHeap) => suHeap.indices
-              case None => Seq()
-            }
-            rules += ClearRule(base.make(heapAccesses))
-          case None =>
-        }
-      case a: SuArg =>
-        val inss = ptaresult.pointsToSet(context, VarSlot(args(a.num)))
-        val bases = inss.flatMap(ins => heapMap.get(ins))
-        bases.headOption match {
-          case Some(base) =>
-            val heapAccesses: Seq[HeapAccess] = cr.v.heapOpt match {
-              case Some(suHeap) => suHeap.indices
-              case None => Seq()
-            }
-            rules += ClearRule(base.make(heapAccesses))
-          case None =>
-        }
-      case g: SuGlobal =>
-        rules += cr
+    handleHeapBase(cr.v, recvOpt, args, context) match {
+      case Some(base) =>
+        rules += ClearRule(base)
+      case None =>
     }
   }
 
-  private def getLhsHeap(lhs: Expression with LHS, context: Context): ISet[HeapBase] = {
-    var heapBases: ISet[HeapBase] = isetEmpty
+  private def handleLhs(
+      lhs: RuleLhs,
+      recvOpt: Option[String],
+      args: Int => String,
+      context: Context): Option[RuleLhs] = {
     lhs match {
-      case ae: AccessExpression =>
-        val slot = VarSlot(ae.varSymbol.varName)
-        val inss = ptaresult.pointsToSet(context, slot)
-        inss.foreach { ins =>
-          heapMap.get(ins) match {
-            case Some(sh) =>
-              heapBases += sh.make(Seq(SuFieldAccess(ae.fieldName)))
-            case None =>
-          }
-        }
-      case ie: IndexingExpression =>
-        val slot = VarSlot(ie.varSymbol.varName)
-        val inss = ptaresult.pointsToSet(context, slot)
-        inss.foreach { ins =>
-          heapMap.get(ins) match {
-            case Some(sh) =>
-              heapBases += sh.make(Seq(SuArrayAccess()))
-            case None =>
-          }
-        }
-      case _ =>
+      case hb: HeapBase =>
+        handleHeapBase(hb, recvOpt, args, context)
+      case _: SuRet =>
+        None
     }
-    heapBases
+  }
+
+  private def handleRhs(
+      rhs: RuleRhs,
+      recvOpt: Option[String],
+      args: Int => String,
+      context: Context): Option[RuleRhs] = {
+    rhs match {
+      case hb: HeapBase =>
+        handleHeapBase(hb, recvOpt, args, context)
+      case sc: SuClassOf =>
+        Some(sc)
+      case si: SuInstance =>
+        Some(si)
+    }
+  }
+
+  private def handleBinaryRule(
+      br: BinaryRule,
+      recvOpt: Option[String],
+      args: Int => String,
+      context: Context,
+      rules: MList[SuRule]) = {
+    handleLhs(br.lhs, recvOpt, args, context) match {
+      case Some(lhs) =>
+        handleRhs(br.rhs, recvOpt, args, context) match {
+          case Some(rhs) =>
+            rules += BinaryRule(lhs, br.ops, rhs)
+          case None =>
+            br.rhs match {
+              case hb: HeapBase =>
+                val hinss = getHeapInstance(hb, recvOpt, args, context)
+                rules ++= hinss.map{ ins =>
+                  val loc: SuLocation =
+                    if(ins.defSite == context) SuVirtualLocation()
+                    else SuConcreteLocation(ins.defSite.getCurrentLocUri)
+                  lhs match {
+                    case hb: HeapBase =>
+                      br.ops match {
+                        case Ops.`+=` => heapMap(ins) = hb
+                        case Ops.`=` => heapMap(ins) = hb
+                        case Ops.`-=` => heapMap -= ins
+                      }
+                    case _ =>
+                  }
+                  ins match {
+                    case psi: PTAConcreteStringInstance =>
+                      BinaryRule(lhs, br.ops, SuInstance(SuString(psi.string), loc))
+                    case _ =>
+                      BinaryRule(lhs, br.ops, SuInstance(SuJavaType(ins.typ), loc))
+                  }
+                }
+              case _ =>
+            }
+        }
+      case None =>
+    }
   }
 
   private def updateHeapMap(
@@ -207,11 +338,54 @@ class WorkUnit(val method: JawaMethod, sm: SummaryManager, handler: ModelCallHan
       context: Context): Unit = {
     var heapBaseOpt: Option[HeapBase] = None
     var kill: ISet[Instance] = isetEmpty
+    as.rhs match {
+      case ae: AccessExpression =>
+        val slot = VarSlot(ae.varSymbol.varName)
+        val inss = ptaresult.pointsToSet(context, slot)
+        inss.foreach { ins =>
+          val finss = ptaresult.pointsToSet(context, FieldSlot(ins, ae.fieldName))
+          finss.foreach { fins =>
+            if(fins.defSite == context) {
+              heapMap.get(ins) match {
+                case Some(sh) =>
+                  heapMap(fins) = sh.make(Seq(SuFieldAccess(ae.fieldName)))
+                case None =>
+              }
+            }
+          }
+        }
+      case ie: IndexingExpression =>
+        val slot = VarSlot(ie.varSymbol.varName)
+        val inss = ptaresult.pointsToSet(context, slot)
+        inss.foreach { ins =>
+          val ainss = ptaresult.pointsToSet(context, ArraySlot(ins))
+          ainss.foreach { ains =>
+            if(ains.defSite == context) {
+              heapMap.get(ins) match {
+                case Some(sh) =>
+                  heapMap(ains) = sh.make(Seq(SuArrayAccess()))
+                case None =>
+              }
+            }
+          }
+        }
+      case ne: NameExpression =>
+        if(ne.isStatic) {
+          val slot = StaticFieldSlot(ne.name)
+          val inss = ptaresult.pointsToSet(context, slot)
+          inss.foreach { ins =>
+            if(ins.defSite == context) {
+              heapMap(ins) = SuGlobal(ne.name, None)
+            }
+          }
+        }
+      case _ =>
+    }
     as.lhs match {
       case ae: AccessExpression =>
         val slot = VarSlot(ae.varSymbol.varName)
         val inss = ptaresult.pointsToSet(context, slot)
-        inss.find { ins =>
+        inss.foreach { ins =>
           kill ++= ptaresult.pointsToSet(context, FieldSlot(ins, ae.fieldName))
           heapMap.get(ins) match {
             case Some(sh) =>
@@ -224,7 +398,7 @@ class WorkUnit(val method: JawaMethod, sm: SummaryManager, handler: ModelCallHan
       case ie: IndexingExpression =>
         val slot = VarSlot(ie.varSymbol.varName)
         val inss = ptaresult.pointsToSet(context, slot)
-        inss.find { ins =>
+        inss.foreach { ins =>
           kill ++= ptaresult.pointsToSet(context, ArraySlot(ins))
           heapMap.get(ins) match {
             case Some(sh) =>
@@ -232,6 +406,20 @@ class WorkUnit(val method: JawaMethod, sm: SummaryManager, handler: ModelCallHan
               true
             case None =>
               false
+          }
+        }
+      case ne: NameExpression =>
+        if(ne.isStatic) {
+          val slot = StaticFieldSlot(ne.name)
+          val inss = ptaresult.pointsToSet(context, slot)
+          kill ++= inss
+          inss.foreach { ins =>
+            heapMap.get(ins) match {
+              case Some(sh) =>
+                heapBaseOpt = Some(sh)
+              case None =>
+                heapBaseOpt = Some(SuGlobal(ne.name, None))
+            }
           }
         }
       case _ =>
