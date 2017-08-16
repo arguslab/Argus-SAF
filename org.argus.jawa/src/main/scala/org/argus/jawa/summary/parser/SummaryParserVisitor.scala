@@ -92,7 +92,7 @@ class SummaryParserVisitor()
     SuMapAccess(getOptChild[RuleRhs](ctx.rhs))
 
   override def visitRet(ctx: RetContext): SuRuleNode =
-    SuRet()
+    SuRet(getOptChild[SuHeap](ctx.heap))
 
   override def visitInstance(ctx: InstanceContext): SuRuleNode =
     SuInstance(getChild[SuType](ctx.`type`), getChild[SuLocation](ctx.location))

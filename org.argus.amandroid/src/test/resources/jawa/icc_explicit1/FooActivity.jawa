@@ -1,0 +1,37 @@
+record `org.arguslab.icc_explicit1.FooActivity` @kind class @AccessFlag PUBLIC extends `android.app.Activity` @kind class {
+}
+procedure `void` `org.arguslab.icc_explicit1.FooActivity.<init>`(`org.arguslab.icc_explicit1.FooActivity` `this` @kind this) @owner ^`org.arguslab.icc_explicit1.FooActivity` @signature `Lorg/arguslab/icc_explicit1/FooActivity;.<init>:()V` @AccessFlag PUBLIC_CONSTRUCTOR {
+
+    #L018900.  call `android.app.Activity.<init>`(`this`) @signature `Landroid/app/Activity;.<init>:()V` @classDescriptor ^`android.app.Activity` @kind direct;
+    #L018906.  return  @kind void;
+}
+procedure `void` `org.arguslab.icc_explicit1.FooActivity.onCreate`(`org.arguslab.icc_explicit1.FooActivity` `this` @kind this, `android.os.Bundle` `savedInstanceState` @kind object) @owner ^`org.arguslab.icc_explicit1.FooActivity` @signature `Lorg/arguslab/icc_explicit1/FooActivity;.onCreate:(Landroid/os/Bundle;)V` @AccessFlag PROTECTED {
+    `java.lang.String` String_v3;
+    `java.lang.StringBuilder` StringBuilder_v2;
+    `android.content.Intent` Intent_temp;
+    `int` int_temp;
+    `java.lang.StringBuilder` StringBuilder_temp;
+    `android.content.Intent` Intent_v0;
+    `java.lang.String` String_v2;
+    `java.lang.String` String_temp;
+    `java.lang.String` String_v1;
+
+    #L018918.  call `android.app.Activity.onCreate`(`this`, `savedInstanceState`) @signature `Landroid/app/Activity;.onCreate:(Landroid/os/Bundle;)V` @classDescriptor ^`android.app.Activity` @kind super;
+    #L01891e.  call Intent_temp:=  `org.arguslab.icc_explicit1.FooActivity.getIntent`(`this`) @signature `Lorg/arguslab/icc_explicit1/FooActivity;.getIntent:()Landroid/content/Intent;` @classDescriptor ^`org.arguslab.icc_explicit1.FooActivity` @kind virtual;
+    #L018924.  Intent_v0:= Intent_temp  @kind object;
+    #L018926.  StringBuilder_v2:= new `java.lang.StringBuilder`;
+    #L01892a.  call `java.lang.StringBuilder.<init>`(StringBuilder_v2) @signature `Ljava/lang/StringBuilder;.<init>:()V` @classDescriptor ^`java.lang.StringBuilder` @kind direct;
+    #L018930.  String_v3:= "" @kind object;
+    #L018934.  call StringBuilder_temp:=  `java.lang.StringBuilder.append`(StringBuilder_v2, String_v3) @signature `Ljava/lang/StringBuilder;.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;` @classDescriptor ^`java.lang.StringBuilder` @kind virtual;
+    #L01893a.  StringBuilder_v2:= StringBuilder_temp  @kind object;
+    #L01893c.  String_v3:= "data" @kind object;
+    #L018940.  call String_temp:=  `android.content.Intent.getStringExtra`(Intent_v0, String_v3) @signature `Landroid/content/Intent;.getStringExtra:(Ljava/lang/String;)Ljava/lang/String;` @classDescriptor ^`android.content.Intent` @kind virtual;
+    #L018946.  String_v3:= String_temp  @kind object;
+    #L018948.  call StringBuilder_temp:=  `java.lang.StringBuilder.append`(StringBuilder_v2, String_v3) @signature `Ljava/lang/StringBuilder;.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;` @classDescriptor ^`java.lang.StringBuilder` @kind virtual;
+    #L01894e.  StringBuilder_v2:= StringBuilder_temp  @kind object;
+    #L018950.  call String_temp:=  `java.lang.StringBuilder.toString`(StringBuilder_v2) @signature `Ljava/lang/StringBuilder;.toString:()Ljava/lang/String;` @classDescriptor ^`java.lang.StringBuilder` @kind virtual;
+    #L018956.  String_v1:= String_temp  @kind object;
+    #L018958.  String_v2:= "deviceid" @kind object;
+    #L01895c.  call int_temp:=  `android.util.Log.d`(String_v2, String_v1) @signature `Landroid/util/Log;.d:(Ljava/lang/String;Ljava/lang/String;)I` @classDescriptor ^`android.util.Log` @kind static;
+    #L018962.  return  @kind void;
+}

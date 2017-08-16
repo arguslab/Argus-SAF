@@ -11,12 +11,12 @@
 package org.argus.jawa.alir.summaryBasedAnalysis
 
 import hu.ssh.progressbar.console.ConsoleProgressBar
+import org.argus.jawa.alir.pta.PTAScopeManager
 import org.argus.jawa.alir.pta.model.ModelCallHandler
 import org.argus.jawa.alir.pta.reachingFactsAnalysis.SimHeap
 import org.argus.jawa.alir.reachability.SignatureBasedCallGraph
 import org.argus.jawa.core._
 import org.argus.jawa.core.util._
-import org.argus.jawa.summary.rule._
 import org.scalatest.{FlatSpec, Matchers}
 
 import scala.language.implicitConversions
@@ -24,7 +24,7 @@ import scala.language.implicitConversions
 /**
   * Created by fgwei on 6/30/17.
   */
-class BottomUpSummaryGeneratorTest extends FlatSpec with Matchers {
+class HeapSummaryGeneratorTest extends FlatSpec with Matchers {
   final val DEBUG = false
 
   implicit def file(file: String): TestFile = {
@@ -32,65 +32,88 @@ class BottomUpSummaryGeneratorTest extends FlatSpec with Matchers {
   }
 
   "/jawa/summary/SingleFunction.jawa" ep "Lcom/hugo/test/SingleFunction;.clearArg:(Ljava/util/Set;)V" produce (
-    ClearRule(SuArg(0, None)),
+    """`Lcom/hugo/test/SingleFunction;.clearArg:(Ljava/util/Set;)V`:
+      |  ~arg:0
+      |;
+    """.stripMargin,
   )
 
   "/jawa/summary/SingleFunction.jawa" ep "Lcom/hugo/test/SingleFunction;.clearField:(Lcom/hugo/test/SingleFunction;)V" produce (
-    ClearRule(SuArg(0, Some(SuHeap(List(SuFieldAccess("myset")))))),
+    """`Lcom/hugo/test/SingleFunction;.clearField:(Lcom/hugo/test/SingleFunction;)V`:
+      |  ~arg:0.myset
+      |;
+    """.stripMargin,
   )
 
   "/jawa/summary/SingleFunction.jawa" ep "Lcom/hugo/test/SingleFunction;.clearArray:(Lcom/hugo/test/SingleFunction;)V" produce (
-    ClearRule(SuArg(0, Some(SuHeap(List(SuFieldAccess("myarray"), SuArrayAccess(), SuFieldAccess("myset")))))),
+    """`Lcom/hugo/test/SingleFunction;.clearArray:(Lcom/hugo/test/SingleFunction;)V`:
+      |  ~arg:0.myarray[].myset
+      |;
+    """.stripMargin,
   )
 
   "/jawa/summary/SingleFunction.jawa" ep "Lcom/hugo/test/SingleFunction;.clearGlobal:()V" produce (
-    ClearRule(SuGlobal("com.hugo.test.SingleFunction.myglobal", Some(SuHeap(List(SuFieldAccess("myset")))))),
+    """`Lcom/hugo/test/SingleFunction;.clearGlobal:()V`:
+      |  ~`com.hugo.test.SingleFunction.myglobal`.myset
+      |;
+    """.stripMargin,
   )
 
   "/jawa/summary/SingleFunction.jawa" ep "Lcom/hugo/test/SingleFunction;.clearHeaps:()V" produce (
-    ClearRule(SuGlobal("com.hugo.test.SingleFunction.myglobal",
-      Some(
-        SuHeap(List(
-          SuFieldAccess("myarray"),
-          SuArrayAccess(),
-          SuFieldAccess("myself"),
-          SuFieldAccess("myself"),
-          SuFieldAccess("myself"),
-          SuFieldAccess("myset")))))),
+    """`Lcom/hugo/test/SingleFunction;.clearHeaps:()V`:
+      |  ~`com.hugo.test.SingleFunction.myglobal`.myarray[].myself.myself.myself.myset
+      |;
+    """.stripMargin,
   )
 
   "/jawa/summary/SingleFunction.jawa" ep "Lcom/hugo/test/SingleFunction;.add:(Ljava/util/Set;)Ljava/lang/String;" produce (
-    BinaryRule(
-      SuArg(0, Some(SuHeap(List(SuFieldAccess("items"))))),
-      Ops.`+=`,
-      SuInstance(SuString("Hello World!"), SuConcreteLocation("L1"))
-    ),
+    """`Lcom/hugo/test/SingleFunction;.add:(Ljava/util/Set;)Ljava/lang/String;`:
+      |  arg:0.items += "Hello World!"@L1
+      |  ret = arg:0.items
+      |;
+    """.stripMargin,
   )
 
   "/jawa/summary/SingleFunction.jawa" ep "Lcom/hugo/test/SingleFunction;.put:(Ljava/util/Map;)Ljava/lang/String;" produce (
-    BinaryRule(
-      SuArg(0, Some(SuHeap(List(SuFieldAccess("entries"), SuFieldAccess("key"))))),
-      Ops.`+=`,
-      SuInstance(SuString("key"), SuConcreteLocation("L1"))
-    ),
-    BinaryRule(
-      SuArg(0, Some(SuHeap(List(SuFieldAccess("entries"), SuMapAccess(Some(SuArg(0, Some(SuHeap(List(SuFieldAccess("entries"), SuFieldAccess("key"))))))))))),
-      Ops.`=`,
-      SuInstance(SuString("value"), SuConcreteLocation("L2"))
-    ),
+    """`Lcom/hugo/test/SingleFunction;.put:(Ljava/util/Map;)Ljava/lang/String;`:
+      |  arg:0.entries.key += "key"@L1
+      |  arg:0.entries(arg:0.entries.key) = "value"@L2
+      |  ret = arg:0.entries.key
+      |;
+    """.stripMargin,
+  )
+
+  "/jawa/summary/SingleFunction.jawa" ep "Lcom/hugo/test/SingleFunction;.assign:()Ljava/lang/String;" produce (
+    """`Lcom/hugo/test/SingleFunction;.assign:()Ljava/lang/String;`:
+      |  this.str += "Hello World!"@L1
+      |  ret = this.str
+      |;
+    """.stripMargin,
+  )
+
+  "/jawa/summary/SingleFunction.jawa" ep "Lcom/hugo/test/SingleFunction;.complex:(Lcom/hugo/test/SingleFunction;)Ljava/lang/String;" produce (
+    """`Lcom/hugo/test/SingleFunction;.complex:(Lcom/hugo/test/SingleFunction;)Ljava/lang/String;`:
+      |  this.myarray[] += "Hello World!"@L1
+      |  this.str += "v1!"@L5
+      |  arg:0.myset += java.util.HashSet@L7
+      |  arg:0.myset.items += this.myarray[]
+      |  this.myself = arg:0
+      |  ret = this.str
+      |;
+    """.stripMargin,
   )
 
   class TestFile(file: String) {
     var entrypoint: Signature = _
 
-    val handler = new ModelCallHandler(new DefaultScopeManager)
+    val handler = new ModelCallHandler(PTAScopeManager)
 
     def ep(sigStr: String): TestFile = {
       entrypoint = new Signature(sigStr)
       this
     }
 
-    def produce(expected: SuRule*): Unit = {
+    def produce(rule: String): Unit = {
       file should s"produce expected summary for $entrypoint" in {
         implicit val heap = new SimHeap
         val reporter = if(DEBUG) new PrintReporter(MsgLevel.INFO) else new PrintReporter(MsgLevel.NO)
@@ -103,7 +126,10 @@ class BottomUpSummaryGeneratorTest extends FlatSpec with Matchers {
           global, sm, handler, true,
           ConsoleProgressBar.on(System.out).withFormat("[:bar] :percent% :elapsed ETA: :eta"))
         analysis.build(cg)
-        assert(sm.getSummary(entrypoint).get.rules.toList == expected.toList)
+        val sm2: SummaryManager = new SummaryManager(global)
+        sm2.register(rule)
+
+        assert(sm.getSummary(entrypoint).get.rules == sm2.getSummary(entrypoint).get.rules)
       }
     }
   }

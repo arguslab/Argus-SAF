@@ -73,11 +73,13 @@ class SafsuTest extends FlatSpec with Matchers {
   """`Lcom/my/Class;.do:(LO1;LO2;)LO3;`:
     |  arg:1+=arg:2
     |  ret=arg:1.field
+    |  arg:2=ret
     |;
   """.stripMargin producesTokens (
     UID, `:`, WS,
     `arg`, `:`, Digits, `+=`, `arg`, `:`, Digits, WS,
     `ret`, `=`, `arg`, `:`, Digits, `.`, ID, WS,
+    `arg`, `:`, Digits, `=`, `ret`, WS,
     `;`, WS)
   """/* block comment
     | */

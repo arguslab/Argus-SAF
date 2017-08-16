@@ -111,7 +111,7 @@ class SummaryManager(global: Global)(implicit heap: SimHeap) {
       case Some(ret) => slots.exists(s => s.getId == ret)
       case None => false
     }
-    val inss = processRhs(sig, br.rhs, recvOpt, args, input, context, extraFacts, isReturn)
+    val inss = processRhs(sig, br.rhs, retOpt, recvOpt, args, input, context, extraFacts, isReturn)
     slots.flatMap { slot =>
       inss.map { ins =>
         new RFAFact(slot, ins)
@@ -119,19 +119,22 @@ class SummaryManager(global: Global)(implicit heap: SimHeap) {
     }
   }
 
-  def processRhs(sig: Signature, rhs: RuleRhs, recvOpt: Option[String], args: IList[String], input: ISet[RFAFact], context: Context, extraFacts: MSet[RFAFact], isReturn: Boolean): ISet[Instance] = {
+  def processRhs(sig: Signature, rhs: RuleRhs, retOpt: Option[String], recvOpt: Option[String], args: IList[String], input: ISet[RFAFact], context: Context, extraFacts: MSet[RFAFact], isReturn: Boolean): ISet[Instance] = {
     var inss: ISet[Instance] = isetEmpty
     var slots: ISet[PTASlot] = isetEmpty
     rhs match {
       case st: SuThis =>
         val thisSlot = VarSlot(recvOpt.getOrElse("hack"))
-        slots = handleHeap(sig, thisSlot, st.heapOpt, recvOpt, args, input, context, extraFacts, isLhs = false)
+        slots = handleHeap(sig, thisSlot, st.heapOpt, retOpt, recvOpt, args, input, context, extraFacts, isLhs = false)
+      case sr: SuRet =>
+        val retSlot = VarSlot(retOpt.getOrElse("hack"))
+        slots = handleHeap(sig, retSlot, sr.heapOpt, retOpt, recvOpt, args, input, context, extraFacts, isLhs = false)
       case sa: SuArg =>
         val argSlot = VarSlot(args(sa.num))
-        slots = handleHeap(sig, argSlot, sa.heapOpt, recvOpt, args, input, context, extraFacts, isLhs = false)
+        slots = handleHeap(sig, argSlot, sa.heapOpt, retOpt, recvOpt, args, input, context, extraFacts, isLhs = false)
       case sg: SuGlobal =>
         val gSlot = StaticFieldSlot(sg.fqn)
-        slots = handleHeap(sig, gSlot, sg.heapOpt, recvOpt, args, input, context, extraFacts, isLhs = false)
+        slots = handleHeap(sig, gSlot, sg.heapOpt, retOpt, recvOpt, args, input, context, extraFacts, isLhs = false)
       case sc: SuClassOf =>
         val newContext = sc.loc match {
           case scl: SuConcreteLocation =>
@@ -139,7 +142,7 @@ class SummaryManager(global: Global)(implicit heap: SimHeap) {
           case _: SuVirtualLocation =>
             context
         }
-        val rhsInss = processRhs(sig, sc.rhs, recvOpt, args, input, context, extraFacts, isReturn = false)
+        val rhsInss = processRhs(sig, sc.rhs, retOpt, recvOpt, args, input, context, extraFacts, isReturn = false)
         inss ++= rhsInss.map { rhsins =>
           PTAConcreteStringInstance(JavaKnowledge.formatTypeToName(rhsins.typ), newContext)
         }
@@ -184,15 +187,16 @@ class SummaryManager(global: Global)(implicit heap: SimHeap) {
     lhs match {
       case st: SuThis =>
         val thisSlot = VarSlot(recvOpt.getOrElse("hack"))
-        slots = handleHeap(sig, thisSlot, st.heapOpt, recvOpt, args, input, context, extraFacts, isLhs = true)
+        slots = handleHeap(sig, thisSlot, st.heapOpt, retOpt, recvOpt, args, input, context, extraFacts, isLhs = true)
       case sa: SuArg =>
         val argSlot = VarSlot(args(sa.num))
-        slots = handleHeap(sig, argSlot, sa.heapOpt, recvOpt, args, input, context, extraFacts, isLhs = true)
+        slots = handleHeap(sig, argSlot, sa.heapOpt, retOpt, recvOpt, args, input, context, extraFacts, isLhs = true)
       case sg: SuGlobal =>
         val gSlot = StaticFieldSlot(sg.fqn)
-        slots = handleHeap(sig, gSlot, sg.heapOpt, recvOpt, args, input, context, extraFacts, isLhs = true)
-      case _: SuRet =>
-        slots += VarSlot(retOpt.getOrElse("hack"))
+        slots = handleHeap(sig, gSlot, sg.heapOpt, retOpt, recvOpt, args, input, context, extraFacts, isLhs = true)
+      case sr: SuRet =>
+        val rSlot = VarSlot(retOpt.getOrElse("hack"))
+        slots = handleHeap(sig, rSlot, sr.heapOpt, retOpt, recvOpt, args, input, context, extraFacts, isLhs = true)
     }
     slots
   }
@@ -201,6 +205,7 @@ class SummaryManager(global: Global)(implicit heap: SimHeap) {
       sig: Signature,
       slot: NameSlot,
       heapOpt: Option[SuHeap],
+      retOpt: Option[String],
       recvOpt: Option[String],
       args: IList[String],
       input: ISet[RFAFact],
@@ -232,7 +237,7 @@ class SummaryManager(global: Global)(implicit heap: SimHeap) {
               val inss: ISet[Instance] = facts.map(f => f.v)
               val keys: ISet[Instance] = ma.rhsOpt match {
                 case Some(rhs) =>
-                  val rhsInss = processRhs(sig, rhs, recvOpt, args, input, context, extraFacts, isReturn = false)
+                  val rhsInss = processRhs(sig, rhs, retOpt, recvOpt, args, input, context, extraFacts, isReturn = false)
                   if (isLhs) rhsInss
                   else {
                     val rhsTyps = rhsInss.map(i => i.typ)

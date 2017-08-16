@@ -90,6 +90,7 @@ class WorkUnit(val method: JawaMethod, sm: SummaryManager, handler: ModelCallHan
     val l = method.getBody.resolvedBody.location(node.locIndex)
     l.statement match {
       case as: AssignmentStatement =>
+        processAssignment(as, context, rules)
         updateHeapMap(as, context)
       case cs: CallStatement =>
         val callees = node.asInstanceOf[ICFGInvokeNode].getCalleeSet
@@ -99,22 +100,110 @@ class WorkUnit(val method: JawaMethod, sm: SummaryManager, handler: ModelCallHan
           if(handler.isModelCall(calleep)) {
             handler.getModelCall(calleep) match {
               case Some(mc) =>
-                processModelCall(mc, calleeSig, cs.lhsOpt.map(l => l.lhs.varName), cs.recvOpt, cs.arg, context, rules)
+                processModelCall(mc, calleeSig, cs.recvOpt, cs.arg, context, rules)
               case None =>
+
             }
           } else {
+            sm.getSummary(calleeSig) match {
+              case Some(su) =>
+                processSummary(su, cs.recvOpt, cs.arg, context, rules)
+              case None =>
 
+            }
           }
         }
-      case _: ReturnStatement =>
+      case rs: ReturnStatement =>
+        rs.varOpt match {
+          case Some(v) =>
+            val inss = ptaresult.pointsToSet(context, VarSlot(v.varName))
+            val bases = inss.flatMap(ins => heapMap.get(ins))
+            if(bases.nonEmpty) {
+              rules ++= bases.map { base =>
+                BinaryRule(SuRet(None), Ops.`=`, base)
+              }
+            } else {
+              rules ++= inss.map { ins =>
+                BinaryRule(SuRet(None), Ops.`+=`, processInstance(ins, context))
+              }
+            }
+          case None =>
+        }
       case _ =>
+    }
+  }
+
+  private def processAssignment(
+      as: AssignmentStatement,
+      context: Context,
+      rules: MList[SuRule]) = {
+    var inss: ISet[Instance] = isetEmpty
+    var lhsBases: ISet[HeapBase] = isetEmpty
+    as.lhs match {
+      case ae: AccessExpression =>
+        inss = ptaresult.pointsToSet(context, VarSlot(ae.varSymbol.varName))
+        inss.foreach { ins =>
+          heapMap.get(ins) match {
+            case Some(hb) =>
+              lhsBases += hb.make(Seq(SuFieldAccess(ae.fieldName)))
+            case None =>
+          }
+        }
+      case ie: IndexingExpression =>
+        inss = ptaresult.pointsToSet(context, VarSlot(ie.varSymbol.varName))
+        inss.foreach { ins =>
+          heapMap.get(ins) match {
+            case Some(hb) =>
+              lhsBases += hb.make(Seq(SuArrayAccess()))
+            case None =>
+          }
+        }
+      case ne: NameExpression =>
+        if(ne.isStatic) {
+          inss = ptaresult.pointsToSet(context, StaticFieldSlot(ne.name))
+          inss.foreach { ins =>
+            heapMap.get(ins) match {
+              case Some(hb) =>
+                lhsBases += hb
+              case None =>
+            }
+          }
+        }
+      case _ =>
+    }
+    lhsBases.headOption match {
+      case Some(lhsBase) =>
+        as.rhs match {
+          case ae: AccessExpression =>
+            inss = ptaresult.pointsToSet(context, VarSlot(ae.varSymbol.varName))
+            inss = inss.flatMap(ins => ptaresult.pointsToSet(context, FieldSlot(ins, ae.fieldName)))
+          case ie: IndexingExpression =>
+            inss = ptaresult.pointsToSet(context, VarSlot(ie.varSymbol.varName))
+            inss = inss.flatMap(ins => ptaresult.pointsToSet(context, ArraySlot(ins)))
+          case ne: NameExpression =>
+            if(ne.isStatic) {
+              inss = ptaresult.pointsToSet(context, StaticFieldSlot(ne.name))
+            } else {
+              inss = ptaresult.pointsToSet(context, VarSlot(ne.name))
+            }
+          case _ =>
+        }
+        val rhsBases: ISet[HeapBase] = inss.flatMap(ins => heapMap.get(ins))
+        rhsBases.headOption match {
+          case Some(rhsBase) =>
+            rules += BinaryRule(lhsBase, Ops.`=`, rhsBase)
+          case None =>
+            rules ++= inss.map { ins =>
+              BinaryRule(lhsBase, Ops.`+=`, processInstance(ins, context))
+            }
+        }
+      case None =>
     }
   }
 
   private def processModelCall(
       mc: ModelCall,
       signature: Signature,
-      retOpt: Option[String],
       recvOpt: Option[String],
       args: Int => String,
       context: Context,
@@ -122,13 +211,34 @@ class WorkUnit(val method: JawaMethod, sm: SummaryManager, handler: ModelCallHan
     val summaries = sm.getSummaries(mc.safsuFile)
     summaries.get(signature.getSubSignature) match {
       case Some(summary) =>
-        summary.rules foreach {
-          case cr: ClearRule =>
-            handleClearRule(cr, recvOpt, args, context, rules)
-          case br: BinaryRule =>
-            handleBinaryRule(br, recvOpt, args, context, rules)
-        }
+        processSummary(summary, recvOpt, args, context, rules)
       case None =>
+    }
+  }
+
+  private def processSummary(
+      summary: Summary,
+      recvOpt: Option[String],
+      args: Int => String,
+      context: Context,
+      rules: MList[SuRule]) = {
+    summary.rules foreach {
+      case cr: ClearRule =>
+        handleClearRule(cr, recvOpt, args, context, rules)
+      case br: BinaryRule =>
+        handleBinaryRule(br, recvOpt, args, context, rules)
+    }
+  }
+
+  private def processInstance(ins: Instance, context: Context): SuInstance = {
+    val loc: SuLocation =
+      if(ins.defSite == context) SuVirtualLocation()
+      else SuConcreteLocation(ins.defSite.getCurrentLocUri)
+    ins match {
+      case psi: PTAConcreteStringInstance =>
+        SuInstance(SuString(psi.string), loc)
+      case _ =>
+        SuInstance(SuJavaType(ins.typ), loc)
     }
   }
 
@@ -170,6 +280,8 @@ class WorkUnit(val method: JawaMethod, sm: SummaryManager, handler: ModelCallHan
         newBaseOpt = processVarSlot(VarSlot(args(sa.num)), hb, recvOpt, args, context)
       case g: SuGlobal =>
         newBaseOpt = Some(g)
+      case _: SuRet =>
+        newBaseOpt = None
     }
     newBaseOpt
   }
@@ -216,6 +328,7 @@ class WorkUnit(val method: JawaMethod, sm: SummaryManager, handler: ModelCallHan
         inss = ptaresult.pointsToSet(context, VarSlot(args(a.num)))
       case g: SuGlobal =>
         inss = ptaresult.pointsToSet(context, StaticFieldSlot(g.fqn))
+      case _: SuRet =>
     }
     hb.heapOpt match {
       case Some(h) =>
@@ -271,8 +384,6 @@ class WorkUnit(val method: JawaMethod, sm: SummaryManager, handler: ModelCallHan
     lhs match {
       case hb: HeapBase =>
         handleHeapBase(hb, recvOpt, args, context)
-      case _: SuRet =>
-        None
     }
   }
 
@@ -306,10 +417,7 @@ class WorkUnit(val method: JawaMethod, sm: SummaryManager, handler: ModelCallHan
             br.rhs match {
               case hb: HeapBase =>
                 val hinss = getHeapInstance(hb, recvOpt, args, context)
-                rules ++= hinss.map{ ins =>
-                  val loc: SuLocation =
-                    if(ins.defSite == context) SuVirtualLocation()
-                    else SuConcreteLocation(ins.defSite.getCurrentLocUri)
+                rules ++= hinss.map { ins =>
                   lhs match {
                     case hb: HeapBase =>
                       br.ops match {
@@ -319,12 +427,7 @@ class WorkUnit(val method: JawaMethod, sm: SummaryManager, handler: ModelCallHan
                       }
                     case _ =>
                   }
-                  ins match {
-                    case psi: PTAConcreteStringInstance =>
-                      BinaryRule(lhs, br.ops, SuInstance(SuString(psi.string), loc))
-                    case _ =>
-                      BinaryRule(lhs, br.ops, SuInstance(SuJavaType(ins.typ), loc))
-                  }
+                  BinaryRule(lhs, br.ops, processInstance(ins, context))
                 }
               case _ =>
             }

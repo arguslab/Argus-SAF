@@ -47,6 +47,7 @@ rhs
   | global
   | instance
   | classOf
+  | ret
   ;
 
 suThis

@@ -28,6 +28,7 @@ object TopologicalSortUtil {
     val graph: DirectedGraph[Node, TempEdge] = new DirectedPseudograph[Node, TempEdge](factory)
     map.foreach {
       case (caller, callees) =>
+        if(callees.isEmpty) graph.addVertex(caller)
         callees.foreach { callee =>
           var flag = false
           if(!graph.containsVertex(caller)) {

@@ -1,0 +1,70 @@
+record `org.arguslab.icc_explicit1.MainActivity` @kind class @AccessFlag PUBLIC extends `android.app.Activity` @kind class {
+}
+procedure `void` `org.arguslab.icc_explicit1.MainActivity.<init>`(`org.arguslab.icc_explicit1.MainActivity` `this` @kind this) @owner ^`org.arguslab.icc_explicit1.MainActivity` @signature `Lorg/arguslab/icc_explicit1/MainActivity;.<init>:()V` @AccessFlag PUBLIC_CONSTRUCTOR {
+
+    #L018974.  call `android.app.Activity.<init>`(`this`) @signature `Landroid/app/Activity;.<init>:()V` @classDescriptor ^`android.app.Activity` @kind direct;
+    #L01897a.  return  @kind void;
+}
+procedure `void` `org.arguslab.icc_explicit1.MainActivity.leakImei`(`org.arguslab.icc_explicit1.MainActivity` `this` @kind this) @owner ^`org.arguslab.icc_explicit1.MainActivity` @signature `Lorg/arguslab/icc_explicit1/MainActivity;.leakImei:()V` @AccessFlag PRIVATE {
+    `android.telephony.TelephonyManager` TelephonyManager_v2;
+    `java.lang.String` String_v3;
+    `android.content.Context` Context_temp;
+    `android.content.Intent` Intent_temp;
+    `java.lang.Object` Object_temp;
+    `java.lang.Object` Object_v2;
+    `java.lang.Class` Class_v4;
+    `android.content.Context` Context_v3;
+    `android.content.Intent` Intent_v0;
+    `java.lang.String` String_temp;
+    `java.lang.String` String_v1;
+
+    #L01898c.  String_v3:= "phone" @kind object;
+    #L018990.  call Object_temp:=  `org.arguslab.icc_explicit1.MainActivity.getSystemService`(`this`, String_v3) @signature `Lorg/arguslab/icc_explicit1/MainActivity;.getSystemService:(Ljava/lang/String;)Ljava/lang/Object;` @classDescriptor ^`org.arguslab.icc_explicit1.MainActivity` @kind virtual;
+    #L018996.  Object_v2:= Object_temp  @kind object;
+    #L018998.  TelephonyManager_v2:= (`android.telephony.TelephonyManager`)Object_v2  @kind object;
+    #L01899c.  call String_temp:=  `android.telephony.TelephonyManager.getDeviceId`(TelephonyManager_v2) @signature `Landroid/telephony/TelephonyManager;.getDeviceId:()Ljava/lang/String;` @classDescriptor ^`android.telephony.TelephonyManager` @kind virtual;
+    #L0189a2.  String_v1:= String_temp  @kind object;
+    #L0189a4.  Intent_v0:= new `android.content.Intent`;
+    #L0189a8.  call Context_temp:=  `org.arguslab.icc_explicit1.MainActivity.getApplicationContext`(`this`) @signature `Lorg/arguslab/icc_explicit1/MainActivity;.getApplicationContext:()Landroid/content/Context;` @classDescriptor ^`org.arguslab.icc_explicit1.MainActivity` @kind virtual;
+    #L0189ae.  Context_v3:= Context_temp  @kind object;
+    #L0189b0.  Class_v4:= constclass @type ^`org.arguslab.icc_explicit1.FooActivity` @kind object;
+    #L0189b4.  call `android.content.Intent.<init>`(Intent_v0, Context_v3, Class_v4) @signature `Landroid/content/Intent;.<init>:(Landroid/content/Context;Ljava/lang/Class;)V` @classDescriptor ^`android.content.Intent` @kind direct;
+    #L0189ba.  String_v3:= "data" @kind object;
+    #L0189be.  call Intent_temp:=  `android.content.Intent.putExtra`(Intent_v0, String_v3, String_v1) @signature `Landroid/content/Intent;.putExtra:(Ljava/lang/String;Ljava/lang/String;)Landroid/content/Intent;` @classDescriptor ^`android.content.Intent` @kind virtual;
+    #L0189c4.  call `org.arguslab.icc_explicit1.MainActivity.startActivity`(`this`, Intent_v0) @signature `Lorg/arguslab/icc_explicit1/MainActivity;.startActivity:(Landroid/content/Intent;)V` @classDescriptor ^`org.arguslab.icc_explicit1.MainActivity` @kind virtual;
+    #L0189ca.  return  @kind void;
+}
+procedure `void` `org.arguslab.icc_explicit1.MainActivity.onCreate`(`org.arguslab.icc_explicit1.MainActivity` `this` @kind this, `android.os.Bundle` `savedInstanceState` @kind object) @owner ^`org.arguslab.icc_explicit1.MainActivity` @signature `Lorg/arguslab/icc_explicit1/MainActivity;.onCreate:(Landroid/os/Bundle;)V` @AccessFlag PROTECTED {
+    `java.lang.String`[] String_arr1_v0;
+    `int` int_v0;
+    `int` int_v3;
+    `int` int_temp;
+    `java.lang.String` String_v0;
+    `java.lang.String` String_v2;
+    `int` int_v1;
+
+    #L0189dc.  int_v3:= 1I;
+    #L0189de.  call `android.app.Activity.onCreate`(`this`, `savedInstanceState`) @signature `Landroid/app/Activity;.onCreate:(Landroid/os/Bundle;)V` @classDescriptor ^`android.app.Activity` @kind super;
+    #L0189e4.  int_v0:= 2130903041I;
+    #L0189ea.  call `org.arguslab.icc_explicit1.MainActivity.setContentView`(`this`, int_v0) @signature `Lorg/arguslab/icc_explicit1/MainActivity;.setContentView:(I)V` @classDescriptor ^`org.arguslab.icc_explicit1.MainActivity` @kind virtual;
+    #L0189f0.  String_v0:= "android.permission.READ_PHONE_STATE" @kind object;
+    #L0189f4.  call int_temp:=  `org.arguslab.icc_explicit1.MainActivity.checkSelfPermission`(`this`, String_v0) @signature `Lorg/arguslab/icc_explicit1/MainActivity;.checkSelfPermission:(Ljava/lang/String;)I` @classDescriptor ^`org.arguslab.icc_explicit1.MainActivity` @kind virtual;
+    #L0189fa.  int_v0:= int_temp;
+    #L0189fc.  if int_v0 == 0 then goto L018a14;
+    #L018a00.  String_arr1_v0:= new `java.lang.String`[int_v3];
+    #L018a04.  int_v1:= 0I;
+    #L018a06.  String_v2:= "android.permission.READ_PHONE_STATE" @kind object;
+    #L018a0a.  String_arr1_v0[int_v1]:= String_v2  @kind object;
+    #L018a0e.  call `org.arguslab.icc_explicit1.MainActivity.requestPermissions`(`this`, String_arr1_v0, int_v3) @signature `Lorg/arguslab/icc_explicit1/MainActivity;.requestPermissions:([Ljava/lang/String;I)V` @classDescriptor ^`org.arguslab.icc_explicit1.MainActivity` @kind virtual;
+    #L018a14.  return  @kind void;
+}
+procedure `void` `org.arguslab.icc_explicit1.MainActivity.onRequestPermissionsResult`(`org.arguslab.icc_explicit1.MainActivity` `this` @kind this, `int` `requestCode` , `java.lang.String`[] `permissions` @kind object, `int`[] `grantResults` @kind object) @owner ^`org.arguslab.icc_explicit1.MainActivity` @signature `Lorg/arguslab/icc_explicit1/MainActivity;.onRequestPermissionsResult:(I[Ljava/lang/String;[I)V` @AccessFlag PUBLIC {
+
+    #L018a28.  goto L018a38;
+    #L018a2e.  return  @kind void;
+    #L018a30.  call `org.arguslab.icc_explicit1.MainActivity.leakImei`(`this`) @signature `Lorg/arguslab/icc_explicit1/MainActivity;.leakImei:()V` @classDescriptor ^`org.arguslab.icc_explicit1.MainActivity` @kind direct;
+    #L018a36.  goto L018a2e;
+    #L018a38.  switch `requestCode`
+                    | 1 => goto L018a30
+                    | else => goto L018a2e;
+}

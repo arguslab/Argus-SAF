@@ -62,28 +62,29 @@ object SignatureBasedCallGraph {
   }
   
   private def sbcg(global: Global, ep: JawaMethod, cg: CallGraph, processed: MSet[String], timer: Option[MyTimeout]) = {
-    val worklist: MList[JawaMethod] = mlistEmpty // Make sure that all the method in the worklist are concrete.
-    worklist += ep
-    while(worklist.nonEmpty) {
-      if(timer.isDefined) timer.get.isTimeoutThrow()
-      val m = worklist.remove(0)
-      processed += m.getSignature.signature
-      try {
-        m.getBody.resolvedBody.locations foreach { l =>
-          l.statement match {
-            case cs: CallStatement =>
-              CallHandler.resolveSignatureBasedCall(global, cs.signature, cs.kind) foreach { callee =>
-                cg.addCall(m.getSignature, callee.getSignature)
-                if (!processed.contains(callee.getSignature.signature) && !PTAScopeManager.shouldBypass(callee.getDeclaringClass) && callee.isConcrete) {
-                  worklist += callee
+    cg.addCalls(ep.getSignature, isetEmpty)
+    val worklistAlgorithm = new WorklistAlgorithm[JawaMethod] {
+      override def processElement(m: JawaMethod): Unit = {
+        if(timer.isDefined) timer.get.isTimeoutThrow()
+        processed += m.getSignature.signature
+        try {
+          m.getBody.resolvedBody.locations foreach { l =>
+            l.statement match {
+              case cs: CallStatement =>
+                CallHandler.resolveSignatureBasedCall(global, cs.signature, cs.kind) foreach { callee =>
+                  cg.addCall(m.getSignature, callee.getSignature)
+                  if (!processed.contains(callee.getSignature.signature) && !PTAScopeManager.shouldBypass(callee.getDeclaringClass) && callee.isConcrete) {
+                    worklist +:= callee
+                  }
                 }
-              }
-            case _ =>
+              case _ =>
+            }
           }
+        } catch {
+          case e: Throwable => global.reporter.warning(TITLE, e.getMessage)
         }
-      } catch {
-        case e: Throwable => global.reporter.warning(TITLE, e.getMessage)
       }
     }
+    worklistAlgorithm.run(worklistAlgorithm.worklist +:= ep)
   }
 }
