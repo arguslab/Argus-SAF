@@ -15,6 +15,8 @@ import org.argus.jawa.alir.pta.PTAScopeManager
 import org.argus.jawa.alir.pta.model.ModelCallHandler
 import org.argus.jawa.alir.pta.reachingFactsAnalysis.SimHeap
 import org.argus.jawa.alir.reachability.SignatureBasedCallGraph
+import org.argus.jawa.alir.summaryBasedAnalysis.wu.{HeapSummaryWu, WorkUnit}
+import org.argus.jawa.alir.util.TopologicalSortUtil
 import org.argus.jawa.core._
 import org.argus.jawa.core.util._
 import org.scalatest.{FlatSpec, Matchers}
@@ -115,7 +117,7 @@ class HeapSummaryGeneratorTest extends FlatSpec with Matchers {
 
     def produce(rule: String): Unit = {
       file should s"produce expected summary for $entrypoint" in {
-        implicit val heap = new SimHeap
+        implicit val heap: SimHeap = new SimHeap
         val reporter = if(DEBUG) new PrintReporter(MsgLevel.INFO) else new PrintReporter(MsgLevel.NO)
         val global = new Global("Test", reporter)
         global.setJavaLib(getClass.getResource("/libs/android.jar").getPath)
@@ -123,9 +125,13 @@ class HeapSummaryGeneratorTest extends FlatSpec with Matchers {
         val sm: SummaryManager = new JawaSummaryProvider(global).getSummaryManager
         val cg = SignatureBasedCallGraph(global, Set(entrypoint), None)
         val analysis = new BottomUpSummaryGenerator(
-          global, sm, handler, true,
+          sm, handler,
           ConsoleProgressBar.on(System.out).withFormat("[:bar] :percent% :elapsed ETA: :eta"))
-        analysis.build(cg)
+        val orderedWUs: IList[WorkUnit] = TopologicalSortUtil.sort(cg.getCallMap).map { sig =>
+          val method = global.getMethodOrResolve(sig).getOrElse(throw new RuntimeException("Method does not exist: " + sig))
+          new HeapSummaryWu(method, sm, handler)
+        }.reverse
+        analysis.build(orderedWUs)
         val sm2: SummaryManager = new SummaryManager(global)
         sm2.register(rule)
 

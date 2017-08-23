@@ -31,7 +31,7 @@ class SummaryManagerTest extends FlatSpec with Matchers {
         |  ret += "String"@L1
         |;
       """.stripMargin
-    implicit val factory = new SimHeap
+    implicit val factory: SimHeap = new SimHeap
     val sm = new SummaryManager(global)
     sm.register(code)
 
@@ -57,7 +57,7 @@ class SummaryManagerTest extends FlatSpec with Matchers {
         |  this.f1.f2 = my.Class3@L2
         |;
       """.stripMargin
-    implicit val factory = new SimHeap
+    implicit val factory: SimHeap = new SimHeap
     val sm = new SummaryManager(global)
     sm.register(code)
 
@@ -93,7 +93,7 @@ class SummaryManagerTest extends FlatSpec with Matchers {
         |  this.f1 -= this.f2
         |;
       """.stripMargin
-    implicit val factory = new SimHeap
+    implicit val factory: SimHeap = new SimHeap
     val sm = new SummaryManager(global)
     sm.register(code)
 
@@ -131,7 +131,7 @@ class SummaryManagerTest extends FlatSpec with Matchers {
         |  ~this.f2
         |;
       """.stripMargin
-    implicit val factory = new SimHeap
+    implicit val factory: SimHeap = new SimHeap
     val sm = new SummaryManager(global)
     sm.register(code)
 
@@ -171,7 +171,7 @@ class SummaryManagerTest extends FlatSpec with Matchers {
         |  this.f2 = arg:1
         |;
       """.stripMargin
-    implicit val factory = new SimHeap
+    implicit val factory: SimHeap = new SimHeap
     val sm = new SummaryManager(global)
     sm.register(code)
 
@@ -218,7 +218,7 @@ class SummaryManagerTest extends FlatSpec with Matchers {
         |  `my.Class.Glo` += "String"@L1
         |;
       """.stripMargin
-    implicit val factory = new SimHeap
+    implicit val factory: SimHeap = new SimHeap
     val sm = new SummaryManager(global)
     sm.register(code)
 

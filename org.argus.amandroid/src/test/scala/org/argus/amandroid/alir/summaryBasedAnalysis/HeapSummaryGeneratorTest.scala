@@ -15,9 +15,11 @@ import org.argus.amandroid.alir.pta.model.AndroidModelCallHandler
 import org.argus.amandroid.alir.pta.summaryBasedAnalysis.AndroidSummaryProvider
 import org.argus.jawa.alir.pta.reachingFactsAnalysis.SimHeap
 import org.argus.jawa.alir.reachability.SignatureBasedCallGraph
+import org.argus.jawa.alir.summaryBasedAnalysis.wu.{HeapSummaryWu, WorkUnit}
 import org.argus.jawa.alir.summaryBasedAnalysis.{BottomUpSummaryGenerator, SummaryManager}
+import org.argus.jawa.alir.util.TopologicalSortUtil
 import org.argus.jawa.core._
-import org.argus.jawa.core.util.FileUtil
+import org.argus.jawa.core.util.{FileUtil, IList}
 import org.scalatest.{FlatSpec, Matchers}
 
 import scala.language.implicitConversions
@@ -35,26 +37,26 @@ class HeapSummaryGeneratorTest extends FlatSpec with Matchers {
   "/jawa/icc_explicit1/MainActivity.jawa" ep "Lorg/arguslab/icc_explicit1/MainActivity;.leakImei:()V" produce (
     """`Lorg/arguslab/icc_explicit1/MainActivity;.leakImei:()V`:
       |;
-    """.stripMargin,
+    """.stripMargin
   )
 
   "/jawa/icc_explicit1/MainActivity.jawa" ep "Lorg/arguslab/icc_explicit1/MainActivity;.onCreate:(Landroid/os/Bundle;)V" produce (
     """`Lorg/arguslab/icc_explicit1/MainActivity;.onCreate:(Landroid/os/Bundle;)V`:
       |;
-    """.stripMargin,
+    """.stripMargin
   )
 
   "/jawa/icc_explicit1/FooActivity.jawa" ep "Lorg/arguslab/icc_explicit1/FooActivity;.onCreate:(Landroid/os/Bundle;)V" produce (
     """`Lorg/arguslab/icc_explicit1/FooActivity;.onCreate:(Landroid/os/Bundle;)V`:
       |
       |;
-    """.stripMargin,
+    """.stripMargin
   )
 
   class TestFile(file: String) {
     var entrypoint: Signature = _
 
-    val handler = AndroidModelCallHandler
+    val handler: AndroidModelCallHandler.type = AndroidModelCallHandler
 
     def ep(sigStr: String): TestFile = {
       entrypoint = new Signature(sigStr)
@@ -63,7 +65,7 @@ class HeapSummaryGeneratorTest extends FlatSpec with Matchers {
 
     def produce(rule: String): Unit = {
       file should s"produce expected summary for $entrypoint" in {
-        implicit val heap = new SimHeap
+        implicit val heap: SimHeap = new SimHeap
         val reporter = if(DEBUG) new PrintReporter(MsgLevel.INFO) else new PrintReporter(MsgLevel.NO)
         val global = new Global("Test", reporter)
         global.setJavaLib(getClass.getResource("/libs/android.jar").getPath)
@@ -71,9 +73,13 @@ class HeapSummaryGeneratorTest extends FlatSpec with Matchers {
         val sm: SummaryManager = new AndroidSummaryProvider(global).getSummaryManager
         val cg = SignatureBasedCallGraph(global, Set(entrypoint), None)
         val analysis = new BottomUpSummaryGenerator(
-          global, sm, handler, true,
+          sm, handler,
           ConsoleProgressBar.on(System.out).withFormat("[:bar] :percent% :elapsed ETA: :eta"))
-        analysis.build(cg)
+        val orderedWUs: IList[WorkUnit] = TopologicalSortUtil.sort(cg.getCallMap).map { sig =>
+          val method = global.getMethodOrResolve(sig).getOrElse(throw new RuntimeException("Method does not exist: " + sig))
+          new HeapSummaryWu(method, sm, handler)
+        }.reverse
+        analysis.build(orderedWUs)
         val sm2: SummaryManager = new SummaryManager(global)
         sm2.register(rule)
 

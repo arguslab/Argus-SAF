@@ -8,14 +8,14 @@
  * Detailed contributors are listed in the CONTRIBUTOR.md
  */
 
-package org.argus.jawa.alir.summaryBasedAnalysis
+package org.argus.jawa.alir.summaryBasedAnalysis.wu
 
 import org.argus.jawa.alir.Context
-import org.argus.jawa.alir.controlFlowGraph.{ICFGInvokeNode, ICFGLocNode, ICFGNode}
-import org.argus.jawa.alir.dataFlowAnalysis.{CallResolver, InterProceduralDataFlowGraph}
+import org.argus.jawa.alir.controlFlowGraph.{ICFGInvokeNode, ICFGLocNode}
 import org.argus.jawa.alir.pta._
 import org.argus.jawa.alir.pta.model.{ModelCall, ModelCallHandler}
-import org.argus.jawa.alir.pta.reachingFactsAnalysis.{RFAFact, ReachingFactsAnalysis, ReachingFactsAnalysisHelper, SimHeap}
+import org.argus.jawa.alir.pta.reachingFactsAnalysis.SimHeap
+import org.argus.jawa.alir.summaryBasedAnalysis.SummaryManager
 import org.argus.jawa.compiler.parser._
 import org.argus.jawa.core._
 import org.argus.jawa.core.util._
@@ -24,74 +24,17 @@ import org.argus.jawa.summary.rule._
 /**
   * Created by fgwei on 6/29/17.
   */
-class WorkUnit(val method: JawaMethod, sm: SummaryManager, handler: ModelCallHandler)(implicit heap: SimHeap) {
+class HeapSummaryWu(
+    method: JawaMethod,
+    sm: SummaryManager,
+    handler: ModelCallHandler)(implicit heap: SimHeap) extends DataFlowWu(method, sm, handler) {
 
-  val global: Global = method.getDeclaringClass.global
-  val thisOpt: Option[String] = method.thisOpt
-  val params: ISeq[String] = method.getParamNames
-  var ptaresult: PTAResult = _
-  val heapMap: MMap[Instance, HeapBase] = mmapEmpty
-
-  def generateSummary(
-      analysis: ReachingFactsAnalysis,
-      initContext: Context,
-      callr: CallResolver[ICFGNode, RFAFact]): Summary = {
-    val entryContext = initContext.copy
-    entryContext.setContext(method.getSignature, method.getSignature.methodName)
-    val initialFacts: ISet[RFAFact] = {
-      val result = msetEmpty[RFAFact]
-      method.thisOpt match {
-        case Some(t) =>
-          val ins = Instance.getInstance(method.getDeclaringClass.typ, entryContext, toUnknown = false)
-          result += new RFAFact(VarSlot(t), ins)
-          heapMap(ins) = SuThis(None)
-        case None =>
-      }
-      method.params.indices.foreach { i =>
-        val (name, typ) = method.params(i)
-        if(typ.isObject) {
-          val unknown = typ.jawaName match {
-            case "java.lang.String" => false
-            case _ => true
-          }
-          val ins = Instance.getInstance(typ, entryContext, unknown)
-          result += new RFAFact(VarSlot(name), ins)
-          heapMap(ins) = SuArg(i, None)
-        }
-      }
-      result.toSet
-    }
-    val idfg = analysis.process(method, initialFacts, initContext, callr)
-    ptaresult = idfg.ptaresult
-    parseIDFG(idfg)
-  }
-
-  private def parseIDFG(idfg: InterProceduralDataFlowGraph): Summary = {
-    val icfg = idfg.icfg
-    val processed: MSet[ICFGNode] = msetEmpty
-    val rules: MList[SuRule] = mlistEmpty
-    val worklistAlgorithm = new WorklistAlgorithm[ICFGNode] {
-      override def processElement(e: ICFGNode): Unit = {
-        processed += e
-        e match {
-          case node: ICFGLocNode =>
-            processNode(node, ptaresult, rules)
-          case _ =>
-        }
-        worklist ++= icfg.successors(e) -- processed
-      }
-    }
-    worklistAlgorithm.run(worklistAlgorithm.worklist :+= icfg.entryNode)
-    Summary(method.getSignature, rules.toList)
-  }
-
-  private def processNode(node: ICFGLocNode, ptaresult: PTAResult, rules: MList[SuRule]): Unit = {
+  override def processNode(node: ICFGLocNode, ptaresult: PTAResult, rules: MList[SuRule]): Unit = {
     val context = node.getContext
     val l = method.getBody.resolvedBody.location(node.locIndex)
     l.statement match {
       case as: AssignmentStatement =>
         processAssignment(as, context, rules)
-        updateHeapMap(as, context)
       case cs: CallStatement =>
         val callees = node.asInstanceOf[ICFGInvokeNode].getCalleeSet
         callees foreach { callee =>
@@ -102,14 +45,14 @@ class WorkUnit(val method: JawaMethod, sm: SummaryManager, handler: ModelCallHan
               case Some(mc) =>
                 processModelCall(mc, calleeSig, cs.recvOpt, cs.arg, context, rules)
               case None =>
-
+                // Should not be here.
             }
           } else {
             sm.getSummary(calleeSig) match {
               case Some(su) =>
                 processSummary(su, cs.recvOpt, cs.arg, context, rules)
               case None =>
-
+                // TODO: For a loop case
             }
           }
         }
@@ -131,6 +74,8 @@ class WorkUnit(val method: JawaMethod, sm: SummaryManager, handler: ModelCallHan
         }
       case _ =>
     }
+    // Overriding method need to invoke super to update the heap map properly.
+    super.processNode(node, ptaresult, rules)
   }
 
   private def processAssignment(
@@ -207,7 +152,7 @@ class WorkUnit(val method: JawaMethod, sm: SummaryManager, handler: ModelCallHan
       recvOpt: Option[String],
       args: Int => String,
       context: Context,
-      rules: MList[SuRule]) = {
+      rules: MList[SuRule]): Unit = {
     val summaries = sm.getSummaries(mc.safsuFile)
     summaries.get(signature.getSubSignature) match {
       case Some(summary) =>
@@ -221,7 +166,7 @@ class WorkUnit(val method: JawaMethod, sm: SummaryManager, handler: ModelCallHan
       recvOpt: Option[String],
       args: Int => String,
       context: Context,
-      rules: MList[SuRule]) = {
+      rules: MList[SuRule]): Unit = {
     summary.rules foreach {
       case cr: ClearRule =>
         handleClearRule(cr, recvOpt, args, context, rules)
@@ -436,114 +381,5 @@ class WorkUnit(val method: JawaMethod, sm: SummaryManager, handler: ModelCallHan
     }
   }
 
-  private def updateHeapMap(
-      as: AssignmentStatement,
-      context: Context): Unit = {
-    var heapBaseOpt: Option[HeapBase] = None
-    var kill: ISet[Instance] = isetEmpty
-    as.rhs match {
-      case ae: AccessExpression =>
-        val slot = VarSlot(ae.varSymbol.varName)
-        val inss = ptaresult.pointsToSet(context, slot)
-        inss.foreach { ins =>
-          val finss = ptaresult.pointsToSet(context, FieldSlot(ins, ae.fieldName))
-          finss.foreach { fins =>
-            if(fins.defSite == context) {
-              heapMap.get(ins) match {
-                case Some(sh) =>
-                  heapMap(fins) = sh.make(Seq(SuFieldAccess(ae.fieldName)))
-                case None =>
-              }
-            }
-          }
-        }
-      case ie: IndexingExpression =>
-        val slot = VarSlot(ie.varSymbol.varName)
-        val inss = ptaresult.pointsToSet(context, slot)
-        inss.foreach { ins =>
-          val ainss = ptaresult.pointsToSet(context, ArraySlot(ins))
-          ainss.foreach { ains =>
-            if(ains.defSite == context) {
-              heapMap.get(ins) match {
-                case Some(sh) =>
-                  heapMap(ains) = sh.make(Seq(SuArrayAccess()))
-                case None =>
-              }
-            }
-          }
-        }
-      case ne: NameExpression =>
-        if(ne.isStatic) {
-          val slot = StaticFieldSlot(ne.name)
-          val inss = ptaresult.pointsToSet(context, slot)
-          inss.foreach { ins =>
-            if(ins.defSite == context) {
-              heapMap(ins) = SuGlobal(ne.name, None)
-            }
-          }
-        }
-      case _ =>
-    }
-    as.lhs match {
-      case ae: AccessExpression =>
-        val slot = VarSlot(ae.varSymbol.varName)
-        val inss = ptaresult.pointsToSet(context, slot)
-        inss.foreach { ins =>
-          kill ++= ptaresult.pointsToSet(context, FieldSlot(ins, ae.fieldName))
-          heapMap.get(ins) match {
-            case Some(sh) =>
-              heapBaseOpt = Some(sh.make(Seq(SuFieldAccess(ae.fieldName))))
-              true
-            case None =>
-              false
-          }
-        }
-      case ie: IndexingExpression =>
-        val slot = VarSlot(ie.varSymbol.varName)
-        val inss = ptaresult.pointsToSet(context, slot)
-        inss.foreach { ins =>
-          kill ++= ptaresult.pointsToSet(context, ArraySlot(ins))
-          heapMap.get(ins) match {
-            case Some(sh) =>
-              heapBaseOpt = Some(sh.make(Seq(SuArrayAccess())))
-              true
-            case None =>
-              false
-          }
-        }
-      case ne: NameExpression =>
-        if(ne.isStatic) {
-          val slot = StaticFieldSlot(ne.name)
-          val inss = ptaresult.pointsToSet(context, slot)
-          kill ++= inss
-          inss.foreach { ins =>
-            heapMap.get(ins) match {
-              case Some(sh) =>
-                heapBaseOpt = Some(sh)
-              case None =>
-                heapBaseOpt = Some(SuGlobal(ne.name, None))
-            }
-          }
-        }
-      case _ =>
-    }
-    val (gen, _) = ReachingFactsAnalysisHelper.processRHS(as.rhs, as.typOpt, context, ptaresult)
-    heapBaseOpt match {
-      case Some(heapBase) =>
-        setHeapMap(heapBase, gen, kill)
-      case None =>
-    }
-  }
-
-  private def setHeapMap(
-      heapBase: HeapBase,
-      gen: ISet[Instance],
-      kill: ISet[Instance]): Unit = {
-    heapMap --= kill
-    gen.foreach { i =>
-      heapMap(i) = heapBase
-    }
-  }
-
-  override def toString: FileResourceUri = s"WorkUnit($method)"
+  override def toString: String = s"HeapSummaryWu($method)"
 }
