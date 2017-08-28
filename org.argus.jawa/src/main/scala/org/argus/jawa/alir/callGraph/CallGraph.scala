@@ -10,10 +10,10 @@
 
 package org.argus.jawa.alir.callGraph
 
-import org.argus.jawa.alir.util.TopologicalSortUtil
 import org.argus.jawa.core.util.WorklistAlgorithm
 import org.argus.jawa.core.Signature
 import org.argus.jawa.core.util._
+import org.argus.jawa.summary.util.TopologicalSortUtil
 
 class CallGraph {
   /**

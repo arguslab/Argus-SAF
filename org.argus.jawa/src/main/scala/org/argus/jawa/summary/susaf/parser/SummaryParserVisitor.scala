@@ -8,13 +8,13 @@
  * Detailed contributors are listed in the CONTRIBUTOR.md
  */
 
-package org.argus.jawa.summary.parser
+package org.argus.jawa.summary.susaf.parser
 
 import org.antlr.v4.runtime.tree.ParseTree
 import org.apache.commons.lang3.StringEscapeUtils
 import org.argus.jawa.core.{JawaType, Signature}
 import org.argus.jawa.core.util.Antlr4
-import org.argus.jawa.summary.rule._
+import org.argus.jawa.summary.susaf.rule._
 import org.argus.jawa.summary.grammar.SafsuBaseVisitor
 import org.argus.jawa.summary.grammar.SafsuParser._
 
@@ -41,17 +41,17 @@ class SummaryParserVisitor()
       val fieldType = getChild[SuJavaType](dt.javaType(1)).typ
       defaultTypes += baseType -> (defaultTypes.getOrElse(baseType, Map()) + (fieldName -> fieldType))
     }
-    SummaryFile(
+    HeapSummaryFile(
       defaultTypes,
       ctx.summary.asScala.map { s =>
-        val summary = getChild[Summary](s)
+        val summary = getChild[HeapSummary](s)
         (summary.signature, summary)
       }.toMap
     )
   }
 
   override def visitSummary(ctx: SummaryContext): SuRuleNode =
-    Summary(new Signature(getUID(ctx.signature.UID.getText)), getChildren(ctx.suRule.asScala))
+    HeapSummary(new Signature(getUID(ctx.signature.UID.getText)), getChildren(ctx.suRule.asScala))
 
   override def visitClearRule(ctx: ClearRuleContext): SuRuleNode =
     ClearRule({

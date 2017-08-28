@@ -11,7 +11,6 @@
 package org.argus.amandroid.alir.pta.reachingFactsAnalysis
 
 import org.argus.jawa.core.util._
-
 import org.argus.amandroid.alir.pta.model.{AndroidModelCallHandler, InterComponentCommunicationModel}
 import org.argus.amandroid.core.ApkGlobal
 import org.argus.jawa.alir.Context
@@ -21,9 +20,9 @@ import org.argus.jawa.alir.interprocedural.{CallHandler, Callee}
 import org.argus.jawa.alir.pta._
 import org.argus.jawa.alir.pta.model.ModelCallHandler
 import org.argus.jawa.alir.pta.reachingFactsAnalysis.{RFAFact, ReachingFactsAnalysis, ReachingFactsAnalysisHelper, SimHeap}
-import org.argus.jawa.alir.summaryBasedAnalysis.SummaryManager
 import org.argus.jawa.compiler.parser._
 import org.argus.jawa.core._
+import org.argus.jawa.summary.SummaryManager
 
 /**
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>

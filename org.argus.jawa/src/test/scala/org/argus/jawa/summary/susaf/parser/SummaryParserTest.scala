@@ -8,10 +8,10 @@
  * Detailed contributors are listed in the CONTRIBUTOR.md
  */
 
-package org.argus.jawa.summary.parser
+package org.argus.jawa.summary.susaf.parser
 
 import org.argus.jawa.core.{JawaType, Signature}
-import org.argus.jawa.summary.rule._
+import org.argus.jawa.summary.susaf.rule._
 import org.scalatest.{FlatSpec, Matchers}
 
 /**
@@ -215,7 +215,7 @@ class SummaryParserTest extends FlatSpec with Matchers {
       && s.get.rules.head.asInstanceOf[BinaryRule].rhs.isInstanceOf[SuClassOf])
   }
 
-  def parse(code: String): SummaryFile = {
+  def parse(code: String): HeapSummaryFile = {
     SummaryParser(code)
   }
 }

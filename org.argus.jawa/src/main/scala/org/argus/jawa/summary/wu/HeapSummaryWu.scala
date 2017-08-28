@@ -8,18 +8,18 @@
  * Detailed contributors are listed in the CONTRIBUTOR.md
  */
 
-package org.argus.jawa.alir.summaryBasedAnalysis.wu
+package org.argus.jawa.summary.wu
 
 import org.argus.jawa.alir.Context
 import org.argus.jawa.alir.controlFlowGraph.{ICFGInvokeNode, ICFGLocNode}
 import org.argus.jawa.alir.pta._
 import org.argus.jawa.alir.pta.model.{ModelCall, ModelCallHandler}
 import org.argus.jawa.alir.pta.reachingFactsAnalysis.SimHeap
-import org.argus.jawa.alir.summaryBasedAnalysis.SummaryManager
 import org.argus.jawa.compiler.parser._
 import org.argus.jawa.core._
 import org.argus.jawa.core.util._
-import org.argus.jawa.summary.rule._
+import org.argus.jawa.summary.{SummaryManager, SummaryRule}
+import org.argus.jawa.summary.susaf.rule._
 
 /**
   * Created by fgwei on 6/29/17.
@@ -29,7 +29,7 @@ class HeapSummaryWu(
     sm: SummaryManager,
     handler: ModelCallHandler)(implicit heap: SimHeap) extends DataFlowWu(method, sm, handler) {
 
-  override def processNode(node: ICFGLocNode, ptaresult: PTAResult, rules: MList[SuRule]): Unit = {
+  override def processNode(node: ICFGLocNode, ptaresult: PTAResult, rules: MList[SummaryRule]): Unit = {
     val context = node.getContext
     val l = method.getBody.resolvedBody.location(node.locIndex)
     l.statement match {
@@ -48,7 +48,7 @@ class HeapSummaryWu(
                 // Should not be here.
             }
           } else {
-            sm.getSummary(calleeSig) match {
+            sm.getSummary[HeapSummary](calleeSig) match {
               case Some(su) =>
                 processSummary(su, cs.recvOpt, cs.arg, context, rules)
               case None =>
@@ -81,7 +81,7 @@ class HeapSummaryWu(
   private def processAssignment(
       as: AssignmentStatement,
       context: Context,
-      rules: MList[SuRule]) = {
+      rules: MList[SummaryRule]) = {
     var inss: ISet[Instance] = isetEmpty
     var lhsBases: ISet[HeapBase] = isetEmpty
     as.lhs match {
@@ -152,8 +152,8 @@ class HeapSummaryWu(
       recvOpt: Option[String],
       args: Int => String,
       context: Context,
-      rules: MList[SuRule]): Unit = {
-    val summaries = sm.getSummaries(mc.safsuFile)
+      rules: MList[SummaryRule]): Unit = {
+    val summaries = sm.getSummariesByFile(mc.safsuFile)
     summaries.get(signature.getSubSignature) match {
       case Some(summary) =>
         processSummary(summary, recvOpt, args, context, rules)
@@ -162,11 +162,11 @@ class HeapSummaryWu(
   }
 
   private def processSummary(
-      summary: Summary,
+      summary: HeapSummary,
       recvOpt: Option[String],
       args: Int => String,
       context: Context,
-      rules: MList[SuRule]): Unit = {
+      rules: MList[SummaryRule]): Unit = {
     summary.rules foreach {
       case cr: ClearRule =>
         handleClearRule(cr, recvOpt, args, context, rules)
@@ -313,7 +313,7 @@ class HeapSummaryWu(
       recvOpt: Option[String],
       args: Int => String,
       context: Context,
-      rules: MList[SuRule]) = {
+      rules: MList[SummaryRule]) = {
     handleHeapBase(cr.v, recvOpt, args, context) match {
       case Some(base) =>
         rules += ClearRule(base)
@@ -352,7 +352,7 @@ class HeapSummaryWu(
       recvOpt: Option[String],
       args: Int => String,
       context: Context,
-      rules: MList[SuRule]) = {
+      rules: MList[SummaryRule]) = {
     handleLhs(br.lhs, recvOpt, args, context) match {
       case Some(lhs) =>
         handleRhs(br.rhs, recvOpt, args, context) match {

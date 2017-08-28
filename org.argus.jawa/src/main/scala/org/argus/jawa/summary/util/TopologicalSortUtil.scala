@@ -8,12 +8,12 @@
  * Detailed contributors are listed in the CONTRIBUTOR.md
  */
 
-package org.argus.jawa.alir.util
+package org.argus.jawa.summary.util
 
 import org.argus.jawa.core.util._
-import org.jgrapht.{DirectedGraph, EdgeFactory}
 import org.jgrapht.graph.DirectedPseudograph
 import org.jgrapht.traverse.TopologicalOrderIterator
+import org.jgrapht.{DirectedGraph, EdgeFactory}
 
 /**
   * Created by fgwei on 5/18/17.

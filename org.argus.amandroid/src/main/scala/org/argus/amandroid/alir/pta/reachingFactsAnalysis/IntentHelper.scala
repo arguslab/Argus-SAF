@@ -45,57 +45,56 @@ object IntentHelper {
   
   def getIntentContents(s: PTAResult, intentValues: ISet[Instance], currentContext: Context): ISet[IntentContent] = {
     var result = isetEmpty[IntentContent]
-    intentValues.foreach {
-      intentIns =>
-        var preciseExplicit = true
-        var preciseImplicit = true
-        var componentNames = isetEmpty[String]
-        val iFieldSlot = FieldSlot(intentIns, AndroidConstants.INTENT_COMPONENT)
-        s.pointsToSet(currentContext, iFieldSlot).foreach{ compIns =>
-          val cFieldSlot = FieldSlot(compIns, AndroidConstants.COMPONENT_NAME_CLASS)
-          s.pointsToSet(currentContext, cFieldSlot).foreach {
-            case instance: PTAConcreteStringInstance =>
-              componentNames += instance.string
-            case _ => preciseExplicit = false
-          }
+    intentValues.foreach { intentIns =>
+      var preciseExplicit = true
+      var preciseImplicit = true
+      var componentNames = isetEmpty[String]
+      val iFieldSlot = FieldSlot(intentIns, AndroidConstants.INTENT_COMPONENT)
+      s.pointsToSet(currentContext, iFieldSlot).foreach{ compIns =>
+        val cFieldSlot = FieldSlot(compIns, AndroidConstants.COMPONENT_NAME_CLASS)
+        s.pointsToSet(currentContext, cFieldSlot).foreach {
+          case instance: PTAConcreteStringInstance =>
+            componentNames += instance.string
+          case _ => preciseExplicit = false
         }
-        var actions: ISet[String] = isetEmpty[String]
-        val acFieldSlot = FieldSlot(intentIns, AndroidConstants.INTENT_ACTION)
-        s.pointsToSet(currentContext, acFieldSlot).foreach {
-          case instance: PTAConcreteStringInstance => actions += instance.string
+      }
+      var actions: ISet[String] = isetEmpty[String]
+      val acFieldSlot = FieldSlot(intentIns, AndroidConstants.INTENT_ACTION)
+      s.pointsToSet(currentContext, acFieldSlot).foreach {
+        case instance: PTAConcreteStringInstance => actions += instance.string
+        case _ => preciseImplicit = false
+      }
+
+      var categories = isetEmpty[String] // the code to get the valueSet of categories is to be added below
+      val categoryFieldSlot = FieldSlot(intentIns, AndroidConstants.INTENT_CATEGORIES)
+      s.pointsToSet(currentContext, categoryFieldSlot).foreach{
+        case instance: PTAConcreteStringInstance => categories += instance.string
+        case _ => preciseImplicit = false
+      }
+
+      var datas: ISet[UriData] = isetEmpty
+      val dataFieldSlot = FieldSlot(intentIns, AndroidConstants.INTENT_URI_DATA)
+      s.pointsToSet(currentContext, dataFieldSlot).foreach{ dataIns =>
+        val uriStringFieldSlot = FieldSlot(dataIns, AndroidConstants.URI_STRING)
+        s.pointsToSet(currentContext, uriStringFieldSlot).foreach {
+          case instance: PTAConcreteStringInstance =>
+            val uriString = instance.string
+            var uriData = new UriData
+            populateByUri(uriData, uriString)
+            datas += uriData
           case _ => preciseImplicit = false
         }
-        
-        var categories = isetEmpty[String] // the code to get the valueSet of categories is to be added below
-        val categoryFieldSlot = FieldSlot(intentIns, AndroidConstants.INTENT_CATEGORIES)
-        s.pointsToSet(currentContext, categoryFieldSlot).foreach{
-          case instance: PTAConcreteStringInstance => categories += instance.string
-          case _ => preciseImplicit = false
-        }
-        
-        var datas: ISet[UriData] = isetEmpty
-        val dataFieldSlot = FieldSlot(intentIns, AndroidConstants.INTENT_URI_DATA)
-        s.pointsToSet(currentContext, dataFieldSlot).foreach{ dataIns =>
-          val uriStringFieldSlot = FieldSlot(dataIns, AndroidConstants.URI_STRING)
-          s.pointsToSet(currentContext, uriStringFieldSlot).foreach {
-            case instance: PTAConcreteStringInstance =>
-              val uriString = instance.string
-              var uriData = new UriData
-              populateByUri(uriData, uriString)
-              datas += uriData
-            case _ => preciseImplicit = false
-          }
-        }
-        
-        var types:Set[String] = Set()
-        val mtypFieldSlot = FieldSlot(intentIns, AndroidConstants.INTENT_MTYPE)
-        s.pointsToSet(currentContext, mtypFieldSlot).foreach {
-          case instance: PTAConcreteStringInstance => types += instance.string
-          case _ => preciseImplicit = false
-        }
-        val ic = IntentContent(componentNames, actions, categories, datas, types, 
-             preciseExplicit, preciseImplicit)
-        result += ic
+      }
+
+      var types:Set[String] = Set()
+      val mtypFieldSlot = FieldSlot(intentIns, AndroidConstants.INTENT_MTYPE)
+      s.pointsToSet(currentContext, mtypFieldSlot).foreach {
+        case instance: PTAConcreteStringInstance => types += instance.string
+        case _ => preciseImplicit = false
+      }
+      val ic = IntentContent(componentNames, actions, categories, datas, types,
+           preciseExplicit, preciseImplicit)
+      result += ic
     }
     result
   }

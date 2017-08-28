@@ -8,7 +8,7 @@
  * Detailed contributors are listed in the CONTRIBUTOR.md
  */
 
-package org.argus.jawa.alir.summaryBasedAnalysis
+package org.argus.jawa.summary
 
 import org.argus.jawa.alir.pta.reachingFactsAnalysis.SimHeap
 import org.argus.jawa.core.Global
@@ -22,14 +22,14 @@ trait SummaryProvider {
 
 class JawaSummaryProvider(global: Global)(implicit heap: SimHeap) extends SummaryProvider {
   val sm = new SummaryManager(global)
-  sm.registerFileInternal("summaries/Object.safsu")
-  sm.registerFileInternal("summaries/Class.safsu")
-  sm.registerFileInternal("summaries/String.safsu")
-  sm.registerFileInternal("summaries/StringBuilder.safsu")
-  sm.registerFileInternal("summaries/StringBuffer.safsu")
-  sm.registerFileInternal("summaries/Map.safsu")
-  sm.registerFileInternal("summaries/Set.safsu")
-  sm.registerFileInternal("summaries/List.safsu")
-  sm.registerFileInternal("summaries/Thread.safsu")
+  sm.registerFile("summaries/Object.safsu", fileAndSubsigMatch = true)
+  sm.registerFile("summaries/Class.safsu", fileAndSubsigMatch = true)
+  sm.registerFile("summaries/String.safsu", fileAndSubsigMatch = true)
+  sm.registerFile("summaries/StringBuilder.safsu", fileAndSubsigMatch = true)
+  sm.registerFile("summaries/StringBuffer.safsu", fileAndSubsigMatch = true)
+  sm.registerFile("summaries/Map.safsu", fileAndSubsigMatch = true)
+  sm.registerFile("summaries/Set.safsu", fileAndSubsigMatch = true)
+  sm.registerFile("summaries/List.safsu", fileAndSubsigMatch = true)
+  sm.registerFile("summaries/Thread.safsu", fileAndSubsigMatch = true)
   override def getSummaryManager: SummaryManager = sm
 }

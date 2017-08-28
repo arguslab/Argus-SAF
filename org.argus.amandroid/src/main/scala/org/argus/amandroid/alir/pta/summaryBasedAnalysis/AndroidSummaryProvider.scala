@@ -11,18 +11,18 @@
 package org.argus.amandroid.alir.pta.summaryBasedAnalysis
 
 import org.argus.jawa.alir.pta.reachingFactsAnalysis.SimHeap
-import org.argus.jawa.alir.summaryBasedAnalysis.JawaSummaryProvider
 import org.argus.jawa.core.Global
+import org.argus.jawa.summary.JawaSummaryProvider
 
 /**
   * Created by fgwei on 7/1/17.
   */
 class AndroidSummaryProvider(global: Global)(implicit heap: SimHeap) extends JawaSummaryProvider(global) {
-  sm.registerFileInternal("summaries/Bundle.safsu")
-  sm.registerFileInternal("summaries/Activity.safsu")
-  sm.registerFileInternal("summaries/ComponentName.safsu")
-  sm.registerFileInternal("summaries/Uri.safsu")
-  sm.registerFileInternal("summaries/Intent.safsu")
-  sm.registerFileInternal("summaries/IntentFilter.safsu")
-  sm.registerFileInternal("summaries/Context.safsu")
+  sm.registerFile("summaries/Bundle.safsu", fileAndSubsigMatch = true)
+  sm.registerFile("summaries/Activity.safsu", fileAndSubsigMatch = true)
+  sm.registerFile("summaries/ComponentName.safsu", fileAndSubsigMatch = true)
+  sm.registerFile("summaries/Uri.safsu", fileAndSubsigMatch = true)
+  sm.registerFile("summaries/Intent.safsu", fileAndSubsigMatch = true)
+  sm.registerFile("summaries/IntentFilter.safsu", fileAndSubsigMatch = true)
+  sm.registerFile("summaries/Context.safsu", fileAndSubsigMatch = true)
 }

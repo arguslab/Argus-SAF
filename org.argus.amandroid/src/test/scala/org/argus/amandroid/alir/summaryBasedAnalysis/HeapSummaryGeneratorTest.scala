@@ -15,11 +15,12 @@ import org.argus.amandroid.alir.pta.model.AndroidModelCallHandler
 import org.argus.amandroid.alir.pta.summaryBasedAnalysis.AndroidSummaryProvider
 import org.argus.jawa.alir.pta.reachingFactsAnalysis.SimHeap
 import org.argus.jawa.alir.reachability.SignatureBasedCallGraph
-import org.argus.jawa.alir.summaryBasedAnalysis.wu.{HeapSummaryWu, WorkUnit}
-import org.argus.jawa.alir.summaryBasedAnalysis.{BottomUpSummaryGenerator, SummaryManager}
-import org.argus.jawa.alir.util.TopologicalSortUtil
+import org.argus.jawa.summary.wu.{HeapSummaryWu, WorkUnit}
 import org.argus.jawa.core._
 import org.argus.jawa.core.util.{FileUtil, IList}
+import org.argus.jawa.summary.susaf.rule.HeapSummary
+import org.argus.jawa.summary.util.TopologicalSortUtil
+import org.argus.jawa.summary.{BottomUpSummaryGenerator, SummaryManager}
 import org.scalatest.{FlatSpec, Matchers}
 
 import scala.language.implicitConversions
@@ -72,8 +73,8 @@ class HeapSummaryGeneratorTest extends FlatSpec with Matchers {
         global.load(FileUtil.toUri(getClass.getResource(file).getPath), NoLibraryAPISummary.isLibraryClass)
         val sm: SummaryManager = new AndroidSummaryProvider(global).getSummaryManager
         val cg = SignatureBasedCallGraph(global, Set(entrypoint), None)
-        val analysis = new BottomUpSummaryGenerator(
-          sm, handler,
+        val analysis = new BottomUpSummaryGenerator(sm, handler,
+          HeapSummary(_, _),
           ConsoleProgressBar.on(System.out).withFormat("[:bar] :percent% :elapsed ETA: :eta"))
         val orderedWUs: IList[WorkUnit] = TopologicalSortUtil.sort(cg.getCallMap).map { sig =>
           val method = global.getMethodOrResolve(sig).getOrElse(throw new RuntimeException("Method does not exist: " + sig))
@@ -81,9 +82,9 @@ class HeapSummaryGeneratorTest extends FlatSpec with Matchers {
         }.reverse
         analysis.build(orderedWUs)
         val sm2: SummaryManager = new SummaryManager(global)
-        sm2.register(rule)
+        sm2.register("test", rule, fileAndSubsigMatch = false)
 
-        assert(sm.getSummary(entrypoint).get.rules == sm2.getSummary(entrypoint).get.rules)
+        assert(sm.getSummary[HeapSummary](entrypoint).get.rules == sm2.getSummary[HeapSummary](entrypoint).get.rules)
       }
     }
   }

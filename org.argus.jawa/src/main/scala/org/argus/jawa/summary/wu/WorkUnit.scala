@@ -8,20 +8,21 @@
  * Detailed contributors are listed in the CONTRIBUTOR.md
  */
 
-package org.argus.jawa.alir.summaryBasedAnalysis.wu
+package org.argus.jawa.summary.wu
 
 import org.argus.jawa.alir.Context
-import org.argus.jawa.alir.controlFlowGraph.{ICFGCallNode, ICFGLocNode, ICFGNode, InterProceduralControlFlowGraph}
+import org.argus.jawa.alir.controlFlowGraph._
 import org.argus.jawa.alir.dataFlowAnalysis.{CallResolver, InterProceduralDataFlowGraph}
 import org.argus.jawa.alir.interprocedural.{CallHandler, Callee}
 import org.argus.jawa.alir.pta._
 import org.argus.jawa.alir.pta.model.ModelCallHandler
 import org.argus.jawa.alir.pta.reachingFactsAnalysis.{RFAFact, ReachingFactsAnalysis, ReachingFactsAnalysisHelper, SimHeap}
-import org.argus.jawa.alir.summaryBasedAnalysis.SummaryManager
 import org.argus.jawa.compiler.parser._
 import org.argus.jawa.core.util._
-import org.argus.jawa.core.{ClassLoadManager, Global, JawaMethod, Signature}
-import org.argus.jawa.summary.rule._
+import org.argus.jawa.core._
+import org.argus.jawa.summary.susaf.HeapSummaryProcessor
+import org.argus.jawa.summary.{Summary, SummaryManager, SummaryRule}
+import org.argus.jawa.summary.susaf.rule._
 
 import scala.concurrent.duration._
 import scala.language.postfixOps
@@ -29,7 +30,7 @@ import scala.language.postfixOps
 trait WorkUnit {
   val method: JawaMethod
   val sm: SummaryManager
-  def generateSummary: Summary
+  def generateSummary(suGen: (Signature, IList[SummaryRule]) => Summary): Summary
 }
 
 abstract class DataFlowWu(
@@ -48,12 +49,11 @@ abstract class DataFlowWu(
   val ptaresult = new PTAResult
   val analysis = new ReachingFactsAnalysis(global, icfg, ptaresult, handler, sm, new ClassLoadManager, resolve_static_init, Some(new MyTimeout(5 minutes)))
 
-
   val thisOpt: Option[String] = method.thisOpt
   val params: ISeq[String] = method.getParamNames
   val heapMap: MMap[Instance, HeapBase] = mmapEmpty
 
-  def generateSummary: Summary = {
+  def generateSummary(suGen: (Signature, IList[SummaryRule]) => Summary): Summary = {
     val entryContext = initContext.copy
     entryContext.setContext(method.getSignature, method.getSignature.methodName)
     val initialFacts: ISet[RFAFact] = {
@@ -80,13 +80,13 @@ abstract class DataFlowWu(
       result.toSet
     }
     val idfg = analysis.process(method, initialFacts, initContext, new Callr)
-    parseIDFG(idfg)
+    suGen(method.getSignature, parseIDFG(idfg))
   }
 
-  def parseIDFG(idfg: InterProceduralDataFlowGraph): Summary = {
+  def parseIDFG(idfg: InterProceduralDataFlowGraph): IList[SummaryRule] = {
     val icfg = idfg.icfg
     val processed: MSet[ICFGNode] = msetEmpty
-    val rules: MList[SuRule] = mlistEmpty
+    val rules: MList[SummaryRule] = mlistEmpty
     val worklistAlgorithm = new WorklistAlgorithm[ICFGNode] {
       override def processElement(e: ICFGNode): Unit = {
         processed += e
@@ -99,13 +99,13 @@ abstract class DataFlowWu(
       }
     }
     worklistAlgorithm.run(worklistAlgorithm.worklist :+= icfg.entryNode)
-    Summary(method.getSignature, rules.toList)
+    rules.toList
   }
 
   /**
     * Overriding method need to invoke super to update the heap map properly.
     */
-  def processNode(node: ICFGLocNode, ptaresult: PTAResult, rules: MList[SuRule]): Unit = {
+  def processNode(node: ICFGLocNode, ptaresult: PTAResult, rules: MList[SummaryRule]): Unit = {
     val context = node.getContext
     val l = method.getBody.resolvedBody.location(node.locIndex)
     l.statement match {
@@ -215,9 +215,9 @@ abstract class DataFlowWu(
   }
 
   private def setHeapMap(
-                          heapBase: HeapBase,
-                          gen: ISet[Instance],
-                          kill: ISet[Instance]): Unit = {
+      heapBase: HeapBase,
+      gen: ISet[Instance],
+      kill: ISet[Instance]): Unit = {
     heapMap --= kill
     gen.foreach { i =>
       heapMap(i) = heapBase
@@ -242,9 +242,9 @@ abstract class DataFlowWu(
         if(handler.isModelCall(calleep)) {
           returnFacts = handler.doModelCall(sm, s, calleep, cs.lhsOpt.map(_.lhs.varName), cs.recvOpt, cs.args, callerContext)
         } else {
-          sm.getSummary(calleeSig) match {
+          sm.getSummary[HeapSummary](calleeSig) match {
             case Some(summary) =>
-              returnFacts = sm.process(summary, cs.lhsOpt.map(_.lhs.varName), cs.recvOpt, cs.args, s, callerContext)
+              returnFacts = HeapSummaryProcessor.process(global, summary, cs.lhsOpt.map(_.lhs.varName), cs.recvOpt, cs.args, s, callerContext)
             case None => // might be due to randomly broken loop
               val (newF, delF) = ReachingFactsAnalysisHelper.getUnknownObject(calleep, s, cs.lhsOpt.map(_.lhs.varName), cs.recvOpt, cs.args, callerContext)
               returnFacts = returnFacts -- delF ++ newF
@@ -260,4 +260,11 @@ abstract class DataFlowWu(
   }
 
   override def toString: String = s"DataFlowWu($method)"
+}
+
+abstract class PointsToWu(
+    method: JawaMethod,
+    sm: SummaryManager,
+    handler: ModelCallHandler)(implicit heap: SimHeap) extends DataFlowWu(method, sm, handler) {
+
 }

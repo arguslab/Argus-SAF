@@ -12,9 +12,10 @@ package org.argus.jawa.alir.summaryBasedAnalysis.model
 
 import org.argus.jawa.alir.Context
 import org.argus.jawa.alir.pta.reachingFactsAnalysis.{RFAFact, SimHeap}
-import org.argus.jawa.alir.summaryBasedAnalysis.SummaryManager
-import org.argus.jawa.core.{DefaultReporter, Global, NoLibraryAPISummary, Signature}
-import org.argus.jawa.core.util.{FileUtil, IList, ISet, isetEmpty}
+import org.argus.jawa.core.{DefaultReporter, Global, Signature}
+import org.argus.jawa.core.util.{IList, ISet, isetEmpty}
+import org.argus.jawa.summary.SummaryManager
+import org.argus.jawa.summary.susaf.HeapSummaryProcessor
 import org.scalatest.{FlatSpec, Matchers}
 
 import scala.language.implicitConversions
@@ -28,7 +29,7 @@ abstract class SuTestBase(fileName: String) extends FlatSpec with Matchers {
   val global = new Global("Test", reporter)
   global.setJavaLib(getClass.getResource("/libs/android.jar").getPath)
   val sm: SummaryManager = new SummaryManager(global)
-  sm.registerFileInternal("summaries/" + fileName)
+  sm.registerFile("summaries/" + fileName, fileAndSubsigMatch = true)
 
   val context: Context = new Context("SuTest")
   val currentContext: Context = context.copy.setContext(new Signature("Lmy/Class;.main:()V"), "L888")
@@ -51,14 +52,14 @@ abstract class SuTestBase(fileName: String) extends FlatSpec with Matchers {
 
     def produce(expected: RFAFact*): Unit = {
       signature.signature should "produce as expected" in {
-        val summaries = sm.getSummaries(fileName)
+        val summaries = sm.getSummariesByFile(fileName)
         val retOpt: Option[String] = Some("temp")
         val recvOpt: Option[String] = Some("v0")
         val args: IList[String] = (1 to signature.getParameterNum).map(i => "v" + i).toList
         val output: ISet[RFAFact] =
           summaries.get(signature.getSubSignature) match {
             case Some(summary) =>
-              sm.process(summary, retOpt, recvOpt, args, input, currentContext)
+              HeapSummaryProcessor.process(global, summary, retOpt, recvOpt, args, input, currentContext)
             case None =>
               isetEmpty
           }

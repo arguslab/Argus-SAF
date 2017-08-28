@@ -8,8 +8,12 @@
  * Detailed contributors are listed in the CONTRIBUTOR.md
  */
 
-package org.argus.jawa.alir.summaryBasedAnalysis.wu
+package org.argus.jawa.summary
 
-class IntentWu extends WorkUnit() {
+trait Summary {
+  def rules: Seq[SummaryRule]
+}
+
+trait SummaryRule {
 
 }

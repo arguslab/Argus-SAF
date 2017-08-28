@@ -15,6 +15,8 @@ import org.argus.jawa.alir.pta._
 import org.argus.jawa.alir.pta.reachingFactsAnalysis.{RFAFact, SimHeap}
 import org.argus.jawa.core.{DefaultReporter, Global, JawaType, Signature}
 import org.argus.jawa.core.util._
+import org.argus.jawa.summary.SummaryManager
+import org.argus.jawa.summary.susaf.HeapSummaryProcessor
 import org.scalatest.{FlatSpec, Matchers}
 
 /**
@@ -33,7 +35,7 @@ class SummaryManagerTest extends FlatSpec with Matchers {
       """.stripMargin
     implicit val factory: SimHeap = new SimHeap
     val sm = new SummaryManager(global)
-    sm.register(code)
+    sm.register("test", code, fileAndSubsigMatch = false)
 
     val calleeSig = new Signature("Lmy/Class;.foo:()Ljava/lang/String;")
     val retName = "temp"
@@ -45,7 +47,7 @@ class SummaryManagerTest extends FlatSpec with Matchers {
         new RFAFact(VarSlot(retName), PTAConcreteStringInstance("String", expectedContext))
       )
 
-    val currentFacts: ISet[RFAFact] = sm.process(calleeSig, Some(retName), None, ilistEmpty, isetEmpty[RFAFact], context)
+    val currentFacts: ISet[RFAFact] = HeapSummaryProcessor.process(global, sm, calleeSig, Some(retName), None, ilistEmpty, isetEmpty[RFAFact], context)
     assert(currentFacts.size == expectedFacts.size && currentFacts.diff(expectedFacts).isEmpty)
   }
 
@@ -59,7 +61,7 @@ class SummaryManagerTest extends FlatSpec with Matchers {
       """.stripMargin
     implicit val factory: SimHeap = new SimHeap
     val sm = new SummaryManager(global)
-    sm.register(code)
+    sm.register("test", code, fileAndSubsigMatch = false)
 
     val callerSig = new Signature("Lmy/Class;.main:()V")
     val calleeSig = new Signature("Lmy/Class;.foo:()V")
@@ -82,7 +84,7 @@ class SummaryManagerTest extends FlatSpec with Matchers {
         new RFAFact(FieldSlot(recvIns, "f1"), PTAInstance(new JawaType("my.Class2"), context.copy.setContext(callerSig, "L100"))),
         new RFAFact(FieldSlot(PTAInstance(new JawaType("my.Class2"), context.copy.setContext(callerSig, "L100")), "f2"), PTAInstance(new JawaType("my.Class3"), context.copy.setContext(callerSig, "L101")))
       )
-    val currentFacts: ISet[RFAFact] = sm.process(calleeSig, None, Some(recvName), ilistEmpty, initialFacts, context)
+    val currentFacts: ISet[RFAFact] = HeapSummaryProcessor.process(global, sm, calleeSig, None, Some(recvName), ilistEmpty, initialFacts, context)
     assert(currentFacts.size == expectedFacts.size && currentFacts.diff(expectedFacts).isEmpty)
   }
 
@@ -95,7 +97,7 @@ class SummaryManagerTest extends FlatSpec with Matchers {
       """.stripMargin
     implicit val factory: SimHeap = new SimHeap
     val sm = new SummaryManager(global)
-    sm.register(code)
+    sm.register("test", code, fileAndSubsigMatch = false)
 
     val callerSig = new Signature("Lmy/Class;.main:()V")
     val calleeSig = new Signature("Lmy/Class;.foo:()V")
@@ -119,7 +121,7 @@ class SummaryManagerTest extends FlatSpec with Matchers {
         new RFAFact(FieldSlot(recvIns, "f1"), PTAInstance(new JawaType("my.Class2"), expectedContext2)),
         new RFAFact(FieldSlot(recvIns, "f2"), PTAInstance(new JawaType("my.Class2"), expectedContext2))
       )
-    val currentFacts: ISet[RFAFact] = sm.process(calleeSig, None, Some(recvName), ilistEmpty, initialFacts, context)
+    val currentFacts: ISet[RFAFact] = HeapSummaryProcessor.process(global, sm, calleeSig, None, Some(recvName), ilistEmpty, initialFacts, context)
     assert(currentFacts.size == expectedFacts.size && currentFacts.diff(expectedFacts).isEmpty)
   }
 
@@ -133,7 +135,7 @@ class SummaryManagerTest extends FlatSpec with Matchers {
       """.stripMargin
     implicit val factory: SimHeap = new SimHeap
     val sm = new SummaryManager(global)
-    sm.register(code)
+    sm.register("test", code, fileAndSubsigMatch = false)
 
     val callerSig = new Signature("Lmy/Class;.main:()V")
     val calleeSig = new Signature("Lmy/Class;.foo:()V")
@@ -158,7 +160,7 @@ class SummaryManagerTest extends FlatSpec with Matchers {
         new RFAFact(FieldSlot(recvIns, "f2"), PTAInstance(new JawaType("my.Class2"), expectedContext2)),
         new RFAFact(FieldSlot(PTAInstance(new JawaType("my.Class2"), expectedContext2), "ff1"), PTAInstance(new JawaType("my.Class3"), context.copy.setContext(callerSig, "L100")))
       )
-    val currentFacts: ISet[RFAFact] = sm.process(calleeSig, None, Some(recvName), ilistEmpty, initialFacts, context)
+    val currentFacts: ISet[RFAFact] = HeapSummaryProcessor.process(global, sm, calleeSig, None, Some(recvName), ilistEmpty, initialFacts, context)
     assert(currentFacts.size == expectedFacts.size && currentFacts.diff(expectedFacts).isEmpty)
   }
 
@@ -173,7 +175,7 @@ class SummaryManagerTest extends FlatSpec with Matchers {
       """.stripMargin
     implicit val factory: SimHeap = new SimHeap
     val sm = new SummaryManager(global)
-    sm.register(code)
+    sm.register("test", code, fileAndSubsigMatch = false)
 
     val callerSig = new Signature("Lmy/Class;.main:()V")
     val calleeSig = new Signature("Lmy/Class;.foo:(Lmy/Class2;Ljava/lang/String;)V")
@@ -206,7 +208,7 @@ class SummaryManagerTest extends FlatSpec with Matchers {
         new RFAFact(FieldSlot(arg0Ins, "f1"), PTAInstance(new JawaType("my.Class3"), expectedContext2)),
         new RFAFact(VarSlot(argNames(1)), arg1Ins)
       )
-    val currentFacts: ISet[RFAFact] = sm.process(calleeSig, None, Some(recvName), argNames, initialFacts, context)
+    val currentFacts: ISet[RFAFact] = HeapSummaryProcessor.process(global, sm, calleeSig, None, Some(recvName), argNames, initialFacts, context)
     assert(currentFacts.size == expectedFacts.size && currentFacts.diff(expectedFacts).isEmpty)
   }
 
@@ -220,7 +222,7 @@ class SummaryManagerTest extends FlatSpec with Matchers {
       """.stripMargin
     implicit val factory: SimHeap = new SimHeap
     val sm = new SummaryManager(global)
-    sm.register(code)
+    sm.register("test", code, fileAndSubsigMatch = false)
 
     val calleeSig = new Signature("Lmy/Class;.foo:()V")
     val globalFQN = "my.Class.Glo"
@@ -232,7 +234,7 @@ class SummaryManagerTest extends FlatSpec with Matchers {
         new RFAFact(StaticFieldSlot(globalFQN), PTAConcreteStringInstance("String", expectedContext))
       )
 
-    val currentFacts: ISet[RFAFact] = sm.process(calleeSig, None, None, ilistEmpty, isetEmpty[RFAFact], context)
+    val currentFacts: ISet[RFAFact] = HeapSummaryProcessor.process(global, sm, calleeSig, None, None, ilistEmpty, isetEmpty[RFAFact], context)
     assert(currentFacts.size == expectedFacts.size && currentFacts.diff(expectedFacts).isEmpty)
   }
 }

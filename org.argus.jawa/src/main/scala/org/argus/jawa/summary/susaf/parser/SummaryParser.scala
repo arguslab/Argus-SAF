@@ -8,24 +8,24 @@
  * Detailed contributors are listed in the CONTRIBUTOR.md
  */
 
-package org.argus.jawa.summary.parser
+package org.argus.jawa.summary.susaf.parser
 
 import java.io.StringReader
 
 import org.antlr.v4.runtime.misc.ParseCancellationException
 import org.antlr.v4.runtime.{BailErrorStrategy, CharStreams, CommonTokenStream, NoViableAltException}
-import org.argus.jawa.summary.rule.SummaryFile
+import org.argus.jawa.summary.susaf.rule.HeapSummaryFile
 import org.argus.jawa.summary.grammar.{SafsuLexer, SafsuParser}
 
 /**
   * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
   */
 object SummaryParser {
-  def apply(source: String): SummaryFile =
+  def apply(source: String): HeapSummaryFile =
     parse(source)
 
   @throws[SummaryParserException]
-  def parse(source: String): SummaryFile = {
+  def parse(source: String): HeapSummaryFile = {
     val reader = new StringReader(source)
     val input = CharStreams.fromReader(reader)
     val lexer = new SafsuLexer(input)

@@ -27,8 +27,9 @@ import org.argus.jawa.core.util.{ISet, MSet, isetEmpty, msetEmpty}
 object InterComponentCommunicationModel {
   def isIccOperation(proc: Signature): Boolean = {
     AndroidConstants.getIccMethods.foreach{ item =>
-      if(proc.getSubSignature == item)
-       return true
+      if(proc.getSubSignature == item) {
+        return true
+      }
     }
     false
   }

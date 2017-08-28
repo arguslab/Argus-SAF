@@ -8,9 +8,10 @@
  * Detailed contributors are listed in the CONTRIBUTOR.md
  */
 
-package org.argus.jawa.summary.rule
+package org.argus.jawa.summary.susaf.rule
 
 import org.argus.jawa.core.{JawaType, Signature}
+import org.argus.jawa.summary.{Summary, SummaryRule}
 
 /**
   * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
@@ -20,22 +21,17 @@ sealed trait SuRuleNode
 /**
   * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
   */
-case class SummaryFile(defaultTypes: Map[JawaType, Map[String, JawaType]], summaries: Map[Signature, Summary]) extends SuRuleNode
+case class HeapSummaryFile(defaultTypes: Map[JawaType, Map[String, JawaType]], summaries: Map[Signature, HeapSummary]) extends SuRuleNode
 
 /**
   * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
   */
-case class Summary(signature: Signature, rules: Seq[SuRule]) extends SuRuleNode
+case class HeapSummary(signature: Signature, rules: Seq[SummaryRule]) extends Summary with SuRuleNode
 
 /**
   * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
   */
-trait SuRule extends SuRuleNode
-
-/**
-  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
-  */
-case class ClearRule(v: HeapBase) extends SuRule
+case class ClearRule(v: HeapBase) extends SummaryRule with SuRuleNode
 
 object Ops extends Enumeration {
   val `+=`, `-=`, `=` = Value
@@ -44,7 +40,7 @@ object Ops extends Enumeration {
 /**
   * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
   */
-case class BinaryRule(lhs: RuleLhs, ops: Ops.Value, rhs: RuleRhs) extends SuRule
+case class BinaryRule(lhs: RuleLhs, ops: Ops.Value, rhs: RuleRhs) extends SummaryRule with SuRuleNode
 
 /**
   * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>

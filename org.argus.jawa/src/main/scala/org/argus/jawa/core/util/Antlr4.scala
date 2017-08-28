@@ -10,7 +10,7 @@
 
 package org.argus.jawa.core.util
 
-import org.argus.jawa.summary.rule.SuRuleNode
+import org.argus.jawa.summary.susaf.rule.SuRuleNode
 
 /**
   * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>

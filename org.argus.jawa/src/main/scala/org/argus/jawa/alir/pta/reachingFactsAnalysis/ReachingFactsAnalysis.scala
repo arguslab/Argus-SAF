@@ -16,11 +16,11 @@ import org.argus.jawa.alir.Context
 import org.argus.jawa.alir.controlFlowGraph.{ICFGNode, InterProceduralControlFlowGraph}
 import org.argus.jawa.alir.dataFlowAnalysis._
 import org.argus.jawa.alir.pta.model.ModelCallHandler
-import org.argus.jawa.alir.summaryBasedAnalysis.SummaryManager
 import org.argus.jawa.alir.pta._
 import org.argus.jawa.compiler.parser._
 import org.argus.jawa.core.util._
 import org.argus.jawa.core._
+import org.argus.jawa.summary.SummaryManager
 
 import scala.collection.immutable.BitSet
 

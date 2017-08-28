@@ -12,9 +12,10 @@ package org.argus.jawa.alir.pta.model
 
 import org.argus.jawa.alir.Context
 import org.argus.jawa.alir.pta.reachingFactsAnalysis.{RFAFact, ReachingFactsAnalysisHelper, SimHeap}
-import org.argus.jawa.alir.summaryBasedAnalysis.SummaryManager
 import org.argus.jawa.core._
 import org.argus.jawa.core.util._
+import org.argus.jawa.summary.SummaryManager
+import org.argus.jawa.summary.susaf.HeapSummaryProcessor
 
 trait ModelCall {
   def safsuFile: String
@@ -28,10 +29,10 @@ trait ModelCall {
       args: IList[String],
       currentContext: Context)(implicit factory: SimHeap): (ISet[RFAFact], Boolean) = {
     if(safsuFile == null) return (s, false)
-    val summaries = sm.getSummaries(safsuFile)
+    val summaries = sm.getSummariesByFile(safsuFile)
     summaries.get(p.getSubSignature) match {
       case Some(summary) =>
-        (sm.process(summary, retOpt, recvOpt, args, s, currentContext), true)
+        (HeapSummaryProcessor.process(p.getDeclaringClass.global, summary, retOpt, recvOpt, args, s, currentContext), true)
       case None =>
         (s, false)
     }

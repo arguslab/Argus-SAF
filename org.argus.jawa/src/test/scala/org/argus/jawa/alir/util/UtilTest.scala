@@ -11,6 +11,7 @@
 package org.argus.jawa.alir.util
 
 import org.argus.jawa.core.util._
+import org.argus.jawa.summary.util.TopologicalSortUtil
 import org.scalatest.{FlatSpec, Matchers}
 
 /**
