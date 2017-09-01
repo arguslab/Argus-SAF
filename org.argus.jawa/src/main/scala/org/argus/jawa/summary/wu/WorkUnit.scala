@@ -92,7 +92,7 @@ abstract class DataFlowWu(
         processed += e
         e match {
           case node: ICFGLocNode =>
-            processNode(node, ptaresult, rules)
+            processNode(node, rules)
           case _ =>
         }
         worklist ++= icfg.successors(e) -- processed
@@ -105,7 +105,7 @@ abstract class DataFlowWu(
   /**
     * Overriding method need to invoke super to update the heap map properly.
     */
-  def processNode(node: ICFGLocNode, ptaresult: PTAResult, rules: MList[SummaryRule]): Unit = {
+  def processNode(node: ICFGLocNode, rules: MList[SummaryRule]): Unit = {
     val context = node.getContext
     val l = method.getBody.resolvedBody.location(node.locIndex)
     l.statement match {
@@ -224,6 +224,98 @@ abstract class DataFlowWu(
     }
   }
 
+  def getRhsInstance(
+      rr: RuleRhs,
+      retOpt: Option[String],
+      recvOpt: Option[String],
+      args: Int => String,
+      context: Context): ISet[Instance] = {
+    var inss: ISet[Instance] = isetEmpty
+    rr match {
+      case hb: HeapBase =>
+        inss ++= getHeapInstance(hb, retOpt, recvOpt, args, context)
+      case sc: SuClassOf =>
+        val newContext = sc.loc match {
+          case scl: SuConcreteLocation =>
+            context.copy.setContext(method.getSignature, scl.loc)
+          case _: SuVirtualLocation =>
+            context
+        }
+        inss += PTAInstance(JavaKnowledge.CLASS, newContext)
+      case si: SuInstance =>
+        val newContext = si.loc match {
+          case scl: SuConcreteLocation =>
+            context.copy.setContext(method.getSignature, scl.loc)
+          case _: SuVirtualLocation =>
+            context
+        }
+        inss += PTAInstance(si.typ.typ, newContext)
+    }
+    inss
+  }
+
+  def getHeapInstance(
+      hb: HeapBase,
+      retOpt: Option[String],
+      recvOpt: Option[String],
+      args: Int => String,
+      context: Context): ISet[Instance] = {
+    val slot: PTASlot = hb match {
+      case _: SuThis =>
+        VarSlot(recvOpt.getOrElse("hack"))
+      case a: SuArg =>
+        VarSlot(args(a.num))
+      case g: SuGlobal =>
+        StaticFieldSlot(g.fqn)
+      case _: SuRet =>
+        VarSlot(retOpt.getOrElse("hack"))
+    }
+    var inss: ISet[Instance] = ptaresult.pointsToSet(context, slot)
+    hb.heapOpt match {
+      case Some(h) =>
+        inss = inss.flatMap(ins => getHeapInstanceFrom(ins, h.indices, retOpt, recvOpt, args, context))
+      case None =>
+    }
+    inss
+  }
+
+  def getHeapInstanceFrom(
+      baseInstance: Instance,
+      heapAccesses: Seq[HeapAccess],
+      retOpt: Option[String],
+      recvOpt: Option[String],
+      args: Int => String,
+      context: Context): ISet[Instance] = {
+    var inss = Set(baseInstance)
+    heapAccesses.foreach {
+      case sf: SuFieldAccess =>
+        inss = inss.flatMap { ins =>
+          ptaresult.pointsToSet(context, FieldSlot(ins, sf.fieldName))
+        }
+      case _: SuArrayAccess =>
+        inss = inss.flatMap { ins =>
+          ptaresult.pointsToSet(context, ArraySlot(ins))
+        }
+      case sm: SuMapAccess =>
+        val keyInss: MSet[Instance] = msetEmpty
+        sm.rhsOpt match {
+          case Some(rhs) =>
+            keyInss ++= getRhsInstance(rhs, retOpt, recvOpt, args, context)
+          case None =>
+        }
+        if(keyInss.isEmpty) {
+          inss = ptaresult.getRelatedHeapInstances(context, inss)
+        } else {
+          inss = inss.flatMap { ins =>
+            keyInss.flatMap { key =>
+              ptaresult.pointsToSet(context, MapSlot(ins, key))
+            }
+          }
+        }
+    }
+    inss
+  }
+
   class Callr extends CallResolver[ICFGNode, RFAFact] {
     /**
       * It returns the facts for each callee entry node and caller return node
@@ -256,15 +348,78 @@ abstract class DataFlowWu(
 
     def getAndMapFactsForCaller(calleeS: ISet[RFAFact], callerNode: ICFGNode, calleeExitNode: ICFGNode): ISet[RFAFact] = isetEmpty
 
-    def needReturnNode(): Boolean = false
+    val needReturnNode: Boolean = false
   }
 
   override def toString: String = s"DataFlowWu($method)"
 }
 
+case class PTSummary(rules: Seq[SummaryRule]) extends Summary
+case class PTSummaryRule(heapBase: HeapBase, point: (Context, PTASlot)) extends SummaryRule
+class PTStore {
+  val resolved: MMap[(Context, PTASlot), MSet[Instance]] = mmapEmpty
+}
+
 abstract class PointsToWu(
     method: JawaMethod,
     sm: SummaryManager,
-    handler: ModelCallHandler)(implicit heap: SimHeap) extends DataFlowWu(method, sm, handler) {
+    handler: ModelCallHandler,
+    store: PTStore)(implicit heap: SimHeap) extends DataFlowWu(method, sm, handler) {
 
+  override def processNode(node: ICFGLocNode, rules: MList[SummaryRule]): Unit = {
+    val context = node.getContext
+    val l = method.getBody.resolvedBody.location(node.locIndex)
+    l.statement match {
+      case cs: CallStatement =>
+        val callees = node.asInstanceOf[ICFGInvokeNode].getCalleeSet
+        callees foreach { callee =>
+          sm.getSummary[PTSummary](callee.callee) match {
+            case Some(summary) =>
+              summary.rules.foreach {
+                case ptr: PTSummaryRule =>
+                  val hb = ptr.heapBase
+                  val retOpt = cs.lhsOpt.map(lhs => lhs.lhs.varName)
+                  val (newhbs, inss) = processHeapBase(hb, retOpt, cs.recvOpt, cs.arg, context)
+                  rules ++= newhbs.map(newhb => PTSummaryRule(newhb, ptr.point))
+                  store.resolved.getOrElseUpdate(ptr.point, msetEmpty) ++= inss
+                case _ =>
+              }
+            case None =>
+          }
+        }
+      case _ =>
+    }
+    super.processNode(node, rules)
+  }
+
+  private def processHeapBase(hb: HeapBase, retOpt: Option[String], recvOpt: Option[String], args: Int => String, context: Context): (ISet[HeapBase], ISet[Instance]) = {
+    val slot: PTASlot = hb match {
+      case _: SuThis =>
+        VarSlot(recvOpt.getOrElse("hack"))
+      case a: SuArg =>
+        VarSlot(args(a.num))
+      case g: SuGlobal =>
+        StaticFieldSlot(g.fqn)
+      case _: SuRet =>
+        VarSlot(retOpt.getOrElse("hack"))
+    }
+    val newHeapBases: MSet[HeapBase] = msetEmpty
+    val instances: MSet[Instance] = msetEmpty
+    val baseInss = ptaresult.pointsToSet(context, slot)
+    baseInss.foreach { ins =>
+      heapMap.get(ins) match {
+        case Some(bhb) =>
+          hb.heapOpt match {
+            case Some(h) => newHeapBases += bhb.make(h.indices)
+            case None => newHeapBases += bhb
+          }
+        case None =>
+          hb.heapOpt match {
+            case Some(h) => instances ++= getHeapInstanceFrom(ins, h.indices, retOpt, recvOpt, args, context)
+            case None => instances += ins
+          }
+      }
+    }
+    (newHeapBases.toSet, instances.toSet)
+  }
 }

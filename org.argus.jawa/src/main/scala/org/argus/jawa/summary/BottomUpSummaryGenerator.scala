@@ -31,7 +31,7 @@ class BottomUpSummaryGenerator(
   }
 
   private def processWU: WorkUnit => Unit = { wu =>
-    if(!handler.isModelCall(wu.method)) {
+    if (!handler.isModelCall(wu.method)) {
       val summary = wu.generateSummary(suGen)
       sm.register(wu.method.getSignature, summary)
     }

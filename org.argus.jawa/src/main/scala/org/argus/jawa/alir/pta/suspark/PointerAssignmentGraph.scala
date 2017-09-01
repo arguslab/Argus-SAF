@@ -277,7 +277,7 @@ class PointerAssignmentGraph[Node <: PtaNode]
             nodes += fieldNode
             val baseNode = getNodeOrElse(pfr.baseP, context)
             nodes += baseNode
-          case pcr: PointClassO =>
+          case _: PointClassO =>
             val ins = PTAInstance(JavaKnowledge.CLASS, context)
             pointsToMap.addInstance(context, InstanceSlot(ins), ins)
           case per: PointExceptionR =>
@@ -570,7 +570,7 @@ final case class PtaNode(point: Point, context: Context) extends InterProcedural
         Set(InstanceSlot(PTAInstance(po.obj, context)))
       case pso: PointStringO =>
         Set(InstanceSlot(PTAConcreteStringInstance(pso.text, context)))
-      case pco: PointClassO =>
+      case _: PointClassO =>
         Set(InstanceSlot(PTAInstance(JavaKnowledge.CLASS, context)))
       case per: PointExceptionR =>
         Set(InstanceSlot(PTAInstance(per.typ, context)))

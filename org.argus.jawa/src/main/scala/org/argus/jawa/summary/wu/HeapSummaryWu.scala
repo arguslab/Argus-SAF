@@ -29,13 +29,14 @@ class HeapSummaryWu(
     sm: SummaryManager,
     handler: ModelCallHandler)(implicit heap: SimHeap) extends DataFlowWu(method, sm, handler) {
 
-  override def processNode(node: ICFGLocNode, ptaresult: PTAResult, rules: MList[SummaryRule]): Unit = {
+  override def processNode(node: ICFGLocNode, rules: MList[SummaryRule]): Unit = {
     val context = node.getContext
     val l = method.getBody.resolvedBody.location(node.locIndex)
     l.statement match {
       case as: AssignmentStatement =>
         processAssignment(as, context, rules)
       case cs: CallStatement =>
+        val retOpt = cs.lhsOpt.map(lhs => lhs.lhs.varName)
         val callees = node.asInstanceOf[ICFGInvokeNode].getCalleeSet
         callees foreach { callee =>
           val calleeSig = callee.callee
@@ -43,14 +44,14 @@ class HeapSummaryWu(
           if(handler.isModelCall(calleep)) {
             handler.getModelCall(calleep) match {
               case Some(mc) =>
-                processModelCall(mc, calleeSig, cs.recvOpt, cs.arg, context, rules)
+                processModelCall(mc, calleeSig, retOpt, cs.recvOpt, cs.arg, context, rules)
               case None =>
                 // Should not be here.
             }
           } else {
             sm.getSummary[HeapSummary](calleeSig) match {
               case Some(su) =>
-                processSummary(su, cs.recvOpt, cs.arg, context, rules)
+                processSummary(su, retOpt, cs.recvOpt, cs.arg, context, rules)
               case None =>
                 // TODO: For a loop case
             }
@@ -75,7 +76,7 @@ class HeapSummaryWu(
       case _ =>
     }
     // Overriding method need to invoke super to update the heap map properly.
-    super.processNode(node, ptaresult, rules)
+    super.processNode(node, rules)
   }
 
   private def processAssignment(
@@ -149,6 +150,7 @@ class HeapSummaryWu(
   private def processModelCall(
       mc: ModelCall,
       signature: Signature,
+      retOpt: Option[String],
       recvOpt: Option[String],
       args: Int => String,
       context: Context,
@@ -156,13 +158,14 @@ class HeapSummaryWu(
     val summaries = sm.getSummariesByFile(mc.safsuFile)
     summaries.get(signature.getSubSignature) match {
       case Some(summary) =>
-        processSummary(summary, recvOpt, args, context, rules)
+        processSummary(summary, retOpt, recvOpt, args, context, rules)
       case None =>
     }
   }
 
   private def processSummary(
       summary: HeapSummary,
+      retOpt: Option[String],
       recvOpt: Option[String],
       args: Int => String,
       context: Context,
@@ -171,7 +174,7 @@ class HeapSummaryWu(
       case cr: ClearRule =>
         handleClearRule(cr, recvOpt, args, context, rules)
       case br: BinaryRule =>
-        handleBinaryRule(br, recvOpt, args, context, rules)
+        handleBinaryRule(br, retOpt, recvOpt, args, context, rules)
     }
   }
 
@@ -231,83 +234,6 @@ class HeapSummaryWu(
     newBaseOpt
   }
 
-  private def getRhsInstance(
-      rr: RuleRhs,
-      recvOpt: Option[String],
-      args: Int => String,
-      context: Context): ISet[Instance] = {
-    var inss: ISet[Instance] = isetEmpty
-    rr match {
-      case hb: HeapBase =>
-        inss ++= getHeapInstance(hb, recvOpt, args, context)
-      case sc: SuClassOf =>
-        val newContext = sc.loc match {
-          case scl: SuConcreteLocation =>
-            context.copy.setContext(method.getSignature, scl.loc)
-          case _: SuVirtualLocation =>
-            context
-        }
-        inss += PTAInstance(JavaKnowledge.CLASS, newContext)
-      case si: SuInstance =>
-        val newContext = si.loc match {
-          case scl: SuConcreteLocation =>
-            context.copy.setContext(method.getSignature, scl.loc)
-          case _: SuVirtualLocation =>
-            context
-        }
-        inss += PTAInstance(si.typ.typ, newContext)
-    }
-    inss
-  }
-
-  private def getHeapInstance(
-      hb: HeapBase,
-      recvOpt: Option[String],
-      args: Int => String,
-      context: Context): ISet[Instance] = {
-    var inss: ISet[Instance] = isetEmpty
-    hb match {
-      case _: SuThis =>
-        inss = ptaresult.pointsToSet(context, VarSlot(recvOpt.getOrElse("hack")))
-      case a: SuArg =>
-        inss = ptaresult.pointsToSet(context, VarSlot(args(a.num)))
-      case g: SuGlobal =>
-        inss = ptaresult.pointsToSet(context, StaticFieldSlot(g.fqn))
-      case _: SuRet =>
-    }
-    hb.heapOpt match {
-      case Some(h) =>
-        h.indices.foreach {
-          case sf: SuFieldAccess =>
-            inss = inss.flatMap { ins =>
-              ptaresult.pointsToSet(context, FieldSlot(ins, sf.fieldName))
-            }
-          case _: SuArrayAccess =>
-            inss = inss.flatMap { ins =>
-              ptaresult.pointsToSet(context, ArraySlot(ins))
-            }
-          case sm: SuMapAccess =>
-            val keyInss: MSet[Instance] = msetEmpty
-            sm.rhsOpt match {
-              case Some(rhs) =>
-                keyInss ++= getRhsInstance(rhs, recvOpt, args, context)
-              case None =>
-            }
-            if(keyInss.isEmpty) {
-              inss = ptaresult.getRelatedHeapInstances(context, inss)
-            } else {
-              inss = inss.flatMap { ins =>
-                keyInss.flatMap { key =>
-                  ptaresult.pointsToSet(context, MapSlot(ins, key))
-                }
-              }
-            }
-        }
-      case None =>
-    }
-    inss
-  }
-
   private def handleClearRule(
       cr: ClearRule,
       recvOpt: Option[String],
@@ -349,6 +275,7 @@ class HeapSummaryWu(
 
   private def handleBinaryRule(
       br: BinaryRule,
+      retOpt: Option[String],
       recvOpt: Option[String],
       args: Int => String,
       context: Context,
@@ -361,7 +288,7 @@ class HeapSummaryWu(
           case None =>
             br.rhs match {
               case hb: HeapBase =>
-                val hinss = getHeapInstance(hb, recvOpt, args, context)
+                val hinss = getHeapInstance(hb, retOpt, recvOpt, args, context)
                 rules ++= hinss.map { ins =>
                   lhs match {
                     case hb: HeapBase =>

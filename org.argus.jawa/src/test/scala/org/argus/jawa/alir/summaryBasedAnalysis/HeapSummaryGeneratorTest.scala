@@ -39,35 +39,35 @@ class HeapSummaryGeneratorTest extends FlatSpec with Matchers {
     """`Lcom/hugo/test/SingleFunction;.clearArg:(Ljava/util/Set;)V`:
       |  ~arg:0
       |;
-    """.stripMargin,
+    """.stripMargin
   )
 
   "/jawa/summary/SingleFunction.jawa" ep "Lcom/hugo/test/SingleFunction;.clearField:(Lcom/hugo/test/SingleFunction;)V" produce (
     """`Lcom/hugo/test/SingleFunction;.clearField:(Lcom/hugo/test/SingleFunction;)V`:
       |  ~arg:0.myset
       |;
-    """.stripMargin,
+    """.stripMargin
   )
 
   "/jawa/summary/SingleFunction.jawa" ep "Lcom/hugo/test/SingleFunction;.clearArray:(Lcom/hugo/test/SingleFunction;)V" produce (
     """`Lcom/hugo/test/SingleFunction;.clearArray:(Lcom/hugo/test/SingleFunction;)V`:
       |  ~arg:0.myarray[].myset
       |;
-    """.stripMargin,
+    """.stripMargin
   )
 
   "/jawa/summary/SingleFunction.jawa" ep "Lcom/hugo/test/SingleFunction;.clearGlobal:()V" produce (
     """`Lcom/hugo/test/SingleFunction;.clearGlobal:()V`:
       |  ~`com.hugo.test.SingleFunction.myglobal`.myset
       |;
-    """.stripMargin,
+    """.stripMargin
   )
 
   "/jawa/summary/SingleFunction.jawa" ep "Lcom/hugo/test/SingleFunction;.clearHeaps:()V" produce (
     """`Lcom/hugo/test/SingleFunction;.clearHeaps:()V`:
       |  ~`com.hugo.test.SingleFunction.myglobal`.myarray[].myself.myself.myself.myset
       |;
-    """.stripMargin,
+    """.stripMargin
   )
 
   "/jawa/summary/SingleFunction.jawa" ep "Lcom/hugo/test/SingleFunction;.add:(Ljava/util/Set;)Ljava/lang/String;" produce (
@@ -75,7 +75,7 @@ class HeapSummaryGeneratorTest extends FlatSpec with Matchers {
       |  arg:0.items += "Hello World!"@L1
       |  ret = arg:0.items
       |;
-    """.stripMargin,
+    """.stripMargin
   )
 
   "/jawa/summary/SingleFunction.jawa" ep "Lcom/hugo/test/SingleFunction;.put:(Ljava/util/Map;)Ljava/lang/String;" produce (
@@ -84,7 +84,7 @@ class HeapSummaryGeneratorTest extends FlatSpec with Matchers {
       |  arg:0.entries(arg:0.entries.key) = "value"@L2
       |  ret = arg:0.entries.key
       |;
-    """.stripMargin,
+    """.stripMargin
   )
 
   "/jawa/summary/SingleFunction.jawa" ep "Lcom/hugo/test/SingleFunction;.assign:()Ljava/lang/String;" produce (
@@ -92,7 +92,7 @@ class HeapSummaryGeneratorTest extends FlatSpec with Matchers {
       |  this.str += "Hello World!"@L1
       |  ret = this.str
       |;
-    """.stripMargin,
+    """.stripMargin
   )
 
   "/jawa/summary/SingleFunction.jawa" ep "Lcom/hugo/test/SingleFunction;.complex:(Lcom/hugo/test/SingleFunction;)Ljava/lang/String;" produce (
@@ -104,7 +104,7 @@ class HeapSummaryGeneratorTest extends FlatSpec with Matchers {
       |  this.myself = arg:0
       |  ret = this.str
       |;
-    """.stripMargin,
+    """.stripMargin
   )
 
   class TestFile(file: String) {

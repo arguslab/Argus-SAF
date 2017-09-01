@@ -44,7 +44,7 @@ class SummaryParserTest extends FlatSpec with Matchers {
         |  ret.f2="String"@L1
         |  `com.my.Class.Glo`.f2=classOf this @~
         |;
-      """.stripMargin.stripMargin)
+      """.stripMargin)
   }
 
   "SummaryParser" should "throw a parse exception on bad program" in {
