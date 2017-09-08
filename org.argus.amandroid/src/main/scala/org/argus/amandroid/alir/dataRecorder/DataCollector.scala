@@ -14,10 +14,11 @@ import java.util
 
 import org.argus.amandroid.alir.pta.reachingFactsAnalysis.IntentHelper
 import org.argus.amandroid.alir.pta.model.InterComponentCommunicationModel
+import org.argus.amandroid.core.model.Intent
 import org.argus.amandroid.core.{AndroidConstants, ApkGlobal}
 import org.argus.jawa.core.util._
 import org.stringtemplate.v4.STGroupString
-import org.argus.amandroid.core.parser.{ComponentType, IntentFilter, UriData}
+import org.argus.amandroid.core.parser.{ComponentType, IntentFilter}
 import org.argus.jawa.alir.{AlirEdge, Context, InterProceduralNode}
 import org.argus.jawa.alir.controlFlowGraph.ICFGCallNode
 import org.argus.jawa.alir.dataFlowAnalysis.InterProceduralDataFlowGraph
@@ -191,92 +192,6 @@ object DataCollector {
       iccInfo.render()
     }
   }
-  
-  final case class Intent(
-      componentNames: ISet[String],
-      actions: ISet[String],
-      categories: ISet[String],
-      uriDatas: ISet[UriData],
-      types: ISet[String],
-      preciseExplicit: Boolean,
-      preciseImplicit: Boolean,
-      targets: ISet[(String, String)]){
-    val EXPLICIT = "EXPLICIT"
-    val IMPLICIT = "IMPLICIT"
-    val MIXED = "mixed"
-    def getType: String = {
-      if(componentNames.nonEmpty && (actions.nonEmpty || categories.nonEmpty || uriDatas.nonEmpty || types.nonEmpty))
-        MIXED
-      else if(componentNames.nonEmpty) EXPLICIT
-      else IMPLICIT
-    }
-    override def toString: String = {
-      val intent = template.getInstanceOf("Intent")
-      if(componentNames.nonEmpty){
-        val componentNameStrings = new util.ArrayList[String]
-        componentNames.foreach(componentNameStrings.add)
-        intent.add("componentNames", componentNameStrings)
-      }
-      if(actions.nonEmpty){
-        val actionStrings = new util.ArrayList[String]
-        actions.foreach(actionStrings.add)
-        intent.add("actions", actionStrings)
-      }
-      if(categories.nonEmpty){
-        val categoryStrings = new util.ArrayList[String]
-        categories.foreach(categoryStrings.add)
-        intent.add("categories", categoryStrings)
-      }
-      if(uriDatas.nonEmpty){
-        val dataStrings = new util.ArrayList[String]
-        uriDatas.foreach{
-          data =>
-            val uriData = template.getInstanceOf("UriData")
-            val scheme = data.getScheme
-            if(scheme != null){
-              uriData.add("scheme", scheme)
-            }
-            val host = data.getHost
-            if(host != null){
-              uriData.add("host", host)
-            }
-            val port = data.getPort
-            if(port != null){
-              uriData.add("port", port)
-            }
-            val path = data.getPath
-            if(path != null){
-              uriData.add("path", path)
-            }
-            val pathPrefix = data.getPathPrefix
-            if(pathPrefix != null){
-              uriData.add("pathPrefix", pathPrefix)
-            }
-            val pathPattern = data.getPathPattern
-            if(pathPattern != null){
-              uriData.add("pathPattern", pathPattern)
-            }
-            dataStrings.add(uriData.render())
-        }
-        intent.add("datas", dataStrings)
-      }
-      if(types.nonEmpty){
-        val typeStrings = new util.ArrayList[String]
-        types.foreach(typeStrings.add)
-        intent.add("typs", typeStrings)
-      }
-      val targetStrings = new util.ArrayList[String]
-      targets.foreach{
-        case (proc, typ) =>
-          val target = template.getInstanceOf("Target")
-          target.add("proc", proc)
-          target.add("typ", typ)
-          targetStrings.add(target.render())
-      }
-      intent.add("targets", targetStrings)
-      intent.render()
-    }
-  }
      
   final case class ComponentData(
       name: String,
@@ -315,38 +230,38 @@ object DataCollector {
     val uses_permissions = apk.model.getUsesPermissions
     val compInfos = apk.model.getComponentInfos
     val intentFDB = apk.model.getIntentFilterDB
-    val compDatas = compInfos.map{
-      comp =>
-        val compTyp = comp.compType
-        val compRec = apk.getClassOrResolve(compTyp)
-        val typ = comp.typ
-        val exported = comp.exported
-        val protectPermission = comp.permission
-        val intentFilters = intentFDB.getIntentFilters(compTyp)
-        var iccInfos = isetEmpty[IccInfo]
-        if(!compRec.isUnknown){
-          if(apk.hasIDFG(compTyp)) {
-            val InterProceduralDataFlowGraph(icfg, ptaresult) = apk.getIDFG(compTyp).get
-            val iccNodes = icfg.nodes.filter{
-              node =>
-                node.isInstanceOf[ICFGCallNode] && node.asInstanceOf[ICFGCallNode].getCalleeSet.exists(c => InterComponentCommunicationModel.isIccOperation(c.callee))
-            }.map(_.asInstanceOf[ICFGCallNode])
-            iccInfos =
-              iccNodes.flatMap{ iccNode =>
-                apk.getMethod(iccNode.getOwner) match {
-                  case Some(iccMethod) =>
-                    val args = iccMethod.getBody.resolvedBody.locations(iccNode.locIndex).statement.asInstanceOf[CallStatement].args
-                    val intentSlot = VarSlot(args.head)
-                    val intentValues = ptaresult.pointsToSet(iccNode.context, intentSlot)
-                    val intentcontents = IntentHelper.getIntentContents(ptaresult, intentValues, iccNode.getContext)
-                    val compType = AndroidConstants.getIccCallType(iccNode.getCalleeSet.head.callee.getSubSignature)
-                    val comMap = IntentHelper.mappingIntents(apk, intentcontents, compType)
-                    val intents = intentcontents.map(ic=>Intent(ic.componentNames, ic.actions, ic.categories, ic.datas, ic.types, ic.preciseExplicit, ic.preciseImplicit, comMap(ic).map(c=>(c._1.name, c._2.toString))))
-                    Some(IccInfo(iccNode.getCalleeSet.map(_.callee), iccNode.getContext, intents))
-                  case None => None
+    val compDatas = compInfos.map{ comp =>
+      val compTyp = comp.compType
+      val compRec = apk.getClassOrResolve(compTyp)
+      val typ = comp.typ
+      val exported = comp.exported
+      val protectPermission = comp.permission
+      val intentFilters = intentFDB.getIntentFilters(compTyp)
+      var iccInfos = isetEmpty[IccInfo]
+      if(!compRec.isUnknown){
+        if(apk.hasIDFG(compTyp)) {
+          val InterProceduralDataFlowGraph(icfg, ptaresult) = apk.getIDFG(compTyp).get
+          val iccNodes = icfg.nodes.filter{
+            node =>
+              node.isInstanceOf[ICFGCallNode] && node.asInstanceOf[ICFGCallNode].getCalleeSet.exists(c => InterComponentCommunicationModel.isIccOperation(c.callee))
+          }.map(_.asInstanceOf[ICFGCallNode])
+          iccInfos = iccNodes.flatMap{ iccNode =>
+            apk.getMethod(iccNode.getOwner) match {
+              case Some(iccMethod) =>
+                val args = iccMethod.getBody.resolvedBody.locations(iccNode.locIndex).statement.asInstanceOf[CallStatement].args
+                val intentSlot = VarSlot(args.head)
+                val intentValues = ptaresult.pointsToSet(iccNode.context, intentSlot)
+                val intents = IntentHelper.getIntentContents(ptaresult, intentValues, iccNode.getContext)
+                val compType = AndroidConstants.getIccCallType(iccNode.getCalleeSet.head.callee.getSubSignature)
+                val comMap = IntentHelper.mappingIntents(apk, intents, compType)
+                intents.foreach { intent =>
+                  intent.targets ++= comMap(intent)
                 }
-              }.toSet
-          }
+                Some(IccInfo(iccNode.getCalleeSet.map(_.callee), iccNode.getContext, intents))
+              case None => None
+            }
+          }.toSet
+        }
       }
       val dynamicReg = apk.model.getDynamicRegisteredReceivers.contains(compTyp)
       ComponentData(compTyp.jawaName, typ, exported, dynamicReg, protectPermission, intentFilters, iccInfos)

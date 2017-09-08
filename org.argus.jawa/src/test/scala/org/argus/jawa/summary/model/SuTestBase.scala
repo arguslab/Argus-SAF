@@ -8,7 +8,7 @@
  * Detailed contributors are listed in the CONTRIBUTOR.md
  */
 
-package org.argus.jawa.alir.summaryBasedAnalysis.model
+package org.argus.jawa.summary.model
 
 import org.argus.jawa.alir.Context
 import org.argus.jawa.alir.pta.reachingFactsAnalysis.{RFAFact, SimHeap}

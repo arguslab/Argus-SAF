@@ -45,7 +45,7 @@ class SummaryParserVisitor()
       defaultTypes,
       ctx.summary.asScala.map { s =>
         val summary = getChild[HeapSummary](s)
-        (summary.signature, summary)
+        (summary.sig, summary)
       }.toMap
     )
   }

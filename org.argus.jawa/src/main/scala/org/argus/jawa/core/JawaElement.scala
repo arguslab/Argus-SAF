@@ -10,6 +10,7 @@
 
 package org.argus.jawa.core
 
+import org.argus.jawa.core.util.Property.Key
 import org.argus.jawa.core.util._
 
 trait JawaElement extends PropertyProvider {
@@ -17,7 +18,7 @@ trait JawaElement extends PropertyProvider {
   /**
    * supply property
    */
-  val propertyMap = mlinkedMapEmpty[Property.Key, Any]
+  val propertyMap: MLinkedMap[Key, Any] = mlinkedMapEmpty[Property.Key, Any]
   
   def accessFlags: Int
   
@@ -33,7 +34,7 @@ trait JawaElement extends PropertyProvider {
    */
   protected var unknown: Boolean = false
   
-  def setUnknown() = this.unknown = true
+  def setUnknown(): Unit = this.unknown = true
   
   def isConcrete: Boolean
   

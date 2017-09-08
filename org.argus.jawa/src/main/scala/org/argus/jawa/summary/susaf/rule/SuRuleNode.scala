@@ -26,7 +26,7 @@ case class HeapSummaryFile(defaultTypes: Map[JawaType, Map[String, JawaType]], s
 /**
   * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
   */
-case class HeapSummary(signature: Signature, rules: Seq[SummaryRule]) extends Summary with SuRuleNode
+case class HeapSummary(sig: Signature, rules: Seq[SummaryRule]) extends Summary with SuRuleNode
 
 /**
   * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>

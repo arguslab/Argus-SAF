@@ -14,6 +14,7 @@ import org.argus.jawa.core.util._
 import java.net.URI
 import java.net.URLEncoder
 
+import org.argus.amandroid.core.model.Intent
 import org.argus.amandroid.core.{AndroidConstants, ApkGlobal}
 import org.argus.amandroid.core.parser.UriData
 import org.argus.jawa.alir.Context
@@ -32,44 +33,34 @@ object IntentHelper {
     val EXPLICIT, IMPLICIT = Value
   }
   
-  final case class IntentContent(
-      componentNames: ISet[String], 
-      actions: ISet[String], 
-      categories: ISet[String], 
-      datas: ISet[UriData], 
-      types: ISet[String], 
-      preciseExplicit: Boolean,
-      preciseImplicit: Boolean) {
-    def isImplicit: Boolean = actions.nonEmpty || categories.nonEmpty || datas.nonEmpty || types.nonEmpty || !preciseImplicit
-  }
-  
-  def getIntentContents(s: PTAResult, intentValues: ISet[Instance], currentContext: Context): ISet[IntentContent] = {
-    var result = isetEmpty[IntentContent]
+  def getIntentContents(s: PTAResult, intentValues: ISet[Instance], currentContext: Context): ISet[Intent] = {
+    var result = isetEmpty[Intent]
     intentValues.foreach { intentIns =>
-      var preciseExplicit = true
-      var preciseImplicit = true
+      var explicit = false
+      var precise = true
       var componentNames = isetEmpty[String]
       val iFieldSlot = FieldSlot(intentIns, AndroidConstants.INTENT_COMPONENT)
       s.pointsToSet(currentContext, iFieldSlot).foreach{ compIns =>
+        explicit = true
         val cFieldSlot = FieldSlot(compIns, AndroidConstants.COMPONENT_NAME_CLASS)
         s.pointsToSet(currentContext, cFieldSlot).foreach {
           case instance: PTAConcreteStringInstance =>
             componentNames += instance.string
-          case _ => preciseExplicit = false
+          case _ => precise = false
         }
       }
       var actions: ISet[String] = isetEmpty[String]
       val acFieldSlot = FieldSlot(intentIns, AndroidConstants.INTENT_ACTION)
       s.pointsToSet(currentContext, acFieldSlot).foreach {
         case instance: PTAConcreteStringInstance => actions += instance.string
-        case _ => preciseImplicit = false
+        case _ => precise = false
       }
 
       var categories = isetEmpty[String] // the code to get the valueSet of categories is to be added below
       val categoryFieldSlot = FieldSlot(intentIns, AndroidConstants.INTENT_CATEGORIES)
       s.pointsToSet(currentContext, categoryFieldSlot).foreach{
         case instance: PTAConcreteStringInstance => categories += instance.string
-        case _ => preciseImplicit = false
+        case _ => precise = false
       }
 
       var datas: ISet[UriData] = isetEmpty
@@ -82,7 +73,7 @@ object IntentHelper {
             var uriData = new UriData
             populateByUri(uriData, uriString)
             datas += uriData
-          case _ => preciseImplicit = false
+          case _ => precise = false
         }
       }
 
@@ -90,10 +81,11 @@ object IntentHelper {
       val mtypFieldSlot = FieldSlot(intentIns, AndroidConstants.INTENT_MTYPE)
       s.pointsToSet(currentContext, mtypFieldSlot).foreach {
         case instance: PTAConcreteStringInstance => types += instance.string
-        case _ => preciseImplicit = false
+        case _ => precise = false
       }
-      val ic = IntentContent(componentNames, actions, categories, datas, types,
-           preciseExplicit, preciseImplicit)
+      val ic = Intent(componentNames, actions, categories, datas, types)
+      ic.explicit = explicit
+      ic.precise = precise
       result += ic
     }
     result
@@ -129,40 +121,38 @@ object IntentHelper {
     }
   }
 
-  def mappingIntents(apk: ApkGlobal, intentContents: ISet[IntentContent], compType: AndroidConstants.CompType.Value): IMap[IntentContent, ISet[(JawaType, IntentType.Value)]] = {
-    intentContents.map{
-      ic =>
-        val components: MSet[(JawaType, IntentType.Value)] = msetEmpty
-        if(!ic.preciseExplicit){
-          compType match {
-            case AndroidConstants.CompType.ACTIVITY =>
-              components ++= apk.model.getActivities.map((_, IntentType.EXPLICIT))
-            case AndroidConstants.CompType.SERVICE =>
-              components ++= apk.model.getServices.map((_, IntentType.EXPLICIT))
-            case AndroidConstants.CompType.RECEIVER =>
-              components ++= apk.model.getReceivers.map((_, IntentType.EXPLICIT))
-            case AndroidConstants.CompType.PROVIDER =>
-              components ++= apk.model.getProviders.map((_, IntentType.EXPLICIT))
-          }
-        } else if(!ic.preciseImplicit) {
-          compType match {
-            case AndroidConstants.CompType.ACTIVITY =>
-              components ++= apk.model.getActivities.filter(ep => apk.model.getIntentFilterDB.getIntentFilters(ep).nonEmpty).map((_, IntentType.IMPLICIT))
-            case AndroidConstants.CompType.SERVICE =>
-              components ++= apk.model.getServices.filter(ep => apk.model.getIntentFilterDB.getIntentFilters(ep).nonEmpty).map((_, IntentType.IMPLICIT))
-            case AndroidConstants.CompType.RECEIVER =>
-              components ++= apk.model.getReceivers.filter(ep => apk.model.getIntentFilterDB.getIntentFilters(ep).nonEmpty).map((_, IntentType.IMPLICIT))
-            case AndroidConstants.CompType.PROVIDER =>
-              components ++= apk.model.getProviders.filter(ep => apk.model.getIntentFilterDB.getIntentFilters(ep).nonEmpty).map((_, IntentType.IMPLICIT))
-          }
+  def mappingIntents(apk: ApkGlobal, intentContents: ISet[Intent], compType: AndroidConstants.CompType.Value): IMap[Intent, ISet[JawaType]] = {
+    intentContents.map{ ic =>
+      val components: MSet[JawaType] = msetEmpty
+      if(ic.explicit && !ic.precise){
+        compType match {
+          case AndroidConstants.CompType.ACTIVITY =>
+            components ++= apk.model.getActivities
+          case AndroidConstants.CompType.SERVICE =>
+            components ++= apk.model.getServices
+          case AndroidConstants.CompType.RECEIVER =>
+            components ++= apk.model.getReceivers
+          case AndroidConstants.CompType.PROVIDER =>
+            components ++= apk.model.getProviders
         }
-        ic.componentNames.foreach{
-          targetRecName =>
-            val targetRec = apk.getClassOrResolve(new JawaType(targetRecName))
-            components += ((targetRec.getType, IntentType.EXPLICIT))
+      } else if(!ic.explicit && !ic.precise) {
+        compType match {
+          case AndroidConstants.CompType.ACTIVITY =>
+            components ++= apk.model.getActivities.filter(ep => apk.model.getIntentFilterDB.getIntentFilters(ep).nonEmpty)
+          case AndroidConstants.CompType.SERVICE =>
+            components ++= apk.model.getServices.filter(ep => apk.model.getIntentFilterDB.getIntentFilters(ep).nonEmpty)
+          case AndroidConstants.CompType.RECEIVER =>
+            components ++= apk.model.getReceivers.filter(ep => apk.model.getIntentFilterDB.getIntentFilters(ep).nonEmpty)
+          case AndroidConstants.CompType.PROVIDER =>
+            components ++= apk.model.getProviders.filter(ep => apk.model.getIntentFilterDB.getIntentFilters(ep).nonEmpty)
         }
-        components ++= findComponents(apk, ic.actions, ic.categories, ic.datas, ic.types).map((_, IntentType.IMPLICIT))
-        (ic, components.toSet)
+      }
+      ic.componentNames.foreach{ targetRecName =>
+        val targetRec = apk.getClassOrResolve(new JawaType(targetRecName))
+        components += targetRec.getType
+      }
+      components ++= findComponents(apk, ic.actions, ic.categories, ic.data, ic.types)
+      (ic, components.toSet)
     }.toMap
   }
 

@@ -8,7 +8,7 @@
  * Detailed contributors are listed in the CONTRIBUTOR.md
  */
 
-package org.argus.amandroid.alir.summaryBasedAnalysis.model
+package org.argus.amandroid.summary.model
 
 import org.argus.amandroid.core.AndroidConstants
 import org.argus.jawa.alir.pta._

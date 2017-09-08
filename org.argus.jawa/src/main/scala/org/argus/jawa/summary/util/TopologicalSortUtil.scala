@@ -22,26 +22,17 @@ object TopologicalSortUtil {
   def sort[Node](map: IMap[Node, ISet[Node]]): IList[Node] = {
     final class TempEdge(val source: Node, val target: Node)
     val factory = new EdgeFactory[Node, TempEdge] {
-      def createEdge(source: Node, target: Node) =
-        new TempEdge(source, target)
+      def createEdge(source: Node, target: Node) = new TempEdge(source, target)
     }
     val graph: DirectedGraph[Node, TempEdge] = new DirectedPseudograph[Node, TempEdge](factory)
     map.foreach {
       case (caller, callees) =>
-        if(callees.isEmpty) graph.addVertex(caller)
+        graph.addVertex(caller)
         callees.foreach { callee =>
-          var flag = false
-          if(!graph.containsVertex(caller)) {
-            graph.addVertex(caller)
-            flag = true
-          }
           if(!graph.containsVertex(callee)) {
             graph.addVertex(callee)
-            flag = true
           }
-          if(flag) {
-            graph.addEdge(caller, callee)
-          }
+          graph.addEdge(caller, callee)
         }
     }
     val ite = new TopologicalOrderIterator(graph)

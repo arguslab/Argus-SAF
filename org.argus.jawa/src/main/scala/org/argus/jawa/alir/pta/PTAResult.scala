@@ -103,6 +103,28 @@ class PTAResult {
     result
   }
 
+  def getRelatedInstancesMap(context: Context, s: PTASlot): IMap[PTASlot, ISet[Instance]] = {
+    val bValue = pointsToSet(context, s)
+    val bMap: IMap[PTASlot, ISet[Instance]] = Map(s -> bValue)
+    val rMap: IMap[PTASlot, ISet[Instance]] = getRelatedHeapInstancesMap(context, bValue)
+    bMap ++ rMap
+  }
+
+  def getRelatedHeapInstancesMap(context: Context, insts: ISet[Instance]): IMap[PTASlot, ISet[Instance]] = {
+    val processed: MSet[Instance] = msetEmpty
+    var result: IMap[PTASlot, ISet[Instance]] = imapEmpty
+    val worklistAlgorithm = new WorklistAlgorithm[Instance] {
+      override def processElement(ins: Instance): Unit = {
+        processed += ins
+        val hMap = getPTSMap(context).filter{case (s, _) => s.isInstanceOf[HeapSlot] && s.asInstanceOf[HeapSlot].matchWithInstance(ins)}
+        result ++= hMap
+        worklist ++= hMap.flatMap(_._2).toSet.diff(processed)
+      }
+    }
+    worklistAlgorithm.run(worklistAlgorithm.worklist ++= insts)
+    result
+  }
+
   def pprint(): Unit = {
     ptMap.toList.sortBy(_._1.getCurrentLocUri).foreach {
       case (c, map) =>

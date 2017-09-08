@@ -8,18 +8,18 @@
  * Detailed contributors are listed in the CONTRIBUTOR.md
  */
 
-package org.argus.amandroid.alir.summaryBasedAnalysis
+package org.argus.amandroid.summary
 
 import hu.ssh.progressbar.console.ConsoleProgressBar
 import org.argus.amandroid.alir.pta.model.AndroidModelCallHandler
 import org.argus.amandroid.alir.pta.summaryBasedAnalysis.AndroidSummaryProvider
 import org.argus.jawa.alir.pta.reachingFactsAnalysis.SimHeap
 import org.argus.jawa.alir.reachability.SignatureBasedCallGraph
-import org.argus.jawa.summary.wu.{HeapSummaryWu, WorkUnit}
 import org.argus.jawa.core._
 import org.argus.jawa.core.util.{FileUtil, IList}
 import org.argus.jawa.summary.susaf.rule.HeapSummary
 import org.argus.jawa.summary.util.TopologicalSortUtil
+import org.argus.jawa.summary.wu.{HeapSummaryWu, WorkUnit}
 import org.argus.jawa.summary.{BottomUpSummaryGenerator, SummaryManager}
 import org.scalatest.{FlatSpec, Matchers}
 

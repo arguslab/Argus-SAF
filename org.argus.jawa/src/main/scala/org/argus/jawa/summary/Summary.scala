@@ -10,7 +10,10 @@
 
 package org.argus.jawa.summary
 
+import org.argus.jawa.core.Signature
+
 trait Summary {
+  def sig: Signature
   def rules: Seq[SummaryRule]
 }
 

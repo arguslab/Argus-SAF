@@ -157,7 +157,7 @@ object AndroidDataDependentTaintAnalysis {
     tar
   }
   
-  private def extendIDDGForSinkApis(iddg: DataDependenceBaseGraph[InterProceduralDataDependenceAnalysis.Node], callArgNode: IDDGCallArgNode, ptaresult: PTAResult) = {
+  private def extendIDDGForSinkApis(iddg: DataDependenceBaseGraph[InterProceduralDataDependenceAnalysis.Node], callArgNode: IDDGCallArgNode, ptaresult: PTAResult): Unit = {
     val calleeSet = callArgNode.getCalleeSet
     calleeSet.foreach{ _ =>
       val argSlot = VarSlot(callArgNode.argName)

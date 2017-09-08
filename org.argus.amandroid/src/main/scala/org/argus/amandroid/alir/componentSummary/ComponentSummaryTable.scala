@@ -11,7 +11,7 @@
 package org.argus.amandroid.alir.componentSummary
 
 import org.argus.amandroid.alir.pta.reachingFactsAnalysis.IntentHelper
-import org.argus.amandroid.alir.pta.reachingFactsAnalysis.IntentHelper.IntentContent
+import org.argus.amandroid.core.model.Intent
 import org.argus.amandroid.core.parser.IntentFilter
 import org.argus.amandroid.core.{AndroidConstants, ApkGlobal}
 import org.argus.jawa.alir.Context
@@ -24,7 +24,7 @@ import org.argus.jawa.core._
 import org.argus.jawa.core.util._
 
 trait ComponentSummaryProvider {
-  def getIntentCaller(idfg: InterProceduralDataFlowGraph, intentValue: ISet[Instance], context: Context): ISet[IntentContent]
+  def getIntentCaller(idfg: InterProceduralDataFlowGraph, intentValue: ISet[Instance], context: Context): ISet[Intent]
 }
 
 /**
@@ -372,21 +372,21 @@ trait ICCCaller extends CSTCaller
 
 trait ICCCallee extends CSTCallee
 
-case class IntentCaller(component: Component, compTyp: AndroidConstants.CompType.Value, intent: IntentContent) extends ICCCaller
+case class IntentCaller(component: Component, compTyp: AndroidConstants.CompType.Value, intent: Intent) extends ICCCaller
 
 case class IntentCallee(component: Component, compTyp: AndroidConstants.CompType.Value, filter: ISet[IntentFilter], exported: Boolean) extends ICCCallee {
   def matchWith(caller: CSTCaller): Boolean = {
     caller match {
       case intent_caller: IntentCaller =>
         if((exported || component.apk.nameUri == intent_caller.component.apk.nameUri) && compTyp == intent_caller.compTyp){
-          if (!intent_caller.intent.preciseExplicit) true
-          else if (!intent_caller.intent.preciseImplicit && filter.nonEmpty) true
+          if (intent_caller.intent.explicit && !intent_caller.intent.precise) true
+          else if (!intent_caller.intent.explicit && !intent_caller.intent.precise && filter.nonEmpty) true
           else if (intent_caller.intent.componentNames.contains(component.typ.name)) true
           else if (IntentHelper.findComponents(
             component.apk,
             intent_caller.intent.actions,
             intent_caller.intent.categories,
-            intent_caller.intent.datas,
+            intent_caller.intent.data,
             intent_caller.intent.types).contains(component.typ)) true
           else false
         } else false

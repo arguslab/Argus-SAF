@@ -46,34 +46,32 @@ class PasswordSourceAndSinkManager(sasFilePath: String) extends AndroidSourceAnd
   }
 
   def isIccSink(apk: ApkGlobal, invNode: ICFGInvokeNode, ptaResult: PTAResult): Boolean = {
-    var sinkFlag = false
+    var sinkflag = false
     val calleeSet = invNode.getCalleeSet
     calleeSet.foreach{
       callee =>
         if(InterComponentCommunicationModel.isIccOperation(callee.callee)){
-          sinkFlag = true
+          sinkflag = true
           val args = invNode.argNames
           val intentSlot = VarSlot(args(1))
           val intentValues = ptaResult.pointsToSet(invNode.getContext, intentSlot)
           val intentContents = IntentHelper.getIntentContents(ptaResult, intentValues, invNode.getContext)
           val compType = AndroidConstants.getIccCallType(callee.callee.getSubSignature)
           val comMap = IntentHelper.mappingIntents(apk, intentContents, compType)
-          comMap.foreach{
-            case (_, coms) =>
-              if(coms.isEmpty) sinkFlag = true
-              coms.foreach{
-                case (com, typ) =>
-                  typ match {
-                    case IntentHelper.IntentType.EXPLICIT => 
-                      val clazz = apk.getClassOrResolve(com)
-                      if(clazz.isUnknown) sinkFlag = true
-                    case IntentHelper.IntentType.IMPLICIT => sinkFlag = true
-                  }
+          comMap.foreach{ case (intent, coms) =>
+            if(coms.isEmpty) sinkflag = true
+            coms.foreach{ com =>
+              if(intent.explicit) {
+                val clazz = apk.getClassOrResolve(com)
+                if(clazz.isUnknown) sinkflag = true
+              } else {
+                sinkflag = true
               }
+            }
           }
         }
     }
-    sinkFlag
+    sinkflag
   }
 
   def isIccSource(apk: ApkGlobal, entNode: ICFGNode): Boolean = {
