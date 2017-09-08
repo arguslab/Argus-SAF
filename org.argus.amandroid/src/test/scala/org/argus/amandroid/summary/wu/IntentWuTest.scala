@@ -52,6 +52,16 @@ class IntentWuTest extends FlatSpec with Matchers {
       |  Explicit: true
       |  Precise: true
     """.stripMargin.trim
+  )
+
+  "/jawa/intent/MainActivity.jawa" ep "Lorg/arguslab/icc_explicit1/MainActivity;.caller2:()V" produce (
+    """
+      |Intent:
+      |  Component Names:
+      |    org.arguslab.icc_explicit1.FooActivity
+      |  Explicit: true
+      |  Precise: true
+    """.stripMargin.trim
     )
 
   class TestFile(file: String) {
