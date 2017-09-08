@@ -12,11 +12,12 @@ package org.argus.amandroid.summary.wu
 
 import org.argus.amandroid.alir.pta.model.InterComponentCommunicationModel
 import org.argus.jawa.alir.controlFlowGraph.ICFGLocNode
+import org.argus.jawa.alir.pta.{PTASlot, VarSlot}
 import org.argus.jawa.alir.pta.model.ModelCallHandler
 import org.argus.jawa.alir.pta.reachingFactsAnalysis.SimHeap
 import org.argus.jawa.compiler.parser.CallStatement
 import org.argus.jawa.core.JawaMethod
-import org.argus.jawa.core.util.MList
+import org.argus.jawa.core.util._
 import org.argus.jawa.summary.wu.{PTStore, PointsToWu}
 import org.argus.jawa.summary.{SummaryManager, SummaryRule}
 
@@ -27,10 +28,17 @@ class IntentWu(
     store: PTStore)(implicit heap: SimHeap) extends PointsToWu(method, sm, handler, store) {
   override def processNode(node: ICFGLocNode, rules: MList[SummaryRule]): Unit = {
     val l = method.getBody.resolvedBody.location(node.locIndex)
+    val context = node.getContext
     l.statement match {
       case cs: CallStatement if InterComponentCommunicationModel.isIccOperation(cs.signature) =>
-        cs.lhsOpt
+        val trackedSlots: MSet[(PTASlot, Boolean)] = msetEmpty
+        val intentSlot = VarSlot(cs.rhs.argClause.arg(1))
+        trackedSlots += ((intentSlot, true))
+        pointsToResolve(context) = trackedSlots.toSet
       case _ =>
     }
+    super.processNode(node, rules)
   }
+
+  override def toString: String = s"IntentWu($method)"
 }

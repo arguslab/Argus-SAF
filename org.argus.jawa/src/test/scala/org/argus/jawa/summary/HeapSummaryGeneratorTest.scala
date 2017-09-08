@@ -8,19 +8,18 @@
  * Detailed contributors are listed in the CONTRIBUTOR.md
  */
 
-package org.argus.jawa.alir.summaryBasedAnalysis
+package org.argus.jawa.summary
 
 import hu.ssh.progressbar.console.ConsoleProgressBar
 import org.argus.jawa.alir.pta.PTAScopeManager
 import org.argus.jawa.alir.pta.model.ModelCallHandler
 import org.argus.jawa.alir.pta.reachingFactsAnalysis.SimHeap
 import org.argus.jawa.alir.reachability.SignatureBasedCallGraph
-import org.argus.jawa.summary.wu.{HeapSummaryWu, WorkUnit}
 import org.argus.jawa.core._
 import org.argus.jawa.core.util._
 import org.argus.jawa.summary.susaf.rule.HeapSummary
 import org.argus.jawa.summary.util.TopologicalSortUtil
-import org.argus.jawa.summary.{BottomUpSummaryGenerator, JawaSummaryProvider, SummaryManager}
+import org.argus.jawa.summary.wu.{HeapSummaryWu, WorkUnit}
 import org.scalatest.{FlatSpec, Matchers}
 
 import scala.language.implicitConversions

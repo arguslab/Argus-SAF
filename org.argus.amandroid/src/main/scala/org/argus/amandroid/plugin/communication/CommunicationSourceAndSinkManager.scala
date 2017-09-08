@@ -60,30 +60,27 @@ class CommunicationSourceAndSinkManager(sasFilePath: String) extends AndroidSour
   def isIccSink(apk: ApkGlobal, invNode: ICFGInvokeNode, ptaResult: PTAResult): Boolean = {
     var sinkflag = false
     val calleeSet = invNode.getCalleeSet
-    calleeSet.foreach{
-      callee =>
-        if(InterComponentCommunicationModel.isIccOperation(callee.callee)){
-          sinkflag = true
-          val args = apk.getMethod(invNode.getOwner).get.getBody.resolvedBody.locations(invNode.locIndex).statement.asInstanceOf[CallStatement].args
-          val intentSlot = VarSlot(args.head)
-          val intentValues = ptaResult.pointsToSet(invNode.getContext, intentSlot)
-          val intentContents = IntentHelper.getIntentContents(ptaResult, intentValues, invNode.getContext)
-          val compType = AndroidConstants.getIccCallType(callee.callee.getSubSignature)
-          val comMap = IntentHelper.mappingIntents(apk, intentContents, compType)
-          comMap.foreach{
-            case (_, coms) =>
-              if(coms.isEmpty) sinkflag = true
-              coms.foreach{
-                case (com, typ) =>
-                  typ match {
-                    case IntentHelper.IntentType.EXPLICIT =>
-                      val clazz = apk.getClassOrResolve(com)
-                      if(clazz.isUnknown) sinkflag = true
-                    case IntentHelper.IntentType.IMPLICIT => sinkflag = true
-                  }
-              }
+    calleeSet.foreach{ callee =>
+      if(InterComponentCommunicationModel.isIccOperation(callee.callee)){
+        sinkflag = true
+        val args = apk.getMethod(invNode.getOwner).get.getBody.resolvedBody.locations(invNode.locIndex).statement.asInstanceOf[CallStatement].args
+        val intentSlot = VarSlot(args.head)
+        val intentValues = ptaResult.pointsToSet(invNode.getContext, intentSlot)
+        val intentContents = IntentHelper.getIntentContents(ptaResult, intentValues, invNode.getContext)
+        val compType = AndroidConstants.getIccCallType(callee.callee.getSubSignature)
+        val comMap = IntentHelper.mappingIntents(apk, intentContents, compType)
+        comMap.foreach{ case (intent, coms) =>
+          if(coms.isEmpty) sinkflag = true
+          coms.foreach{ com =>
+            if(intent.explicit) {
+              val clazz = apk.getClassOrResolve(com)
+              if(clazz.isUnknown) sinkflag = true
+            } else {
+              sinkflag = true
+            }
           }
         }
+      }
     }
     sinkflag
   }

@@ -20,6 +20,7 @@ import org.argus.jawa.alir.pta.reachingFactsAnalysis.{RFAFact, ReachingFactsAnal
 import org.argus.jawa.compiler.parser._
 import org.argus.jawa.core.util._
 import org.argus.jawa.core._
+import org.argus.jawa.core.util.Property.Key
 import org.argus.jawa.summary.susaf.HeapSummaryProcessor
 import org.argus.jawa.summary.{Summary, SummaryManager, SummaryRule}
 import org.argus.jawa.summary.susaf.rule._
@@ -30,7 +31,29 @@ import scala.language.postfixOps
 trait WorkUnit {
   val method: JawaMethod
   val sm: SummaryManager
+
+  /**
+    * Indicate whether heap summary is needed for this work unit. If needed, the HeapSummaryWu will run before hand.
+    * @return boolean
+    */
+  def needHeapSummary: Boolean
+
+  /**
+    * Generate summary based on the specific work unit.
+    * @param suGen summary generator.
+    * @return generated Summary
+    */
   def generateSummary(suGen: (Signature, IList[SummaryRule]) => Summary): Summary
+
+  /**
+    * Implement this function to do pre-analysis tasks
+    */
+  def initFn(): Unit = {}
+
+  /**
+    * Implement this function to do post-analysis tasks
+    */
+  def finalFn(): Unit = {}
 }
 
 abstract class DataFlowWu(
@@ -39,21 +62,61 @@ abstract class DataFlowWu(
     handler: ModelCallHandler)(implicit heap: SimHeap) extends WorkUnit {
 
   val global: Global = method.getDeclaringClass.global
+  var resolve_static_init: Boolean = false
 
   // Summary based data-flow is context-insensitive
   Context.init_context_length(0)
-  var resolve_static_init: Boolean = false
   val initContext = new Context(global.projectName)
 
-  val icfg: InterProceduralControlFlowGraph[ICFGNode] = new InterProceduralControlFlowGraph[ICFGNode]
-  val ptaresult = new PTAResult
-  val analysis = new ReachingFactsAnalysis(global, icfg, ptaresult, handler, sm, new ClassLoadManager, resolve_static_init, Some(new MyTimeout(5 minutes)))
+  var ptaresult: PTAResult = new PTAResult
+  var icfg: InterProceduralControlFlowGraph[ICFGNode] = new InterProceduralControlFlowGraph[ICFGNode]
+  var idfgOpt: Option[InterProceduralDataFlowGraph] = None
+  def hasIDFG: Boolean = idfgOpt.isDefined
+  def setIDFG(idfg: InterProceduralDataFlowGraph): Unit = {
+    idfgOpt = Some(idfg)
+    ptaresult = idfg.ptaresult
+    icfg = idfg.icfg
+    val entryContext = initContext.copy
+    entryContext.setContext(method.getSignature, method.getSignature.methodName)
+    method.thisOpt match {
+      case Some(_) =>
+        val ins = Instance.getInstance(method.getDeclaringClass.typ, entryContext, toUnknown = false)
+        heapMap(ins) = SuThis(None)
+      case None =>
+    }
+    method.params.indices.foreach { i =>
+      val (_, typ) = method.params(i)
+      if(typ.isObject) {
+        val unknown = typ.jawaName match {
+          case "java.lang.String" => false
+          case _ => true
+        }
+        val ins = Instance.getInstance(typ, entryContext, unknown)
+        heapMap(ins) = SuArg(i, None)
+      }
+    }
+  }
+  def getIDFG: InterProceduralDataFlowGraph = {
+    idfgOpt match {
+      case Some(idfg) => idfg
+      case None =>
+        val idfg = generateIDFG
+        setIDFG(idfg)
+        idfg
+    }
+  }
 
-  val thisOpt: Option[String] = method.thisOpt
-  val params: ISeq[String] = method.getParamNames
   val heapMap: MMap[Instance, HeapBase] = mmapEmpty
 
+  override def needHeapSummary: Boolean = true
+
   def generateSummary(suGen: (Signature, IList[SummaryRule]) => Summary): Summary = {
+    val idfg = getIDFG
+    suGen(method.getSignature, parseIDFG(idfg))
+  }
+
+  def generateIDFG: InterProceduralDataFlowGraph = {
+    val analysis = new ReachingFactsAnalysis(global, icfg, ptaresult, handler, sm, new ClassLoadManager, resolve_static_init, Some(new MyTimeout(5 minutes)))
     val entryContext = initContext.copy
     entryContext.setContext(method.getSignature, method.getSignature.methodName)
     val initialFacts: ISet[RFAFact] = {
@@ -79,8 +142,7 @@ abstract class DataFlowWu(
       }
       result.toSet
     }
-    val idfg = analysis.process(method, initialFacts, initContext, new Callr)
-    suGen(method.getSignature, parseIDFG(idfg))
+    analysis.process(method, initialFacts, initContext, new Callr)
   }
 
   def parseIDFG(idfg: InterProceduralDataFlowGraph): IList[SummaryRule] = {
@@ -354,10 +416,15 @@ abstract class DataFlowWu(
   override def toString: String = s"DataFlowWu($method)"
 }
 
-case class PTSummary(rules: Seq[SummaryRule]) extends Summary
-case class PTSummaryRule(heapBase: HeapBase, point: (Context, PTASlot)) extends SummaryRule
-class PTStore {
-  val resolved: MMap[(Context, PTASlot), MSet[Instance]] = mmapEmpty
+case class PTSummary(sig: Signature, rules: Seq[SummaryRule]) extends Summary
+case class PTSummaryRule(heapBase: HeapBase, point: (Context, PTASlot), trackHeap: Boolean) extends SummaryRule
+
+class PTStore extends PropertyProvider {
+  /**
+    * supply property
+    */
+  val propertyMap: MLinkedMap[Key, Any] = mlinkedMapEmpty[Property.Key, Any]
+  val resolved: PTAResult = new PTAResult
 }
 
 abstract class PointsToWu(
@@ -366,8 +433,32 @@ abstract class PointsToWu(
     handler: ModelCallHandler,
     store: PTStore)(implicit heap: SimHeap) extends DataFlowWu(method, sm, handler) {
 
+  protected val pointsToResolve: MMap[Context, ISet[(PTASlot, Boolean)]] = mmapEmpty
+
   override def processNode(node: ICFGLocNode, rules: MList[SummaryRule]): Unit = {
     val context = node.getContext
+    // Handle newly added points for this context
+    pointsToResolve.getOrElse(context, isetEmpty).foreach { case (slot, resolveHeap) =>
+      val set = store.getPropertyOrElseUpdate[MSet[(Context, PTASlot)]]("intent", msetEmpty)
+      set += ((context, slot))
+      val map: IMap[PTASlot, ISet[Instance]] = if(resolveHeap) {
+        ptaresult.getRelatedInstancesMap(context, slot)
+      } else {
+        Map(slot -> ptaresult.pointsToSet(context, slot))
+      }
+      map.foreach { case (s, inss) =>
+        inss.foreach { ins =>
+          heapMap.get(ins) match {
+            case Some(hb) =>
+              rules += PTSummaryRule(hb, (context, s), resolveHeap)
+            case None =>
+              store.resolved.addInstance(context, s, ins)
+          }
+          true // I don't know why I need this...
+        }
+      }
+    }
+    // Handle method calls with generated summary.
     val l = method.getBody.resolvedBody.location(node.locIndex)
     l.statement match {
       case cs: CallStatement =>
@@ -379,9 +470,23 @@ abstract class PointsToWu(
                 case ptr: PTSummaryRule =>
                   val hb = ptr.heapBase
                   val retOpt = cs.lhsOpt.map(lhs => lhs.lhs.varName)
-                  val (newhbs, inss) = processHeapBase(hb, retOpt, cs.recvOpt, cs.arg, context)
-                  rules ++= newhbs.map(newhb => PTSummaryRule(newhb, ptr.point))
-                  store.resolved.getOrElseUpdate(ptr.point, msetEmpty) ++= inss
+                  val (newhbs, inss) = processHeapBase(hb, retOpt, cs.recvOpt, cs.arg, context, ptr.trackHeap)
+                  newhbs.foreach { case (s, nhbs) =>
+                    var slot: PTASlot = s
+                    s match {
+                      case VarSlot(_) => slot = ptr.point._2
+                      case _ =>
+                    }
+                    rules ++= nhbs.map(nhb => PTSummaryRule(nhb, (ptr.point._1, slot), ptr.trackHeap))
+                  }
+                  inss.foreach { case (s, is) =>
+                    var slot: PTASlot = s
+                    s match {
+                      case VarSlot(_) => slot = ptr.point._2
+                      case _ =>
+                    }
+                    store.resolved.addInstances(ptr.point._1, slot, is)
+                  }
                 case _ =>
               }
             case None =>
@@ -392,7 +497,13 @@ abstract class PointsToWu(
     super.processNode(node, rules)
   }
 
-  private def processHeapBase(hb: HeapBase, retOpt: Option[String], recvOpt: Option[String], args: Int => String, context: Context): (ISet[HeapBase], ISet[Instance]) = {
+  private def processHeapBase(
+      hb: HeapBase,
+      retOpt: Option[String],
+      recvOpt: Option[String],
+      args: Int => String,
+      context: Context,
+      resolveHeap: Boolean): (IMap[PTASlot, ISet[HeapBase]], IMap[PTASlot, ISet[Instance]]) = {
     val slot: PTASlot = hb match {
       case _: SuThis =>
         VarSlot(recvOpt.getOrElse("hack"))
@@ -403,23 +514,33 @@ abstract class PointsToWu(
       case _: SuRet =>
         VarSlot(retOpt.getOrElse("hack"))
     }
-    val newHeapBases: MSet[HeapBase] = msetEmpty
-    val instances: MSet[Instance] = msetEmpty
-    val baseInss = ptaresult.pointsToSet(context, slot)
-    baseInss.foreach { ins =>
-      heapMap.get(ins) match {
-        case Some(bhb) =>
-          hb.heapOpt match {
-            case Some(h) => newHeapBases += bhb.make(h.indices)
-            case None => newHeapBases += bhb
-          }
-        case None =>
-          hb.heapOpt match {
-            case Some(h) => instances ++= getHeapInstanceFrom(ins, h.indices, retOpt, recvOpt, args, context)
-            case None => instances += ins
-          }
-      }
+    val newHeapBases: MMap[PTASlot, ISet[HeapBase]] = mmapEmpty
+    val instances: MMap[PTASlot, ISet[Instance]] = mmapEmpty
+    val map: IMap[PTASlot, ISet[Instance]] = if(resolveHeap) {
+      ptaresult.getRelatedInstancesMap(context, slot)
+    } else {
+      Map(slot -> ptaresult.pointsToSet(context, slot))
     }
-    (newHeapBases.toSet, instances.toSet)
+    map.foreach { case (s, inss) =>
+      val newHbs: MSet[HeapBase] = msetEmpty
+      val newIns: MSet[Instance] = msetEmpty
+      inss.foreach { ins =>
+        heapMap.get(ins) match {
+          case Some(bhb) =>
+            hb.heapOpt match {
+              case Some(h) => newHbs += bhb.make(h.indices)
+              case None => newHbs += bhb
+            }
+          case None =>
+            hb.heapOpt match {
+              case Some(h) => newIns ++= getHeapInstanceFrom(ins, h.indices, retOpt, recvOpt, args, context)
+              case None => newIns += ins
+            }
+        }
+      }
+      newHeapBases(s) = newHbs.toSet
+      instances(s) = newIns.toSet
+    }
+    (newHeapBases.toMap, instances.toMap)
   }
 }

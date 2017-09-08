@@ -57,12 +57,12 @@ object HeapSummaryProcessor {
     val extraFacts: MSet[RFAFact] = msetEmpty
     summary.rules foreach {
       case cr: ClearRule =>
-        val slots = processLhs(global, summary.signature, cr.v, retOpt, recvOpt, args, output, context, extraFacts)
+        val slots = processLhs(global, summary.sig, cr.v, retOpt, recvOpt, args, output, context, extraFacts)
         val heaps = ReachingFactsAnalysisHelper.getRelatedHeapFactsFrom(output.filter(i => slots.contains(i.slot)), output)
         output --= heaps
         kill = true
       case br: BinaryRule =>
-        val facts = processBinaryRule(global, summary.signature, br, retOpt, recvOpt, args, output, context, extraFacts)
+        val facts = processBinaryRule(global, summary.sig, br, retOpt, recvOpt, args, output, context, extraFacts)
         br.ops match {
           case Ops.`=` =>
             val slots = facts.map(f => f.slot)

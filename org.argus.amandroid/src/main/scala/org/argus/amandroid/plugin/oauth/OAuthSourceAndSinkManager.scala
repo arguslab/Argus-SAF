@@ -63,18 +63,16 @@ class OAuthSourceAndSinkManager(sasFilePath: String) extends AndroidSourceAndSin
           val intentContents = IntentHelper.getIntentContents(ptaresult, intentValues, invNode.getContext)
           val compType = AndroidConstants.getIccCallType(callee.callee.getSubSignature)
           val comMap = IntentHelper.mappingIntents(apk, intentContents, compType)
-          comMap.foreach{
-            case (_, coms) =>
-              if(coms.isEmpty) sinkflag = true
-              coms.foreach{
-                case (com, typ) =>
-                  typ match {
-                    case IntentHelper.IntentType.EXPLICIT => 
-                      val clazz = apk.getClassOrResolve(com)
-                      if(clazz.isUnknown) sinkflag = true
-                    case IntentHelper.IntentType.IMPLICIT => sinkflag = true
-                  }
+          comMap.foreach{ case (intent, coms) =>
+            if(coms.isEmpty) sinkflag = true
+            coms.foreach{ com =>
+              if(intent.explicit) {
+                val clazz = apk.getClassOrResolve(com)
+                if(clazz.isUnknown) sinkflag = true
+              } else {
+                sinkflag = true
               }
+            }
           }
         }
     }

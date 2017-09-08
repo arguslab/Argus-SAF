@@ -48,6 +48,12 @@ class SummaryManager(global: Global)(implicit heap: SimHeap) {
     su.summaries
   }
 
+  def contains(sig: Signature): Boolean = summaries.contains(sig)
+  def contains(file: String, subsig: String): Boolean = heapSummariesMatchFileAndSubsig.get(file) match {
+    case Some(map) => map.contains(subsig)
+    case None => false
+  }
+
   def getSummaries(sig: Signature): ISet[Summary] = summaries.getOrElse(sig, msetEmpty).toSet
 
   def getSummary[T <: Summary : ClassTag](sig: Signature): Option[T] = {

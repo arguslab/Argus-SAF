@@ -1,0 +1,70 @@
+record `org.arguslab.icc_explicit1.MainActivity` @kind class @AccessFlag PUBLIC extends `android.app.Activity` @kind class {
+}
+procedure `void` `org.arguslab.icc_explicit1.MainActivity.<init>`(`org.arguslab.icc_explicit1.MainActivity` `this` @kind this) @owner ^`org.arguslab.icc_explicit1.MainActivity` @signature `Lorg/arguslab/icc_explicit1/MainActivity;.<init>:()V` @AccessFlag PUBLIC_CONSTRUCTOR {
+
+    #L1.  call `android.app.Activity.<init>`(`this`) @signature `Landroid/app/Activity;.<init>:()V` @classDescriptor ^`android.app.Activity` @kind direct;
+    #L2.  return  @kind void;
+}
+procedure `void` `org.arguslab.icc_explicit1.MainActivity.singleFunc`(`org.arguslab.icc_explicit1.MainActivity` `this` @kind this) @owner ^`org.arguslab.icc_explicit1.MainActivity` @signature `Lorg/arguslab/icc_explicit1/MainActivity;.singleFunc:()V` @AccessFlag PUBLIC {
+    `android.telephony.TelephonyManager` TelephonyManager_v2;
+    `java.lang.String` String_v3;
+    `android.content.Context` Context_temp;
+    `android.content.Intent` Intent_temp;
+    `java.lang.Object` Object_temp;
+    `java.lang.Object` Object_v2;
+    `java.lang.Class` Class_v4;
+    `android.content.Context` Context_v3;
+    `android.content.Intent` Intent_v0;
+    `java.lang.String` String_temp;
+    `java.lang.String` String_v1;
+
+    #L3.  String_v3:= "phone" @kind object;
+    #L4.  call Object_temp:=  `org.arguslab.icc_explicit1.MainActivity.getSystemService`(`this`, String_v3) @signature `Lorg/arguslab/icc_explicit1/MainActivity;.getSystemService:(Ljava/lang/String;)Ljava/lang/Object;` @classDescriptor ^`org.arguslab.icc_explicit1.MainActivity` @kind virtual;
+    #L5.  Object_v2:= Object_temp  @kind object;
+    #L6.  TelephonyManager_v2:= (`android.telephony.TelephonyManager`)Object_v2  @kind object;
+    #L7.  call String_temp:=  `android.telephony.TelephonyManager.getDeviceId`(TelephonyManager_v2) @signature `Landroid/telephony/TelephonyManager;.getDeviceId:()Ljava/lang/String;` @classDescriptor ^`android.telephony.TelephonyManager` @kind virtual;
+    #L8.  String_v1:= String_temp  @kind object;
+    #L9.  Intent_v0:= new `android.content.Intent`;
+    #L10.  call Context_temp:=  `org.arguslab.icc_explicit1.MainActivity.getApplicationContext`(`this`) @signature `Lorg/arguslab/icc_explicit1/MainActivity;.getApplicationContext:()Landroid/content/Context;` @classDescriptor ^`org.arguslab.icc_explicit1.MainActivity` @kind virtual;
+    #L11.  Context_v3:= Context_temp  @kind object;
+    #L12.  Class_v4:= constclass @type ^`org.arguslab.icc_explicit1.FooActivity` @kind object;
+    #L13.  call `android.content.Intent.<init>`(Intent_v0, Context_v3, Class_v4) @signature `Landroid/content/Intent;.<init>:(Landroid/content/Context;Ljava/lang/Class;)V` @classDescriptor ^`android.content.Intent` @kind direct;
+    #L14.  String_v3:= "data" @kind object;
+    #L15.  call Intent_temp:=  `android.content.Intent.putExtra`(Intent_v0, String_v3, String_v1) @signature `Landroid/content/Intent;.putExtra:(Ljava/lang/String;Ljava/lang/String;)Landroid/content/Intent;` @classDescriptor ^`android.content.Intent` @kind virtual;
+    #L16.  call `org.arguslab.icc_explicit1.MainActivity.startActivity`(`this`, Intent_v0) @signature `Lorg/arguslab/icc_explicit1/MainActivity;.startActivity:(Landroid/content/Intent;)V` @classDescriptor ^`org.arguslab.icc_explicit1.MainActivity` @kind virtual;
+    #L17.  return  @kind void;
+}
+procedure `void` `org.arguslab.icc_explicit1.MainActivity.caller`(`org.arguslab.icc_explicit1.MainActivity` `this` @kind this) @owner ^`org.arguslab.icc_explicit1.MainActivity` @signature `Lorg/arguslab/icc_explicit1/MainActivity;.caller:()V` @AccessFlag PUBLIC {
+    `android.telephony.TelephonyManager` TelephonyManager_v2;
+    `java.lang.String` String_v3;
+    `android.content.Context` Context_temp;
+    `android.content.Intent` Intent_temp;
+    `java.lang.Object` Object_temp;
+    `java.lang.Object` Object_v2;
+    `java.lang.Class` Class_v4;
+    `android.content.Context` Context_v3;
+    `android.content.Intent` Intent_v0;
+    `java.lang.String` String_temp;
+    `java.lang.String` String_v1;
+
+    #L18.  String_v3:= "phone" @kind object;
+    #L19.  call Object_temp:=  `org.arguslab.icc_explicit1.MainActivity.getSystemService`(`this`, String_v3) @signature `Lorg/arguslab/icc_explicit1/MainActivity;.getSystemService:(Ljava/lang/String;)Ljava/lang/Object;` @classDescriptor ^`org.arguslab.icc_explicit1.MainActivity` @kind virtual;
+    #L20.  Object_v2:= Object_temp  @kind object;
+    #L21.  TelephonyManager_v2:= (`android.telephony.TelephonyManager`)Object_v2  @kind object;
+    #L22.  call String_temp:=  `android.telephony.TelephonyManager.getDeviceId`(TelephonyManager_v2) @signature `Landroid/telephony/TelephonyManager;.getDeviceId:()Ljava/lang/String;` @classDescriptor ^`android.telephony.TelephonyManager` @kind virtual;
+    #L23.  String_v1:= String_temp  @kind object;
+    #L24.  Intent_v0:= new `android.content.Intent`;
+    #L25.  call Context_temp:=  `org.arguslab.icc_explicit1.MainActivity.getApplicationContext`(`this`) @signature `Lorg/arguslab/icc_explicit1/MainActivity;.getApplicationContext:()Landroid/content/Context;` @classDescriptor ^`org.arguslab.icc_explicit1.MainActivity` @kind virtual;
+    #L26.  Context_v3:= Context_temp  @kind object;
+    #L27.  Class_v4:= constclass @type ^`org.arguslab.icc_explicit1.FooActivity` @kind object;
+    #L28.  call `android.content.Intent.<init>`(Intent_v0, Context_v3, Class_v4) @signature `Landroid/content/Intent;.<init>:(Landroid/content/Context;Ljava/lang/Class;)V` @classDescriptor ^`android.content.Intent` @kind direct;
+    #L29.  String_v3:= "data" @kind object;
+    #L30.  call Intent_temp:=  `android.content.Intent.putExtra`(Intent_v0, String_v3, String_v1) @signature `Landroid/content/Intent;.putExtra:(Ljava/lang/String;Ljava/lang/String;)Landroid/content/Intent;` @classDescriptor ^`android.content.Intent` @kind virtual;
+    #L31.  call `org.arguslab.icc_explicit1.MainActivity.callee`(`this`, Intent_v0) @signature `Lorg/arguslab/icc_explicit1/MainActivity;.callee:(Landroid/content/Intent;)V` @classDescriptor ^`org.arguslab.icc_explicit1.MainActivity` @kind virtual;
+    #L32.  return  @kind void;
+}
+procedure `void` `org.arguslab.icc_explicit1.MainActivity.callee`(`org.arguslab.icc_explicit1.MainActivity` `this` @kind this, `android.content.Intent` Intent_v0 @kind object) @owner ^`org.arguslab.icc_explicit1.MainActivity` @signature `Lorg/arguslab/icc_explicit1/MainActivity;.callee:(Landroid/content/Intent;)V` @AccessFlag PUBLIC {
+
+    #L33.  call `org.arguslab.icc_explicit1.MainActivity.startActivity`(`this`, Intent_v0) @signature `Lorg/arguslab/icc_explicit1/MainActivity;.startActivity:(Landroid/content/Intent;)V` @classDescriptor ^`org.arguslab.icc_explicit1.MainActivity` @kind virtual;
+    #L34.  return  @kind void;
+}

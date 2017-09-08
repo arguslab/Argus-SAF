@@ -273,17 +273,16 @@ class DefaultAndroidSourceAndSinkManager(sasFilePath: String) extends AndroidSou
         val intentContents = IntentHelper.getIntentContents(s, intentValues, invNode.getContext)
         val compType = AndroidConstants.getIccCallType(callee.callee.getSubSignature)
         val comMap = IntentHelper.mappingIntents(apk, intentContents, compType)
-        comMap.foreach{
-          case (_, comTypes) =>
-            if(comTypes.isEmpty) sinkflag = true
-            comTypes.foreach{
-              case (comType, typ) =>
-                val com = apk.getClassOrResolve(comType)
-                typ match {
-                  case IntentHelper.IntentType.EXPLICIT => if(com.isUnknown) sinkflag = true
-                  case IntentHelper.IntentType.IMPLICIT => sinkflag = true
-                }
+        comMap.foreach{ case (intent, comTypes) =>
+          if(comTypes.isEmpty) sinkflag = true
+          comTypes.foreach{ comType =>
+            val com = apk.getClassOrResolve(comType)
+            if(intent.explicit) {
+              if(com.isUnknown) sinkflag = true
+            } else {
+              sinkflag = true
             }
+          }
         }
       }
     }
