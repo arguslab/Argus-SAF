@@ -31,11 +31,10 @@ class IntentInjectionSourceAndSinkManager(sasFilePath: String) extends AndroidSo
   override def isIccSink(apk: ApkGlobal, invNode: ICFGInvokeNode, ptaResult: PTAResult): Boolean = {
     var sinkFlag = false
     val calleeSet = invNode.getCalleeSet
-    calleeSet.foreach{
-      callee =>
-        if(InterComponentCommunicationModel.isIccOperation(callee.callee)){
-          sinkFlag = true
-        }
+    calleeSet.foreach{ callee =>
+      if(InterComponentCommunicationModel.isIccOperation(callee.callee)){
+        sinkFlag = true
+      }
     }
     sinkFlag
   }

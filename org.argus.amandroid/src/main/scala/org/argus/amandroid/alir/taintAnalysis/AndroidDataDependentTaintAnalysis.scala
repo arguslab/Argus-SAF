@@ -39,11 +39,10 @@ object AndroidDataDependentTaintAnalysis {
     def toTaintSimplePath: TaintSimplePath = {
       val source: TaintDescriptor = getSource.descriptor
       val sink: TaintDescriptor = getSink.descriptor
-      val path: IList[(TaintSimpleNode, TaintSimpleNode)] = getPath.map {
-        edge =>
-          val src = edge.source
-          val tar = edge.target
-          (TaintSimpleNode(src.getContext, src.getPosition), TaintSimpleNode(tar.getContext, tar.getPosition))
+      val path: IList[(TaintSimpleNode, TaintSimpleNode)] = getPath.map { edge =>
+        val src = edge.source
+        val tar = edge.target
+        (TaintSimpleNode(src.getContext, src.getPosition), TaintSimpleNode(tar.getContext, tar.getPosition))
       }
       TaintSimplePath(source, sink, path)
     }
@@ -54,9 +53,8 @@ object AndroidDataDependentTaintAnalysis {
       sb.append("\n")
       sb.append(srcN.descriptor + "\n\t-> " + sinN.descriptor + "\n")
       if(path.size > 1) {
-        path.tail.reverse.foreach{
-          edge =>
-            sb.append(edge.target + "\n\t-> ")
+        path.tail.reverse.foreach{ edge =>
+          sb.append(edge.target + "\n\t-> ")
         }
         sb.append(path.head.source + "\n")
       } else if(path.size == 1) {
@@ -72,7 +70,6 @@ object AndroidDataDependentTaintAnalysis {
     def getSourceNodes: ISet[TaintSource[Node]] = tars.map(_.getSourceNodes).fold(isetEmpty)(_ ++ _)
     def getSinkNodes: ISet[TaintSink[Node]] = tars.map(_.getSinkNodes).fold(isetEmpty)(_ ++ _)
     def getTaintedPaths: ISet[TaintPath[Node, InterProceduralDataDependenceAnalysis.Edge]] = tars.map(_.getTaintedPaths).fold(isetEmpty)(_ ++ _)
-    
   }
   
   case class Tar(iddi: InterProceduralDataDependenceInfo) extends TaintAnalysisResult[Node, InterProceduralDataDependenceAnalysis.Edge] {
@@ -82,31 +79,30 @@ object AndroidDataDependentTaintAnalysis {
     def getSinkNodes: ISet[TaintSink[Node]] = this.sinkNodes
     def getTaintedPaths: ISet[TaintPath[Node, InterProceduralDataDependenceAnalysis.Edge]] = {
       var tps: ISet[TaintPath[Node, InterProceduralDataDependenceAnalysis.Edge]] = isetEmpty
-      sinkNodes.foreach {
-        sinN =>
-          sourceNodes.foreach {
-            srcN =>
-              val path = iddi.getDependentPath(sinN.node, srcN.node)
-              if(path.nonEmpty){
-                val tp = Tp(path)
-                tp.srcN = srcN
-                tp.sinN = sinN
-                val srcTyp = srcN.descriptor.typ
-                val sinTyp = sinN.descriptor.typ
-                if(srcTyp == SourceAndSinkCategory.API_SOURCE || srcTyp == SourceAndSinkCategory.CALLBACK_SOURCE){
-                  if(sinTyp == SourceAndSinkCategory.API_SINK) tp.typs += AndroidProblemCategories.MAL_INFORMATION_LEAK
-                  else if(sinTyp == SourceAndSinkCategory.ICC_SINK) tp.typs += AndroidProblemCategories.VUL_INFORMATION_LEAK
-                } else if(srcTyp == SourceAndSinkCategory.ICC_SOURCE) {
-                  if(sinTyp == SourceAndSinkCategory.API_SINK) tp.typs += AndroidProblemCategories.VUL_CAPABILITY_LEAK
-                  else if(sinTyp == SourceAndSinkCategory.ICC_SINK) tp.typs += AndroidProblemCategories.VUL_CONFUSED_DEPUTY
-                } else if(srcTyp == SourceAndSinkCategory.STMT_SOURCE){
-                  if(sinTyp == SourceAndSinkCategory.API_SINK) tp.typs += AndroidProblemCategories.VUL_CAPABILITY_LEAK
-                  else if(sinTyp == SourceAndSinkCategory.ICC_SINK) tp.typs += AndroidProblemCategories.VUL_CONFUSED_DEPUTY
-                }
-                if(tp.typs.nonEmpty)
-                  tps += tp
-              }
+      sinkNodes.foreach { sinN =>
+        sourceNodes.foreach { srcN =>
+          val path = iddi.getDependentPath(sinN.node, srcN.node)
+          if(path.nonEmpty){
+            val tp = Tp(path)
+            tp.srcN = srcN
+            tp.sinN = sinN
+            val srcTyp = srcN.descriptor.typ
+            val sinTyp = sinN.descriptor.typ
+            if(srcTyp == SourceAndSinkCategory.API_SOURCE || srcTyp == SourceAndSinkCategory.CALLBACK_SOURCE){
+              if(sinTyp == SourceAndSinkCategory.API_SINK) tp.typs += AndroidProblemCategories.MAL_INFORMATION_LEAK
+              else if(sinTyp == SourceAndSinkCategory.ICC_SINK) tp.typs += AndroidProblemCategories.VUL_INFORMATION_LEAK
+            } else if(srcTyp == SourceAndSinkCategory.ICC_SOURCE) {
+              if(sinTyp == SourceAndSinkCategory.API_SINK) tp.typs += AndroidProblemCategories.VUL_CAPABILITY_LEAK
+              else if(sinTyp == SourceAndSinkCategory.ICC_SINK) tp.typs += AndroidProblemCategories.VUL_CONFUSED_DEPUTY
+            } else if(srcTyp == SourceAndSinkCategory.STMT_SOURCE){
+              if(sinTyp == SourceAndSinkCategory.API_SINK) tp.typs += AndroidProblemCategories.VUL_CAPABILITY_LEAK
+              else if(sinTyp == SourceAndSinkCategory.ICC_SINK) tp.typs += AndroidProblemCategories.VUL_CONFUSED_DEPUTY
+            }
+            if(tp.typs.nonEmpty) {
+              tps += tp
+            }
           }
+        }
       }
       tps
     }
@@ -114,7 +110,7 @@ object AndroidDataDependentTaintAnalysis {
     override def toString: String = {
       val sb = new StringBuilder
       val paths = getTaintedPaths
-      if(paths.nonEmpty){
+      if(paths.nonEmpty) {
         getTaintedPaths.foreach(tp => sb.append(tp.toString) + "\n")
       }
       sb.toString.intern()
@@ -138,19 +134,18 @@ object AndroidDataDependentTaintAnalysis {
         case _ =>
       }
     }
-    sinkNodes foreach {
-      sinN =>
-        sinN.node match {
-          case node: IDDGCallArgNode => extendIDDGForSinkApis(iddg, node, ptaResult)
-          case _ =>
-        }
+    sinkNodes foreach { sinN =>
+      sinN.node match {
+        case node: IDDGCallArgNode => extendIDDGForSinkApis(iddg, node, ptaResult)
+        case _ =>
+      }
     }
     val tar = Tar(iddi)
     tar.sourceNodes = sourceNodes
     tar.sinkNodes = sinkNodes
     
     val tps = tar.getTaintedPaths
-    if(tps.nonEmpty){
+    if(tps.nonEmpty) {
       System.err.println(TITLE + " found " + tps.size + s" path${if(tps.size > 1)"s" else ""}.")
       System.err.println(tar.toString)
     }
@@ -159,12 +154,12 @@ object AndroidDataDependentTaintAnalysis {
   
   private def extendIDDGForSinkApis(iddg: DataDependenceBaseGraph[InterProceduralDataDependenceAnalysis.Node], callArgNode: IDDGCallArgNode, ptaresult: PTAResult): Unit = {
     val calleeSet = callArgNode.getCalleeSet
-    calleeSet.foreach{ _ =>
+    calleeSet.foreach { _ =>
       val argSlot = VarSlot(callArgNode.argName)
       val argValue = ptaresult.pointsToSet(callArgNode.getContext, argSlot)
       val argRelatedValue = ptaresult.getRelatedHeapInstances(callArgNode.getContext, argValue)
       argRelatedValue.foreach{ ins =>
-        if(ins.defSite != callArgNode.getContext){
+        if(ins.defSite != callArgNode.getContext) {
           iddg.findDefSite(ins.defSite) match {
             case Some(t) => iddg.addEdge(callArgNode.asInstanceOf[Node], t)
             case None =>
