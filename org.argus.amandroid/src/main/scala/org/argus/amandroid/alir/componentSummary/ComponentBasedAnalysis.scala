@@ -48,7 +48,7 @@ object ComponentBasedAnalysis {
             apk.model.getEnvMap.get(component) match {
               case Some((esig, _)) =>
                 val ep = apk.getMethod(esig).get
-                implicit val heap = new SimHeap
+                implicit val heap: SimHeap = new SimHeap
                 val initialfacts = AndroidReachingFactsAnalysisConfig.getInitialFactsForMainEnvironment(ep)
                 val icfg = new InterProceduralControlFlowGraph[ICFGNode]
                 val ptaresult = new PTAResult

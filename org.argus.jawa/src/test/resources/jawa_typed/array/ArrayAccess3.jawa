@@ -1,0 +1,28 @@
+record `com.fgwei.ArrayAccess3`  @kind class @AccessFlag PUBLIC {
+   }
+    procedure `java.lang.String` `com.fgwei.ArrayAccess3.main` () @owner ^`com.fgwei.ArrayAccess3` @signature `Lcom/fgwei/ArrayAccess3;.main:()Ljava/lang/String;` @AccessFlag PUBLIC_STATIC {
+      `int` int_v1;
+      `java.lang.String`[] String_arr1_v1;
+      `int` int_v2;
+      `int` int_v3;
+      `java.lang.String` String_v3;
+      `java.lang.String` String_v4;
+      `int` int_v5;
+      
+#L026e38.   int_v5:= 2I;
+#L026e3a.   int_v2:= 0I;
+#L026e42.   int_v1:= 2130903040I;
+#L026e4c.   int_v1:= 3I;
+#L026e4e.   String_arr1_v1:= new `java.lang.String`[int_v1];
+#L026e5a.   int_v3:= 0I;
+#L026e5c.   String_v4:= "element 1 is tainted:" @kind object;
+#L026e60.   String_arr1_v1[int_v3]:= String_v4  @kind object;
+#L026e68.   int_v3:= 1I  @kind int;
+#L026e6a.   String_v4:= "phone" @kind object;
+#L026e82.   String_arr1_v1[int_v3]:= String_v4  @kind object;
+#L026e8a.   String_v4:= "neutral text" @kind object;
+#L026e8e.   String_arr1_v1[int_v5]:= String_v4  @kind object;
+#L026ea2.   String_v3:= String_arr1_v1[int_v5]  @kind object;
+#L026eb0.   return String_v3 @kind object ;
+
+   }

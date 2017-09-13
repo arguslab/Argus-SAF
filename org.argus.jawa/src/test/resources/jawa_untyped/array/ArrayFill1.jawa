@@ -1,0 +1,23 @@
+record `com.fgwei.ArrayFill1`  @kind class @AccessFlag PUBLIC {
+   }
+    procedure `byte`[] `com.fgwei.ArrayFill1.main` () @owner ^`com.fgwei.ArrayFill1` @signature `Lcom/fgwei/ArrayFill1;.main:()[B` @AccessFlag PUBLIC_STATIC {
+      v0;
+      v1;
+      v2;
+      
+#L015c84.   v0:= 2I;
+#L015c86.   v0:= new `byte`[v0];
+#L015c8a.   goto L015ca8;
+#L015c90.   v1 := v0  @kind object;
+#L015c94.   v0:= 64I;
+#L015c98.   v0:= new `char`[v0];
+#L015c9c.   goto L015cb4;
+#L015ca2.   v2 := v0  @kind object;
+#L015ca6.   return v1 @kind object;
+#L015ca8.   v0:= () @kind object;
+#L015ca9.   goto L015c90;
+#L015cb2.   
+#L015cb4.   v0:= (65, 66, 67) @kind object;
+#L015cb5.   goto L015ca2;
+
+   }
