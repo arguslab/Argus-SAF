@@ -158,7 +158,7 @@ class JawaCodegenTest extends FlatSpec with Matchers {
 
   private def parser(s: Either[String, SourceFile], reporter: PrintReporter) = new JawaParser(JawaLexer.tokenise(s, reporter).toArray, reporter)
 
-  private def genCode(s: SourceFile) = {
+  private def genCode(s: SourceFile): Unit = {
     val newcode = s.code
     val reporter = if(DEBUG) new PrintReporter(MsgLevel.INFO) else new PrintReporter(MsgLevel.NO)
     val cu = parser(Left(newcode), reporter).compilationUnit(true)
@@ -182,7 +182,7 @@ class JawaCodegenTest extends FlatSpec with Matchers {
     }
   }
 
-  private def printCode(s: SourceFile) = {
+  private def printCode(s: SourceFile): Unit = {
     val newcode = s.code
     val reporter = if(DEBUG) new PrintReporter(MsgLevel.INFO) else new PrintReporter(MsgLevel.NO)
     val global = new Global("JawaCodegenTest", reporter)

@@ -247,7 +247,7 @@ class IntentWuTest extends FlatSpec with Matchers {
           ConsoleProgressBar.on(System.out).withFormat("[:bar] :percent% :elapsed ETA: :eta"))
         val store: PTStore = new PTStore
 
-        val (_, (sig, _)) = apk.model.getEnvMap.find{case (comp, _) =>
+        val (_, (sig, _)) = apk.model.getEnvMap.find{ case (comp, _) =>
           comp.toString.endsWith(".MainActivity")
         }.get
         val cg = SignatureBasedCallGraph(apk, Set(sig), None)

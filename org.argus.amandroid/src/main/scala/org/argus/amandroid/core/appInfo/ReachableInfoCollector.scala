@@ -130,7 +130,7 @@ class ReachableInfoCollector(val global: Global, entryPointTypes: ISet[JawaType]
   /**
     * Analyzes the given class to find callback methods
     */
-  private def collectCallbackMethodsInAppSource() = {
+  private def collectCallbackMethodsInAppSource(): Unit = {
     // Check for callback handlers implemented via interfaces
     this.reachableMap.foreach { case (lifecycleElement, sigs) =>
       analyzeReachableMethods(sigs, lifecycleElement)

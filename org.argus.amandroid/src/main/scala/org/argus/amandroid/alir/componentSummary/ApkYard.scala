@@ -35,8 +35,9 @@ class ApkYard(val reporter: Reporter) {
     ApkDecompiler.decompile(apkUri, settings)
     val apk = new ApkGlobal(ApkModel(apkUri, settings.strategy.layout), reporter)
     apk.load()
-    if(collectInfo)
+    if(collectInfo) {
       AppInfoCollector.collectInfo(apk)
+    }
     addApk(apk)
     apk
   }
