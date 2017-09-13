@@ -1,0 +1,25 @@
+record `com.fgwei.ArrayFill2`  @kind class @AccessFlag PUBLIC {
+   }
+    procedure `char`[] `com.fgwei.ArrayFill2.main` () @owner ^`com.fgwei.ArrayFill2` @signature `Lcom/fgwei/ArrayFill2;.main:()[C` @AccessFlag PUBLIC_STATIC {
+      `int` int_v0;
+      `byte`[] byte_arr1_v0;
+      `char`[] char_arr1_v0;
+      `byte`[] byte_arr1_v1;
+      `char`[] char_arr1_v2;
+      
+#L015c84.   int_v0:= 2I  @kind int;
+#L015c86.   byte_arr1_v0:= new `byte`[int_v0];
+#L015c8a.   goto L015ca8;
+#L015c90.   byte_arr1_v1 := byte_arr1_v0  @kind object;
+#L015c94.   int_v0:= 64I  @kind int;
+#L015c98.   char_arr1_v0:= new `char`[int_v0];
+#L015c9c.   goto L015cb4;
+#L015ca2.   char_arr1_v2 := char_arr1_v0  @kind object;
+#L015ca6.   return char_arr1_v2 @kind object;
+#L015ca8.   byte_arr1_v0:= () @kind object;
+#L015ca9.   goto L015c90;
+#L015cb2.   
+#L015cb4.   char_arr1_v0:= (65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 43, 47 )  @kind object;
+#L015cb5.   goto L015ca2;
+
+   }

@@ -1,0 +1,26 @@
+record `com.fgwei.Exceptions3`  @kind class @AccessFlag PUBLIC {
+   }
+    procedure `void` `com.fgwei.Exceptions3.<init>` (`com.fgwei.Exceptions3` v0 @kind this) @owner ^`com.fgwei.Exceptions3` @signature `Lcom/fgwei/Exceptions3;.<init>:()V` @AccessFlag PUBLIC_CONSTRUCTOR {
+      
+#L00e344.   call `java.lang.Object.<init>`(v0) @signature `Ljava/lang/Object;.<init>:()V` @classDescriptor ^`java.lang.Object` @kind direct;
+#L00e34a.   return  @kind void;
+
+   }
+    procedure `int` `com.fgwei.Exceptions3.main` () @owner ^`com.fgwei.Exceptions3` @signature `Lcom/fgwei/Exceptions3;.main:()I` @AccessFlag PUBLIC_STATIC {
+      `java.lang.RuntimeException` RuntimeException_v1;
+      `int` int_v2;
+      `java.lang.Exception` Exception_v6;
+      
+#L02c16c.   int_v2:= 0I;
+#L02c16d.   if int_v2 > 0 then goto L02c1a5;
+#L02c19a.   RuntimeException_v1:= new `java.lang.RuntimeException`;
+#L02c19e.   call `java.lang.RuntimeException.<init>`(RuntimeException_v1) @signature `Ljava/lang/RuntimeException;.<init>:()V` @classDescriptor ^`java.lang.RuntimeException` @kind direct;
+#L02c1a4.   throw RuntimeException_v1;
+#L02c1a5.   int_v2:= 3I;
+#L02c1a6.   return int_v2 ;
+#L02c1a7.   Exception_v6:= Exception  @kind object;
+#L02c1b0.   int_v2:= 1I;
+#L02c1b1.   goto L02c1a6;
+  catch  `java.lang.RuntimeException` @[L02c19a..L02c1a6] goto L02c1a7;
+
+   }

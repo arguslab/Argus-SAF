@@ -1,0 +1,18 @@
+record `com.fgwei.ArrayAccess1`  @kind class @AccessFlag PUBLIC {
+   }
+    procedure `int` `com.fgwei.ArrayAccess1.main` () @owner ^`com.fgwei.ArrayAccess1` @signature `Lcom/fgwei/ArrayAccess1;.main:()I` @AccessFlag PUBLIC_STATIC {
+        `int` int_v0;
+        `int` int_v1;
+        `int`[] int_arr1_v1;
+        `int` int_v2;
+        `int` int_v3;
+      
+#L026e42.   int_v2:= 2130903040I ;
+#L026e4c.   int_v1:= 3I ;
+#L026e4e.   int_arr1_v1:= new `int`[int_v1];
+#L026e5a.   int_v3:= 0I ;
+#L026e60.   int_arr1_v1[int_v3]:= int_v2 ;
+#L026ea2.   int_v3:= int_arr1_v1[int_v3] ;
+#L026eb0.   return int_v3;
+
+   }

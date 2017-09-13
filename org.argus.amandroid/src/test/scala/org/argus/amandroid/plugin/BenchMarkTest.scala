@@ -281,8 +281,9 @@ class BenchMarkTest extends FlatSpec with Matchers {
     AndroidReachingFactsAnalysisConfig.resolve_static_init = true
     Context.init_context_length(0)
     val res = TaintAnalysisTask(TaintAnalysisModules.DATA_LEAKAGE, fileUris, outputUri, forceDelete = true, reporter).run
-    if(!DEBUG)
+    if(!DEBUG) {
       ConverterUtil.cleanDir(outputUri)
+    }
     res
   }
 }
