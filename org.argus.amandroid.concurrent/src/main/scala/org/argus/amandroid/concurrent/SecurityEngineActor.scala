@@ -78,7 +78,7 @@ class SecurityEngineActor extends Actor with ActorLogging {
           val tar = cba.phase3(iddResult, ssm)
           tar match {
             case Some(tres) =>
-              Staging.stageTaintAnalysisResult(tres.toTaintAnalysisSimpleResult, apk.model.layout.outputSrcUri)
+              Staging.stageTaintAnalysisResult(tres, apk.model.layout.outputSrcUri)
               res = SecurityEngineSuccResult(secdata.ptar.fileUri, Some(TaintAnalysisResult(apk.model.layout.outputSrcUri)))
             case None =>
               res = SecurityEngineSuccResult(secdata.ptar.fileUri, None)

@@ -16,16 +16,31 @@ import java.io.FileReader
 import java.util.regex.Pattern
 import java.util.regex.Matcher
 
-import org.argus.jawa.alir.InterProceduralNode
+import org.argus.jawa.alir.controlFlowGraph._
 import org.argus.jawa.alir.pta.PTAResult
 import org.argus.jawa.compiler.parser.Location
 import org.argus.jawa.core.{Global, Signature}
+
+/**
+  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
+  * @author <a href="mailto:sroy@k-state.edu">Sankardas Roy</a>
+  */
+object SourceAndSinkCategory {
+  final val STMT_SOURCE = "stmt_source"
+  final val STMT_SINK = "stmt_sink"
+  final val API_SOURCE = "api_source"
+  final val API_SINK = "api_sink"
+  final val ENTRYPOINT_SOURCE = "entrypoint_source"
+  final val CONDITIONAL_SINK = "conditional_sink"
+  final val CALLBACK_SOURCE = "callback_source"
+}
 
 /**
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
  * @author <a href="mailto:sroy@k-state.edu">Sankardas Roy</a>
  */ 
 trait SourceAndSinkManager[T<: Global] {
+//  private final val TITLE: String = "SourceAndSinkManager"
   def sasFilePath: String
   /**
    * it's a map from source API sig to it's category
@@ -59,12 +74,102 @@ trait SourceAndSinkManager[T<: Global] {
     this.sinks += (sink -> (positions, tags))
   }
   
-  def getSourceAndSinkNode[N <: InterProceduralNode](global: T, node: N, ptaResult: PTAResult): (ISet[TaintSource[N]], ISet[TaintSink[N]])
-  def isSource(global: T, loc: Location, ptaresult: PTAResult): Boolean
-  def isSource(global: T, calleeSig: Signature, callerSig: Signature, callerLoc: Location): Boolean
-  def isSourceMethod(global: T, procedureSig: Signature): Boolean
-  def isSink(global: T, loc: Location, ptaresult: PTAResult): Boolean
-  def isSink(global: T, procedureSig: Signature): Boolean
+  def getSourceAndSinkNode(global: T, node: ICFGNode, pos: Option[Int], ptaresult: PTAResult): (ISet[TaintSource], ISet[TaintSink]) = {
+    val sources = msetEmpty[TaintSource]
+    val sinks = msetEmpty[TaintSink]
+    node match {
+      case invNode: ICFGInvokeNode =>
+        val calleeSet = invNode.getCalleeSet
+        calleeSet.foreach{ callee =>
+          val calleeSig = callee.callee
+          invNode match {
+            case _: ICFGCallNode =>
+              global.getMethod(invNode.getOwner) match {
+                case Some(caller) =>
+                  val jumpLoc = caller.getBody.resolvedBody.locations(invNode.locIndex)
+                  if(pos.isEmpty && (this.isSourceMethod(global, calleeSig) || this.isUISource(global, calleeSig, invNode.getOwner, jumpLoc))){
+                    val tn = TaintSource(TaintNode(invNode, pos), TypeTaintDescriptor(calleeSig.signature, None, SourceAndSinkCategory.API_SOURCE))
+                    sources += tn
+                  }
+                case None =>
+              }
+            case _ =>
+          }
+
+          invNode match {
+            case _: ICFGCallNode if this.isSinkMethod(global, calleeSig) =>
+              val poss = this.sinks.filter(sink => matches(global, calleeSig, sink._1)).map(_._2._1).fold(isetEmpty)(iunion)
+              pos match {
+                case Some(position) =>
+                  if (poss.isEmpty || poss.contains(position)) {
+                    val tn = TaintSink(TaintNode(invNode, pos), TypeTaintDescriptor(calleeSig.signature, Some(position), SourceAndSinkCategory.API_SINK))
+                    sinks += tn
+                  }
+                case None =>
+              }
+            case _ =>
+          }
+          invNode match {
+            case node: ICFGCallNode if this.isConditionalSink(global, node, pos, ptaresult) =>
+              val tn = TaintSink(TaintNode(invNode, pos), TypeTaintDescriptor(invNode.locUri, pos, SourceAndSinkCategory.CONDITIONAL_SINK))
+              sinks += tn
+            case _ =>
+          }
+        }
+      case entNode: ICFGEntryNode =>
+        if(this.isEntryPointSource(global, entNode)){
+          val tn = TaintSource(TaintNode(entNode, pos), TypeTaintDescriptor(entNode.getOwner.signature, None, SourceAndSinkCategory.ENTRYPOINT_SOURCE))
+          sources += tn
+        }
+        if(pos.isDefined && pos.get > 0 && this.isCallbackSource(global, entNode.getOwner, pos.get - 1)){
+          val tn = TaintSource(TaintNode(entNode, pos), TypeTaintDescriptor(entNode.getOwner.signature, None, SourceAndSinkCategory.CALLBACK_SOURCE))
+          sources += tn
+        }
+      case normalNode: ICFGNormalNode =>
+        val owner = global.getMethod(normalNode.getOwner).get
+        val loc = owner.getBody.resolvedBody.locations(normalNode.locIndex)
+        if(this.isStmtSource(global, loc, ptaresult)){
+          val tn = TaintSource(TaintNode(normalNode, pos), TypeTaintDescriptor(normalNode.getOwner.signature, None, SourceAndSinkCategory.STMT_SOURCE))
+          sources += tn
+        }
+        if(this.isStmtSink(global, loc, ptaresult)){
+          val tn = TaintSink(TaintNode(normalNode, pos), TypeTaintDescriptor(normalNode.getOwner.signature, None, SourceAndSinkCategory.STMT_SINK))
+          sinks += tn
+        }
+      case _ =>
+    }
+    (sources.toSet, sinks.toSet)
+  }
+
+  protected def matches(global: Global, sig1: Signature, methodPool: ISet[Signature]): Boolean = methodPool.exists{
+    sig2 =>
+      val clazz1 = global.getClassOrResolve(sig1.classTyp)
+      val typ2 = sig2.classTyp
+      sig1.getSubSignature == sig2.getSubSignature &&
+        (clazz1.typ == typ2 || clazz1.isChildOf(typ2) || clazz1.isImplementerOf(typ2))
+  }
+
+  protected def matches(global: Global, sig1: Signature, sig2: Signature): Boolean = {
+    val clazz1 = global.getClassOrResolve(sig1.classTyp)
+    val typ2 = sig2.classTyp
+    sig1.getSubSignature == sig2.getSubSignature &&
+      (clazz1.typ == typ2 || clazz1.isChildOf(typ2) || clazz1.isImplementerOf(typ2))
+  }
+
+  def isStmtSource(global: T, loc: Location, ptaresult: PTAResult): Boolean
+  def isStmtSink(global: T, loc: Location, ptaresult: PTAResult): Boolean
+
+  def isSourceMethod(apk: T, sig: Signature): Boolean = matches(apk, sig, this.sources.keySet.toSet)
+
+  def isSinkMethod(apk: T, sig: Signature): Boolean = {
+    matches(apk, sig, this.sinks.keySet.toSet)
+  }
+
+  def isUISource(apk: T, calleeSig: Signature, callerSig: Signature, callerLoc: Location): Boolean
+  def isCallbackSource(apk: T, sig: Signature, pos: Int): Boolean = false
+
+  def isEntryPointSource(apk: T, entNode: ICFGNode): Boolean
+  def isConditionalSink(apk: T, invNode: ICFGInvokeNode, pos: Option[Int], s: PTAResult): Boolean
 }
 
 /**

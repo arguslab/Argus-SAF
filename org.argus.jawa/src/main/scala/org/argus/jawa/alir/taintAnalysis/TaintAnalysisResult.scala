@@ -10,9 +10,8 @@
 
 package org.argus.jawa.alir.taintAnalysis
 
-import org.argus.jawa.alir.{AlirEdge, Context, InterProceduralNode}
-import org.argus.jawa.core.util.ISet
-import org.argus.jawa.core.util.IList
+import org.argus.jawa.alir.controlFlowGraph.ICFGNode
+import org.argus.jawa.core.util._
 
 /**
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
@@ -39,67 +38,37 @@ case class TagTaintDescriptor(desc: String, positions: ISet[Int], typ: String, t
   override def toString: String = s"$typ: $desc ${positions.mkString("|")} ${tags.mkString("|")}"
 }
 
-/**
- * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
- * @author <a href="mailto:sroy@k-state.edu">Sankardas Roy</a>
- */
-case class TaintSource[N <: InterProceduralNode](node: N, descriptor: TaintDescriptor) {
-  def isSource = true
-  def isSink = false
-  def isSame(tn: TaintSource[N]): Boolean = descriptor == tn.descriptor && node.getContext.getCurrentLocUri == node.getContext.getCurrentLocUri
-}
+case class TaintNode(node: ICFGNode, pos: Option[Int])
 
 /**
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
  * @author <a href="mailto:sroy@k-state.edu">Sankardas Roy</a>
  */
-case class TaintSink[N <: InterProceduralNode](node: N, descriptor: TaintDescriptor) {
-  def isSource = false
-  def isSink = true
-  def isSame(tn: TaintSink[N]): Boolean = descriptor == descriptor && node.getContext.getCurrentLocUri == node.getContext.getCurrentLocUri
-}
+case class TaintSource(node: TaintNode, descriptor: TaintDescriptor)
+
+/**
+ * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
+ * @author <a href="mailto:sroy@k-state.edu">Sankardas Roy</a>
+ */
+case class TaintSink(node: TaintNode, descriptor: TaintDescriptor)
 
 /**
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
  * @author <a href="mailto:sroy@k-state.edu">Sankardas Roy</a>
  */ 
-trait TaintPath[N <: InterProceduralNode, E <: AlirEdge[N]] {
-  def getSource: TaintSource[N]
-  def getSink: TaintSink[N]
+trait TaintPath {
+  def getSource: TaintSource
+  def getSink: TaintSink
   def getTypes: ISet[String]
-  def getPath: IList[E]
-  def isSame(tp: TaintPath[N, E]): Boolean
-  def toTaintSimplePath: TaintSimplePath
+  def getPath: IList[(TaintNode, TaintNode)]
 }
 
 /**
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
  * @author <a href="mailto:sroy@k-state.edu">Sankardas Roy</a>
  */ 
-trait TaintAnalysisResult[N <: InterProceduralNode, E <: AlirEdge[N]] {
-  def getSourceNodes: ISet[TaintSource[N]]
-  def getSinkNodes: ISet[TaintSink[N]]
-  def getTaintedPaths: ISet[TaintPath[N, E]]
-  def toTaintAnalysisSimpleResult: TaintAnalysisSimpleResult = {
-    val sources: ISet[TaintDescriptor] = getSourceNodes.map(_.descriptor)
-    val sinks: ISet[TaintDescriptor] = getSinkNodes.map(_.descriptor)
-    val paths: ISet[TaintSimplePath] = getTaintedPaths.map {
-      path => path.toTaintSimplePath
-    }
-    TaintAnalysisSimpleResult(sources, sinks, paths)
-  }
+trait TaintAnalysisResult {
+  def getSourceNodes: ISet[TaintSource]
+  def getSinkNodes: ISet[TaintSink]
+  def getTaintedPaths: ISet[TaintPath]
 }
-
-/**
- * @author <a href="mailto:fwei@mail.usf.edu">Fengguo Wei</a>
- */ 
-case class TaintSimpleNode(context: Context, pos: Option[Int])
-/**
- * @author <a href="mailto:fwei@mail.usf.edu">Fengguo Wei</a>
- */ 
-case class TaintSimplePath(source: TaintDescriptor, sink: TaintDescriptor, path: IList[(TaintSimpleNode, TaintSimpleNode)])
-/**
- * @author <a href="mailto:fwei@mail.usf.edu">Fengguo Wei</a>
- */ 
-case class TaintAnalysisSimpleResult(sources: ISet[TaintDescriptor], sinks: ISet[TaintDescriptor], paths: ISet[TaintSimplePath])
-

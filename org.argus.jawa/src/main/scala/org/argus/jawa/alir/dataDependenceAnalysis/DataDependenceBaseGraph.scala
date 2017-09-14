@@ -23,9 +23,10 @@ trait DataDependenceBaseGraph[Node <: IDDGNode]
     extends AlirGraphImpl[Node]
     with AlirSuccPredAccesses[Node]
     with AlirEdgeAccesses[Node] {
+
   def entryNode: Node
   def icfg: InterProceduralControlFlowGraph[ICFGNode]
-  
+
   def findDefSite(defSite: Context, isRet: Boolean = false): Option[Node] = {
     val icfgN = {
       if(this.icfg.icfgNormalNodeExists(defSite)) this.icfg.getICFGNormalNode(defSite)
@@ -42,7 +43,7 @@ trait DataDependenceBaseGraph[Node <: IDDGNode]
       else None
     }
   }
-  
+
   def findVirtualBodyDefSite(defSite: Context): Option[Node] = {
     val icfgN = if(this.icfg.icfgCallNodeExists(defSite)) Some(this.icfg.getICFGCallNode(defSite)) else None
     icfgN match {
@@ -53,7 +54,7 @@ trait DataDependenceBaseGraph[Node <: IDDGNode]
       case _ => None
     }
   }
-  
+
   def findDefSite(defSite: Context, position: Int): Node = {
     val icfgN = {
       if(this.icfg.icfgCallNodeExists(defSite)) this.icfg.getICFGCallNode(defSite)
@@ -70,7 +71,32 @@ trait DataDependenceBaseGraph[Node <: IDDGNode]
       case _ => throw new RuntimeException("Cannot find node: " + icfgN + ":" + position)
     }
   }
-  
+
+  def getNode(icfgNode: ICFGNode, pos: Option[Int]): Node = {
+    icfgNode match {
+      case en: ICFGEntryNode =>
+        assert(pos.isDefined, "pos has to be set for getIDDGEntryParamNode.")
+        getIDDGEntryParamNode(en, pos.get)
+      case en: ICFGExitNode =>
+        assert(pos.isDefined, "pos has to be set for getIDDGEntryParamNode.")
+        getIDDGExitParamNode(en, pos.get)
+      case cn: ICFGCenterNode =>
+        getIDDGCenterNode(cn)
+      case cn: ICFGCallNode =>
+        pos match {
+          case Some(position) => getIDDGCallArgNode(cn, position)
+          case None => getIDDGVirtualBodyNode(cn)
+        }
+      case rn: ICFGReturnNode =>
+        pos match {
+          case Some(position) => getIDDGReturnArgNode(rn, position)
+          case None => getIDDGReturnVarNode(rn)
+        }
+      case nn: ICFGNormalNode => getIDDGNormalNode(nn)
+      case _ => throw new RuntimeException("Unexpected node type experienced: " + icfgNode)
+    }
+  }
+
   def iddgEntryParamNodeExists(icfgN: ICFGEntryNode, position: Int): Boolean = {
     graph.containsVertex(newIDDGEntryParamNode(icfgN, position).asInstanceOf[Node])
   }
@@ -89,7 +115,7 @@ trait DataDependenceBaseGraph[Node <: IDDGNode]
 
   def getIDDGEntryParamNode(icfgN: ICFGEntryNode, position: Int): Node =
     pool(newIDDGEntryParamNode(icfgN, position))
-    
+
   protected def newIDDGEntryParamNode(icfgN: ICFGEntryNode, position: Int) =
     IDDGEntryParamNode(icfgN, position)
   
@@ -111,10 +137,10 @@ trait DataDependenceBaseGraph[Node <: IDDGNode]
 
   def getIDDGExitParamNode(icfgN: ICFGExitNode, position: Int): Node =
     pool(newIDDGExitParamNode(icfgN, position))
-    
+
   protected def newIDDGExitParamNode(icfgN: ICFGExitNode, position: Int) =
     IDDGExitParamNode(icfgN, position)
-    
+
   def iddgCallArgNodeExists(icfgN: ICFGCallNode, position: Int): Boolean = {
     graph.containsVertex(newIDDGCallArgNode(icfgN, position).asInstanceOf[Node])
   }
@@ -133,7 +159,7 @@ trait DataDependenceBaseGraph[Node <: IDDGNode]
 
   def getIDDGCallArgNode(icfgN: ICFGCallNode, position: Int): Node =
     pool(newIDDGCallArgNode(icfgN, position))
-    
+
   def getIDDGCallArgNodes(icfgN: ICFGCallNode): IList[Node] = {
     val result: MList[Node] = mlistEmpty
     var position = 0
@@ -143,9 +169,9 @@ trait DataDependenceBaseGraph[Node <: IDDGNode]
     }
     result.toList
   }
-    
+
   protected def newIDDGCallArgNode(icfgN: ICFGCallNode, position: Int) = IDDGCallArgNode(icfgN, position)
-    
+
   def iddgReturnArgNodeExists(icfgN: ICFGReturnNode, position: Int): Boolean = {
     graph.containsVertex(newIDDGReturnArgNode(icfgN, position).asInstanceOf[Node])
   }
@@ -164,9 +190,9 @@ trait DataDependenceBaseGraph[Node <: IDDGNode]
 
   def getIDDGReturnArgNode(icfgN: ICFGReturnNode, position: Int): Node =
     pool(newIDDGReturnArgNode(icfgN, position))
-    
+
   protected def newIDDGReturnArgNode(icfgN: ICFGReturnNode, position: Int) = IDDGReturnArgNode(icfgN, position)
-    
+
   def iddgReturnVarNodeExists(icfgN: ICFGReturnNode): Boolean = {
     graph.containsVertex(newIDDGReturnVarNode(icfgN).asInstanceOf[Node])
   }

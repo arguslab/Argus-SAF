@@ -16,7 +16,6 @@ import java.util.zip.ZipEntry
 
 import org.argus.amandroid.alir.componentSummary.ComponentSummaryTable
 import org.argus.amandroid.core.model.ApkModel
-import org.argus.jawa.alir.{AlirEdge, InterProceduralNode}
 import org.argus.jawa.alir.dataDependenceAnalysis.InterProceduralDataDependenceInfo
 import org.argus.jawa.alir.dataFlowAnalysis.InterProceduralDataFlowGraph
 import org.argus.jawa.alir.taintAnalysis.TaintAnalysisResult
@@ -154,9 +153,9 @@ class ApkGlobal(val model: ApkModel, reporter: Reporter) extends Global(model.na
 
   private var apkTaintResult: Option[Any] = None
 
-  def addTaintAnalysisResult[N <: InterProceduralNode, E <: AlirEdge[N]](tar: TaintAnalysisResult[N, E]): Unit = this.synchronized(this.apkTaintResult = Some(tar))
+  def addTaintAnalysisResult(tar: TaintAnalysisResult): Unit = this.synchronized(this.apkTaintResult = Some(tar))
   def hasTaintAnalysisResult(fileUri: FileResourceUri): Boolean = this.apkTaintResult.contains(fileUri)
-  def getTaintAnalysisResult[N <: InterProceduralNode, E <: AlirEdge[N]](fileUri: FileResourceUri): Option[TaintAnalysisResult[N, E]] = this.apkTaintResult.map(_.asInstanceOf[TaintAnalysisResult[N, E]])
+  def getTaintAnalysisResult(fileUri: FileResourceUri): Option[TaintAnalysisResult] = this.apkTaintResult.map(_.asInstanceOf[TaintAnalysisResult])
 
 
   override def reset(removeCode: Boolean = true): Unit = {

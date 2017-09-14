@@ -15,21 +15,16 @@ import org.argus.amandroid.alir.taintAnalysis.AndroidSourceAndSinkManager
 import org.argus.amandroid.core.ApkGlobal
 import org.argus.jawa.alir.controlFlowGraph.{ICFGInvokeNode, ICFGNode}
 import org.argus.jawa.alir.pta.PTAResult
-import org.argus.jawa.compiler.parser.Location
-import org.argus.jawa.core._
 
 /**
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
  * @author <a href="mailto:sroy@k-state.edu">Sankardas Roy</a>
  */ 
 class IntentInjectionSourceAndSinkManager(sasFilePath: String) extends AndroidSourceAndSinkManager(sasFilePath){
-  
-  override def isSource(apk: ApkGlobal, calleeSig: Signature, callerSig: Signature, callerLoc: Location): Boolean = {
-    false
-  }
 
-  override def isIccSink(apk: ApkGlobal, invNode: ICFGInvokeNode, ptaResult: PTAResult): Boolean = {
+  override def isConditionalSink(apk: ApkGlobal, invNode: ICFGInvokeNode, pos: Option[Int], ptaResult: PTAResult): Boolean = {
     var sinkFlag = false
+    if(pos.isEmpty || pos.get !=1) return sinkFlag
     val calleeSet = invNode.getCalleeSet
     calleeSet.foreach{ callee =>
       if(InterComponentCommunicationModel.isIccOperation(callee.callee)){
@@ -39,7 +34,7 @@ class IntentInjectionSourceAndSinkManager(sasFilePath: String) extends AndroidSo
     sinkFlag
   }
 
-  override def isIccSource(apk: ApkGlobal, entNode: ICFGNode): Boolean = {
+  override def isEntryPointSource(apk: ApkGlobal, entNode: ICFGNode): Boolean = {
     apk.model.getEnvMap.exists{ case (_, (sig, _)) =>
       entNode.getOwner == sig && sig.methodName == "envMain"
     }

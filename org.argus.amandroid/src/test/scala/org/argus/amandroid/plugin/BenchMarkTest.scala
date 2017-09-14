@@ -11,10 +11,8 @@
 package org.argus.amandroid.plugin
 
 import org.argus.amandroid.alir.pta.reachingFactsAnalysis.AndroidReachingFactsAnalysisConfig
-import org.argus.amandroid.alir.taintAnalysis.AndroidDataDependentTaintAnalysis
 import org.argus.amandroid.core.decompile.ConverterUtil
 import org.argus.jawa.alir.Context
-import org.argus.jawa.alir.dataDependenceAnalysis.InterProceduralDataDependenceAnalysis
 import org.argus.jawa.alir.taintAnalysis.TaintAnalysisResult
 import org.argus.jawa.core.{MsgLevel, PrintReporter}
 import org.scalatest.{FlatSpec, Matchers}
@@ -270,11 +268,11 @@ class BenchMarkTest extends FlatSpec with Matchers {
     assert(res.isDefined && res.get.getTaintedPaths.size == 1)
   }
 
-  private def taintAnalysis(apkFile: String): Option[TaintAnalysisResult[AndroidDataDependentTaintAnalysis.Node, InterProceduralDataDependenceAnalysis.Edge]] = {
+  private def taintAnalysis(apkFile: String): Option[TaintAnalysisResult] = {
     taintAnalysis(Set(apkFile))
   }
 
-  private def taintAnalysis(apkFiles: Set[String]): Option[TaintAnalysisResult[AndroidDataDependentTaintAnalysis.Node, InterProceduralDataDependenceAnalysis.Edge]] = {
+  private def taintAnalysis(apkFiles: Set[String]): Option[TaintAnalysisResult] = {
     val fileUris = apkFiles.map(FileUtil.toUri)
     val outputUri = FileUtil.toUri(apkFiles.head.substring(0, apkFiles.head.length - 4))
     val reporter = if(DEBUG) new PrintReporter(MsgLevel.INFO) else new PrintReporter(MsgLevel.NO)

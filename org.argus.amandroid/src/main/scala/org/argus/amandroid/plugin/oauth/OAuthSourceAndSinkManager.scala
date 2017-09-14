@@ -18,19 +18,14 @@ import org.argus.jawa.alir.controlFlowGraph.{ICFGInvokeNode, ICFGNode}
 import org.argus.jawa.alir.pta.{PTAResult, VarSlot}
 import org.argus.jawa.compiler.parser.{AssignmentStatement, CallStatement, LiteralExpression, Location}
 import org.argus.jawa.core.util._
-import org.argus.jawa.core._
 
 /**
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
  * @author <a href="mailto:sroy@k-state.edu">Sankardas Roy</a>
  */ 
 class OAuthSourceAndSinkManager(sasFilePath: String) extends AndroidSourceAndSinkManager(sasFilePath){
-  
-//  private final val TITLE = "OAuthSourceAndSinkManager"
-    
-  override def isSource(apk: ApkGlobal, calleeSig: Signature, callerSig: Signature, callerLoc: Location) = false
 
-  override def isSource(apk: ApkGlobal, loc: Location, ptaresult: PTAResult): Boolean = {
+  override def isStmtSource(apk: ApkGlobal, loc: Location, ptaresult: PTAResult): Boolean = {
     var flag = false
     val visitor = Visitor.build({
       case as: AssignmentStatement =>
@@ -50,8 +45,9 @@ class OAuthSourceAndSinkManager(sasFilePath: String) extends AndroidSourceAndSin
     flag
   }
 
-  def isIccSink(apk: ApkGlobal, invNode: ICFGInvokeNode, ptaresult: PTAResult): Boolean = {
+  def isConditionalSink(apk: ApkGlobal, invNode: ICFGInvokeNode, pos: Option[Int], ptaresult: PTAResult): Boolean = {
     var sinkflag = false
+    if(pos.isEmpty || pos.get !=1) return sinkflag
     val calleeSet = invNode.getCalleeSet
     calleeSet.foreach{ callee =>
       if(InterComponentCommunicationModel.isIccOperation(callee.callee)){
@@ -78,7 +74,7 @@ class OAuthSourceAndSinkManager(sasFilePath: String) extends AndroidSourceAndSin
     sinkflag
   }
 
-	def isIccSource(apk: ApkGlobal, entNode: ICFGNode): Boolean = {
+	def isEntryPointSource(apk: ApkGlobal, entNode: ICFGNode): Boolean = {
 	  false
 	}
 	
