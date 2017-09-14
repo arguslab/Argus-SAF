@@ -14,14 +14,13 @@ import java.io.PrintWriter
 
 import org.argus.amandroid.alir.componentSummary.{ApkYard, ComponentBasedAnalysis}
 import org.argus.amandroid.alir.dataRecorder.DataCollector
-import org.argus.amandroid.alir.taintAnalysis.{AndroidDataDependentTaintAnalysis, DataLeakageAndroidSourceAndSinkManager}
+import org.argus.amandroid.alir.taintAnalysis.DataLeakageAndroidSourceAndSinkManager
 import org.argus.amandroid.core.AndroidGlobalConfig
 import org.argus.amandroid.core.decompile.{DecompileLayout, DecompileStrategy, DecompilerSettings}
 import org.argus.amandroid.plugin.communication.CommunicationSourceAndSinkManager
 import org.argus.amandroid.plugin.dataInjection.IntentInjectionSourceAndSinkManager
 import org.argus.amandroid.plugin.oauth.OAuthSourceAndSinkManager
 import org.argus.amandroid.plugin.password.PasswordSourceAndSinkManager
-import org.argus.jawa.alir.dataDependenceAnalysis.InterProceduralDataDependenceAnalysis
 import org.argus.jawa.alir.taintAnalysis.TaintAnalysisResult
 import org.argus.jawa.core.Reporter
 import org.argus.jawa.core.util.FileUtil
@@ -37,7 +36,7 @@ object TaintAnalysisModules extends Enumeration {
 case class TaintAnalysisTask(module: TaintAnalysisModules.Value, fileUris: ISet[FileResourceUri], outputUri: FileResourceUri, forceDelete: Boolean, reporter: Reporter) {
   import TaintAnalysisModules._
 //  private final val TITLE = "TaintAnalysisTask"
-  def run: Option[TaintAnalysisResult[AndroidDataDependentTaintAnalysis.Node, InterProceduralDataDependenceAnalysis.Edge]] = {
+  def run: Option[TaintAnalysisResult] = {
     val yard = new ApkYard(reporter)
     val layout = DecompileLayout(outputUri)
     val strategy = DecompileStrategy(layout)

@@ -35,7 +35,7 @@ import scala.concurrent.duration._
  */
 object ComponentBasedAnalysis {
   private final val TITLE = "ComponentBasedAnalysis"
-  private final val DEBUG = false
+  private final val DEBUG = true
   def prepare(apks: ISet[ApkGlobal])(implicit timeout: FiniteDuration): Unit = {
     AndroidReachingFactsAnalysisConfig.resolve_icc = false // We don't want to resolve ICC at this phase
     apks.foreach { apk =>
@@ -133,7 +133,7 @@ class ComponentBasedAnalysis(yard: ApkYard) {
     (apks, new DefaultInterProceduralDataDependenceInfo(mddg))
   }
   
-  def phase3(iddResult: (ISet[ApkGlobal], InterProceduralDataDependenceInfo), ssm: AndroidSourceAndSinkManager): Option[TaintAnalysisResult[AndroidDataDependentTaintAnalysis.Node, InterProceduralDataDependenceAnalysis.Edge]] = {
+  def phase3(iddResult: (ISet[ApkGlobal], InterProceduralDataDependenceInfo), ssm: AndroidSourceAndSinkManager): Option[TaintAnalysisResult] = {
     val apks = iddResult._1
     val components: ISet[Component] = apks.flatMap { apk =>
       (apk.model.getComponents -- problematicComp(apk.nameUri)).map(Component(apk, _))

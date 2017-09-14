@@ -18,7 +18,6 @@ import org.argus.jawa.alir.controlFlowGraph.{ICFGInvokeNode, ICFGNode}
 import org.argus.jawa.alir.pta.{PTAResult, VarSlot}
 import org.argus.jawa.compiler.parser.{AssignmentStatement, CallStatement, LiteralExpression, Location}
 import org.argus.jawa.core.util._
-import org.argus.jawa.core._
 
 /**
  * @author Fengchi Lin
@@ -27,10 +26,8 @@ import org.argus.jawa.core._
 class CommunicationSourceAndSinkManager(sasFilePath: String) extends AndroidSourceAndSinkManager(sasFilePath){
   
 //  private final val TITLE = "CommunicationSourceAndSinkManager"
-    
-  override def isSource(apk: ApkGlobal, calleeSig: Signature, callerSig: Signature, callerLoc: Location) = false
 
-  override def isSource(apk: ApkGlobal, loc: Location, ptaresult: PTAResult): Boolean = {
+  override def isStmtSource(apk: ApkGlobal, loc: Location, ptaresult: PTAResult): Boolean = {
     var flag = false
     val visitor = Visitor.build({
       case as: AssignmentStatement =>
@@ -57,8 +54,9 @@ class CommunicationSourceAndSinkManager(sasFilePath: String) extends AndroidSour
     flag
   }
 
-  def isIccSink(apk: ApkGlobal, invNode: ICFGInvokeNode, ptaResult: PTAResult): Boolean = {
+  def isConditionalSink(apk: ApkGlobal, invNode: ICFGInvokeNode, pos: Option[Int], ptaResult: PTAResult): Boolean = {
     var sinkflag = false
+    if(pos.isEmpty || pos.get !=1) return sinkflag
     val calleeSet = invNode.getCalleeSet
     calleeSet.foreach{ callee =>
       if(InterComponentCommunicationModel.isIccOperation(callee.callee)){
@@ -85,7 +83,7 @@ class CommunicationSourceAndSinkManager(sasFilePath: String) extends AndroidSour
     sinkflag
   }
 
-	def isIccSource(apk: ApkGlobal, entNode: ICFGNode): Boolean = {
+	def isEntryPointSource(apk: ApkGlobal, entNode: ICFGNode): Boolean = {
 	  false
 	}
 	

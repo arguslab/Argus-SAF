@@ -24,8 +24,7 @@ class TaintWu[T <: Global](
     method: JawaMethod,
     sm: SummaryManager,
     handler: ModelCallHandler,
-    store: PTStore,
-    ssm: SourceAndSinkManager[T])(implicit heap: SimHeap) extends PointsToWu(method, sm, handler, store) {
+    ssm: SourceAndSinkManager[T])(implicit heap: SimHeap) extends DataFlowWu(method, sm, handler) {
 
   override def processNode(node: ICFGLocNode, rules: MList[SummaryRule]): Unit = {
     val l = method.getBody.resolvedBody.location(node.locIndex)
@@ -35,7 +34,7 @@ class TaintWu[T <: Global](
         val trackedSlots: MSet[(PTASlot, Boolean)] = msetEmpty
         val intentSlot = VarSlot(cs.rhs.argClause.arg(1))
         trackedSlots += ((intentSlot, true))
-        pointsToResolve(context) = trackedSlots.toSet
+//        pointsToResolve(context) = trackedSlots.toSet
       case _ =>
     }
     super.processNode(node, rules)

@@ -36,7 +36,7 @@ trait AlirGraphImpl[N <: AlirNode] extends AlirGraph[N] {
 
   def pool: MMap[AlirNode, N] = pl
 
-  protected val vIDProvider = new ComponentNameProvider[N]() {
+  protected val vIDProvider: ComponentNameProvider[N] = new ComponentNameProvider[N]() {
     def filterLabel(uri: String): String = {
       uri.filter(_.isUnicodeIdentifierPart)  // filters out the special characters like '/', '.', '%', etc.
     }
@@ -46,7 +46,7 @@ trait AlirGraphImpl[N <: AlirNode] extends AlirGraph[N] {
     }
   }
 
-  protected val eIDProvider = new ComponentNameProvider[Edge]() {
+  protected val eIDProvider: ComponentNameProvider[Edge] = new ComponentNameProvider[Edge]() {
     def filterLabel(uri: String): String = {
       uri.filter(_.isUnicodeIdentifierPart)  // filters out the special characters like '/', '.', '%', etc.
     }

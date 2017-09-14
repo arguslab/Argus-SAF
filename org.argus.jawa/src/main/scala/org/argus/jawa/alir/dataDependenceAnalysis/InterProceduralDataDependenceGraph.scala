@@ -21,9 +21,9 @@ class InterProceduralDataDependenceGraph[Node <: IDDGNode] extends DataDependenc
 
   protected var entryN: IDDGEntryNode = _
   def entryNode: Node = this.entryN.asInstanceOf[Node]
-  
+
   var icfg: InterProceduralControlFlowGraph[ICFGNode] = _
-  
+
 	def initGraph(global: Global, icfg: InterProceduralControlFlowGraph[ICFGNode]): Unit = {
     this.icfg = icfg
 	  icfg.nodes.foreach {
@@ -59,7 +59,8 @@ class InterProceduralDataDependenceGraph[Node <: IDDGNode] extends DataDependenc
 					n.asInstanceOf[IDDGExitParamNode].paramName = pnames(i)
 					position += 1
 				}
-			case _: ICFGCenterNode =>
+			case cn: ICFGCenterNode =>
+				addIDDGCenterNode(cn)
 			case cn: ICFGCallNode =>
 				for (i <- cn.argNames.indices) {
 					val argName = cn.argNames(i)

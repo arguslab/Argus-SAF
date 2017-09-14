@@ -19,7 +19,7 @@ import org.argus.amandroid.core.{AndroidConstants, ApkGlobal}
 import org.argus.jawa.core.util._
 import org.stringtemplate.v4.STGroupString
 import org.argus.amandroid.core.parser.{ComponentType, IntentFilter}
-import org.argus.jawa.alir.{AlirEdge, Context, InterProceduralNode}
+import org.argus.jawa.alir.Context
 import org.argus.jawa.alir.controlFlowGraph.ICFGCallNode
 import org.argus.jawa.alir.dataFlowAnalysis.InterProceduralDataFlowGraph
 import org.argus.jawa.alir.pta.VarSlot
@@ -104,7 +104,7 @@ object DataCollector {
       name: String, 
       uses_permissions: ISet[String],
       components: ISet[ComponentData],
-      taintResultOpt: Option[TaintAnalysisResult[InterProceduralNode, AlirEdge[InterProceduralNode]]]){
+      taintResultOpt: Option[TaintAnalysisResult]){
     override def toString: String = {
       val appData = template.getInstanceOf("AppData")
       appData.add("name", name)
@@ -157,14 +157,13 @@ object DataCollector {
             val pathString: util.ArrayList[String] = new util.ArrayList[String]
             val paths = taintPath.getPath
             if(paths.size > 1) {
-              paths.tail.foreach{
-                edge =>
-                  pathString.add(edge.target + "  ->")
+              paths.tail.foreach{ edge =>
+                  pathString.add(edge._2 + "  ->")
               }
-              pathString.add(paths.head.source.toString)
+              pathString.add(paths.head._1.toString)
             } else if(paths.size == 1) {
-              pathString.add(paths.head.target + "  ->")
-              pathString.add(paths.head.source.toString)
+              pathString.add(paths.head._2 + "  ->")
+              pathString.add(paths.head._1.toString)
             }
             path.add("path", pathString)
             pathStrings.add(path.render())
@@ -266,7 +265,7 @@ object DataCollector {
       val dynamicReg = apk.model.getDynamicRegisteredReceivers.contains(compTyp)
       ComponentData(compTyp.jawaName, typ, exported, dynamicReg, protectPermission, intentFilters, iccInfos)
     }
-    val taintResult: Option[TaintAnalysisResult[InterProceduralNode, AlirEdge[InterProceduralNode]]] = apk.getTaintAnalysisResult[InterProceduralNode, AlirEdge[InterProceduralNode]](apk.nameUri) match {
+    val taintResult: Option[TaintAnalysisResult] = apk.getTaintAnalysisResult(apk.nameUri) match {
       case a @ Some(_) => a
       case None => None
     }

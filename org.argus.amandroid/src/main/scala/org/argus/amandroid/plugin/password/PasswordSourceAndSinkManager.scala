@@ -45,8 +45,9 @@ class PasswordSourceAndSinkManager(sasFilePath: String) extends AndroidSourceAnd
     false
   }
 
-  def isIccSink(apk: ApkGlobal, invNode: ICFGInvokeNode, ptaResult: PTAResult): Boolean = {
+  def isConditionalSink(apk: ApkGlobal, invNode: ICFGInvokeNode, pos: Option[Int], ptaResult: PTAResult): Boolean = {
     var sinkflag = false
+    if(pos.isEmpty || pos.get !=1) return sinkflag
     val calleeSet = invNode.getCalleeSet
     calleeSet.foreach{
       callee =>
@@ -74,7 +75,7 @@ class PasswordSourceAndSinkManager(sasFilePath: String) extends AndroidSourceAnd
     sinkflag
   }
 
-  def isIccSource(apk: ApkGlobal, entNode: ICFGNode): Boolean = {
+  def isEntryPointSource(apk: ApkGlobal, entNode: ICFGNode): Boolean = {
     false
   }
 
