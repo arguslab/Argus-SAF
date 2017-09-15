@@ -10,33 +10,24 @@
 
 package org.argus.jawa.summary.wu
 
-import org.argus.jawa.alir.controlFlowGraph.ICFGLocNode
+import org.argus.jawa.alir.controlFlowGraph.ICFGNode
 import org.argus.jawa.alir.pta.model.ModelCallHandler
-import org.argus.jawa.alir.pta.{PTASlot, VarSlot}
 import org.argus.jawa.alir.pta.reachingFactsAnalysis.SimHeap
 import org.argus.jawa.alir.taintAnalysis.SourceAndSinkManager
-import org.argus.jawa.compiler.parser.CallStatement
 import org.argus.jawa.core.{Global, JawaMethod}
-import org.argus.jawa.core.util.{MList, MSet, msetEmpty}
+import org.argus.jawa.core.util._
 import org.argus.jawa.summary.{SummaryManager, SummaryRule}
 
 class TaintWu[T <: Global](
+    global: T,
     method: JawaMethod,
     sm: SummaryManager,
     handler: ModelCallHandler,
-    ssm: SourceAndSinkManager[T])(implicit heap: SimHeap) extends DataFlowWu(method, sm, handler) {
+    ssm: SourceAndSinkManager[T])(implicit heap: SimHeap) extends DataFlowWu[T](global, method, sm, handler) {
 
-  override def processNode(node: ICFGLocNode, rules: MList[SummaryRule]): Unit = {
-    val l = method.getBody.resolvedBody.location(node.locIndex)
-    val context = node.getContext
-    l.statement match {
-      case cs: CallStatement =>
-        val trackedSlots: MSet[(PTASlot, Boolean)] = msetEmpty
-        val intentSlot = VarSlot(cs.rhs.argClause.arg(1))
-        trackedSlots += ((intentSlot, true))
-//        pointsToResolve(context) = trackedSlots.toSet
-      case _ =>
-    }
+  override def processNode(node: ICFGNode, rules: MList[SummaryRule]): Unit = {
+    ssm.getSourceAndSinkNode(global, node, None, ptaresult)
+
     super.processNode(node, rules)
   }
 
