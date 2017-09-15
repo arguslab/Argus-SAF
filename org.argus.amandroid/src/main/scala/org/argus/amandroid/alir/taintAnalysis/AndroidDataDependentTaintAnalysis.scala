@@ -71,13 +71,13 @@ object AndroidDataDependentTaintAnalysis {
       sinkNodes.foreach { sinN =>
         sourceNodes.foreach { srcN =>
           val path = iddi.getDependentPath(iddi.getIddg.getNode(sinN.node.node, sinN.node.pos), iddi.getIddg.getNode(srcN.node.node, srcN.node.pos))
-          if(path.nonEmpty){
+          if(path.nonEmpty) {
             val tp = Tp(path)
             tp.srcN = srcN
             tp.sinN = sinN
             val srcTyp = srcN.descriptor.typ
             val sinTyp = sinN.descriptor.typ
-            if(srcTyp == SourceAndSinkCategory.API_SOURCE || srcTyp == SourceAndSinkCategory.CALLBACK_SOURCE){
+            if(srcTyp == SourceAndSinkCategory.API_SOURCE || srcTyp == SourceAndSinkCategory.CALLBACK_SOURCE) {
               if(sinTyp == SourceAndSinkCategory.API_SINK) tp.typs += AndroidProblemCategories.MAL_INFORMATION_LEAK
               else if(sinTyp == SourceAndSinkCategory.CONDITIONAL_SINK) tp.typs += AndroidProblemCategories.VUL_INFORMATION_LEAK
             } else if(srcTyp == SourceAndSinkCategory.ENTRYPOINT_SOURCE) {

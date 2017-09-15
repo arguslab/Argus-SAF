@@ -28,7 +28,8 @@ import org.argus.jawa.summary.susaf.rule._
 import scala.concurrent.duration._
 import scala.language.postfixOps
 
-trait WorkUnit {
+trait WorkUnit[T <: Global] {
+  val global: T
   val method: JawaMethod
   val sm: SummaryManager
 
@@ -56,12 +57,12 @@ trait WorkUnit {
   def finalFn(): Unit = {}
 }
 
-abstract class DataFlowWu(
+abstract class DataFlowWu[T <: Global] (
+    val global: T,
     val method: JawaMethod,
     val sm: SummaryManager,
-    handler: ModelCallHandler)(implicit heap: SimHeap) extends WorkUnit {
+    handler: ModelCallHandler)(implicit heap: SimHeap) extends WorkUnit[T] {
 
-  val global: Global = method.getDeclaringClass.global
   var resolve_static_init: Boolean = false
 
   // Summary based data-flow is context-insensitive
@@ -152,11 +153,7 @@ abstract class DataFlowWu(
     val worklistAlgorithm = new WorklistAlgorithm[ICFGNode] {
       override def processElement(e: ICFGNode): Unit = {
         processed += e
-        e match {
-          case node: ICFGLocNode =>
-            processNode(node, rules)
-          case _ =>
-        }
+        processNode(e, rules)
         worklist ++= icfg.successors(e) -- processed
       }
     }
@@ -167,12 +164,16 @@ abstract class DataFlowWu(
   /**
     * Overriding method need to invoke super to update the heap map properly.
     */
-  def processNode(node: ICFGLocNode, rules: MList[SummaryRule]): Unit = {
-    val context = node.getContext
-    val l = method.getBody.resolvedBody.location(node.locIndex)
-    l.statement match {
-      case as: AssignmentStatement =>
-        updateHeapMap(as, context)
+  def processNode(node: ICFGNode, rules: MList[SummaryRule]): Unit = {
+    node match {
+      case ln: ICFGLocNode =>
+        val context = node.getContext
+        val l = method.getBody.resolvedBody.location(ln.locIndex)
+        l.statement match {
+          case as: AssignmentStatement =>
+            updateHeapMap(as, context)
+          case _ =>
+        }
       case _ =>
     }
   }
@@ -427,70 +428,76 @@ class PTStore extends PropertyProvider {
   val resolved: PTAResult = new PTAResult
 }
 
-abstract class PointsToWu(
+abstract class PointsToWu[T <: Global] (
+    global: T,
     method: JawaMethod,
     sm: SummaryManager,
     handler: ModelCallHandler,
-    store: PTStore)(implicit heap: SimHeap) extends DataFlowWu(method, sm, handler) {
+    store: PTStore,
+    key: String)(implicit heap: SimHeap) extends DataFlowWu[T](global, method, sm, handler) {
 
   protected val pointsToResolve: MMap[Context, ISet[(PTASlot, Boolean)]] = mmapEmpty
 
-  override def processNode(node: ICFGLocNode, rules: MList[SummaryRule]): Unit = {
-    val context = node.getContext
-    // Handle newly added points for this context
-    pointsToResolve.getOrElse(context, isetEmpty).foreach { case (slot, resolveHeap) =>
-      val set = store.getPropertyOrElseUpdate[MSet[(Context, PTASlot)]]("intent", msetEmpty)
-      set += ((context, slot))
-      val map: IMap[PTASlot, ISet[Instance]] = if(resolveHeap) {
-        ptaresult.getRelatedInstancesMap(context, slot)
-      } else {
-        Map(slot -> ptaresult.pointsToSet(context, slot))
-      }
-      map.foreach { case (s, inss) =>
-        inss.foreach { ins =>
-          heapMap.get(ins) match {
-            case Some(hb) =>
-              rules += PTSummaryRule(hb, (context, s), resolveHeap)
-            case None =>
-              store.resolved.addInstance(context, s, ins)
+  override def processNode(node: ICFGNode, rules: MList[SummaryRule]): Unit = {
+    node match {
+      case ln: ICFGLocNode =>
+        val context = node.getContext
+        // Handle newly added points for this context
+        pointsToResolve.getOrElse(context, isetEmpty).foreach { case (slot, resolveHeap) =>
+          val set = store.getPropertyOrElseUpdate[MSet[(Context, PTASlot)]](key, msetEmpty)
+          set += ((context, slot))
+          val map: IMap[PTASlot, ISet[Instance]] = if(resolveHeap) {
+            ptaresult.getRelatedInstancesMap(context, slot)
+          } else {
+            Map(slot -> ptaresult.pointsToSet(context, slot))
           }
-          true // I don't know why I need this...
-        }
-      }
-    }
-    // Handle method calls with generated summary.
-    val l = method.getBody.resolvedBody.location(node.locIndex)
-    l.statement match {
-      case cs: CallStatement =>
-        val callees = node.asInstanceOf[ICFGInvokeNode].getCalleeSet
-        callees foreach { callee =>
-          sm.getSummary[PTSummary](callee.callee) match {
-            case Some(summary) =>
-              summary.rules.foreach {
-                case ptr: PTSummaryRule =>
-                  val hb = ptr.heapBase
-                  val retOpt = cs.lhsOpt.map(lhs => lhs.lhs.varName)
-                  val (newhbs, inss) = processHeapBase(hb, retOpt, cs.recvOpt, cs.arg, context, ptr.trackHeap)
-                  newhbs.foreach { case (s, nhbs) =>
-                    var slot: PTASlot = s
-                    s match {
-                      case VarSlot(_) => slot = ptr.point._2
-                      case _ =>
-                    }
-                    rules ++= nhbs.map(nhb => PTSummaryRule(nhb, (ptr.point._1, slot), ptr.trackHeap))
-                  }
-                  inss.foreach { case (s, is) =>
-                    var slot: PTASlot = s
-                    s match {
-                      case VarSlot(_) => slot = ptr.point._2
-                      case _ =>
-                    }
-                    store.resolved.addInstances(ptr.point._1, slot, is)
-                  }
-                case _ =>
+          map.foreach { case (s, inss) =>
+            inss.foreach { ins =>
+              heapMap.get(ins) match {
+                case Some(hb) =>
+                  rules += PTSummaryRule(hb, (context, s), resolveHeap)
+                case None =>
+                  store.resolved.addInstance(context, s, ins)
               }
-            case None =>
+              true // I don't know why I need this...
+            }
           }
+        }
+        // Handle method calls with generated summary.
+        val l = method.getBody.resolvedBody.location(ln.locIndex)
+        l.statement match {
+          case cs: CallStatement =>
+            val callees = node.asInstanceOf[ICFGInvokeNode].getCalleeSet
+            callees foreach { callee =>
+              sm.getSummary[PTSummary](callee.callee) match {
+                case Some(summary) =>
+                  summary.rules.foreach {
+                    case ptr: PTSummaryRule =>
+                      val hb = ptr.heapBase
+                      val retOpt = cs.lhsOpt.map(lhs => lhs.lhs.varName)
+                      val (newhbs, inss) = processHeapBase(hb, retOpt, cs.recvOpt, cs.arg, context, ptr.trackHeap)
+                      newhbs.foreach { case (s, nhbs) =>
+                        var slot: PTASlot = s
+                        s match {
+                          case VarSlot(_) => slot = ptr.point._2
+                          case _ =>
+                        }
+                        rules ++= nhbs.map(nhb => PTSummaryRule(nhb, (ptr.point._1, slot), ptr.trackHeap))
+                      }
+                      inss.foreach { case (s, is) =>
+                        var slot: PTASlot = s
+                        s match {
+                          case VarSlot(_) => slot = ptr.point._2
+                          case _ =>
+                        }
+                        store.resolved.addInstances(ptr.point._1, slot, is)
+                      }
+                    case _ =>
+                  }
+                case None =>
+              }
+            }
+          case _ =>
         }
       case _ =>
     }

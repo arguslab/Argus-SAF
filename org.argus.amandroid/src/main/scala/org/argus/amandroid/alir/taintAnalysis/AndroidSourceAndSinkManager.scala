@@ -105,9 +105,8 @@ class DataLeakageAndroidSourceAndSinkManager(sasFilePath: String) extends Defaul
   private def sensitiveData: ISet[String] = Set("android.location.Location", "android.content.Intent")
   
   override def isCallbackSource(apk: ApkGlobal, sig: Signature, pos: Int): Boolean = {
-    apk.model.getComponentInfos foreach {
-      info =>
-        if(info.compType == sig.getClassType && !info.exported) return false
+    apk.model.getComponentInfos foreach { info =>
+      if(info.compType == sig.getClassType && !info.exported) return false
     }
     if(apk.model.getCallbackMethods.contains(sig)){
       sig.getParameterTypes.isDefinedAt(pos) && sensitiveData.contains(sig.getParameterTypes(pos).name)

@@ -39,7 +39,7 @@ object SourceAndSinkCategory {
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
  * @author <a href="mailto:sroy@k-state.edu">Sankardas Roy</a>
  */ 
-trait SourceAndSinkManager[T<: Global] {
+trait SourceAndSinkManager[T <: Global] {
 //  private final val TITLE: String = "SourceAndSinkManager"
   def sasFilePath: String
   /**
@@ -159,17 +159,17 @@ trait SourceAndSinkManager[T<: Global] {
   def isStmtSource(global: T, loc: Location, ptaresult: PTAResult): Boolean
   def isStmtSink(global: T, loc: Location, ptaresult: PTAResult): Boolean
 
-  def isSourceMethod(apk: T, sig: Signature): Boolean = matches(apk, sig, this.sources.keySet.toSet)
+  def isSourceMethod(global: T, sig: Signature): Boolean = matches(global, sig, this.sources.keySet.toSet)
 
-  def isSinkMethod(apk: T, sig: Signature): Boolean = {
-    matches(apk, sig, this.sinks.keySet.toSet)
+  def isSinkMethod(global: T, sig: Signature): Boolean = {
+    matches(global, sig, this.sinks.keySet.toSet)
   }
 
-  def isUISource(apk: T, calleeSig: Signature, callerSig: Signature, callerLoc: Location): Boolean
-  def isCallbackSource(apk: T, sig: Signature, pos: Int): Boolean = false
+  def isUISource(global: T, calleeSig: Signature, callerSig: Signature, callerLoc: Location): Boolean
+  def isCallbackSource(global: T, sig: Signature, pos: Int): Boolean = false
 
-  def isEntryPointSource(apk: T, entNode: ICFGNode): Boolean
-  def isConditionalSink(apk: T, invNode: ICFGInvokeNode, pos: Option[Int], s: PTAResult): Boolean
+  def isEntryPointSource(global: T, entNode: ICFGNode): Boolean
+  def isConditionalSink(global: T, invNode: ICFGInvokeNode, pos: Option[Int], s: PTAResult): Boolean
 }
 
 /**

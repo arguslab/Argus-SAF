@@ -11,7 +11,7 @@
 package org.argus.jawa.summary.wu
 
 import org.argus.jawa.alir.Context
-import org.argus.jawa.alir.controlFlowGraph.{ICFGInvokeNode, ICFGLocNode}
+import org.argus.jawa.alir.controlFlowGraph.{ICFGInvokeNode, ICFGLocNode, ICFGNode}
 import org.argus.jawa.alir.pta._
 import org.argus.jawa.alir.pta.model.{ModelCall, ModelCallHandler}
 import org.argus.jawa.alir.pta.reachingFactsAnalysis.SimHeap
@@ -25,53 +25,58 @@ import org.argus.jawa.summary.susaf.rule._
   * Created by fgwei on 6/29/17.
   */
 class HeapSummaryWu(
+    global: Global,
     method: JawaMethod,
     sm: SummaryManager,
-    handler: ModelCallHandler)(implicit heap: SimHeap) extends DataFlowWu(method, sm, handler) {
+    handler: ModelCallHandler)(implicit heap: SimHeap) extends DataFlowWu[Global](global, method, sm, handler) {
 
-  override def processNode(node: ICFGLocNode, rules: MList[SummaryRule]): Unit = {
-    val context = node.getContext
-    val l = method.getBody.resolvedBody.location(node.locIndex)
-    l.statement match {
-      case as: AssignmentStatement =>
-        processAssignment(as, context, rules)
-      case cs: CallStatement =>
-        val retOpt = cs.lhsOpt.map(lhs => lhs.lhs.varName)
-        val callees = node.asInstanceOf[ICFGInvokeNode].getCalleeSet
-        callees foreach { callee =>
-          val calleeSig = callee.callee
-          val calleep = global.getMethodOrResolve(calleeSig).get
-          if(handler.isModelCall(calleep)) {
-            handler.getModelCall(calleep) match {
-              case Some(mc) =>
-                processModelCall(mc, calleeSig, retOpt, cs.recvOpt, cs.arg, context, rules)
-              case None =>
-                // Should not be here.
-            }
-          } else {
-            sm.getSummary[HeapSummary](calleeSig) match {
-              case Some(su) =>
-                processSummary(su, retOpt, cs.recvOpt, cs.arg, context, rules)
-              case None =>
-                // TODO: For a loop case
-            }
-          }
-        }
-      case rs: ReturnStatement =>
-        rs.varOpt match {
-          case Some(v) =>
-            val inss = ptaresult.pointsToSet(context, VarSlot(v.varName))
-            val bases = inss.flatMap(ins => heapMap.get(ins))
-            if(bases.nonEmpty) {
-              rules ++= bases.map { base =>
-                BinaryRule(SuRet(None), Ops.`=`, base)
-              }
-            } else {
-              rules ++= inss.map { ins =>
-                BinaryRule(SuRet(None), Ops.`+=`, processInstance(ins, context))
+  override def processNode(node: ICFGNode, rules: MList[SummaryRule]): Unit = {
+    node match {
+      case ln: ICFGLocNode =>
+        val context = node.getContext
+        val l = method.getBody.resolvedBody.location(ln.locIndex)
+        l.statement match {
+          case as: AssignmentStatement =>
+            processAssignment(as, context, rules)
+          case cs: CallStatement =>
+            val retOpt = cs.lhsOpt.map(lhs => lhs.lhs.varName)
+            val callees = node.asInstanceOf[ICFGInvokeNode].getCalleeSet
+            callees foreach { callee =>
+              val calleeSig = callee.callee
+              val calleep = global.getMethodOrResolve(calleeSig).get
+              if(handler.isModelCall(calleep)) {
+                handler.getModelCall(calleep) match {
+                  case Some(mc) =>
+                    processModelCall(mc, calleeSig, retOpt, cs.recvOpt, cs.arg, context, rules)
+                  case None =>
+                  // Should not be here.
+                }
+              } else {
+                sm.getSummary[HeapSummary](calleeSig) match {
+                  case Some(su) =>
+                    processSummary(su, retOpt, cs.recvOpt, cs.arg, context, rules)
+                  case None =>
+                  // TODO: For a loop case
+                }
               }
             }
-          case None =>
+          case rs: ReturnStatement =>
+            rs.varOpt match {
+              case Some(v) =>
+                val inss = ptaresult.pointsToSet(context, VarSlot(v.varName))
+                val bases = inss.flatMap(ins => heapMap.get(ins))
+                if(bases.nonEmpty) {
+                  rules ++= bases.map { base =>
+                    BinaryRule(SuRet(None), Ops.`=`, base)
+                  }
+                } else {
+                  rules ++= inss.map { ins =>
+                    BinaryRule(SuRet(None), Ops.`+=`, processInstance(ins, context))
+                  }
+                }
+              case None =>
+            }
+          case _ =>
         }
       case _ =>
     }
