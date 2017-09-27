@@ -21,13 +21,6 @@ abstract class Slot
 /**
  * @author <a href="mailto:robby@k-state.edu">Robby</a>
  */
-case object ReturnSlot extends Slot {
-  override def toString = "return"
-}
-
-/**
- * @author <a href="mailto:robby@k-state.edu">Robby</a>
- */
 final case class VarSlot(varName: String) extends Slot {
   override def toString: String = varName
 }

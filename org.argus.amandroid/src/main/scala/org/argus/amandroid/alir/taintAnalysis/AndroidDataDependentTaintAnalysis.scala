@@ -32,8 +32,18 @@ object AndroidDataDependentTaintAnalysis {
     def getSource: TaintSource = srcN
     def getSink: TaintSink = sinN
     def getTypes: ISet[String] = this.typs.toSet
-    def getPath: IList[(TaintNode, TaintNode)] = {
-      path.reverse.map(edge => (TaintNode(edge.target.getICFGNode, edge.target.getPosition), TaintNode(edge.source.getICFGNode, edge.source.getPosition)))
+    def getPath: IList[TaintNode] = {
+      val list: MList[TaintNode] = mlistEmpty
+      val rpath = path.reverse
+      rpath.headOption match {
+        case Some(head) =>
+          list += TaintNode(head.target.getICFGNode, head.target.getPosition)
+        case None =>
+      }
+      rpath.foreach { edge =>
+        list += TaintNode(edge.source.getICFGNode, edge.source.getPosition)
+      }
+      list.toList
     }
     override def toString: String = {
       val sb = new StringBuilder

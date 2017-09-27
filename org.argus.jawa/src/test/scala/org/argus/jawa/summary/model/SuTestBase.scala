@@ -29,7 +29,7 @@ abstract class SuTestBase(fileName: String) extends FlatSpec with Matchers {
   val global = new Global("Test", reporter)
   global.setJavaLib(getClass.getResource("/libs/android.jar").getPath)
   val sm: SummaryManager = new SummaryManager(global)
-  sm.registerFile("summaries/" + fileName, fileAndSubsigMatch = true)
+  sm.registerFile("summaries/" + fileName, fileName, fileAndSubsigMatch = true)
 
   val context: Context = new Context("SuTest")
   val currentContext: Context = context.copy.setContext(new Signature("Lmy/Class;.main:()V"), "L888")

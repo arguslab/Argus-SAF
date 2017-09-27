@@ -29,13 +29,18 @@ class ApkYard(val reporter: Reporter) {
   def removeApk(nameUri: FileResourceUri): Unit = apks -= nameUri
   def getApk(nameUri: FileResourceUri): Option[ApkGlobal] = apks.get(nameUri)
   def getApks: IMap[FileResourceUri, ApkGlobal] = this.apks.toMap
-  
-  def loadApk(apkUri: FileResourceUri, settings: DecompilerSettings, collectInfo: Boolean): ApkGlobal = {
-    ApkDecompiler.decompile(apkUri, settings)
+
+  /**
+    * Load an apk or directly read decompiled apk dir.
+    */
+  def loadApk(apkUri: FileResourceUri, settings: DecompilerSettings, collectInfo: Boolean, resolveCallBack: Boolean): ApkGlobal = {
+    if(apkUri.endsWith(".apk")) {
+      ApkDecompiler.decompile(apkUri, settings)
+    }
     val apk = new ApkGlobal(ApkModel(apkUri, settings.strategy.layout), reporter)
     apk.load()
     if(collectInfo) {
-      AppInfoCollector.collectInfo(apk)
+      AppInfoCollector.collectInfo(apk, resolveCallBack)
     }
     addApk(apk)
     apk

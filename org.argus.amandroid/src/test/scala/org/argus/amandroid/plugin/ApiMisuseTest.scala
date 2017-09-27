@@ -39,7 +39,7 @@ class ApiMisuseTest extends FlatSpec with Matchers {
     val layout = DecompileLayout(outputUri)
     val strategy = DecompileStrategy(layout)
     val settings = DecompilerSettings(debugMode = false, forceDelete = true, strategy, reporter)
-    val apk = yard.loadApk(fileUri, settings, collectInfo = false)
+    val apk = yard.loadApk(fileUri, settings, collectInfo = false, resolveCallBack = false)
     val checker = module match {
       case ApiMisuseModules.CRYPTO_MISUSE => new CryptographicMisuse
       case ApiMisuseModules.HIDE_ICON =>

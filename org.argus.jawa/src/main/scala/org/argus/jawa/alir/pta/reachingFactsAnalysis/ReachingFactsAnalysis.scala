@@ -17,6 +17,7 @@ import org.argus.jawa.alir.controlFlowGraph.{ICFGNode, InterProceduralControlFlo
 import org.argus.jawa.alir.dataFlowAnalysis._
 import org.argus.jawa.alir.pta.model.ModelCallHandler
 import org.argus.jawa.alir.pta._
+import org.argus.jawa.alir.pta.reachingFactsAnalysis.ReachingFactsAnalysisHelper.getNameSlotFromNameExp
 import org.argus.jawa.compiler.parser._
 import org.argus.jawa.core.util._
 import org.argus.jawa.core._
@@ -259,7 +260,24 @@ class ReachingFactsAnalysis(
       }
     }
 
-    override def postProcess(node: ICFGNode, s: ISet[RFAFact]): Unit = {
+    override def postProcess(node: ICFGNode, statement: Statement, s: ISet[RFAFact]): Unit = {
+      statement match {
+        case a: Assignment =>
+          a.getLhs match {
+            case Some(lhs) =>
+              lhs match {
+                case ne: NameExpression =>
+                  val slot = getNameSlotFromNameExp(ne)
+                  s.filter { fact => fact.s == slot }.foreach(f => ptaresult.addInstance(node.getContext, slot, f.v))
+                case cl: CallLhs =>
+                  val slot = VarSlot(cl.lhs.varName)
+                  s.filter { fact => fact.s == slot }.foreach(f => ptaresult.addInstance(node.getContext, slot, f.v))
+                case _ =>
+              }
+            case None =>
+          }
+        case _ =>
+      }
     }
 
     override def onPreVisitNode(node: ICFGNode, preds: CSet[ICFGNode]): Unit = {

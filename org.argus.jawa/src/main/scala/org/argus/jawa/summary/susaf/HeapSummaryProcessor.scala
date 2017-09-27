@@ -279,7 +279,7 @@ object HeapSummaryProcessor {
           case None => Some(Instance.getInstance(JavaKnowledge.JAVA_TOPLEVEL_OBJECT_TYPE, context, toUnknown = true))
         }
       case as: ArraySlot =>
-        require(as.instance.typ.dimensions > 0, "Array type dimensions should larger than 0")
+        require(as.instance.typ.dimensions > 0, "Array type dimensions should larger than 0.")
         val typ = JawaType(as.instance.typ.baseType, as.instance.typ.dimensions - 1)
         Some(Instance.getInstance(typ, context, toUnknown = true))
       case _: MapSlot =>

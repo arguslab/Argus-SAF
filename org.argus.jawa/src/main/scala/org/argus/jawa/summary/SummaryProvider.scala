@@ -22,14 +22,14 @@ trait SummaryProvider {
 
 class JawaSummaryProvider(global: Global)(implicit heap: SimHeap) extends SummaryProvider {
   val sm = new SummaryManager(global)
-  sm.registerFile("summaries/Object.safsu", fileAndSubsigMatch = true)
-  sm.registerFile("summaries/Class.safsu", fileAndSubsigMatch = true)
-  sm.registerFile("summaries/String.safsu", fileAndSubsigMatch = true)
-  sm.registerFile("summaries/StringBuilder.safsu", fileAndSubsigMatch = true)
-  sm.registerFile("summaries/StringBuffer.safsu", fileAndSubsigMatch = true)
-  sm.registerFile("summaries/Map.safsu", fileAndSubsigMatch = true)
-  sm.registerFile("summaries/Set.safsu", fileAndSubsigMatch = true)
-  sm.registerFile("summaries/List.safsu", fileAndSubsigMatch = true)
-  sm.registerFile("summaries/Thread.safsu", fileAndSubsigMatch = true)
+  sm.registerFile("summaries/Object.safsu", "Object.safsu", fileAndSubsigMatch = true)
+  sm.registerFile("summaries/Class.safsu", "Class.safsu", fileAndSubsigMatch = true)
+  sm.registerFile("summaries/String.safsu", "String.safsu", fileAndSubsigMatch = true)
+  sm.registerFile("summaries/StringBuilder.safsu", "StringBuilder.safsu", fileAndSubsigMatch = true)
+  sm.registerFile("summaries/StringBuffer.safsu", "StringBuffer.safsu", fileAndSubsigMatch = true)
+  sm.registerFile("summaries/Map.safsu", "Map.safsu", fileAndSubsigMatch = true)
+  sm.registerFile("summaries/Set.safsu", "Set.safsu", fileAndSubsigMatch = true)
+  sm.registerFile("summaries/List.safsu", "List.safsu", fileAndSubsigMatch = true)
+  sm.registerFile("summaries/Thread.safsu", "Thread.safsu", fileAndSubsigMatch = true)
   override def getSummaryManager: SummaryManager = sm
 }

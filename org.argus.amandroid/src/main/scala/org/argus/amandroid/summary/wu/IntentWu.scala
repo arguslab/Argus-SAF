@@ -11,24 +11,23 @@
 package org.argus.amandroid.summary.wu
 
 import org.argus.amandroid.alir.pta.model.InterComponentCommunicationModel
-import org.argus.amandroid.core.ApkGlobal
 import org.argus.jawa.alir.controlFlowGraph.{ICFGLocNode, ICFGNode}
 import org.argus.jawa.alir.pta.{PTASlot, VarSlot}
 import org.argus.jawa.alir.pta.model.ModelCallHandler
 import org.argus.jawa.alir.pta.reachingFactsAnalysis.SimHeap
 import org.argus.jawa.compiler.parser.CallStatement
-import org.argus.jawa.core.JawaMethod
+import org.argus.jawa.core.{Global, JawaMethod}
 import org.argus.jawa.core.util._
 import org.argus.jawa.summary.wu.{PTStore, PointsToWu}
 import org.argus.jawa.summary.{SummaryManager, SummaryRule}
 
 class IntentWu(
-    apk: ApkGlobal,
+    global: Global,
     method: JawaMethod,
     sm: SummaryManager,
     handler: ModelCallHandler,
     store: PTStore,
-    key: String)(implicit heap: SimHeap) extends PointsToWu[ApkGlobal](apk, method, sm, handler, store, key) {
+    key: String)(implicit heap: SimHeap) extends PointsToWu[Global](global, method, sm, handler, store, key) {
 
   override def processNode(node: ICFGNode, rules: MList[SummaryRule]): Unit = {
     node match {

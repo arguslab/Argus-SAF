@@ -58,7 +58,6 @@ object ComponentBasedAnalysis {
                   AndroidReachingFactsAnalysisConfig.resolve_static_init,
                   timeout = Some(new MyTimeout(timeout)))
                 val idfg = analysis.build(ep, initialfacts, new Context(apk.nameUri))
-//                idfg.ptaresult.pprint()
                 apk.addIDFG(component, idfg)
               case None =>
                 apk.reporter.error(TITLE, "Component " + component + " did not have environment! Some package or name mismatch maybe in the Manifest.")

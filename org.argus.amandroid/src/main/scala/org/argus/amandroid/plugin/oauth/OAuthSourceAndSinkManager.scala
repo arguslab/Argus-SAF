@@ -14,7 +14,7 @@ import org.argus.amandroid.alir.pta.reachingFactsAnalysis.IntentHelper
 import org.argus.amandroid.alir.pta.model.InterComponentCommunicationModel
 import org.argus.amandroid.alir.taintAnalysis.AndroidSourceAndSinkManager
 import org.argus.amandroid.core.{AndroidConstants, ApkGlobal}
-import org.argus.jawa.alir.controlFlowGraph.{ICFGInvokeNode, ICFGNode}
+import org.argus.jawa.alir.controlFlowGraph.ICFGInvokeNode
 import org.argus.jawa.alir.pta.{PTAResult, VarSlot}
 import org.argus.jawa.compiler.parser.{AssignmentStatement, CallStatement, LiteralExpression, Location}
 import org.argus.jawa.core.util._
@@ -45,7 +45,7 @@ class OAuthSourceAndSinkManager(sasFilePath: String) extends AndroidSourceAndSin
     flag
   }
 
-  def isConditionalSink(apk: ApkGlobal, invNode: ICFGInvokeNode, pos: Option[Int], ptaresult: PTAResult): Boolean = {
+  override def isConditionalSink(apk: ApkGlobal, invNode: ICFGInvokeNode, pos: Option[Int], ptaresult: PTAResult): Boolean = {
     var sinkflag = false
     if(pos.isEmpty || pos.get !=1) return sinkflag
     val calleeSet = invNode.getCalleeSet
@@ -73,9 +73,5 @@ class OAuthSourceAndSinkManager(sasFilePath: String) extends AndroidSourceAndSin
     }
     sinkflag
   }
-
-	def isEntryPointSource(apk: ApkGlobal, entNode: ICFGNode): Boolean = {
-	  false
-	}
 	
 }

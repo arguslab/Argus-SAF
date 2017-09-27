@@ -50,7 +50,6 @@ object ApkGlobal {
             entry = archive.getNextEntry
           }
         } catch {
-          case ie: InterruptedException => throw ie
           case _: Exception =>
         } finally {
           if (archive != null)
@@ -102,7 +101,9 @@ case class InvalidApk(fileUri: FileResourceUri) extends Exception
 class ApkGlobal(val model: ApkModel, reporter: Reporter) extends Global(model.nameUri, reporter) {
   import ApkGlobal._
 
-  require(isValidApk(model.nameUri), throw InvalidApk(model.nameUri))
+  if(model.nameUri.endsWith(".apk")) {
+    require(isValidApk(model.nameUri), throw InvalidApk(model.nameUri))
+  }
   setJavaLib(AndroidGlobalConfig.settings.lib_files)
 
   def nameUri: FileResourceUri = model.nameUri

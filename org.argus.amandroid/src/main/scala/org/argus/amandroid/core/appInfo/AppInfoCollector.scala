@@ -77,16 +77,15 @@ object AppInfoCollector {
     analysisHelper.collectCallbackMethods()
     reporter.echo(TITLE, "LayoutClasses --> " + analysisHelper.getLayoutClasses)
   
-    analysisHelper.getCallbackMethods.foreach {
-      case(k, v) =>
-        callbackMethods.getOrElseUpdate(k, msetEmpty) ++= v
+    analysisHelper.getCallbackMethods.foreach { case(k, v) =>
+      callbackMethods.getOrElseUpdate(k, msetEmpty) ++= v
     }
     reporter.println("Collecting XML based callback methods...")
     // Collect the XML-based callback methods
     analysisHelper.getLayoutClasses.foreach { case (k, v) =>
       v.foreach { i =>
         val resource = afp.findResource(i)
-        if(resource != null && resource.getType.getName == "layout"){
+        if(resource != null && resource.getType.getName == "layout") {
           val includes = lfp.getIncludes.filter(_._1.contains(resource.getName)).flatten(_._2).toSet
           val resources = includes.map(i => afp.findResource(i)) + resource
           lfp.getCallbackMethods.find{case (file, _) => resources.map(_.getName).exists { x => file.contains(x) }}.foreach{
@@ -96,7 +95,7 @@ object AppInfoCollector {
                 var callbackClass = analysisHelper.global.getClassOrResolve(k)
                 val callbackMethod: MSet[Signature] = msetEmpty
                 breakable{
-                  while(callbackMethod.isEmpty){
+                  while(callbackMethod.isEmpty) {
                     if(callbackClass.declaresMethodByName(methodName))
                       callbackMethod ++= callbackClass.getDeclaredMethodsByName(methodName).map(_.getSignature)
                     if(callbackClass.hasSuperClass)
@@ -104,7 +103,7 @@ object AppInfoCollector {
                     else break
                   }
                 }
-                if(callbackMethod.nonEmpty){
+                if(callbackMethod.nonEmpty) {
                   callbackMethods.getOrElseUpdate(k, msetEmpty) ++= callbackMethod
                 } else {
                   reporter.echo(TITLE, "Callback method " + methodName + " not found in class " + k)
@@ -207,45 +206,55 @@ object AppInfoCollector {
     result.toMap
   }
 
-  def collectInfo(apk: ApkGlobal): Unit = {
+  def collectInfo(apk: ApkGlobal, resolveCallBack: Boolean): Unit = {
     apk.reporter.println(s"Collecting information from ${apk.model.getAppName}...")
     val certs = AppInfoCollector.readCertificates(apk.nameUri)
     val manifestUri = FileUtil.appendFileName(apk.model.layout.outputSrcUri, "AndroidManifest.xml")
     val mfp = AppInfoCollector.analyzeManifest(apk.reporter, manifestUri)
     val afp = AppInfoCollector.analyzeARSC(apk.reporter, apk.nameUri)
     val lfp = AppInfoCollector.analyzeLayouts(apk, apk.model.layout.outputSrcUri, mfp, afp)
-    val ra = AppInfoCollector.reachabilityAnalysis(apk, mfp.getComponentInfos.map(_.compType))
-    val callbacks = AppInfoCollector.analyzeCallback(apk.reporter, afp, lfp, ra)
     apk.model.addCertificates(certs)
     apk.model.setPackageName(mfp.getPackageName)
     apk.model.addComponentInfos(mfp.getComponentInfos)
     apk.model.addUsesPermissions(mfp.getPermissions)
     apk.model.updateIntentFilterDB(mfp.getIntentDB)
     apk.model.addLayoutControls(lfp.getUserControls)
-    callbacks foreach {
-      case (typ, sigs) => apk.model.addCallbackMethods(typ, sigs)
-    }
-    val asyncTask = apk.getClassOrResolve(new JawaType("android.os.AsyncTask"))
-    ra.getReachableMap.flatMap(_._2).map(_.classTyp).filter{ typ =>
-      val clazz = apk.getClassOrResolve(typ)
-      apk.getClassHierarchy.isClassRecursivelySubClassOf(clazz, asyncTask)
-    }.foreach { typ =>
-      generateAsyncTask(apk, typ)
-    }
     mfp.getComponentInfos.foreach { f =>
       if(f.enabled){
         val comp = apk.getClassOrResolve(f.compType)
         if(!comp.isUnknown && comp.isApplicationClass){
           apk.model.addComponent(comp.getType, f.typ)
-          if(f.typ == ComponentType.SERVICE) {
-            val rpcs = getRpcMethods(apk, comp, ra)
-            apk.model.addRpcMethods(comp.getType, rpcs)
-          }
-          val clCounter = generateEnvironment(apk, comp, if(f.exported)AndroidConstants.MAINCOMP_ENV else AndroidConstants.COMP_ENV)
-          apk.model.setCodeLineCounter(clCounter)
         }
       }
     }
+    if(resolveCallBack) {
+      val ra = AppInfoCollector.reachabilityAnalysis(apk, mfp.getComponentInfos.map(_.compType))
+      val callbacks = AppInfoCollector.analyzeCallback(apk.reporter, afp, lfp, ra)
+      callbacks foreach {
+        case (typ, sigs) => apk.model.addCallbackMethods(typ, sigs)
+      }
+      val asyncTask = apk.getClassOrResolve(new JawaType("android.os.AsyncTask"))
+      ra.getReachableMap.flatMap(_._2).map(_.classTyp).filter { typ =>
+        val clazz = apk.getClassOrResolve(typ)
+        apk.getClassHierarchy.isClassRecursivelySubClassOf(clazz, asyncTask)
+      }.foreach { typ =>
+        generateAsyncTask(apk, typ)
+      }
+      mfp.getComponentInfos.foreach { f =>
+        if(f.enabled){
+          val comp = apk.getClassOrResolve(f.compType)
+          if(!comp.isUnknown && comp.isApplicationClass){
+            if(f.typ == ComponentType.SERVICE) {
+              val rpcs = getRpcMethods(apk, comp, ra)
+              apk.model.addRpcMethods(comp.getType, rpcs)
+            }
+            val clCounter = generateEnvironment(apk, comp, if(f.exported)AndroidConstants.MAINCOMP_ENV else AndroidConstants.COMP_ENV)
+            apk.model.setCodeLineCounter(clCounter)
+          }
+        }
+      }
+    }
+
     apk.reporter.println("Info collection done.")
   }
 }

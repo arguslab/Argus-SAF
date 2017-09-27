@@ -69,7 +69,7 @@ trait IngredientProvider[N <: AlirNode, LatticeElement, LOC] {
       mdaf: MonotoneDataFlowAnalysisBuilder[N, LatticeElement],
       callr: Option[CallResolver[N, LatticeElement]]): Unit
   def preProcess(node: N, statement: Statement, s: ISet[LatticeElement]): Unit
-  def postProcess(node: N, s: ISet[LatticeElement]): Unit
+  def postProcess(node: N, statement: Statement, s: ISet[LatticeElement]): Unit
 }
 
 /**
@@ -344,7 +344,7 @@ object MonotoneDataFlowAnalysisFramework {
 
         var latticeMap: IMap[N, DFF] = imapEmpty
 
-        def jumpF(s: DFF, j: Jump): Unit =
+        def jumpF(s: DFF, j: Jump): DFF = {
           j match {
             case j: IfStatement =>
               if (esl.isDefined) esl.get.ifJump(j, s)
@@ -355,6 +355,7 @@ object MonotoneDataFlowAnalysisFramework {
               val sn = ip.next(currentNode, body)
               if (esl.isDefined) esl.get.exitSet(s)
               latticeMap += (sn -> s)
+              s
             case j: SwitchStatement =>
               if (esl.isDefined) esl.get.switchJump(j, s)
               for (switchCase <- j.cases) {
@@ -382,6 +383,7 @@ object MonotoneDataFlowAnalysisFramework {
                 }
                 latticeMap += (sn -> s)
               }
+              s
             case j: GotoStatement =>
               val gotoLoc = body.locations(j.targetLocation.locationIndex)
               val gotoContext = ip.newLoc(currentNode, gotoLoc)
@@ -391,14 +393,17 @@ object MonotoneDataFlowAnalysisFramework {
                 esl.get.exitSet(s)
               }
               latticeMap += (sn -> s)
+              s
             case j: ReturnStatement =>
               val succs = cfg.successors(currentNode)
               if (esl.isDefined) {
                 esl.get.returnJump(j, s)
                 esl.get.exitSet(s)
               }
-              succs.foreach(succ=>latticeMap += (succ -> s))
+              succs.foreach(succ => latticeMap += (succ -> s))
+              s
             case j: CallStatement =>
+              var result: DFF = s
               if (esl.isDefined) esl.get.callJump(j, s)
               if (callr.isDefined) {
                 val (calleeFactsMap, retFacts) = callr.get.resolveCall(s, j, currentNode)
@@ -407,31 +412,34 @@ object MonotoneDataFlowAnalysisFramework {
                     latticeMap += (calleeNode -> calleeFacts)
                 }
                 if (esl.isDefined) esl.get.exitSet(retFacts)
-                if(callr.get.needReturnNode()) {
+                if (callr.get.needReturnNode()) {
                   val rn = ip.returnNode(currentNode)
                   latticeMap += (rn -> retFacts)
                 } else {
-                  cfg.successors(currentNode).foreach(succ=>latticeMap += (succ -> retFacts))
+                  cfg.successors(currentNode).foreach(succ => latticeMap += (succ -> retFacts))
                 }
+                result = retFacts
               } else {
-                if(esl.isDefined) esl.get.exitSet(s)
+                if (esl.isDefined) esl.get.exitSet(s)
                 val succs = cfg.successors(currentNode)
-                succs.foreach(succ=>latticeMap += (succ -> s))
+                succs.foreach(succ => latticeMap += (succ -> s))
               }
+              result
           }
+        }
 
         val es = entrySet(currentNode)
         ip.preProcess(currentNode, l.statement, es)
-        val s = fS(l.statement, es, currentNode)
+        var s = fS(l.statement, es, currentNode)
         l.statement match {
           case j: Jump =>
-            jumpF(s, j)
+            s = jumpF(s, j)
           case _: Statement =>
             if(esl.isDefined) esl.get.exitSet(s)
             val succs = cfg.successors(currentNode)
-            succs.foreach(succ=>latticeMap += (succ -> s))
+            succs.foreach(succ => latticeMap += (succ -> s))
         }
-        ip.postProcess(currentNode, s)
+        ip.postProcess(currentNode, l.statement, s)
         latticeMap
       }
 
