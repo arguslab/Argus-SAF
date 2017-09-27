@@ -213,7 +213,7 @@ object ReachingFactsAnalysisHelper {
     }
   }
 
-  private def resolvePTAResultAccessExp(ae: AccessExpression, typ: JawaType, currentContext: Context, s: ISet[RFAFact], ptaresult: PTAResult)(implicit factory: SimHeap) = {
+  private def resolvePTAResultAccessExp(ae: AccessExpression, typ: JawaType, currentContext: Context, s: ISet[RFAFact], ptaresult: PTAResult)(implicit factory: SimHeap): Unit = {
     val baseSlot = VarSlot(ae.base)
     val baseValue = s.filter { fact => fact.s.getId == baseSlot.getId }.map{ f =>
       ptaresult.addInstance(currentContext, baseSlot, f.v)
@@ -236,7 +236,7 @@ object ReachingFactsAnalysisHelper {
     }
   }
 
-  private def resolvePTAResultIndexingExp(ie: IndexingExpression, currentContext: Context, s: ISet[RFAFact], ptaresult: PTAResult)(implicit factory: SimHeap) = {
+  private def resolvePTAResultIndexingExp(ie: IndexingExpression, currentContext: Context, s: ISet[RFAFact], ptaresult: PTAResult)(implicit factory: SimHeap): Unit = {
     val baseSlot = VarSlot(ie.base)
     val baseValue: ISet[Instance] = s.filter { fact => fact.s.getId == baseSlot.getId }.map{ f =>
       ptaresult.addInstance(currentContext, baseSlot, f.v)
@@ -289,17 +289,7 @@ object ReachingFactsAnalysisHelper {
         }
       case ne: NameExpression =>
         val slot = getNameSlotFromNameExp(ne)
-        slot match {
-          case ss: StaticFieldSlot =>
-            s.filter { fact => fact.s == ss }.foreach(f => ptaresult.addInstance(currentContext, ss, f.v))
-          case vs: VarSlot =>
-            s.filter { fact => fact.s == vs }.foreach(f => ptaresult.addInstance(currentContext, slot, f.v))
-          case _ =>
-        }
-//      case ce: ConstClassExpression =>
-//        val slot = ClassSlot(ce.typExp.typ)
-//        val ci = ClassInstance(ce.typExp.typ, currentContext)
-//        ptaresult.addInstance(slot, currentContext, ci)
+        s.filter { fact => fact.s == slot }.foreach(f => ptaresult.addInstance(currentContext, slot, f.v))
       case ae: AccessExpression =>
         resolvePTAResultAccessExp(ae, typ.get, currentContext, s, ptaresult)
       case ie: IndexingExpression =>

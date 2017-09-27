@@ -277,7 +277,7 @@ case class JawaMethod(declaringClass: JawaClass,
   
   private var overrides: Option[JawaMethod] = None
   
-  private def setImplementsOrOverrides(m: JawaMethod) = {
+  private def setImplementsOrOverrides(m: JawaMethod): Unit = {
     if(m.isAbstract) this.implements = Some(m)
     else this.overrides = Some(m)
   }

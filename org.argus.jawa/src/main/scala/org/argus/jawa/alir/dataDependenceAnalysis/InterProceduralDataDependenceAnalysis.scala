@@ -363,10 +363,9 @@ object InterProceduralDataDependenceAnalysis {
                 val indexs: MSet[Int] = msetEmpty
                 val owner = global.getMethod(node.getOwner).get
                 var index = 0
-                owner.thisOpt foreach{
-                  t =>
-                    if(t == varName) indexs += index
-                    index += 1
+                owner.thisOpt foreach{ t =>
+                  if(t == varName) indexs += index
+                  index += 1
                 }
                 val paramNames = owner.getParamNames
                 for(i <- paramNames.indices){

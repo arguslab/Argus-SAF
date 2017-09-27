@@ -67,7 +67,7 @@ object ApiMisuse {
           val layout = DecompileLayout(outputUri)
           val strategy = DecompileStrategy(layout)
           val settings = DecompilerSettings(debugMode = false, forceDelete = forceDelete, strategy, reporter)
-          val apk = yard.loadApk(fileUri, settings, collectInfo = false)
+          val apk = yard.loadApk(fileUri, settings, collectInfo = false, resolveCallBack = false)
           val (checker, buildIDFG) = module match {
             case ApiMisuseModules.CRYPTO_MISUSE => (new CryptographicMisuse, false)
             case ApiMisuseModules.HIDE_ICON =>
@@ -82,13 +82,12 @@ object ApiMisuse {
             case ApiMisuseModules.SSLTLS_MISUSE => (new SSLTLSMisuse, false)
           }
           if(buildIDFG) {
-            AppInfoCollector.collectInfo(apk)
-            apk.model.getComponents foreach {
-              comp =>
-                val clazz = apk.getClassOrResolve(comp)
-                val idfg = InterProceduralSuperSpark(apk, clazz.getDeclaredMethods.map(_.getSignature))
-                val res = checker.check(apk, Some(idfg))
-                println(res.toString)
+            AppInfoCollector.collectInfo(apk, resolveCallBack = true)
+            apk.model.getComponents foreach { comp =>
+              val clazz = apk.getClassOrResolve(comp)
+              val idfg = InterProceduralSuperSpark(apk, clazz.getDeclaredMethods.map(_.getSignature))
+              val res = checker.check(apk, Some(idfg))
+              println(res.toString)
             }
           } else {
             val res = checker.check(apk, None)

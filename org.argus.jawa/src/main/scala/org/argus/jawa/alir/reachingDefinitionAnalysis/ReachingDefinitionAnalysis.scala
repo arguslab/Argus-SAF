@@ -80,7 +80,6 @@ object ReachingDefinitionAnalysis {
           paramDefs.union(defs.map { d =>
             (d, EffectDefDesc(ldd.locUri, ldd.locIndex))
           }) ++ strongDefs.map { d => (d, ldd) }
-        
         case _ =>
           defRef.definitions(a).map { d => (d, ldd) }
       }

@@ -137,6 +137,7 @@ case class DecompileLayout(
     sourceFolders += folder
     folder
   }
+
   def libFolder(dexUri: FileResourceUri): String = {
     val folder = libFolder + dexFolder(dexUri)
     libFolders += folder

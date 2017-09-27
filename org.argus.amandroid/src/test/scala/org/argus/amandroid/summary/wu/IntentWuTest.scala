@@ -15,7 +15,6 @@ import org.argus.amandroid.alir.componentSummary.ApkYard
 import org.argus.amandroid.alir.pta.model.AndroidModelCallHandler
 import org.argus.amandroid.alir.pta.reachingFactsAnalysis.IntentHelper
 import org.argus.amandroid.alir.pta.summaryBasedAnalysis.AndroidSummaryProvider
-import org.argus.amandroid.core.ApkGlobal
 import org.argus.amandroid.core.decompile.{ConverterUtil, DecompileLayout, DecompileStrategy, DecompilerSettings}
 import org.argus.amandroid.core.model.Intent
 import org.argus.jawa.alir.Context
@@ -91,18 +90,18 @@ class IntentWuTest extends FlatSpec with Matchers {
       file should s"produce expected summary for $entrypoint" in {
         implicit val heap: SimHeap = new SimHeap
         val reporter = if(DEBUG) new PrintReporter(MsgLevel.INFO) else new PrintReporter(MsgLevel.NO)
-        val apk = new ApkGlobal(null, reporter)
-        apk.setJavaLib(getClass.getResource("/libs/android.jar").getPath)
-        apk.load(FileUtil.toUri(getClass.getResource(file).getPath), NoLibraryAPISummary.isLibraryClass)
-        val sm: SummaryManager = new AndroidSummaryProvider(apk).getSummaryManager
-        val cg = SignatureBasedCallGraph(apk, Set(entrypoint), None)
-        val analysis = new BottomUpSummaryGenerator[ApkGlobal](apk, sm, handler,
+        val global = new Global("test", reporter)
+        global.setJavaLib(getClass.getResource("/libs/android.jar").getPath)
+        global.load(FileUtil.toUri(getClass.getResource(file).getPath), NoLibraryAPISummary.isLibraryClass)
+        val sm: SummaryManager = new AndroidSummaryProvider(global).getSummaryManager
+        val cg = SignatureBasedCallGraph(global, Set(entrypoint), None)
+        val analysis = new BottomUpSummaryGenerator[Global](global, sm, handler,
           PTSummary(_, _),
           ConsoleProgressBar.on(System.out).withFormat("[:bar] :percent% :elapsed ETA: :eta"))
         val store: PTStore = new PTStore
-        val orderedWUs: IList[WorkUnit[ApkGlobal]] = cg.topologicalSort(true).map { sig =>
-          val method = apk.getMethodOrResolve(sig).getOrElse(throw new RuntimeException("Method does not exist: " + sig))
-          new IntentWu(apk, method, sm, handler, store, "intent")
+        val orderedWUs: IList[WorkUnit[Global]] = cg.topologicalSort(true).map { sig =>
+          val method = global.getMethodOrResolve(sig).getOrElse(throw new RuntimeException("Method does not exist: " + sig))
+          new IntentWu(global, method, sm, handler, store, "intent")
         }
         analysis.build(orderedWUs)
         val candidate = store.getPropertyOrElse[MSet[(Context, PTASlot)]]("intent", msetEmpty)
@@ -240,10 +239,10 @@ class IntentWuTest extends FlatSpec with Matchers {
         val layout = DecompileLayout(outputUri)
         val strategy = DecompileStrategy(layout)
         val settings = DecompilerSettings(debugMode = false, forceDelete = true, strategy, reporter)
-        val apk = yard.loadApk(fileUri, settings, collectInfo = true)
+        val apk = yard.loadApk(fileUri, settings, collectInfo = true, resolveCallBack = true)
 
         val sm: SummaryManager = new AndroidSummaryProvider(apk).getSummaryManager
-        val analysis = new BottomUpSummaryGenerator[ApkGlobal](apk, sm, handler,
+        val analysis = new BottomUpSummaryGenerator[Global](apk, sm, handler,
           PTSummary(_, _),
           ConsoleProgressBar.on(System.out).withFormat("[:bar] :percent% :elapsed ETA: :eta"))
         val store: PTStore = new PTStore
@@ -252,7 +251,7 @@ class IntentWuTest extends FlatSpec with Matchers {
           comp.toString.endsWith(".MainActivity")
         }.get
         val cg = SignatureBasedCallGraph(apk, Set(sig), None)
-        val orderedWUs: IList[WorkUnit[ApkGlobal]] = cg.topologicalSort(true).map { sig =>
+        val orderedWUs: IList[WorkUnit[Global]] = cg.topologicalSort(true).map { sig =>
           val method = apk.getMethodOrResolve(sig).getOrElse(throw new RuntimeException("Method does not exist: " + sig))
           new IntentWu(apk, method, sm, handler, store, "intent")
         }

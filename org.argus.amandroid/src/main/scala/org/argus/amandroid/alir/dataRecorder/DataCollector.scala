@@ -154,17 +154,8 @@ object DataCollector {
             val typStrings: util.ArrayList[String] = new util.ArrayList[String]
             taintPath.getTypes.foreach(f=>typStrings.add(f))
             path.add("typs", typStrings)
-            val pathString: util.ArrayList[String] = new util.ArrayList[String]
-            val paths = taintPath.getPath
-            if(paths.size > 1) {
-              paths.tail.foreach{ edge =>
-                  pathString.add(edge._2 + "  ->")
-              }
-              pathString.add(paths.head._1.toString)
-            } else if(paths.size == 1) {
-              pathString.add(paths.head._2 + "  ->")
-              pathString.add(paths.head._1.toString)
-            }
+            val pathString = taintPath.getPath.toString()
+
             path.add("path", pathString)
             pathStrings.add(path.render())
         }

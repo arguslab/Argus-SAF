@@ -36,23 +36,15 @@ case object InitDefDesc extends DefDesc {
 /**
  * @author <a href="mailto:robby@k-state.edu">Robby</a>
  */
-case object ExitDefDesc extends DefDesc {
-  override def toString = "$"
-}
-
-/**
- * @author <a href="mailto:robby@k-state.edu">Robby</a>
- */
 abstract class LocDefDesc extends DefDesc {
   def locUri: String
   def locIndex: Int
 
-  def hasSameDesc(that: DefDesc): Boolean =
-    that match {
-      case t: LocDefDesc =>
-        locIndex == t.locIndex
-      case _ => false
-    }
+  def hasSameDesc(that: DefDesc): Boolean = that match {
+    case t: LocDefDesc =>
+      locIndex == t.locIndex
+    case _ => false
+  }
 
   override def toString: String = locUri
 }
@@ -68,17 +60,6 @@ final case class LLocDefDesc(
 /**
  * @author <a href="mailto:robby@k-state.edu">Robby</a>
  */
-final case class ReturnDefDesc(
-  locUri: String,
-  locIndex: Int)
-    extends LocDefDesc {
-
-  override def toString: String = super.toString + ".return"
-}
-
-/**
- * @author <a href="mailto:robby@k-state.edu">Robby</a>
- */
 final case class ParamDefDesc(
   locUri: String,
   locIndex: Int,
@@ -86,17 +67,6 @@ final case class ParamDefDesc(
     extends LocDefDesc {
 
   override def toString: String = super.toString + "." + paramIndex
-}
-
-/**
- * @author <a href="mailto:robby@k-state.edu">Robby</a>
- */
-final case class UseDefDesc(
-  locUri: String,
-  locIndex: Int)
-    extends LocDefDesc {
-
-  override def toString: String = super.toString + ".use"
 }
 
 /**

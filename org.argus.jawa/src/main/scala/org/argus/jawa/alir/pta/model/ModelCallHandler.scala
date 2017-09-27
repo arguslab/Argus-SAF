@@ -42,7 +42,7 @@ trait ModelCall {
 /**
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
  */ 
-class ModelCallHandler(scopeManager: ScopeManager) {
+class ModelCallHandler(val scopeManager: ScopeManager) {
 
   private val modelCalls: MList[ModelCall] = mlistEmpty
   private val callResults: MMap[Signature, Boolean] = mmapEmpty
@@ -65,17 +65,37 @@ class ModelCallHandler(scopeManager: ScopeManager) {
    * return true if the given callee procedure needs to be modeled
    */
   def isModelCall(calleeProc: JawaMethod): Boolean = {
-   callResults.get(calleeProc.getSignature) match {
-     case Some(r) => r
-     case None =>
-       val result = modelCalls.exists{ mc =>
-         if(mc.isModelCall(calleeProc)) {
-           callModelMap(calleeProc.getSignature) = mc
-           true
-         } else false
-       } || scopeManager.shouldBypass(calleeProc.getDeclaringClass)
-       callResults(calleeProc.getSignature) = result
-       result
+    callResults.get(calleeProc.getSignature) match {
+      case Some(r) => r
+      case None =>
+        val result = modelCalls.exists{ mc =>
+          if(mc.isModelCall(calleeProc)) {
+            callModelMap(calleeProc.getSignature) = mc
+            true
+          } else false
+        } || scopeManager.shouldBypass(calleeProc.getDeclaringClass)
+        callResults(calleeProc.getSignature) = result
+        result
+    }
+  }
+
+  /**
+    * Check is the given call has concrete model.
+    * @param calleeProc callee method
+    * @return Boolean
+    */
+  def isConcreteModelCall(calleeProc: JawaMethod): Boolean = {
+    callResults.get(calleeProc.getSignature) match {
+      case Some(r) => r
+      case None =>
+        val result = modelCalls.exists{ mc =>
+          if(mc.isModelCall(calleeProc)) {
+            callModelMap(calleeProc.getSignature) = mc
+            true
+          } else false
+        }
+        callResults(calleeProc.getSignature) = result
+        result
     }
   }
 
@@ -111,10 +131,6 @@ class ModelCallHandler(scopeManager: ScopeManager) {
       case None =>
         val (newF, delF) = ReachingFactsAnalysisHelper.getUnknownObject(calleeProc, s, retOpt, recvOpt, args, currentContext)
         return s ++ newF -- delF
-    }
-    if(scopeManager.shouldBypass(calleeProc.getDeclaringClass)) {
-      val (newF, delF) = ReachingFactsAnalysisHelper.getUnknownObject(calleeProc, s, retOpt, recvOpt, args, currentContext)
-      return s ++ newF -- delF
     }
     throw new RuntimeException("given callee is not a model call: " + calleeProc)
   }
@@ -208,7 +224,7 @@ class ThreadModel extends ModelCall {
   * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
   */
 class NativeCallModel extends ModelCall {
-  def safsuFile = null
+  def safsuFile: String = null
   def isModelCall(p: JawaMethod): Boolean = p.isNative
 }
 
@@ -216,7 +232,7 @@ class NativeCallModel extends ModelCall {
   * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
   */
 class UnknownCallModel extends ModelCall {
-  def safsuFile = null
+  def safsuFile: String = null
   def isModelCall(p: JawaMethod): Boolean = p.isUnknown
 }
 

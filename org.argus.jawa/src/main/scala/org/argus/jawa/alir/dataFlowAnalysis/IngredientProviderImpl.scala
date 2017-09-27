@@ -60,7 +60,7 @@ class IntraIngredientProvider[LatticeElement](md: MethodDeclaration, cfg: IntraP
   }
 
   def preProcess(node: CFGNode, statement: Statement, s: ISet[LatticeElement]): Unit = {}
-  def postProcess(node: CFGNode, s:ISet[LatticeElement]): Unit = {}
+  def postProcess(node: CFGNode, statement: Statement, s:ISet[LatticeElement]): Unit = {}
 
   override def onPreVisitNode(node: CFGNode, preds: CSet[CFGNode]): Unit = {}
 
@@ -180,7 +180,7 @@ class InterIngredientProvider[LatticeElement](global: Global, icfg: InterProcedu
   }
 
   def preProcess(node: ICFGNode, statement: Statement, s: ISet[LatticeElement]): Unit = {}
-  def postProcess(node: ICFGNode, s: ISet[LatticeElement]): Unit = {}
+  def postProcess(node: ICFGNode, statement: Statement, s: ISet[LatticeElement]): Unit = {}
   override def onPreVisitNode(node: ICFGNode, preds: CSet[ICFGNode]): Unit = {}
   override def onPostVisitNode(node: ICFGNode, succs: CSet[ICFGNode]): Unit = {}
 }

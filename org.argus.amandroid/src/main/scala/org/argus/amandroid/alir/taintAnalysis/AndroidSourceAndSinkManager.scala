@@ -29,10 +29,10 @@ abstract class AndroidSourceAndSinkManager(val sasFilePath: String) extends Sour
 
   parse()
 
-  def isStmtSource(apk: ApkGlobal, loc: Location, ptaResult: PTAResult): Boolean = false
-  def isStmtSink(global: ApkGlobal, loc: Location, ptaresult: PTAResult): Boolean = false
+  override def isStmtSource(apk: ApkGlobal, loc: Location, ptaResult: PTAResult): Boolean = false
+  override def isStmtSink(global: ApkGlobal, loc: Location, ptaresult: PTAResult): Boolean = false
 
-  def isUISource(apk: ApkGlobal, calleeSig: Signature, callerSig: Signature, callerLoc: Location): Boolean = false
+  override def isUISource(apk: ApkGlobal, calleeSig: Signature, callerSig: Signature, callerLoc: Location): Boolean = false
 
   def getSourceSigs: ISet[Signature] = this.sources.keySet.toSet
   def getSinkSigs: ISet[Signature] = this.sinks.keySet.toSet
@@ -65,7 +65,7 @@ class DefaultAndroidSourceAndSinkManager(sasFilePath: String) extends AndroidSou
     false
   }
 
-  def isConditionalSink(apk: ApkGlobal, invNode: ICFGInvokeNode, pos: Option[Int], s: PTAResult): Boolean = {
+  override def isConditionalSink(apk: ApkGlobal, invNode: ICFGInvokeNode, pos: Option[Int], s: PTAResult): Boolean = {
     var sinkflag = false
     if(pos.isEmpty || pos.get !=1) return sinkflag
     val calleeSet = invNode.getCalleeSet
@@ -93,7 +93,7 @@ class DefaultAndroidSourceAndSinkManager(sasFilePath: String) extends AndroidSou
     sinkflag
   }
   
-  def isEntryPointSource(apk: ApkGlobal, entNode: ICFGNode): Boolean = false
+  override def isEntryPointSource(apk: ApkGlobal, entNode: ICFGNode): Boolean = false
 }
 
 /**

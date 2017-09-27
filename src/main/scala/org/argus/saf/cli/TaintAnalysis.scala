@@ -51,7 +51,7 @@ object TaintAnalysis{
           val reporter =
             if(debug) new FileReporter(getOutputDirUri(outputUri, fileUri), MsgLevel.INFO)
             else new PrintReporter(MsgLevel.ERROR)
-          TaintAnalysisTask(module, Set(fileUri), outputUri, forceDelete, reporter).run
+          TaintAnalysisTask(module, Set((fileUri, outputUri)), forceDelete, reporter).run
           println("Done!")
           if(debug) println("Debug info write into " + reporter.asInstanceOf[FileReporter].f)
         } catch {

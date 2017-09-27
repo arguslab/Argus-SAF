@@ -28,9 +28,8 @@ object AmDecoder {
   def decode(sourcePathUri: FileResourceUri, outputUri: FileResourceUri, forceDelete: Boolean = true, createFolder: Boolean = true, srcFolder: String): FileResourceUri = {
     // make it as quiet mode
     val logger = Logger.getLogger("")
-    logger.getHandlers.foreach {
-      h =>
-        logger.removeHandler(h)
+    logger.getHandlers.foreach { h =>
+      logger.removeHandler(h)
     }
     LogManager.getLogManager.reset()
 

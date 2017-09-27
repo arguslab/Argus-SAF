@@ -95,6 +95,16 @@ lazy val amandroid: Project =
   newProject("amandroid", file("org.argus.amandroid"))
   .dependsOn(jawa)
   .settings(libraryDependencies ++= DependencyGroups.amandroid)
+  .settings(
+    assemblyOption in assembly := (assemblyOption in assembly).value.copy(includeScala = false),
+    assemblyJarName in assembly := s"${name.value}-${version.value}.jar",
+    mainClass in assembly := None,
+    artifact in (Compile, assembly) ~= { art =>
+      art.copy(`classifier` = None)
+    },
+    addArtifact(artifact in (Compile, assembly), assembly),
+    publishArtifact in (Compile, packageBin) := false
+  )
   .settings(publishSettings)
 
 lazy val amandroid_concurrent: Project =

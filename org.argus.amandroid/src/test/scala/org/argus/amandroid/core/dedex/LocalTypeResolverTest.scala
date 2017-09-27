@@ -442,7 +442,7 @@ class LocalTypeResolverTest extends FlatSpec with Matchers {
     val strategy = DecompileStrategy(DecompileLayout(outputUri), NoLibraryAPISummary, sourceLevel = DecompileLevel.TYPED)
     val settings = DecompilerSettings(debugMode = false, forceDelete = true, strategy, new NoReporter)
     val yard = new ApkYard(reporter)
-    val apk = yard.loadApk(fileUri, settings, collectInfo = false)
+    val apk = yard.loadApk(fileUri, settings, collectInfo = false, resolveCallBack = false)
     val compiler = new JawaCompiler("1.8")
     val srcFiles = apk.getApplicationClassCodes.map{ case (_, sf) => sf.file.file}
     compiler.compile(srcFiles.toArray, Set().toArray, None, settings.progressBar)

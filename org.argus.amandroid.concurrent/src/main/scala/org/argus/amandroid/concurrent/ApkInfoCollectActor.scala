@@ -29,7 +29,7 @@ class ApkInfoCollectActor extends Actor with ActorLogging {
     val apk = new ApkGlobal(ApkModel(acdata.fileUri, acdata.layout), reporter)
     apk.load()
     try {
-      AppInfoCollector.collectInfo(apk)
+      AppInfoCollector.collectInfo(apk, resolveCallBack = true)
       Staging.stageApkModel(apk.model)
       ApkInfoCollectSuccResult(apk.model)
     } catch {
