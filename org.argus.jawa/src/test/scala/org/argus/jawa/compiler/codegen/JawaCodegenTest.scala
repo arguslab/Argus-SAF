@@ -17,7 +17,7 @@ import org.argus.jawa.compiler.lexer.JawaLexer
 import org.argus.jawa.compiler.parser.JawaParser
 import org.argus.jawa.compiler.util.ReadClassFile.CustomClassLoader
 import org.argus.jawa.core.{Global, MsgLevel, PrintReporter}
-import org.argus.jawa.core.io.{FgSourceFile, PlainFile, SourceFile}
+import org.argus.jawa.core.io.{JawaSourceFile, PlainFile, SourceFile}
 import org.scalatest._
 
 class JawaCodegenTest extends FlatSpec with Matchers {
@@ -25,134 +25,134 @@ class JawaCodegenTest extends FlatSpec with Matchers {
   val DEBUG = false
 
   "Generate code" should "not throw an exception on ArrayAccess1" in {
-    val jf = new FgSourceFile(new PlainFile(new File(getClass.getResource("/jawa_typed/array/ArrayAccess1.jawa").getPath)))
+    val jf = new JawaSourceFile(new PlainFile(new File(getClass.getResource("/jawa_typed/array/ArrayAccess1.jawa").getPath)))
     genCode(jf)
   }
 
   "Generate code" should "not throw an exception on ArrayAccess2" in {
-    val jf = new FgSourceFile(new PlainFile(new File(getClass.getResource("/jawa_typed/array/ArrayAccess2.jawa").getPath)))
+    val jf = new JawaSourceFile(new PlainFile(new File(getClass.getResource("/jawa_typed/array/ArrayAccess2.jawa").getPath)))
     genCode(jf)
   }
 
   "Generate code" should "not throw an exception on ArrayAccess3" in {
-    val jf = new FgSourceFile(new PlainFile(new File(getClass.getResource("/jawa_typed/array/ArrayAccess3.jawa").getPath)))
+    val jf = new JawaSourceFile(new PlainFile(new File(getClass.getResource("/jawa_typed/array/ArrayAccess3.jawa").getPath)))
     genCode(jf)
   }
 
   "Generate code" should "not throw an exception on ArrayCopy" in {
-    val jf = new FgSourceFile(new PlainFile(new File(getClass.getResource("/jawa_typed/array/ArrayCopy.jawa").getPath)))
+    val jf = new JawaSourceFile(new PlainFile(new File(getClass.getResource("/jawa_typed/array/ArrayCopy.jawa").getPath)))
     genCode(jf)
   }
 
   "Generate code" should "not throw an exception on ArrayFill1" in {
-    val jf = new FgSourceFile(new PlainFile(new File(getClass.getResource("/jawa_typed/array/ArrayFill1.jawa").getPath)))
+    val jf = new JawaSourceFile(new PlainFile(new File(getClass.getResource("/jawa_typed/array/ArrayFill1.jawa").getPath)))
     genCode(jf)
   }
 
   "Generate code" should "not throw an exception on ArrayFill2" in {
-    val jf = new FgSourceFile(new PlainFile(new File(getClass.getResource("/jawa_typed/array/ArrayFill2.jawa").getPath)))
+    val jf = new JawaSourceFile(new PlainFile(new File(getClass.getResource("/jawa_typed/array/ArrayFill2.jawa").getPath)))
     genCode(jf)
   }
 
   "Generate code" should "not throw an exception on ArrayLength1" in {
-    val jf = new FgSourceFile(new PlainFile(new File(getClass.getResource("/jawa_typed/array/ArrayLength1.jawa").getPath)))
+    val jf = new JawaSourceFile(new PlainFile(new File(getClass.getResource("/jawa_typed/array/ArrayLength1.jawa").getPath)))
     genCode(jf)
   }
 
   "Generate code" should "not throw an exception on Cmp1" in {
-    val jf = new FgSourceFile(new PlainFile(new File(getClass.getResource("/jawa_typed/cmp/Cmp1.jawa").getPath)))
+    val jf = new JawaSourceFile(new PlainFile(new File(getClass.getResource("/jawa_typed/cmp/Cmp1.jawa").getPath)))
     genCode(jf)
   }
 
   "Generate code" should "not throw an exception on Cmp2" in {
-    val jf = new FgSourceFile(new PlainFile(new File(getClass.getResource("/jawa_typed/cmp/Cmp2.jawa").getPath)))
+    val jf = new JawaSourceFile(new PlainFile(new File(getClass.getResource("/jawa_typed/cmp/Cmp2.jawa").getPath)))
     genCode(jf)
   }
 
   "Generate code" should "not throw an exception on ConstClass1" in {
-    val jf = new FgSourceFile(new PlainFile(new File(getClass.getResource("/jawa_typed/constclass/ConstClass1.jawa").getPath)))
+    val jf = new JawaSourceFile(new PlainFile(new File(getClass.getResource("/jawa_typed/constclass/ConstClass1.jawa").getPath)))
     genCode(jf)
   }
 
   "Generate code" should "not throw an exception on ConstClass2" in {
-    val jf = new FgSourceFile(new PlainFile(new File(getClass.getResource("/jawa_typed/constclass/ConstClass2.jawa").getPath)))
+    val jf = new JawaSourceFile(new PlainFile(new File(getClass.getResource("/jawa_typed/constclass/ConstClass2.jawa").getPath)))
     genCode(jf)
   }
 
   "Generate code" should "not throw an exception on DoubleLong1" in {
-    val jf = new FgSourceFile(new PlainFile(new File(getClass.getResource("/jawa_typed/doublelong/DoubleLong1.jawa").getPath)))
+    val jf = new JawaSourceFile(new PlainFile(new File(getClass.getResource("/jawa_typed/doublelong/DoubleLong1.jawa").getPath)))
     genCode(jf)
   }
 
   "Generate code" should "not throw an exception on Exceptions1" in {
-    val jf = new FgSourceFile(new PlainFile(new File(getClass.getResource("/jawa_typed/exception/Exceptions1.jawa").getPath)))
+    val jf = new JawaSourceFile(new PlainFile(new File(getClass.getResource("/jawa_typed/exception/Exceptions1.jawa").getPath)))
     genCode(jf)
   }
 
   "Generate code" should "not throw an exception on Exceptions2" in {
-    val jf = new FgSourceFile(new PlainFile(new File(getClass.getResource("/jawa_typed/exception/Exceptions2.jawa").getPath)))
+    val jf = new JawaSourceFile(new PlainFile(new File(getClass.getResource("/jawa_typed/exception/Exceptions2.jawa").getPath)))
     genCode(jf)
   }
 
   "Generate code" should "not throw an exception on Exceptions3" in {
-    val jf = new FgSourceFile(new PlainFile(new File(getClass.getResource("/jawa_typed/exception/Exceptions3.jawa").getPath)))
+    val jf = new JawaSourceFile(new PlainFile(new File(getClass.getResource("/jawa_typed/exception/Exceptions3.jawa").getPath)))
     genCode(jf)
   }
 
   "Generate code" should "throw an exception on Exceptions4" in {
     an [RuntimeException] should be thrownBy {
-      val jf = new FgSourceFile(new PlainFile(new File(getClass.getResource("/jawa_typed/exception/Exceptions4.jawa").getPath)))
+      val jf = new JawaSourceFile(new PlainFile(new File(getClass.getResource("/jawa_typed/exception/Exceptions4.jawa").getPath)))
       genCode(jf)
     }
   }
 
   "Generate code" should "not throw an exception on FieldAccess1" in {
-    val jf = new FgSourceFile(new PlainFile(new File(getClass.getResource("/jawa_typed/field/FieldAccess1.jawa").getPath)))
+    val jf = new JawaSourceFile(new PlainFile(new File(getClass.getResource("/jawa_typed/field/FieldAccess1.jawa").getPath)))
     genCode(jf)
   }
 
   "Generate code" should "not throw an exception on FieldAccess2" in {
-    val jf = new FgSourceFile(new PlainFile(new File(getClass.getResource("/jawa_typed/field/FieldAccess2.jawa").getPath)))
+    val jf = new JawaSourceFile(new PlainFile(new File(getClass.getResource("/jawa_typed/field/FieldAccess2.jawa").getPath)))
     genCode(jf)
   }
 
   "Generate code" should "not throw an exception on Instanceof1" in {
-    val jf = new FgSourceFile(new PlainFile(new File(getClass.getResource("/jawa_typed/instance/Instanceof1.jawa").getPath)))
+    val jf = new JawaSourceFile(new PlainFile(new File(getClass.getResource("/jawa_typed/instance/Instanceof1.jawa").getPath)))
     genCode(jf)
   }
 
   "Generate code" should "not throw an exception on Instanceof2" in {
-    val jf = new FgSourceFile(new PlainFile(new File(getClass.getResource("/jawa_typed/instance/Instanceof2.jawa").getPath)))
+    val jf = new JawaSourceFile(new PlainFile(new File(getClass.getResource("/jawa_typed/instance/Instanceof2.jawa").getPath)))
     genCode(jf)
   }
 
   "Generate code" should "not throw an exception on IfJump1" in {
-    val jf = new FgSourceFile(new PlainFile(new File(getClass.getResource("/jawa_typed/jump/IfJump1.jawa").getPath)))
+    val jf = new JawaSourceFile(new PlainFile(new File(getClass.getResource("/jawa_typed/jump/IfJump1.jawa").getPath)))
     genCode(jf)
   }
 
   "Generate code" should "not throw an exception on IfJump2" in {
-    val jf = new FgSourceFile(new PlainFile(new File(getClass.getResource("/jawa_typed/jump/IfJump2.jawa").getPath)))
+    val jf = new JawaSourceFile(new PlainFile(new File(getClass.getResource("/jawa_typed/jump/IfJump2.jawa").getPath)))
     genCode(jf)
   }
 
   "Generate code" should "not throw an exception on SwitchJump1" in {
-    val jf = new FgSourceFile(new PlainFile(new File(getClass.getResource("/jawa_typed/jump/SwitchJump1.jawa").getPath)))
+    val jf = new JawaSourceFile(new PlainFile(new File(getClass.getResource("/jawa_typed/jump/SwitchJump1.jawa").getPath)))
     genCode(jf)
   }
 
   "Generate code" should "not throw an exception on SwitchJump2" in {
-    val jf = new FgSourceFile(new PlainFile(new File(getClass.getResource("/jawa_typed/jump/SwitchJump2.jawa").getPath)))
+    val jf = new JawaSourceFile(new PlainFile(new File(getClass.getResource("/jawa_typed/jump/SwitchJump2.jawa").getPath)))
     genCode(jf)
   }
 
   "Generate code" should "not throw an exception on Monitor1" in {
-    val jf = new FgSourceFile(new PlainFile(new File(getClass.getResource("/jawa_typed/monitor/Monitor1.jawa").getPath)))
+    val jf = new JawaSourceFile(new PlainFile(new File(getClass.getResource("/jawa_typed/monitor/Monitor1.jawa").getPath)))
     genCode(jf)
   }
 
   "Generate code" should "not throw an exception on IJawa" in {
-    val jf = new FgSourceFile(new PlainFile(new File(getClass.getResource("/jawa_typed/interface/IJawa.jawa").getPath)))
+    val jf = new JawaSourceFile(new PlainFile(new File(getClass.getResource("/jawa_typed/interface/IJawa.jawa").getPath)))
     printCode(jf)
   }
 

@@ -10,9 +10,13 @@
 
 package org.argus.amandroid.core.dedex.`type`
 
+import java.util
+
 import org.argus.amandroid.core.dedex.`type`.LocalTypeResolver.VarType
 import org.argus.amandroid.core.dedex.{JawaModelProvider, JawaStyleCodeGenerator}
 import org.argus.jawa.alir.reachingDefinitionAnalysis.VarSlot
+import org.argus.jawa.ast._
+
 import org.argus.jawa.compiler.parser._
 import org.argus.jawa.core.io.Position
 import org.argus.jawa.core.util._
@@ -44,16 +48,16 @@ object GenerateTypedJawa {
     val template = new STGroupString(JawaModelProvider.jawaModel)
     val recTemplate = template.getInstanceOf("RecordDecl")
     recTemplate.add("recName", clazz.typ.jawaName)
-    val recAnnotations = new java.util.ArrayList[ST]
+    val recAnnotations = new util.ArrayList[ST]
     recAnnotations.add(JawaStyleCodeGenerator.generateAnnotation("kind", if(clazz.isInterface) "interface" else "class", template))
     recAnnotations.add(JawaStyleCodeGenerator.generateAnnotation("AccessFlag", clazz.accessModifier, template))
     recTemplate.add("annotations", recAnnotations)
 
-    val extendsList: java.util.ArrayList[ST] = new java.util.ArrayList[ST]
+    val extendsList: util.ArrayList[ST] = new util.ArrayList[ST]
     clazz.superClassOpt foreach { sc =>
       val extOrImpTemplate = template.getInstanceOf("ExtendsAndImplements")
       extOrImpTemplate.add("recName", sc.jawaName)
-      val extAnnotations = new java.util.ArrayList[ST]
+      val extAnnotations = new util.ArrayList[ST]
       extAnnotations.add(JawaStyleCodeGenerator.generateAnnotation("kind", "class", template))
       extOrImpTemplate.add("annotations", extAnnotations)
       extendsList.add(extOrImpTemplate)
@@ -61,7 +65,7 @@ object GenerateTypedJawa {
     clazz.interfaces foreach { ic =>
       val extOrImpTemplate = template.getInstanceOf("ExtendsAndImplements")
       extOrImpTemplate.add("recName", ic.jawaName)
-      val impAnnotations = new java.util.ArrayList[ST]
+      val impAnnotations = new util.ArrayList[ST]
       impAnnotations.add(JawaStyleCodeGenerator.generateAnnotation("kind", "interface", template))
       extOrImpTemplate.add("annotations", impAnnotations)
       extendsList.add(extOrImpTemplate)
@@ -73,8 +77,8 @@ object GenerateTypedJawa {
     recTemplate.render()
   }
 
-  private def generateProcedures(global: Global, clazz: ClassOrInterfaceDeclaration, template: STGroupString): java.util.ArrayList[ST] = {
-    val procedures: java.util.ArrayList[ST] = new java.util.ArrayList[ST]
+  private def generateProcedures(global: Global, clazz: ClassOrInterfaceDeclaration, template: STGroupString): util.ArrayList[ST] = {
+    val procedures: util.ArrayList[ST] = new util.ArrayList[ST]
     clazz.methods foreach { method =>
       procedures.add(generateProcedure(global, method, template))
     }
@@ -105,13 +109,13 @@ object GenerateTypedJawa {
     val procTemplate = template.getInstanceOf("ProcedureDecl")
     procTemplate.add("retTyp", JawaStyleCodeGenerator.generateType(signature.getReturnType, template))
     procTemplate.add("procedureName", method.methodSymbol.id.text)
-    val params: java.util.ArrayList[ST] = new java.util.ArrayList[ST]
+    val params: util.ArrayList[ST] = new util.ArrayList[ST]
     method.thisParam foreach { thisP =>
       val thisType = thisP.typ.typ
       val paramTemplate = template.getInstanceOf("Param")
       paramTemplate.add("paramTyp", JawaStyleCodeGenerator.generateType(thisType, template))
       paramTemplate.add("paramName", genVarName(thisP.name, thisType, Some("this"), isParam = true, localvars, realnameMap))
-      val thisAnnotations = new java.util.ArrayList[ST]
+      val thisAnnotations = new util.ArrayList[ST]
       thisAnnotations.add(JawaStyleCodeGenerator.generateAnnotation("kind", "this", template))
       paramTemplate.add("annotations", thisAnnotations)
       params.add(paramTemplate)
@@ -123,7 +127,7 @@ object GenerateTypedJawa {
       val paramTemplate = template.getInstanceOf("Param")
       paramTemplate.add("paramTyp", JawaStyleCodeGenerator.generateType(paramType, template))
       paramTemplate.add("paramName", genVarName(p.name, paramType, paramName, isParam = true, localvars, realnameMap))
-      val paramAnnotations = new java.util.ArrayList[ST]
+      val paramAnnotations = new util.ArrayList[ST]
       if(!JavaKnowledge.isJavaPrimitive(paramType)) {
         paramAnnotations.add(JawaStyleCodeGenerator.generateAnnotation("kind", "object", template))
       }
@@ -131,7 +135,7 @@ object GenerateTypedJawa {
       params.add(paramTemplate)
     }
     procTemplate.add("params", params)
-    val procAnnotations = new java.util.ArrayList[ST]
+    val procAnnotations = new util.ArrayList[ST]
     procAnnotations.add(JawaStyleCodeGenerator.generateAnnotation("owner", "^" + JawaStyleCodeGenerator.generateType(signature.getClassType, template).render(), template))
     procAnnotations.add(JawaStyleCodeGenerator.generateAnnotation("signature", "`" + signature.signature + "`", template))
     procAnnotations.add(JawaStyleCodeGenerator.generateAnnotation("AccessFlag", method.accessModifier, template))
@@ -142,7 +146,7 @@ object GenerateTypedJawa {
       procTemplate.add("localVars", generateLocalVars(localvars.toMap, template))
       procTemplate.add("body", body)
       val catchesTemplate: ST = template.getInstanceOf("CatchClauses")
-      val catches = new java.util.ArrayList[String]
+      val catches = new util.ArrayList[String]
       catches.addAll(method.resolvedBody.catchClauses.map(_.toCode).asJava)
       catchesTemplate.add("catches", catches)
       procTemplate.add("catchClauses", catchesTemplate)
@@ -154,7 +158,7 @@ object GenerateTypedJawa {
 
   private def generateLocalVars(localvars: IMap[String, (JawaType, Boolean)], template: STGroupString): ST = {
     val localVarsTemplate: ST = template.getInstanceOf("LocalVars")
-    val locals: java.util.ArrayList[String] = new java.util.ArrayList[String]
+    val locals: util.ArrayList[String] = new util.ArrayList[String]
     localvars.foreach {
       case (name, (typ, param)) =>
         if(!param) {
@@ -189,7 +193,7 @@ object GenerateTypedJawa {
   private def generateBody(global: Global, method: MethodDeclaration, localvars: MMap[String, (JawaType, Boolean)], realnameMap: MMap[String, String], def_types: IMap[Int, IMap[VarSlot, VarType]], use_types: IMap[Int, IMap[VarSlot, VarType]], template: STGroupString): ST = {
     val bodyTemplate: ST = template.getInstanceOf("Body")
 
-    val codes: java.util.ArrayList[String] = new java.util.ArrayList[String]
+    val codes: util.ArrayList[String] = new util.ArrayList[String]
     method.resolvedBody.locations.foreach { location =>
       var code = location.toCode
       val defs: IMap[VarSlot, VarType] = def_types.getOrElse(location.locationIndex, imapEmpty)

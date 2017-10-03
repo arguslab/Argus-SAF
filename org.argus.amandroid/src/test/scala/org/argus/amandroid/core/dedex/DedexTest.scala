@@ -12,7 +12,7 @@ package org.argus.amandroid.core.dedex
 
 import org.argus.amandroid.core.decompile.{DecompileLayout, DecompileStrategy, DecompilerSettings}
 import org.argus.jawa.core.{JawaType, NoLibraryAPISummary, NoReporter}
-import org.argus.jawa.core.sourcefile.SourcefileParser
+import org.argus.jawa.core.frontend.sourcefile.SourcefileParser
 import org.scalatest.{FlatSpec, Matchers}
 import org.argus.jawa.core.util.FileUtil
 

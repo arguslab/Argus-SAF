@@ -134,7 +134,7 @@ object AppInfoCollector {
   def generateEnvironment(apk: ApkGlobal, clazz: JawaClass, envName: String): Int = {
     if(clazz == null) return 0
     //generate env main method
-    apk.reporter.println("Generate environment for " + clazz)
+    apk.reporter.echo(TITLE, "Generate environment for " + clazz)
     val dmGen = new AndroidEnvironmentGenerator(apk)
     dmGen.setSubstituteClassMap(AndroidSubstituteClassMap.getSubstituteClassMap)
     dmGen.setCurrentComponent(clazz.getType)
@@ -240,6 +240,8 @@ object AppInfoCollector {
       }.foreach { typ =>
         generateAsyncTask(apk, typ)
       }
+
+      apk.reporter.println(s"Generate environment for ${mfp.getComponentInfos.size} components.")
       mfp.getComponentInfos.foreach { f =>
         if(f.enabled){
           val comp = apk.getClassOrResolve(f.compType)

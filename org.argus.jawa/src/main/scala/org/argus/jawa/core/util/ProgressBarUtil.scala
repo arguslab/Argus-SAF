@@ -20,6 +20,7 @@ import scala.collection.immutable.Iterable
 object ProgressBarUtil {
   def withProgressBar[T, R](msg: String, pb: ProgressBar)(tasks: Iterable[T], f: T => R): Iterable[R] = {
     println(msg + " Total: " + tasks.size)
+    if(tasks.isEmpty) return isetEmpty
     val progressBar = pb.withTotalSteps(tasks.size)
     progressBar.start()
     val result = tasks.map { task =>

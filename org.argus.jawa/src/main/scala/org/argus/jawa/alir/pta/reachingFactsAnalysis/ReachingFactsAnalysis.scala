@@ -18,6 +18,7 @@ import org.argus.jawa.alir.dataFlowAnalysis._
 import org.argus.jawa.alir.pta.model.ModelCallHandler
 import org.argus.jawa.alir.pta._
 import org.argus.jawa.alir.pta.reachingFactsAnalysis.ReachingFactsAnalysisHelper.getNameSlotFromNameExp
+import org.argus.jawa.ast._
 import org.argus.jawa.compiler.parser._
 import org.argus.jawa.core.util._
 import org.argus.jawa.core._

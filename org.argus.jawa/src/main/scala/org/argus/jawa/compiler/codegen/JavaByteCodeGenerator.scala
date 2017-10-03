@@ -11,13 +11,16 @@
 package org.argus.jawa.compiler.codegen
 
 import org.argus.jawa.core.util._
-import org.argus.jawa.compiler.parser.{CompilationUnit => JawaCompilationUnit, Declaration => JawaDeclaration, Field => JawaField, Location => JawaLocation, _}
 import java.io.PrintWriter
 import java.io.File
 import java.io.DataOutputStream
 import java.io.FileOutputStream
+import java.lang.{Long, Float, Double}
 
+import org.argus.jawa.ast
+import org.argus.jawa.ast._
 import org.argus.jawa.compiler.lexer.Tokens._
+import org.argus.jawa.compiler.parser.JawaParserException
 import org.argus.jawa.core._
 import org.argus.jawa.core.io.Position
 import org.objectweb.asm._
@@ -61,7 +64,7 @@ class JavaByteCodeGenerator(javaVersion: Int) {
   
   def getClasses: IMap[JawaType, Array[Byte]] = classes.toMap
   
-  def generate(globalOpt: Option[Global], cu: JawaCompilationUnit): IMap[JawaType, Array[Byte]] = {
+  def generate(globalOpt: Option[Global], cu: CompilationUnit): IMap[JawaType, Array[Byte]] = {
     if(!cu.localTypResolved) throw new RuntimeException("Cannot generate bytecode for untyped code. Use GenerateTypedJawa() to transform untyped code to typed.")
     cu.topDecls foreach { cid =>
       visitClass(globalOpt, cid, javaVersion)
@@ -100,7 +103,7 @@ class JavaByteCodeGenerator(javaVersion: Int) {
     this.classes(cid.typ) = cw.toByteArray
   }
   
-  private def visitField(cw: ClassWriter, fd: JawaField with JawaDeclaration): Unit = {
+  private def visitField(cw: ClassWriter, fd: ast.Field with Declaration): Unit = {
     val af: Int = AccessFlag.getAccessFlags(fd.accessModifier)
     val mod: Int = AccessFlag.getJavaFlags(af)
     val typ: String = JavaKnowledge.formatTypeToSignature(fd.typ.typ)
@@ -186,7 +189,7 @@ class JavaByteCodeGenerator(javaVersion: Int) {
     this.maxLocals = 0
   }
   
-  private def visitLocation(mv: MethodVisitor, jl: JawaLocation): Unit = {
+  private def visitLocation(mv: MethodVisitor, jl: Location): Unit = {
     jl.statement match {
       case cs: CallStatement =>
         visitCallStatement(mv, cs)
@@ -535,7 +538,7 @@ class JavaByteCodeGenerator(javaVersion: Int) {
     case _ =>  throw new JawaByteCodeGenException(rhs.pos, "visitRhsExpression problem: " + rhs + " " + kind)
   }
   
-  private def handleTypeImplicitConvert(mv: MethodVisitor, lhsTyp: Option[JawaType], rhsTyp: Option[JawaType]) = {
+  private def handleTypeImplicitConvert(mv: MethodVisitor, lhsTyp: Option[JawaType], rhsTyp: Option[JawaType]): Unit = {
     if(lhsTyp.isDefined && rhsTyp.isDefined){
       val lhs = lhsTyp.get.name
       val rhs = rhsTyp.get.name
@@ -968,7 +971,7 @@ class JavaByteCodeGenerator(javaVersion: Int) {
     case _ => throw new JawaByteCodeGenException(ce.pos, "visitCastExpression problem: " + ce + " " + kind)
   }
   
-  private def generateIntConst(mv: MethodVisitor, i: Int) = i match {
+  private def generateIntConst(mv: MethodVisitor, i: Int): Unit = i match {
     case -1 => mv.visitInsn(Opcodes.ICONST_M1)
     case 0  => mv.visitInsn(Opcodes.ICONST_0)
     case 1  => mv.visitInsn(Opcodes.ICONST_1)
@@ -986,26 +989,26 @@ class JavaByteCodeGenerator(javaVersion: Int) {
       }
   }
   
-  private def generateLongConst(mv: MethodVisitor, l: Long) = l match {
+  private def generateLongConst(mv: MethodVisitor, l: scala.Long): Unit = l match {
     case 0  => mv.visitInsn(Opcodes.LCONST_0)
     case 1  => mv.visitInsn(Opcodes.LCONST_1)
     case _  =>
-      mv.visitLdcInsn(new java.lang.Long(l))
+      mv.visitLdcInsn(new Long(l))
   }
   
-  private def generateFloatConst(mv: MethodVisitor, f: Float) = f match {
+  private def generateFloatConst(mv: MethodVisitor, f: scala.Float): Unit = f match {
     case 0  => mv.visitInsn(Opcodes.FCONST_0)
     case 1  => mv.visitInsn(Opcodes.FCONST_1)
     case 2  => mv.visitInsn(Opcodes.FCONST_2)
     case _  =>
-      mv.visitLdcInsn(new java.lang.Float(f))
+      mv.visitLdcInsn(new Float(f))
   }
   
-  private def generateDoubleConst(mv: MethodVisitor, d: Double) = d match {
+  private def generateDoubleConst(mv: MethodVisitor, d: scala.Double): Unit = d match {
     case 0  => mv.visitInsn(Opcodes.DCONST_0)
     case 1  => mv.visitInsn(Opcodes.DCONST_1)
     case _  =>
-      mv.visitLdcInsn(new java.lang.Double(d))
+      mv.visitLdcInsn(new Double(d))
   }
 }
 

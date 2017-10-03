@@ -127,7 +127,7 @@ class HeapSummaryGeneratorTest extends FlatSpec with Matchers {
         val cg = SignatureBasedCallGraph(global, Set(entrypoint), None)
         val analysis = new BottomUpSummaryGenerator[Global](global, sm, handler,
           HeapSummary(_, _),
-          ConsoleProgressBar.on(System.out).withFormat("[:bar] :percent% :elapsed ETA: :eta"))
+          ConsoleProgressBar.on(System.out).withFormat("[:bar] :percent% :elapsed Left: :remain"))
         val orderedWUs: IList[WorkUnit[Global]] = TopologicalSortUtil.sort(cg.getCallMap).map { sig =>
           val method = global.getMethodOrResolve(sig).getOrElse(throw new RuntimeException("Method does not exist: " + sig))
           new HeapSummaryWu(global, method, sm, handler)

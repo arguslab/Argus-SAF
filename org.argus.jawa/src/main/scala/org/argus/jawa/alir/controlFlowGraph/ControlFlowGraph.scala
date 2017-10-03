@@ -11,6 +11,7 @@
 package org.argus.jawa.alir.controlFlowGraph
 
 import org.argus.jawa.alir._
+import org.argus.jawa.ast._
 import org.argus.jawa.compiler.parser._
 import org.argus.jawa.core.util._
 import org.jgrapht.ext.ComponentNameProvider

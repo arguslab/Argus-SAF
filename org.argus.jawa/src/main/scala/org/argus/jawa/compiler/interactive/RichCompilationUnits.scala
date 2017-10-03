@@ -12,7 +12,7 @@ package org.argus.jawa.compiler.interactive
 
 import java.util.concurrent.ConcurrentLinkedQueue
 
-import org.argus.jawa.compiler.parser.CompilationUnit
+import org.argus.jawa.ast.CompilationUnit
 import org.argus.jawa.core.Problem
 import org.argus.jawa.core.io.AbstractFile
 import org.argus.jawa.core.util._

@@ -13,7 +13,7 @@ package org.argus.jawa.alir.controlFlowGraph
 import org.argus.jawa.alir.callGraph.CallGraph
 import org.argus.jawa.alir.{AlirLoc, Context, InterProceduralNode, JawaAlirInfoProvider}
 import org.argus.jawa.alir.interprocedural.Callee
-import org.argus.jawa.compiler.parser.{CallStatement, Location}
+import org.argus.jawa.ast.{CallStatement, Location}
 import org.argus.jawa.core.{Global, JawaMethod, Signature}
 import org.argus.jawa.core.util._
 

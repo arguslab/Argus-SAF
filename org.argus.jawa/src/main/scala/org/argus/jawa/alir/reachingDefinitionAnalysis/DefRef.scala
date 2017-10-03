@@ -10,6 +10,7 @@
 
 package org.argus.jawa.alir.reachingDefinitionAnalysis
 
+import org.argus.jawa.ast.{Assignment, CallStatement, Jump}
 import org.argus.jawa.compiler.parser._
 import org.argus.jawa.core.util._
 

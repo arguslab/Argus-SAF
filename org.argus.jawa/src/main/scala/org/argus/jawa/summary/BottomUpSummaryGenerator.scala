@@ -28,24 +28,33 @@ class BottomUpSummaryGenerator[T <: Global](
     suGen: (Signature, IList[SummaryRule]) => Summary,
     progressBar: ProgressBar)(implicit heap: SimHeap) {
 
+  var debug: Boolean = false
+
   def build(orderedWUs: IList[WorkUnit[T]]): Unit = {
     ProgressBarUtil.withProgressBar("Summary based data flow analysis...", progressBar)(orderedWUs, processWU)
   }
 
   private def processWU: WorkUnit[T] => Unit = { wu =>
-    if (!handler.isModelCall(wu.method)) {
-      if(wu.needHeapSummary) {
-        generateHeapSummary(wu.method) match {
-          case Some(w) =>
-            wu match {
-              case dfw: DataFlowWu[T] => dfw.setIDFG(w.getIDFG)
-              case _ =>
-            }
-          case None =>
+    try {
+      if (!handler.isModelCall(wu.method)) {
+        if (wu.needHeapSummary) {
+          generateHeapSummary(wu.method) match {
+            case Some(w) =>
+              wu match {
+                case dfw: DataFlowWu[T] => dfw.setIDFG(w.getIDFG)
+                case _ =>
+              }
+            case None =>
+          }
         }
+        val summary = wu.generateSummary(suGen)
+        sm.register(wu.method.getSignature, summary)
       }
-      val summary = wu.generateSummary(suGen)
-      sm.register(wu.method.getSignature, summary)
+    } catch {
+      case e: Exception =>
+        if(debug) {
+          e.printStackTrace()
+        }
     }
   }
 

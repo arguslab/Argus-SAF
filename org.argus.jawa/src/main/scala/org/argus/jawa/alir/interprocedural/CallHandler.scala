@@ -12,7 +12,7 @@ package org.argus.jawa.alir.interprocedural
 
 import org.argus.jawa.alir.Context
 import org.argus.jawa.alir.pta.{Instance, PTAResult, VarSlot}
-import org.argus.jawa.compiler.parser.CallStatement
+import org.argus.jawa.ast.CallStatement
 import org.argus.jawa.core._
 import org.argus.jawa.core.util._
 

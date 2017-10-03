@@ -10,7 +10,7 @@
 
 package org.argus.jawa.compiler.util
 
-import org.argus.jawa.compiler.parser.{JawaAstNode, JawaSymbol}
+import org.argus.jawa.ast.{JawaAstNode, JawaSymbol}
 import org.argus.jawa.core.io.Position
 
 

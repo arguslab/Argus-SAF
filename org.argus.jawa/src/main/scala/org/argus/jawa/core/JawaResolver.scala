@@ -10,8 +10,10 @@
 
 package org.argus.jawa.core
 
-import org.argus.jawa.compiler.parser.{CompilationUnit, JawaParser, MethodDeclaration}
-import org.argus.jawa.core.sourcefile.MyCUVisitor
+import org.argus.jawa.ast.{CompilationUnit, MethodDeclaration}
+import org.argus.jawa.compiler.parser.JawaParser
+import org.argus.jawa.core.frontend.{MyClass, MyMethod}
+import org.argus.jawa.core.frontend.sourcefile.SourcefileParser
 import org.argus.jawa.core.util._
 
 /**
@@ -31,8 +33,7 @@ trait JawaResolver extends JavaKnowledge { self: Global =>
    */
   def resolveMethodCode(sig: Signature, code: String): JawaMethod = {
     val md = parseMethod(code, reporter)
-    val v = new MyCUVisitor
-    val method = v.resolveMethod(md)
+    val method = SourcefileParser.resolveMethod(md)
     val clazz = getClazz(sig.getClassType) match {
       case Some(c) => c
       case None => resolveClass(sig.getClassType, allowUnknown = false)

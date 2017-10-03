@@ -10,7 +10,7 @@
 
 package org.argus.jawa.core
 
-import org.argus.jawa.compiler.parser.MethodDeclaration
+import org.argus.jawa.ast.MethodDeclaration
 import org.argus.jawa.core.util._
 
 /**

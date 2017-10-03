@@ -12,7 +12,7 @@ package org.argus.jawa.alir.dataFlowAnalysis
 
 import org.argus.jawa.alir.{AlirLoc, Context}
 import org.argus.jawa.alir.controlFlowGraph._
-import org.argus.jawa.compiler.parser.{Location, MethodDeclaration, ResolvedBody, Statement}
+import org.argus.jawa.ast.{Location, MethodDeclaration, ResolvedBody, Statement}
 import org.argus.jawa.core.{Global, Signature}
 import org.argus.jawa.core.util._
 

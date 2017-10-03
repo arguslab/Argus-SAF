@@ -15,6 +15,7 @@ import org.argus.jawa.alir.controlFlowGraph.{ICFGInvokeNode, ICFGLocNode, ICFGNo
 import org.argus.jawa.alir.pta._
 import org.argus.jawa.alir.pta.model.{ModelCall, ModelCallHandler}
 import org.argus.jawa.alir.pta.reachingFactsAnalysis.SimHeap
+import org.argus.jawa.ast._
 import org.argus.jawa.compiler.parser._
 import org.argus.jawa.core._
 import org.argus.jawa.core.util._

@@ -44,5 +44,6 @@ class ButtonUpTaintAnalysisTask(module: TaintAnalysisModules.Value, fileUris: IS
       case COMMUNICATION_LEAKAGE =>
         new CommunicationSourceAndSinkManager(AndroidGlobalConfig.settings.sas_file)
     }
+    None
   }
 }

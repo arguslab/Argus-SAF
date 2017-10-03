@@ -14,8 +14,8 @@ import org.argus.jawa.alir.JawaAlirInfoProvider
 import org.argus.jawa.alir.controlFlowGraph.{CFGNode, IntraProceduralControlFlowGraph}
 import org.argus.jawa.alir.interprocedural.CallHandler
 import org.argus.jawa.alir.reachingDefinitionAnalysis.{LocDefDesc, ReachingDefinitionAnalysis}
+import org.argus.jawa.ast.{AssignmentStatement, Location, NameExpression}
 import org.argus.jawa.core._
-import org.argus.jawa.compiler.parser.{AssignmentStatement, Location, NameExpression}
 import org.argus.jawa.core.util._
 
 import scala.collection.GenMap

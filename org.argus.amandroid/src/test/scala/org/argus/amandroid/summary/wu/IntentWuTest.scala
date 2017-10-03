@@ -97,7 +97,7 @@ class IntentWuTest extends FlatSpec with Matchers {
         val cg = SignatureBasedCallGraph(global, Set(entrypoint), None)
         val analysis = new BottomUpSummaryGenerator[Global](global, sm, handler,
           PTSummary(_, _),
-          ConsoleProgressBar.on(System.out).withFormat("[:bar] :percent% :elapsed ETA: :eta"))
+          ConsoleProgressBar.on(System.out).withFormat("[:bar] :percent% :elapsed Left: :remain"))
         val store: PTStore = new PTStore
         val orderedWUs: IList[WorkUnit[Global]] = cg.topologicalSort(true).map { sig =>
           val method = global.getMethodOrResolve(sig).getOrElse(throw new RuntimeException("Method does not exist: " + sig))
@@ -244,7 +244,7 @@ class IntentWuTest extends FlatSpec with Matchers {
         val sm: SummaryManager = new AndroidSummaryProvider(apk).getSummaryManager
         val analysis = new BottomUpSummaryGenerator[Global](apk, sm, handler,
           PTSummary(_, _),
-          ConsoleProgressBar.on(System.out).withFormat("[:bar] :percent% :elapsed ETA: :eta"))
+          ConsoleProgressBar.on(System.out).withFormat("[:bar] :percent% :elapsed Left: :remain"))
         val store: PTStore = new PTStore
 
         val (_, (sig, _)) = apk.model.getEnvMap.find{ case (comp, _) =>

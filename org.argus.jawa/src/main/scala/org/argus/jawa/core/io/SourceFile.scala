@@ -58,7 +58,7 @@ abstract class SourceFile {
  */
 object NoSourceFile extends SourceFile {
   def content                   = Array()
-  def file                      = NoFile
+  def file: AbstractFile        = NoFile
   def isLineBreak(idx: Int)     = false
   def isEndOfLine(idx: Int)     = false
   def isSelfContained           = true
@@ -74,7 +74,7 @@ class StringFile(code: String) extends  VirtualFile("<String>", "<String>") {
   content = code.getBytes()
 }
 
-class FgSourceFile(val file: AbstractFile) extends SourceFile {
+class DefaultSourceFile(val file: AbstractFile) extends SourceFile {
   def this(sourceName: String)   = this(new VirtualFile(sourceName))
 
   // If non-whitespace tokens run all the way up to EOF,
@@ -86,12 +86,6 @@ class FgSourceFile(val file: AbstractFile) extends SourceFile {
   def length: Int = content.length
   def start = 0
   def isSelfContained = true
-
-  def getClassCodes: ISet[String] = {
-    val c = code
-    c.replaceAll("(record `)", "DELIMITER_FGWEI_HAHAHA$1").split("DELIMITER_FGWEI_HAHAHA").tail.toSet
-  }
-  
   override def identifier(pos: Position): Option[String] =
     if (pos.isDefined && pos.source == this && pos.point != -1) {
       def isOK(c: Char) = isIdentifierPart(c, isGraveAccent = true) || isOperatorPart(c)
@@ -149,8 +143,8 @@ class FgSourceFile(val file: AbstractFile) extends SourceFile {
   private var lastLine = 0
 
   /** Convert offset to line in this source file.
-   *  Lines are numbered from 0.
-   */
+    *  Lines are numbered from 0.
+    */
   def offsetToLine(offset: Int): Int = {
     val lines = lineIndices
     def findLine(lo: Int, hi: Int, mid: Int): Int =
@@ -163,8 +157,17 @@ class FgSourceFile(val file: AbstractFile) extends SourceFile {
   }
 
   override def equals(that: Any): Boolean = that match {
-    case that: FgSourceFile => file.path == that.file.path && start == that.start
+    case that: JawaSourceFile => file.path == that.file.path && start == that.start
     case _ => false
   }
   override def hashCode: Int = file.path.## + start.##
 }
+
+class JawaSourceFile(file: AbstractFile) extends DefaultSourceFile(file) {
+  def getClassCodes: ISet[String] = {
+    val c = code
+    c.replaceAll("(record `)", "DELIMITER_JAWA_HAHAHA$1").split("DELIMITER_JAWA_HAHAHA").tail.toSet
+  }
+}
+
+class JavaSourceFile(file: AbstractFile) extends DefaultSourceFile(file)

@@ -16,7 +16,7 @@ import org.argus.amandroid.alir.taintAnalysis.AndroidSourceAndSinkManager
 import org.argus.amandroid.core.{AndroidConstants, ApkGlobal}
 import org.argus.jawa.alir.controlFlowGraph.ICFGInvokeNode
 import org.argus.jawa.alir.pta.{PTAResult, VarSlot}
-import org.argus.jawa.compiler.parser.{AssignmentStatement, CallStatement, LiteralExpression, Location}
+import org.argus.jawa.ast.{AssignmentStatement, CallStatement, LiteralExpression, Location}
 import org.argus.jawa.core.util._
 
 /**

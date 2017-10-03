@@ -15,7 +15,7 @@ import org.argus.jawa.alir.controlFlowGraph.{ICFGLocNode, ICFGNode}
 import org.argus.jawa.alir.pta.{PTASlot, VarSlot}
 import org.argus.jawa.alir.pta.model.ModelCallHandler
 import org.argus.jawa.alir.pta.reachingFactsAnalysis.SimHeap
-import org.argus.jawa.compiler.parser.CallStatement
+import org.argus.jawa.ast.CallStatement
 import org.argus.jawa.core.{Global, JawaMethod}
 import org.argus.jawa.core.util._
 import org.argus.jawa.summary.wu.{PTStore, PointsToWu}

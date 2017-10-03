@@ -11,10 +11,11 @@
 
 package org.argus.jawa.compiler.interactive
 
-import org.argus.jawa.compiler.parser.{CompilationUnit, JawaSymbol}
+import org.argus.jawa.ast.{CompilationUnit, JawaSymbol}
 import org.argus.jawa.core.Reporter
 import org.argus.jawa.core.io.{NoPosition, Position, SourceFile}
 import org.argus.jawa.core.{Global => JawaGlobal}
+
 import collection.JavaConverters._
 
 /**
