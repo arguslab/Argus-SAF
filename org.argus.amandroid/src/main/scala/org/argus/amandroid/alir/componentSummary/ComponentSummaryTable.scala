@@ -19,7 +19,7 @@ import org.argus.jawa.alir.controlFlowGraph._
 import org.argus.jawa.alir.dataDependenceAnalysis.{IDDGNode, MultiDataDependenceGraph}
 import org.argus.jawa.alir.dataFlowAnalysis.InterProceduralDataFlowGraph
 import org.argus.jawa.alir.pta.{Instance, VarSlot}
-import org.argus.jawa.compiler.parser.{AssignmentStatement, NameExpression}
+import org.argus.jawa.ast.{AssignmentStatement, NameExpression}
 import org.argus.jawa.core._
 import org.argus.jawa.core.util._
 

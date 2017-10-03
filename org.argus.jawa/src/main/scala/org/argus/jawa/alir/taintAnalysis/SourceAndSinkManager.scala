@@ -18,7 +18,7 @@ import java.util.regex.Matcher
 
 import org.argus.jawa.alir.controlFlowGraph._
 import org.argus.jawa.alir.pta.PTAResult
-import org.argus.jawa.compiler.parser.Location
+import org.argus.jawa.ast.Location
 import org.argus.jawa.core.{Global, Signature}
 
 /**

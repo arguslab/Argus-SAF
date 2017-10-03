@@ -8,23 +8,44 @@
  * Detailed contributors are listed in the CONTRIBUTOR.md
  */
 
-package org.argus.jawa.core.sourcefile
+package org.argus.jawa.core.frontend.sourcefile
 
-import org.argus.jawa.compiler.parser.{CompilationUnit, MethodDeclaration}
-import org.argus.jawa.core.util._
+import org.argus.jawa.ast.{CompilationUnit, MethodDeclaration}
+import org.argus.jawa.core.io.SourceFile
 import org.argus.jawa.core._
+import org.argus.jawa.core.frontend.{MyClass, MyField, MyMethod}
+import org.argus.jawa.core.util._
+
 
 /**
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
  */
-class MyCUVisitor {
-  private val classes: MMap[JawaType, MyClass] = mmapEmpty
-  def getClasses: IMap[JawaType, MyClass] = classes.toMap
-  
+object SourcefileParser {
+  final val TITLE = "SourcefileParser"
+  final val debug = false
+  def parse(file: SourceFile, reporter: Reporter): IMap[JawaType, MyClass] = {
+    parse(file.code, reporter)
+  }
+  def parse(code: String, reporter: Reporter): IMap[JawaType, MyClass] = {
+    try {
+      val cu: CompilationUnit = JawaResolver.parseClass(code.replaceAllLiterally("#. ", "# "), reporter)
+      resolve(cu)
+    } catch {
+      case e: Exception =>
+        reporter.error(TITLE, e.getMessage)
+        reporter.error(TITLE, code)
+        if(debug) {
+          e.printStackTrace()
+        }
+        imapEmpty
+    }
+  }
+
   /**
-   * resolve all the classes, fields and procedures
-   */
-  def resolve(cu: CompilationUnit): Unit = {
+    * resolve all the classes, fields and procedures
+    */
+  def resolve(cu: CompilationUnit): IMap[JawaType, MyClass] = {
+    val classes: MMap[JawaType, MyClass] = mmapEmpty
     cu.topDecls foreach { cd =>
       val typ = cd.typ
       val accessFlag = AccessFlag.getAccessFlags(cd.accessModifier)
@@ -38,7 +59,7 @@ class MyCUVisitor {
       var outerType: Option[JawaType] = None
       if(JavaKnowledge.isInnerClass(typ)) outerType = Some(JavaKnowledge.getOuterTypeFrom(typ))
       val myclass = MyClass(accessFlag, typ, superType, interfaces, outerType)
-      this.classes(typ) = myclass
+      classes(typ) = myclass
       cd.fields foreach { field =>
         val fieldType: JawaType = field.typ.typ
         val FQN: FieldFQN = new FieldFQN(field.FQN, fieldType)
@@ -52,12 +73,13 @@ class MyCUVisitor {
         myclass.addMethod(m)
       }
     }
+    classes.toMap
   }
 
   private def createClassField(rec: MyClass): MyField = {
     MyField(AccessFlag.getAccessFlags("FINAL_STATIC"), FieldFQN(rec.typ, "class", new JawaType("java.lang.Class")))
   }
-  
+
   def resolveMethod(md: MethodDeclaration): MyMethod = {
     val signature = md.signature
     val accessFlag = AccessFlag.getAccessFlags(md.accessModifier)

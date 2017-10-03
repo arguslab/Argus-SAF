@@ -122,7 +122,7 @@ class TaintWuTest extends FlatSpec with Matchers {
         val cg = SignatureBasedCallGraph(global, Set(entrypoint), None)
         val analysis = new BottomUpSummaryGenerator[Global](global, sm, handler,
           TaintSummary(_, _),
-          ConsoleProgressBar.on(System.out).withFormat("[:bar] :percent% :elapsed ETA: :eta"))
+          ConsoleProgressBar.on(System.out).withFormat("[:bar] :percent% :elapsed Left: :remain"))
         val store = new TaintStore
         val orderedWUs: IList[WorkUnit[Global]] = cg.topologicalSort(true).map { sig =>
           val method = global.getMethodOrResolve(sig).getOrElse(throw new RuntimeException("Method does not exist: " + sig))

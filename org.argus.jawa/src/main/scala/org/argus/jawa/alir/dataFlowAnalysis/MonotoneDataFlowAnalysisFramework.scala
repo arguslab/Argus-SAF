@@ -12,6 +12,7 @@ package org.argus.jawa.alir.dataFlowAnalysis
 
 import org.argus.jawa.alir.{AlirLoc, AlirNode}
 import org.argus.jawa.alir.controlFlowGraph._
+import org.argus.jawa.ast._
 import org.argus.jawa.compiler.parser._
 import org.argus.jawa.core.Signature
 import org.argus.jawa.core.util._

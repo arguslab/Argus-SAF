@@ -24,7 +24,7 @@ import org.argus.jawa.alir.controlFlowGraph.ICFGCallNode
 import org.argus.jawa.alir.dataFlowAnalysis.InterProceduralDataFlowGraph
 import org.argus.jawa.alir.pta.VarSlot
 import org.argus.jawa.alir.taintAnalysis.TaintAnalysisResult
-import org.argus.jawa.compiler.parser.CallStatement
+import org.argus.jawa.ast.CallStatement
 import org.argus.jawa.core.Signature
 
 /**
@@ -37,8 +37,7 @@ object DataCollector {
   
   private def getIntentFilterStrings(intentFilters: ISet[IntentFilter]): util.ArrayList[String] = {
     val intFs: util.ArrayList[String] = new util.ArrayList[String]
-    intentFilters.foreach{
-      intfilter =>
+    intentFilters.foreach{ intfilter =>
         val intF = template.getInstanceOf("IntentFilter")
         val actions = intfilter.getActions
         if(actions.nonEmpty){
@@ -138,26 +137,25 @@ object DataCollector {
         taintResultT.add("sinks", sinkStrings)
         val pathStrings: util.ArrayList[String] = new util.ArrayList[String]
         val taintPaths = taintResultOpt.get.getTaintedPaths
-        taintPaths.foreach{
-          taintPath =>
-            val path = template.getInstanceOf("TaintPath")
-            val sourcessInfo = template.getInstanceOf("SourceSinkInfo")
-            val sourceDescriptorStrings: util.ArrayList[String] = new util.ArrayList[String]
-            sourceDescriptorStrings.add(taintPath.getSource.descriptor.toString)
-            sourcessInfo.add("descriptors", sourceDescriptorStrings)
-            path.add("source", sourcessInfo)
-            val sinkssInfo = template.getInstanceOf("SourceSinkInfo")
-            val sinkDescriptorStrings: util.ArrayList[String] = new util.ArrayList[String]
-            sinkDescriptorStrings.add(taintPath.getSink.descriptor.toString)
-            sinkssInfo.add("descriptors", sinkDescriptorStrings)
-            path.add("sink", sinkssInfo)
-            val typStrings: util.ArrayList[String] = new util.ArrayList[String]
-            taintPath.getTypes.foreach(f=>typStrings.add(f))
-            path.add("typs", typStrings)
-            val pathString = taintPath.getPath.toString()
+        taintPaths.foreach{ taintPath =>
+          val path = template.getInstanceOf("TaintPath")
+          val sourcessInfo = template.getInstanceOf("SourceSinkInfo")
+          val sourceDescriptorStrings: util.ArrayList[String] = new util.ArrayList[String]
+          sourceDescriptorStrings.add(taintPath.getSource.descriptor.toString)
+          sourcessInfo.add("descriptors", sourceDescriptorStrings)
+          path.add("source", sourcessInfo)
+          val sinkssInfo = template.getInstanceOf("SourceSinkInfo")
+          val sinkDescriptorStrings: util.ArrayList[String] = new util.ArrayList[String]
+          sinkDescriptorStrings.add(taintPath.getSink.descriptor.toString)
+          sinkssInfo.add("descriptors", sinkDescriptorStrings)
+          path.add("sink", sinkssInfo)
+          val typStrings: util.ArrayList[String] = new util.ArrayList[String]
+          taintPath.getTypes.foreach(f=>typStrings.add(f))
+          path.add("typs", typStrings)
+          val pathString = taintPath.getPath.toString()
 
-            path.add("path", pathString)
-            pathStrings.add(path.render())
+          path.add("path", pathString)
+          pathStrings.add(path.render())
         }
         taintResultT.add("paths", pathStrings)
         appData.add("taintResult", taintResultT)

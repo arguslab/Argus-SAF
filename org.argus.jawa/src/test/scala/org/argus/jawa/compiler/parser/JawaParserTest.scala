@@ -10,6 +10,7 @@
 
 package org.argus.jawa.compiler.parser
 
+import org.argus.jawa.ast.CompilationUnit
 import org.argus.jawa.compiler.lexer.JawaLexer
 import org.argus.jawa.core.DefaultReporter
 import org.argus.jawa.core.io.SourceFile

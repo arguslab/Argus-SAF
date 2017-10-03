@@ -17,8 +17,9 @@ import org.argus.jawa.core.io._
 import com.google.common.cache.LoadingCache
 import com.google.common.cache.CacheBuilder
 import com.google.common.cache.CacheLoader
-import org.argus.jawa.core.classfile.ClassfileParser
-import org.argus.jawa.core.sourcefile.SourcefileParser
+import org.argus.jawa.core.frontend.MyClass
+import org.argus.jawa.core.frontend.classfile.ClassfileParser
+import org.argus.jawa.core.frontend.sourcefile.SourcefileParser
 
 /**
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
@@ -45,7 +46,7 @@ trait JawaClasspathManager extends JavaKnowledge { self: Global =>
   }
 
   def load(filePath: Path, isLib: (JawaType => Boolean)): Unit = {
-    val source = new FgSourceFile(new PlainFile(filePath))
+    val source = new JawaSourceFile(new PlainFile(filePath))
     val codes = source.getClassCodes
     val classTypes: MSet[JawaType] = msetEmpty
     codes.foreach{ code =>
@@ -71,7 +72,7 @@ trait JawaClasspathManager extends JavaKnowledge { self: Global =>
   def load(codes: IMap[JawaType, String], isLib: (JawaType => Boolean)): Unit = {
     codes.foreach { case (typ, code) =>
       try {
-        val source = new FgSourceFile(new StringFile(code))
+        val source = new JawaSourceFile(new StringFile(code))
         if (isLib(typ)) {
           this.userLibraryClassCodes(typ) = source
         } else {
@@ -161,7 +162,7 @@ trait JawaClasspathManager extends JavaKnowledge { self: Global =>
           case None =>
             cachedClassRepresentation.get(typ) match {
               case Some(cs) =>
-                ClassfileParser.parse(cs.binary.get).get(typ)
+                ClassfileParser.parse(cs.binary.get, reporter).get(typ)
               case None =>
                 None
             }

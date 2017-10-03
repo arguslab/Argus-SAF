@@ -10,6 +10,7 @@
 
 package org.argus.jawa.compiler.parser
 
+import org.argus.jawa.ast._
 import org.argus.jawa.compiler.lexer._
 import org.argus.jawa.compiler.lexer.Tokens._
 import org.argus.jawa.core.io.{NoPosition, SourceFile}
@@ -390,7 +391,7 @@ class JawaParser(tokens: Array[Token], reporter: Reporter) extends JavaKnowledge
         case SEMI => Some(nextToken())
         case _ => None
       }
-    val l = org.argus.jawa.compiler.parser.Location(locationSymbol_, statement_, semiOpt)
+    val l = Location(locationSymbol_, statement_, semiOpt)
     l
   }
   
@@ -942,15 +943,15 @@ object JawaParser {
     val parser = new JawaParser(tokens.toArray, reporter)
     try{
       val pasable = claz.getName match {
-        case "org.argus.jawa.compiler.parser.CompilationUnit" =>
+        case "org.argus.jawa.ast.CompilationUnit" =>
           parser.compilationUnit(resolveBody)
-        case "org.argus.jawa.compiler.parser.ClassOrInterfaceDeclaration" =>
+        case "org.argus.jawa.ast.ClassOrInterfaceDeclaration" =>
           parser.classOrInterfaceDeclaration(resolveBody)
-        case "org.argus.jawa.compiler.parser.MethodDeclaration" =>
+        case "org.argus.jawa.ast.MethodDeclaration" =>
           parser.methodDeclaration(resolveBody)
-        case "org.argus.jawa.compiler.parser.Body" =>
+        case "org.argus.jawa.ast.Body" =>
           parser.body(resolveBody)
-        case "org.argus.jawa.compiler.parser.Location" =>
+        case "org.argus.jawa.ast.Location" =>
           parser.location
         case a =>
           throw new JawaParserException(NoPosition, s"Cannot parse given type $a")

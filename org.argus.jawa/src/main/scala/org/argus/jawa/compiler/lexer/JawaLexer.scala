@@ -15,7 +15,7 @@ import java.io._
 import org.antlr.v4.runtime.{CharStreams, Token => AntlrToken}
 import org.argus.jawa.compiler.Antlr4PilarLexer
 import org.argus.jawa.core.Reporter
-import org.argus.jawa.core.io.{FgSourceFile, RangePosition, SourceFile, StringFile}
+import org.argus.jawa.core.io.{JawaSourceFile, RangePosition, SourceFile, StringFile}
 
 class JawaLexer(aplexer: Antlr4PilarLexer, file: SourceFile, reporter: Reporter) extends Iterator[Token] {
   val sourceFile: SourceFile = file
@@ -221,7 +221,7 @@ object JawaLexer {
    * This includes whitespace and comment tokens. No NEWLINE or NEWLINES tokens are inferred. The final token
    * will be of type EOF.
    */
-  def rawTokenise(source: Either[String, FgSourceFile], reporter: Reporter): List[Token] =
+  def rawTokenise(source: Either[String, JawaSourceFile], reporter: Reporter): List[Token] =
     createRawLexer(source, reporter).toList
 
   /**
@@ -238,7 +238,7 @@ object JawaLexer {
     val aplexer = new Antlr4PilarLexer(input)
     val file: SourceFile = source match {
       case Left(c) =>
-        val sf = new FgSourceFile(new StringFile(c))
+        val sf = new JawaSourceFile(new StringFile(c))
         sf.code
         sf
       case Right(f) => f

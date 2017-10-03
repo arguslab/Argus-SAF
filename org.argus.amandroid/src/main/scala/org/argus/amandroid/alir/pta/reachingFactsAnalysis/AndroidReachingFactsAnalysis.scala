@@ -20,6 +20,7 @@ import org.argus.jawa.alir.interprocedural.{CallHandler, Callee}
 import org.argus.jawa.alir.pta._
 import org.argus.jawa.alir.pta.model.ModelCallHandler
 import org.argus.jawa.alir.pta.reachingFactsAnalysis.{RFAFact, ReachingFactsAnalysis, ReachingFactsAnalysisHelper, SimHeap}
+import org.argus.jawa.ast.{CallStatement, Location, ReturnStatement}
 import org.argus.jawa.compiler.parser._
 import org.argus.jawa.core._
 import org.argus.jawa.summary.SummaryManager

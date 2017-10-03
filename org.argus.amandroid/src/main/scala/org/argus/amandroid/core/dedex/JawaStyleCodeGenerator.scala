@@ -86,15 +86,15 @@ class JawaStyleCodeGenerator(ddFile: DexBackedDexFile, filter: (JawaType => Deco
         }
         var recname = typ.baseType.name
         pkgList foreach { pkg =>
-            val pkgname = pkg.name
-            if(pkgNameMapping.contains(pkg)) {
-              sb.append(pkgNameMapping(pkg) + ".")
-            } else if(haveStrangeCharacter(pkgname)) {
-              val newpkgname = "p" + pkgCounter
-              pkgNameMapping(pkg) = newpkgname
-              pkgCounter += 1
-              sb.append(newpkgname + ".")
-            } else sb.append(pkgname + ".")
+          val pkgname = pkg.name
+          if(pkgNameMapping.contains(pkg)) {
+            sb.append(pkgNameMapping(pkg) + ".")
+          } else if(haveStrangeCharacter(pkgname)) {
+            val newpkgname = "p" + pkgCounter
+            pkgNameMapping(pkg) = newpkgname
+            pkgCounter += 1
+            sb.append(newpkgname + ".")
+          } else sb.append(pkgname + ".")
         }
         if(recordNameMapping.contains(typ)) {
           recname = recordNameMapping(typ)

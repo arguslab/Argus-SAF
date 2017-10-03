@@ -12,12 +12,7 @@ package hu.ssh.progressbar.console;
 
 import hu.ssh.progressbar.AbstractProgressBar;
 import hu.ssh.progressbar.Progress;
-import hu.ssh.progressbar.console.replacers.BarReplacer;
-import hu.ssh.progressbar.console.replacers.ElapsedTimeReplacer;
-import hu.ssh.progressbar.console.replacers.PercentageReplacer;
-import hu.ssh.progressbar.console.replacers.RemainingTimeReplacer;
-import hu.ssh.progressbar.console.replacers.Replacer;
-import hu.ssh.progressbar.console.replacers.TotalTimeReplacer;
+import hu.ssh.progressbar.console.replacers.*;
 
 import java.io.PrintStream;
 import java.util.Collection;
@@ -156,7 +151,8 @@ public final class ConsoleProgressBar extends AbstractProgressBar {
 				new PercentageReplacer(),
 				new RemainingTimeReplacer(),
 				new ElapsedTimeReplacer(),
-				new TotalTimeReplacer()
+				new TotalTimeReplacer(),
+				new RemainingTaskReplacer()
 				);
 	}
 

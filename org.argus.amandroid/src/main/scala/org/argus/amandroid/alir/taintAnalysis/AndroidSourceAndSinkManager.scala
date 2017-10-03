@@ -17,7 +17,7 @@ import org.argus.jawa.alir.controlFlowGraph._
 import org.argus.jawa.alir.pta.{PTAResult, VarSlot}
 import org.argus.jawa.alir.taintAnalysis._
 import org.argus.jawa.alir.util.ExplicitValueFinder
-import org.argus.jawa.compiler.parser.{CallStatement, Location}
+import org.argus.jawa.ast.{CallStatement, Location}
 import org.argus.jawa.core.Signature
 import org.argus.jawa.core.util._
 

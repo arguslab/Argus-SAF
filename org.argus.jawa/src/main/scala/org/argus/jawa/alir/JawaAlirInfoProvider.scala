@@ -14,7 +14,7 @@ import org.argus.jawa.alir.controlFlowGraph.{CFGNode, ControlFlowGraph, IntraPro
 import org.argus.jawa.core._
 import org.argus.jawa.core.util._
 import org.argus.jawa.alir.reachingDefinitionAnalysis.{JawaDefRef, ReachingDefinitionAnalysis}
-import org.argus.jawa.compiler.parser.{CatchClause, MethodDeclaration, ResolvedBody}
+import org.argus.jawa.ast.{CatchClause, MethodDeclaration, ResolvedBody}
 
 /**
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>

@@ -10,7 +10,7 @@
 
 package org.argus.amandroid.core.dedex.`type`
 
-import org.argus.jawa.compiler.parser.{DefSymbol, JawaSymbol, RefSymbol}
+import org.argus.jawa.ast.{DefSymbol, JawaSymbol, RefSymbol}
 import org.argus.jawa.core.io.Position
 
 /**

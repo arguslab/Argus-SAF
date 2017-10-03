@@ -38,10 +38,10 @@ trait JavaPlatform extends Platform {
   }
 
   /** Update classpath with a substituted subentry */
-  def updateClassPath(subst: Map[Classpath, Classpath]) =
+  def updateClassPath(subst: Map[Classpath, Classpath]): Unit =
     currentClassPath = Some(new DeltaClasspath(currentClassPath.get, subst))
 
 
-  def needCompile(bin: AbstractFile, src: AbstractFile) =
+  def needCompile(bin: AbstractFile, src: AbstractFile): Boolean =
     src.lastModified >= bin.lastModified
 }

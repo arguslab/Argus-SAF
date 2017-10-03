@@ -8,10 +8,11 @@
  * Detailed contributors are listed in the CONTRIBUTOR.md
  */
 
-package org.argus.jawa.core.classfile
+package org.argus.jawa.core.frontend.classfile
 
 import org.argus.jawa.core.AccessFlag.FlagKind
 import org.argus.jawa.core._
+import org.argus.jawa.core.frontend.{MyClass, MyField, MyMethod}
 import org.objectweb.asm.ClassVisitor
 import org.objectweb.asm.FieldVisitor
 import org.objectweb.asm.MethodVisitor

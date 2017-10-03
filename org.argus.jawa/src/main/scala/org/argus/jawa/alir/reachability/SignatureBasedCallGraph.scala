@@ -15,8 +15,8 @@ import java.util.concurrent.TimeoutException
 import org.argus.jawa.alir.callGraph.CallGraph
 import org.argus.jawa.alir.interprocedural.CallHandler
 import org.argus.jawa.alir.pta.PTAScopeManager
+import org.argus.jawa.ast.CallStatement
 import org.argus.jawa.core._
-import org.argus.jawa.compiler.parser.CallStatement
 import org.argus.jawa.core.util.MyTimeout
 import org.argus.jawa.core.util._
 
@@ -61,7 +61,7 @@ object SignatureBasedCallGraph {
     cg
   }
   
-  private def sbcg(global: Global, ep: JawaMethod, cg: CallGraph, processed: MSet[String], timer: Option[MyTimeout]) = {
+  private def sbcg(global: Global, ep: JawaMethod, cg: CallGraph, processed: MSet[String], timer: Option[MyTimeout]): Unit = {
     cg.addCalls(ep.getSignature, isetEmpty)
     val worklistAlgorithm = new WorklistAlgorithm[JawaMethod] {
       override def processElement(m: JawaMethod): Unit = {

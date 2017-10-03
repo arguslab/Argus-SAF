@@ -10,7 +10,7 @@
 
 package org.argus.amandroid.core.dedex.`type`
 
-import org.argus.jawa.compiler.parser.CompilationUnit
+import org.argus.jawa.ast.CompilationUnit
 import org.argus.jawa.core.io.AbstractFile
 
 /**

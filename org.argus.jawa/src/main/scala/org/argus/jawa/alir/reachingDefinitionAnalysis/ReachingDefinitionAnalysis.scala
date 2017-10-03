@@ -12,6 +12,7 @@ package org.argus.jawa.alir.reachingDefinitionAnalysis
 
 import org.argus.jawa.alir.controlFlowGraph.{CFGLocationNode, CFGNode, IntraProceduralControlFlowGraph}
 import org.argus.jawa.alir.dataFlowAnalysis._
+import org.argus.jawa.ast._
 import org.argus.jawa.compiler.parser._
 import org.argus.jawa.core.util._
 

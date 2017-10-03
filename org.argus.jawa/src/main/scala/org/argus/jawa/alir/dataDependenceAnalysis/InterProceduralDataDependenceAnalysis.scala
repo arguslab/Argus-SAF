@@ -16,6 +16,7 @@ import org.argus.jawa.alir.dataFlowAnalysis.InterProceduralDataFlowGraph
 import org.argus.jawa.alir.interprocedural.IndirectCallee
 import org.argus.jawa.alir.pta.{ArraySlot, FieldSlot, PTAResult, VarSlot}
 import org.argus.jawa.alir.reachingDefinitionAnalysis.{DefDesc, LocDefDesc, ParamDefDesc}
+import org.argus.jawa.ast._
 import org.argus.jawa.compiler.parser._
 import org.argus.jawa.core.io.NoPosition
 import org.argus.jawa.core.{Global, JawaType}

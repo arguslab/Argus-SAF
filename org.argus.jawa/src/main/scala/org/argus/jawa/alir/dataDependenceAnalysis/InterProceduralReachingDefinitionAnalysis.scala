@@ -14,6 +14,7 @@ import org.argus.jawa.alir.controlFlowGraph._
 import org.argus.jawa.alir.dataFlowAnalysis._
 import org.argus.jawa.alir.reachingDefinitionAnalysis._
 import org.argus.jawa.alir.{Context, JawaAlirInfoProvider}
+import org.argus.jawa.ast.{AssignmentStatement, CallStatement, Statement}
 import org.argus.jawa.compiler.parser._
 import org.argus.jawa.core.Global
 import org.argus.jawa.core.util._

@@ -113,6 +113,12 @@ lazy val amandroid_concurrent: Project =
   .settings(libraryDependencies ++= DependencyGroups.amandroid_concurrent)
   .settings(doNotPublishSettings)
 
+lazy val webfa: Project =
+  newProject("webfa", file("org.argus.webfa"))
+  .dependsOn(jawa)
+  .settings(libraryDependencies ++= DependencyGroups.webfa)
+  .settings(doNotPublishSettings)
+
 releaseProcess := Seq(
   checkSnapshotDependencies,
   inquireVersions,

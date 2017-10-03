@@ -17,6 +17,7 @@ import org.argus.jawa.alir.interprocedural.{CallHandler, Callee}
 import org.argus.jawa.alir.pta._
 import org.argus.jawa.alir.pta.model.ModelCallHandler
 import org.argus.jawa.alir.pta.reachingFactsAnalysis.{RFAFact, ReachingFactsAnalysis, ReachingFactsAnalysisHelper, SimHeap}
+import org.argus.jawa.ast._
 import org.argus.jawa.compiler.parser._
 import org.argus.jawa.core.util._
 import org.argus.jawa.core._
@@ -117,7 +118,7 @@ abstract class DataFlowWu[T <: Global] (
   }
 
   def generateIDFG: InterProceduralDataFlowGraph = {
-    val analysis = new ReachingFactsAnalysis(global, icfg, ptaresult, handler, sm, new ClassLoadManager, resolve_static_init, Some(new MyTimeout(5 minutes)))
+    val analysis = new ReachingFactsAnalysis(global, icfg, ptaresult, handler, sm, new ClassLoadManager, resolve_static_init, Some(new MyTimeout(1 minutes)))
     val entryContext = initContext.copy
     entryContext.setContext(method.getSignature, method.getSignature.methodName)
     val initialFacts: ISet[RFAFact] = {
@@ -143,7 +144,8 @@ abstract class DataFlowWu[T <: Global] (
       }
       result.toSet
     }
-    analysis.process(method, initialFacts, initContext, new Callr)
+    val idfg = analysis.process(method, initialFacts, initContext, new Callr)
+    idfg
   }
 
   def parseIDFG(idfg: InterProceduralDataFlowGraph): IList[SummaryRule] = {

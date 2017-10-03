@@ -17,7 +17,7 @@ import org.argus.jawa.alir.pta._
 import org.argus.jawa.alir.pta.model.ModelCallHandler
 import org.argus.jawa.alir.pta.reachingFactsAnalysis.SimHeap
 import org.argus.jawa.alir.taintAnalysis.{SourceAndSinkManager, TaintNode}
-import org.argus.jawa.compiler.parser.{CallStatement, ReturnStatement}
+import org.argus.jawa.ast.{CallStatement, ReturnStatement}
 import org.argus.jawa.core.{Global, JawaMethod, Signature}
 import org.argus.jawa.core.util._
 import org.argus.jawa.summary.store.{TSTaintPath, TaintStore}

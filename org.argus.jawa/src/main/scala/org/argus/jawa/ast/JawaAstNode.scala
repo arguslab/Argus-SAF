@@ -8,14 +8,17 @@
  * Detailed contributors are listed in the CONTRIBUTOR.md
  */
 
-package org.argus.jawa.compiler.parser
+package org.argus.jawa.ast
+
+import javax.annotation.Nullable
 
 import org.argus.jawa.compiler.lexer.Token
 import org.argus.jawa.compiler.lexer.Tokens._
+import org.argus.jawa.compiler.parser._
 import org.argus.jawa.compiler.util.CaseClassReflector
-import org.argus.jawa.core.{DefaultReporter, JavaKnowledge, JawaType, Signature}
 import org.argus.jawa.core.io.{NoPosition, Position}
 import org.argus.jawa.core.util._
+import org.argus.jawa.core.{DefaultReporter, JavaKnowledge, JawaType, Signature}
 
 import scala.language.implicitConversions
 
@@ -98,21 +101,20 @@ sealed trait JawaAstNode extends CaseClassReflector with JavaKnowledge {
     }
     var prevline: Int = 0
     var prevcolumn: Int = 0
-    tokens.foreach {
-      token =>
-        val line = token.line - startline
-        val column = if(token.line == 0) token.column - startcolumn else token.column
-        if(line != prevline) prevcolumn = 0
-        val text = token.rawText
-        for(_ <- 1 to line - prevline){
-          sb.append("\n")
-        }
-        for(_ <- 1 to column - prevcolumn){
-          sb.append(" ")
-        }
-        prevline = line
-        prevcolumn = column + token.length
-        sb.append(text)
+    tokens.foreach { token =>
+      val line = token.line - startline
+      val column = if(token.line == 0) token.column - startcolumn else token.column
+      if(line != prevline) prevcolumn = 0
+      val text = token.rawText
+      for(_ <- 1 to line - prevline){
+        sb.append("\n")
+      }
+      for(_ <- 1 to column - prevcolumn){
+        sb.append(" ")
+      }
+      prevline = line
+      prevcolumn = column + token.length
+      sb.append(text)
     }
     sb.toString
   }
@@ -265,7 +267,7 @@ case class LocationSymbol(id: Token) extends RefSymbol with LocationSym {
 }
 
 case class ClassOrInterfaceDeclaration(
-    dclToken: Token,
+    @Nullable dclToken: Token,
     cityp: TypeDefSymbol,
     annotations: IList[Annotation],
     extendsAndImplementsClausesOpt: Option[ExtendsAndImplementsClauses],

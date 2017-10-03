@@ -10,7 +10,8 @@
 
 package org.argus.jawa.compiler.interactive
 
-import org.argus.jawa.compiler.parser.{CompilationUnit, JawaAstNode, JawaParser, JawaSymbol}
+import org.argus.jawa.ast.{CompilationUnit, JawaAstNode, JawaSymbol}
+import org.argus.jawa.compiler.parser.JawaParser
 import org.argus.jawa.compiler.util._
 import org.argus.jawa.core.io.{AbstractFile, Position, SourceFile}
 
@@ -74,7 +75,7 @@ trait CompilerControl { self: Global =>
    */
   def removeUnitOf(s: SourceFile): Option[RichCompilationUnit] = { removeCompilationUnit(s.file) }
 
-  private def postWorkItem(item: WorkItem) =
+  private def postWorkItem(item: WorkItem): Unit =
     if (item.onCompilerThread) item() else scheduler.postWorkItem(item)
 
   /** Makes sure a set of compilation units is loaded and parsed.
