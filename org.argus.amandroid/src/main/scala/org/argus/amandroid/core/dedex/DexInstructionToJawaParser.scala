@@ -137,28 +137,27 @@ case class DexInstructionToJawaParser(
     name.resolveAttribute(typ)
   }
 
-  private def getInvokeMethodInfo(ref: DexBackedMethodReference): (Option[String], String, String, Signature, String) = {
+  private def getInvokeMethodInfo(ref: DexBackedMethodReference): (Option[String], String, Signature, String) = {
     val signature = getSignature(ref)
     val retName = signature.getReturnType.jawaName match {
       case "void" => None
       case _ => Some("temp")
     }
-    val className = signature.getClassName
     val methodName = signature.methodName
     val classTyp = JawaStyleCodeGenerator.generateType(signature.getClassType, template).render()
-    (retName, className, methodName, signature, classTyp)
+    (retName, methodName, signature, classTyp)
   }
 
-  private def getInvokeElements(i35c: DexBackedInstruction35c, isStatic: Boolean): (Option[String], String, String, IList[String], Signature, String) = {
-    val (retName, className, methodName, signature, classTyp) = getInvokeMethodInfo(i35c.getReference.asInstanceOf[DexBackedMethodReference])
+  private def getInvokeElements(i35c: DexBackedInstruction35c, isStatic: Boolean): (Option[String], String, IList[String], Signature, String) = {
+    val (retName, methodName, signature, classTyp) = getInvokeMethodInfo(i35c.getReference.asInstanceOf[DexBackedMethodReference])
     val args = filterRegsForDoubleWords(getRegsFrom5(i35c), signature, isStatic)
-    (retName, className, methodName, args.map(_.toVar), signature, classTyp)
+    (retName, methodName, args.map(_.toVar), signature, classTyp)
   }
 
-  private def getInvokeElements(i3rc: DexBackedInstruction3rc, isStatic: Boolean): (Option[String], String, String, IList[String], Signature, String) = {
-    val (retName, className, methodName, signature, classTyp) = getInvokeMethodInfo(i3rc.getReference.asInstanceOf[DexBackedMethodReference])
+  private def getInvokeElements(i3rc: DexBackedInstruction3rc, isStatic: Boolean): (Option[String], String, IList[String], Signature, String) = {
+    val (retName, methodName, signature, classTyp) = getInvokeMethodInfo(i3rc.getReference.asInstanceOf[DexBackedMethodReference])
     val args = filterRegsForDoubleWords(getRegsFromr(i3rc), signature, isStatic)
-    (retName, className, methodName, args.map(_.toVar), signature, classTyp)
+    (retName, methodName, args.map(_.toVar), signature, classTyp)
   }
 
   private def getRegsFrom5(i35c: DexBackedInstruction with FiveRegisterInstruction): IList[Int] = {
@@ -550,72 +549,72 @@ case class DexInstructionToJawaParser(
           val i22c = inst.asInstanceOf[DexBackedInstruction22c]
           val ref = i22c.getReference.asInstanceOf[DexBackedFieldReference]
           val fqn = getFQNFieldReference(ref)
-          iget(i22c.getRegisterA.toVar, i22c.getRegisterB.toVar, fqn.fqn, JawaStyleCodeGenerator.generateType(fqn.typ, template).render())
+          iget(i22c.getRegisterA.toVar, i22c.getRegisterB.toVar, fqn.fieldName, JawaStyleCodeGenerator.generateType(fqn.typ, template).render())
         case Opcode.IGET_WIDE => // 83
           val i22c = inst.asInstanceOf[DexBackedInstruction22c]
           val ref = i22c.getReference.asInstanceOf[DexBackedFieldReference]
           val fqn = getFQNFieldReference(ref)
-          igetWide(i22c.getRegisterA.toVar, i22c.getRegisterB.toVar, fqn.fqn, JawaStyleCodeGenerator.generateType(fqn.typ, template).render())
+          igetWide(i22c.getRegisterA.toVar, i22c.getRegisterB.toVar, fqn.fieldName, JawaStyleCodeGenerator.generateType(fqn.typ, template).render())
         case Opcode.IGET_OBJECT => // 84
           val i22c = inst.asInstanceOf[DexBackedInstruction22c]
           val ref = i22c.getReference.asInstanceOf[DexBackedFieldReference]
           val fqn = getFQNFieldReference(ref)
-          igetObject(i22c.getRegisterA.toVar, i22c.getRegisterB.toVar, fqn.fqn, JawaStyleCodeGenerator.generateType(fqn.typ, template).render())
+          igetObject(i22c.getRegisterA.toVar, i22c.getRegisterB.toVar, fqn.fieldName, JawaStyleCodeGenerator.generateType(fqn.typ, template).render())
         case Opcode.IGET_BOOLEAN => // 85
           val i22c = inst.asInstanceOf[DexBackedInstruction22c]
           val ref = i22c.getReference.asInstanceOf[DexBackedFieldReference]
           val fqn = getFQNFieldReference(ref)
-          igetBool(i22c.getRegisterA.toVar, i22c.getRegisterB.toVar, fqn.fqn, JawaStyleCodeGenerator.generateType(fqn.typ, template).render())
+          igetBool(i22c.getRegisterA.toVar, i22c.getRegisterB.toVar, fqn.fieldName, JawaStyleCodeGenerator.generateType(fqn.typ, template).render())
         case Opcode.IGET_BYTE => // 86
           val i22c = inst.asInstanceOf[DexBackedInstruction22c]
           val ref = i22c.getReference.asInstanceOf[DexBackedFieldReference]
           val fqn = getFQNFieldReference(ref)
-          igetByte(i22c.getRegisterA.toVar, i22c.getRegisterB.toVar, fqn.fqn, JawaStyleCodeGenerator.generateType(fqn.typ, template).render())
+          igetByte(i22c.getRegisterA.toVar, i22c.getRegisterB.toVar, fqn.fieldName, JawaStyleCodeGenerator.generateType(fqn.typ, template).render())
         case Opcode.IGET_CHAR => // 87
           val i22c = inst.asInstanceOf[DexBackedInstruction22c]
           val ref = i22c.getReference.asInstanceOf[DexBackedFieldReference]
           val fqn = getFQNFieldReference(ref)
-          igetChar(i22c.getRegisterA.toVar, i22c.getRegisterB.toVar, fqn.fqn, JawaStyleCodeGenerator.generateType(fqn.typ, template).render())
+          igetChar(i22c.getRegisterA.toVar, i22c.getRegisterB.toVar, fqn.fieldName, JawaStyleCodeGenerator.generateType(fqn.typ, template).render())
         case Opcode.IGET_SHORT => // 88
           val i22c = inst.asInstanceOf[DexBackedInstruction22c]
           val ref = i22c.getReference.asInstanceOf[DexBackedFieldReference]
           val fqn = getFQNFieldReference(ref)
-          igetShort(i22c.getRegisterA.toVar, i22c.getRegisterB.toVar, fqn.fqn, JawaStyleCodeGenerator.generateType(fqn.typ, template).render())
+          igetShort(i22c.getRegisterA.toVar, i22c.getRegisterB.toVar, fqn.fieldName, JawaStyleCodeGenerator.generateType(fqn.typ, template).render())
         case Opcode.IPUT => // 89
           val i22c = inst.asInstanceOf[DexBackedInstruction22c]
           val ref = i22c.getReference.asInstanceOf[DexBackedFieldReference]
           val fqn = getFQNFieldReference(ref)
-          iput(i22c.getRegisterB.toVar, fqn.fqn, i22c.getRegisterA.toVar, JawaStyleCodeGenerator.generateType(fqn.typ, template).render())
+          iput(i22c.getRegisterB.toVar, fqn.fieldName, i22c.getRegisterA.toVar, JawaStyleCodeGenerator.generateType(fqn.typ, template).render())
         case Opcode.IPUT_WIDE => // 90
           val i22c = inst.asInstanceOf[DexBackedInstruction22c]
           val ref = i22c.getReference.asInstanceOf[DexBackedFieldReference]
           val fqn = getFQNFieldReference(ref)
-          iputWide(i22c.getRegisterB.toVar, fqn.fqn, i22c.getRegisterA.toVar, JawaStyleCodeGenerator.generateType(fqn.typ, template).render())
+          iputWide(i22c.getRegisterB.toVar, fqn.fieldName, i22c.getRegisterA.toVar, JawaStyleCodeGenerator.generateType(fqn.typ, template).render())
         case Opcode.IPUT_OBJECT => // 91
           val i22c = inst.asInstanceOf[DexBackedInstruction22c]
           val ref = i22c.getReference.asInstanceOf[DexBackedFieldReference]
           val fqn = getFQNFieldReference(ref)
-          iputObject(i22c.getRegisterB.toVar, fqn.fqn, i22c.getRegisterA.toVar, JawaStyleCodeGenerator.generateType(fqn.typ, template).render())
+          iputObject(i22c.getRegisterB.toVar, fqn.fieldName, i22c.getRegisterA.toVar, JawaStyleCodeGenerator.generateType(fqn.typ, template).render())
         case Opcode.IPUT_BOOLEAN => // 92
           val i22c = inst.asInstanceOf[DexBackedInstruction22c]
           val ref = i22c.getReference.asInstanceOf[DexBackedFieldReference]
           val fqn = getFQNFieldReference(ref)
-          iputBool(i22c.getRegisterB.toVar, fqn.fqn, i22c.getRegisterA.toVar, JawaStyleCodeGenerator.generateType(fqn.typ, template).render())
+          iputBool(i22c.getRegisterB.toVar, fqn.fieldName, i22c.getRegisterA.toVar, JawaStyleCodeGenerator.generateType(fqn.typ, template).render())
         case Opcode.IPUT_BYTE => // 93
           val i22c = inst.asInstanceOf[DexBackedInstruction22c]
           val ref = i22c.getReference.asInstanceOf[DexBackedFieldReference]
           val fqn = getFQNFieldReference(ref)
-          iputByte(i22c.getRegisterB.toVar, fqn.fqn, i22c.getRegisterA.toVar, JawaStyleCodeGenerator.generateType(fqn.typ, template).render())
+          iputByte(i22c.getRegisterB.toVar, fqn.fieldName, i22c.getRegisterA.toVar, JawaStyleCodeGenerator.generateType(fqn.typ, template).render())
         case Opcode.IPUT_CHAR => // 94
           val i22c = inst.asInstanceOf[DexBackedInstruction22c]
           val ref = i22c.getReference.asInstanceOf[DexBackedFieldReference]
           val fqn = getFQNFieldReference(ref)
-          iputChar(i22c.getRegisterB.toVar, fqn.fqn, i22c.getRegisterA.toVar, JawaStyleCodeGenerator.generateType(fqn.typ, template).render())
+          iputChar(i22c.getRegisterB.toVar, fqn.fieldName, i22c.getRegisterA.toVar, JawaStyleCodeGenerator.generateType(fqn.typ, template).render())
         case Opcode.IPUT_SHORT => // 95
           val i22c = inst.asInstanceOf[DexBackedInstruction22c]
           val ref = i22c.getReference.asInstanceOf[DexBackedFieldReference]
           val fqn = getFQNFieldReference(ref)
-          iputChar(i22c.getRegisterB.toVar, fqn.fqn, i22c.getRegisterA.toVar, JawaStyleCodeGenerator.generateType(fqn.typ, template).render())
+          iputChar(i22c.getRegisterB.toVar, fqn.fieldName, i22c.getRegisterA.toVar, JawaStyleCodeGenerator.generateType(fqn.typ, template).render())
         case Opcode.SGET => // 96
           val i21c = inst.asInstanceOf[DexBackedInstruction21c]
           val ref = i21c.getReference.asInstanceOf[DexBackedFieldReference]
@@ -688,44 +687,44 @@ case class DexInstructionToJawaParser(
           sputShort(fqn.fqn, i21c.getRegisterA.toVar, JawaStyleCodeGenerator.generateType(fqn.typ, template).render())
         case Opcode.INVOKE_VIRTUAL => // 110
           val i35c = inst.asInstanceOf[DexBackedInstruction35c]
-          val (retName, className, methodName, argNames, signature, classTyp) = getInvokeElements(i35c, isStatic = false)
-          invokeVirtual(retName, className, methodName, argNames, signature, classTyp)
+          val (retName, methodName, argNames, signature, classTyp) = getInvokeElements(i35c, isStatic = false)
+          invokeVirtual(retName, methodName, argNames, signature, classTyp)
         case Opcode.INVOKE_SUPER => // 111
           val i35c = inst.asInstanceOf[DexBackedInstruction35c]
-          val (retName, className, methodName, argNames, signature, classTyp) = getInvokeElements(i35c, isStatic = false)
-          invokeSuper(retName, className, methodName, argNames, signature, classTyp)
+          val (retName, methodName, argNames, signature, classTyp) = getInvokeElements(i35c, isStatic = false)
+          invokeSuper(retName, methodName, argNames, signature, classTyp)
         case Opcode.INVOKE_DIRECT => // 112
           val i35c = inst.asInstanceOf[DexBackedInstruction35c]
-          val (retName, className, methodName, argNames, signature, classTyp) = getInvokeElements(i35c, isStatic = false)
-          invokeDirect(retName, className, methodName, argNames, signature, classTyp)
+          val (retName, methodName, argNames, signature, classTyp) = getInvokeElements(i35c, isStatic = false)
+          invokeDirect(retName, methodName, argNames, signature, classTyp)
         case Opcode.INVOKE_STATIC => // 113
           val i35c = inst.asInstanceOf[DexBackedInstruction35c]
-          val (retName, className, methodName, argNames, signature, classTyp) = getInvokeElements(i35c, isStatic = true)
-          invokeStatic(retName, className, methodName, argNames, signature, classTyp)
+          val (retName, methodName, argNames, signature, classTyp) = getInvokeElements(i35c, isStatic = true)
+          invokeStatic(retName, methodName, argNames, signature, classTyp)
         case Opcode.INVOKE_INTERFACE => // 114
           val i35c = inst.asInstanceOf[DexBackedInstruction35c]
-          val (retName, className, methodName, argNames, signature, classTyp) = getInvokeElements(i35c, isStatic = false)
-          invokeInterface(retName, className, methodName, argNames, signature, classTyp)
+          val (retName, methodName, argNames, signature, classTyp) = getInvokeElements(i35c, isStatic = false)
+          invokeInterface(retName, methodName, argNames, signature, classTyp)
         case Opcode.INVOKE_VIRTUAL_RANGE => // 116
           val i3rc = inst.asInstanceOf[DexBackedInstruction3rc]
-          val (retName, className, methodName, argNames, signature, classTyp) = getInvokeElements(i3rc, isStatic = false)
-          invokeVirtual(retName, className, methodName, argNames, signature, classTyp)
+          val (retName, methodName, argNames, signature, classTyp) = getInvokeElements(i3rc, isStatic = false)
+          invokeVirtual(retName, methodName, argNames, signature, classTyp)
         case Opcode.INVOKE_SUPER_RANGE => // 117
           val i3rc = inst.asInstanceOf[DexBackedInstruction3rc]
-          val (retName, className, methodName, argNames, signature, classTyp) = getInvokeElements(i3rc, isStatic = false)
-          invokeSuper(retName, className, methodName, argNames, signature, classTyp)
+          val (retName, methodName, argNames, signature, classTyp) = getInvokeElements(i3rc, isStatic = false)
+          invokeSuper(retName, methodName, argNames, signature, classTyp)
         case Opcode.INVOKE_DIRECT_RANGE => // 118
           val i3rc = inst.asInstanceOf[DexBackedInstruction3rc]
-          val (retName, className, methodName, argNames, signature, classTyp) = getInvokeElements(i3rc, isStatic = false)
-          invokeDirect(retName, className, methodName, argNames, signature, classTyp)
+          val (retName, methodName, argNames, signature, classTyp) = getInvokeElements(i3rc, isStatic = false)
+          invokeDirect(retName, methodName, argNames, signature, classTyp)
         case Opcode.INVOKE_STATIC_RANGE => // 119
           val i3rc = inst.asInstanceOf[DexBackedInstruction3rc]
-          val (retName, className, methodName, argNames, signature, classTyp) = getInvokeElements(i3rc, isStatic = true)
-          invokeStatic(retName, className, methodName, argNames, signature, classTyp)
+          val (retName, methodName, argNames, signature, classTyp) = getInvokeElements(i3rc, isStatic = true)
+          invokeStatic(retName, methodName, argNames, signature, classTyp)
         case Opcode.INVOKE_INTERFACE_RANGE => // 120
           val i3rc = inst.asInstanceOf[DexBackedInstruction3rc]
-          val (retName, className, methodName, argNames, signature, classTyp) = getInvokeElements(i3rc, isStatic = false)
-          invokeInterface(retName, className, methodName, argNames, signature, classTyp)
+          val (retName, methodName, argNames, signature, classTyp) = getInvokeElements(i3rc, isStatic = false)
+          invokeInterface(retName, methodName, argNames, signature, classTyp)
         case Opcode.NEG_INT => // 123
           val i12x = inst.asInstanceOf[DexBackedInstruction12x]
           negInt(i12x.getRegisterA.toVar, i12x.getRegisterB.toVar)
@@ -1042,12 +1041,12 @@ case class DexInstructionToJawaParser(
           val i22c = inst.asInstanceOf[DexBackedInstruction22c]
           val ref = i22c.getReference.asInstanceOf[DexBackedFieldReference]
           val fqn = getFQNFieldReference(ref)
-          igetVolatile(i22c.getRegisterA.toVar, i22c.getRegisterB.toVar, fqn.fqn, JawaStyleCodeGenerator.generateType(fqn.typ, template).render())
+          igetVolatile(i22c.getRegisterA.toVar, i22c.getRegisterB.toVar, fqn.fieldName, JawaStyleCodeGenerator.generateType(fqn.typ, template).render())
         case Opcode.IPUT_VOLATILE => // 228
           val i22c = inst.asInstanceOf[DexBackedInstruction22c]
           val ref = i22c.getReference.asInstanceOf[DexBackedFieldReference]
           val fqn = getFQNFieldReference(ref)
-          iputVolatile(i22c.getRegisterB.toVar, fqn.fqn, i22c.getRegisterA.toVar, JawaStyleCodeGenerator.generateType(fqn.typ, template).render())
+          iputVolatile(i22c.getRegisterB.toVar, fqn.fieldName, i22c.getRegisterA.toVar, JawaStyleCodeGenerator.generateType(fqn.typ, template).render())
         case Opcode.SGET_VOLATILE => // 229
           val i21c = inst.asInstanceOf[DexBackedInstruction21c]
           val ref = i21c.getReference.asInstanceOf[DexBackedFieldReference]
@@ -1062,17 +1061,17 @@ case class DexInstructionToJawaParser(
           val i22c = inst.asInstanceOf[DexBackedInstruction22c]
           val ref = i22c.getReference.asInstanceOf[DexBackedFieldReference]
           val fqn = getFQNFieldReference(ref)
-          igetObjectVolatile(i22c.getRegisterA.toVar, i22c.getRegisterB.toVar, fqn.fqn, JawaStyleCodeGenerator.generateType(fqn.typ, template).render())
+          igetObjectVolatile(i22c.getRegisterA.toVar, i22c.getRegisterB.toVar, fqn.fieldName, JawaStyleCodeGenerator.generateType(fqn.typ, template).render())
         case Opcode.IGET_WIDE_VOLATILE => // 232
           val i22c = inst.asInstanceOf[DexBackedInstruction22c]
           val ref = i22c.getReference.asInstanceOf[DexBackedFieldReference]
           val fqn = getFQNFieldReference(ref)
-          igetWideVolatile(i22c.getRegisterA.toVar, i22c.getRegisterB.toVar, fqn.fqn, JawaStyleCodeGenerator.generateType(fqn.typ, template).render())
+          igetWideVolatile(i22c.getRegisterA.toVar, i22c.getRegisterB.toVar, fqn.fieldName, JawaStyleCodeGenerator.generateType(fqn.typ, template).render())
         case Opcode.IPUT_WIDE_VOLATILE => // 233
           val i22c = inst.asInstanceOf[DexBackedInstruction22c]
           val ref = i22c.getReference.asInstanceOf[DexBackedFieldReference]
           val fqn = getFQNFieldReference(ref)
-          iputWideVolatile(i22c.getRegisterB.toVar, fqn.fqn, i22c.getRegisterA.toVar, JawaStyleCodeGenerator.generateType(fqn.typ, template).render())
+          iputWideVolatile(i22c.getRegisterB.toVar, fqn.fieldName, i22c.getRegisterA.toVar, JawaStyleCodeGenerator.generateType(fqn.typ, template).render())
         case Opcode.SGET_WIDE_VOLATILE => // 234
           val i21c = inst.asInstanceOf[DexBackedInstruction21c]
           val ref = i21c.getReference.asInstanceOf[DexBackedFieldReference]
@@ -1093,12 +1092,12 @@ case class DexInstructionToJawaParser(
           executeInlineRange(i3rmi.getStartRegister, i3rmi.getRegisterCount, i3rmi.getInlineIndex)
         case Opcode.INVOKE_DIRECT_EMPTY => // 240
           val i35c = inst.asInstanceOf[DexBackedInstruction35c]
-          val (retName, className, methodName, argNames, signature, classTyp) = getInvokeElements(i35c, isStatic = false)
-          invokeObjectInit(retName, className, methodName, argNames, signature, classTyp)
+          val (retName, methodName, argNames, signature, classTyp) = getInvokeElements(i35c, isStatic = false)
+          invokeObjectInit(retName, methodName, argNames, signature, classTyp)
         case Opcode.INVOKE_OBJECT_INIT_RANGE => // 240
           val i3rc = inst.asInstanceOf[DexBackedInstruction3rc]
-          val (retName, className, methodName, argNames, signature, classTyp) = getInvokeElements(i3rc, isStatic = false)
-          invokeObjectInit(retName, className, methodName, argNames, signature, classTyp)
+          val (retName, methodName, argNames, signature, classTyp) = getInvokeElements(i3rc, isStatic = false)
+          invokeObjectInit(retName, methodName, argNames, signature, classTyp)
         case Opcode.RETURN_VOID_BARRIER => // 241
           returnVoidBarrier
         case Opcode.RETURN_VOID_NO_BARRIER => // 115
@@ -1161,7 +1160,7 @@ case class DexInstructionToJawaParser(
           val i22c = inst.asInstanceOf[DexBackedInstruction22c]
           val ref = i22c.getReference.asInstanceOf[DexBackedFieldReference]
           val fqn = getFQNFieldReference(ref)
-          iputObjectVolatile(i22c.getRegisterB.toVar, fqn.fqn, i22c.getRegisterA.toVar, JawaStyleCodeGenerator.generateType(fqn.typ, template).render())
+          iputObjectVolatile(i22c.getRegisterB.toVar, fqn.fieldName, i22c.getRegisterA.toVar, JawaStyleCodeGenerator.generateType(fqn.typ, template).render())
         case Opcode.SGET_OBJECT_VOLATILE => // 253
           val i21c = inst.asInstanceOf[DexBackedInstruction21c]
           val ref = i21c.getReference.asInstanceOf[DexBackedFieldReference]

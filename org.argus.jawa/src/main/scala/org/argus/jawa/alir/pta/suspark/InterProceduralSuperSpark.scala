@@ -67,7 +67,7 @@ object InterProceduralSuperSpark {
     workListPropagation(global, pag, icfg)
   }
   
-  private def processStaticInfo(global: Global, pag: PointerAssignmentGraph[PtaNode], icfg: InterProceduralControlFlowGraph[N]) = {
+  private def processStaticInfo(global: Global, pag: PointerAssignmentGraph[PtaNode], icfg: InterProceduralControlFlowGraph[N]): Unit = {
     pag.processObjectAllocation()
     val staticCallees = pag.processStaticCall(global)
     staticCallees.foreach{

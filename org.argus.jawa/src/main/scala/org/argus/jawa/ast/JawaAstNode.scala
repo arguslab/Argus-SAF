@@ -379,13 +379,13 @@ case class TypeExpression(hat: Token, typ_ : Type) extends JawaAstNode {
 
 case class Type(base: Either[TypeSymbol, Token], typeFragments: IList[TypeFragment]) extends JawaAstNode {
   lazy val tokens: IList[Token] = flatten(base, typeFragments)
-  def dimentions: Int = typeFragments.size
+  def dimensions: Int = typeFragments.size
   def baseType: JawaType = 
     base match {
       case Left(ts) => ts.typ
       case Right(t) => getTypeFromName(t.text)
     }
-  def typ: JawaType = getType(baseType.baseTyp, dimentions)
+  def typ: JawaType = getType(baseType.baseTyp, dimensions)
 }
 
 case class TypeFragment(lbracket: Token, rbracket: Token) extends JawaAstNode {

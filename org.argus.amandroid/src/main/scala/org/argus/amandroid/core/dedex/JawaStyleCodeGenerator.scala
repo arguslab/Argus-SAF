@@ -238,25 +238,23 @@ class JawaStyleCodeGenerator(ddFile: DexBackedDexFile, filter: (JawaType => Deco
     recTemplate.add("annotations", recAnnotations)
 
     val extendsList: util.ArrayList[ST] = new util.ArrayList[ST]
-    superClass foreach {
-      sc =>
-        if(sc.jawaName != "java.lang.Object") {
-          val extOrImpTemplate = template.getInstanceOf("ExtendsAndImplements")
-          extOrImpTemplate.add("recName", sc.jawaName)
-          val extAnnotations = new util.ArrayList[ST]
-          extAnnotations.add(generateAnnotation("kind", "class", template))
-          extOrImpTemplate.add("annotations", extAnnotations)
-          extendsList.add(extOrImpTemplate)
-        }
-    }
-    interfaceClasses foreach {
-      ic =>
+    superClass foreach { sc =>
+      if(sc.jawaName != "java.lang.Object") {
         val extOrImpTemplate = template.getInstanceOf("ExtendsAndImplements")
-        extOrImpTemplate.add("recName", ic.jawaName)
-        val impAnnotations = new util.ArrayList[ST]
-        impAnnotations.add(generateAnnotation("kind", "interface", template))
-        extOrImpTemplate.add("annotations", impAnnotations)
+        extOrImpTemplate.add("recName", sc.jawaName)
+        val extAnnotations = new util.ArrayList[ST]
+        extAnnotations.add(generateAnnotation("kind", "class", template))
+        extOrImpTemplate.add("annotations", extAnnotations)
         extendsList.add(extOrImpTemplate)
+      }
+    }
+    interfaceClasses foreach { ic =>
+      val extOrImpTemplate = template.getInstanceOf("ExtendsAndImplements")
+      extOrImpTemplate.add("recName", ic.jawaName)
+      val impAnnotations = new util.ArrayList[ST]
+      impAnnotations.add(generateAnnotation("kind", "interface", template))
+      extOrImpTemplate.add("annotations", impAnnotations)
+      extendsList.add(extOrImpTemplate)
     }
     recTemplate.add("extends", extendsList)
     recTemplate.add("attributes", generateAttributes(recTyp, dexClass.getInstanceFields.asScala.toList, template))
@@ -277,7 +275,7 @@ class JawaStyleCodeGenerator(ddFile: DexBackedDexFile, filter: (JawaType => Deco
       val accessFlag = getAccessString(AccessFlag.toString(accessFlagInt))
       val attrTemplate = template.getInstanceOf("AttributeDecl")
       attrTemplate.add("attrTyp", generateType(fqn.typ, template))
-      attrTemplate.add("attrName", fqn.fqn)
+      attrTemplate.add("attrName", fqn.fieldName)
       val attrAnnotations = new util.ArrayList[ST]
       attrAnnotations.add(generateAnnotation("AccessFlag", accessFlag, template))
       attrTemplate.add("annotations", attrAnnotations)
@@ -321,10 +319,9 @@ class JawaStyleCodeGenerator(ddFile: DexBackedDexFile, filter: (JawaType => Deco
 
   private def generateProcedure(classType: JawaType, dexMethod: DexBackedMethod, listener: Option[JawaStyleCodeGeneratorListener], genBody: Boolean, template: STGroupString): ST = {
     val sig = getSignature(classType, dexMethod)
-    val recTyp = sig.classTyp
-    val procName = sig.classTyp.name + "." + sig.methodName
+    val procName = sig.methodName
     val retTyp = sig.getReturnType
-    val isConstructor: Boolean = procName.contains("<init>") || procName.contains("<clinit>")
+    val isConstructor: Boolean = procName == "<init>" || procName == "<clinit>"
     val accessFlagInt: Int = AccessFlag.getJawaFlags(dexMethod.accessFlags, FlagKind.METHOD, isConstructor)
     val accessFlags = getAccessString(AccessFlag.toString(accessFlagInt))
 
@@ -376,7 +373,6 @@ class JawaStyleCodeGenerator(ddFile: DexBackedDexFile, filter: (JawaType => Deco
     }
     procTemplate.add("params", params)
     val procAnnotations = new util.ArrayList[ST]
-    procAnnotations.add(generateAnnotation("owner", "^" + generateType(recTyp, template).render(), template))
     procAnnotations.add(generateAnnotation("signature", "`" + sig.signature + "`", template))
     procAnnotations.add(generateAnnotation("AccessFlag", accessFlags, template))
     procTemplate.add("annotations", procAnnotations)
