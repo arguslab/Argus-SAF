@@ -52,7 +52,7 @@ class JawaParser(tokens: Array[Token], reporter: Reporter) extends JavaKnowledge
     val dclToken: Token = accept(CLASS_OR_INTERFACE)
     val cityp: TypeDefSymbol = typeDefSymbol()
     val annotations_ : IList[Annotation] = annotations()
-    val extendsAndImplimentsClausesOpt_ : Option[ExtendsAndImplementsClauses] = extendsAndImplimentsClausesOpt()
+    val extendsAndImplimentsClausesOpt_ : Option[ExtendsAndImplementsClauses] = extendsAndImplementsClausesOpt()
     val instanceFieldDeclarationBlock_ : InstanceFieldDeclarationBlock = instanceFieldDeclarationBlock()
     val staticFields: IList[StaticFieldDeclaration] = staticFieldDeclarations()
     val methods: IList[MethodDeclaration] = methodDeclarations(resolveBody)
@@ -68,7 +68,7 @@ class JawaParser(tokens: Array[Token], reporter: Reporter) extends JavaKnowledge
           val annotationID: Token = accept(ID)
           val annotationValueOpt: Option[AnnotationValue] =
             annotationID.text match {
-              case "type" | "owner" | "classDescriptor" => Some(TypeExpressionValue(typExpression()))
+              case "type" => Some(TypeExpressionValue(typExpression()))
               case "signature" => Some(SymbolValue(signatureSymbol()))
               case _ =>
                 currentTokenType match{
@@ -152,13 +152,13 @@ class JawaParser(tokens: Array[Token], reporter: Reporter) extends JavaKnowledge
     LocationSymbol(id)
   }
   
-  private def extendsAndImplimentsClausesOpt(): Option[ExtendsAndImplementsClauses] = {
+  private def extendsAndImplementsClausesOpt(): Option[ExtendsAndImplementsClauses] = {
     currentTokenType match {
       case EXTENDS_AND_IMPLEMENTS =>
         val extendsAndImplementsToken: Token = accept(EXTENDS_AND_IMPLEMENTS)
         val parents: MList[(ExtendAndImplement, Option[Token])] = mlistEmpty
         def loop() {
-          val parent : ExtendAndImplement = extendAndImpliment()
+          val parent : ExtendAndImplement = extendAndImplement()
           currentTokenType match {
             case COMMA =>
               val comma: Token = nextToken()
@@ -175,7 +175,7 @@ class JawaParser(tokens: Array[Token], reporter: Reporter) extends JavaKnowledge
     }
   }
   
-  private def extendAndImpliment(): ExtendAndImplement = {
+  private def extendAndImplement(): ExtendAndImplement = {
     val parenttyp: TypeSymbol = typeSymbol()
     val annotations_ : IList[Annotation] = annotations()
     ExtendAndImplement(parenttyp, annotations_)

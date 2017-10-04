@@ -142,17 +142,17 @@ trait DexConstants {
   def sputByte(field: String, x: String, typ: String): String = "`@@%s`:= %s  @kind byte @type ^%s;".format(field, x, typ) // 0x6b
   def sputChar(field: String, x: String, typ: String): String = "`@@%s`:= %s  @kind char @type ^%s;".format(field, x, typ) // 0x6c
   def sputShort(field: String, x: String, typ: String): String = "`@@%s`:= %s  @kind short @type ^%s;".format(field, x, typ) // 0x6d
-  def invokeVirtual(retName: Option[String], className: String, methodName: String, args: IList[String], sig: Signature, classTyp: String) = s"call ${if(retName.isDefined) retName.get + ":=  " else ""}`$className.$methodName`(${args.mkString(", ")}) @signature `$sig` @classDescriptor ^$classTyp @kind virtual;" // 0x6e
-  def invokeSuper(retName: Option[String], className: String, methodName: String, args: IList[String], sig: Signature, classTyp: String) = s"call ${if(retName.isDefined) retName.get + ":=  " else ""}`$className.$methodName`(${args.mkString(", ")}) @signature `$sig` @classDescriptor ^$classTyp @kind super;" // 0x6f
-  def invokeDirect(retName: Option[String], className: String, methodName: String, args: IList[String], sig: Signature, classTyp: String) = s"call ${if(retName.isDefined) retName.get + ":=  " else ""}`$className.$methodName`(${args.mkString(", ")}) @signature `$sig` @classDescriptor ^$classTyp @kind direct;" // 0x70
-  def invokeStatic(retName: Option[String], className: String, methodName: String, args: IList[String], sig: Signature, classTyp: String) = s"call ${if(retName.isDefined) retName.get + ":=  " else ""}`$className.$methodName`(${args.mkString(", ")}) @signature `$sig` @classDescriptor ^$classTyp @kind static;" // 0x71
-  def invokeInterface(retName: Option[String], className: String, methodName: String, args: IList[String], sig: Signature, classTyp: String) = s"call ${if(retName.isDefined) retName.get + ":=  " else ""}`$className.$methodName`(${args.mkString(", ")}) @signature `$sig` @classDescriptor ^$classTyp @kind interface;" // 0x72
+  def invokeVirtual(retName: Option[String], methodName: String, args: IList[String], sig: Signature, classTyp: String) = s"call ${if(retName.isDefined) retName.get + ":=  " else ""}`$methodName`(${args.mkString(", ")}) @signature `$sig` @kind virtual;" // 0x6e
+  def invokeSuper(retName: Option[String], methodName: String, args: IList[String], sig: Signature, classTyp: String) = s"call ${if(retName.isDefined) retName.get + ":=  " else ""}`$methodName`(${args.mkString(", ")}) @signature `$sig` @kind super;" // 0x6f
+  def invokeDirect(retName: Option[String], methodName: String, args: IList[String], sig: Signature, classTyp: String) = s"call ${if(retName.isDefined) retName.get + ":=  " else ""}`$methodName`(${args.mkString(", ")}) @signature `$sig` @kind direct;" // 0x70
+  def invokeStatic(retName: Option[String], methodName: String, args: IList[String], sig: Signature, classTyp: String) = s"call ${if(retName.isDefined) retName.get + ":=  " else ""}`$methodName`(${args.mkString(", ")}) @signature `$sig` @kind static;" // 0x71
+  def invokeInterface(retName: Option[String], methodName: String, args: IList[String], sig: Signature, classTyp: String) = s"call ${if(retName.isDefined) retName.get + ":=  " else ""}`$methodName`(${args.mkString(", ")}) @signature `$sig` @kind interface;" // 0x72
   def returnVoidNoBarrier = "return  @kind void;" // 0x73
-//  def invokeVirtualRange(className: String, methodName: String, argbase: Int, argsize: Int, sig: Signature, classTyp: String) = s"call temp:=  `$className.$methodName`(${(0 to argsize - 1).map(i => "v" + (argbase + i)).mkString(", ")}) @signature `$sig` @classDescriptor ^$classTyp @kind virtual;" // 0x74
-//  def invokeSuperRange(className: String, methodName: String, argbase: Int, argsize: Int, sig: Signature, classTyp: String) = s"call temp:=  `$className.$methodName`(${(0 to argsize - 1).map(i => "v" + (argbase + i)).mkString(", ")}) @signature `$sig` @classDescriptor ^$classTyp @kind super;" // 0x75
-//  def invokeDirectRange(className: String, methodName: String, argbase: Int, argsize: Int, sig: Signature, classTyp: String) = s"call temp:=  `$className.$methodName`(${(0 to argsize - 1).map(i => "v" + (argbase + i)).mkString(", ")}) @signature `$sig` @classDescriptor ^$classTyp @kind direct;" // 0x76
-//  def invokeStaticRange(className: String, methodName: String, argbase: Int, argsize: Int, sig: Signature, classTyp: String) = s"call temp:=  `$className.$methodName`(${(0 to argsize - 1).map(i => "v" + (argbase + i)).mkString(", ")}) @signature `$sig` @classDescriptor ^$classTyp @kind static;" // 0x77
-//  def invokeInterfaceRange(className: String, methodName: String, argbase: Int, argsize: Int, sig: Signature, classTyp: String) = s"call temp:=  `$className.$methodName`(${(0 to argsize - 1).map(i => "v" + (argbase + i)).mkString(", ")}) @signature `$sig` @classDescriptor ^$classTyp @kind interface;" // 0x78
+//  def invokeVirtualRange(className: String, methodName: String, argbase: Int, argsize: Int, sig: Signature, classTyp: String) = s"call temp:=  `$methodName`(${(0 to argsize - 1).map(i => "v" + (argbase + i)).mkString(", ")}) @signature `$sig` @kind virtual;" // 0x74
+//  def invokeSuperRange(className: String, methodName: String, argbase: Int, argsize: Int, sig: Signature, classTyp: String) = s"call temp:=  `$methodName`(${(0 to argsize - 1).map(i => "v" + (argbase + i)).mkString(", ")}) @signature `$sig` @kind super;" // 0x75
+//  def invokeDirectRange(className: String, methodName: String, argbase: Int, argsize: Int, sig: Signature, classTyp: String) = s"call temp:=  `$methodName`(${(0 to argsize - 1).map(i => "v" + (argbase + i)).mkString(", ")}) @signature `$sig` @kind direct;" // 0x76
+//  def invokeStaticRange(className: String, methodName: String, argbase: Int, argsize: Int, sig: Signature, classTyp: String) = s"call temp:=  `$methodName`(${(0 to argsize - 1).map(i => "v" + (argbase + i)).mkString(", ")}) @signature `$sig` @kind static;" // 0x77
+//  def invokeInterfaceRange(className: String, methodName: String, argbase: Int, argsize: Int, sig: Signature, classTyp: String) = s"call temp:=  `$methodName`(${(0 to argsize - 1).map(i => "v" + (argbase + i)).mkString(", ")}) @signature `$sig` @kind interface;" // 0x78
   // unused 0x79 0x7a
   def negInt(x: String, y: String): String = "%s:= -%s  @kind int;".format(x, y) // 0x7b
   def notInt(x: String, y: String): String = "%s:= ~%s  @kind int;".format(x, y) // 0x7c
@@ -268,13 +268,13 @@ trait DexConstants {
   def sgetWideVolatile(x: String, field: String, typ: String): String = "%s:= `@@%s`  @kind wide @type ^%s;".format(x, field, typ) // 0xea
   def sputWideVolatile(field: String, x: String, typ: String): String = "`@@%s`:= %s  @kind wide @type ^%s;".format(field, x, typ) // 0xeb
   // unused 0xec 0xed
-  def executeInline(retName: Option[String], className: String, methodName: String, args: IList[String], sig: Signature, classTyp: String) = // 0xee
-    s"call ${if(retName.isDefined) retName.get + ":=  " else ""}`$className.$methodName`(${args.mkString(", ")}) @signature `$sig` @classDescriptor ^$classTyp @kind static;"
+  def executeInline(retName: Option[String], methodName: String, args: IList[String], sig: Signature, classTyp: String) = // 0xee
+    s"call ${if(retName.isDefined) retName.get + ":=  " else ""}`$methodName`(${args.mkString(", ")}) @signature `$sig` @kind static;"
   def executeInline(args: IList[Int], inlineOffset: Int) = s"@invoke execute_inline ${args.map(arg => s"@arg${args.indexOf(arg)} v$arg").mkString(" ")} @inline_offset ${"0x%x".format(inlineOffset)}" // 0xee
 //  def executeInlineRange(className: String, methodName: String, argbase: Int, argsize: Int, sig: Signature, classTyp: String) = // 0xef
-//    s"call temp:=  `$className.$methodName`(${(0 to argsize - 1).map(i => "v" + (argbase + i)).mkString(", ")}) @signature `$sig` @classDescriptor ^$classTyp @kind direct;"
+//    s"call temp:=  `$methodName`(${(0 to argsize - 1).map(i => "v" + (argbase + i)).mkString(", ")}) @signature `$sig` @kind direct;"
   def executeInlineRange(argbase: Int, argsize: Int, inlineOffset: Int) = s"@invoke execute_inline_range @args ${(0 until argsize).map(i => "@arg" + i + " v" + (argbase + i)).mkString(" ")} @inline_offset ${"0x%x".format(inlineOffset)}" // 0xef
-  def invokeObjectInit(retName: Option[String], className: String, methodName: String, args: IList[String], sig: Signature, classTyp: String) = s"call ${if(retName.isDefined) retName.get + ":=  " else ""}`$className.$methodName`(${args.mkString(", ")}) @signature `$sig` @classDescriptor ^$classTyp @kind direct;" // 0xf0
+  def invokeObjectInit(retName: Option[String], methodName: String, args: IList[String], sig: Signature, classTyp: String) = s"call ${if(retName.isDefined) retName.get + ":=  " else ""}`$methodName`(${args.mkString(", ")}) @signature `$sig` @kind direct;" // 0xf0
   def returnVoidBarrier = "return  @kind void;" // 0xf1
   def igetQuick(x: String, y: String, field: String, typ: String): String = "%s:= %s.`%s`  @type ^%s;".format(x, y, field, typ) // 0xf2
   def igetQuick(x: Int, y: Int, vtableOffset: Int): String = "@fieldAccess iget_quick @lhsreg v%d @basereg v%d @vtable_offset 0x%x".format(x, y, vtableOffset) // 0xf2
@@ -296,17 +296,17 @@ trait DexConstants {
   def iputByteQuick(x: Int, y: Int, vtableOffset: Int): String = "@fieldStore iput_byte_quick @basereg v%d @rhsreg v%d @vtable_offset 0x%x".format(x, y, vtableOffset)
   def iputCharQuick(x: Int, y: Int, vtableOffset: Int): String = "@fieldStore iput_char_quick @basereg v%d @rhsreg v%d @vtable_offset 0x%x".format(x, y, vtableOffset)
   def iputShortQuick(x: Int, y: Int, vtableOffset: Int): String = "@fieldStore iput_short_quick @basereg v%d @rhsreg v%d @vtable_offset 0x%x".format(x, y, vtableOffset)
-  def invokeVirtualQuick(retName: Option[String], className: String, methodName: String, args: IList[String], sig: Signature, classTyp: String) = // 0xf8
-    s"call ${if(retName.isDefined) retName.get + ":=  " else ""}`$className.$methodName`(${args.mkString(", ")}) @signature `$sig` @classDescriptor ^$classTyp @kind virtual;"
+  def invokeVirtualQuick(retName: Option[String], methodName: String, args: IList[String], sig: Signature, classTyp: String) = // 0xf8
+    s"call ${if(retName.isDefined) retName.get + ":=  " else ""}`$methodName`(${args.mkString(", ")}) @signature `$sig` @kind virtual;"
   def invokeVirtualQuick(args: IList[Int], vtableOffset: Int) = s"@invoke virtual_quick ${args.map(arg => s"@arg${args.indexOf(arg)} v$arg").mkString(" ")} @vtable_offset ${"0x%x".format(vtableOffset)}" // 0xf8
 //  def invokeVirtualQuickRange(className: String, methodName: String, argbase: Int, argsize: Int, sig: Signature, classTyp: String) = // 0xf9
-//    s"call temp:=  `$className.$methodName`(${(0 to argsize - 1).map(i => "v" + (argbase + i)).mkString(", ")}) @signature `$sig` @classDescriptor ^$classTyp @kind virtual;"
+//    s"call temp:=  `$methodName`(${(0 to argsize - 1).map(i => "v" + (argbase + i)).mkString(", ")}) @signature `$sig` @kind virtual;"
   def invokeVirtualQuickRange(argbase: Int, argsize: Int, vtableOffset: Int) = s"@invoke virtual_quick_range ${(0 until argsize).map(i => "@arg" + i + " v" + (argbase + i)).mkString(" ")} @vtable_offset ${"0x%x".format(vtableOffset)}" // 0xf9
-  def invokeSuperQuick(retName: Option[String], className: String, methodName: String, args: IList[String], sig: Signature, classTyp: String) = // 0xfa
-    s"call ${if(retName.isDefined) retName.get + ":=  " else ""}`$className.$methodName`(${args.mkString(", ")}) @signature `$sig` @classDescriptor ^$classTyp @kind super;"
+  def invokeSuperQuick(retName: Option[String], methodName: String, args: IList[String], sig: Signature, classTyp: String) = // 0xfa
+    s"call ${if(retName.isDefined) retName.get + ":=  " else ""}`$methodName`(${args.mkString(", ")}) @signature `$sig` @kind super;"
   def invokeSuperQuick(args: IList[Int], vtableOffset: Int) = s"@invoke super_quick ${args.map(arg => s"@arg${args.indexOf(arg)} v$arg").mkString(" ")} @vtable_offset ${"0x%x".format(vtableOffset)}" // 0xfa
 //  def invokeSuperQuickRange(className: String, methodName: String, argbase: Int, argsize: Int, sig: Signature, classTyp: String) = // 0xfb
-//    s"call temp:=  `$className.$methodName`(${(0 to argsize - 1).map(i => "v" + (argbase + i)).mkString(", ")}) @signature `$sig` @classDescriptor ^$classTyp @kind super;"
+//    s"call temp:=  `$methodName`(${(0 to argsize - 1).map(i => "v" + (argbase + i)).mkString(", ")}) @signature `$sig` @kind super;"
   def invokeSuperQuickRange(argbase: Int, argsize: Int, vtableOffset: Int) = s"@invoke super_quick_range ${(0 until argsize).map(i => "@arg" + i + " v" + (argbase + i)).mkString(" ")} @vtable_offset ${"0x%x".format(vtableOffset)}" // 0xfb
   def iputObjectVolatile(x: String, field: String, y: String, typ: String): String = "%s.`%s`:= %s  @kind object @type ^%s;".format(x, field, y, typ) // 0xfc
   def sgetObjectVolatile(x: String, field: String, typ: String): String = "%s:= `@@%s`  @kind object @type ^%s;".format(x, field, typ) // 0xfd
