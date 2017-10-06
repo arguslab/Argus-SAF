@@ -12,7 +12,7 @@ package org.argus.amandroid.core.jawaCodeGenerator
 import org.argus.jawa.core.util._
 import org.argus.amandroid.core.parser.{ComponentInfo, ComponentType}
 import org.argus.jawa.core._
-import org.argus.jawa.core.pilarCodeGenerator.MethodGenerator
+import org.argus.jawa.core.jawaCodeGenerator.MethodGenerator
 
 /**
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>

@@ -1,6 +1,6 @@
 record `com.fgwei.SwitchJump2`  @kind class @AccessFlag PUBLIC {
    }
-    procedure `int` `com.fgwei.SwitchJump2.main` () @owner ^`com.fgwei.SwitchJump1` @signature `Lcom/fgwei/SwitchJump2;.main:()I` @AccessFlag PUBLIC_STATIC {
+    procedure `int` `main` () @signature `Lcom/fgwei/SwitchJump2;.main:()I` @AccessFlag PUBLIC_STATIC {
       v1;
       v2;
       

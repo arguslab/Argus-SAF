@@ -8,7 +8,7 @@
  * Detailed contributors are listed in the CONTRIBUTOR.md
  */
 
-package org.argus.jawa.core.pilarCodeGenerator
+package org.argus.jawa.core.jawaCodeGenerator
 
 import org.argus.jawa.core.JawaType
 import org.argus.jawa.core.util._

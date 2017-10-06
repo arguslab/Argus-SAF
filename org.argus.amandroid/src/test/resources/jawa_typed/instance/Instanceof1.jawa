@@ -1,6 +1,6 @@
 record `com.fgwei.Instanceof1`  @kind class @AccessFlag PUBLIC {
    }
-    procedure `boolean` `com.fgwei.Instanceof1.main` () @owner ^`com.fgwei.Instanceof1` @signature `Lcom/fgwei/Instanceof1;.main:()Z` @AccessFlag PUBLIC_STATIC {
+    procedure `boolean` `main` () @signature `Lcom/fgwei/Instanceof1;.main:()Z` @AccessFlag PUBLIC_STATIC {
       `java.lang.String` String_v0;
       `boolean` boolean_v1;
       

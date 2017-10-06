@@ -152,12 +152,12 @@ record `com.ksu.passwordPassTest.MainActivity`  @kind class @AccessFlag PUBLIC  
       `android.widget.EditText` `com.ksu.passwordPassTest.MainActivity.editText`    @AccessFlag ;
       `android.widget.Button` `com.ksu.passwordPassTest.MainActivity.passButton`    @AccessFlag ;
    }
-    procedure `void` `com.ksu.passwordPassTest.MainActivity.<init>` (`com.ksu.passwordPassTest.MainActivity` v1 @kind `this`) @owner `com.ksu.passwordPassTest.MainActivity` @signature `Lcom/ksu/passwordPassTest/MainActivity;.<init>:()V` @Access `PUBLIC_CONSTRUCTOR` {
+    procedure `void` `com.ksu.passwordPassTest.MainActivity.<init>` (`com.ksu.passwordPassTest.MainActivity` v1 @kind `this`) @signature `Lcom/ksu/passwordPassTest/MainActivity;.<init>:()V` @Access `PUBLIC_CONSTRUCTOR` {
       temp ;
         v0;
 
 #L047178.   v0:= 0I  @kind int;
-#L04717a.   call temp:=  `android.app.Activity.<init>`(v1) @signature `Landroid/app/Activity;.<init>:()V` @classDescriptor `android.app.Activity` @kind direct;
+#L04717a.   call temp:=  `<init>`(v1) @signature `Landroid/app/Activity;.<init>:()V` @kind direct;
 #L047180.   v1.`com.ksu.passwordPassTest.MainActivity.editText`  := v0 @kind object;
 #L047184.   v1.`com.ksu.passwordPassTest.MainActivity.passButton`  := v0 @kind object;
 #L047188.   return @void ;
@@ -168,12 +168,12 @@ record `com.ksu.passwordPassTest.MainActivity`  @kind class @AccessFlag PUBLIC  
    WS, ID, WS, ID, WS, AT, ID, WS, SEMI,
    WS, ID, WS, ID, WS, AT, ID, WS, SEMI,
    WS, RBRACE,
-   WS, METHOD, WS, ID, WS, ID, WS, LPAREN, ID, WS, ID, WS, AT, ID, WS, ID, RPAREN, WS, AT, ID, WS, ID, WS, AT, ID, WS, ID, WS, AT, ID, WS, ID, WS, LBRACE,
+   WS, METHOD, WS, ID, WS, ID, WS, LPAREN, ID, WS, ID, WS, AT, ID, WS, ID, RPAREN, WS, AT, ID, WS, ID, WS, AT, ID, WS, ID, WS, LBRACE,
    WS, ID, WS, SEMI,
    WS, ID, SEMI,
    WS,
    LOCATION_ID, WS, ID, ASSIGN_OP, WS, INTEGER_LITERAL, WS, AT, ID, WS, ID, SEMI, WS,
-   LOCATION_ID, WS, CALL, WS, ID, ASSIGN_OP, WS, ID, LPAREN, ID, RPAREN, WS, AT, ID, WS, ID, WS, AT, ID, WS, ID, WS, AT, ID, WS, ID, SEMI, WS,
+   LOCATION_ID, WS, CALL, WS, ID, ASSIGN_OP, WS, ID, LPAREN, ID, RPAREN, WS, AT, ID, WS, ID, WS, AT, ID, WS, ID, SEMI, WS,
    LOCATION_ID, WS, ID, DOT, ID, WS, ASSIGN_OP, WS, ID, WS, AT, ID, WS, ID, SEMI, WS,
    LOCATION_ID, WS, ID, DOT, ID, WS, ASSIGN_OP, WS, ID, WS, AT, ID, WS, ID, SEMI, WS,
    LOCATION_ID, WS, RETURN, WS, AT, ID, WS, SEMI,

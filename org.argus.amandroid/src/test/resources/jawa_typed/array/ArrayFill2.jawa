@@ -1,6 +1,6 @@
 record `com.fgwei.ArrayFill2`  @kind class @AccessFlag PUBLIC {
    }
-    procedure `char`[] `com.fgwei.ArrayFill2.main` () @owner ^`com.fgwei.ArrayFill2` @signature `Lcom/fgwei/ArrayFill2;.main:()[C` @AccessFlag PUBLIC_STATIC {
+    procedure `char`[] `main` () @signature `Lcom/fgwei/ArrayFill2;.main:()[C` @AccessFlag PUBLIC_STATIC {
       `int` int_v0;
       `byte`[] byte_arr1_v0;
       `char`[] char_arr1_v0;

@@ -11,7 +11,7 @@
 package org.argus.amandroid.core.jawaCodeGenerator
 
 import org.argus.jawa.core.{Global, JawaClass, JawaType, Signature}
-import org.argus.jawa.core.pilarCodeGenerator.MethodGenerator
+import org.argus.jawa.core.jawaCodeGenerator.MethodGenerator
 import org.argus.jawa.core.util._
 
 /**

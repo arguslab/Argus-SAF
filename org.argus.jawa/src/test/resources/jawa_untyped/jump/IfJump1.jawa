@@ -1,6 +1,6 @@
 record `com.fgwei.IfJump1`  @kind class @AccessFlag PUBLIC {
    }
-    procedure `int` `com.fgwei.IfJump1.main` () @owner ^`com.fgwei.IfJump1` @signature `Lcom/fgwei/IfJump1;.main:()I` @AccessFlag PUBLIC_STATIC {
+    procedure `int` `main` () @signature `Lcom/fgwei/IfJump1;.main:()I` @AccessFlag PUBLIC_STATIC {
       v1;
       v2;
       

@@ -402,7 +402,7 @@ case class MethodDeclaration(
   lazy val tokens: IList[Token] = flatten(dclToken, returnType, methodSymbol, paramClause, annotations, body)
   def isConstructor: Boolean = isJawaConstructor(name)
   def name: String = methodSymbol.id.text.substring(methodSymbol.id.text.lastIndexOf(".") + 1)
-  def owner: String = annotations.find { a => a.key == "owner" }.get.value
+  def owner: String = signature.getClassName
   def signature: Signature = new Signature(annotations.find { a => a.key == "signature" }.get.value)
   def thisParam: Option[Param] = paramClause.thisParam
   def param(i: Int): Param = paramClause.param(i)
@@ -529,7 +529,6 @@ case class CallStatement(
   //default is virtual call
   def kind: String = annotations.find { a => a.key == "kind" }.map(_.value).getOrElse("virtual")
   def signature: Signature = new Signature(annotations.find { a => a.key == "signature" }.get.value)
-  def classDescriptor: String = annotations.find { a => a.key == "classDescriptor" }.get.value
   def isStatic: Boolean = kind == "static"
   def isVirtual: Boolean = kind == "virtual"
   def isSuper: Boolean = kind == "super"
