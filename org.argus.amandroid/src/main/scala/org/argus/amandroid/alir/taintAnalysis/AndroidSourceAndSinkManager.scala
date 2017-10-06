@@ -21,6 +21,10 @@ import org.argus.jawa.ast.{CallStatement, Location}
 import org.argus.jawa.core.Signature
 import org.argus.jawa.core.util._
 
+object IntentSinkKind extends Enumeration {
+  val NO, IMPLICIT, ALL = Value
+}
+
 /**
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
  * @author <a href="mailto:sroy@k-state.edu">Sankardas Roy</a>
@@ -29,14 +33,48 @@ abstract class AndroidSourceAndSinkManager(val sasFilePath: String) extends Sour
 
   parse()
 
-  override def isStmtSource(apk: ApkGlobal, loc: Location, ptaResult: PTAResult): Boolean = false
-  override def isStmtSink(global: ApkGlobal, loc: Location, ptaresult: PTAResult): Boolean = false
-
   override def isUISource(apk: ApkGlobal, calleeSig: Signature, callerSig: Signature, callerLoc: Location): Boolean = false
 
   def getSourceSigs: ISet[Signature] = this.sources.keySet.toSet
   def getSinkSigs: ISet[Signature] = this.sinks.keySet.toSet
   def getInterestedSigs: ISet[Signature] = getSourceSigs ++ getSinkSigs
+
+  override def isSinkMethod(global: ApkGlobal, sig: Signature): Boolean = {
+    InterComponentCommunicationModel.isIccOperation(sig) || super.isSinkMethod(global, sig)
+  }
+
+  def intentSink: IntentSinkKind.Value = IntentSinkKind.IMPLICIT
+
+  def isIntentSink(apk: ApkGlobal, invNode: ICFGCallNode, pos: Option[Int], s: PTAResult): Boolean = {
+    var sinkflag = false
+    if(pos.isEmpty || pos.get !=1) return sinkflag
+    intentSink match {
+      case IntentSinkKind.NO =>
+      case IntentSinkKind.ALL =>
+        sinkflag = InterComponentCommunicationModel.isIccOperation(invNode.getCalleeSig)
+      case IntentSinkKind.IMPLICIT =>
+        if(InterComponentCommunicationModel.isIccOperation(invNode.getCalleeSig)) {
+          val args = invNode.argNames
+          val intentSlot = VarSlot(args(1))
+          val intentValues = s.pointsToSet(invNode.getContext, intentSlot)
+          val intentContents = IntentHelper.getIntentContents(s, intentValues, invNode.getContext)
+          val compType = AndroidConstants.getIccCallType(invNode.getCalleeSig.getSubSignature)
+          val comMap = IntentHelper.mappingIntents(apk, intentContents, compType)
+          comMap.foreach{ case (intent, comTypes) =>
+            if(comTypes.isEmpty) sinkflag = true
+            comTypes.foreach{ comType =>
+              val com = apk.getClassOrResolve(comType)
+              if(intent.explicit) {
+                if(com.isUnknown) sinkflag = true
+              } else {
+                sinkflag = true
+              }
+            }
+          }
+        }
+    }
+    sinkflag
+  }
 
 }
 
@@ -64,36 +102,6 @@ class DefaultAndroidSourceAndSinkManager(sasFilePath: String) extends AndroidSou
     }
     false
   }
-
-  override def isConditionalSink(apk: ApkGlobal, invNode: ICFGInvokeNode, pos: Option[Int], s: PTAResult): Boolean = {
-    var sinkflag = false
-    if(pos.isEmpty || pos.get !=1) return sinkflag
-    val calleeSet = invNode.getCalleeSet
-    calleeSet.foreach{ callee =>
-      if(InterComponentCommunicationModel.isIccOperation(callee.callee)){
-        val args = invNode.argNames
-        val intentSlot = VarSlot(args(1))
-        val intentValues = s.pointsToSet(invNode.getContext, intentSlot)
-        val intentContents = IntentHelper.getIntentContents(s, intentValues, invNode.getContext)
-        val compType = AndroidConstants.getIccCallType(callee.callee.getSubSignature)
-        val comMap = IntentHelper.mappingIntents(apk, intentContents, compType)
-        comMap.foreach{ case (intent, comTypes) =>
-          if(comTypes.isEmpty) sinkflag = true
-          comTypes.foreach{ comType =>
-            val com = apk.getClassOrResolve(comType)
-            if(intent.explicit) {
-              if(com.isUnknown) sinkflag = true
-            } else {
-              sinkflag = true
-            }
-          }
-        }
-      }
-    }
-    sinkflag
-  }
-  
-  override def isEntryPointSource(apk: ApkGlobal, entNode: ICFGNode): Boolean = false
 }
 
 /**

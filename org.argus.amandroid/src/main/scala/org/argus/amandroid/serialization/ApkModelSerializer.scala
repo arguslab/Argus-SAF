@@ -16,13 +16,13 @@ import org.argus.amandroid.core.appInfo.ApkCertificate
 import org.argus.amandroid.core.decompile.DecompileLayout
 import org.argus.amandroid.core.parser.{ComponentInfo, ComponentType, IntentFilterDataBase, LayoutControl}
 import org.argus.jawa.core._
-import org.json4s.{CustomSerializer, Extraction, JValue}
+import org.json4s.{CustomSerializer, Extraction, Formats, JValue}
 import org.json4s.JsonDSL._
 
 object ApkModelSerializer extends CustomSerializer[ApkModel](format => (
   {
     case jv: JValue =>
-      implicit val formats = format + JawaTypeSerializer + JawaTypeKeySerializer + SignatureSerializer + SignatureKeySerializer + IntentFilterDataBaseSerializer + DecompileLayoutSerializer + new org.json4s.ext.EnumNameSerializer(ComponentType)
+      implicit val formats: Formats = format + JawaTypeSerializer + JawaTypeKeySerializer + SignatureSerializer + SignatureKeySerializer + IntentFilterDataBaseSerializer + DecompileLayoutSerializer + new org.json4s.ext.EnumNameSerializer(ComponentType)
       val nameUri  = (jv \ "nameUri").extract[FileResourceUri]
       val layout = (jv \ "layout").extract[DecompileLayout]
       val certificates = (jv \ "certificates").extract[ISet[ApkCertificate]]
@@ -60,7 +60,7 @@ object ApkModelSerializer extends CustomSerializer[ApkModel](format => (
   },
   {
     case model: ApkModel =>
-      implicit val formats = format + JawaTypeSerializer + JawaTypeKeySerializer + SignatureSerializer + SignatureKeySerializer + IntentFilterDataBaseSerializer + DecompileLayoutSerializer + new org.json4s.ext.EnumNameSerializer(ComponentType)
+      implicit val formats: Formats = format + JawaTypeSerializer + JawaTypeKeySerializer + SignatureSerializer + SignatureKeySerializer + IntentFilterDataBaseSerializer + DecompileLayoutSerializer + new org.json4s.ext.EnumNameSerializer(ComponentType)
       val nameUri: FileResourceUri = model.nameUri
       val layout: DecompileLayout = model.layout
       val certificates: ISet[ApkCertificate] = model.getCertificates

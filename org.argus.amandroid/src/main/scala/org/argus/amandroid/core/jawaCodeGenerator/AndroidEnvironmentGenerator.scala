@@ -49,24 +49,22 @@ class AndroidEnvironmentGenerator(global: Global) extends MethodGenerator(global
         var plain = false
         val currentClass = global.getClassOrResolve(item._1)
         val ancestors = global.getClassHierarchy.getAllSuperClassesOfIncluding(currentClass)
-        ancestors.foreach{
-          ancestor =>
-            val recName = ancestor.getName
-            if(recName.equals(AndroidEntryPointConstants.ACTIVITY_CLASS)) activity = true
-            if(recName.equals(AndroidEntryPointConstants.SERVICE_CLASS)) service = true
-            if(recName.equals(AndroidEntryPointConstants.BROADCAST_RECEIVER_CLASS)) broadcastReceiver = true
-            if(recName.equals(AndroidEntryPointConstants.CONTENT_PROVIDER_CLASS)) contentProvider = true
+        ancestors.foreach{ ancestor =>
+          val recName = ancestor.getName
+          if(recName.equals(AndroidEntryPointConstants.ACTIVITY_CLASS)) activity = true
+          if(recName.equals(AndroidEntryPointConstants.SERVICE_CLASS)) service = true
+          if(recName.equals(AndroidEntryPointConstants.BROADCAST_RECEIVER_CLASS)) broadcastReceiver = true
+          if(recName.equals(AndroidEntryPointConstants.CONTENT_PROVIDER_CLASS)) contentProvider = true
         }
-        componentInfos.foreach{
-          ci =>
-            if(ci.compType.name == currentClass.getName){
-              ci.typ match{
-                case ComponentType.ACTIVITY => activity = true
-                case ComponentType.SERVICE => service = true
-                case ComponentType.RECEIVER => broadcastReceiver = true
-                case ComponentType.PROVIDER => contentProvider = true
-              }
+        componentInfos.foreach{ ci =>
+          if(ci.compType.name == currentClass.getName){
+            ci.typ match{
+              case ComponentType.ACTIVITY => activity = true
+              case ComponentType.SERVICE => service = true
+              case ComponentType.RECEIVER => broadcastReceiver = true
+              case ComponentType.PROVIDER => contentProvider = true
             }
+          }
         }
         if(!activity && !service && !broadcastReceiver && !contentProvider) plain = true
         var instanceNeeded = activity || service || broadcastReceiver || contentProvider
@@ -132,7 +130,7 @@ class AndroidEnvironmentGenerator(global: Global) extends MethodGenerator(global
    * the order of the custom statements, we assume that it can loop arbitrarily.
    * 
    */
-  private def plainClassGenerator(plainMethods: Map[Signature, JawaMethod], endClassFragment: CodeFragmentGenerator, classLocalVar: String, codefg: CodeFragmentGenerator) = {
+  private def plainClassGenerator(plainMethods: Map[Signature, JawaMethod], endClassFragment: CodeFragmentGenerator, classLocalVar: String, codefg: CodeFragmentGenerator): Unit = {
     val beforeClassFragment = new CodeFragmentGenerator
     beforeClassFragment.addLabel()
     codeFragments.add(beforeClassFragment)

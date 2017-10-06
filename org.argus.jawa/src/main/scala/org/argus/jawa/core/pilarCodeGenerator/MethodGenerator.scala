@@ -227,30 +227,29 @@ abstract class MethodGenerator(global: Global) {
     val paramNum = pSig.getParameterNum
     val params = pSig.getObjectParameters
     var paramVars: Map[Int, String] = Map()
-    params.foreach{
-      case(i, param) =>
-        var r = global.getClassOrResolve(param)
-        if(!r.isConcrete){
-          val substClassName = this.substituteClassMap.getOrElse(r.getType, null)
-          if(substClassName != null) r = global.getClassOrResolve(substClassName)
-          else if(r.isInterface) global.getClassHierarchy.getAllImplementersOf(r).foreach(i => if(constructionStack.contains(i.getType)) r = i)
-          else if(r.isAbstract) global.getClassHierarchy.getAllSubClassesOf(r).foreach(s => if(s.isConcrete && constructionStack.contains(s.getType)) r = s)
-        }
-        // to protect from going into dead constructor create loop
-        if(localVarsForClasses.contains(r.getType)) paramVars += (i -> localVarsForClasses(r.getType))
-        else if(!r.isConcrete){
-          val va = varGen.generate(r.getType)
-          localVarsForClasses += (r.getType -> va)
-          paramVars += (i -> va)
-          global.reporter.warning(TITLE, "Cannot create valid constructor for " + r + ", because it is " + r.getAccessFlagsStr + " and cannot find substitute.")
-        } else if(!constructionStack.contains(r.getType)){
-          val va = generateInstanceCreation(r.getType, codefg)
-          localVarsForClasses += (r.getType -> va)
-          paramVars += (i -> va)
-          generateClassConstructor(r, constructionStack, codefg)
-        } else {
-          paramVars += (i -> localVarsForClasses(r.getType))
-        }
+    params.foreach{ case(i, param) =>
+      var r = global.getClassOrResolve(param)
+      if(!r.isConcrete){
+        val substClassName = this.substituteClassMap.getOrElse(r.getType, null)
+        if(substClassName != null) r = global.getClassOrResolve(substClassName)
+        else if(r.isInterface) global.getClassHierarchy.getAllImplementersOf(r).foreach(i => if(constructionStack.contains(i.getType)) r = i)
+        else if(r.isAbstract) global.getClassHierarchy.getAllSubClassesOf(r).foreach(s => if(s.isConcrete && constructionStack.contains(s.getType)) r = s)
+      }
+      // to protect from going into dead constructor create loop
+      if(localVarsForClasses.contains(r.getType)) paramVars += (i -> localVarsForClasses(r.getType))
+      else if(!r.isConcrete){
+        val va = varGen.generate(r.getType)
+        localVarsForClasses += (r.getType -> va)
+        paramVars += (i -> va)
+        global.reporter.warning(TITLE, "Cannot create valid constructor for " + r + ", because it is " + r.getAccessFlagsStr + " and cannot find substitute.")
+      } else if(!constructionStack.contains(r.getType)){
+        val va = generateInstanceCreation(r.getType, codefg)
+        localVarsForClasses += (r.getType -> va)
+        paramVars += (i -> va)
+        generateClassConstructor(r, constructionStack, codefg)
+      } else {
+        paramVars += (i -> localVarsForClasses(r.getType))
+      }
     }
     val invokeStmt = template.getInstanceOf("InvokeStmtWithoutReturn")
     invokeStmt.add("funcName", pSig.getClassName + "." + pSig.methodName)
@@ -262,11 +261,6 @@ abstract class MethodGenerator(global: Global) {
         finalParamVars.add(index + 1, paramVars(i))
       } else {
         finalParamVars.add(index + 1, "x")
-//        val paramName = pSig.getParameterTypes(i).name
-//        if(paramName == "double" || paramName == "long"){
-//          index += 1
-//          finalParamVars.add(index + 1, "x")
-//        }
       }
       index += 1
     }
@@ -281,21 +275,20 @@ abstract class MethodGenerator(global: Global) {
 
   protected def generateCallToAllCallbacks(callbackClass: JawaClass, callbackMethods: Set[JawaMethod], classLocalVar: String, codefg: CodeFragmentGenerator): Unit = {
     var oneCallBackFragment = codefg
-    callbackMethods.foreach{
-      callbackMethod =>
-        val pSig = callbackMethod.getSignature
-        val thenStmtFragment = new CodeFragmentGenerator
-        createIfStmt(thenStmtFragment, oneCallBackFragment)
-        val elseStmtFragment = new CodeFragmentGenerator
-        createGotoStmt(elseStmtFragment, oneCallBackFragment)
-        thenStmtFragment.addLabel()
-        codeFragments.add(thenStmtFragment)
-        generateMethodCall(pSig, "virtual", classLocalVar, msetEmpty + callbackClass.getType, thenStmtFragment)
-        elseStmtFragment.addLabel()
-        codeFragments.add(elseStmtFragment)
-        oneCallBackFragment = new CodeFragmentGenerator
-        oneCallBackFragment.addLabel()
-        codeFragments.add(oneCallBackFragment)
+    callbackMethods.foreach{ callbackMethod =>
+      val pSig = callbackMethod.getSignature
+      val thenStmtFragment = new CodeFragmentGenerator
+      createIfStmt(thenStmtFragment, oneCallBackFragment)
+      val elseStmtFragment = new CodeFragmentGenerator
+      createGotoStmt(elseStmtFragment, oneCallBackFragment)
+      thenStmtFragment.addLabel()
+      codeFragments.add(thenStmtFragment)
+      generateMethodCall(pSig, "virtual", classLocalVar, msetEmpty + callbackClass.getType, thenStmtFragment)
+      elseStmtFragment.addLabel()
+      codeFragments.add(elseStmtFragment)
+      oneCallBackFragment = new CodeFragmentGenerator
+      oneCallBackFragment.addLabel()
+      codeFragments.add(oneCallBackFragment)
     }
   }
 
