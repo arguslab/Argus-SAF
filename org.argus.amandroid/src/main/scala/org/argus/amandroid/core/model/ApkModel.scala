@@ -135,6 +135,7 @@ case class ApkModel(nameUri: FileResourceUri, layout: DecompileLayout) {
     case (k, vs) => k -> vs.toSet
   }.toMap
   def getCallbackMethods: ISet[Signature] = if(this.callbackMethods.nonEmpty)this.callbackMethods.map(_._2.toSet).reduce(iunion[Signature]) else isetEmpty
+  def getCallbackMethods(typ: JawaType): ISet[Signature] = this.callbackMethods.getOrElse(typ, msetEmpty).toSet
   def addComponentInfo(ci: ComponentInfo): Unit = this.componentInfos += ci
   def addComponentInfos(cis: ISet[ComponentInfo]): Unit = this.componentInfos ++= cis
   def getComponentInfos: ISet[ComponentInfo] = this.componentInfos.toSet
@@ -154,8 +155,6 @@ case class ApkModel(nameUri: FileResourceUri, layout: DecompileLayout) {
       println("End of Entrypoints")
     }
   }
-
-  def getEntryPoints: ISet[JawaType] = this.componentInfos.filter(_.enabled).map(_.compType).toSet
 
   def addEnvMap(typ: JawaType, sig: Signature, code: String): Unit = this.envProcMap(typ) = (sig, code)
   def addEnvMap(envMap: IMap[JawaType, (Signature, String)]): Unit = this.envProcMap ++= envMap
@@ -179,5 +178,13 @@ case class ApkModel(nameUri: FileResourceUri, layout: DecompileLayout) {
     this.providers.clear()
     this.dynamicRegisteredReceivers.clear()
     this.intentFdb.reset
+    this.certificates.clear()
+    this.envProcMap.clear()
+    this.uses_permissions.clear()
+    this.callbackMethods.clear()
+    this.componentInfos.clear()
+    this.layoutControls.clear()
+    this.appPackageName = null
+    this.codeLineCounter = 0
   }
 }

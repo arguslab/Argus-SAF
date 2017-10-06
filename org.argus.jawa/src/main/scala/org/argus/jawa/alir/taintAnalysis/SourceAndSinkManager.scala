@@ -31,7 +31,6 @@ object SourceAndSinkCategory {
   final val API_SOURCE = "api_source"
   final val API_SINK = "api_sink"
   final val ENTRYPOINT_SOURCE = "entrypoint_source"
-  final val CONDITIONAL_SINK = "conditional_sink"
   final val CALLBACK_SOURCE = "callback_source"
 }
 
@@ -40,7 +39,6 @@ object SourceAndSinkCategory {
  * @author <a href="mailto:sroy@k-state.edu">Sankardas Roy</a>
  */ 
 trait SourceAndSinkManager[T <: Global] {
-//  private final val TITLE: String = "SourceAndSinkManager"
   def sasFilePath: String
   /**
    * it's a map from source API sig to it's category
@@ -85,7 +83,7 @@ trait SourceAndSinkManager[T <: Global] {
               global.getMethod(invNode.getOwner) match {
                 case Some(caller) =>
                   val jumpLoc = caller.getBody.resolvedBody.locations(invNode.locIndex)
-                  if(pos.isEmpty && this.isUISource(global, calleeSig, invNode.getOwner, jumpLoc)){
+                  if(pos.isEmpty && this.isUISource(global, calleeSig, invNode.getOwner, jumpLoc)) {
                     val tn = TaintSource(TaintNode(invNode, pos), TypeTaintDescriptor(calleeSig.signature, None, SourceAndSinkCategory.API_SOURCE))
                     sources += tn
                   } else if (pos.isEmpty && this.isSourceMethod(global, calleeSig)) {
@@ -109,15 +107,9 @@ trait SourceAndSinkManager[T <: Global] {
               }
             case _ =>
           }
-          invNode match {
-            case node: ICFGCallNode if this.isConditionalSink(global, node, pos, ptaresult) =>
-              val tn = TaintSink(TaintNode(invNode, pos), TypeTaintDescriptor(invNode.locUri, pos, SourceAndSinkCategory.CONDITIONAL_SINK))
-              sinks += tn
-            case _ =>
-          }
         }
       case entNode: ICFGEntryNode =>
-        if(this.isEntryPointSource(global, entNode)){
+        if(this.isEntryPointSource(global, entNode.getOwner)){
           val tn = TaintSource(TaintNode(entNode, pos), TypeTaintDescriptor(entNode.getOwner.signature, None, SourceAndSinkCategory.ENTRYPOINT_SOURCE))
           sources += tn
         }
@@ -128,11 +120,11 @@ trait SourceAndSinkManager[T <: Global] {
       case normalNode: ICFGNormalNode =>
         val owner = global.getMethod(normalNode.getOwner).get
         val loc = owner.getBody.resolvedBody.locations(normalNode.locIndex)
-        if(this.isStmtSource(global, loc, ptaresult)){
+        if(this.isStmtSource(global, loc)){
           val tn = TaintSource(TaintNode(normalNode, pos), TypeTaintDescriptor(normalNode.getOwner.signature, None, SourceAndSinkCategory.STMT_SOURCE))
           sources += tn
         }
-        if(this.isStmtSink(global, loc, ptaresult)){
+        if(this.isStmtSink(global, loc)){
           val tn = TaintSink(TaintNode(normalNode, pos), TypeTaintDescriptor(normalNode.getOwner.signature, None, SourceAndSinkCategory.STMT_SINK))
           sinks += tn
         }
@@ -141,23 +133,20 @@ trait SourceAndSinkManager[T <: Global] {
     (sources.toSet, sinks.toSet)
   }
 
-  protected def matches(global: Global, sig1: Signature, methodPool: ISet[Signature]): Boolean = methodPool.exists{
-    sig2 =>
-      val clazz1 = global.getClassOrResolve(sig1.classTyp)
-      val typ2 = sig2.classTyp
-      sig1.getSubSignature == sig2.getSubSignature &&
-        (clazz1.typ == typ2 || clazz1.isChildOf(typ2) || clazz1.isImplementerOf(typ2))
+  protected def matches(global: Global, sig1: Signature, methodPool: ISet[Signature]): Boolean = methodPool.exists{ sig2 =>
+    val clazz1 = global.getClassOrResolve(sig1.classTyp)
+    val typ2 = sig2.classTyp
+    sig1.getSubSignature == sig2.getSubSignature && (clazz1.typ == typ2 || clazz1.isChildOf(typ2) || clazz1.isImplementerOf(typ2))
   }
 
   protected def matches(global: Global, sig1: Signature, sig2: Signature): Boolean = {
     val clazz1 = global.getClassOrResolve(sig1.classTyp)
     val typ2 = sig2.classTyp
-    sig1.getSubSignature == sig2.getSubSignature &&
-      (clazz1.typ == typ2 || clazz1.isChildOf(typ2) || clazz1.isImplementerOf(typ2))
+    sig1.getSubSignature == sig2.getSubSignature && (clazz1.typ == typ2 || clazz1.isChildOf(typ2) || clazz1.isImplementerOf(typ2))
   }
 
-  def isStmtSource(global: T, loc: Location, ptaresult: PTAResult): Boolean = false
-  def isStmtSink(global: T, loc: Location, ptaresult: PTAResult): Boolean = false
+  def isStmtSource(global: T, loc: Location): Boolean = false
+  def isStmtSink(global: T, loc: Location): Boolean = false
 
   def isSourceMethod(global: T, sig: Signature): Boolean = matches(global, sig, this.sources.keySet.toSet)
   def isSinkMethod(global: T, sig: Signature): Boolean = matches(global, sig, this.sinks.keySet.toSet)
@@ -165,8 +154,7 @@ trait SourceAndSinkManager[T <: Global] {
   def isUISource(global: T, calleeSig: Signature, callerSig: Signature, callerLoc: Location): Boolean = false
   def isCallbackSource(global: T, sig: Signature, pos: Int): Boolean = false
 
-  def isEntryPointSource(global: T, entNode: ICFGNode): Boolean = false
-  def isConditionalSink(global: T, invNode: ICFGInvokeNode, pos: Option[Int], s: PTAResult): Boolean = false
+  def isEntryPointSource(global: T, sig: Signature): Boolean = false
 }
 
 /**

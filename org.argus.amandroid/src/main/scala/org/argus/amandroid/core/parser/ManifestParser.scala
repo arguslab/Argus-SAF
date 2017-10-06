@@ -53,7 +53,7 @@ class ManifestParser{
   private val componentEnabled: MMap[JawaType, String] = mmapEmpty
   private var currentIntentFilter: IntentFilter = _
 
-  private def buildIntentDB(intentFilter: IntentFilter) = {
+  private def buildIntentDB(intentFilter: IntentFilter): Unit = {
     intentFdb.updateIntentFmap(intentFilter)
   }
 
@@ -190,7 +190,7 @@ class ManifestParser{
     }
   }
 
-  private def loadManifestEntry(comp: Element, baseClass: ComponentType.Value, packageName: String) = {
+  private def loadManifestEntry(comp: Element, baseClass: ComponentType.Value, packageName: String): Unit = {
     val className = ManifestParser.getAttribute(comp, "name", ret_null = false, this.headerNames.toSet)
     if (className.startsWith(".")){
       this.currentComponent = toJawaClass(this.packageName + className)
@@ -352,23 +352,19 @@ object ManifestParser {
     var min: Int = 1
     var target: Int = min
     var max: Int = target
-    AndroidXMLParser.handleAndroidXMLFiles(apk, Set("AndroidManifest.xml"), new AndroidXMLHandler() {
-      
-      override def handleXMLFile(fileName: String, fileNameFilter: Set[String], stream: InputStream): Unit = {
-        try {
-          if (fileNameFilter.contains(fileName)){
-            val (mint, targett, maxt) = getSdkVersionFromBinaryManifest(stream)
-            min = mint
-            target = targett
-            max = maxt
-          }
-        } catch {
-          case ex: IOException =>
-            System.err.println("Could not read AndroidManifest file: " + ex.getMessage)
-            ex.printStackTrace()
+    AndroidXMLParser.handleAndroidXMLFiles(apk, Set("AndroidManifest.xml"), (fileName: String, fileNameFilter: Set[String], stream: InputStream) => {
+      try {
+        if (fileNameFilter.contains(fileName)) {
+          val (mint, targett, maxt) = getSdkVersionFromBinaryManifest(stream)
+          min = mint
+          target = targett
+          max = maxt
         }
+      } catch {
+        case ex: IOException =>
+          System.err.println("Could not read AndroidManifest file: " + ex.getMessage)
+          ex.printStackTrace()
       }
-      
     })
     (min, target, max)
   }

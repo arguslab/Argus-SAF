@@ -10,13 +10,9 @@
 
 package org.argus.amandroid.plugin.communication
 
-import org.argus.amandroid.alir.pta.reachingFactsAnalysis.IntentHelper
-import org.argus.amandroid.alir.pta.model.InterComponentCommunicationModel
 import org.argus.amandroid.alir.taintAnalysis.AndroidSourceAndSinkManager
-import org.argus.amandroid.core.{AndroidConstants, ApkGlobal}
-import org.argus.jawa.alir.controlFlowGraph.ICFGInvokeNode
-import org.argus.jawa.alir.pta.{PTAResult, VarSlot}
-import org.argus.jawa.ast.{AssignmentStatement, CallStatement, LiteralExpression, Location}
+import org.argus.amandroid.core.ApkGlobal
+import org.argus.jawa.ast.{AssignmentStatement, LiteralExpression, Location}
 import org.argus.jawa.core.util._
 
 /**
@@ -24,10 +20,8 @@ import org.argus.jawa.core.util._
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
  */
 class CommunicationSourceAndSinkManager(sasFilePath: String) extends AndroidSourceAndSinkManager(sasFilePath){
-  
-//  private final val TITLE = "CommunicationSourceAndSinkManager"
 
-  override def isStmtSource(apk: ApkGlobal, loc: Location, ptaresult: PTAResult): Boolean = {
+  override def isStmtSource(apk: ApkGlobal, loc: Location): Boolean = {
     var flag = false
     val visitor = Visitor.build({
       case as: AssignmentStatement =>
@@ -49,38 +43,7 @@ class CommunicationSourceAndSinkManager(sasFilePath: String) extends AndroidSour
             false
         }
     })
-  
     visitor(loc)
     flag
   }
-
-  override def isConditionalSink(apk: ApkGlobal, invNode: ICFGInvokeNode, pos: Option[Int], ptaResult: PTAResult): Boolean = {
-    var sinkflag = false
-    if(pos.isEmpty || pos.get !=1) return sinkflag
-    val calleeSet = invNode.getCalleeSet
-    calleeSet.foreach{ callee =>
-      if(InterComponentCommunicationModel.isIccOperation(callee.callee)){
-        sinkflag = true
-        val args = apk.getMethod(invNode.getOwner).get.getBody.resolvedBody.locations(invNode.locIndex).statement.asInstanceOf[CallStatement].args
-        val intentSlot = VarSlot(args.head)
-        val intentValues = ptaResult.pointsToSet(invNode.getContext, intentSlot)
-        val intentContents = IntentHelper.getIntentContents(ptaResult, intentValues, invNode.getContext)
-        val compType = AndroidConstants.getIccCallType(callee.callee.getSubSignature)
-        val comMap = IntentHelper.mappingIntents(apk, intentContents, compType)
-        comMap.foreach{ case (intent, coms) =>
-          if(coms.isEmpty) sinkflag = true
-          coms.foreach{ com =>
-            if(intent.explicit) {
-              val clazz = apk.getClassOrResolve(com)
-              if(clazz.isUnknown) sinkflag = true
-            } else {
-              sinkflag = true
-            }
-          }
-        }
-      }
-    }
-    sinkflag
-  }
-	
 }

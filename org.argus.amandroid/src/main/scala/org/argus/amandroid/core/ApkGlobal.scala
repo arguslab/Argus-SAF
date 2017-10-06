@@ -15,11 +15,13 @@ import java.io.FileInputStream
 import java.util.zip.ZipEntry
 
 import org.argus.amandroid.alir.componentSummary.ComponentSummaryTable
+import org.argus.amandroid.core.jawaCodeGenerator.AndroidEntryPointConstants
 import org.argus.amandroid.core.model.ApkModel
+import org.argus.amandroid.core.parser.{ComponentInfo, ComponentType}
 import org.argus.jawa.alir.dataDependenceAnalysis.InterProceduralDataDependenceInfo
 import org.argus.jawa.alir.dataFlowAnalysis.InterProceduralDataFlowGraph
 import org.argus.jawa.alir.taintAnalysis.TaintAnalysisResult
-import org.argus.jawa.core.{Constants, Global, JawaType, Reporter}
+import org.argus.jawa.core._
 
 object ApkGlobal {
   def isValidApk(nameUri: FileResourceUri): Boolean = {
@@ -166,6 +168,29 @@ class ApkGlobal(val model: ApkModel, reporter: Reporter) extends Global(model.na
     this.iddaResults.clear()
     this.summaryTables.clear()
     this.apkTaintResult = None
+  }
+
+  def getEntryPoints(comp: ComponentInfo): ISet[Signature] = {
+    val lifecycle: MSet[Signature] = msetEmpty
+    val clazz = getClassOrResolve(comp.compType)
+    val subSigs: List[String] = comp.typ match {
+      case ComponentType.ACTIVITY =>
+        AndroidEntryPointConstants.getActivityLifecycleMethods
+      case ComponentType.SERVICE =>
+        AndroidEntryPointConstants.getServiceLifecycleMethods
+      case ComponentType.RECEIVER =>
+        AndroidEntryPointConstants.getBroadcastLifecycleMethods
+      case ComponentType.PROVIDER =>
+        AndroidEntryPointConstants.getContentproviderLifecycleMethods
+    }
+    subSigs.foreach { subSig =>
+      clazz.getDeclaredMethod(subSig) match {
+        case Some(method) =>
+          lifecycle += method.getSignature
+        case None =>
+      }
+    }
+    model.getCallbackMethods(comp.compType) ++ lifecycle
   }
 
   override def toString: String = FileUtil.toFile(nameUri).getName

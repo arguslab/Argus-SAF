@@ -11,6 +11,7 @@
 package org.argus.amandroid.alir.taintAnalysis
 
 import org.argus.amandroid.alir.componentSummary.ApkYard
+import org.argus.amandroid.alir.pta.model.InterComponentCommunicationModel
 import org.argus.amandroid.core.security.AndroidProblemCategories
 import org.argus.jawa.alir.controlFlowGraph.ICFGCallNode
 import org.argus.jawa.alir.dataDependenceAnalysis.{DataDependenceBaseGraph, IDDGCallArgNode, InterProceduralDataDependenceAnalysis, InterProceduralDataDependenceInfo}
@@ -89,13 +90,10 @@ object AndroidDataDependentTaintAnalysis {
             val sinTyp = sinN.descriptor.typ
             if(srcTyp == SourceAndSinkCategory.API_SOURCE || srcTyp == SourceAndSinkCategory.CALLBACK_SOURCE) {
               if(sinTyp == SourceAndSinkCategory.API_SINK) tp.typs += AndroidProblemCategories.MAL_INFORMATION_LEAK
-              else if(sinTyp == SourceAndSinkCategory.CONDITIONAL_SINK) tp.typs += AndroidProblemCategories.VUL_INFORMATION_LEAK
             } else if(srcTyp == SourceAndSinkCategory.ENTRYPOINT_SOURCE) {
               if(sinTyp == SourceAndSinkCategory.API_SINK) tp.typs += AndroidProblemCategories.VUL_CAPABILITY_LEAK
-              else if(sinTyp == SourceAndSinkCategory.CONDITIONAL_SINK) tp.typs += AndroidProblemCategories.VUL_CONFUSED_DEPUTY
             } else if(srcTyp == SourceAndSinkCategory.STMT_SOURCE){
               if(sinTyp == SourceAndSinkCategory.API_SINK) tp.typs += AndroidProblemCategories.VUL_CAPABILITY_LEAK
-              else if(sinTyp == SourceAndSinkCategory.CONDITIONAL_SINK) tp.typs += AndroidProblemCategories.VUL_CONFUSED_DEPUTY
             }
             if(tp.typs.nonEmpty) {
               tps += tp
@@ -120,8 +118,8 @@ object AndroidDataDependentTaintAnalysis {
     = build(yard, iddi, ptaresult, ssm)
   
   def build(yard: ApkYard, iddi: InterProceduralDataDependenceInfo, ptaresult: PTAResult, ssm: AndroidSourceAndSinkManager): TaintAnalysisResult = {
-    var sourceNodes: ISet[TaintSource] = isetEmpty
-    var sinkNodes: ISet[TaintSink] = isetEmpty
+    val sourceNodes: MSet[TaintSource] = msetEmpty
+    val sinkNodes: MSet[TaintSink] = msetEmpty
     val iddg = iddi.getIddg
     iddg.nodes.foreach{ node =>
       yard.getApk(node.getContext.application) match {
@@ -144,8 +142,22 @@ object AndroidDataDependentTaintAnalysis {
       }
     }
     val tar = Tar(iddi)
-    tar.sourceNodes = sourceNodes
-    tar.sinkNodes = sinkNodes
+    tar.sourceNodes = sourceNodes.toSet
+    tar.sinkNodes = sinkNodes.filter { sn =>
+      sn.node.node match {
+        case cn: ICFGCallNode =>
+          var flag = true
+          yard.getApk(cn.getContext.application) match {
+            case Some(apk) =>
+              if(InterComponentCommunicationModel.isIccOperation(cn.getCalleeSig)) {
+                flag = ssm.isIntentSink(apk, cn, sn.node.pos, ptaresult)
+              }
+            case _ =>
+          }
+          flag
+        case _ => true
+      }
+    }.toSet
     
     val tps = tar.getTaintedPaths
     if(tps.nonEmpty) {

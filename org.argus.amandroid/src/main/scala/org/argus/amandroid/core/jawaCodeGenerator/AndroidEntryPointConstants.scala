@@ -22,7 +22,7 @@ object AndroidEntryPointConstants {
 	final lazy val SERVICE_CLASS = "android.app.Service"
 	final lazy val BROADCAST_RECEIVER_CLASS = "android.content.BroadcastReceiver"
 	final lazy val CONTENT_PROVIDER_CLASS = "android.content.ContentProvider"
-	final lazy val APPLICATION_CLASS = "[|android:app:Application|]"
+	final lazy val APPLICATION_CLASS = "android:app:Application"
 	
 	final lazy val APPLICATION_ONCREATE = "onCreate:()V"
 	final lazy val APPLICATION_ONTERMINATE = "onTerminate()V"

@@ -38,6 +38,9 @@ case class TagTaintDescriptor(desc: String, positions: ISet[Int], typ: String, t
   override def toString: String = s"$typ: $desc ${positions.mkString("|")} ${tags.mkString("|")}".trim
 }
 
+/**
+ * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
+ */
 case class TaintNode(node: ICFGNode, pos: Option[Int]) {
   override def toString: FileResourceUri = {
     s"$node ${if(pos.isDefined) "param: " + pos.get else "" }".trim
