@@ -50,7 +50,7 @@ record `b.a.a.a`  @kind class @AccessFlag PUBLIC_FINAL extends  `java.io.Externa
       global `b.a.a.a` `@@b.a.a.a.c`    @AccessFlag PRIVATE_STATIC;
       global `java.lang.String`[] `@@b.a.a.a.d`    @AccessFlag PRIVATE_STATIC_FINAL;
       global `b.a.a.a` `@@b.a.a.a.e`    @AccessFlag PRIVATE_STATIC;
-    procedure `void` `b.a.a.a.<clinit>` () @owner ^`b.a.a.a` @signature `Lb/a/a/a;.<clinit>:()V` @Access `STATIC_CONSTRUCTOR` {
+    procedure `void` `<clinit>` () @signature `Lb/a/a/a;.<clinit>:()V` @Access `STATIC_CONSTRUCTOR` {
       temp ;
         v0;
         v1;
@@ -59,17 +59,17 @@ record `b.a.a.a`  @kind class @AccessFlag PUBLIC_FINAL extends  `java.io.Externa
 #L013a90.   v0:= new `b.a.a.a`;
 #L013a94.   v1:= "text/plain; charset=unicode; class=java.io.InputStream" @kind `object`;
 #L013a98.   v2:= "Plain Text" @kind `object`;
-#L013a9c.   call temp:=  `b.a.a.a.<init>`(v0, v1, v2) @signature `Lb/a/a/a;.<init>:(Ljava/lang/String;Ljava/lang/String;)V` @classDescriptor ^`b.a.a.a` @kind direct;
+#L013a9c.   call temp:=  `<init>`(v0, v1, v2) @signature `Lb/a/a/a;.<init>:(Ljava/lang/String;Ljava/lang/String;)V` @kind direct;
 #L013aa2.   `@@b.a.a.a.a` := v0  @kind `object`;
 #L013aa6.   v0:= new `b.a.a.a`;
 #L013aaa.   v1:= "application/x-java-serialized-object; class=java.lang.String" @kind `object`;
 #L013aae.   v2:= "Unicode String" @kind `object`;
-#L013ab2.   call temp:=  `b.a.a.a.<init>`(v0, v1, v2) @signature `Lb/a/a/a;.<init>:(Ljava/lang/String;Ljava/lang/String;)V` @classDescriptor ^`b.a.a.a` @kind direct;
+#L013ab2.   call temp:=  `<init>`(v0, v1, v2) @signature `Lb/a/a/a;.<init>:(Ljava/lang/String;Ljava/lang/String;)V` @kind direct;
 #L013ab8.   `@@b.a.a.a.b` := v0  @kind `object`;
 #L013abc.   v0:= new `b.a.a.a`;
 #L013ac0.   v1:= "application/x-java-file-list; class=java.util.List" @kind `object`;
 #L013ac4.   v2:= "application/x-java-file-list" @kind `object`;
-#L013ac8.   call temp:=  `b.a.a.a.<init>`(v0, v1, v2) @signature `Lb/a/a/a;.<init>:(Ljava/lang/String;Ljava/lang/String;)V` @classDescriptor ^`b.a.a.a` @kind direct;
+#L013ac8.   call temp:=  `<init>`(v0, v1, v2) @signature `Lb/a/a/a;.<init>:(Ljava/lang/String;Ljava/lang/String;)V` @kind direct;
 #L013ace.   `@@b.a.a.a.c` := v0  @kind `object`;
 #L013ad2.   v0:= 16I  @kind int;
 #L013ad6.   v0:= new `java.lang.String`[v0];
@@ -134,7 +134,7 @@ record `b.a.a.a`  @kind class @AccessFlag PUBLIC_FINAL extends  `java.io.Externa
     parseCompilationUnit("""
 record `com.a.a.b.c.a`  @kind interface @AccessFlag PUBLIC_INTERFACE_ABSTRACT  {
    }
-    procedure `void` `com.a.a.b.c.a.a` (`android.graphics.Bitmap` v1 @kind object, `com.a.a.b.e.a` v2 @kind object, `com.a.a.b.a.g` v3 @kind object) @owner ^`com.a.a.b.c.a` @signature `Lcom/a/a/b/c/a;.a:(Landroid/graphics/Bitmap;Lcom/a/a/b/e/a;Lcom/a/a/b/a/g;)V` @Access PUBLIC_ABSTRACT {
+    procedure `void` `a` (`android.graphics.Bitmap` v1 @kind object, `com.a.a.b.e.a` v2 @kind object, `com.a.a.b.a.g` v3 @kind object) @signature `Lcom/a/a/b/c/a;.a:(Landroid/graphics/Bitmap;Lcom/a/a/b/e/a;Lcom/a/a/b/a/g;)V` @Access PUBLIC_ABSTRACT {
       # return;
    }
 

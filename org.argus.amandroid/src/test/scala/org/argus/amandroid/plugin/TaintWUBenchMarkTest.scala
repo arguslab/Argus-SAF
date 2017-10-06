@@ -145,10 +145,10 @@ class TaintWUBenchMarkTest extends FlatSpec with Matchers {
 //    assert(res.isDefined && res.get.getTaintedPaths.size == 1)
 //  }
 
-  "ActivityCommunication1" should "have 1 taint path" taggedAs Slow in {
-    val res = taintAnalysis(getClass.getResource("/droid-bench/InterComponentCommunication/ActivityCommunication1.apk").getPath)
-    assert(res.isDefined && res.get.getTaintedPaths.size == 1)
-  }
+//  "ActivityCommunication1" should "have 1 taint path" taggedAs Slow in {
+//    val res = taintAnalysis(getClass.getResource("/droid-bench/InterComponentCommunication/ActivityCommunication1.apk").getPath)
+//    assert(res.isDefined && res.get.getTaintedPaths.size == 1)
+//  }
 
 //  "ActivityCommunication2" should "have 3 taint paths" taggedAs Slow in {
 //    val res = taintAnalysis(getClass.getResource("/droid-bench/InterComponentCommunication/ActivityCommunication2.apk").getPath)

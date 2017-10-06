@@ -1,6 +1,6 @@
 record `com.fgwei.Cmp2`  @kind class @AccessFlag PUBLIC {
    }
-    procedure `boolean` `com.fgwei.Cmp2.main` () @owner ^`com.fgwei.Cmp2` @signature `Lcom/fgwei/Cmp2;.main:()Z` @AccessFlag PUBLIC_STATIC {
+    procedure `boolean` `main` () @signature `Lcom/fgwei/Cmp2;.main:()Z` @AccessFlag PUBLIC_STATIC {
       `double` double_v1;
       `double` double_v2;
       `boolean` boolean_v3;

@@ -1,6 +1,6 @@
 record `com.fgwei.DoubleLong1`  @kind class @AccessFlag PUBLIC {
    }
-    procedure `float` `com.fgwei.DoubleLong1.main` () @owner ^`com.fgwei.DoubleLong1` @signature `Lcom/fgwei/DoubleLong1;.main:()F` @AccessFlag PUBLIC_STATIC {
+    procedure `float` `main` () @signature `Lcom/fgwei/DoubleLong1;.main:()F` @AccessFlag PUBLIC_STATIC {
       temp ;
       v0;
       v2;
@@ -15,7 +15,7 @@ record `com.fgwei.DoubleLong1`  @kind class @AccessFlag PUBLIC {
 #L021c96.   v0:= v0 * v2  @kind double;
 #L021c98.   v5:= (`float`)v0  @kind d2f;
 #L021c9a.   v0:= (`double`)v5  @kind f2d;
-#L021c9c.   call temp:=  `java.lang.Math.sin`(v0) @signature `Ljava/lang/Math;.sin:(D)D` @classDescriptor ^`java.lang.Math` @kind static;
+#L021c9c.   call temp:=  `sin`(v0) @signature `Ljava/lang/Math;.sin:(D)D` @kind static;
 #L021ca2.   v0:= temp  @kind double;
 #L021ca4.   v0:= (`float`)v0  @kind d2f;
 #L021ca6.   return v0;

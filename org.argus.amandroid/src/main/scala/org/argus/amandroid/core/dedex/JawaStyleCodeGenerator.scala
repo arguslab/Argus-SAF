@@ -275,7 +275,7 @@ class JawaStyleCodeGenerator(ddFile: DexBackedDexFile, filter: (JawaType => Deco
       val accessFlag = getAccessString(AccessFlag.toString(accessFlagInt))
       val attrTemplate = template.getInstanceOf("AttributeDecl")
       attrTemplate.add("attrTyp", generateType(fqn.typ, template))
-      attrTemplate.add("attrName", fqn.fieldName)
+      attrTemplate.add("attrName", fqn.fqn)
       val attrAnnotations = new util.ArrayList[ST]
       attrAnnotations.add(generateAnnotation("AccessFlag", accessFlag, template))
       attrTemplate.add("annotations", attrAnnotations)

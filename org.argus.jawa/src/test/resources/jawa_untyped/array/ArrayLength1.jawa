@@ -1,6 +1,6 @@
 record `com.fgwei.ArrayLength1`  @kind class @AccessFlag PUBLIC {
    }
-    procedure `int` `com.fgwei.ArrayLength1.main` () @owner ^`com.fgwei.ArrayLength1` @signature `Lcom/fgwei/ArrayLength1;.main:()I` @AccessFlag PUBLIC_STATIC {
+    procedure `int` `main` () @signature `Lcom/fgwei/ArrayLength1;.main:()I` @AccessFlag PUBLIC_STATIC {
       v0;
       v1;
       v1;

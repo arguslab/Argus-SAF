@@ -136,7 +136,6 @@ object GenerateTypedJawa {
     }
     procTemplate.add("params", params)
     val procAnnotations = new util.ArrayList[ST]
-    procAnnotations.add(JawaStyleCodeGenerator.generateAnnotation("owner", "^" + JawaStyleCodeGenerator.generateType(signature.getClassType, template).render(), template))
     procAnnotations.add(JawaStyleCodeGenerator.generateAnnotation("signature", "`" + signature.signature + "`", template))
     procAnnotations.add(JawaStyleCodeGenerator.generateAnnotation("AccessFlag", method.accessModifier, template))
     procTemplate.add("annotations", procAnnotations)

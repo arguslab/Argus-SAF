@@ -20,7 +20,7 @@ import org.json4s.JsonDSL._
 object FieldFQNSerializer extends CustomSerializer[FieldFQN](format => (
   {
     case jv: JValue =>
-      implicit val formats = format + JawaTypeSerializer
+      implicit val formats: Formats = format + JawaTypeSerializer
       val owner = (jv \ "owner").extract[JawaType]
       val fieldName = (jv \ "fieldName").extract[String]
       val typ = (jv \ "typ").extract[JawaType]
@@ -28,7 +28,7 @@ object FieldFQNSerializer extends CustomSerializer[FieldFQN](format => (
   },
   {
     case fqn: FieldFQN =>
-      implicit val formats = format + JawaTypeSerializer
+      implicit val formats: Formats = format + JawaTypeSerializer
       ("owner" -> Extraction.decompose(fqn.owner)) ~
       ("fieldName" -> fqn.fieldName) ~
       ("typ" -> Extraction.decompose(fqn.typ))

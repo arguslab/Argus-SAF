@@ -1,6 +1,6 @@
 record `com.fgwei.ConstClass2`  @kind class @AccessFlag PUBLIC {
    }
-    procedure `java.lang.Class` `com.fgwei.ConstClass2.main` () @owner ^`com.fgwei.ConstClass2` @signature `Lcom/fgwei/ConstClass2;.main:()Ljava/lang/Class;` @AccessFlag PUBLIC_STATIC {
+    procedure `java.lang.Class` `main` () @signature `Lcom/fgwei/ConstClass2;.main:()Ljava/lang/Class;` @AccessFlag PUBLIC_STATIC {
       `java.lang.Class` Class_v0;
       
 #L026e42.   Class_v0:= constclass @type ^`int`[] @kind object;

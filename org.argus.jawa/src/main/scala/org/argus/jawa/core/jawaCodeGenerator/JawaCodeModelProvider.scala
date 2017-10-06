@@ -8,7 +8,7 @@
  * Detailed contributors are listed in the CONTRIBUTOR.md
  */
 
-package org.argus.jawa.core.pilarCodeGenerator
+package org.argus.jawa.core.jawaCodeGenerator
 
 object JawaCodeModelProvider {
   def getJawaCodeModel: String =

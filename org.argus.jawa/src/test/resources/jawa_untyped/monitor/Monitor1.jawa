@@ -1,6 +1,6 @@
 record `com.fgwei.Monitor1`  @kind class @AccessFlag PUBLIC {
    }
-    procedure `java.lang.String` `com.fgwei.Monitor1.main` () @owner ^`com.fgwei.Monitor1` @signature `Lcom/fgwei/Monitor1;.main:()Ljava/lang/String;` @AccessFlag PUBLIC_STATIC {
+    procedure `java.lang.String` `main` () @signature `Lcom/fgwei/Monitor1;.main:()Ljava/lang/String;` @AccessFlag PUBLIC_STATIC {
       v0;
       
 #L026e5c.   v0:= "element 1 is tainted:" @kind object;

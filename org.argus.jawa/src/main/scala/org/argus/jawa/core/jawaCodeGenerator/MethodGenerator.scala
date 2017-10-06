@@ -8,7 +8,7 @@
  * Detailed contributors are listed in the CONTRIBUTOR.md
  */
 
-package org.argus.jawa.core.pilarCodeGenerator
+package org.argus.jawa.core.jawaCodeGenerator
 
 import java.util
 
@@ -117,7 +117,7 @@ abstract class MethodGenerator(global: Global) {
    */
   def generate(methods: List[Signature], name: String): (JawaMethod, String) = {
     val className = this.currentComponent.jawaName
-    val methodName = className + "." + name
+    val methodName = name
 //    val annotations = new util.ArrayList[ST]
     val signature = JavaKnowledge.genSignature(JavaKnowledge.formatTypeToSignature(this.currentComponent), name, "()V")
     initMethodHead("void", methodName, className, signature, "STATIC")
@@ -128,7 +128,7 @@ abstract class MethodGenerator(global: Global) {
   
   def generateWithParam(params: List[(JawaType, String)], methods: List[Signature], name: String, kind: String): (JawaMethod, String) = {
     val className = this.currentComponent.jawaName
-    val methodName = className + "." + name
+    val methodName = name
 //    val annotations = new util.ArrayList[ST]
     var parSigStr: String = ""
     params.foreach{param => if(param._2 != "this") parSigStr += JavaKnowledge.formatTypeToSignature(param._1)}
@@ -166,7 +166,6 @@ abstract class MethodGenerator(global: Global) {
     procDeclTemplate.add("retTyp", retTyp)
     procDeclTemplate.add("procedureName", methodName)
     val annotations = new util.ArrayList[ST]
-    annotations.add(generateExpAnnotation("owner", List("^`" + owner + "`")))
     annotations.add(generateExpAnnotation("signature", List("`" + signature.signature + "`")))
     annotations.add(generateExpAnnotation("AccessFlag", List(access)))
     procDeclTemplate.add("annotations", annotations)
@@ -252,7 +251,7 @@ abstract class MethodGenerator(global: Global) {
       }
     }
     val invokeStmt = template.getInstanceOf("InvokeStmtWithoutReturn")
-    invokeStmt.add("funcName", pSig.getClassName + "." + pSig.methodName)
+    invokeStmt.add("funcName", pSig.methodName)
     val finalParamVars: util.ArrayList[String] = new util.ArrayList[String]
     finalParamVars.add(0, localClassVar)
     var index = 0
@@ -267,7 +266,6 @@ abstract class MethodGenerator(global: Global) {
     invokeStmt.add("params", finalParamVars)
     val annotations = new util.ArrayList[ST]
     annotations.add(generateExpAnnotation("signature", List("`" + pSig.signature + "`")))
-    annotations.add(generateExpAnnotation("classDescriptor", List("^`" + pSig.getClassName + "`")))
     annotations.add(generateExpAnnotation("kind", List(typ)))
     invokeStmt.add("annotations", annotations)
     codefg.setCode(invokeStmt)
