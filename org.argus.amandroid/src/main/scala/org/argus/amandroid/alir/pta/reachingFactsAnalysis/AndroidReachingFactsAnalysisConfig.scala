@@ -13,7 +13,7 @@ package org.argus.amandroid.alir.pta.reachingFactsAnalysis
 import org.argus.amandroid.core.{AndroidConstants, AndroidGlobalConfig}
 import org.argus.jawa.alir.Context
 import org.argus.jawa.alir.pta._
-import org.argus.jawa.alir.pta.reachingFactsAnalysis.{RFAFact, SimHeap}
+import org.argus.jawa.alir.pta.rfa.{RFAFact, SimHeap}
 import org.argus.jawa.core.{JawaMethod, JawaType}
 import org.argus.jawa.core.util.{ISet, isetEmpty}
 

@@ -94,8 +94,7 @@ class PointerAssignmentGraph[Node <: PtaNode]
     extends AlirGraphImpl[Node]
     with AlirSuccPredAccesses[Node]
     with AlirEdgeAccesses[Node]
-    with PAGConstraint{
-  self=>
+    with PAGConstraint {
 
   val pointsToMap = new PointsToMap
   
@@ -119,29 +118,9 @@ class PointerAssignmentGraph[Node <: PtaNode]
 
   case class PTACallee(callee: Signature, pi: Point with Invoke, node: Node) extends Callee
   
-  def processStaticCall(global: Global): ISet[(Point with Invoke, PTACallee, Context)] = {
-    val staticCallees = msetEmpty[(Point with Invoke, PTACallee, Context)]
-    newNodes.foreach{
-      node =>
-        node.point match {
-          case pi: Point with Invoke =>
-            if (pi.invokeTyp.equals("static")) {
-              getStaticCallee(global, pi) match {
-                case Some(callee) =>
-                  staticCallees += ((pi, PTACallee(callee.callee, pi, node), node.context))
-                case None =>
-              }
-            }
-          case _ =>
-        }
-    }
-    newNodes.clear()
-    staticCallees.toSet
-  }
-  
   def processObjectAllocation(): Unit = {
     newEdges.foreach{ edge =>
-      getEdgeType(edge) match{
+      getEdgeType(edge) match {
         case EdgeType.ALLOCATION =>
           if(pointsToMap.isDiff(edge.source, edge.target)){
             pointsToMap.propagatePointsToSet(edge.source, edge.target)
@@ -151,6 +130,18 @@ class PointerAssignmentGraph[Node <: PtaNode]
       }
     }
     newEdges.clear()
+  }
+
+  def getStaticCallWithNoParam: ISet[PtaNode] = {
+    newNodes.filter { node =>
+      node.point match {
+        case pi: Point with Invoke =>
+          if(pi.invokeTyp.equals("static") && pi.sig.getParameterNum == 0) {
+            true
+          } else false
+        case _ => false
+      }
+    }.toSet
   }
   
   def handleModelCall(pi: Point with Invoke, context: Context, callee: Callee): Unit = {
@@ -200,17 +191,16 @@ class PointerAssignmentGraph[Node <: PtaNode]
    */
   def constructGraph(ap: JawaMethod, ps: Set[Point], callerContext: Context, entryPoint: Boolean): Unit = {
     addProcessed(ap.getSignature, callerContext, ps)
-    ps.foreach{ p =>
+    ps.foreach { p =>
       newNodes ++= collectNodes(ap, p, callerContext, entryPoint)
     }
-    ps.foreach{ p =>
+    ps.foreach { p =>
       val cfg = JawaAlirInfoProvider.getCfg(ap)
       val rda = JawaAlirInfoProvider.getRda(ap, cfg)
       val constraintMap = applyConstraint(p, ps, cfg, rda)
       newEdges ++= buildingEdges(constraintMap, ap.getSignature, callerContext)
     }
   }
-  
 
   def collectNodes(ap: JawaMethod, p: Point, callerContext: Context, entryPoint: Boolean): ISet[Node] = {
     val nodes: MSet[Node] = msetEmpty
@@ -231,7 +221,7 @@ class PointerAssignmentGraph[Node <: PtaNode]
         rhs match {
           case pi: Point with Invoke =>
             pi match {
-              case vp: Point with Invoke with Dynamic =>
+              case vp: Point with Invoke with Virtual =>
                 nodes += getNodeOrElse(vp.recvPCall, context)
                 nodes += getNodeOrElse(vp.recvPReturn, context)
               case _ =>
@@ -293,7 +283,7 @@ class PointerAssignmentGraph[Node <: PtaNode]
         }
       case procP: Point with Method =>
         procP match {
-          case vp: Point with Method with Virtual => 
+          case vp: Point with Method with Dynamic =>
             val node = getNodeOrElse(vp.thisPEntry, context)
             nodes += node
             if(entryPoint) {
@@ -370,7 +360,7 @@ class PointerAssignmentGraph[Node <: PtaNode]
   
   def breakPiEdges(pi: Point with Invoke, calleeAccessTyp: String, srcContext: Context): Unit = {
     pi match {
-      case vp: Point with Invoke with Dynamic =>
+      case vp: Point with Invoke with Virtual =>
         if(calleeAccessTyp != null){
           val srcNode = getNode(vp.recvPCall, srcContext)
           val targetNode = getNode(vp.recvPReturn, srcContext)
@@ -428,7 +418,7 @@ class PointerAssignmentGraph[Node <: PtaNode]
     }
     
     met match {
-      case vp: Point with Method with Virtual =>
+      case vp: Point with Method with Dynamic =>
         assume(pi.isInstanceOf[PointI])
         val srcNodeCall = getNode(pi.asInstanceOf[PointI].recvPCall, srcContext)
         val targetNodeEntry = getNode(vp.thisPEntry, targetContext)
@@ -464,62 +454,30 @@ class PointerAssignmentGraph[Node <: PtaNode]
       node.getContext.updateContext(callerContext)
     }
   }
-  
-  /**
-   * This is the recv bar method in original algo
-   */
-  def recvInverse(n: Node): Option[Point with Invoke] = {
-    n.point match{
-      case on: PointRecvCall =>
-        Some(on.getContainer)
-      case _ => None
+
+  val trackPi: MMap[Point with Invoke, Int] = mmapEmpty
+  def updatePiTrackAndGet(pc: Point with Arg with Call): Option[Point with Invoke] = {
+    val num = trackPi.getOrElseUpdate(pc.getContainer, 0)
+    var piNum = pc.getContainer.sig.getParameterNum
+    pc match {
+      case _: Point with Virtual => piNum += 1
+      case _ =>
     }
-  }
-  
-  def getDirectCallee(
-      global: Global,
-      diff: ISet[Instance],
-      pi: Point with Invoke): ISet[InstanceCallee] = {
-    CallHandler.getDirectCalleeMethod(global, pi.sig) match {
-      case Some(calleemethod) => diff.map(InstanceCallee(calleemethod.getSignature, _))
-      case None => isetEmpty
+    if(num == piNum) {
+      Some(pc.getContainer)
+    } else {
+      trackPi(pc.getContainer) = num + 1
+      None
     }
-  }
-  
-  def getStaticCallee(global: Global, pi: Point with Invoke): Option[StaticCallee] = {
-    CallHandler.getStaticCalleeMethod(global, pi.sig) match {
-      case Some(callee) => Some(StaticCallee(callee.getSignature))
-      case None => None
-    }
-  }
-  
-  def getSuperCalleeSet(
-      global: Global,
-      diff: ISet[Instance],
-      pi: Point with Invoke): ISet[InstanceCallee] = {
-    val calleeSet: MSet[InstanceCallee] = msetEmpty
-    diff.foreach{ d =>
-      val p = CallHandler.getSuperCalleeMethod(global, pi.sig)
-      calleeSet ++= p.map(callee => InstanceCallee(callee.getSignature, d))
-    }
-    calleeSet.toSet
   }
 
-  def getVirtualCalleeSet(
-      global: Global,
-      diff: ISet[Instance],
-      pi: Point with Invoke): ISet[InstanceCallee] = {
-    val calleeSet: MSet[InstanceCallee] = msetEmpty
-    val subSig = pi.sig.getSubSignature
-    diff.foreach {
-      case d@un if un.isUnknown =>
-        val p = CallHandler.getUnknownVirtualCalleeMethods(global, un.typ, subSig)
-        calleeSet ++= p.map(callee => InstanceCallee(callee.getSignature, d))
-      case d =>
-        val p = CallHandler.getVirtualCalleeMethod(global, d.typ, subSig)
-        calleeSet ++= p.map(callee => InstanceCallee(callee.getSignature, d))
-    }
-    calleeSet.toSet
+  val argPointInstances: MMap[Point with Arg with Call, MSet[Instance]] = mmapEmpty
+  def updateArgPointInstances(pc: Point with Arg with Call, inss: ISet[Instance]): Unit = {
+    val set = argPointInstances.getOrElseUpdate(pc, msetEmpty)
+    set ++= inss
+  }
+  def getArgPointInstances(p: Point with Arg with Call): ISet[Instance] = {
+    argPointInstances.getOrElse(p, msetEmpty).toSet
   }
   
   def getNodeOrElse(p: Point, context: Context): Node = {
@@ -549,16 +507,14 @@ class PointerAssignmentGraph[Node <: PtaNode]
 
   override def toString: String = {
       val sb = new StringBuilder("PAG\n")
-
-      for (n <- nodes)
+      for (n <- nodes) {
         for (m <- successors(n)) {
           for (_ <- getEdges(n, m)) {
             sb.append("%s -> %s\n".format(n, m))
           }
         }
-
+      }
       sb.append("\n")
-
       sb.toString.trim
   }
 }

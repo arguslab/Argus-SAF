@@ -10,7 +10,7 @@
 
 package org.argus.amandroid.plugin
 
-import org.argus.jawa.alir.dataFlowAnalysis.InterProceduralDataFlowGraph
+import org.argus.jawa.alir.dfa.InterProceduralDataFlowGraph
 import org.argus.jawa.core.util.IMap
 import org.argus.jawa.core.Global
 

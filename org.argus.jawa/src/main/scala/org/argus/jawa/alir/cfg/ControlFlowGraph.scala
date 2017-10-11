@@ -8,7 +8,7 @@
  * Detailed contributors are listed in the CONTRIBUTOR.md
  */
 
-package org.argus.jawa.alir.controlFlowGraph
+package org.argus.jawa.alir.cfg
 
 import org.argus.jawa.alir._
 import org.argus.jawa.ast._

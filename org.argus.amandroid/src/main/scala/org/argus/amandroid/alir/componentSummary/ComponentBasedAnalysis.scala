@@ -19,10 +19,10 @@ import org.argus.amandroid.alir.pta.summaryBasedAnalysis.AndroidSummaryProvider
 import org.argus.amandroid.alir.taintAnalysis.{AndroidDataDependentTaintAnalysis, AndroidSourceAndSinkManager}
 import org.argus.amandroid.core.ApkGlobal
 import org.argus.jawa.alir.Context
-import org.argus.jawa.alir.controlFlowGraph.{ICFGNode, InterProceduralControlFlowGraph}
-import org.argus.jawa.alir.dataDependenceAnalysis._
+import org.argus.jawa.alir.cfg.{ICFGNode, InterProceduralControlFlowGraph}
+import org.argus.jawa.alir.dda._
 import org.argus.jawa.alir.pta.PTAResult
-import org.argus.jawa.alir.pta.reachingFactsAnalysis.SimHeap
+import org.argus.jawa.alir.pta.rfa.SimHeap
 import org.argus.jawa.alir.taintAnalysis.TaintAnalysisResult
 import org.argus.jawa.core.util.{MyTimeout, WorklistAlgorithm}
 import org.argus.jawa.core.{ClassLoadManager, JawaType}

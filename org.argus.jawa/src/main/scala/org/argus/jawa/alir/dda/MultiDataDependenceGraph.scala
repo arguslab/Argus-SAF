@@ -8,10 +8,10 @@
  * Detailed contributors are listed in the CONTRIBUTOR.md
  */
 
-package org.argus.jawa.alir.dataDependenceAnalysis
+package org.argus.jawa.alir.dda
 
 import org.argus.jawa.alir.Context
-import org.argus.jawa.alir.controlFlowGraph.{ICFGEntryNode, ICFGNode, InterProceduralControlFlowGraph}
+import org.argus.jawa.alir.cfg.{ICFGEntryNode, ICFGNode, InterProceduralControlFlowGraph}
 import org.argus.jawa.core.Signature
 import org.argus.jawa.core.util._
 

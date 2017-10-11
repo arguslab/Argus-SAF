@@ -11,8 +11,8 @@
 package org.argus.jawa.alir.util
 
 import org.argus.jawa.alir.JawaAlirInfoProvider
-import org.argus.jawa.alir.controlFlowGraph.{CFGNode, IntraProceduralControlFlowGraph}
-import org.argus.jawa.alir.reachingDefinitionAnalysis.{DefDesc, LocDefDesc, ReachingDefinitionAnalysis, Slot}
+import org.argus.jawa.alir.cfg.{CFGNode, IntraProceduralControlFlowGraph}
+import org.argus.jawa.alir.rda.{DefDesc, LocDefDesc, ReachingDefinitionAnalysis, Slot}
 import org.argus.jawa.ast._
 import org.argus.jawa.compiler.parser._
 import org.argus.jawa.core.JawaMethod

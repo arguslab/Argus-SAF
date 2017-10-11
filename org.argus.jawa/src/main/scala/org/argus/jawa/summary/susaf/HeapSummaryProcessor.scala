@@ -12,7 +12,7 @@ package org.argus.jawa.summary.susaf
 
 import org.argus.jawa.alir.Context
 import org.argus.jawa.alir.pta._
-import org.argus.jawa.alir.pta.reachingFactsAnalysis.{RFAFact, ReachingFactsAnalysisHelper, SimHeap}
+import org.argus.jawa.alir.pta.rfa.{RFAFact, ReachingFactsAnalysisHelper, SimHeap}
 import org.argus.jawa.core._
 import org.argus.jawa.core.util._
 import org.argus.jawa.summary.SummaryManager

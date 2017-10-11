@@ -20,8 +20,8 @@ import org.argus.jawa.core.util._
 import org.stringtemplate.v4.STGroupString
 import org.argus.amandroid.core.parser.{ComponentType, IntentFilter}
 import org.argus.jawa.alir.Context
-import org.argus.jawa.alir.controlFlowGraph.ICFGCallNode
-import org.argus.jawa.alir.dataFlowAnalysis.InterProceduralDataFlowGraph
+import org.argus.jawa.alir.cfg.ICFGCallNode
+import org.argus.jawa.alir.dfa.InterProceduralDataFlowGraph
 import org.argus.jawa.alir.pta.VarSlot
 import org.argus.jawa.alir.taintAnalysis.TaintAnalysisResult
 import org.argus.jawa.ast.CallStatement

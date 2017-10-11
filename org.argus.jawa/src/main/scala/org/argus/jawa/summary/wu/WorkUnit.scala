@@ -11,19 +11,18 @@
 package org.argus.jawa.summary.wu
 
 import org.argus.jawa.alir.Context
-import org.argus.jawa.alir.controlFlowGraph._
-import org.argus.jawa.alir.dataFlowAnalysis.{CallResolver, InterProceduralDataFlowGraph}
-import org.argus.jawa.alir.interprocedural.{CallHandler, Callee}
+import org.argus.jawa.alir.cfg._
+import org.argus.jawa.alir.dfa.InterProceduralDataFlowGraph
+import org.argus.jawa.alir.interprocedural.ModelCallResolver
 import org.argus.jawa.alir.pta._
 import org.argus.jawa.alir.pta.model.ModelCallHandler
-import org.argus.jawa.alir.pta.reachingFactsAnalysis.{RFAFact, ReachingFactsAnalysis, ReachingFactsAnalysisHelper, SimHeap}
+import org.argus.jawa.alir.pta.rfa.{RFAFact, ReachingFactsAnalysis, ReachingFactsAnalysisHelper, SimHeap}
 import org.argus.jawa.ast._
-import org.argus.jawa.core.util._
 import org.argus.jawa.core._
 import org.argus.jawa.core.util.Property.Key
-import org.argus.jawa.summary.susaf.HeapSummaryProcessor
-import org.argus.jawa.summary.{Summary, SummaryManager, SummaryRule}
+import org.argus.jawa.core.util._
 import org.argus.jawa.summary.susaf.rule._
+import org.argus.jawa.summary.{Summary, SummaryManager, SummaryRule}
 
 import scala.concurrent.duration._
 import scala.language.postfixOps
@@ -101,7 +100,7 @@ abstract class DataFlowWu[T <: Global] (
     idfgOpt match {
       case Some(idfg) => idfg
       case None =>
-        val idfg = generateIDFG
+        val idfg = generateIDFG_RFA
         setIDFG(idfg)
         idfg
     }
@@ -116,7 +115,7 @@ abstract class DataFlowWu[T <: Global] (
     suGen(method.getSignature, parseIDFG(idfg))
   }
 
-  def generateIDFG: InterProceduralDataFlowGraph = {
+  def generateIDFG_RFA: InterProceduralDataFlowGraph = {
     val analysis = new ReachingFactsAnalysis(global, icfg, ptaresult, handler, sm, new ClassLoadManager, resolve_static_init, Some(new MyTimeout(1 minutes)))
     val entryContext = initContext.copy
     entryContext.setContext(method.getSignature, method.getSignature.methodName)
@@ -143,7 +142,7 @@ abstract class DataFlowWu[T <: Global] (
       }
       result.toSet
     }
-    val idfg = analysis.process(method, initialFacts, initContext, new Callr)
+    val idfg = analysis.process(method, initialFacts, initContext, new ModelCallResolver(global, ptaresult, icfg, sm, handler))
     idfg
   }
 
@@ -378,41 +377,6 @@ abstract class DataFlowWu[T <: Global] (
         }
     }
     inss
-  }
-
-  class Callr extends CallResolver[ICFGNode, RFAFact] {
-    /**
-      * It returns the facts for each callee entry node and caller return node
-      */
-    def resolveCall(s: ISet[RFAFact], cs: CallStatement, callerNode: ICFGNode): (IMap[ICFGNode, ISet[RFAFact]], ISet[RFAFact]) = {
-      val callerContext = callerNode.getContext
-      val sig = cs.signature
-      val calleeSet = CallHandler.getCalleeSet(global, cs, sig, callerContext, ptaresult)
-      val icfgCallnode = icfg.getICFGCallNode(callerContext)
-      icfgCallnode.asInstanceOf[ICFGCallNode].setCalleeSet(calleeSet.map(_.asInstanceOf[Callee]))
-      var returnFacts: ISet[RFAFact] = s
-      calleeSet.foreach { callee =>
-        val calleeSig: Signature = callee.callee
-        icfg.getCallGraph.addCall(callerNode.getOwner, calleeSig)
-        val calleep = global.getMethodOrResolve(calleeSig).get
-        if(handler.isModelCall(calleep)) {
-          returnFacts = handler.doModelCall(sm, s, calleep, cs.lhsOpt.map(_.lhs.varName), cs.recvOpt, cs.args, callerContext)
-        } else {
-          sm.getSummary[HeapSummary](calleeSig) match {
-            case Some(summary) =>
-              returnFacts = HeapSummaryProcessor.process(global, summary, cs.lhsOpt.map(_.lhs.varName), cs.recvOpt, cs.args, s, callerContext)
-            case None => // might be due to randomly broken loop
-              val (newF, delF) = ReachingFactsAnalysisHelper.getUnknownObject(calleep, s, cs.lhsOpt.map(_.lhs.varName), cs.recvOpt, cs.args, callerContext)
-              returnFacts = returnFacts -- delF ++ newF
-          }
-        }
-      }
-      (imapEmpty, returnFacts)
-    }
-
-    def getAndMapFactsForCaller(calleeS: ISet[RFAFact], callerNode: ICFGNode, calleeExitNode: ICFGNode): ISet[RFAFact] = isetEmpty
-
-    val needReturnNode: Boolean = false
   }
 
   override def toString: String = s"DataFlowWu($method)"

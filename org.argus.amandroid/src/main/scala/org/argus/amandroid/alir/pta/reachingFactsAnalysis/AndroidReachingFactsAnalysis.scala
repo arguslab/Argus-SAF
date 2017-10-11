@@ -14,14 +14,13 @@ import org.argus.jawa.core.util._
 import org.argus.amandroid.alir.pta.model.{AndroidModelCallHandler, InterComponentCommunicationModel}
 import org.argus.amandroid.core.ApkGlobal
 import org.argus.jawa.alir.Context
-import org.argus.jawa.alir.controlFlowGraph._
-import org.argus.jawa.alir.dataFlowAnalysis._
-import org.argus.jawa.alir.interprocedural.{CallHandler, Callee}
+import org.argus.jawa.alir.cfg._
+import org.argus.jawa.alir.dfa._
+import org.argus.jawa.alir.interprocedural.{CallHandler, CallResolver, Callee}
 import org.argus.jawa.alir.pta._
 import org.argus.jawa.alir.pta.model.ModelCallHandler
-import org.argus.jawa.alir.pta.reachingFactsAnalysis.{RFAFact, ReachingFactsAnalysis, ReachingFactsAnalysisHelper, SimHeap}
+import org.argus.jawa.alir.pta.rfa.{RFAFact, ReachingFactsAnalysis, ReachingFactsAnalysisHelper, SimHeap}
 import org.argus.jawa.ast.{CallStatement, Location, ReturnStatement}
-import org.argus.jawa.compiler.parser._
 import org.argus.jawa.core._
 import org.argus.jawa.summary.SummaryManager
 
@@ -63,8 +62,7 @@ class AndroidReachingFactsAnalysis(
      */
     def resolveCall(s: ISet[RFAFact], cs: CallStatement, callerNode: Node): (IMap[Node, ISet[RFAFact]], ISet[RFAFact]) = {
       val callerContext = callerNode.getContext
-      val sig = cs.signature
-      val calleeSet = CallHandler.getCalleeSet(apk, cs, sig, callerContext, ptaresult)
+      val calleeSet = CallHandler.getCalleeSet(apk, cs, callerContext, ptaresult)
       val icfgCallnode = icfg.getICFGCallNode(callerContext)
       icfgCallnode.asInstanceOf[ICFGCallNode].setCalleeSet(calleeSet.map(_.asInstanceOf[Callee]))
       val icfgReturnnode = icfg.getICFGReturnNode(callerContext)
@@ -96,7 +94,7 @@ class AndroidReachingFactsAnalysis(
           // for normal call
           if (calleep.isConcrete) {
             if (!icfg.isProcessed(calleeSig, callerContext)) {
-              icfg.collectCfgToBaseGraph[String](calleep, callerContext, isFirst = false, needReturnNode = true)
+              icfg.collectCfgToBaseGraph[String](calleep, callerContext, isFirst = false, needReturnNode())
               icfg.extendGraph(calleeSig, callerContext, needReturnNode = true)
             }
             val factsForCallee = getFactsForCallee(s, cs, calleep, callerContext)

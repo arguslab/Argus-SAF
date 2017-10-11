@@ -8,9 +8,9 @@
  * Detailed contributors are listed in the CONTRIBUTOR.md
  */
 
-package org.argus.jawa.alir.dataFlowAnalysis
+package org.argus.jawa.alir.dfa
 
-import org.argus.jawa.alir.controlFlowGraph.{ICFGNode, InterProceduralControlFlowGraph}
+import org.argus.jawa.alir.cfg.{ICFGNode, InterProceduralControlFlowGraph}
 import org.argus.jawa.alir.pta.PTAResult
 
 /**

@@ -8,14 +8,14 @@
  * Detailed contributors are listed in the CONTRIBUTOR.md
  */
 
-package org.argus.jawa.alir.dataDependenceAnalysis
+package org.argus.jawa.alir.dda
 
 import org.argus.jawa.alir.{AlirEdge, LibSideEffectProvider}
-import org.argus.jawa.alir.controlFlowGraph.{ICFGCallNode, ICFGExitNode, ICFGNormalNode}
-import org.argus.jawa.alir.dataFlowAnalysis.InterProceduralDataFlowGraph
+import org.argus.jawa.alir.cfg.{ICFGCallNode, ICFGExitNode, ICFGNormalNode}
+import org.argus.jawa.alir.dfa.InterProceduralDataFlowGraph
 import org.argus.jawa.alir.interprocedural.IndirectCallee
 import org.argus.jawa.alir.pta.{ArraySlot, FieldSlot, PTAResult, VarSlot}
-import org.argus.jawa.alir.reachingDefinitionAnalysis.{DefDesc, LocDefDesc, ParamDefDesc}
+import org.argus.jawa.alir.rda.{DefDesc, LocDefDesc, ParamDefDesc}
 import org.argus.jawa.ast._
 import org.argus.jawa.compiler.parser._
 import org.argus.jawa.core.io.NoPosition

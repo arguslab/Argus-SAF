@@ -10,12 +10,12 @@
 
 package org.argus.jawa.summary.wu
 
-import org.argus.jawa.alir.controlFlowGraph._
-import org.argus.jawa.alir.dataDependenceAnalysis.InterProceduralReachingDefinitionAnalysis.Node
-import org.argus.jawa.alir.dataFlowAnalysis.InterProceduralDataFlowGraph
+import org.argus.jawa.alir.cfg._
+import org.argus.jawa.alir.dda.InterProceduralReachingDefinitionAnalysis.Node
+import org.argus.jawa.alir.dfa.InterProceduralDataFlowGraph
 import org.argus.jawa.alir.pta._
 import org.argus.jawa.alir.pta.model.ModelCallHandler
-import org.argus.jawa.alir.pta.reachingFactsAnalysis.SimHeap
+import org.argus.jawa.alir.pta.rfa.SimHeap
 import org.argus.jawa.alir.taintAnalysis.{SourceAndSinkManager, TaintNode}
 import org.argus.jawa.ast.{CallStatement, ReturnStatement}
 import org.argus.jawa.core.{Global, JawaMethod, Signature}

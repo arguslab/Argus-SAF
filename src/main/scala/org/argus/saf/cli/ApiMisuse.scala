@@ -85,7 +85,8 @@ object ApiMisuse {
             AppInfoCollector.collectInfo(apk, resolveCallBack = true)
             apk.model.getComponents foreach { comp =>
               val clazz = apk.getClassOrResolve(comp)
-              val idfg = InterProceduralSuperSpark(apk, clazz.getDeclaredMethods.map(_.getSignature))
+              val spark = new InterProceduralSuperSpark(apk)
+              val idfg = spark.build(clazz.getDeclaredMethods.map(_.getSignature))
               val res = checker.check(apk, Some(idfg))
               println(res.toString)
             }

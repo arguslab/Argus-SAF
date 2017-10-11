@@ -10,7 +10,7 @@
 
 package org.argus.jawa.alir.taintAnalysis
 
-import org.argus.jawa.alir.controlFlowGraph.ICFGNode
+import org.argus.jawa.alir.cfg.ICFGNode
 import org.argus.jawa.core.util._
 
 /**

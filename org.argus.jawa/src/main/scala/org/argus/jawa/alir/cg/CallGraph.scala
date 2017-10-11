@@ -8,7 +8,7 @@
  * Detailed contributors are listed in the CONTRIBUTOR.md
  */
 
-package org.argus.jawa.alir.callGraph
+package org.argus.jawa.alir.cg
 
 import org.argus.jawa.core.util.WorklistAlgorithm
 import org.argus.jawa.core.Signature

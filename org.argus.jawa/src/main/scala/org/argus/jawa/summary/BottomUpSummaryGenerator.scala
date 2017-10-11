@@ -12,7 +12,7 @@ package org.argus.jawa.summary
 
 import hu.ssh.progressbar.ProgressBar
 import org.argus.jawa.alir.pta.model.ModelCallHandler
-import org.argus.jawa.alir.pta.reachingFactsAnalysis.SimHeap
+import org.argus.jawa.alir.pta.rfa.SimHeap
 import org.argus.jawa.core.{Global, JawaMethod, Signature}
 import org.argus.jawa.core.util._
 import org.argus.jawa.summary.susaf.rule.HeapSummary
@@ -35,9 +35,9 @@ class BottomUpSummaryGenerator[T <: Global](
   }
 
   private def processWU: WorkUnit[T] => Unit = { wu =>
-    try {
-      wu.initFn()
-      if (!handler.isModelCall(wu.method)) {
+    if (!handler.isModelCall(wu.method)) {
+      try {
+        wu.initFn()
         if (wu.needHeapSummary) {
           generateHeapSummary(wu.method) match {
             case Some(w) =>
@@ -50,14 +50,14 @@ class BottomUpSummaryGenerator[T <: Global](
         }
         val summary = wu.generateSummary(suGen)
         sm.register(wu.method.getSignature, summary)
+      } catch {
+        case e: Exception =>
+          if(debug) {
+            e.printStackTrace()
+          }
+      } finally {
+        wu.finalFn()
       }
-    } catch {
-      case e: Exception =>
-        if(debug) {
-          e.printStackTrace()
-        }
-    } finally {
-      wu.finalFn()
     }
   }
 

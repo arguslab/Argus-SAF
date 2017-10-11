@@ -11,7 +11,7 @@
 package org.argus.jawa.alir.interprocedural
 
 import org.argus.jawa.alir.Context
-import org.argus.jawa.alir.pta.reachingFactsAnalysis.{RFAFact, SimHeap}
+import org.argus.jawa.alir.pta.rfa.{RFAFact, SimHeap}
 import org.argus.jawa.alir.pta.{FieldSlot, Instance, PTAResult, VarSlot}
 import org.argus.jawa.core._
 import org.argus.jawa.core.util.{ISet, _}

@@ -8,7 +8,7 @@
  * Detailed contributors are listed in the CONTRIBUTOR.md
  */
 
-package org.argus.jawa.alir.dataFlowAnalysis
+package org.argus.jawa.alir.dfa
 
 import org.argus.jawa.alir.AlirNode
 import org.argus.jawa.core.util.ISet

@@ -10,7 +10,6 @@
 
 package org.argus.jawa.alir.reachability
 
-import org.argus.jawa.alir.pta.suspark.InterProceduralSuperSpark
 import org.argus.jawa.core.{Global, JawaType, Signature}
 import org.argus.jawa.core.util._
 
@@ -19,19 +18,9 @@ import org.argus.jawa.core.util._
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
  */ 
 object ReachabilityAnalysis {
-  
   /**
-    * Get all reachable procedures of given procedure set.
-    *
-    * @param global Jawa global
-    * @param procedures Procedures to start the reachability analysis.
-    * @return Set of reachable procedure resource uris from initial set
+    * Get all reachable procedures of given type set.
     */
-  def getReachableMethods(global: Global, procedures: ISet[Signature]): ISet[Signature] = {
-    val idfg = InterProceduralSuperSpark(global, procedures)
-    idfg.icfg.getCallGraph.getReachableMethods(procedures)
-  }
-
   def getReachableMethodsBySBCG(global: Global, typs: ISet[JawaType]): IMap[JawaType, ISet[Signature]] = {
     val map: IMap[JawaType, ISet[Signature]] = typs.map { typ =>
       typ -> {

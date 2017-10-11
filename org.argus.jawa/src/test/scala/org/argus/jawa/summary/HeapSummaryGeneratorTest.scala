@@ -13,7 +13,7 @@ package org.argus.jawa.summary
 import hu.ssh.progressbar.console.ConsoleProgressBar
 import org.argus.jawa.alir.pta.PTAScopeManager
 import org.argus.jawa.alir.pta.model.ModelCallHandler
-import org.argus.jawa.alir.pta.reachingFactsAnalysis.SimHeap
+import org.argus.jawa.alir.pta.rfa.SimHeap
 import org.argus.jawa.alir.reachability.SignatureBasedCallGraph
 import org.argus.jawa.core._
 import org.argus.jawa.core.util._

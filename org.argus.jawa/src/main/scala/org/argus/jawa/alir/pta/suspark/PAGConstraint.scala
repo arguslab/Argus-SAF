@@ -10,19 +10,19 @@
 
 package org.argus.jawa.alir.pta.suspark
 
-import org.argus.jawa.alir.controlFlowGraph.{ControlFlowGraph, IntraProceduralControlFlowGraph}
-import org.argus.jawa.alir.reachingDefinitionAnalysis._
+import org.argus.jawa.alir.cfg.{ControlFlowGraph, IntraProceduralControlFlowGraph}
+import org.argus.jawa.alir.rda._
 import org.argus.jawa.core._
 import org.argus.jawa.core.util._
+
+object EdgeType extends Enumeration {
+  val ALLOCATION, ASSIGNMENT, FIELD_STORE, FIELD_LOAD, ARRAY_STORE, ARRAY_LOAD, STATIC_FIELD_STORE, STATIC_FIELD_LOAD, TRANSFER, THIS_TRANSFER = Value
+}
 
 /**
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
  */ 
 trait PAGConstraint{
-  
-  object EdgeType extends Enumeration {
-    val ALLOCATION, ASSIGNMENT, FIELD_STORE, FIELD_LOAD, ARRAY_STORE, ARRAY_LOAD, STATIC_FIELD_STORE, STATIC_FIELD_LOAD, TRANSFER, THIS_TRANSFER = Value
-  }
   
   def applyConstraint(
       p: Point,
@@ -329,8 +329,9 @@ trait PAGConstraint{
         }
       case _ =>
     }
-    if(!avoidMode)
+    if(!avoidMode) {
       require(point != null)
+    }
     point
   }
 }

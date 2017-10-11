@@ -11,7 +11,7 @@
 package org.argus.jawa.alir.interprocedural
 
 import org.argus.jawa.alir.pta.{Instance, VarSlot}
-import org.argus.jawa.alir.pta.reachingFactsAnalysis.{RFAFact, SimHeap}
+import org.argus.jawa.alir.pta.rfa.{RFAFact, SimHeap}
 import org.argus.jawa.core.Signature
 import org.argus.jawa.core.util._
 
@@ -30,8 +30,8 @@ trait RFACallee extends Callee {
 abstract class DirectCallee extends RFACallee {
   def mapFactsToCallee: (ISet[RFAFact], IList[String], IList[String], SimHeap) => ISet[RFAFact] = (factsToCallee, args, params, factory) => {
     val varFacts = factsToCallee.filter(f=>f.s.isInstanceOf[VarSlot])
-    val argSlots = args.map(VarSlot(_))
-    val paramSlots = params.map(VarSlot(_))
+    val argSlots = args.map(VarSlot)
+    val paramSlots = params.map(VarSlot)
     val result = msetEmpty[RFAFact]
 
     for(i <- argSlots.indices){
