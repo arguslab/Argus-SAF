@@ -10,9 +10,9 @@
 package org.argus.amandroid.core.dedex.`type`
 
 import org.argus.jawa.alir.JawaAlirInfoProvider
-import org.argus.jawa.alir.controlFlowGraph.{CFGLocationNode, CFGNode, CFGVirtualNode}
-import org.argus.jawa.alir.dataFlowAnalysis._
-import org.argus.jawa.alir.reachingDefinitionAnalysis._
+import org.argus.jawa.alir.cfg.{CFGLocationNode, CFGNode, CFGVirtualNode}
+import org.argus.jawa.alir.dfa._
+import org.argus.jawa.alir.rda._
 import org.argus.jawa.ast._
 import org.argus.jawa.compiler.parser._
 import org.argus.jawa.core.io.{NoPosition, Position}

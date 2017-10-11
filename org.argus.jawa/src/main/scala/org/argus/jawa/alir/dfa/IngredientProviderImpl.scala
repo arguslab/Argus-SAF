@@ -8,10 +8,11 @@
  * Detailed contributors are listed in the CONTRIBUTOR.md
  */
 
-package org.argus.jawa.alir.dataFlowAnalysis
+package org.argus.jawa.alir.dfa
 
 import org.argus.jawa.alir.{AlirLoc, Context}
-import org.argus.jawa.alir.controlFlowGraph._
+import org.argus.jawa.alir.cfg._
+import org.argus.jawa.alir.interprocedural.CallResolver
 import org.argus.jawa.ast.{Location, MethodDeclaration, ResolvedBody, Statement}
 import org.argus.jawa.core.{Global, Signature}
 import org.argus.jawa.core.util._

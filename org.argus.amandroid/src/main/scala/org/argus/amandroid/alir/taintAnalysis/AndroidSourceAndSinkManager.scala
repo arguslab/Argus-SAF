@@ -13,7 +13,7 @@ package org.argus.amandroid.alir.taintAnalysis
 import org.argus.amandroid.alir.pta.reachingFactsAnalysis.IntentHelper
 import org.argus.amandroid.alir.pta.model.InterComponentCommunicationModel
 import org.argus.amandroid.core.{AndroidConstants, ApkGlobal}
-import org.argus.jawa.alir.controlFlowGraph._
+import org.argus.jawa.alir.cfg._
 import org.argus.jawa.alir.pta.{PTAResult, VarSlot}
 import org.argus.jawa.alir.taintAnalysis._
 import org.argus.jawa.alir.util.ExplicitValueFinder

@@ -8,9 +8,9 @@
  * Detailed contributors are listed in the CONTRIBUTOR.md
  */
 
-package org.argus.jawa.alir.controlFlowGraph
+package org.argus.jawa.alir.cfg
 
-import org.argus.jawa.alir.callGraph.CallGraph
+import org.argus.jawa.alir.cg.CallGraph
 import org.argus.jawa.alir.{AlirLoc, Context, InterProceduralNode, JawaAlirInfoProvider}
 import org.argus.jawa.alir.interprocedural.Callee
 import org.argus.jawa.ast.{CallStatement, Location}

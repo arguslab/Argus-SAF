@@ -10,10 +10,10 @@
 
 package org.argus.jawa.alir
 
-import org.argus.jawa.alir.controlFlowGraph.{CFGNode, ControlFlowGraph, IntraProceduralControlFlowGraph}
+import org.argus.jawa.alir.cfg.{CFGNode, ControlFlowGraph, IntraProceduralControlFlowGraph}
 import org.argus.jawa.core._
 import org.argus.jawa.core.util._
-import org.argus.jawa.alir.reachingDefinitionAnalysis.{JawaDefRef, ReachingDefinitionAnalysis}
+import org.argus.jawa.alir.rda.{JawaDefRef, ReachingDefinitionAnalysis}
 import org.argus.jawa.ast.{CatchClause, MethodDeclaration, ResolvedBody}
 
 /**

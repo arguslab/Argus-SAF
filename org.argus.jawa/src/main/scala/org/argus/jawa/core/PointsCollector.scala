@@ -11,13 +11,12 @@
 package org.argus.jawa.core
 
 import org.argus.jawa.ast._
-import org.argus.jawa.compiler.parser._
 import org.argus.jawa.core.util._
 
 /**
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
  */ 
-class PointsCollector {
+object PointsCollector {
   
   def collectMethodPoint(ownerSig: Signature, md: MethodDeclaration): Point with Method = {
     val methodSig = md.signature
@@ -386,7 +385,7 @@ final case class PointArgReturn(argName: String, index: Int, locUri: String, loc
  * Set of program points corresponding to method invocation expressions.
  * pi represents an element in this set.
  */
-final case class PointI(sig: Signature, invokeTyp: String, retTyp: JawaType, recvPCall: PointRecvCall, recvPReturn: PointRecvReturn, argPsCall: IMap[Int, PointArgCall], argPsReturn: IMap[Int, PointArgReturn], locUri: String, locIndex: Int, ownerSig: Signature) extends Point with Loc with Right with Invoke with Dynamic
+final case class PointI(sig: Signature, invokeTyp: String, retTyp: JawaType, recvPCall: PointRecvCall, recvPReturn: PointRecvReturn, argPsCall: IMap[Int, PointArgCall], argPsReturn: IMap[Int, PointArgReturn], locUri: String, locIndex: Int, ownerSig: Signature) extends Point with Loc with Right with Invoke with Virtual
 
 /**
  * Set of program points corresponding to static method invocation expressions.
@@ -431,7 +430,7 @@ final case class PointMethodRet(ownerSig: Signature) extends Point
 /**
  * Set of program points corresponding to methods. 
  */
-final case class PointMethod(methodSig: Signature, accessTyp: String, thisPEntry: PointThisEntry, thisPExit: PointThisExit, paramPsEntry: IMap[Int, PointParamEntry], paramPsExit: IMap[Int, PointParamExit], retVar: Option[PointMethodRet], ownerSig: Signature) extends Point with Method with Virtual
+final case class PointMethod(methodSig: Signature, accessTyp: String, thisPEntry: PointThisEntry, thisPExit: PointThisExit, paramPsEntry: IMap[Int, PointParamEntry], paramPsExit: IMap[Int, PointParamExit], retVar: Option[PointMethodRet], ownerSig: Signature) extends Point with Method with Dynamic
 
 /**
  * Set of program points corresponding to static methods. 

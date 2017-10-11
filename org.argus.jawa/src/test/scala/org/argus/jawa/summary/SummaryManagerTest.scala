@@ -12,7 +12,7 @@ package org.argus.jawa.summary
 
 import org.argus.jawa.alir.Context
 import org.argus.jawa.alir.pta._
-import org.argus.jawa.alir.pta.reachingFactsAnalysis.{RFAFact, SimHeap}
+import org.argus.jawa.alir.pta.rfa.{RFAFact, SimHeap}
 import org.argus.jawa.core.util._
 import org.argus.jawa.core.{DefaultReporter, Global, JawaType, Signature}
 import org.argus.jawa.summary.susaf.HeapSummaryProcessor

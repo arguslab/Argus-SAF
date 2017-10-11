@@ -29,29 +29,27 @@ object BackwardCallChain {
   def getBackwardCallChain(global: Global, sig: Signature): CallChain = {
     val ps: ISet[JawaMethod] = global.getApplicationClasses.map(_.getDeclaredMethods).fold(isetEmpty)(iunion[JawaMethod]).filter(_.isConcrete)
     val calleeSigMethodMap: MMap[Signature, MSet[Signature]] = mmapEmpty
-    ps.foreach {
-      m =>
-        val callees: MSet[JawaMethod] = msetEmpty
-        val points = new PointsCollector().points(m.getSignature, m.getBody)
-        points foreach {
-          case pi: Point with Right with Invoke =>
-            val typ = pi.invokeTyp
-            val sig = pi.sig
-            typ match {
-              case "super" =>
-                callees ++= CallHandler.getSuperCalleeMethod(global, sig)
-              case "direct" =>
-                callees ++= CallHandler.getDirectCalleeMethod(global, sig)
-              case "static" =>
-                callees ++= CallHandler.getStaticCalleeMethod(global, sig)
-              case "virtual" | "interface" | _ =>
-                callees ++= CallHandler.getUnknownVirtualCalleeMethods(global, sig.getClassType, sig.getSubSignature)
-            }
-        }
-        callees.foreach{
-          callee =>
-            calleeSigMethodMap.getOrElseUpdate(callee.getSignature, msetEmpty) += m.getSignature
-        }
+    ps.foreach { m =>
+      val callees: MSet[JawaMethod] = msetEmpty
+      val points = PointsCollector.points(m.getSignature, m.getBody)
+      points foreach {
+        case pi: Point with Right with Invoke =>
+          val typ = pi.invokeTyp
+          val sig = pi.sig
+          typ match {
+            case "super" =>
+              callees ++= CallHandler.getSuperCalleeMethod(global, sig)
+            case "direct" =>
+              callees ++= CallHandler.getDirectCalleeMethod(global, sig)
+            case "static" =>
+              callees ++= CallHandler.getStaticCalleeMethod(global, sig)
+            case "virtual" | "interface" | _ =>
+              callees ++= CallHandler.getUnknownVirtualCalleeMethods(global, sig.getClassType, sig.getSubSignature)
+          }
+      }
+      callees.foreach{ callee =>
+        calleeSigMethodMap.getOrElseUpdate(callee.getSignature, msetEmpty) += m.getSignature
+      }
     }
     val result: CallChain = new CallChain(sig)
     val worklist: MList[Signature] = mlistEmpty

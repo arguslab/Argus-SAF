@@ -15,9 +15,9 @@ import org.argus.amandroid.core.model.Intent
 import org.argus.amandroid.core.parser.IntentFilter
 import org.argus.amandroid.core.{AndroidConstants, ApkGlobal}
 import org.argus.jawa.alir.Context
-import org.argus.jawa.alir.controlFlowGraph._
-import org.argus.jawa.alir.dataDependenceAnalysis.{IDDGNode, MultiDataDependenceGraph}
-import org.argus.jawa.alir.dataFlowAnalysis.InterProceduralDataFlowGraph
+import org.argus.jawa.alir.cfg._
+import org.argus.jawa.alir.dda.{IDDGNode, MultiDataDependenceGraph}
+import org.argus.jawa.alir.dfa.InterProceduralDataFlowGraph
 import org.argus.jawa.alir.pta.{Instance, VarSlot}
 import org.argus.jawa.ast.{AssignmentStatement, NameExpression}
 import org.argus.jawa.core._

@@ -8,7 +8,7 @@
  * Detailed contributors are listed in the CONTRIBUTOR.md
  */
 
-package org.argus.jawa.alir.reachingDefinitionAnalysis
+package org.argus.jawa.alir.rda
 
 /**
  * @author <a href="mailto:robby@k-state.edu">Robby</a>

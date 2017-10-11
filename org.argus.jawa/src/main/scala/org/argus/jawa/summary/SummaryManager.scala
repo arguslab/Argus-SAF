@@ -12,7 +12,7 @@ package org.argus.jawa.summary
 
 import com.google.common.base.Charsets
 import com.google.common.io.Resources
-import org.argus.jawa.alir.pta.reachingFactsAnalysis.SimHeap
+import org.argus.jawa.alir.pta.rfa.SimHeap
 import org.argus.jawa.core._
 import org.argus.jawa.core.util._
 import org.argus.jawa.summary.susaf.HeapSummaryProcessor

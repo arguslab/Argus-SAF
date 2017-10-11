@@ -11,7 +11,7 @@
 package org.argus.jawa.summary.model
 
 import org.argus.jawa.alir.pta._
-import org.argus.jawa.alir.pta.reachingFactsAnalysis.RFAFact
+import org.argus.jawa.alir.pta.rfa.RFAFact
 import org.argus.jawa.core.JawaType
 
 /**

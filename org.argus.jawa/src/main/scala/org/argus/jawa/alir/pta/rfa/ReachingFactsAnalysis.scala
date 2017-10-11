@@ -8,18 +8,18 @@
  * Detailed contributors are listed in the CONTRIBUTOR.md
  */
 
-package org.argus.jawa.alir.pta.reachingFactsAnalysis
+package org.argus.jawa.alir.pta.rfa
 
 import java.util.concurrent.TimeoutException
 
 import org.argus.jawa.alir.Context
-import org.argus.jawa.alir.controlFlowGraph.{ICFGNode, InterProceduralControlFlowGraph}
-import org.argus.jawa.alir.dataFlowAnalysis._
+import org.argus.jawa.alir.cfg.{ICFGNode, InterProceduralControlFlowGraph}
+import org.argus.jawa.alir.dfa._
+import org.argus.jawa.alir.interprocedural.CallResolver
 import org.argus.jawa.alir.pta.model.ModelCallHandler
 import org.argus.jawa.alir.pta._
-import org.argus.jawa.alir.pta.reachingFactsAnalysis.ReachingFactsAnalysisHelper.getNameSlotFromNameExp
+import org.argus.jawa.alir.pta.rfa.ReachingFactsAnalysisHelper.getNameSlotFromNameExp
 import org.argus.jawa.ast._
-import org.argus.jawa.compiler.parser._
 import org.argus.jawa.core.util._
 import org.argus.jawa.core._
 import org.argus.jawa.summary.SummaryManager

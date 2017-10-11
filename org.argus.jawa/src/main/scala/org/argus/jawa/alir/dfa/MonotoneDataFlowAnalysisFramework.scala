@@ -8,12 +8,12 @@
  * Detailed contributors are listed in the CONTRIBUTOR.md
  */
 
-package org.argus.jawa.alir.dataFlowAnalysis
+package org.argus.jawa.alir.dfa
 
 import org.argus.jawa.alir.{AlirLoc, AlirNode}
-import org.argus.jawa.alir.controlFlowGraph._
+import org.argus.jawa.alir.cfg._
+import org.argus.jawa.alir.interprocedural.CallResolver
 import org.argus.jawa.ast._
-import org.argus.jawa.compiler.parser._
 import org.argus.jawa.core.Signature
 import org.argus.jawa.core.util._
 
@@ -71,19 +71,6 @@ trait IngredientProvider[N <: AlirNode, LatticeElement, LOC] {
       callr: Option[CallResolver[N, LatticeElement]]): Unit
   def preProcess(node: N, statement: Statement, s: ISet[LatticeElement]): Unit
   def postProcess(node: N, statement: Statement, s: ISet[LatticeElement]): Unit
-}
-
-/**
- * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
- * @author <a href="mailto:sroy@k-state.edu">Sankardas Roy</a>
- */
-trait CallResolver[N <: AlirNode, LatticeElement] {
-  /**
-   * It returns the facts for each callee entry node and caller return node
-   */
-  def resolveCall(s: ISet[LatticeElement], cs: CallStatement, callerNode: N): (IMap[N, ISet[LatticeElement]], ISet[LatticeElement])
-  def getAndMapFactsForCaller(calleeS: ISet[LatticeElement], callerNode: N, calleeExitNode: N): ISet[LatticeElement]
-  def needReturnNode(): Boolean
 }
 
 /**

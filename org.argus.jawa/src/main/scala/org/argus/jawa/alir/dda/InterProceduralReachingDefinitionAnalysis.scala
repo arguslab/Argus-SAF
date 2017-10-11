@@ -8,14 +8,14 @@
  * Detailed contributors are listed in the CONTRIBUTOR.md
  */
 
-package org.argus.jawa.alir.dataDependenceAnalysis
+package org.argus.jawa.alir.dda
 
-import org.argus.jawa.alir.controlFlowGraph._
-import org.argus.jawa.alir.dataFlowAnalysis._
-import org.argus.jawa.alir.reachingDefinitionAnalysis._
+import org.argus.jawa.alir.cfg._
+import org.argus.jawa.alir.dfa._
+import org.argus.jawa.alir.interprocedural.CallResolver
+import org.argus.jawa.alir.rda._
 import org.argus.jawa.alir.{Context, JawaAlirInfoProvider}
 import org.argus.jawa.ast.{AssignmentStatement, CallStatement, Statement}
-import org.argus.jawa.compiler.parser._
 import org.argus.jawa.core.Global
 import org.argus.jawa.core.util._
 

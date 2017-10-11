@@ -11,9 +11,9 @@
 package org.argus.jawa.alir.sideEffectAnalysis
 
 import org.argus.jawa.alir.JawaAlirInfoProvider
-import org.argus.jawa.alir.controlFlowGraph.{CFGNode, IntraProceduralControlFlowGraph}
+import org.argus.jawa.alir.cfg.{CFGNode, IntraProceduralControlFlowGraph}
 import org.argus.jawa.alir.interprocedural.CallHandler
-import org.argus.jawa.alir.reachingDefinitionAnalysis.{LocDefDesc, ReachingDefinitionAnalysis}
+import org.argus.jawa.alir.rda.{LocDefDesc, ReachingDefinitionAnalysis}
 import org.argus.jawa.ast.{AssignmentStatement, Location, NameExpression}
 import org.argus.jawa.core._
 import org.argus.jawa.core.util._
@@ -32,11 +32,12 @@ trait InterProceduralSideEffectAnalysisResult {
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
  * @author <a href="mailto:sroy@k-state.edu">Sankardas Roy</a>
  */
-case class InterProceduralSideEffectResult(procSig: Signature,
-                                           readMap: Map[Int, Set[String]],
-                                           writeMap: Map[Int, Set[String]],
-                                           globalRead: Set[String],
-                                           globalWrite: Set[String]) {
+case class InterProceduralSideEffectResult(
+    procSig: Signature,
+    readMap: Map[Int, Set[String]],
+    writeMap: Map[Int, Set[String]],
+    globalRead: Set[String],
+    globalWrite: Set[String]) {
   override def toString: String = {
     val sb: StringBuilder = new StringBuilder()
     sb.append("Method:" + procSig + "\n")
@@ -64,7 +65,7 @@ case class InterProceduralSideEffectResult(procSig: Signature,
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
  * @author <a href="mailto:sroy@k-state.edu">Sankardas Roy</a>
  */
-case class IntraproceduralSideEffectResult(
+case class IntraProceduralSideEffectResult(
     procedure: JawaMethod,
     readMap: Map[Int, Set[String]],
     writeMap: Map[Int, Set[String]],
@@ -120,7 +121,7 @@ case class CallInfo(callees: Set[JawaMethod], paramMap: Map[Int, Int]){
  */
 object SideEffectAnalysis {
 
-  def interProceduralSideEffect(intraSEResults: GenMap[Signature, IntraproceduralSideEffectResult]): InterProceduralSideEffectAnalysisResult = {
+  def interProceduralSideEffect(intraSEResults: GenMap[Signature, IntraProceduralSideEffectResult]): InterProceduralSideEffectAnalysisResult = {
     val results: MMap[Signature, InterProceduralSideEffectResult] = mmapEmpty
     def getResult(sig: Signature): Option[InterProceduralSideEffectResult] = results.get(sig)
     class Ipsea(val result: Signature => Option[InterProceduralSideEffectResult]) extends InterProceduralSideEffectAnalysisResult {
@@ -165,7 +166,7 @@ object SideEffectAnalysis {
     ipsea
   }
 
-  private def resolveInterProceduralSideEffect(intraPSE: IntraproceduralSideEffectResult, intraSEResults: GenMap[Signature, IntraproceduralSideEffectResult]): InterProceduralSideEffectResult = {
+  private def resolveInterProceduralSideEffect(intraPSE: IntraProceduralSideEffectResult, intraSEResults: GenMap[Signature, IntraProceduralSideEffectResult]): InterProceduralSideEffectResult = {
     var worklist: Set[CallInfo] = Set()
     val processed: MSet[CallInfo] = msetEmpty
     worklist ++= intraPSE.callInfos
@@ -176,27 +177,26 @@ object SideEffectAnalysis {
     var globalWrite: Set[String] = intraPSE.globalWrite
     while(worklist.nonEmpty){
       processed ++= worklist
-      worklist = worklist.par.map{
-        call =>
-          var newCalls = Set[CallInfo]()
-          val paramMap = call.paramMap
-          call.callees.foreach{
-            callee =>
-              val calleeOpt = intraSEResults.get(callee.getSignature)
-              calleeOpt match{
-                case Some (calleeIse) =>
-                  paramMap.foreach{
-                    case (argP, paramP) =>
-                      val reads = calleeIse.readMap.getOrElse(argP, Set())
-                      readMap += (paramP -> (readMap.getOrElse(paramP, Set()) ++ reads))
-                      val writes = calleeIse.writeMap.getOrElse(argP, Set())
-                      writeMap += (paramP -> (writeMap.getOrElse(paramP, Set()) ++ writes))
-                      globalRead ++= calleeIse.globalRead
-                      globalWrite ++= calleeIse.globalWrite
-                      newCalls = calleeIse.callInfos -- processed
-                  }
-                case None =>
-              }
+      worklist = worklist.par.map{ call =>
+        var newCalls = Set[CallInfo]()
+        val paramMap = call.paramMap
+        call.callees.foreach{
+          callee =>
+            val calleeOpt = intraSEResults.get(callee.getSignature)
+            calleeOpt match{
+              case Some (calleeIse) =>
+                paramMap.foreach{
+                  case (argP, paramP) =>
+                    val reads = calleeIse.readMap.getOrElse(argP, Set())
+                    readMap += (paramP -> (readMap.getOrElse(paramP, Set()) ++ reads))
+                    val writes = calleeIse.writeMap.getOrElse(argP, Set())
+                    writeMap += (paramP -> (writeMap.getOrElse(paramP, Set()) ++ writes))
+                    globalRead ++= calleeIse.globalRead
+                    globalWrite ++= calleeIse.globalWrite
+                    newCalls = calleeIse.callInfos -- processed
+                }
+              case None =>
+            }
           }
           newCalls
       }.reduce(iunion[CallInfo])
@@ -204,7 +204,7 @@ object SideEffectAnalysis {
     InterProceduralSideEffectResult(procedure.getSignature, readMap, writeMap, globalRead, globalWrite)
   }
 
-  def intraProceduralSideEffect(global: Global, procedure: JawaMethod): IntraproceduralSideEffectResult = {
+  def intraProceduralSideEffect(global: Global, procedure: JawaMethod): IntraProceduralSideEffectResult = {
     var readMap: Map[Int, Set[String]] = Map()
     var writeMap: Map[Int, Set[String]] = Map()
     var globalRead: Set[String] = Set()
@@ -212,7 +212,7 @@ object SideEffectAnalysis {
     var callInfos: Set[CallInfo] = Set()
     val cfg = JawaAlirInfoProvider.getCfg(procedure)
     val rda = JawaAlirInfoProvider.getRda(procedure, cfg)
-    val points = new PointsCollector().points(procedure.getSignature, procedure.getBody)
+    val points = PointsCollector.points(procedure.getSignature, procedure.getBody)
     points.foreach {
       case pa: PointAsmt =>
         pa.lhs match {
@@ -263,7 +263,7 @@ object SideEffectAnalysis {
         callInfos += CallInfo(callees, paramMap)
       case _ =>
     }
-    IntraproceduralSideEffectResult(procedure, readMap, writeMap, globalRead, globalWrite, callInfos)
+    IntraProceduralSideEffectResult(procedure, readMap, writeMap, globalRead, globalWrite, callInfos)
   }
   
   private def findPositionFromRda(
@@ -284,7 +284,7 @@ object SideEffectAnalysis {
               if(!varName.startsWith("@@")){
                 return paramNameList.indexOf(varName)
               } else {
-                return -1  // postion for global variable
+                return -1  // position for global variable
               }
             case _ if defDesc.isUndefined => return -2
             case locDefDesc: LocDefDesc =>

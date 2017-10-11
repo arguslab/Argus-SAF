@@ -14,7 +14,7 @@ import java.util
 
 import org.argus.amandroid.core.dedex.`type`.LocalTypeResolver.VarType
 import org.argus.amandroid.core.dedex.{JawaModelProvider, JawaStyleCodeGenerator}
-import org.argus.jawa.alir.reachingDefinitionAnalysis.VarSlot
+import org.argus.jawa.alir.rda.VarSlot
 import org.argus.jawa.ast._
 
 import org.argus.jawa.compiler.parser._

@@ -24,8 +24,8 @@ import org.argus.jawa.core.util._
  * well-known Android callback and handler interfaces.
  * 
  * Adapted Steven Arzt (FlowDroid) 's equivalent code
-  *
-  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
+ *
+ * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
  * @author Sankardas Roy. 
  */
 class ReachableInfoCollector(val global: Global, entryPointTypes: ISet[JawaType]) {
@@ -41,7 +41,7 @@ class ReachableInfoCollector(val global: Global, entryPointTypes: ISet[JawaType]
     case (k, vs) => k -> vs.toSet
   }.toMap
 
-  private var reachableMap: IMap[JawaType, ISet[Signature]] = imapEmpty // a map from an app component to the rechable methods
+  private var reachableMap: IMap[JawaType, ISet[Signature]] = imapEmpty // a map from an app component to the reachable methods
 
   def getReachableMap: IMap[JawaType, ISet[Signature]] = this.reachableMap
 
@@ -265,18 +265,21 @@ class ReachableInfoCollector(val global: Global, entryPointTypes: ISet[JawaType]
   private def analyzeClassInterfaceCallbacks(baseClass: JawaClass, clazz: JawaClass, lifecycleElement: JawaType):Unit = {
     // We cannot create instances of abstract classes anyway, so there is no
     // reason to look for interface implementations
-    if (!baseClass.isConcrete)
+    if (!baseClass.isConcrete) {
       return
+    }
   
     // For a first take, we consider all classes in the android.* packages
     // to be part of the operating system
-    if (baseClass.getName.startsWith("android.") || baseClass.getName.startsWith("com.android."))
+    if (baseClass.getName.startsWith("android.") || baseClass.getName.startsWith("com.android.")) {
       return
+    }
   
     // If we are a class, one of our superclasses might implement an Android
     // interface
-    if (clazz.hasSuperClass)
+    if (clazz.hasSuperClass) {
       analyzeClassInterfaceCallbacks(baseClass, clazz.getSuperClass, lifecycleElement) // recursion
+    }
     // Do we implement one of the well-known interfaces?
     for (i <- collectAllInterfaces(clazz)) {
       if(this.androidCallbacks.contains(i.getName)){
@@ -309,9 +312,14 @@ class ReachableInfoCollector(val global: Global, entryPointTypes: ISet[JawaType]
   }
 
   private def getMethodFromHierarchy(r :JawaClass, subSig: String): Option[JawaMethod] = {
-    if(r.declaresMethod(subSig)) r.getMethod(subSig)
-    else if(r.hasSuperClass) getMethodFromHierarchy(r.getSuperClass, subSig)
-    else None
+    try {
+      if (r.declaresMethod(subSig)) r.getMethod(subSig)
+      else if (r.hasSuperClass) getMethodFromHierarchy(r.getSuperClass, subSig)
+      else None
+    } catch {
+      case _: Exception =>
+        None
+    }
   }
 
   private def initAndroidCallbacks = {

@@ -18,8 +18,8 @@ import org.argus.amandroid.alir.componentSummary.ComponentSummaryTable
 import org.argus.amandroid.core.jawaCodeGenerator.AndroidEntryPointConstants
 import org.argus.amandroid.core.model.ApkModel
 import org.argus.amandroid.core.parser.{ComponentInfo, ComponentType}
-import org.argus.jawa.alir.dataDependenceAnalysis.InterProceduralDataDependenceInfo
-import org.argus.jawa.alir.dataFlowAnalysis.InterProceduralDataFlowGraph
+import org.argus.jawa.alir.dda.InterProceduralDataDependenceInfo
+import org.argus.jawa.alir.dfa.InterProceduralDataFlowGraph
 import org.argus.jawa.alir.taintAnalysis.TaintAnalysisResult
 import org.argus.jawa.core._
 

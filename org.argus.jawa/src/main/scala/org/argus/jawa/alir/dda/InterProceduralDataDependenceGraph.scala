@@ -8,9 +8,9 @@
  * Detailed contributors are listed in the CONTRIBUTOR.md
  */
 
-package org.argus.jawa.alir.dataDependenceAnalysis
+package org.argus.jawa.alir.dda
 
-import org.argus.jawa.alir.controlFlowGraph._
+import org.argus.jawa.alir.cfg._
 import org.argus.jawa.core.Global
 
 /**

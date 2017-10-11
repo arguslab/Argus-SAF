@@ -8,7 +8,7 @@
  * Detailed contributors are listed in the CONTRIBUTOR.md
  */
 
-package org.argus.jawa.alir.reachingDefinitionAnalysis
+package org.argus.jawa.alir.rda
 
 import org.argus.jawa.ast._
 import org.argus.jawa.compiler.parser._

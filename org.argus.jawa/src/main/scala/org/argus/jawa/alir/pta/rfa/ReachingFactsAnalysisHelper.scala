@@ -8,7 +8,7 @@
  * Detailed contributors are listed in the CONTRIBUTOR.md
  */
 
-package org.argus.jawa.alir.pta.reachingFactsAnalysis
+package org.argus.jawa.alir.pta.rfa
 
 import org.argus.jawa.alir.pta._
 import org.argus.jawa.alir.Context

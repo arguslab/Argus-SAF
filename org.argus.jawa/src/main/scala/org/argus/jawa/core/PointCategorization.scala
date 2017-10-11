@@ -70,12 +70,12 @@ trait Loc{
   def locIndex: Int
 }
 
-trait Dynamic{
+trait Virtual{
   def recvPCall: PointRecvCall
   def recvPReturn: PointRecvReturn
 }
 
-trait Virtual{
+trait Dynamic{
   def thisPEntry: PointThisEntry
   def thisPExit: PointThisExit
 }

@@ -10,7 +10,7 @@
 
 package org.argus.jawa.summary
 
-import org.argus.jawa.alir.pta.reachingFactsAnalysis.SimHeap
+import org.argus.jawa.alir.pta.rfa.SimHeap
 import org.argus.jawa.core.Global
 
 /**

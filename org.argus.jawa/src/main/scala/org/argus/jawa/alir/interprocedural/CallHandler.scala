@@ -22,7 +22,8 @@ import org.argus.jawa.core.util._
  */ 
 object CallHandler {
 
-  def getCalleeSet(global: Global, cs: CallStatement, sig: Signature, callerContext: Context, ptaResult: PTAResult): ISet[RFACallee] = {
+  def getCalleeSet(global: Global, cs: CallStatement, callerContext: Context, ptaResult: PTAResult): ISet[RFACallee] = {
+    val sig = cs.signature
     val subSig = sig.getSubSignature
     val typ = cs.kind
     val calleeSet = msetEmpty[RFACallee]

@@ -12,7 +12,7 @@ package org.argus.jawa.alir.reachability
 
 import java.util.concurrent.TimeoutException
 
-import org.argus.jawa.alir.callGraph.CallGraph
+import org.argus.jawa.alir.cg.CallGraph
 import org.argus.jawa.alir.interprocedural.CallHandler
 import org.argus.jawa.alir.pta.PTAScopeManager
 import org.argus.jawa.ast.CallStatement

@@ -12,7 +12,7 @@ package org.argus.jawa.alir.taintAnalysis
 
 import org.argus.jawa.alir.Context
 import org.argus.jawa.alir.pta.{Instance, PTASlot}
-import org.argus.jawa.alir.reachingDefinitionAnalysis.Slot
+import org.argus.jawa.alir.rda.Slot
 
 object TaintSlotPosition extends Enumeration {
   val LHS, RHS, ARG = Value
