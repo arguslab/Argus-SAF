@@ -10,12 +10,11 @@
 
 package org.argus.jawa.core.io
 
-import java.io.{
-  FileInputStream, FileOutputStream, BufferedReader, BufferedWriter, InputStreamReader, OutputStreamWriter,
-  BufferedInputStream, BufferedOutputStream, RandomAccessFile}
-import java.net.{ URI, URL }
-import scala.util.Random.alphanumeric
+import java.io.RandomAccessFile
+import java.net.{URI, URL}
+
 import scala.language.implicitConversions
+import scala.util.Random.alphanumeric
 
 /** An abstraction for filesystem paths.  The differences between
  *  Path, File, and Directory are primarily to communicate intent.
@@ -71,13 +70,13 @@ object Path {
     if (isFile) new File(jfile)
     else if (isDirectory) new Directory(jfile)
     else new Path(jfile)
-  } catch { case ex: SecurityException => new Path(jfile) }
+  } catch { case _: SecurityException => new Path(jfile) }
 
   /** Avoiding any shell/path issues by only using alphanumerics. */
   private[io] def randomPrefix = alphanumeric take 6 mkString ""
   private[io] def fail(msg: String) = throw FileOperationException(msg)
 }
-import Path._
+import org.argus.jawa.core.io.Path._
 
 /** The Path constructor is private so we can enforce some
  *  semantics regarding how a Path might relate to the world.
@@ -85,21 +84,21 @@ import Path._
  *  ''Note:  This library is considered experimental and should not be used unless you know what you are doing.''
  */
 class Path private[io] (val jfile: JFile) {
-  val separator = java.io.File.separatorChar
-  val separatorStr = java.io.File.separator
+  val separator: Char = java.io.File.separatorChar
+  val separatorStr: String = java.io.File.separator
 
   // conversions
   def toFile: File = new File(jfile)
   def toDirectory: Directory = new Directory(jfile)
-  def toAbsolute: Path = if (isAbsolute) this else Path(jfile.getAbsolutePath())
-  def toCanonical: Path = Path(jfile.getCanonicalPath())
-  def toURI: URI = jfile.toURI()
-  def toURL: URL = toURI.toURL()
+  def toAbsolute: Path = if (isAbsolute) this else Path(jfile.getAbsolutePath)
+  def toCanonical: Path = Path(jfile.getCanonicalPath)
+  def toURI: URI = jfile.toURI
+  def toURL: URL = toURI.toURL
 
   /** If this path is absolute, returns it: otherwise, returns an absolute
    *  path made up of root / this.
    */
-  def toAbsoluteWithRoot(root: Path) = if (isAbsolute) this else root.toAbsolute / this
+  def toAbsoluteWithRoot(root: Path): Path = if (isAbsolute) this else root.toAbsolute / this
 
   /** Creates a new Path with the specified path appended.  Assumes
    *  the type of the new component implies the type of the result.
@@ -125,12 +124,12 @@ class Path private[io] (val jfile: JFile) {
   def walk: Iterator[Path] = walkFilter(_ => true)
 
   // identity
-  def name: String = jfile.getName()
-  def path: String = jfile.getPath()
-  def normalize: Path = Path(jfile.getAbsolutePath())
+  def name: String = jfile.getName
+  def path: String = jfile.getPath
+  def normalize: Path = Path(jfile.getAbsolutePath)
 
-  def resolve(other: Path) = if (other.isAbsolute || isEmpty) other else /(other)
-  def relativize(other: Path) = {
+  def resolve(other: Path): Path = if (other.isAbsolute || isEmpty) other else /(other)
+  def relativize(other: Path): Path = {
     assert(isAbsolute == other.isAbsolute, "Paths not of same type: "+this+", "+other)
 
     def createRelativePath(baseSegs: List[String], otherSegs: List[String]): String = {
@@ -176,7 +175,7 @@ class Path private[io] (val jfile: JFile) {
     else name.substring(i + 1)
   }
   // compares against extensions in a CASE INSENSITIVE way.
-  def hasExtension(ext: String, exts: String*) = {
+  def hasExtension(ext: String, exts: String*): Boolean = {
     val lower = extension.toLowerCase
     ext.toLowerCase == lower || exts.exists(_.toLowerCase == lower)
   }
@@ -196,29 +195,29 @@ class Path private[io] (val jfile: JFile) {
   def ifDirectory[T](f: Directory => T): Option[T] = if (isDirectory) Some(f(toDirectory)) else None
 
   // Boolean tests
-  def canRead = jfile.canRead()
-  def canWrite = jfile.canWrite()
-  def exists = {
-    try jfile.exists() catch { case ex: SecurityException => false }
+  def canRead: Boolean = jfile.canRead
+  def canWrite: Boolean = jfile.canWrite
+  def exists: Boolean = {
+    try jfile.exists() catch { case _: SecurityException => false }
   }
 
-  def isFile = {
-    try jfile.isFile() catch { case ex: SecurityException => false }
+  def isFile: Boolean = {
+    try jfile.isFile catch { case _: SecurityException => false }
   }
-  def isDirectory = {
-    try jfile.isDirectory() catch { case ex: SecurityException => jfile.getPath == "." }
+  def isDirectory: Boolean = {
+    try jfile.isDirectory catch { case _: SecurityException => jfile.getPath == "." }
   }
-  def isAbsolute = jfile.isAbsolute()
-  def isEmpty = path.length == 0
+  def isAbsolute: Boolean = jfile.isAbsolute
+  def isEmpty: Boolean = path.length == 0
 
   // Information
-  def lastModified = jfile.lastModified()
-  def length = jfile.length()
+  def lastModified: Long = jfile.lastModified()
+  def length: Long = jfile.length()
 
   // Boolean path comparisons
-  def endsWith(other: Path) = segments endsWith other.segments
-  def isSame(other: Path) = toCanonical == other.toCanonical
-  def isFresher(other: Path) = lastModified > other.lastModified
+  def endsWith(other: Path): Boolean = segments endsWith other.segments
+  def isSame(other: Path): Boolean = toCanonical == other.toCanonical
+  def isFresher(other: Path): Boolean = lastModified > other.lastModified
 
   // creations
   def createDirectory(force: Boolean = true, failIfExists: Boolean = false): Directory = {
@@ -235,7 +234,7 @@ class Path private[io] (val jfile: JFile) {
   }
 
   // deletions
-  def delete() = jfile.delete()
+  def delete(): Boolean = jfile.delete()
 
   /** Deletes the path recursively. Returns false on failure.
    *  Use with caution!
@@ -249,7 +248,7 @@ class Path private[io] (val jfile: JFile) {
     f.delete()
   }
 
-  def truncate() =
+  def truncate(): Boolean =
     isFile && {
       val raf = new RandomAccessFile(jfile, "rw")
       raf setLength 0
@@ -257,10 +256,10 @@ class Path private[io] (val jfile: JFile) {
       length == 0
     }
 
-  override def toString() = path
-  override def equals(other: Any) = other match {
+  override def toString: String = path
+  override def equals(other: Any): Boolean = other match {
     case x: Path  => path == x.path
     case _        => false
   }
-  override def hashCode() = path.hashCode()
+  override def hashCode(): Int = path.hashCode()
 }

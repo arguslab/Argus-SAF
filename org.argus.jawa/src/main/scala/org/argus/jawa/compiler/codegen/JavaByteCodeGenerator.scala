@@ -166,7 +166,7 @@ class JavaByteCodeGenerator(javaVersion: Int) {
       location =>
         val locLabel = this.locations(location.locationUri)
         mv.visitLabel(locLabel)
-        mv.visitLineNumber(location.firstToken.pos.line, locLabel)
+        mv.visitLineNumber(location.pos.line, locLabel)
         visitLocation(mv, location)
     }
     
@@ -180,7 +180,6 @@ class JavaByteCodeGenerator(javaVersion: Int) {
       mv.visitMaxs(0, this.maxLocals)
     } catch {
       case ie: Exception =>
-        println(md.signature)
         throw ie
     }
     mv.visitEnd()
@@ -415,7 +414,7 @@ class JavaByteCodeGenerator(javaVersion: Int) {
     lhs match {
       case ie: IndexingExpression =>
         visitArrayAccess(mv, ie)
-        val p = JawaType.generateType(this.locals(ie.base).typ.baseTyp, this.locals(ie.base).typ.dimensions - ie.dimentions)
+        val p = JawaType.generateType(this.locals(ie.base).typ.baseTyp, this.locals(ie.base).typ.dimensions - ie.dimensions)
         lhsTyp = Some(p)
       case ae: AccessExpression =>
         visitFieldAccess(mv, ae)
@@ -493,7 +492,7 @@ class JavaByteCodeGenerator(javaVersion: Int) {
     case ie: IndexingExpression =>
       visitIndexLoad(mv, ie, kind)
       var rhsTyp: Option[JawaType] = None
-      val tmp = JawaType.generateType(this.locals(ie.base).typ.baseTyp, this.locals(ie.base).typ.dimensions - ie.dimentions)
+      val tmp = JawaType.generateType(this.locals(ie.base).typ.baseTyp, this.locals(ie.base).typ.dimensions - ie.dimensions)
       tmp match{
         case p if p.isPrimitive => rhsTyp = Some(p)
         case _ =>
@@ -529,7 +528,7 @@ class JavaByteCodeGenerator(javaVersion: Int) {
       visitBinaryExpression(mv, be, kind, lhsTyp)
     case ce: CmpExpression =>
       visitCmpExpression(mv, ce)
-    case ie: InstanceofExpression =>
+    case ie: InstanceOfExpression =>
       visitInstanceofExpression(mv, ie)
     case ce: ConstClassExpression =>
       visitConstClassExpression(mv, ce)
@@ -588,7 +587,7 @@ class JavaByteCodeGenerator(javaVersion: Int) {
     mv.visitInsn(Opcodes.ARRAYLENGTH)
   }
   
-  private def visitInstanceofExpression(mv: MethodVisitor, ie: InstanceofExpression): Unit = {
+  private def visitInstanceofExpression(mv: MethodVisitor, ie: InstanceOfExpression): Unit = {
     visitVarLoad(mv, ie.varSymbol.varName)
     val typ: JawaType = ie.typExp.typ
     mv.visitTypeInsn(Opcodes.INSTANCEOF, getClassName(typ.name))
@@ -874,7 +873,7 @@ class JavaByteCodeGenerator(javaVersion: Int) {
   
   private def visitArrayAccess(mv: MethodVisitor, ie: IndexingExpression): Unit = {
     val base: String = ie.base
-    val dimentions: Int = ie.dimentions
+    val dimentions: Int = ie.dimensions
     val indexs = ie.indices.map(_.index)
     mv.visitVarInsn(Opcodes.ALOAD, this.locals(base).index)
     for(i <- 0 until dimentions){

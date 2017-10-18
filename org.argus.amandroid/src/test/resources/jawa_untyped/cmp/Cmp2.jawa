@@ -1,13 +1,13 @@
-record `com.fgwei.Cmp2`  @kind class @AccessFlag PUBLIC {
+record `com.fgwei.Cmp2` @kind class @AccessFlag PUBLIC {
    }
     procedure `boolean` `main` () @signature `Lcom/fgwei/Cmp2;.main:()Z` @AccessFlag PUBLIC_STATIC {
       v1;
       v2;
       v3;
       
-#L026e42.   v1:= 2D;
-#L026e4c.   v2:= 3D;
-#L026e5a.   v3:= dcmpl(v1, v2);
-#L026eb0.   return v3;
+  #L026e42.  v1:= 2D;
+  #L026e4c.  v2:= 3D;
+  #L026e5a.  v3:= dcmpl(v1, v2);
+  #L026eb0.  return v3;
 
    }

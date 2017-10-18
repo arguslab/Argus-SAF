@@ -30,9 +30,9 @@ object Position {
   val tabInc = 8
 
   private def validate[T <: Position](pos: T): T = {
-    if (pos.isRange)
+    if (pos.isRange) {
       assert(pos.start <= pos.end, s"bad position: ${pos.show}")
-
+    }
     pos
   }
 
@@ -86,6 +86,8 @@ class RangePosition(sourceIn: SourceFile, startIn: Int, length: Int, lineIn: Int
   override def isRange = true
   override def start: Int = startIn
   override def end: Int = startIn + length - 1
+
+  override def toString: String = s"Position($sourceIn line: $lineIn column: $columnIn)"
 }
 
 case object NoPosition extends UndefinedPosition
@@ -112,7 +114,7 @@ sealed abstract class DefinedPosition extends Position {
 sealed abstract class UndefinedPosition extends Position {
   final override def isDefined = false
   override def isRange         = false
-  override def source          = NoSourceFile
+  override def source: SourceFile = NoSourceFile
   override def start: Int = fail("start")
   override def point: Int = fail("point")
   override def end: Int = fail("end")

@@ -1,13 +1,13 @@
-record `com.fgwei.ArrayLength1`  @kind class @AccessFlag PUBLIC {
+record `com.fgwei.ArrayLength1` @kind class @AccessFlag PUBLIC {
    }
     procedure `int` `main` () @signature `Lcom/fgwei/ArrayLength1;.main:()I` @AccessFlag PUBLIC_STATIC {
       `int` int_v0;
       `int` int_v1;
       `java.lang.String`[] String_arr1_v1;
       
-#L026e4c.   int_v1:= 10I;
-#L026e4e.   String_arr1_v1:= new `java.lang.String`[int_v1];
-#L026e4f.   int_v0:= length @variable String_arr1_v1;
-#L026eb0.   return int_v0;
+  #L026e4c.  int_v1:= 10I;
+  #L026e4e.  String_arr1_v1:= new `java.lang.String`[int_v1];
+  #L026e4f.  int_v0:= length @variable String_arr1_v1;
+  #L026eb0.  return int_v0;
 
    }

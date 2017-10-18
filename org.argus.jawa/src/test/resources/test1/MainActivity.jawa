@@ -3,7 +3,7 @@ record `com.ksu.fieldFlowSentivity.MainActivity` @kind class @AccessFlag PUBLIC 
 procedure `void` `<init>`(`com.ksu.fieldFlowSentivity.MainActivity` MainActivity_v0 @kind this) @signature `Lcom/ksu/fieldFlowSentivity/MainActivity;.<init>:()V` @AccessFlag PUBLIC_CONSTRUCTOR {
 
   #L02c864.  call `<init>`(MainActivity_v0) @signature `Landroid/app/Activity;.<init>:()V` @kind direct;
-  #L02c86a.  return  @kind void;
+  #L02c86a.  return @kind void;
 }
 procedure `void` `onCreate`(`com.ksu.fieldFlowSentivity.MainActivity` MainActivity_v6 @kind this, `android.os.Bundle` Bundle_v7 @kind object) @signature `Lcom/ksu/fieldFlowSentivity/MainActivity;.onCreate:(Landroid/os/Bundle;)V` @AccessFlag PROTECTED {
     `android.content.Context` Context_temp;
@@ -25,22 +25,22 @@ procedure `void` `onCreate`(`com.ksu.fieldFlowSentivity.MainActivity` MainActivi
   #L02c886.  call `<init>`(Data_v0) @signature `Lcom/ksu/fieldFlowSentivity/Data;.<init>:()V` @kind direct;
   #L02c88c.  String_v4:= "data" @kind object;
   #L02c890.  call `setData1`(Data_v0, String_v4) @signature `Lcom/ksu/fieldFlowSentivity/Data;.setData1:(Ljava/lang/String;)V` @kind virtual;
-  #L02c896.  call Context_temp:=  `getApplicationContext`(MainActivity_v6) @signature `Lcom/ksu/fieldFlowSentivity/MainActivity;.getApplicationContext:()Landroid/content/Context;` @kind virtual;
-  #L02c89c.  Context_v4:= Context_temp  @kind object;
+  #L02c896.  call Context_temp:= `getApplicationContext`(MainActivity_v6) @signature `Lcom/ksu/fieldFlowSentivity/MainActivity;.getApplicationContext:()Landroid/content/Context;` @kind virtual;
+  #L02c89c.  Context_v4:= Context_temp @kind object;
   #L02c89e.  String_v5:= "phone" @kind object;
-  #L02c8a2.  call Object_temp:=  `getSystemService`(Context_v4, String_v5) @signature `Landroid/content/Context;.getSystemService:(Ljava/lang/String;)Ljava/lang/Object;` @kind virtual;
-  #L02c8a8.  Object_v3:= Object_temp  @kind object;
-  #L02c8aa.  TelephonyManager_v3:= (`android.telephony.TelephonyManager`)Object_v3  @kind object;
-  #L02c8ae.  call String_temp:=  `getDeviceId`(TelephonyManager_v3) @signature `Landroid/telephony/TelephonyManager;.getDeviceId:()Ljava/lang/String;` @kind virtual;
-  #L02c8b4.  String_v2:= String_temp  @kind object;
+  #L02c8a2.  call Object_temp:= `getSystemService`(Context_v4, String_v5) @signature `Landroid/content/Context;.getSystemService:(Ljava/lang/String;)Ljava/lang/Object;` @kind virtual;
+  #L02c8a8.  Object_v3:= Object_temp @kind object;
+  #L02c8aa.  TelephonyManager_v3:= (`android.telephony.TelephonyManager`)Object_v3 @kind object;
+  #L02c8ae.  call String_temp:= `getDeviceId`(TelephonyManager_v3) @signature `Landroid/telephony/TelephonyManager;.getDeviceId:()Ljava/lang/String;` @kind virtual;
+  #L02c8b4.  String_v2:= String_temp @kind object;
   #L02c8b6.  call `setData2`(Data_v0, String_v2) @signature `Lcom/ksu/fieldFlowSentivity/Data;.setData2:(Ljava/lang/String;)V` @kind virtual;
   #L02c8bc.  Intent_v1:= new `android.content.Intent`;
-  #L02c8c0.  call Context_temp:=  `getApplicationContext`(MainActivity_v6) @signature `Lcom/ksu/fieldFlowSentivity/MainActivity;.getApplicationContext:()Landroid/content/Context;` @kind virtual;
-  #L02c8c6.  Context_v4:= Context_temp  @kind object;
+  #L02c8c0.  call Context_temp:= `getApplicationContext`(MainActivity_v6) @signature `Lcom/ksu/fieldFlowSentivity/MainActivity;.getApplicationContext:()Landroid/content/Context;` @kind virtual;
+  #L02c8c6.  Context_v4:= Context_temp @kind object;
   #L02c8c8.  Class_v5:= constclass @type ^`com.ksu.fieldFlowSentivity.FooActivity` @kind object;
   #L02c8cc.  call `<init>`(Intent_v1, Context_v4, Class_v5) @signature `Landroid/content/Intent;.<init>:(Landroid/content/Context;Ljava/lang/Class;)V` @kind direct;
   #L02c8d2.  String_v4:= "data" @kind object;
-  #L02c8d6.  call Intent_temp:=  `putExtra`(Intent_v1, String_v4, Data_v0) @signature `Landroid/content/Intent;.putExtra:(Ljava/lang/String;Landroid/os/Parcelable;)Landroid/content/Intent;` @kind virtual;
+  #L02c8d6.  call Intent_temp:= `putExtra`(Intent_v1, String_v4, Data_v0) @signature `Landroid/content/Intent;.putExtra:(Ljava/lang/String;Landroid/os/Parcelable;)Landroid/content/Intent;` @kind virtual;
   #L02c8dc.  call `startActivity`(MainActivity_v6, Intent_v1) @signature `Lcom/ksu/fieldFlowSentivity/MainActivity;.startActivity:(Landroid/content/Intent;)V` @kind virtual;
-  #L02c8e2.  return  @kind void;
+  #L02c8e2.  return @kind void;
 }

@@ -10,24 +10,20 @@
 
 package org.argus.jawa.core.io
 
-import java.io.{
-  FileInputStream, FileOutputStream, BufferedReader, BufferedWriter, InputStreamReader, OutputStreamWriter,
-  BufferedInputStream, BufferedOutputStream, IOException, PrintStream, PrintWriter, Closeable => JCloseable
-}
+import java.io.{BufferedOutputStream, BufferedWriter, FileInputStream, FileOutputStream, IOException, OutputStreamWriter, PrintWriter}
 
-import java.nio.channels.{ Channel, FileChannel }
 import scala.io.Codec
-import scala.language.{reflectiveCalls, implicitConversions}
+import scala.language.{implicitConversions, reflectiveCalls}
 /**
  * ''Note:  This library is considered experimental and should not be used unless you know what you are doing.''
  */
 object File {
-  def pathSeparator = java.io.File.pathSeparator
-  def separator     = java.io.File.separator
+  def pathSeparator: String = java.io.File.pathSeparator
+  def separator: String = java.io.File.separator
   def apply(path: Path)(implicit codec: Codec) = new File(path.jfile)(codec)
 
   // Create a temporary file, which will be deleted upon jvm exit.
-  def makeTemp(prefix: String = Path.randomPrefix, suffix: String = null, dir: JFile = null) = {
+  def makeTemp(prefix: String = Path.randomPrefix, suffix: String = null, dir: JFile = null): File = {
     val jfile = java.io.File.createTempFile(prefix, suffix, dir)
     jfile.deleteOnExit()
     apply(jfile)
@@ -46,14 +42,14 @@ object File {
  *  ''Note:  This is library is considered experimental and should not be used unless you know what you are doing.''
  */
 class File(jfile: JFile)(implicit constructorCodec: Codec) extends Path(jfile) with Streamable.Chars {
-  override val creationCodec = constructorCodec
+  override val creationCodec: Codec = constructorCodec
 
   override def addExtension(ext: String): File = super.addExtension(ext).toFile
   override def toAbsolute: File = if (isAbsolute) this else super.toAbsolute.toFile
   override def toDirectory: Directory = new Directory(jfile)
   override def toFile: File = this
   override def normalize: File = super.normalize.toFile
-  override def length = super[Path].length
+  override def length: Long = super[Path].length
   override def walkFilter(cond: Path => Boolean): Iterator[Path] =
     if (cond(this)) Iterator.single(this) else Iterator.empty
 

@@ -232,7 +232,7 @@ class LocalTypeResolverTest extends FlatSpec with Matchers {
     dedex.decompile(dexUri, settings)
     val global = new Global("test", reporter)
     global.setJavaLib(getClass.getResource("/libs/android.jar").getPath)
-    global.load(dedex.getCodes, NoLibraryAPISummary.isLibraryClass)
+    global.loadJawaCode(dedex.getCodes, NoLibraryAPISummary.isLibraryClass)
     val total = dedex.getCodes.size
     var i = 0
     val newcodes = dedex.getCodes.map { case (t, code) =>

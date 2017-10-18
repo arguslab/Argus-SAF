@@ -26,8 +26,8 @@ object Tokens {
   val LOCATION_ID = TokenType("LOCATION_ID")
   val STATIC_ID = TokenType("STATIC_ID")
   val EXCEPTION = TokenType("EXCEPTION")
-  val INSTANCEOF = TokenType("INSTANCEOF")
-    
+  val INSTANCE_OF = TokenType("INSTANCE_OF")
+
   val NEW = TokenType("NEW")
   val THROW = TokenType("THROW")
   val CATCH = TokenType("CATCH")
@@ -40,11 +40,11 @@ object Tokens {
   val CALL = TokenType("CALL")
   val MONITOR_ENTER = TokenType("MONITOR_ENTER")
   val MONITOR_EXIT = TokenType("MONITOR_EXIT")
-  
-  
-  
+
+
+
   val EOF = TokenType("EOF")
-  
+
   val LBRACKET = TokenType("LBRACKET")
   val RBRACKET = TokenType("RBRACKET")
   val LPAREN = TokenType("LPAREN")
@@ -59,7 +59,7 @@ object Tokens {
   val TRUE = TokenType("TRUE")
   val FALSE = TokenType("FALSE")
   val NULL = TokenType("NULL")
-  
+
   val COMMA = TokenType("COMMA")
   val DOT = TokenType("DOT")
   val SEMI = TokenType("SEMI")
@@ -69,23 +69,23 @@ object Tokens {
   val RANGE = TokenType("RANGE")
   val ASSIGN_OP = TokenType("ASSIGN_OP")
   val HAT = TokenType("HAT")
-  
+
   val CMP = TokenType("CMP")
 //  val ANY = TokenType("ANY")
-  
+
   val LINE_COMMENT = TokenType("LINE_COMMENT")
   val MULTILINE_COMMENT = TokenType("MULTILINE_COMMENT")
   val DOC_COMMENT = TokenType("DOC_COMMENT")
-  
+
   val WS = TokenType("WS")
- 
+
   val OP = TokenType("OP")
-  
+
   val UNKNOWN = TokenType("UNKNOWN")
-  
+
   val KEYWORDS = Set(
     CLASS_OR_INTERFACE, METHOD, STATIC_FIELD, EXTENDS_AND_IMPLEMENTS, IF, THEN, NEW,
-    RETURN, THROW, CALL, SWITCH, ELSE, GOTO, CATCH, INSTANCEOF, CONST_CLASS,
+    RETURN, THROW, CALL, SWITCH, ELSE, GOTO, CATCH, INSTANCE_OF, CONST_CLASS,
     TRUE, FALSE, NULL, MONITOR_ENTER, MONITOR_EXIT, CMP, LENGTH)
 
   val COMMENTS = Set(LINE_COMMENT, MULTILINE_COMMENT, DOC_COMMENT)

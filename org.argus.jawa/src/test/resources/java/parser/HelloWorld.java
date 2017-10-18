@@ -12,6 +12,8 @@ package java.parser;
 
 public class HelloWorld {
 
+    String[] a, b[], c;
+
     public static void main(String[] args) {
         // Prints "Hello, World" to the terminal window.
         System.out.println("Hello, World");

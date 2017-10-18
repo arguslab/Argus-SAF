@@ -89,38 +89,13 @@ class Global(projectName: String, reporter: Reporter) extends {
       }
     }
   }
-  
-//  private def withTempUnits[T](sources: List[SourceFile])(f: (SourceFile => RichCompilationUnit) => T): T = {
-//    val unitOfSrc: SourceFile => RichCompilationUnit = src => getCompilationUnit(src.file).get
-//    sources filterNot (getUnitOf(_).isDefined) match {
-//      case Nil =>
-//        f(unitOfSrc)
-//      case unknown =>
-//        reloadSources(unknown)
-//        try {
-//          f(unitOfSrc)
-//        } finally
-//          afterRunRemoveUnitsOf(unknown)
-//    }
-//  }
 
-//  private def withTempUnit[T](source: SourceFile)(f: RichCompilationUnit => T): T =
-//    withTempUnits(List(source)){ srcToUnit =>
-//      f(srcToUnit(source))
-//    }
-  
   /** Implements CompilerControl.askLinkPos */
   private[interactive] def getLinkPos(sym: JawaSymbol, response: Response[Position]) {
     informIDE("getLinkPos "+sym)
     respond(response) {
-//      if (token.owner.isClass) {
-//        withTempUnit(source){ u =>
-//          findMirrorSymbol(sym, u).pos
-//        }
-//      } else {
         debugLog("link not in class "+sym)
         NoPosition
-//      }
     }
   }
   

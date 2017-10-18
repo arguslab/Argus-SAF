@@ -2,6 +2,6 @@ record `NoTaintData` @kind class @AccessFlag PUBLIC {
 }
 procedure `void` `<init>`(`NoTaintData` `this` @kind this) @signature `LNoTaintData;.<init>:()V` @AccessFlag PUBLIC_CONSTRUCTOR {
 
-    #L1.  call `<init>`(`this`) @signature `Ljava/lang/Object;.<init>:()V` @kind direct;
-    #L2.  return  @kind void;
+  #L1.  call `<init>`(`this`) @signature `Ljava/lang/Object;.<init>:()V` @kind direct;
+  #L2.  return @kind void;
 }

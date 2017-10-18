@@ -22,6 +22,7 @@ import org.argus.amandroid.core.decompile.DecompileLevel
 import org.argus.amandroid.core.dedex.`type`.GenerateTypedJawa
 import org.argus.jawa.core.AccessFlag.FlagKind
 import org.argus.jawa.core._
+import org.argus.jawa.core.codegen.JawaModelProvider
 import org.jf.dexlib2.dexbacked.instruction.DexBackedInstruction
 import org.jf.dexlib2.dexbacked.{DexBackedCatchAllExceptionHandler, DexBackedClassDef, DexBackedDexFile, DexBackedField, DexBackedMethod, DexBackedTryBlock, DexBackedTypedExceptionHandler}
 import org.stringtemplate.v4.{ST, STGroupString}
@@ -36,29 +37,10 @@ trait JawaStyleCodeGeneratorListener {
   def onGenerateEnd(recordCount: Int, errorOccupied: Boolean): Unit = {}
 }
 
-object JawaStyleCodeGenerator {
-  def generateAnnotation(flag: String, value: String, template: STGroupString): ST = {
-    val annot = template.getInstanceOf("Annotation")
-    annot.add("flag", flag)
-    annot.add("value", value)
-  }
-
-  def generateType(typ: JawaType, template: STGroupString): ST = {
-    val typTemplate = template.getInstanceOf("Type")
-    typTemplate.add("baseTyp", typ.baseTyp)
-    val dimensions: util.ArrayList[String] = new util.ArrayList[String]
-    for(_ <- 0 until typ.dimensions) dimensions.add("[]")
-    typTemplate.add("dimensions", dimensions)
-    typTemplate
-  }
-}
-
 /**
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
  */
 class JawaStyleCodeGenerator(ddFile: DexBackedDexFile, filter: (JawaType => DecompileLevel.Value), reporter: Reporter) {
-
-  import JawaStyleCodeGenerator._
 
   private final val DEBUG_FLOW = false
 
@@ -200,7 +182,7 @@ class JawaStyleCodeGenerator(ddFile: DexBackedDexFile, filter: (JawaType => Deco
       val global = new Global("Type", reporter)
       global.setJavaLib(AndroidGlobalConfig.settings.lib_files)
       val codes: IMap[JawaType, String] = (result ++ needType).toMap
-      global.load(codes, NoLibraryAPISummary.isLibraryClass)
+      global.loadJawaCode(codes, NoLibraryAPISummary.isLibraryClass)
       result ++= ProgressBarUtil.withProgressBar("Resolving types...", progressBar)(needType.toSet, handleType(global))
     }
     if(listener.isDefined) listener.get.onGenerateEnd(result.size, errorOccurred)
@@ -209,15 +191,17 @@ class JawaStyleCodeGenerator(ddFile: DexBackedDexFile, filter: (JawaType => Deco
 
   private def process(dexClass: DexBackedClassDef, recType: JawaType, listener: Option[JawaStyleCodeGeneratorListener], genBody: Boolean): Option[(JawaType, String)] = {
     val template = new STGroupString(JawaModelProvider.jawaModel)
-    if (DEBUG_FLOW)
+    if (DEBUG_FLOW) {
       println("Processing " + recType)
+    }
     try {
       val code = generateRecord(dexClass, recType, listener, genBody, template)
       Some((recType, code))
     } catch {
       case e: Exception =>
-        if(DEBUG_FLOW)
+        if(DEBUG_FLOW) {
           e.printStackTrace()
+        }
         None
     }
   }
@@ -233,8 +217,8 @@ class JawaStyleCodeGenerator(ddFile: DexBackedDexFile, filter: (JawaType => Deco
     }.toList
     recTemplate.add("recName", recTyp.jawaName)
     val recAnnotations = new util.ArrayList[ST]
-    recAnnotations.add(generateAnnotation("kind", if(isInterface) "interface" else "class", template))
-    recAnnotations.add(generateAnnotation("AccessFlag", accessFlag, template))
+    recAnnotations.add(JawaModelProvider.generateAnnotation("kind", if(isInterface) "interface" else "class", template))
+    recAnnotations.add(JawaModelProvider.generateAnnotation("AccessFlag", accessFlag, template))
     recTemplate.add("annotations", recAnnotations)
 
     val extendsList: util.ArrayList[ST] = new util.ArrayList[ST]
@@ -243,7 +227,7 @@ class JawaStyleCodeGenerator(ddFile: DexBackedDexFile, filter: (JawaType => Deco
         val extOrImpTemplate = template.getInstanceOf("ExtendsAndImplements")
         extOrImpTemplate.add("recName", sc.jawaName)
         val extAnnotations = new util.ArrayList[ST]
-        extAnnotations.add(generateAnnotation("kind", "class", template))
+        extAnnotations.add(JawaModelProvider.generateAnnotation("kind", "class", template))
         extOrImpTemplate.add("annotations", extAnnotations)
         extendsList.add(extOrImpTemplate)
       }
@@ -252,7 +236,7 @@ class JawaStyleCodeGenerator(ddFile: DexBackedDexFile, filter: (JawaType => Deco
       val extOrImpTemplate = template.getInstanceOf("ExtendsAndImplements")
       extOrImpTemplate.add("recName", ic.jawaName)
       val impAnnotations = new util.ArrayList[ST]
-      impAnnotations.add(generateAnnotation("kind", "interface", template))
+      impAnnotations.add(JawaModelProvider.generateAnnotation("kind", "interface", template))
       extOrImpTemplate.add("annotations", impAnnotations)
       extendsList.add(extOrImpTemplate)
     }
@@ -274,10 +258,10 @@ class JawaStyleCodeGenerator(ddFile: DexBackedDexFile, filter: (JawaType => Deco
       val accessFlagInt: Int = AccessFlag.getJawaFlags(dexField.getAccessFlags, FlagKind.FIELD, isConstructor = false)
       val accessFlag = getAccessString(AccessFlag.toString(accessFlagInt))
       val attrTemplate = template.getInstanceOf("AttributeDecl")
-      attrTemplate.add("attrTyp", generateType(fqn.typ, template))
+      attrTemplate.add("attrTyp", JawaModelProvider.generateType(fqn.typ, template))
       attrTemplate.add("attrName", fqn.fqn)
       val attrAnnotations = new util.ArrayList[ST]
-      attrAnnotations.add(generateAnnotation("AccessFlag", accessFlag, template))
+      attrAnnotations.add(JawaModelProvider.generateAnnotation("AccessFlag", accessFlag, template))
       attrTemplate.add("annotations", attrAnnotations)
       attributes.add(attrTemplate)
     }
@@ -293,10 +277,10 @@ class JawaStyleCodeGenerator(ddFile: DexBackedDexFile, filter: (JawaType => Deco
       val accessFlagInt: Int = AccessFlag.getJawaFlags(dexField.getAccessFlags, FlagKind.FIELD, isConstructor = false)
       val accessFlag = getAccessString(AccessFlag.toString(accessFlagInt))
       val globalTemplate = template.getInstanceOf("GlobalDecl")
-      globalTemplate.add("globalTyp", generateType(fqn.typ, template))
+      globalTemplate.add("globalTyp", JawaModelProvider.generateType(fqn.typ, template))
       globalTemplate.add("globalName", "@@" + fqn.fqn)
       val globalAnnotations = new util.ArrayList[ST]
-      globalAnnotations.add(generateAnnotation("AccessFlag", accessFlag, template))
+      globalAnnotations.add(JawaModelProvider.generateAnnotation("AccessFlag", accessFlag, template))
       globalTemplate.add("annotations", globalAnnotations)
       globals.add(globalTemplate)
     }
@@ -345,36 +329,36 @@ class JawaStyleCodeGenerator(ddFile: DexBackedDexFile, filter: (JawaType => Deco
     }.toList
 
     val procTemplate = template.getInstanceOf("ProcedureDecl")
-    procTemplate.add("retTyp", generateType(retTyp, template))
+    procTemplate.add("retTyp", JawaModelProvider.generateType(retTyp, template))
     procTemplate.add("procedureName", procName)
     val params: util.ArrayList[ST] = new util.ArrayList[ST]
     thisOpt foreach {
       case (thisName, thisTyp) =>
         val paramTemplate = template.getInstanceOf("Param")
-        paramTemplate.add("paramTyp", generateType(thisTyp, template))
+        paramTemplate.add("paramTyp", JawaModelProvider.generateType(thisTyp, template))
         paramTemplate.add("paramName", thisName)
         val thisAnnotations = new util.ArrayList[ST]
-        thisAnnotations.add(generateAnnotation("kind", "this", template))
+        thisAnnotations.add(JawaModelProvider.generateAnnotation("kind", "this", template))
         paramTemplate.add("annotations", thisAnnotations)
         params.add(paramTemplate)
     }
     paramList foreach {
       case (regName, paramName, paramTyp) =>
         val paramTemplate = template.getInstanceOf("Param")
-        paramTemplate.add("paramTyp", generateType(paramTyp, template))
+        paramTemplate.add("paramTyp", JawaModelProvider.generateType(paramTyp, template))
         paramTemplate.add("paramName", regName)
         val paramAnnotations = new util.ArrayList[ST]
         if(!JavaKnowledge.isJavaPrimitive(paramTyp)) {
-          paramAnnotations.add(generateAnnotation("kind", "object", template))
+          paramAnnotations.add(JawaModelProvider.generateAnnotation("kind", "object", template))
         }
-        if(paramName != null) paramAnnotations.add(generateAnnotation("name", "`" + paramName + "`", template))
+        if(paramName != null) paramAnnotations.add(JawaModelProvider.generateAnnotation("name", "`" + paramName + "`", template))
         paramTemplate.add("annotations", paramAnnotations)
         params.add(paramTemplate)
     }
     procTemplate.add("params", params)
     val procAnnotations = new util.ArrayList[ST]
-    procAnnotations.add(generateAnnotation("signature", "`" + sig.signature + "`", template))
-    procAnnotations.add(generateAnnotation("AccessFlag", accessFlags, template))
+    procAnnotations.add(JawaModelProvider.generateAnnotation("signature", "`" + sig.signature + "`", template))
+    procAnnotations.add(JawaModelProvider.generateAnnotation("AccessFlag", accessFlags, template))
     procTemplate.add("annotations", procAnnotations)
     if(genBody && !AccessFlag.isAbstract(AccessFlag.getAccessFlags(accessFlags)) &&
         !AccessFlag.isNative(AccessFlag.getAccessFlags(accessFlags))) {
@@ -435,7 +419,7 @@ class JawaStyleCodeGenerator(ddFile: DexBackedDexFile, filter: (JawaType => Deco
  
 
   def writeTryCatchBlock(catchTemplate: ST, startLabel: String, endLabel: String, exception: JawaType, handlerLabel: String, template: STGroupString): ST = {
-    catchTemplate.add("catchTyp", generateType(exception, template))
+    catchTemplate.add("catchTyp", JawaModelProvider.generateType(exception, template))
     catchTemplate.add("fromLoc", startLabel)
     catchTemplate.add("toLoc", endLabel)
     catchTemplate.add("targetLoc", handlerLabel)

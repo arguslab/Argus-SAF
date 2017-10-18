@@ -23,7 +23,9 @@ object HeapSummaryProcessor {
     val baseClass: JawaClass = global.getClassOrResolve(baseType)
     types.foreach {
       case (name, typ) =>
-        baseClass.addField(JawaField(baseClass, name, typ, 0))
+        if(!baseClass.hasField(name)) {
+          JawaField(baseClass, name, typ, 0)
+        }
     }
   }
 

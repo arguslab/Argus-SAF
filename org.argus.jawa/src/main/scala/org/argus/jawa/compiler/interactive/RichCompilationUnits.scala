@@ -31,7 +31,7 @@ trait RichCompilationUnits { self: Global =>
   
   def addCompilationUnit(file: AbstractFile, rcu: RichCompilationUnit): Option[RichCompilationUnit] = this.unitOfFile.put(file, rcu)
   def addCompilationUnits(rcus: ISeq[RichCompilationUnit]): Unit = {
-    rcus.foreach(rcu => addCompilationUnit(rcu.cu.firstToken.file.file, rcu))
+    rcus.foreach(rcu => addCompilationUnit(rcu.cu.pos.source.file, rcu))
   }
   def removeCompilationUnit(file: AbstractFile): Option[RichCompilationUnit] = this.unitOfFile.remove(file)
   def getCompilationUnits: IMap[AbstractFile, RichCompilationUnit] = this.unitOfFile.toMap

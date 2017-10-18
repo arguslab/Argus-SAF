@@ -15,7 +15,7 @@ import java.io.FileInputStream
 import java.util.zip.ZipEntry
 
 import org.argus.amandroid.alir.componentSummary.ComponentSummaryTable
-import org.argus.amandroid.core.jawaCodeGenerator.AndroidEntryPointConstants
+import org.argus.amandroid.core.codegen.AndroidEntryPointConstants
 import org.argus.amandroid.core.model.ApkModel
 import org.argus.amandroid.core.parser.{ComponentInfo, ComponentType}
 import org.argus.jawa.alir.dda.InterProceduralDataDependenceInfo
@@ -116,12 +116,14 @@ class ApkGlobal(val model: ApkModel, reporter: Reporter) extends Global(model.na
       val fileUri = FileUtil.appendFileName(outApkUri, src)
       if(FileUtil.toFile(fileUri).exists()) {
         load(fileUri, Constants.JAWA_FILE_EXT, _ => false)
+        load(fileUri, Constants.JAVA_FILE_EXT, _ => false)
       }
     }
     model.layout.libFolders foreach { lib =>
       val fileUri = FileUtil.appendFileName(outApkUri, lib)
       if(FileUtil.toFile(fileUri).exists()) {
         load(fileUri, Constants.JAWA_FILE_EXT, _ => true)
+        load(fileUri, Constants.JAVA_FILE_EXT, _ => true)
       }
     }
   }

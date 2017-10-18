@@ -16,7 +16,7 @@ import java.io.FileInputStream
 
 import org.argus.amandroid.core.{AndroidConstants, ApkGlobal}
 import org.argus.amandroid.core.parser._
-import org.argus.amandroid.core.jawaCodeGenerator.{AndroidEntryPointConstants, AndroidEnvironmentGenerator, AndroidSubstituteClassMap, AsyncTaskEnvGenerator}
+import org.argus.amandroid.core.codegen.{AndroidEntryPointConstants, AndroidEnvironmentGenerator, AndroidSubstituteClassMap, AsyncTaskEnvGenerator}
 import org.argus.jawa.core._
 import org.argus.jawa.core.util.FileUtil
 

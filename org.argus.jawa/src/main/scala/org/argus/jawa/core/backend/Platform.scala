@@ -10,7 +10,7 @@
 
 package org.argus.jawa.core.backend
 
-import org.argus.jawa.core.classpath.{Classpath, FlatClasspath}
+import org.argus.jawa.core.backend.classpath.{Classpath, FlatClasspath}
 import org.argus.jawa.core.io.AbstractFile
 
 /** The platform dependent pieces of Global.

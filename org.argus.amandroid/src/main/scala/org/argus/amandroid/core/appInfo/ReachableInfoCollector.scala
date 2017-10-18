@@ -11,7 +11,7 @@ package org.argus.amandroid.core.appInfo
 
 import org.argus.amandroid.core.AndroidConstants
 import org.argus.amandroid.core.parser.LayoutControl
-import org.argus.amandroid.core.jawaCodeGenerator.AndroidEntryPointConstants
+import org.argus.amandroid.core.codegen.AndroidEntryPointConstants
 import org.argus.jawa.alir.reachability.ReachabilityAnalysis
 import org.argus.jawa.alir.util.ExplicitValueFinder
 import org.argus.jawa.ast.CallStatement

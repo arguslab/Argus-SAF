@@ -12,7 +12,7 @@ package org.argus.jawa.core
 
 import org.argus.jawa.core.util._
 import org.argus.jawa.core.backend.JavaPlatform
-import org.argus.jawa.core.classpath._
+import org.argus.jawa.core.backend.classpath._
 import org.argus.jawa.core.io._
 import com.google.common.cache.LoadingCache
 import com.google.common.cache.CacheBuilder
@@ -42,16 +42,20 @@ trait JawaClasspathManager extends JavaKnowledge { self: Global =>
     * load code from given file
     */
   def load(fileUri: FileResourceUri, isLib: (JawaType => Boolean)): Unit = {
-    load(FileUtil.toFile(fileUri), isLib)
+    fileUri match {
+      case jawafile if jawafile.endsWith(Constants.JAWA_FILE_EXT) => loadJawa(FileUtil.toFile(jawafile), isLib)
+      case javafile if javafile.endsWith(Constants.JAVA_FILE_EXT) => loadJava(FileUtil.toFile(javafile), isLib)
+      case _ => reporter.warning(TITLE, s"Try to load class from unknown source file: $fileUri")
+    }
   }
 
-  def load(filePath: Path, isLib: (JawaType => Boolean)): Unit = {
+  private def loadJawa(filePath: Path, isLib: (JawaType => Boolean)): Unit = {
     val source = new JawaSourceFile(new PlainFile(filePath))
     val codes = source.getClassCodes
     val classTypes: MSet[JawaType] = msetEmpty
     codes.foreach{ code =>
       try {
-        val className = LightWeightPilarParser.getClassName(code)
+        val className = LightWeightJawaParser.getClassName(code)
         classTypes += JavaKnowledge.getTypeFromJawaName(className)
       } catch {
         case e: Exception => reporter.warning(TITLE, e.getMessage)
@@ -66,10 +70,21 @@ trait JawaClasspathManager extends JavaKnowledge { self: Global =>
     }
   }
 
+  private def loadJava(filePath: Path, isLib: (JawaType => Boolean)): Unit = {
+    val source = new JavaSourceFile(new PlainFile(filePath))
+    source.getTypes.foreach { typ =>
+      if (isLib(typ)) {
+        this.userLibraryClassCodes(typ) = source
+      } else {
+        this.applicationClassCodes(typ) = source
+      }
+    }
+  }
+
   /**
     * load code from given string
     */
-  def load(codes: IMap[JawaType, String], isLib: (JawaType => Boolean)): Unit = {
+  def loadJawaCode(codes: IMap[JawaType, String], isLib: (JawaType => Boolean)): Unit = {
     codes.foreach { case (typ, code) =>
       try {
         val source = new JawaSourceFile(new StringFile(code))
@@ -139,16 +154,16 @@ trait JawaClasspathManager extends JavaKnowledge { self: Global =>
   
   protected val cachedClassRepresentation: LoadingCache[JawaType, Option[ClassRepresentation]] = CacheBuilder.newBuilder()
     .maximumSize(1000).build(
-        new CacheLoader[JawaType, Option[ClassRepresentation]]() {
-          def load(typ: JawaType): Option[ClassRepresentation] = {
-            classPath.findClass(typ.name)
-          }
-        })
+      new CacheLoader[JawaType, Option[ClassRepresentation]]() {
+        def load(typ: JawaType): Option[ClassRepresentation] = {
+          classPath.findClass(typ.name)
+        }
+      })
   
   def containsClassFile(typ: JawaType): Boolean = {
     this.applicationClassCodes.contains(typ) ||
     this.userLibraryClassCodes.contains(typ) ||
-    cachedClassRepresentation.get(typ).isDefined
+    this.cachedClassRepresentation.get(typ).isDefined
   }
   
   def getMyClass(typ: JawaType): Option[MyClass] = {
@@ -160,7 +175,7 @@ trait JawaClasspathManager extends JavaKnowledge { self: Global =>
           case Some(usrc) =>
             SourcefileParser.parse(usrc, reporter).get(typ)
           case None =>
-            cachedClassRepresentation.get(typ) match {
+            this.cachedClassRepresentation.get(typ) match {
               case Some(cs) =>
                 ClassfileParser.parse(cs.binary.get, reporter).get(typ)
               case None =>
