@@ -114,7 +114,7 @@ class JawaLexer(aplexer: Antlr4PilarLexer, file: SourceFile, reporter: Reporter)
           else if(aptoken.getText == "monitorexit")
             Tokens.MONITOR_EXIT
           else if(aptoken.getText == "instanceof")
-            Tokens.INSTANCEOF
+            Tokens.INSTANCE_OF
           else Tokens.ID
         case LID =>
           Tokens.LOCATION_ID

@@ -10,8 +10,8 @@
 
 package org.argus.jawa.ast.java
 
-import com.github.javaparser.JavaParser
-import org.argus.jawa.core.io.{DefaultSourceFile, PlainFile}
+import org.argus.jawa.core.{Global, MsgLevel, PrintReporter}
+import org.argus.jawa.core.io.{JavaSourceFile, PlainFile}
 import org.argus.jawa.core.util.FileUtil
 import org.scalatest.{FlatSpec, Matchers}
 
@@ -30,10 +30,11 @@ class Java2JawaTest extends FlatSpec with Matchers {
     def produce(tp: String): Unit = {
       file should "produce expected result" in {
         val fileUri = FileUtil.toUri(getClass.getResource(file).getPath)
-        val sf = new DefaultSourceFile(new PlainFile(FileUtil.toFile(fileUri)))
-        val cu = JavaParser.parse(sf.code)
-        val j2j = new Java2Jawa
-        j2j.process(cu)
+        val sf = new JavaSourceFile(new PlainFile(FileUtil.toFile(fileUri)))
+        val global = new Global("test", new PrintReporter(MsgLevel.INFO))
+        global.setJavaLib(getClass.getResource("/libs/rt.jar").getPath)
+        val j2j = new Java2Jawa(global, sf)
+        j2j.process
       }
     }
   }

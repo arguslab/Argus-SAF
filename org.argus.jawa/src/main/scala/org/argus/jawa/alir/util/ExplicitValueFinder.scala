@@ -102,7 +102,7 @@ object ExplicitValueFinder {
             result = Left(true)
           case _: ExceptionExpression =>
             result = Left(true)
-          case _: InstanceofExpression =>
+          case _: InstanceOfExpression =>
             result = Left(true)
           case _: LengthExpression =>
             result = Left(true)

@@ -45,30 +45,29 @@ trait JawaResolver extends JavaKnowledge { self: Global =>
    * resolve the given classes.
    */
   protected[core] def resolveClass(classType: JawaType, allowUnknown: Boolean): JawaClass = {
-    val clazz =
-      if(!classType.isArray && !containsClassFile(classType)) {
-        if(!allowUnknown) throw JawaResolverError("Does not find class " + classType + " and don't allow unknown.")
-        val rec = new JawaClass(this, classType, "")
-        rec.setUnknown()
-        if(classType.baseType.unknown) {
-          val baseCls = getClassOrResolve(classType.removeUnknown())
-          if(baseCls.isInterface) {
-            if(rec.getType != JAVA_TOPLEVEL_OBJECT_TYPE)
-              rec.setSuperClass(getClassOrResolve(JAVA_TOPLEVEL_OBJECT_TYPE))
-            rec.addInterface(baseCls)
-          } else {
-            rec.setSuperClass(baseCls)
-          }
-        } else {
+    val clazz = if(!classType.isArray && !containsClassFile(classType)) {
+      if(!allowUnknown) throw JawaResolverError("Does not find class " + classType + " and don't allow unknown.")
+      val rec = new JawaClass(this, classType, "")
+      rec.setUnknown()
+      if(classType.baseType.unknown) {
+        val baseCls = getClassOrResolve(classType.removeUnknown())
+        if(baseCls.isInterface) {
           if(rec.getType != JAVA_TOPLEVEL_OBJECT_TYPE)
             rec.setSuperClass(getClassOrResolve(JAVA_TOPLEVEL_OBJECT_TYPE))
-          reporter.echo(TITLE, "Add phantom class " + rec)
-          addClassNotFound(classType)
+          rec.addInterface(baseCls)
+        } else {
+          rec.setSuperClass(baseCls)
         }
-        rec
       } else {
-        forceResolve(classType)
+        if(rec.getType != JAVA_TOPLEVEL_OBJECT_TYPE)
+          rec.setSuperClass(getClassOrResolve(JAVA_TOPLEVEL_OBJECT_TYPE))
+        reporter.echo(TITLE, "Add phantom class " + rec)
+        addClassNotFound(classType)
       }
+      rec
+    } else {
+      forceResolve(classType)
+    }
     if(!getClassHierarchy.resolved(clazz)) {
       addClassesNeedUpdateInHierarchy(clazz)
     }
@@ -83,8 +82,7 @@ trait JawaResolver extends JavaKnowledge { self: Global =>
       resolveArrayClass(classType)
     } else {
       val mc = getMyClass(classType).get
-      val c = resolveFromMyClass(mc)
-      c
+      resolveFromMyClass(mc)
     }
     clazz
   }

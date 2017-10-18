@@ -21,7 +21,7 @@ class TaintTag {
   /**
    * tagStr: Taint tag has to be following format: WEB|XSS|LOCATION ...
    */
-  def setTags(tagStr: String) = {
+  def setTags(tagStr: String): Unit = {
     val ts = tagStr.split("|")
     this.tags ++= ts
   }
@@ -33,7 +33,7 @@ class TaintTag {
   /**
    * str: format --> +WEB+XSS-LOCATION ...
    */
-  def parse(str: String) = {
+  def parse(str: String): Unit = {
     val it = str.iterator
     val sb = new StringBuilder
     var flag = 0
@@ -42,7 +42,6 @@ class TaintTag {
       if(flag != 0){
         if(s == ' ' || s == '+' || s == '-' || !it.hasNext){
           if(!it.hasNext) sb.append(s)
-          println(sb.toString)
           if(flag == 1) tags += sb.toString()
           else if(flag == 2) tags -= sb.toString()
           sb.clear()

@@ -72,7 +72,7 @@ object PointsCollector {
             PointL(ne.name, locUri, locIndex, ownerSig)
           }
         case ie: IndexingExpression =>
-          val dimensions = ie.dimentions
+          val dimensions = ie.dimensions
           PointMyArrayL(ie.base, dimensions, locUri, locIndex, ownerSig)
         case ae: AccessExpression =>
           val baseName = ae.base
@@ -106,9 +106,9 @@ object PointsCollector {
         case _: ExceptionExpression =>
           PointExceptionR(typ.get.toUnknown, locUri, locIndex, ownerSig)
         case ie: IndexingExpression =>
-          val dimensions = ie.dimentions
+          val dimensions = ie.dimensions
           PointMyArrayR(ie.base, dimensions, locUri, locIndex, ownerSig)
-        case ie: InstanceofExpression =>
+        case ie: InstanceOfExpression =>
           PointInstanceOfR(ie.varSymbol.varName, ie.typExp.typ, locUri, locIndex, ownerSig)
         case le: LengthExpression =>
           PointLengthR(le.varSymbol.varName, locUri, locIndex, ownerSig)
@@ -162,7 +162,7 @@ object PointsCollector {
           case ie: IndexingExpression =>
             pl = Some(processLHS(as.lhs, typ))
             pr = Some(processRHS(ie, typ))
-          case ie: InstanceofExpression =>
+          case ie: InstanceOfExpression =>
             pl = Some(processLHS(as.lhs, typ))
             pr = Some(processRHS(ie, typ))
           case le: LengthExpression =>

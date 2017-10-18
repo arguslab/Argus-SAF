@@ -172,7 +172,7 @@ case class JawaClass(global: Global, typ: JawaType, accessFlags: Int) extends Ja
    */
   def addField(field: JawaField): Unit = {
     val fieldName = field.getName
-    if(declaresField(fieldName)) global.reporter.warning(TITLE, "Field " + fieldName + " in class " + getName)
+    if(declaresField(fieldName)) global.reporter.warning(TITLE, "Field " + fieldName + " already in class " + getName)
     else this.fields(fieldName) = field
   }
 

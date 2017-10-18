@@ -12,10 +12,14 @@ package org.argus.jawa.core.io
 
 import java.io.{BufferedReader, StringReader}
 
+import com.github.javaparser.JavaParser
+import com.github.javaparser.ast.{CompilationUnit => JavaCompilationUnit}
+import org.argus.jawa.core.Chars._
+import org.argus.jawa.core.JawaType
+import org.argus.jawa.core.util._
+
 import scala.annotation.tailrec
 import scala.collection.mutable.ArrayBuffer
-import org.argus.jawa.core.util._
-import org.argus.jawa.core.Chars._
 
 /** abstract base class of a source file used in the compiler */
 abstract class SourceFile {
@@ -170,4 +174,27 @@ class JawaSourceFile(file: AbstractFile) extends DefaultSourceFile(file) {
   }
 }
 
-class JavaSourceFile(file: AbstractFile) extends DefaultSourceFile(file)
+class JavaSourceFile(file: AbstractFile) extends DefaultSourceFile(file) {
+  private var javacu: Option[JavaCompilationUnit] = None
+  def getJavaCU: JavaCompilationUnit = {
+    javacu match {
+      case Some(cu) => cu
+      case None =>
+        val cu = JavaParser.parse(file.input)
+        javacu = Some(cu)
+        cu
+    }
+  }
+  def getTypes: ISet[JawaType] = {
+    val types: MSet[JawaType] = msetEmpty
+    val cu = getJavaCU
+    var packageName = ""
+    if(cu.getPackageDeclaration.isPresent) {
+      packageName = cu.getPackageDeclaration.get().getName.asString() + "."
+    }
+    cu.getTypes.forEach{ typ =>
+      types += new JawaType(s"$packageName${typ.getNameAsString}")
+    }
+    types.toSet
+  }
+}

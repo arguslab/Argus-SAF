@@ -1,4 +1,4 @@
-record `com.fgwei.ArrayAccess2`  @kind class @AccessFlag PUBLIC {
+record `com.fgwei.ArrayAccess2` @kind class @AccessFlag PUBLIC {
    }
     procedure `java.lang.String` `main` () @signature `Lcom/fgwei/ArrayAccess2;.main:()Ljava/lang/String;` @AccessFlag PUBLIC_STATIC {
       `int` int_v1;
@@ -7,12 +7,12 @@ record `com.fgwei.ArrayAccess2`  @kind class @AccessFlag PUBLIC {
       `java.lang.String` String_v3;
       `java.lang.String` String_v4;
       
-#L026e4c.   int_v1:= 3I;
-#L026e4e.   String_arr1_v1:= new `java.lang.String`[int_v1];
-#L026e5a.   int_v3:= 0I;
-#L026e5c.   String_v4:= "element 1 is tainted:" @kind object;
-#L026e60.   String_arr1_v1[int_v3]:= String_v4  @kind object;
-#L026ea2.   String_v3:= String_arr1_v1[int_v3]  @kind object;
-#L026eb0.   return String_v3 @kind object;
+  #L026e4c.  int_v1:= 3I;
+  #L026e4e.  String_arr1_v1:= new `java.lang.String`[int_v1];
+  #L026e5a.  int_v3:= 0I;
+  #L026e5c.  String_v4:= "element 1 is tainted:" @kind object;
+  #L026e60.  String_arr1_v1[int_v3]:= String_v4 @kind object;
+  #L026ea2.  String_v3:= String_arr1_v1[int_v3] @kind object;
+  #L026eb0.  return String_v3 @kind object;
 
    }

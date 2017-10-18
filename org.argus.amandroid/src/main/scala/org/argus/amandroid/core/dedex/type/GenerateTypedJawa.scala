@@ -13,11 +13,10 @@ package org.argus.amandroid.core.dedex.`type`
 import java.util
 
 import org.argus.amandroid.core.dedex.`type`.LocalTypeResolver.VarType
-import org.argus.amandroid.core.dedex.{JawaModelProvider, JawaStyleCodeGenerator}
 import org.argus.jawa.alir.rda.VarSlot
 import org.argus.jawa.ast._
-
 import org.argus.jawa.compiler.parser._
+import org.argus.jawa.core.codegen.JawaModelProvider
 import org.argus.jawa.core.io.Position
 import org.argus.jawa.core.util._
 import org.argus.jawa.core.{AccessFlag, Global, JavaKnowledge, JawaType}
@@ -49,8 +48,8 @@ object GenerateTypedJawa {
     val recTemplate = template.getInstanceOf("RecordDecl")
     recTemplate.add("recName", clazz.typ.jawaName)
     val recAnnotations = new util.ArrayList[ST]
-    recAnnotations.add(JawaStyleCodeGenerator.generateAnnotation("kind", if(clazz.isInterface) "interface" else "class", template))
-    recAnnotations.add(JawaStyleCodeGenerator.generateAnnotation("AccessFlag", clazz.accessModifier, template))
+    recAnnotations.add(JawaModelProvider.generateAnnotation("kind", if(clazz.isInterface) "interface" else "class", template))
+    recAnnotations.add(JawaModelProvider.generateAnnotation("AccessFlag", clazz.accessModifier, template))
     recTemplate.add("annotations", recAnnotations)
 
     val extendsList: util.ArrayList[ST] = new util.ArrayList[ST]
@@ -58,7 +57,7 @@ object GenerateTypedJawa {
       val extOrImpTemplate = template.getInstanceOf("ExtendsAndImplements")
       extOrImpTemplate.add("recName", sc.jawaName)
       val extAnnotations = new util.ArrayList[ST]
-      extAnnotations.add(JawaStyleCodeGenerator.generateAnnotation("kind", "class", template))
+      extAnnotations.add(JawaModelProvider.generateAnnotation("kind", "class", template))
       extOrImpTemplate.add("annotations", extAnnotations)
       extendsList.add(extOrImpTemplate)
     }
@@ -66,7 +65,7 @@ object GenerateTypedJawa {
       val extOrImpTemplate = template.getInstanceOf("ExtendsAndImplements")
       extOrImpTemplate.add("recName", ic.jawaName)
       val impAnnotations = new util.ArrayList[ST]
-      impAnnotations.add(JawaStyleCodeGenerator.generateAnnotation("kind", "interface", template))
+      impAnnotations.add(JawaModelProvider.generateAnnotation("kind", "interface", template))
       extOrImpTemplate.add("annotations", impAnnotations)
       extendsList.add(extOrImpTemplate)
     }
@@ -107,16 +106,16 @@ object GenerateTypedJawa {
 
     val signature = method.signature
     val procTemplate = template.getInstanceOf("ProcedureDecl")
-    procTemplate.add("retTyp", JawaStyleCodeGenerator.generateType(signature.getReturnType, template))
+    procTemplate.add("retTyp", JawaModelProvider.generateType(signature.getReturnType, template))
     procTemplate.add("procedureName", method.methodSymbol.id.text)
     val params: util.ArrayList[ST] = new util.ArrayList[ST]
     method.thisParam foreach { thisP =>
       val thisType = thisP.typ.typ
       val paramTemplate = template.getInstanceOf("Param")
-      paramTemplate.add("paramTyp", JawaStyleCodeGenerator.generateType(thisType, template))
+      paramTemplate.add("paramTyp", JawaModelProvider.generateType(thisType, template))
       paramTemplate.add("paramName", genVarName(thisP.name, thisType, Some("this"), isParam = true, localvars, realnameMap))
       val thisAnnotations = new util.ArrayList[ST]
-      thisAnnotations.add(JawaStyleCodeGenerator.generateAnnotation("kind", "this", template))
+      thisAnnotations.add(JawaModelProvider.generateAnnotation("kind", "this", template))
       paramTemplate.add("annotations", thisAnnotations)
       params.add(paramTemplate)
     }
@@ -125,19 +124,19 @@ object GenerateTypedJawa {
       val paramName = p.annotations.find(a => a.key == "name").map(_.value).filter(_.nonEmpty)
 
       val paramTemplate = template.getInstanceOf("Param")
-      paramTemplate.add("paramTyp", JawaStyleCodeGenerator.generateType(paramType, template))
+      paramTemplate.add("paramTyp", JawaModelProvider.generateType(paramType, template))
       paramTemplate.add("paramName", genVarName(p.name, paramType, paramName, isParam = true, localvars, realnameMap))
       val paramAnnotations = new util.ArrayList[ST]
       if(!JavaKnowledge.isJavaPrimitive(paramType)) {
-        paramAnnotations.add(JawaStyleCodeGenerator.generateAnnotation("kind", "object", template))
+        paramAnnotations.add(JawaModelProvider.generateAnnotation("kind", "object", template))
       }
       paramTemplate.add("annotations", paramAnnotations)
       params.add(paramTemplate)
     }
     procTemplate.add("params", params)
     val procAnnotations = new util.ArrayList[ST]
-    procAnnotations.add(JawaStyleCodeGenerator.generateAnnotation("signature", "`" + signature.signature + "`", template))
-    procAnnotations.add(JawaStyleCodeGenerator.generateAnnotation("AccessFlag", method.accessModifier, template))
+    procAnnotations.add(JawaModelProvider.generateAnnotation("signature", "`" + signature.signature + "`", template))
+    procAnnotations.add(JawaModelProvider.generateAnnotation("AccessFlag", method.accessModifier, template))
     procTemplate.add("annotations", procAnnotations)
     if(!AccessFlag.isAbstract(AccessFlag.getAccessFlags(method.accessModifier)) &&
       !AccessFlag.isNative(AccessFlag.getAccessFlags(method.accessModifier))) {
@@ -161,7 +160,7 @@ object GenerateTypedJawa {
     localvars.foreach {
       case (name, (typ, param)) =>
         if(!param) {
-          val regName = JawaStyleCodeGenerator.generateType(typ, template).render() + " " + name + ";"
+          val regName = JawaModelProvider.generateType(typ, template).render() + " " + name + ";"
           locals.add(regName)
         }
     }
@@ -211,9 +210,8 @@ object GenerateTypedJawa {
               }
               code = resolveVar(global, code, be.left, uses, localvars, realnameMap)
             case cr: CallRhs =>
-              cr.argClause.varSymbols.reverse.foreach {
-                case (v, _) =>
-                  code = resolveVar(global, code, v, uses, localvars, realnameMap)
+              cr.argClause.varSymbols.reverse.foreach { v =>
+                code = resolveVar(global, code, v, uses, localvars, realnameMap)
               }
             case ce: CastExpression =>
               code = resolveVar(global, code, ce.varSym, uses, localvars, realnameMap)
@@ -231,7 +229,7 @@ object GenerateTypedJawa {
                 }
               }
               code = resolveVar(global, code, ie.varSymbol, uses, localvars, realnameMap)
-            case ie: InstanceofExpression =>
+            case ie: InstanceOfExpression =>
               code = resolveVar(global, code, ie.varSymbol, uses, localvars, realnameMap)
             case le: LengthExpression =>
               code = resolveVar(global, code, le.varSymbol, uses, localvars, realnameMap)
@@ -247,7 +245,7 @@ object GenerateTypedJawa {
               }
             case ne: NewExpression =>
               ne.typeFragmentsWithInit.reverse.foreach { init =>
-                init.varSymbols.reverse.foreach { case (v, _) =>
+                init.varSymbols.reverse.foreach { v =>
                   code = resolveVar(global, code, v, uses, localvars, realnameMap)
                 }
               }

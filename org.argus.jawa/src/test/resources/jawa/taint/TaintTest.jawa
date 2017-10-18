@@ -3,93 +3,93 @@ record `TaintTest` @kind class @AccessFlag PUBLIC {
 }
 procedure `void` `<init>`(`TaintTest` `this` @kind this) @signature `LTaintTest;.<init>:()V` @AccessFlag PUBLIC_CONSTRUCTOR {
 
-    #L1.  call `<init>`(`this`) @signature `Ljava/lang/Object;.<init>:()V` @kind direct;
-    #L2.  return  @kind void;
+  #L1.  call `<init>`(`this`) @signature `Ljava/lang/Object;.<init>:()V` @kind direct;
+  #L2.  return @kind void;
 }
 procedure `void` `singleFunc`(`TaintTest` `this` @kind this) @signature `LTaintTest;.singleFunc:()V` @AccessFlag PUBLIC {
     `TaintData` TaintData_temp;
     `TaintData` TaintData_v0;
 
-    #L3.  call TaintData_temp:=  `source`() @signature `LTest;.source:()LTaintData;` @kind static;
-    #L4.  TaintData_v0:= TaintData_temp  @kind object;
-    #L5.  call `sink`(TaintData_v0) @signature `LTest;.sink:(Ljava/lang/Object;)V` @kind static;
-    #L6.  return  @kind void;
+  #L3.  call TaintData_temp:= `source`() @signature `LTest;.source:()LTaintData;` @kind static;
+  #L4.  TaintData_v0:= TaintData_temp @kind object;
+  #L5.  call `sink`(TaintData_v0) @signature `LTest;.sink:(Ljava/lang/Object;)V` @kind static;
+  #L6.  return @kind void;
 }
 procedure `void` `singleFunc2`(`TaintTest` `this` @kind this) @signature `LTaintTest;.singleFunc2:()V` @AccessFlag PUBLIC {
     `TaintData` TaintData_temp;
     `TaintData` TaintData_v0;
 
-    #L7.  call TaintData_temp:=  `source`() @signature `LTest;.source:()LTaintData;` @kind static;
-    #L8.  TaintData_v0:= TaintData_temp  @kind object;
-    #L9.  NoTaintData_v1:= new `NoTaintData`;
-    #L10.  call `sink`(NoTaintData_v1) @signature `LTest;.sink:(Ljava/lang/Object;)V` @kind static;
-    #L11.  return  @kind void;
+  #L7.  call TaintData_temp:= `source`() @signature `LTest;.source:()LTaintData;` @kind static;
+  #L8.  TaintData_v0:= TaintData_temp @kind object;
+  #L9.  NoTaintData_v1:= new `NoTaintData`;
+  #L10.  call `sink`(NoTaintData_v1) @signature `LTest;.sink:(Ljava/lang/Object;)V` @kind static;
+  #L11.  return @kind void;
 }
 procedure `void` `caller`(`TaintTest` `this` @kind this) @signature `LTaintTest;.caller:()V` @AccessFlag PUBLIC {
     `TaintData` TaintData_temp;
     `TaintData` TaintData_v0;
     `java.lang.String` String_v1;
 
-    #L12.  call TaintData_temp:=  `source`() @signature `LTest;.source:()LTaintData;` @kind static;
-    #L13.  TaintData_v0:= TaintData_temp  @kind object;
-    #L14.  String_v1:= "data" @kind object;
-    #L15.  call `TaintTest.direct_sink`(`this`, TaintData_v0) @signature `LTaintTest;.direct_sink:(Ljava/lang/Object;)V` @kind virtual;
-    #L16.  return  @kind void;
+  #L12.  call TaintData_temp:= `source`() @signature `LTest;.source:()LTaintData;` @kind static;
+  #L13.  TaintData_v0:= TaintData_temp @kind object;
+  #L14.  String_v1:= "data" @kind object;
+  #L15.  call `TaintTest.direct_sink`(`this`, TaintData_v0) @signature `LTaintTest;.direct_sink:(Ljava/lang/Object;)V` @kind virtual;
+  #L16.  return @kind void;
 }
 procedure `void` `direct_sink`(`TaintTest` `this` @kind this, `java.lang.Object` Object_v0 @kind object) @signature `LTaintTest;.direct_sink:(Ljava/lang/Object;)V` @AccessFlag PUBLIC {
 
-    #L17.  call `sink`(Object_v0) @signature `LTest;.sink:(Ljava/lang/Object;)V` @kind static;
-    #L18.  return  @kind void;
+  #L17.  call `sink`(Object_v0) @signature `LTest;.sink:(Ljava/lang/Object;)V` @kind static;
+  #L18.  return @kind void;
 }
 procedure `void` `caller2`(`TaintTest` `this` @kind this) @signature `LTaintTest;.caller2:()V` @AccessFlag PUBLIC {
     `TaintData` TaintData_temp;
     `TaintData` TaintData_v0;
     `java.lang.String` String_v1;
 
-    #L19.  call TaintData_temp:=  `source`() @signature `LTest;.source:()LTaintData;` @kind static;
-    #L20.  TaintData_v0:= TaintData_temp  @kind object;
-    #L21.  String_v1:= "data" @kind object;
-    #L22.  `this`.`TaintTest.myObj` := TaintData_v0 @kind object @type ^`java.lang.Object`;
-    #L23.  call `field_sink`(`this`) @signature `LTaintTest;.field_sink:()V` @kind virtual;
-    #L24.  return  @kind void;
+  #L19.  call TaintData_temp:= `source`() @signature `LTest;.source:()LTaintData;` @kind static;
+  #L20.  TaintData_v0:= TaintData_temp @kind object;
+  #L21.  String_v1:= "data" @kind object;
+  #L22.  `this`.`TaintTest.myObj`:= TaintData_v0 @kind object @type ^`java.lang.Object`;
+  #L23.  call `field_sink`(`this`) @signature `LTaintTest;.field_sink:()V` @kind virtual;
+  #L24.  return @kind void;
 }
 procedure `void` `field_sink`(`TaintTest` `this` @kind this) @signature `LTaintTest;.field_sink:()V` @AccessFlag PUBLIC {
     `java.lang.Object` Object_v0;
 
-    #L25.  Object_v0:= `this`.`TaintTest.myObj` @kind object @type ^`java.lang.Object`;
-    #L26.  call `sink`(Object_v0) @signature `LTest;.sink:(Ljava/lang/Object;)V` @kind static;
-    #L27.  return  @kind void;
+  #L25.  Object_v0:= `this`.`TaintTest.myObj` @kind object @type ^`java.lang.Object`;
+  #L26.  call `sink`(Object_v0) @signature `LTest;.sink:(Ljava/lang/Object;)V` @kind static;
+  #L27.  return @kind void;
 }
 procedure `void` `caller3`(`TaintTest` `this` @kind this) @signature `LTaintTest;.caller3:()V` @AccessFlag PUBLIC {
     `TaintData` TaintData_temp;
     `TaintData` TaintData_v0;
 
-    #L28.  call TaintData_temp:=  `direct_source`(`this`) @signature `LTaintTest;.direct_source:()LTaintData;` @kind static;
-    #L29.  TaintData_v0:= TaintData_temp  @kind object;
-    #L31.  `this`.`TaintTest.myObj` := TaintData_v0 @kind object @type ^`java.lang.Object`;
-    #L32.  call `field_sink`(`this`) @signature `LTaintTest;.field_sink:()V` @kind virtual;
-    #L33.  return  @kind void;
+  #L28.  call TaintData_temp:= `direct_source`(`this`) @signature `LTaintTest;.direct_source:()LTaintData;` @kind static;
+  #L29.  TaintData_v0:= TaintData_temp @kind object;
+  #L31.  `this`.`TaintTest.myObj`:= TaintData_v0 @kind object @type ^`java.lang.Object`;
+  #L32.  call `field_sink`(`this`) @signature `LTaintTest;.field_sink:()V` @kind virtual;
+  #L33.  return @kind void;
 }
 procedure `TaintData` `direct_source`(`TaintTest` `this` @kind this) @signature `LTaintTest;.direct_source:()LTaintData;` @AccessFlag PUBLIC {
     `TaintData` TaintData_temp;
     `TaintData` TaintData_v0;
 
-    #L34.  call TaintData_temp:=  `source`() @signature `LTest;.source:()LTaintData;` @kind static;
-    #L35.  TaintData_v0:= TaintData_temp  @kind object;
-    #L36.  return TaintData_v0 @kind object;
+  #L34.  call TaintData_temp:= `source`() @signature `LTest;.source:()LTaintData;` @kind static;
+  #L35.  TaintData_v0:= TaintData_temp @kind object;
+  #L36.  return TaintData_v0 @kind object;
 }
 procedure `void` `field_source`(`TaintTest` `this` @kind this) @signature `LTaintTest;.field_source:()V` @AccessFlag PUBLIC {
     `TaintData` TaintData_temp;
     `TaintData` TaintData_v0;
 
-    #L37.  call TaintData_temp:=  `source`() @signature `LTest;.source:()LTaintData;` @kind static;
-    #L38.  TaintData_v0:= TaintData_temp  @kind object;
-    #L39.  `this`.`TaintTest.myObj` := TaintData_v0 @kind object @type ^`java.lang.Object`;
-    #L40.  return  @kind void;
+  #L37.  call TaintData_temp:= `source`() @signature `LTest;.source:()LTaintData;` @kind static;
+  #L38.  TaintData_v0:= TaintData_temp @kind object;
+  #L39.  `this`.`TaintTest.myObj`:= TaintData_v0 @kind object @type ^`java.lang.Object`;
+  #L40.  return @kind void;
 }
 procedure `void` `caller4`(`TaintTest` `this` @kind this) @signature `LTaintTest;.caller4:()V` @AccessFlag PUBLIC {
 
-    #L41.  call `field_source`(`this`) @signature `LTaintTest;.field_source:()V` @kind virtual;
-    #L42.  call `field_sink`(`this`) @signature `LTaintTest;.field_sink:()V` @kind virtual;
-    #L43.  return  @kind void;
+  #L41.  call `field_source`(`this`) @signature `LTaintTest;.field_source:()V` @kind virtual;
+  #L42.  call `field_sink`(`this`) @signature `LTaintTest;.field_sink:()V` @kind virtual;
+  #L43.  return @kind void;
 }

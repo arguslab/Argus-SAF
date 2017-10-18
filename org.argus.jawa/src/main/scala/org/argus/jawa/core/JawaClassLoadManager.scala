@@ -54,8 +54,10 @@ trait JawaClassLoadManager extends JavaKnowledge with JawaResolver { self: Globa
     val result: MSet[JawaClass] = msetEmpty
     codes foreach {
       case (typ, _) =>
-        if(!isJavaPrimitive(typ)) //TODO: Hack to avoid exception caused by rename class to java primitives obfuscation.
+        if(!isJavaPrimitive(typ)) {
+          //TODO: Hack to avoid exception caused by rename class to java primitives obfuscation.
           result += getClassOrResolve(typ)
+        }
     }
     result.toSet
   }
@@ -210,8 +212,8 @@ trait JawaClassLoadManager extends JavaKnowledge with JawaResolver { self: Globa
   
   def printDetails(): Unit = {
     println("***************Global***************")
-    println("applicationClasses: " + getApplicationClasses)
-    println("userLibraryClasses: " + getUserLibraryClasses)
+    println("applicationClasses:\n" + getApplicationClasses.mkString("\n"))
+    println("userLibraryClasses:\n" + getUserLibraryClasses.mkString("\n"))
     println("hierarchy: " + getClassHierarchy)
     println("******************************")
   }

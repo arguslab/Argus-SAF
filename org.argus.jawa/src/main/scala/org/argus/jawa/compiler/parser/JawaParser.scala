@@ -13,7 +13,7 @@ package org.argus.jawa.compiler.parser
 import org.argus.jawa.ast._
 import org.argus.jawa.compiler.lexer._
 import org.argus.jawa.compiler.lexer.Tokens._
-import org.argus.jawa.core.io.{NoPosition, SourceFile}
+import org.argus.jawa.core.io.{DefinedPosition, NoPosition, Position, SourceFile}
 import org.argus.jawa.core.{JavaKnowledge, Reporter}
 import org.argus.jawa.core.util._
 
@@ -24,7 +24,16 @@ class JawaParser(tokens: Array[Token], reporter: Reporter) extends JavaKnowledge
   def safeParse[T <: ParsableAstNode](production: => T): Option[T] = try Some(production) catch { case _: JawaParserException => None }
 
   require(!tokens.isEmpty) // at least EOF
-  
+
+  def getPos(firstPos: Position, lastPos: Position): Position = {
+    if(tokens.isEmpty) NoPosition
+    else {
+      val firstIndex = firstPos.start
+      val lastIndex = lastPos.end
+      Position.range(firstPos.source, firstIndex, lastIndex - firstIndex + 1)
+    }
+  }
+
   def compilationUnit(resolveBody: Boolean): CompilationUnit = {
     val topDecls: MList[ClassOrInterfaceDeclaration] = mlistEmpty
     def loop() {
@@ -36,12 +45,12 @@ class JawaParser(tokens: Array[Token], reporter: Reporter) extends JavaKnowledge
       }
     }
     loop()
-    val eofToken = accept(EOF)
-    val cu = CompilationUnit(topDecls.toList, eofToken)
-    cu.topDecls.par foreach {
-      cid =>
-        val typ = cid.cityp
-        cid.getAllChildrenInclude foreach (_.enclosingTopLevelClass = typ)
+    val eof = accept(EOF)
+    val cu = CompilationUnit(topDecls.toList)
+    cu.pos = getPos(topDecls.head.pos, eof.pos)
+    cu.topDecls foreach { cid =>
+      val typ = cid.cityp
+      cid.getAllChildrenInclude foreach (_.enclosingTopLevelClass = typ)
     }
     cu
   }
@@ -49,14 +58,16 @@ class JawaParser(tokens: Array[Token], reporter: Reporter) extends JavaKnowledge
   def classOrInterfaceDeclaration(resolveBody: Boolean): ClassOrInterfaceDeclaration = classOrInterfaceDeclaration0(resolveBody)
   
   private def classOrInterfaceDeclaration0(resolveBody: Boolean): ClassOrInterfaceDeclaration = {
-    val dclToken: Token = accept(CLASS_OR_INTERFACE)
+    val coi = accept(CLASS_OR_INTERFACE)
     val cityp: TypeDefSymbol = typeDefSymbol()
     val annotations_ : IList[Annotation] = annotations()
     val extendsAndImplimentsClausesOpt_ : Option[ExtendsAndImplementsClauses] = extendsAndImplementsClausesOpt()
     val instanceFieldDeclarationBlock_ : InstanceFieldDeclarationBlock = instanceFieldDeclarationBlock()
     val staticFields: IList[StaticFieldDeclaration] = staticFieldDeclarations()
     val methods: IList[MethodDeclaration] = methodDeclarations(resolveBody)
-    ClassOrInterfaceDeclaration(dclToken, cityp, annotations_, extendsAndImplimentsClausesOpt_, instanceFieldDeclarationBlock_, staticFields, methods)
+    val cid = ClassOrInterfaceDeclaration(cityp, annotations_, extendsAndImplimentsClausesOpt_, instanceFieldDeclarationBlock_, staticFields, methods)
+    cid.pos = getPos(coi.pos, cid.immediateChildren.last.pos)
+    cid
   }
   
   private def annotations(): IList[Annotation] = {
@@ -66,18 +77,57 @@ class JawaParser(tokens: Array[Token], reporter: Reporter) extends JavaKnowledge
         case AT =>
           val at = accept(AT)
           val annotationID: Token = accept(ID)
-          val annotationValueOpt: Option[AnnotationValue] =
-            annotationID.text match {
-              case "type" => Some(TypeExpressionValue(typExpression()))
-              case "signature" => Some(SymbolValue(signatureSymbol()))
-              case _ =>
-                currentTokenType match{
-                  case ID => Some(TokenValue(nextToken()))
-                  case x if isLiteralToken(x) => Some(TokenValue(nextToken()))
-                  case _ => None
+          var lastPos: Position = annotationID.pos
+          val annotationValueOpt: Option[AnnotationValue] = currentTokenType match {
+            case LPAREN =>
+              val lparen = accept(LPAREN)
+              val statements: MList[Statement] = mlistEmpty
+              while(currentTokenType != RPAREN) {
+                val statement_ : Statement = statement()
+                currentTokenType match {
+                  case COMMA => nextToken()
+                  case _ =>
                 }
-            }
-          val anno = Annotation(at, annotationID, annotationValueOpt)
+                statements += statement_
+              }
+              val rparen = accept(RPAREN)
+              val sv = StatementValue(statements.toList)
+              sv.pos = getPos(lparen.pos, rparen.pos)
+              Some(sv)
+            case _ =>
+              annotationID.text match {
+                case "type" =>
+                  val te = typExpression()
+                  val tev = TypeExpressionValue(te)
+                  tev.pos = te.pos
+                  Some(tev)
+                case "signature" =>
+                  val ss = signatureSymbol()
+                  val sv = SymbolValue(ss)
+                  sv.pos = ss.pos
+                  Some(sv)
+                case _ =>
+                  currentTokenType match{
+                    case ID =>
+                      val t = nextToken()
+                      val tv = TokenValue(t)
+                      tv.pos = t.pos
+                      Some(tv)
+                    case x if isLiteralToken(x) =>
+                      val t = nextToken()
+                      val tv = TokenValue(t)
+                      tv.pos = t.pos
+                      Some(tv)
+                    case _ => None
+                  }
+              }
+          }
+          annotationValueOpt match {
+            case Some(v) => lastPos = v.pos
+            case None =>
+          }
+          val anno = Annotation(annotationID, annotationValueOpt)
+          anno.pos = getPos(at.pos, lastPos)
           annos += anno
           loop()
         case _ =>
@@ -89,87 +139,114 @@ class JawaParser(tokens: Array[Token], reporter: Reporter) extends JavaKnowledge
   
   private def typeDefSymbol(): TypeDefSymbol = {
     val id = accept(ID)
-    TypeDefSymbol(id)
+    val tds = TypeDefSymbol(id)
+    tds.pos = id.pos
+    tds
   }
   
   private def typeSymbol(): TypeSymbol = {
     val id = accept(ID)
-    TypeSymbol(id)
+    val ts = TypeSymbol(id)
+    ts.pos = id.pos
+    ts
   }
   
   private def methodDefSymbol(): MethodDefSymbol = {
     val id = accept(ID)
-    MethodDefSymbol(id)
+    val mds = MethodDefSymbol(id)
+    mds.pos = id.pos
+    mds
   }
   
   private def methodNameSymbol(): MethodNameSymbol = {
     val id = accept(ID)
-    MethodNameSymbol(id)
+    val mns = MethodNameSymbol(id)
+    mns.pos = id.pos
+    mns
   }
   
   private def fieldDefSymbol(): FieldDefSymbol = {
     val id = accept(ID)
-    FieldDefSymbol(id)
+    val fds = FieldDefSymbol(id)
+    fds.pos = id.pos
+    fds
   }
   
   private def staticFieldDefSymbol(): FieldDefSymbol = {
     val id = accept(STATIC_ID)
-    FieldDefSymbol(id)
+    val fds = FieldDefSymbol(id)
+    fds.pos = id.pos
+    fds
   }
   
   private def fieldNameSymbol(): FieldNameSymbol = {
     val id = accept(ID)
-    FieldNameSymbol(id)
+    val fns = FieldNameSymbol(id)
+    fns.pos = id.pos
+    fns
   }
   
   private def staticFieldNameSymbol(): FieldNameSymbol = {
     val id = accept(STATIC_ID)
-    FieldNameSymbol(id)
+    val fns = FieldNameSymbol(id)
+    fns.pos = id.pos
+    fns
   }
   
   private def signatureSymbol(): SignatureSymbol = {
     val id = accept(ID)
-    SignatureSymbol(id)
+    val ss = SignatureSymbol(id)
+    ss.pos = id.pos
+    ss
   }
   
   private def varDefSymbol(): VarDefSymbol = {
     val id = accept(ID)
-    VarDefSymbol(id)
+    val vds = VarDefSymbol(id)
+    vds.pos = id.pos
+    vds
   }
   
   private def varSymbol(): VarSymbol = {
     val id = accept(ID)
-    VarSymbol(id)
+    val vs = VarSymbol(id)
+    vs.pos = id.pos
+    vs
   }
   
   private def locationDefSymbol(): LocationDefSymbol = {
     val id = accept(LOCATION_ID)
-    LocationDefSymbol(id)
+    val lds = LocationDefSymbol(id)
+    lds.pos = id.pos
+    lds
   }
   
   private def locationSymbol(): LocationSymbol = {
     val id = accept(ID)
-    LocationSymbol(id)
+    val ls = LocationSymbol(id)
+    ls.pos = id.pos
+    ls
   }
   
   private def extendsAndImplementsClausesOpt(): Option[ExtendsAndImplementsClauses] = {
     currentTokenType match {
       case EXTENDS_AND_IMPLEMENTS =>
-        val extendsAndImplementsToken: Token = accept(EXTENDS_AND_IMPLEMENTS)
-        val parents: MList[(ExtendAndImplement, Option[Token])] = mlistEmpty
+        val eai = accept(EXTENDS_AND_IMPLEMENTS)
+        val parents: MList[ExtendAndImplement] = mlistEmpty
         def loop() {
           val parent : ExtendAndImplement = extendAndImplement()
           currentTokenType match {
             case COMMA =>
-              val comma: Token = nextToken()
-              parents += ((parent, Some(comma)))
+              nextToken()
+              parents += parent
               loop()
             case _ =>
-              parents += ((parent, None))
+              parents += parent
           }
         }
         loop()
-        val eic = ExtendsAndImplementsClauses(extendsAndImplementsToken, parents.toList)
+        val eic = ExtendsAndImplementsClauses(parents.toList)
+        eic.pos = getPos(eai.pos, eic.immediateChildren.last.pos)
         Some(eic)
       case _ => None
     }
@@ -178,15 +255,18 @@ class JawaParser(tokens: Array[Token], reporter: Reporter) extends JavaKnowledge
   private def extendAndImplement(): ExtendAndImplement = {
     val parenttyp: TypeSymbol = typeSymbol()
     val annotations_ : IList[Annotation] = annotations()
-    ExtendAndImplement(parenttyp, annotations_)
+    val eai = ExtendAndImplement(parenttyp, annotations_)
+    eai.pos = getPos(parenttyp.pos, eai.immediateChildren.last.pos)
+    eai
   }
   
   private def instanceFieldDeclarationBlock(): InstanceFieldDeclarationBlock = {
-    val lbrace: Token = accept(LBRACE)
+    val lbrace = accept(LBRACE)
     val instanceFields: IList[InstanceFieldDeclaration] = instanceFieldDeclarations()
-    val rbrace: Token = accept(RBRACE)
-    val ifd = InstanceFieldDeclarationBlock(lbrace, instanceFields, rbrace)
-    ifd
+    val rbrace = accept(RBRACE)
+    val ifdb = InstanceFieldDeclarationBlock(instanceFields)
+    ifdb.pos = getPos(lbrace.pos, rbrace.pos)
+    ifdb
   }
   
   private def instanceFieldDeclarations(): IList[InstanceFieldDeclaration] = {
@@ -195,8 +275,9 @@ class JawaParser(tokens: Array[Token], reporter: Reporter) extends JavaKnowledge
       val typ_ : Type = typ()
       val defSymbol: FieldDefSymbol = fieldDefSymbol()
       val annotations_ = annotations()
-      val semi: Token = accept(SEMI)
-      val insf = InstanceFieldDeclaration(typ_, defSymbol, annotations_, semi)
+      val semi = accept(SEMI)
+      val insf = InstanceFieldDeclaration(typ_, defSymbol, annotations_)
+      insf.pos = getPos(typ_.pos, semi.pos)
       instanceFields += insf
     }
     instanceFields.toList
@@ -207,12 +288,13 @@ class JawaParser(tokens: Array[Token], reporter: Reporter) extends JavaKnowledge
     def loop(){
       currentTokenType match {
         case STATIC_FIELD =>
-          val staticFieldToken: Token = accept(STATIC_FIELD)
+          val sf = accept(STATIC_FIELD)
           val typ_ : Type = typ()
           val defSymbol: FieldDefSymbol = staticFieldDefSymbol()
           val annotations_ = annotations()
-          val semi: Token = accept(SEMI)
-          val sfd = StaticFieldDeclaration(staticFieldToken, typ_, defSymbol, annotations_, semi)
+          val semi = accept(SEMI)
+          val sfd = StaticFieldDeclaration(typ_, defSymbol, annotations_)
+          sfd.pos = getPos(sf.pos, semi.pos)
           staticFields += sfd
           loop()
         case _ =>
@@ -240,13 +322,13 @@ class JawaParser(tokens: Array[Token], reporter: Reporter) extends JavaKnowledge
   def methodDeclaration(resolveBody: Boolean): MethodDeclaration = methodDeclaration0(resolveBody)
   
   private def methodDeclaration0(resolveBody: Boolean): MethodDeclaration = {
-    val dclToken: Token = accept(METHOD)
+    val method = accept(METHOD)
     val returnType: Type = typ()
     val defSymbol: MethodDefSymbol = methodDefSymbol()
     val paramClause_ : ParamClause = paramClause()
     val annotations_ : IList[Annotation] = annotations()
     val body_ : Body = body0(resolveBody)
-    val md = MethodDeclaration(dclToken, returnType, defSymbol, paramClause_, annotations_, body_)
+    val md = MethodDeclaration(returnType, defSymbol, paramClause_, annotations_, body_)
     defSymbol.signature = md.signature
     md.getAllChildren foreach {
       case vd: VarDefSymbol => vd.owner = md
@@ -255,23 +337,24 @@ class JawaParser(tokens: Array[Token], reporter: Reporter) extends JavaKnowledge
       case ls: LocationSymbol => ls.owner = md
       case _ =>
     }
+    md.pos = getPos(method.pos, body_.pos)
     md
   }
   
   private def paramClause(): ParamClause = {
     val lparen = accept(LPAREN)
-    val params: MList[(Param, Option[Token])] = mlistEmpty
+    val params: MList[Param] = mlistEmpty
     while(currentTokenType != RPAREN) {
       val param_ : Param = param()
-      val commaOpt: Option[Token] = 
-        currentTokenType match {
-        case COMMA => Some(nextToken())
-        case _ => None
+      currentTokenType match {
+        case COMMA => nextToken()
+        case _ =>
       }
-      params += ((param_, commaOpt))
+      params += param_
     }
     val rparen = accept(RPAREN)
-    val pc = ParamClause(lparen, params.toList, rparen)
+    val pc = ParamClause(params.toList)
+    pc.pos = getPos(lparen.pos, rparen.pos)
     pc
   }
   
@@ -280,19 +363,21 @@ class JawaParser(tokens: Array[Token], reporter: Reporter) extends JavaKnowledge
     val defSymbol: VarDefSymbol = varDefSymbol()
     val annotations_ = annotations()
     val p = Param(typ_, defSymbol, annotations_)
+    p.pos = getPos(typ_.pos, p.immediateChildren.last.pos)
     p
   }
   
   def body(resolveBody: Boolean): Body = body0(resolveBody)
   
   private def body0(resolveBody: Boolean): Body = {
-    if(resolveBody){
-      val lbrace: Token = accept(LBRACE)
+    if(resolveBody) {
+      val lbrace = accept(LBRACE)
       val locals: IList[LocalVarDeclaration] = localVarDeclarations()
       val locations_ : IList[Location] = locations()
       val catchClauses_ : IList[CatchClause] = catchClauses()
-      val rbrace: Token = accept(RBRACE)
-      val rb = ResolvedBody(lbrace, locals, locations_, catchClauses_, rbrace)
+      val rbrace = accept(RBRACE)
+      val rb = ResolvedBody(locals, locations_, catchClauses_)
+      rb.pos = getPos(lbrace.pos, rbrace.pos)
       val locationSymbols: MSet[LocationSymbol] = msetEmpty
       rb.catchClauses.foreach { cc =>
         locationSymbols += cc.range.fromLocation
@@ -343,6 +428,7 @@ class JawaParser(tokens: Array[Token], reporter: Reporter) extends JavaKnowledge
         stop = currentTokenType == EOF || currentTokenType == METHOD || currentTokenType == CLASS_OR_INTERFACE
       } while (!stop)
       val ub = UnresolvedBody(bodytokens.toList)
+      ub.pos = getPos(bodytokens.head.pos, bodytokens.last.pos)
       ub
     } 
   }
@@ -358,8 +444,9 @@ class JawaParser(tokens: Array[Token], reporter: Reporter) extends JavaKnowledge
           Some(typ())
       }
       val varSymbol_ : VarDefSymbol = varDefSymbol()
-      val semi: Token = accept(SEMI)
-      val local = LocalVarDeclaration(typOpt, varSymbol_, semi)
+      val semi = accept(SEMI)
+      val local = LocalVarDeclaration(typOpt, varSymbol_)
+      local.pos = getPos(local.immediateChildren.head.pos, semi.pos)
       locals += local
     }
     locals.toList
@@ -385,14 +472,21 @@ class JawaParser(tokens: Array[Token], reporter: Reporter) extends JavaKnowledge
   private def location0(index: Int = 0): Location = {
     val locationSymbol_ : LocationDefSymbol = locationDefSymbol()
     locationSymbol_.locationIndex = index
+    var lastPos: Position = locationSymbol_.pos
     val statement_ : Statement = statement()
-    val semiOpt: Option[Token] = 
-      currentTokenType match {
-        case SEMI => Some(nextToken())
-        case _ => None
-      }
-    val l = Location(locationSymbol_, statement_, semiOpt)
-    l
+    statement_.pos match {
+      case dp: DefinedPosition => lastPos = dp
+      case _ =>
+    }
+    currentTokenType match {
+      case SEMI =>
+        val semi = nextToken()
+        lastPos = semi.pos
+      case _ =>
+    }
+    val loc = Location(locationSymbol_, statement_)
+    loc.pos = getPos(locationSymbol_.pos, lastPos)
+    loc
   }
   
   private def statement(): Statement = {
@@ -410,7 +504,7 @@ class JawaParser(tokens: Array[Token], reporter: Reporter) extends JavaKnowledge
   }
   
   private def callStatement(): CallStatement = {
-    val callToken: Token = accept(CALL)
+    val call = accept(CALL)
     val ahead2 = lookahead(1)
     val lhsOpt: Option[CallLhs] = ahead2 match {
       case ASSIGN_OP =>
@@ -419,78 +513,89 @@ class JawaParser(tokens: Array[Token], reporter: Reporter) extends JavaKnowledge
     }
     val rhs: CallRhs = callRhs()
     val annotations_ : IList[Annotation] = annotations()
-    val cs = CallStatement(callToken, lhsOpt, rhs, annotations_)
+    val cs = CallStatement(lhsOpt, rhs, annotations_)
+    cs.pos = getPos(call.pos, cs.immediateChildren.last.pos)
     rhs.methodNameSymbol.signature = cs.signature
     cs
   }
-  
+
   private def callLhs(): CallLhs = {
     val lhs: VarSymbol = varSymbol()
-    val assignmentOP: Token = accept(ASSIGN_OP)
-    CallLhs(lhs, assignmentOP)
+    accept(ASSIGN_OP)
+    val cl = CallLhs(lhs)
+    cl.pos = lhs.pos
+    cl
   }
 
   private def callRhs(): CallRhs = {
     val nameSymbol: MethodNameSymbol = methodNameSymbol()
     val argClause_ : ArgClause = argClause()
-    CallRhs(nameSymbol, argClause_)
+    val cr = CallRhs(nameSymbol, argClause_)
+    cr.pos = getPos(nameSymbol.pos, argClause_.pos)
+    cr
   }
   
   private def argClause(): ArgClause = {
-    val lparen: Token = accept(LPAREN)
-    val varIDs: MList[(VarSymbol, Option[Token])] = mlistEmpty
+    val lparen = accept(LPAREN)
+    val varIDs: MList[VarSymbol] = mlistEmpty
     while(currentTokenType != RPAREN) {
       val varSymbol_ : VarSymbol = varSymbol()
-      val commaOpt: Option[Token] =
-        currentTokenType match {
-          case COMMA => Some(nextToken())
-          case _ => None
-        }
-      varIDs += ((varSymbol_, commaOpt))
+      currentTokenType match {
+        case COMMA => nextToken()
+        case _ =>
+      }
+      varIDs += varSymbol_
     }
-    val rparen: Token = accept(RPAREN)
-    val ac = ArgClause(lparen, varIDs.toList, rparen)
+    val rparen = accept(RPAREN)
+    val ac = ArgClause(varIDs.toList)
+    ac.pos = getPos(lparen.pos, rparen.pos)
     ac
   }
   
   private def assignmentStatement(): AssignmentStatement = {
     val lhs: Expression with LHS = expression_lhs()
-    val assignOP: Token = accept(ASSIGN_OP)
+    accept(ASSIGN_OP)
     val rhs: Expression with RHS = expression_rhs()
     val annotations_ : IList[Annotation] = annotations()
-    val as = AssignmentStatement(lhs, assignOP, rhs, annotations_)
+    val as = AssignmentStatement(lhs, rhs, annotations_)
+    as.pos = getPos(lhs.pos, as.immediateChildren.last.pos)
     as
   }
   
   private def throwStatement(): ThrowStatement = {
-    val throwToken: Token = accept(THROW)
+    val t = accept(THROW)
     val varSymbol_ : VarSymbol = varSymbol()
-    val ts = ThrowStatement(throwToken, varSymbol_)
+    val ts = ThrowStatement(varSymbol_)
+    ts.pos = getPos(t.pos, varSymbol_.pos)
     ts
   }
   
   private def ifStatement(): IfStatement = {
-    val ifToken: Token = accept(IF)
+    val i = accept(IF)
     val cond: BinaryExpression = binaryExpression()
-    val thengoto: (Token, Token) = (accept(THEN), accept(GOTO))
+    accept(THEN)
+    accept(GOTO)
     val targetLocation: LocationSymbol = locationSymbol()
-    val is = IfStatement(ifToken, cond, thengoto, targetLocation)
+    val is = IfStatement(cond, targetLocation)
+    is.pos = getPos(i.pos, targetLocation.pos)
     is
   }
   
   private def gotoStatement(): GotoStatement = {
-    val goto: Token = accept(GOTO)
+    val goto = accept(GOTO)
     val targetLocation: LocationSymbol = locationSymbol()
-    val gs = GotoStatement(goto, targetLocation)
+    val gs = GotoStatement(targetLocation)
+    gs.pos = getPos(goto.pos, targetLocation.pos)
     gs
   }
   
   private def switchStatement(): SwitchStatement = {
-    val switchToken: Token = accept(SWITCH)
+    val s = accept(SWITCH)
     val condition: VarSymbol = varSymbol()
     val cases: IList[SwitchCase] = switchCases()
     val defaultCaseOpt: Option[SwitchDefaultCase] = switchDefaultCaseOpt()
-    val ss = SwitchStatement(switchToken, condition, cases, defaultCaseOpt)
+    val ss = SwitchStatement(condition, cases, defaultCaseOpt)
+    ss.pos = getPos(s.pos, ss.immediateChildren.last.pos)
     ss
   }
   
@@ -504,10 +609,11 @@ class JawaParser(tokens: Array[Token], reporter: Reporter) extends JavaKnowledge
             val bar: Token = accept(OP)
             if(bar.text != "|") throw new JawaParserException(currentToken.pos, "Expected op token " + "'|'" + " but got " + currentToken)
             val constant: Token = accept(INTEGER_LITERAL)
-            val arrow: Token = accept(ARROW)
-            val goto: Token = accept(GOTO)
+            accept(ARROW)
+            accept(GOTO)
             val targetLocation: LocationSymbol = locationSymbol()
-            val cas = SwitchCase(bar, constant, arrow, goto, targetLocation)
+            val cas = SwitchCase(constant, targetLocation)
+            cas.pos = getPos(bar.pos, targetLocation.pos)
             cases += cas
             loop()
           case _ =>
@@ -522,12 +628,13 @@ class JawaParser(tokens: Array[Token], reporter: Reporter) extends JavaKnowledge
     currentTokenType match {
       case OP =>
         if(currentToken.text == "|"){
-          val bar: Token = nextToken()
-          val elseToken: Token = accept(ELSE)
-          val arrow: Token = accept(ARROW)
-          val goto: Token = accept(GOTO)
+          val bar = nextToken()
+          accept(ELSE)
+          accept(ARROW)
+          accept(GOTO)
           val targetLocation: LocationSymbol = locationSymbol()
-          val sd = SwitchDefaultCase(bar, elseToken, arrow, goto, targetLocation)
+          val sd = SwitchDefaultCase(targetLocation)
+          sd.pos = getPos(bar.pos, targetLocation.pos)
           Some(sd)
         } else None
       case _ => None
@@ -535,31 +642,43 @@ class JawaParser(tokens: Array[Token], reporter: Reporter) extends JavaKnowledge
   }
   
   private def returnStatement(): ReturnStatement = {
-    val returnToken: Token = accept(RETURN)
+    val r = accept(RETURN)
+    var endPos: Position = r.pos
     val varOpt: Option[VarSymbol] =
       currentTokenType match {
-        case ID => Some(varSymbol())
+        case ID =>
+          val vs = varSymbol()
+          endPos = vs.pos
+          Some(vs)
         case _ => None
       }
     val annotations_ : IList[Annotation] = annotations()
-    val rs = ReturnStatement(returnToken, varOpt, annotations_)
+    if(annotations_.nonEmpty) {
+      endPos = annotations_.last.pos
+    }
+    val rs = ReturnStatement(varOpt, annotations_)
+    rs.pos = getPos(r.pos, endPos)
     rs
   }
   
   private def monitorStatement(): MonitorStatement = {
-    val at: Token = accept(AT)
+    val at = accept(AT)
     val monitor: Token = currentTokenType match {
       case MONITOR_ENTER => accept(MONITOR_ENTER)
       case MONITOR_EXIT => accept(MONITOR_EXIT)
       case _ => throw new JawaParserException(currentToken.pos, "Unexpected monitorStatement start: " + currentToken)
     }
     val varSymbol_ : VarSymbol = varSymbol()
-    MonitorStatement(at, monitor, varSymbol_)
+    val ms = MonitorStatement(monitor, varSymbol_)
+    ms.pos = getPos(at.pos, varSymbol_.pos)
+    ms
   }
   
   private def emptyStatement(): EmptyStatement = {
     val annotations_ : IList[Annotation] = annotations()
     val es = EmptyStatement(annotations_)
+    if(annotations_.isEmpty) es.pos = NoPosition
+    else es.pos = getPos(annotations_.head.pos, annotations_.last.pos)
     es
   }
   
@@ -585,7 +704,7 @@ class JawaParser(tokens: Array[Token], reporter: Reporter) extends JavaKnowledge
       case EXCEPTION => exceptionExpression()
       case CONST_CLASS => constClassExpression()
       case LENGTH => lengthExpression()
-      case INSTANCEOF => instanceofExpression()
+      case INSTANCE_OF => instanceofExpression()
       case NULL => nullExpression()
       case LPAREN => 
         val next: TokenType = lookahead(1)
@@ -610,50 +729,61 @@ class JawaParser(tokens: Array[Token], reporter: Reporter) extends JavaKnowledge
   }
   
   private def nullExpression(): NullExpression = {
-    val nul: Token = accept(NULL)
-    NullExpression(nul)
+    val n = accept(NULL)
+    val ne = NullExpression(n)
+    ne.pos = n.pos
+    ne
   }
   
   private def constClassExpression(): ConstClassExpression = {
-    val const_class: Token = accept(CONST_CLASS)
-    val at: Token = accept(AT)
-    val typeToken: Token = nextToken()
+    val cc = accept(CONST_CLASS)
+    accept(AT)
+    nextToken()
     val typExp: TypeExpression = typExpression()
-    ConstClassExpression(const_class, at, typeToken, typExp)
+    val cce = ConstClassExpression(typExp)
+    cce.pos = getPos(cc.pos, typExp.pos)
+    cce
   }
   
   private def lengthExpression():LengthExpression = {
-    val length: Token = accept(LENGTH)
-    val at: Token = accept(AT)
-    val variable: Token = nextToken()
+    val length = accept(LENGTH)
+    accept(AT)
+    nextToken()
     val varSymbol_ : VarSymbol = varSymbol()
-    LengthExpression(length, at, variable, varSymbol_)
+    val le = LengthExpression(varSymbol_)
+    le.pos = getPos(length.pos, varSymbol_.pos)
+    le
   }
   
-  private def instanceofExpression(): InstanceofExpression = {
-    val instanceof: Token = accept(INSTANCEOF)
-    val at1: Token = accept(AT)
-    val variable: Token = nextToken()
+  private def instanceofExpression(): InstanceOfExpression = {
+    val io = accept(INSTANCE_OF)
+    accept(AT)
+    nextToken()
     val varSymbol_ : VarSymbol = varSymbol()
-    val at2: Token = accept(AT)
-    val typeToken: Token = nextToken()
+    accept(AT)
+    nextToken()
     val typExp : TypeExpression = typExpression()
-    InstanceofExpression(instanceof, at1, variable, varSymbol_, at2, typeToken, typExp)
+    val ioe = InstanceOfExpression(varSymbol_, typExp)
+    ioe.pos = getPos(io.pos, typExp.pos)
+    ioe
   }
   
   private def exceptionExpression(): ExceptionExpression = {
-    val exception: Token = accept(EXCEPTION)
-    ExceptionExpression(exception)
+    val exce = accept(EXCEPTION)
+    ExceptionExpression(exce.pos)
   }
   
   private def nameExpression(): NameExpression = {
-    val varSymbol_ = 
-      currentTokenType match {
-        case ID => Left(varSymbol())
-        case STATIC_ID => Right(staticFieldNameSymbol())
-        case _ => throw new JawaParserException(currentToken.pos, "expected 'ID' or 'STATIC_ID' but " + currentToken + " found")
-      }
+    val varSymbol_ = currentTokenType match {
+      case ID => Left(varSymbol())
+      case STATIC_ID => Right(staticFieldNameSymbol())
+      case _ => throw new JawaParserException(currentToken.pos, "expected 'ID' or 'STATIC_ID' but " + currentToken + " found")
+    }
     val ne = NameExpression(varSymbol_)
+    ne.pos = varSymbol_ match {
+      case Left(vs) => vs.pos
+      case Right(sfs) => sfs.pos
+    }
     ne
   }
   
@@ -661,6 +791,7 @@ class JawaParser(tokens: Array[Token], reporter: Reporter) extends JavaKnowledge
     val baseSymbol: VarSymbol = varSymbol()
     val indices: IList[IndexingSuffix] = indexingSuffixs()
     val ie = IndexingExpression(baseSymbol, indices)
+    ie.pos = getPos(baseSymbol.pos, indices.last.pos)
     ie
   }
   
@@ -669,10 +800,11 @@ class JawaParser(tokens: Array[Token], reporter: Reporter) extends JavaKnowledge
     def loop(){
       currentTokenType match {
         case LBRACKET =>
-          val lbracket: Token = nextToken()
+          val lbracket = accept(LBRACKET)
           val index: Either[VarSymbol, LiteralExpression] = getVarOrLit
-          val rbracket: Token = accept(RBRACKET)
-          val is = IndexingSuffix(lbracket, index, rbracket)
+          val rbracket = accept(RBRACKET)
+          val is = IndexingSuffix(index)
+          is.pos = getPos(lbracket.pos, rbracket.pos)
           indices += is
           loop()
         case _ =>
@@ -684,41 +816,43 @@ class JawaParser(tokens: Array[Token], reporter: Reporter) extends JavaKnowledge
   
   private def accessExpression(): AccessExpression = {
     val baseSymbol: VarSymbol = varSymbol()
-    val dot: Token = accept(DOT)
+    accept(DOT)
     val fieldSym: FieldNameSymbol = fieldNameSymbol()
-    val ae = AccessExpression(baseSymbol, dot, fieldSym)
+    val ae = AccessExpression(baseSymbol, fieldSym)
+    ae.pos = getPos(baseSymbol.pos, fieldSym.pos)
     ae
   }
   
   private def tupleExpression(): TupleExpression = {
-    val lparen: Token = accept(LPAREN)
-    val constants: MList[(LiteralExpression, Option[Token])] = mlistEmpty
+    val lparen = accept(LPAREN)
+    val constants: MList[LiteralExpression] = mlistEmpty
     while(currentTokenType != RPAREN) {
       if(!isLiteral) throw new JawaParserException(currentToken.pos, "expected literal but found " + currentToken)
       val cons: LiteralExpression = literalExpression()
-      val commaOpt: Option[Token] = 
-        currentTokenType match {
-          case COMMA => Some(nextToken())
-          case _ => None
-        }
-      constants += ((cons, commaOpt))
+      currentTokenType match {
+        case COMMA => nextToken()
+        case _ =>
+      }
+      constants += cons
     }
-    val rparen: Token = accept(RPAREN)
-    val te = TupleExpression(lparen, constants.toList, rparen)
+    val rparen = accept(RPAREN)
+    val te = TupleExpression(constants.toList)
+    te.pos = getPos(lparen.pos, rparen.pos)
     te
   }
   
   private def castExpression(): CastExpression = {
-    val lparen: Token = accept(LPAREN)
+    val lparen = accept(LPAREN)
     val typ_ : Type = typ()
-    val rparen: Token = accept(RPAREN)
+    accept(RPAREN)
     val varSym: VarSymbol = varSymbol()
-    val ce = CastExpression(lparen, typ_, rparen, varSym)
+    val ce = CastExpression(typ_, varSym)
+    ce.pos = getPos(lparen.pos, varSym.pos)
     ce
   }
   
   private def newExpression(): NewExpression = {
-    val newToken: Token = accept(NEW)
+    val n = accept(NEW)
     val baseTypeSymbol: Either[TypeSymbol, Token] = {
       currentToken match {
         case x if isJavaPrimitive(x.text) => Right(accept(ID))
@@ -735,7 +869,8 @@ class JawaParser(tokens: Array[Token], reporter: Reporter) extends JavaKnowledge
       }
     }
     loop()
-    val ne = NewExpression(newToken, baseTypeSymbol, typeFragments.toList)
+    val ne = NewExpression(baseTypeSymbol, typeFragments.toList)
+    ne.pos = getPos(n.pos, ne.immediateChildren.last.pos)
     ne
   }
   
@@ -743,6 +878,7 @@ class JawaParser(tokens: Array[Token], reporter: Reporter) extends JavaKnowledge
     if(!isLiteral) throw new JawaParserException(currentToken.pos, "expected literal but found " + currentToken)
     val constant: Token = nextToken()
     val le = LiteralExpression(constant)
+    le.pos = constant.pos
     le
   }
 
@@ -767,6 +903,7 @@ class JawaParser(tokens: Array[Token], reporter: Reporter) extends JavaKnowledge
     val op: Token = accept(OP) // need to check is it unary op
     val unary: VarSymbol = varSymbol()
     val ue = UnaryExpression(op, unary)
+    ue.pos = getPos(op.pos, unary.pos)
     ue
   }
   
@@ -784,6 +921,7 @@ class JawaParser(tokens: Array[Token], reporter: Reporter) extends JavaKnowledge
       throw new JawaParserException(currentToken.pos, "expected 'ID' or 'INTEGER_LITERAL' or 'FLOATING_POINT_LITERAL' or 'NULL' but " + currentToken + " found")
     val right: Either[VarSymbol, Either[LiteralExpression, NullExpression]] = getVarOrLitOrNull
     val be = BinaryExpression(left, op, right)
+    be.pos = getPos(left.pos, be.immediateChildren.last.pos)
     be
   }
   
@@ -802,87 +940,104 @@ class JawaParser(tokens: Array[Token], reporter: Reporter) extends JavaKnowledge
   }
   
   private def cmpExpression(): CmpExpression = {
-    val cmp: Token = accept(CMP)
-    val lparen: Token = accept(LPAREN)
+    val cmp = accept(CMP)
+    accept(LPAREN)
     val var1Symbol: VarSymbol = varSymbol()
-    val comma: Token = accept(COMMA)
+    accept(COMMA)
     val var2Symbol: VarSymbol = varSymbol()
-    val rparen: Token = accept(RPAREN)
-    val ce = CmpExpression(cmp, lparen, var1Symbol, comma, var2Symbol, rparen)
+    val rparen = accept(RPAREN)
+    val ce = CmpExpression(cmp, var1Symbol, var2Symbol)
+    ce.pos = getPos(cmp.pos, rparen.pos)
     ce
   }
   
   private def catchClause(): CatchClause = {
-    val catchToken: Token = accept(CATCH)
+    val ca = accept(CATCH)
     val typ_ : Type = typ()
     val range: CatchRange = catchRange()
-    val goto: Token = accept(GOTO)
+    accept(GOTO)
     val targetLocation: LocationSymbol = locationSymbol()
-    val semi: Token = accept(SEMI)
-    val cc = CatchClause(catchToken, typ_, range, goto, targetLocation, semi)
+    val semi = accept(SEMI)
+    val cc = CatchClause(typ_, range, targetLocation)
+    cc.pos = getPos(ca.pos, semi.pos)
     cc
   }
   
   private def catchRange(): CatchRange = {
-    val at: Token = accept(AT)
-    val lbracket: Token = accept(LBRACKET)
+    val at = accept(AT)
+    accept(LBRACKET)
     val fromLocation: LocationSymbol = locationSymbol()
-    val range: Token = accept(RANGE)
+    accept(RANGE)
     val toLocation: LocationSymbol = locationSymbol()
-    val rbracket: Token = accept(RBRACKET)
-    val cr = CatchRange(at, lbracket, fromLocation, range, toLocation, rbracket)
+    val rbracket = accept(RBRACKET)
+    val cr = CatchRange(fromLocation, toLocation)
+    cr.pos = getPos(at.pos, rbracket.pos)
     cr
   }
   
   private def typExpression(): TypeExpression = {
-    val hat: Token = accept(HAT)
+    val hat = accept(HAT)
     val typ_ : Type = typ()
-    TypeExpression(hat, typ_)
+    val te = TypeExpression(typ_)
+    te.pos = getPos(hat.pos, typ_.pos)
+    te
   }
   
   private def typ(): Type = {
+    var startPos: Position = null
+    var endPos: Position = null
     val baseTypeSymbol: Either[TypeSymbol, Token] = {
       currentToken match {
-        case x if isJavaPrimitive(x.text) => Right(accept(ID))
-        case _ => Left(typeSymbol())
+        case x if isJavaPrimitive(x.text) =>
+          val id = accept(ID)
+          startPos = id.pos
+          endPos = startPos
+          Right(id)
+        case _ =>
+          val ts = typeSymbol()
+          startPos = ts.pos
+          endPos = startPos
+          Left(ts)
       }
     }
     val typeFragments: MList[TypeFragment] = mlistEmpty
     def loop() {
       currentTokenType match {
         case LBRACKET =>
-          typeFragments += typeFragment()
+          val tf = typeFragment()
+          endPos = tf.pos
+          typeFragments += tf
           loop()
         case _ =>
       }
     }
     loop()
-    val typ = Type(baseTypeSymbol, typeFragments.toList)
-    typ
+    val t = Type(baseTypeSymbol, typeFragments.toList)
+    t.pos = getPos(startPos, endPos)
+    t
   }
   
   private def typeFragment(): TypeFragment = {
-    val lbracket: Token = nextToken()
-    val rbracket: Token = accept(RBRACKET)
-    val rtf = TypeFragment(lbracket, rbracket)
-    rtf
+    val lbracket = accept(LBRACKET)
+    val rbracket = accept(RBRACKET)
+    TypeFragment(getPos(lbracket.pos, rbracket.pos))
   }
   
   private def typeFragmentWithInit(): TypeFragmentWithInit = {
-    val lbracket: Token = nextToken()
-    val varSymbols: MList[(VarSymbol, Option[Token])] = mlistEmpty
+    val lbracket = accept(LBRACKET)
+    val varSymbols: MList[VarSymbol] = mlistEmpty
     while(currentTokenType != RBRACKET) {
       val varSymbol_ : VarSymbol = varSymbol()
-      val commaOpt: Option[Token] = 
-        currentTokenType match {
-          case COMMA => Some(nextToken())
-          case _ => None
-        }
-      varSymbols += ((varSymbol_, commaOpt))
+      currentTokenType match {
+        case COMMA => nextToken()
+        case _ =>
+      }
+      varSymbols += varSymbol_
     }
-    val rbracket: Token = accept(RBRACKET)
-    val tfwi = TypeFragmentWithInit(lbracket, varSymbols.toList, rbracket)
-    tfwi
+    val rbracket = accept(RBRACKET)
+    val tfi = TypeFragmentWithInit(varSymbols.toList)
+    tfi.pos = getPos(lbracket.pos, rbracket.pos)
+    tfi
   }
   
   private def isUnaryOP(token: Token): Boolean = {
@@ -922,8 +1077,9 @@ class JawaParser(tokens: Array[Token], reporter: Reporter) extends JavaKnowledge
   private def nextToken(): Token = {
     val token = currentToken
     pos += 1
-    if (logging)
+    if(logging) {
       println("nextToken(): " + token + " --> " + currentToken)
+    }
     token
   }
 

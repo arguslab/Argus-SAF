@@ -11,7 +11,7 @@
 package org.argus.jawa.core.backend
 
 import org.argus.jawa.core.{ClasspathRepresentationType, Global}
-import org.argus.jawa.core.classpath._
+import org.argus.jawa.core.backend.classpath._
 import org.argus.jawa.core.io.AbstractFile
 
 

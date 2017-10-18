@@ -11,7 +11,6 @@
 package org.argus.jawa.core
 
 import org.argus.jawa.ast._
-import org.argus.jawa.compiler.parser._
 import org.argus.jawa.core.util._
 
 /**
@@ -50,11 +49,6 @@ object ExceptionCenter {
     val result = msetEmpty[JawaType]
     s match{
       case aa: AssignmentStatement =>
-        aa.assignOP.text match{
-          case "%" | "/" =>
-            result += ARITHMETIC_EXCEPTION
-          case _ =>
-        }
         aa.lhs match {
           case _: IndexingExpression =>
             result += ARRAY_INDEX_OUT_OF_BOUNDS_EXCEPTION
@@ -65,6 +59,12 @@ object ExceptionCenter {
             result += ARRAY_INDEX_OUT_OF_BOUNDS_EXCEPTION
           case _: CastExpression =>
             result += CLASS_CAST_EXCEPTION
+          case be: BinaryExpression =>
+            be.op.text match{
+              case "%" | "/" =>
+                result += ARITHMETIC_EXCEPTION
+              case _ =>
+            }
           case _ =>
         }
       case _: ThrowStatement =>

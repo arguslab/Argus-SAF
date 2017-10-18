@@ -39,7 +39,7 @@ object InterComponentCommunicationModel {
     sig.getSubSignature == "registerReceiver:(Landroid/content/BroadcastReceiver;Landroid/content/IntentFilter;Ljava/lang/String;Landroid/os/Handler;)Landroid/content/Intent;"
   }
 
-  def registerReceiver(apk: ApkGlobal, s: PTAResult, retVarOpt: Option[String], recvOpt: Option[String], args: List[String], currentContext: Context): ISet[RFAFact] ={
+  def registerReceiver(apk: ApkGlobal, s: PTAResult, recvOpt: Option[String], args: List[String], currentContext: Context): ISet[RFAFact] ={
     require(args.size >= 2)
     val receiverSlot = VarSlot(args.head)
     val receiverValue = s.pointsToSet(currentContext, receiverSlot)

@@ -1,4 +1,4 @@
-record `com.fgwei.ArrayCopy`  @kind class @AccessFlag PUBLIC {
+record `com.fgwei.ArrayCopy` @kind class @AccessFlag PUBLIC {
    }
     procedure `java.lang.String` `main` () @signature `Lcom/fgwei/ArrayCopy;.main:()Ljava/lang/String;` @AccessFlag PUBLIC_STATIC {
         `java.lang.String`[] String_arr1_v0;
@@ -7,14 +7,14 @@ record `com.fgwei.ArrayCopy`  @kind class @AccessFlag PUBLIC {
         `int` int_v5;
         `int` int_v6;
       
-#L000548.   int_v6:= 1I;
-#L00054a.   int_v5:= 0I;
-#L00055c.   String_v4:= "phone" @kind object;
-#L000574.   String_arr1_v0:= new `java.lang.String`[int_v6];
-#L000578.   String_arr1_v0[int_v5]:= String_v4  @kind object;
-#L00057c.   String_arr1_v1:= new `java.lang.String`[int_v6];
-#L000580.   call `arraycopy`(String_arr1_v0, int_v5, String_arr1_v1, int_v5, int_v6) @signature `Ljava/lang/System;.arraycopy:(Ljava/lang/Object;ILjava/lang/Object;II)V` @kind static;
-#L000586.   String_v4:= String_arr1_v1[int_v5] @kind object;
-#L000594.   return String_v4 @kind object;
+  #L000548.  int_v6:= 1I;
+  #L00054a.  int_v5:= 0I;
+  #L00055c.  String_v4:= "phone" @kind object;
+  #L000574.  String_arr1_v0:= new `java.lang.String`[int_v6];
+  #L000578.  String_arr1_v0[int_v5]:= String_v4 @kind object;
+  #L00057c.  String_arr1_v1:= new `java.lang.String`[int_v6];
+  #L000580.  call `arraycopy`(String_arr1_v0, int_v5, String_arr1_v1, int_v5, int_v6) @signature `Ljava/lang/System;.arraycopy:(Ljava/lang/Object;ILjava/lang/Object;II)V` @kind static;
+  #L000586.  String_v4:= String_arr1_v1[int_v5] @kind object;
+  #L000594.  return String_v4 @kind object;
 
    }

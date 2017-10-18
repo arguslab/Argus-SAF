@@ -59,7 +59,7 @@ case class Token(tokenType: TokenType, pos: RangePosition, rawText: String) {
     else {
       txt = "<no text>"
     }
-    "["+txt+"',<"+tokenType+">"+"@"+pos+"]"
+    "["+txt+",<"+tokenType+">"+"@"+pos+"]"
   }
 
 }

@@ -11,7 +11,6 @@
 package org.argus.jawa.alir.rda
 
 import org.argus.jawa.ast._
-import org.argus.jawa.compiler.parser._
 import org.argus.jawa.core.util._
 
 /**
@@ -52,7 +51,7 @@ final class JawaDefRef(callRef: Boolean)
   def callReferences(j: CallStatement): ISeq[ISet[Slot]] = {
     if(callRef){
       val args = j.rhs.argClause.varSymbols
-      args.map{case (arg, _) => refCache.getOrElseUpdate(arg, getRefs(arg))}
+      args.map{arg => refCache.getOrElseUpdate(arg, getRefs(arg))}
     } else ivectorEmpty
   }
 

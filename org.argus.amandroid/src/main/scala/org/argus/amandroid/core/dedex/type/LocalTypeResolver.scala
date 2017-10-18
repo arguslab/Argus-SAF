@@ -174,7 +174,7 @@ object LocalTypeResolver {
                   use_types.getOrElse(locIndex, mmapEmpty).get(VarSlot(ie.base)) match {
                     case Some(typ) =>
                       typ.getTypes.foreach { case ((ietyp, c)) =>
-                        defType.addType(JawaType.addDimensions(ietyp, -1 * ie.dimentions), c)
+                        defType.addType(JawaType.addDimensions(ietyp, -1 * ie.dimensions), c)
                       }
                     case None =>
                       throw new LocalTypeResolveException(e.pos, "Should never go here: " + e.toCode)
@@ -283,7 +283,7 @@ object LocalTypeResolver {
             (e.typ, CertainLevel.CERTAIN)
           case ie: IndexingExpression =>
             val (typ, level) = getTypeFromKind(as.kind)
-            uses += ((VarSlot(ie.base), new VarType().addType(JawaType.addDimensions(typ, ie.dimentions), level)))
+            uses += ((VarSlot(ie.base), new VarType().addType(JawaType.addDimensions(typ, ie.dimensions), level)))
             ie.indices foreach { i =>
               i.index match {
                 case Left(v) =>
@@ -292,7 +292,7 @@ object LocalTypeResolver {
               }
             }
             (typ, level)
-          case ie: InstanceofExpression =>
+          case ie: InstanceOfExpression =>
             uses += ((VarSlot(ie.varSymbol.varName), new VarType().addType(ie.typExp.typ, CertainLevel.PROBABLY)))
             (JavaKnowledge.BOOLEAN, CertainLevel.CERTAIN)
           case le: LengthExpression =>
@@ -344,7 +344,7 @@ object LocalTypeResolver {
           case _: NullExpression =>
             (JavaKnowledge.JAVA_TOPLEVEL_OBJECT_TYPE, CertainLevel.PROBABLY)
           case te: TupleExpression =>
-            val typ = te.constants.find{ case (con, _) =>
+            val typ = te.constants.find{ con =>
               con.isLong
             } match {
               case Some(_) => JavaKnowledge.LONG
@@ -361,7 +361,7 @@ object LocalTypeResolver {
           case ae: AccessExpression =>
             uses += ((VarSlot(ae.base), new VarType().addType(JavaKnowledge.JAVA_TOPLEVEL_OBJECT_TYPE, CertainLevel.NOT_SURE)))
           case ie: IndexingExpression =>
-            uses += ((VarSlot(ie.base), new VarType().addType(JawaType.addDimensions(rhsTyp, ie.dimentions), level)))
+            uses += ((VarSlot(ie.base), new VarType().addType(JawaType.addDimensions(rhsTyp, ie.dimensions), level)))
             ie.indices foreach { i =>
               i.index match {
                 case Left(v) =>
