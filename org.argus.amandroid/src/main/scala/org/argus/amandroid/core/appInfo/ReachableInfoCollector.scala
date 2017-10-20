@@ -311,14 +311,14 @@ class ReachableInfoCollector(val global: Global, entryPointTypes: ISet[JawaType]
     else ar.getInterfaces ++ ar.getInterfaces.flatMap{i => collectAllInterfaces(i)}
   }
 
-  private def getMethodFromHierarchy(r :JawaClass, subSig: String): Option[JawaMethod] = {
+  private def getMethodFromHierarchy(r: JawaClass, subSig: String): Option[JawaMethod] = {
     try {
       if (r.declaresMethod(subSig)) r.getMethod(subSig)
       else if (r.hasSuperClass) getMethodFromHierarchy(r.getSuperClass, subSig)
       else None
     } catch {
       case _: Exception =>
-        None
+        None // Add this to tentatively avoid issue #22
     }
   }
 
