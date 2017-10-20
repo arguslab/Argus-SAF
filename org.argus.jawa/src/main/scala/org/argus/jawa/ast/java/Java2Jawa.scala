@@ -17,8 +17,8 @@ import com.github.javaparser.ast._
 import com.github.javaparser.ast.`type`._
 import com.github.javaparser.ast.body._
 import com.github.javaparser.ast.expr.{AnnotationExpr, NormalAnnotationExpr, SingleMemberAnnotationExpr}
-import com.github.javaparser.ast.stmt.{BlockStmt, ExpressionStmt, Statement}
-import org.argus.jawa.ast.{AnnotationValue, CatchClause => JawaCatchClause, ExtendAndImplement, ExtendsAndImplementsClauses, FieldDefSymbol, InstanceFieldDeclaration, InstanceFieldDeclarationBlock, LocalVarDeclaration, Location, MethodDefSymbol, Param, ParamClause, ResolvedBody, StatementValue, StaticFieldDeclaration, TokenValue, TypeDefSymbol, TypeFragment, TypeSymbol, VarDefSymbol, Annotation => JawaAnnotation, ClassOrInterfaceDeclaration => JawaClassOrInterfaceDeclaration, CompilationUnit => JawaCompilationUnit, MethodDeclaration => JawaMethodDeclaration, Type => JawaTypeAst}
+import com.github.javaparser.ast.stmt.{AssertStmt, BlockStmt, ExpressionStmt, Statement}
+import org.argus.jawa.ast.{AnnotationValue, ExtendAndImplement, ExtendsAndImplementsClauses, FieldDefSymbol, InstanceFieldDeclaration, InstanceFieldDeclarationBlock, LocalVarDeclaration, Location, MethodDefSymbol, Param, ParamClause, ResolvedBody, StatementValue, StaticFieldDeclaration, TokenValue, TypeDefSymbol, TypeFragment, TypeSymbol, VarDefSymbol, Annotation => JawaAnnotation, CatchClause => JawaCatchClause, ClassOrInterfaceDeclaration => JawaClassOrInterfaceDeclaration, CompilationUnit => JawaCompilationUnit, MethodDeclaration => JawaMethodDeclaration, Type => JawaTypeAst}
 import org.argus.jawa.compiler.lexer.{Token, Tokens}
 import org.argus.jawa.core.io.{JavaSourceFile, RangePosition}
 import org.argus.jawa.core.util._
@@ -493,7 +493,12 @@ class Java2Jawa(global: Global, sourceFile: JavaSourceFile) {
     annotationExprs.forEach{ anno =>
       annotations += processAnnotation(anno)
     }
-    val jmd = JawaMethodDeclaration(returnType, methodSymbol, paramClause, annotations.toList, ResolvedBody(ilistEmpty, ilistEmpty, ilistEmpty))
+    val body = if(bodyBlock.isPresent) {
+      processBody(bodyBlock.get())
+    } else {
+      ResolvedBody(ilistEmpty, ilistEmpty, ilistEmpty)
+    }
+    val jmd = JawaMethodDeclaration(returnType, methodSymbol, paramClause, annotations.toList, body)
     methodSymbol.signature = jmd.signature
     jmd
   }
@@ -518,12 +523,17 @@ class Java2Jawa(global: Global, sourceFile: JavaSourceFile) {
     Param(typ, paramSymbol, annotations.toList)
   }
 
-//  def processBody(bodyBlock: BlockStmt): ResolvedBody = {
-//  }
-//
-//  private def processBlockStmt(blockStmt: BlockStmt): (IList[LocalVarDeclaration], IList[Location], IList[JawaCatchClause]) = {
-//
-//  }
+  def processBody(bodyBlock: BlockStmt): ResolvedBody = {
+    val (locals, locations, ccs) = processBlockStmt(bodyBlock)
+    ResolvedBody(locals, locations, ccs)
+  }
+
+  private def processBlockStmt(blockStmt: BlockStmt): (IList[LocalVarDeclaration], IList[Location], IList[JawaCatchClause]) = {
+//    blockStmt.getStatements.forEach {
+//      case as: AssertStmt =>
+//    }
+    (ilistEmpty, ilistEmpty, ilistEmpty)
+  }
 
 }
 
