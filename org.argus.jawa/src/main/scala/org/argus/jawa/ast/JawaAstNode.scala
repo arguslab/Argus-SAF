@@ -123,16 +123,16 @@ case class TypeSymbol(id: Token) extends RefSymbol with ClassSym {
 }
 
 case class MethodDefSymbol(id: Token) extends DefSymbol with MethodSym {
-  def baseType: JawaType = getClassTypeFromMethodFullName(id.text)
+  def baseType: JawaType = signature.getClassType
   var signature: Signature = _
-  def methodName: String = getMethodNameFromMethodFullName(id.text)
+  def methodName: String = id.text
   def toCode: String = id.rawText
 }
 
 case class MethodNameSymbol(id: Token) extends RefSymbol with MethodSym {
-  def baseType: JawaType = getClassTypeFromMethodFullName(id.text)
+  def baseType: JawaType = signature.getClassType
   var signature: Signature = _
-  def methodName: String = getMethodNameFromMethodFullName(id.text)
+  def methodName: String = id.text
   def toCode: String = id.rawText
 }
 
@@ -206,7 +206,9 @@ case class ClassOrInterfaceDeclaration(
   def instanceFields: IList[InstanceFieldDeclaration] = instanceFieldDeclarationBlock.instanceFields
   def typ: JawaType = cityp.typ
   def toCode: String = {
-    s"record ${cityp.toCode} ${annotations.map(anno => anno.toCode).mkString(" ")}${extendsAndImplementsClausesOpt match {case Some(eic) => " " + eic.toCode case None => ""}}\n${instanceFieldDeclarationBlock.toCode}\n${staticFields.map(sf => sf.toCode).mkString("\n")}\n${methods.map(m => m.toCode).mkString("\n")}"
+    val staticPart = if(staticFields.isEmpty) "" else s"${staticFields.map(sf => sf.toCode).mkString("\n")}\n"
+    val methodPart = if(methods.isEmpty) "" else s"${methods.map(m => m.toCode).mkString("\n")}"
+    s"record ${cityp.toCode} ${annotations.map(anno => anno.toCode).mkString(" ")}${extendsAndImplementsClausesOpt match {case Some(eic) => " " + eic.toCode case None => ""}}\n${instanceFieldDeclarationBlock.toCode}\n$staticPart$methodPart"
   }
 }
 
@@ -261,7 +263,7 @@ case class ExtendAndImplement(
   def typ: JawaType = parentTyp.typ
   def isExtend: Boolean = annotations.exists { a => a.key == "kind" && a.value == "class" }
   def isImplement: Boolean = annotations.exists { a => a.key == "kind" && a.value == "interface" }
-  def toCode: String = s"$parentTyp ${annotations.map(anno => anno.toCode).mkString(" ")}"
+  def toCode: String = s"${parentTyp.toCode} ${annotations.map(anno => anno.toCode).mkString(" ")}"
 }
 
 sealed trait Field extends JawaAstNode {
@@ -273,7 +275,10 @@ sealed trait Field extends JawaAstNode {
 }
 
 case class InstanceFieldDeclarationBlock(instanceFields: IList[InstanceFieldDeclaration]) extends JawaAstNode {
-  def toCode: String = s"${instanceFields.map(f => f.toCode).mkString("\n")}"
+  def toCode: String = {
+    val instancePart = if(instanceFields.isEmpty) "" else s"\n  ${instanceFields.map(f => f.toCode).mkString("\n  ")}\n"
+    s"{$instancePart}"
+  }
 }
 
 case class InstanceFieldDeclaration(
@@ -382,7 +387,10 @@ case class ResolvedBody(
   def location(locUri: String): Location = locations.find(l => l.locationUri.equals(locUri)).get
   def location(locIndex: Int): Location = locations(locIndex)
   def toCode: String = {
-    s"{\n    ${locals.map(l => l.toCode).mkString("\n    ")}\n\n${locations.map(l => l.toCode).mkString("\n    ")}\n${catchClauses.map(cc => cc.toCode).mkString("\n    ")}\n}"
+    val localPart = if(locals.isEmpty) "" else s"    ${locals.map(l => l.toCode).mkString("\n    ")}\n\n"
+    val locationPart = if(locations.isEmpty) "" else s"    ${locations.map(l => l.toCode).mkString("\n    ")}\n"
+    val ccPart = if(catchClauses.isEmpty) "" else s"    ${catchClauses.map(cc => cc.toCode).mkString("\n    ")}\n}"
+    s"{$localPart$locationPart$ccPart}"
   }
 }
 
