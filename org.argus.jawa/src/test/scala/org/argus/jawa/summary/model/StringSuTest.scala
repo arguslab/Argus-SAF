@@ -17,7 +17,7 @@ import org.argus.jawa.core.JawaType
 /**
   * Created by fgwei on 6/15/17.
   */
-class StringSuTest extends SuTestBase("string.safsu") {
+class StringSuTest extends SuTestBase("String.safsu") {
   "Ljava/lang/String;.<clinit>:()V" with_input () produce ()
 
   "Ljava/lang/String;.<init>:()V" with_input (

@@ -30,15 +30,13 @@ object Signature extends JavaKnowledge {
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
  */
 case class Signature(classTyp: JawaType, methodName: String, proto: String) extends JavaKnowledge {
-  
+
   override def hashCode: Int = signature.hashCode
+
+  override def equals(obj: scala.Any): Boolean = hashCode == obj.hashCode()
   
   def this(sig: String) = this(Signature.getClassTyp(sig), Signature.getMethodName(sig), Signature.getProto(sig))
-  private var _signature: String = _
-  def signature: String = {
-    if(_signature == null) _signature = formatTypeToSignature(classTyp) + "." + methodName + ":" + proto
-    _signature
-  }
+  lazy val signature: String = formatTypeToSignature(classTyp) + "." + methodName + ":" + proto
   
   def FQMN: String = {
     val sb = new StringBuilder
@@ -49,12 +47,11 @@ case class Signature(classTyp: JawaType, methodName: String, proto: String) exte
     var i = 0
     val params = getParameterTypes
     val size = params.size
-    params foreach {
-      typ =>
-        sb.append(typ.canonicalName)
-        if(i < size - 1)
-          sb.append(",")
-        i += 1
+    params foreach { typ =>
+      sb.append(typ.canonicalName)
+      if(i < size - 1)
+        sb.append(",")
+      i += 1
     }
     sb.append(")")
     sb.append(getReturnType.canonicalName)
