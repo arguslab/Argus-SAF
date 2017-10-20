@@ -17,7 +17,7 @@ import org.argus.jawa.core.JawaType
 /**
   * Created by fgwei on 6/15/17.
   */
-class MapSuTest extends SuTestBase("map.safsu") {
+class MapSuTest extends SuTestBase("Map.safsu") {
   val thisInstance = PTAInstance(new JawaType("java.util.HashMap"), defContext)
   val thisFact = new RFAFact(VarSlot("v0"), thisInstance)
   val thisEntriesInstance = PTAInstance(new JawaType("java.util.HashMap$Entries"), defContext)

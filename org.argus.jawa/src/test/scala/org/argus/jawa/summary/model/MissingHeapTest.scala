@@ -17,7 +17,7 @@ import org.argus.jawa.core.{JavaKnowledge, JawaType}
 /**
   * Created by fgwei on 7/11/17.
   */
-class MissingHeapTest extends SuTestBase("map.safsu") {
+class MissingHeapTest extends SuTestBase("Map.safsu") {
   val thisInstance = PTAInstance(new JawaType("java.util.HashMap"), defContext)
   val thisFact = new RFAFact(VarSlot("v0"), thisInstance)
 
