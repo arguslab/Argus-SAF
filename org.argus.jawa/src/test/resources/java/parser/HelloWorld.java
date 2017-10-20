@@ -10,13 +10,26 @@
 package java.parser;
 
 
-public class HelloWorld {
+import java.io.*;
+import java.lang.annotation.Documented;
+import java.util.Random;
 
-    String[] a, b[], c;
+@Documented
+public class HelloWorld extends Serializable implements MyInterface {
+
+    public java.lang.String[] a, b[], c;
+    protected static Random r = new Random();
+
+    HelloWorld() {
+        a = new String[1];
+        a[0] = 1;
+    }
 
     public static void main(String[] args) {
         // Prints "Hello, World" to the terminal window.
         System.out.println("Hello, World");
     }
+
+    class TestInner {}
 
 }
