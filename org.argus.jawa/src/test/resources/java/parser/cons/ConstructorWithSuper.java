@@ -7,8 +7,28 @@
  *
  * Detailed contributors are listed in the CONTRIBUTOR.md
  */
-package java.parser;
+package parser.cons;
 
-public interface MyInterface {
+public class ConstructorWithSuper {
+    int i;
 
+    ConstructorWithSuper() {
+        super();
+        this.i = 0;
+    }
+
+    void bar() {
+
+    }
+
+    public static int main() {
+        Constructor1 c = new Constructor1();
+        return c.i;
+    }
+
+    class Inner {
+        void foo() {
+            super.bar();
+        }
+    }
 }

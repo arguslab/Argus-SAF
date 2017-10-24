@@ -15,14 +15,14 @@ import java.io.PrintWriter
 import java.io.File
 import java.io.DataOutputStream
 import java.io.FileOutputStream
-import java.lang.{Long, Float, Double}
+import java.lang.{Double, Float, Long}
 
 import org.argus.jawa.ast
 import org.argus.jawa.ast._
 import org.argus.jawa.compiler.lexer.Tokens._
 import org.argus.jawa.compiler.parser.JawaParserException
 import org.argus.jawa.core._
-import org.argus.jawa.core.io.Position
+import org.argus.jawa.core.io.{Position, RangePosition}
 import org.objectweb.asm._
 import org.objectweb.asm.util.TraceClassVisitor
 
@@ -145,29 +145,30 @@ class JavaByteCodeGenerator(javaVersion: Int) {
         i += 1
     }
     this.maxLocals = this.locals.size
-    body.locations foreach {
-      location =>
-        val locLabel = new Label()
-        this.locations(location.locationUri) = locLabel
+    body.locations foreach { location =>
+      val locLabel = new Label()
+      this.locations(location.locationUri) = locLabel
     }
-    body.catchClauses foreach {
-      catchClause =>
-        val from: Label = this.locations(catchClause.range.fromLocation.location)
-        val to: Label = this.locations(catchClause.range.toLocation.location)
-        val target: Label = this.locations(catchClause.targetLocation.location)
-        val typ: String = getClassName(catchClause.typ.typ.name)
-        mv.visitTryCatchBlock(from, to, target, typ)
+    body.catchClauses foreach { catchClause =>
+      val from: Label = this.locations(catchClause.range.fromLocation.location)
+      val to: Label = this.locations(catchClause.range.toLocation.location)
+      val target: Label = this.locations(catchClause.targetLocation.location)
+      val typ: String = getClassName(catchClause.typ.typ.name)
+      mv.visitTryCatchBlock(from, to, target, typ)
     }
     val initLabel = new Label()
     mv.visitCode()
     mv.visitLabel(initLabel)
     
-    body.locations foreach {
-      location =>
-        val locLabel = this.locations(location.locationUri)
-        mv.visitLabel(locLabel)
-        mv.visitLineNumber(location.pos.line, locLabel)
-        visitLocation(mv, location)
+    body.locations foreach { location =>
+      val locLabel = this.locations(location.locationUri)
+      mv.visitLabel(locLabel)
+      val line = location.pos match {
+        case rp: RangePosition => rp.line
+        case _ => 0
+      }
+      mv.visitLineNumber(line, locLabel)
+      visitLocation(mv, location)
     }
     
     val endLabel = new Label()
