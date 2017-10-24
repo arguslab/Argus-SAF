@@ -16,13 +16,13 @@ import java.util.Optional
 import com.github.javaparser.ast._
 import com.github.javaparser.ast.`type`._
 import com.github.javaparser.ast.body._
-import com.github.javaparser.ast.expr.{AnnotationExpr, NormalAnnotationExpr, SingleMemberAnnotationExpr}
-import com.github.javaparser.ast.stmt.{AssertStmt, BlockStmt, ExpressionStmt, Statement}
-import org.argus.jawa.ast.{AnnotationValue, ExtendAndImplement, ExtendsAndImplementsClauses, FieldDefSymbol, InstanceFieldDeclaration, InstanceFieldDeclarationBlock, LocalVarDeclaration, Location, MethodDefSymbol, Param, ParamClause, ResolvedBody, StatementValue, StaticFieldDeclaration, TokenValue, TypeDefSymbol, TypeFragment, TypeSymbol, VarDefSymbol, Annotation => JawaAnnotation, CatchClause => JawaCatchClause, ClassOrInterfaceDeclaration => JawaClassOrInterfaceDeclaration, CompilationUnit => JawaCompilationUnit, MethodDeclaration => JawaMethodDeclaration, Type => JawaTypeAst}
+import com.github.javaparser.ast.expr._
+import com.github.javaparser.ast.stmt._
+import org.argus.jawa.ast.{AnnotationValue, ExtendAndImplement, ExtendsAndImplementsClauses, FieldDefSymbol, InstanceFieldDeclaration, JawaAstNode, MethodDefSymbol, Param, ResolvedBody, StatementValue, StaticFieldDeclaration, TokenValue, TypeDefSymbol, TypeFragment, TypeSymbol, VarDefSymbol, Annotation => JawaAnnotation, ClassOrInterfaceDeclaration => JawaClassOrInterfaceDeclaration, CompilationUnit => JawaCompilationUnit, MethodDeclaration => JawaMethodDeclaration, Type => JawaTypeAst}
 import org.argus.jawa.compiler.lexer.{Token, Tokens}
-import org.argus.jawa.core.io.{JavaSourceFile, RangePosition}
+import org.argus.jawa.core.io.{JavaSourceFile, Position => JawaPosition, RangePosition}
 import org.argus.jawa.core.util._
-import org.argus.jawa.core.{Global, JavaKnowledge, JawaType}
+import org.argus.jawa.core.{Global, JavaKnowledge, JawaType, Signature}
 
 class Java2Jawa(global: Global, sourceFile: JavaSourceFile) {
 
@@ -32,7 +32,7 @@ class Java2Jawa(global: Global, sourceFile: JavaSourceFile) {
 
   private val typeMap: MMap[String, JawaType] = mmapEmpty
 
-  private def findType(name: String, pos: RangePosition): JawaType = {
+  protected[java] def findType(name: String, pos: RangePosition): JawaType = {
     typeMap.get(name) match {
       case Some(t) => t
       case None =>
@@ -91,7 +91,7 @@ class Java2Jawa(global: Global, sourceFile: JavaSourceFile) {
     }
   }
 
-  private def findType(javaType: Type): JawaType = {
+  protected[java] def findType(javaType: Type): JawaType = {
     var typStr: String = null
     var dimension: Int = 0
     javaType match {
@@ -123,7 +123,7 @@ class Java2Jawa(global: Global, sourceFile: JavaSourceFile) {
       case _: VoidType =>
         typStr = "void"
       case _ =>
-        throw Java2JawaException(s"${javaType.getClass} is not handled by jawa: $javaType")
+        throw Java2JawaException(s"${javaType.getClass} is not handled by jawa: $javaType, please contact author: fgwei521@gmail.com")
     }
     new JawaType(typStr, dimension)
   }
@@ -141,7 +141,26 @@ class Java2Jawa(global: Global, sourceFile: JavaSourceFile) {
     }
   }
 
-  private def getKeyWordRange(node: Node): RangePosition = {
+  implicit class ASTPos[T <: JawaAstNode](node: T) {
+    def withNode(n: Node): T = {
+      node.pos = n.toRange
+      node
+    }
+    def withNodes[N <: Node](ns: NodeList[N]): T = {
+      require(ns.isNonEmpty, "Add ast pos with empty node list.")
+      val begin = ns.get(0).toRange
+      val end = ns.get(ns.size() - 1).toRange
+      require(end.end >= begin.start, "Later node should have larger position than prior nodes.")
+      node.pos = new RangePosition(begin.source, begin.start, end.end - begin.start + 1, begin.line, begin.column)
+      node
+    }
+    def withPos(pos: JawaPosition): T = {
+      node.pos = pos
+      node
+    }
+  }
+
+  protected[java] def getKeyWordRange(node: Node): RangePosition = {
     val nodeRange = node.getRange
     if(nodeRange.isPresent) {
       val startIn = sourceFile.lineToOffset(nodeRange.get().begin.line - 1) + nodeRange.get().begin.column - 1
@@ -155,7 +174,7 @@ class Java2Jawa(global: Global, sourceFile: JavaSourceFile) {
     def apostrophe: String = "`%s`".format(str)
   }
 
-  private def getJawaAccessFlag(modifiers: util.EnumSet[Modifier], isConstructor: Boolean): String = {
+  protected[java] def getJawaAccessFlag(modifiers: util.EnumSet[Modifier], isConstructor: Boolean): String = {
     val flags: MList[String] = mlistEmpty
     modifiers.forEach {
       case Modifier.PUBLIC => flags += "PUBLIC"
@@ -178,18 +197,22 @@ class Java2Jawa(global: Global, sourceFile: JavaSourceFile) {
     flags.mkString("_")
   }
 
-  private def handleType(javaType: Type): JawaTypeAst = {
+  protected[java] def handleType(javaType: Type): JawaTypeAst = {
     val jawaType = findType(javaType)
+    handleJawaType(jawaType, javaType.getElementType.toRange)
+  }
+
+  protected[java] def handleJawaType(jawaType: JawaType, pos: RangePosition): JawaTypeAst = {
     val baseTypeSymbol: Either[TypeSymbol, Token] = {
       jawaType.baseTyp match {
-        case x if JavaKnowledge.isJavaPrimitive(x) => Right(Token(Tokens.ID, javaType.getElementType.toRange, x.apostrophe))
-        case t => Left(TypeSymbol(Token(Tokens.ID, javaType.getElementType.toRange, t.apostrophe)))
+        case x if JavaKnowledge.isJavaPrimitive(x) => Right(Token(Tokens.ID, pos, x.apostrophe))
+        case t => Left(TypeSymbol(Token(Tokens.ID, pos, t.apostrophe)).withPos(pos))
       }
     }
     val typeFragments: IList[TypeFragment] = (0 until jawaType.dimensions).map { _ =>
-      TypeFragment(getKeyWordRange(javaType))
+      TypeFragment(pos)
     }.toList
-    JawaTypeAst(baseTypeSymbol, typeFragments)
+    JawaTypeAst(baseTypeSymbol, typeFragments).withPos(pos)
   }
 
   def process: JawaCompilationUnit = {
@@ -197,14 +220,13 @@ class Java2Jawa(global: Global, sourceFile: JavaSourceFile) {
   }
 
   def process(cu: CompilationUnit): JawaCompilationUnit = {
-    cu.getImports
     val pd = cu.getPackageDeclaration
     if(pd.isPresent) {
       packageName = pd.get().getName.asString()
     }
     val topDecls: MList[JawaClassOrInterfaceDeclaration] = mlistEmpty
     cu.getTypes.forEach(typ => topDecls ++= processClass(None, typ))
-    val result = JawaCompilationUnit(topDecls.toList)
+    val result = JawaCompilationUnit(topDecls.toList).withNode(cu)
     result.topDecls foreach { cid =>
       val typ = cid.cityp
       cid.getAllChildrenInclude foreach (_.enclosingTopLevelClass = typ)
@@ -217,22 +239,22 @@ class Java2Jawa(global: Global, sourceFile: JavaSourceFile) {
       case cid: ClassOrInterfaceDeclaration =>
         val cityp: TypeDefSymbol = owner match {
           case Some(outer) =>
-            TypeDefSymbol(Token(Tokens.ID, cid.getName.toRange, s"${outer.typ.jawaName}$$${cid.getNameAsString}".apostrophe))
+            TypeDefSymbol(Token(Tokens.ID, cid.getName.toRange, s"${outer.typ.jawaName}$$${cid.getNameAsString}".apostrophe)).withNode(cid.getName)
           case None =>
-            TypeDefSymbol(Token(Tokens.ID, cid.getName.toRange, s"$packageName.${cid.getNameAsString}".apostrophe))
+            TypeDefSymbol(Token(Tokens.ID, cid.getName.toRange, s"$packageName.${cid.getNameAsString}".apostrophe)).withNode(cid.getName)
         }
         val annotations: MList[JawaAnnotation] = mlistEmpty
         // add kind annotation
         val kindKey = Token(Tokens.ID, getKeyWordRange(cid), "kind")
         val kindValue = TokenValue(Token(Tokens.ID, getKeyWordRange(cid), {if(cid.isInterface) "interface" else "class"}))
-        annotations += JawaAnnotation(kindKey, Some(kindValue))
+        annotations += JawaAnnotation(kindKey, Some(kindValue)).withPos(getKeyWordRange(cid))
         // add access flag annotation
         val accessFlagKey = Token(Tokens.ID, getKeyWordRange(cid), "AccessFlag")
         val accessFlagValue = TokenValue(Token(Tokens.ID, getKeyWordRange(cid), getJawaAccessFlag(cid.getModifiers, isConstructor = false)))
-        annotations += JawaAnnotation(accessFlagKey, Some(accessFlagValue))
+        annotations += JawaAnnotation(accessFlagKey, Some(accessFlagValue)).withPos(getKeyWordRange(cid))
         // add java annotations
         cid.getAnnotations.forEach{ anno =>
-          annotations += processAnnotation(anno)
+          annotations += processAnnotationExpr(anno)
         }
 
         // Resolve extends
@@ -243,26 +265,28 @@ class Java2Jawa(global: Global, sourceFile: JavaSourceFile) {
             extendAndImplNum -= 1
             val kindKey = Token(Tokens.ID, getKeyWordRange(cid), "kind")
             val kindValue = TokenValue(Token(Tokens.ID, getKeyWordRange(cid), "class"))
-            val annotation: JawaAnnotation = JawaAnnotation(kindKey, Some(kindValue))
-            val ei = ExtendAndImplement(TypeSymbol(Token(Tokens.ID, et.toRange, findType(et).jawaName.apostrophe)), List(annotation))
+            val annotation: JawaAnnotation = JawaAnnotation(kindKey, Some(kindValue)).withPos(getKeyWordRange(cid))
+            val ei = ExtendAndImplement(TypeSymbol(Token(Tokens.ID, et.toRange, findType(et).jawaName.apostrophe)), List(annotation)).withNode(et)
             parentTyps += ei
           }
-          cid.getImplementedTypes.forEach{ et =>
+          cid.getImplementedTypes.forEach{ it =>
             extendAndImplNum -= 1
             val kindKey = Token(Tokens.ID, getKeyWordRange(cid), "kind")
             val kindValue = TokenValue(Token(Tokens.ID, getKeyWordRange(cid), "interface"))
             val annotation: JawaAnnotation = JawaAnnotation(kindKey, Some(kindValue))
-            val ei = ExtendAndImplement(TypeSymbol(Token(Tokens.ID, et.toRange, findType(et).jawaName.apostrophe)), List(annotation))
+            val ei = ExtendAndImplement(TypeSymbol(Token(Tokens.ID, it.toRange, findType(it).jawaName.apostrophe)), List(annotation)).withNode(it)
             parentTyps += ei
           }
-          Some(ExtendsAndImplementsClauses(parentTyps.toList))
+          val nodes = new NodeList[ClassOrInterfaceType](cid.getExtendedTypes)
+          nodes.addAll(cid.getImplementedTypes)
+          Some(ExtendsAndImplementsClauses(parentTyps.toList).withNodes(nodes))
         } else {
           None
         }
 
         val (instanceFieldDeclarationBlock, staticFields, methods, inners) = processMembers(cityp, cid)
 
-        JawaClassOrInterfaceDeclaration(cityp, annotations.toList, extendsAndImplementsClausesOpt, instanceFieldDeclarationBlock, staticFields, methods) :: inners
+        JawaClassOrInterfaceDeclaration(cityp, annotations.toList, extendsAndImplementsClausesOpt, instanceFieldDeclarationBlock, staticFields, methods).withNode(cid) :: inners
       case _: EnumDeclaration =>
         ilistEmpty // TODO
       case _: AnnotationDeclaration =>
@@ -270,83 +294,84 @@ class Java2Jawa(global: Global, sourceFile: JavaSourceFile) {
     }
   }
 
-  def processAnnotation(ae: AnnotationExpr): JawaAnnotation = {
-    val annoKey = Token(Tokens.ID, ae.getName.toRange, findType(ae.getNameAsString, ae.getName.toRange).jawaName.apostrophe)
-    val annoValue: Option[AnnotationValue] = ae match {
-      case _: NormalAnnotationExpr =>
-        Some(StatementValue(ilistEmpty)) // TODO
-      case _: SingleMemberAnnotationExpr =>
-        Some(StatementValue(ilistEmpty)) // TODO
-      case _ => None // MarkerAnnotationExpr
-    }
-    JawaAnnotation(annoKey, annoValue)
-  }
-
-  def processMembers(owner: TypeDefSymbol, typ: TypeDeclaration[_]): (InstanceFieldDeclarationBlock, IList[StaticFieldDeclaration], IList[JawaMethodDeclaration], IList[JawaClassOrInterfaceDeclaration]) = {
-    val initializers: MList[InitializerDeclaration] = mlistEmpty
-    val fields: MList[FieldDeclaration] = mlistEmpty
-    val constructors: MList[ConstructorDeclaration] = mlistEmpty
-    val methods: MList[MethodDeclaration] = mlistEmpty
-    val innerTypes: MList[TypeDeclaration[_]] = mlistEmpty
-    val enumConstants: MList[EnumConstantDeclaration] = mlistEmpty // TODO
+  def processMembers(owner: TypeDefSymbol, typ: TypeDeclaration[_]): (IList[InstanceFieldDeclaration], IList[StaticFieldDeclaration], IList[JawaMethodDeclaration], IList[JawaClassOrInterfaceDeclaration]) = {
+    val initializers = new NodeList[InitializerDeclaration]()
+    val fields = new NodeList[FieldDeclaration]()
+    val constructors = new NodeList[ConstructorDeclaration]()
+    val methods = new NodeList[MethodDeclaration]()
+    val innerTypes = new NodeList[TypeDeclaration[_]]()
+    val enumConstants = new NodeList[EnumConstantDeclaration]() // TODO
     typ.getMembers.forEach {
       case id: InitializerDeclaration =>
-        initializers += id
+        initializers.add(id)
       case fd: FieldDeclaration =>
-        fields += fd
+        fields.add(fd)
       case cd: ConstructorDeclaration =>
-        constructors += cd
+        constructors.add(cd)
       case md: MethodDeclaration =>
-        methods += md
+        methods.add(md)
       case td: TypeDeclaration[_] =>
-        innerTypes += td
+        innerTypes.add(td)
       case ecd: EnumConstantDeclaration =>
-        enumConstants += ecd
+        enumConstants.add(ecd)
       case u: BodyDeclaration[_] =>
         global.reporter.warning(u.toRange, "Unhandled member: " + u)
     }
-    val (instanceFieldDeclarationBlock, staticFields) = processFields(owner, fields.toList)
+    val (instanceFields, staticFields) = processFields(owner, fields)
     // Resolve methods
     val mds: MList[JawaMethodDeclaration] = mlistEmpty
-    mds ++= processConstructors(owner, typ, initializers.toList, fields.toList, constructors.toList)
-    methods foreach { m =>
+    mds ++= processConstructors(owner, typ, initializers, fields, constructors)
+    methods.forEach { m =>
       mds += processMethod(owner, m)
     }
     // Resolve inner classes
     val innerCids: MList[JawaClassOrInterfaceDeclaration] = mlistEmpty
-    innerTypes foreach { inner =>
+    innerTypes.forEach { inner =>
       innerCids ++= processClass(Some(owner), inner)
     }
-    (instanceFieldDeclarationBlock, staticFields, mds.toList, innerCids.toList)
+    (instanceFields, staticFields, mds.toList, innerCids.toList)
   }
 
-  def processFields(owner: TypeDefSymbol, fields: IList[FieldDeclaration]): (InstanceFieldDeclarationBlock, IList[StaticFieldDeclaration]) = {
+  def processFields(owner: TypeDefSymbol, fields: NodeList[FieldDeclaration]): (IList[InstanceFieldDeclaration], IList[StaticFieldDeclaration]) = {
     // Resolve fields
     val instanceFields: MList[InstanceFieldDeclaration] = mlistEmpty
     val staticFields: MList[StaticFieldDeclaration] = mlistEmpty
-    fields foreach { f =>
+    fields.forEach { f =>
       f.getVariables.forEach{ va =>
         val jawaTypeAst = handleType(va.getType)
         val fieldSymbol = FieldDefSymbol(Token(Tokens.ID, va.getName.toRange, s"${owner.typ.jawaName}.${va.getNameAsString}".apostrophe))
         // add access flag annotation
         val accessFlagKey = Token(Tokens.ID, getKeyWordRange(f), "AccessFlag")
         val accessFlagValue = TokenValue(Token(Tokens.ID, getKeyWordRange(f), getJawaAccessFlag(f.getModifiers, isConstructor = false)))
-        val accessFlagAnnotation = JawaAnnotation(accessFlagKey, Some(accessFlagValue))
+        val accessFlagAnnotation = JawaAnnotation(accessFlagKey, Some(accessFlagValue)).withPos(getKeyWordRange(f))
         if(f.isStatic) {
-          staticFields += StaticFieldDeclaration(jawaTypeAst, fieldSymbol, List(accessFlagAnnotation))
+          staticFields += StaticFieldDeclaration(jawaTypeAst, fieldSymbol, List(accessFlagAnnotation)).withNode(f)
         } else {
-          instanceFields += InstanceFieldDeclaration(jawaTypeAst, fieldSymbol, List(accessFlagAnnotation))
+          instanceFields += InstanceFieldDeclaration(jawaTypeAst, fieldSymbol, List(accessFlagAnnotation)).withNode(f)
         }
       }
     }
-    val instanceFieldDeclarationBlock: InstanceFieldDeclarationBlock = InstanceFieldDeclarationBlock(instanceFields.toList)
-    (instanceFieldDeclarationBlock, staticFields.toList)
+    (instanceFields.toList, staticFields.toList)
   }
 
-  def processConstructors(owner: TypeDefSymbol, typ: TypeDeclaration[_], initializers: IList[InitializerDeclaration], fields: IList[FieldDeclaration], constructors: IList[ConstructorDeclaration]): IList[JawaMethodDeclaration] = {
+  /** Terminology:
+    *   No-args constructor: a constructor with no parameters;
+    *
+    *   Accessible no-args constructor: a no-args constructor in the superclass visible to the subclass. That means it is either public or protected or,
+    *                                 if both classes are in the same package, package access;
+    *
+    *   Default constructor: the public no-args constructor added by the compiler when there is no explicit constructor in the class.
+    *
+    * So all classes have at least one constructor.
+    * Subclasses constructors may specify as the first thing they do which constructor in the superclass to invoke before executing the code in the subclass's constructor.
+    * If the subclass constructor does not specify which superclass constructor to invoke then the compiler will automatically call the accessible no-args constructor in the superclass.
+    * If the superclass has no no-arg constructor or it isn't accessible then not specifying the superclass constructor to be called (in the subclass constructor)
+    * is a compiler error so it must be specified.
+    */
+  def processConstructors(owner: TypeDefSymbol, typ: TypeDeclaration[_], initializers: NodeList[InitializerDeclaration], fields: NodeList[FieldDeclaration], constructors: NodeList[ConstructorDeclaration]): IList[JawaMethodDeclaration] = {
     val staticFieldsWithInitializer: MList[VariableDeclarator] = mlistEmpty
     val nonStaticFieldsWithInitializer: MList[VariableDeclarator] = mlistEmpty
-    fields foreach { f =>
+    fields.forEach { f =>
       if(f.isStatic) {
         f.getVariables.forEach { v =>
           if(v.getInitializer.isPresent) {
@@ -363,7 +388,7 @@ class Java2Jawa(global: Global, sourceFile: JavaSourceFile) {
     }
     val staticInitializers: MList[InitializerDeclaration] = mlistEmpty
     val nonStaticInitializers: MList[InitializerDeclaration] = mlistEmpty
-    initializers foreach { i =>
+    initializers.forEach { i =>
       if(i.isStatic) {
         staticInitializers += i
       } else {
@@ -375,8 +400,7 @@ class Java2Jawa(global: Global, sourceFile: JavaSourceFile) {
     if(staticFieldsWithInitializer.nonEmpty || staticInitializers.nonEmpty) {
       mds += processStaticConstructor(owner, typ, staticFieldsWithInitializer.toList, staticInitializers.toList)
     }
-    // Process non-static initializers
-    val realConstructors: MList[ConstructorDeclaration] = mlistEmpty
+    // Process non-static initializer
     val frontStatements: NodeList[Statement] = new NodeList[Statement]()
     nonStaticFieldsWithInitializer foreach { nsfi =>
       val exp = nsfi.getInitializer.get()
@@ -386,21 +410,29 @@ class Java2Jawa(global: Global, sourceFile: JavaSourceFile) {
       frontStatements.addAll(nsi.getBody.getStatements)
     }
     if(constructors.isEmpty) {
-      realConstructors += new ConstructorDeclaration(typ.getModifiers, new NodeList[AnnotationExpr], new NodeList[TypeParameter], typ.getName, new NodeList[Parameter], new NodeList[ReferenceType], new BlockStmt(frontStatements))
-    } else {
-      constructors.foreach { cons =>
-        val realStatements = new NodeList[Statement]()
-        realStatements.addAll(frontStatements)
-        realStatements.addAll(cons.getBody.getStatements)
-        val bodyBlock = new BlockStmt(realStatements)
-        cons.setBody(bodyBlock)
-        realConstructors += cons
-      }
+      constructors.add(new ConstructorDeclaration(typ.getModifiers, new NodeList[AnnotationExpr], new NodeList[TypeParameter], typ.getName, new NodeList[Parameter], new NodeList[ReferenceType], new BlockStmt(frontStatements)))
     }
-    realConstructors foreach { rc =>
-      mds += processConstructor(owner, rc)
+    constructors.forEach { cons =>
+      val bodyBlock = makeConstructorBody(frontStatements, cons.getBody.getStatements)
+      cons.setBody(bodyBlock)
+      mds += processConstructor(owner, cons)
     }
     mds.toList
+  }
+
+  private def makeConstructorBody(frontStatements: NodeList[Statement], bodyStatements: NodeList[Statement]): BlockStmt = {
+    val statements: NodeList[Statement] = new NodeList[Statement]()
+    // Check do we need to add super no-arg constructor call.
+    if(bodyStatements.isNonEmpty && bodyStatements.get(0).isInstanceOf[ExplicitConstructorInvocationStmt]) {
+      statements.addAll(bodyStatements)
+      statements.addAll(1, frontStatements)
+    } else {
+      val ecis = new ExplicitConstructorInvocationStmt(false, null, new NodeList[Expression]())
+      statements.add(ecis)
+      statements.addAll(frontStatements)
+      statements.addAll(bodyStatements)
+    }
+    new BlockStmt(statements)
   }
 
   private def processStaticConstructor(owner: TypeDefSymbol, typ: TypeDeclaration[_], staticFieldsWithInitializer: IList[VariableDeclarator], staticInitializers: IList[InitializerDeclaration]): JawaMethodDeclaration = {
@@ -414,6 +446,7 @@ class Java2Jawa(global: Global, sourceFile: JavaSourceFile) {
     }
     doProcessMethod(
       owner,
+      typ.toRange,
       new VoidType(),
       "<clinit>",
       typ.getName.toRange,
@@ -429,6 +462,7 @@ class Java2Jawa(global: Global, sourceFile: JavaSourceFile) {
   private def processConstructor(owner: TypeDefSymbol, cons: ConstructorDeclaration): JawaMethodDeclaration = {
     doProcessMethod(
       owner,
+      cons.toRange,
       new VoidType(),
       "<init>",
       cons.getName.toRange,
@@ -443,6 +477,7 @@ class Java2Jawa(global: Global, sourceFile: JavaSourceFile) {
   def processMethod(owner: TypeDefSymbol, md: MethodDeclaration): JawaMethodDeclaration = {
     doProcessMethod(
       owner,
+      md.toRange,
       md.getType,
       md.getNameAsString,
       md.getName.toRange,
@@ -456,49 +491,49 @@ class Java2Jawa(global: Global, sourceFile: JavaSourceFile) {
 
   private def doProcessMethod(
        owner: TypeDefSymbol,
-       typ: Type,
+       mdPos: RangePosition,
+       returnTyp: Type,
        methodName: String,
-       pos: RangePosition,
+       namePos: RangePosition,
        isStatic: Boolean,
        isConstructor: Boolean,
        parameters: NodeList[Parameter],
        modifiers: util.EnumSet[Modifier],
        annotationExprs: NodeList[AnnotationExpr],
        bodyBlock: Optional[BlockStmt]): JawaMethodDeclaration = {
-    val returnType: JawaTypeAst = handleType(typ)
-    val methodSymbol: MethodDefSymbol = MethodDefSymbol(Token(Tokens.ID, pos, methodName.apostrophe))
+    val returnType: JawaTypeAst = handleType(returnTyp)
+    val methodSymbol: MethodDefSymbol = MethodDefSymbol(Token(Tokens.ID, namePos, methodName.apostrophe))
     val params: MList[Param] = mlistEmpty
-    if(isStatic) {
-      val jta: JawaTypeAst = JawaTypeAst(Left(TypeSymbol(owner.id)), ilistEmpty)
-      getParam(jta, "this", pos, isThis = true)
+    if(!isStatic) {
+      val jta = JawaTypeAst(Left(TypeSymbol(owner.id)), ilistEmpty).withPos(namePos)
+      params += getParam(jta, "this", namePos, isThis = true)
     }
     val paramTyps: MList[JawaType] = mlistEmpty
-    parameters.forEach{ p =>
+    parameters.forEach { p =>
       val param = processParameter(p)
       paramTyps += param.typ.typ
       params += param
     }
-    val paramClause: ParamClause = ParamClause(params.toList)
     val annotations: MList[JawaAnnotation] = mlistEmpty
     // add singature annotation
     val sig = JavaKnowledge.genSignature(owner.typ, methodSymbol.methodName, paramTyps.toList, returnType.typ)
-    val signatureKey = Token(Tokens.ID, pos, "signature")
-    val signatureValue = TokenValue(Token(Tokens.ID, pos, sig.signature.apostrophe))
-    annotations += JawaAnnotation(signatureKey, Some(signatureValue))
+    val signatureKey = Token(Tokens.ID, mdPos, "signature")
+    val signatureValue = TokenValue(Token(Tokens.ID, mdPos, sig.signature.apostrophe))
+    annotations += JawaAnnotation(signatureKey, Some(signatureValue)).withPos(mdPos)
     // add access flag annotation
-    val accessFlagKey = Token(Tokens.ID, pos, "AccessFlag")
-    val accessFlagValue = TokenValue(Token(Tokens.ID, pos, getJawaAccessFlag(modifiers, isConstructor)))
-    annotations += JawaAnnotation(accessFlagKey, Some(accessFlagValue))
+    val accessFlagKey = Token(Tokens.ID, mdPos, "AccessFlag")
+    val accessFlagValue = TokenValue(Token(Tokens.ID, mdPos, getJawaAccessFlag(modifiers, isConstructor)))
+    annotations += JawaAnnotation(accessFlagKey, Some(accessFlagValue)).withPos(mdPos)
     // add java annotations
     annotationExprs.forEach{ anno =>
-      annotations += processAnnotation(anno)
+      annotations += processAnnotationExpr(anno)
     }
     val body = if(bodyBlock.isPresent) {
-      processBody(bodyBlock.get())
+      processBody(sig, bodyBlock.get())
     } else {
-      ResolvedBody(ilistEmpty, ilistEmpty, ilistEmpty)
+      ResolvedBody(ilistEmpty, ilistEmpty, ilistEmpty).withPos(mdPos)
     }
-    val jmd = JawaMethodDeclaration(returnType, methodSymbol, paramClause, annotations.toList, body)
+    val jmd = JawaMethodDeclaration(returnType, methodSymbol, params.toList, annotations.toList, body).withPos(mdPos)
     methodSymbol.signature = jmd.signature
     jmd
   }
@@ -514,25 +549,31 @@ class Java2Jawa(global: Global, sourceFile: JavaSourceFile) {
     if(isThis) {
       val kindKey = Token(Tokens.ID, pos, "kind")
       val kindValue = TokenValue(Token(Tokens.ID, pos, "this"))
-      annotations += JawaAnnotation(kindKey, Some(kindValue))
+      annotations += JawaAnnotation(kindKey, Some(kindValue)).withPos(pos)
     } else if(typ.typ.isObject) {
       val kindKey = Token(Tokens.ID, pos, "kind")
       val kindValue = TokenValue(Token(Tokens.ID, pos, "object"))
-      annotations += JawaAnnotation(kindKey, Some(kindValue))
+      annotations += JawaAnnotation(kindKey, Some(kindValue)).withPos(pos)
     }
-    Param(typ, paramSymbol, annotations.toList)
+    Param(typ, paramSymbol, annotations.toList).withPos(pos)
   }
 
-  def processBody(bodyBlock: BlockStmt): ResolvedBody = {
-    val (locals, locations, ccs) = processBlockStmt(bodyBlock)
-    ResolvedBody(locals, locations, ccs)
+  def processBody(sig: Signature, bodyBlock: BlockStmt): ResolvedBody = {
+    val visitor = new MethodBodyVisitor(this, sig, bodyBlock.toRange)
+    bodyBlock.accept(visitor, null)
+    ResolvedBody(visitor.localVarDeclarations.toList, visitor.locations, visitor.catchClauses.toList)
   }
 
-  private def processBlockStmt(blockStmt: BlockStmt): (IList[LocalVarDeclaration], IList[Location], IList[JawaCatchClause]) = {
-//    blockStmt.getStatements.forEach {
-//      case as: AssertStmt =>
-//    }
-    (ilistEmpty, ilistEmpty, ilistEmpty)
+  def processAnnotationExpr(ae: AnnotationExpr): JawaAnnotation = {
+    val annoKey = Token(Tokens.ID, ae.getName.toRange, findType(ae.getNameAsString, ae.getName.toRange).jawaName.apostrophe)
+    val annoValue: Option[AnnotationValue] = ae match {
+      case _: NormalAnnotationExpr =>
+        Some(StatementValue(ilistEmpty)) // TODO
+      case _: SingleMemberAnnotationExpr =>
+        Some(StatementValue(ilistEmpty)) // TODO
+      case _ => None // MarkerAnnotationExpr
+    }
+    JawaAnnotation(annoKey, annoValue).withNode(ae).withNode(ae)
   }
 
 }

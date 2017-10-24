@@ -50,7 +50,7 @@ final class JawaDefRef(callRef: Boolean)
 
   def callReferences(j: CallStatement): ISeq[ISet[Slot]] = {
     if(callRef){
-      val args = j.rhs.argClause.varSymbols
+      val args = j.rhs.varSymbols
       args.map{arg => refCache.getOrElseUpdate(arg, getRefs(arg))}
     } else ivectorEmpty
   }

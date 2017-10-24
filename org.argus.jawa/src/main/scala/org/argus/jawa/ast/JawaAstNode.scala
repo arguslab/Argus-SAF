@@ -115,11 +115,13 @@ sealed trait LocationSym{
 case class TypeDefSymbol(id: Token) extends DefSymbol with ClassSym {
   def typ: JawaType = getTypeFromJawaName(id.text)
   def toCode: String = id.rawText
+  pos = id.pos
 }
 
 case class TypeSymbol(id: Token) extends RefSymbol with ClassSym {
   def typ: JawaType = getTypeFromJawaName(id.text)
   def toCode: String = id.rawText
+  pos = id.pos
 }
 
 case class MethodDefSymbol(id: Token) extends DefSymbol with MethodSym {
@@ -127,6 +129,7 @@ case class MethodDefSymbol(id: Token) extends DefSymbol with MethodSym {
   var signature: Signature = _
   def methodName: String = id.text
   def toCode: String = id.rawText
+  pos = id.pos
 }
 
 case class MethodNameSymbol(id: Token) extends RefSymbol with MethodSym {
@@ -134,6 +137,7 @@ case class MethodNameSymbol(id: Token) extends RefSymbol with MethodSym {
   var signature: Signature = _
   def methodName: String = id.text
   def toCode: String = id.rawText
+  pos = id.pos
 }
 
 case class FieldDefSymbol(id: Token) extends DefSymbol with FieldSym {
@@ -141,6 +145,7 @@ case class FieldDefSymbol(id: Token) extends DefSymbol with FieldSym {
   def baseType: JawaType = getClassTypeFromFieldFQN(FQN)
   def fieldName: String = getFieldNameFromFieldFQN(FQN)
   def toCode: String = id.rawText
+  pos = id.pos
 }
 
 case class FieldNameSymbol(id: Token) extends RefSymbol with FieldSym {
@@ -148,24 +153,28 @@ case class FieldNameSymbol(id: Token) extends RefSymbol with FieldSym {
   def baseType: JawaType = getClassTypeFromFieldFQN(FQN)
   def fieldName: String = getFieldNameFromFieldFQN(FQN)
   def toCode: String = id.rawText
+  pos = id.pos
 }
 
 case class SignatureSymbol(id: Token) extends RefSymbol with MethodSym {
   def signature: Signature = new Signature(id.text)
   def methodName: String = signature.methodName
   def toCode: String = id.rawText
+  pos = id.pos
 }
 
 case class VarDefSymbol(id: Token) extends DefSymbol with VarSym {
   def varName: String = id.text
   var owner: MethodDeclaration = _
   def toCode: String = id.rawText
+  pos = id.pos
 }
 
 case class VarSymbol(id: Token) extends RefSymbol with VarSym {
   def varName: String = id.text
   var owner: MethodDeclaration = _
   def toCode: String = id.rawText
+  pos = id.pos
 }
 
 /**
@@ -178,6 +187,7 @@ case class LocationDefSymbol(id: Token) extends DefSymbol with LocationSym {
   }
   var owner: MethodDeclaration = _
   def toCode: String = id.rawText
+  pos = id.pos
 }
 
 /**
@@ -187,13 +197,14 @@ case class LocationSymbol(id: Token) extends RefSymbol with LocationSym {
   def location: String = id.text
   var owner: MethodDeclaration = _
   def toCode: String = id.rawText
+  pos = id.pos
 }
 
 case class ClassOrInterfaceDeclaration(
     cityp: TypeDefSymbol,
     annotations: IList[Annotation],
     extendsAndImplementsClausesOpt: Option[ExtendsAndImplementsClauses],
-    instanceFieldDeclarationBlock: InstanceFieldDeclarationBlock,
+    instanceFields: IList[InstanceFieldDeclaration],
     staticFields: IList[StaticFieldDeclaration],
     methods: IList[MethodDeclaration]) extends Declaration with ParsableAstNode {
   def isInterface: Boolean = {
@@ -202,13 +213,13 @@ case class ClassOrInterfaceDeclaration(
   def parents: IList[JawaType] = extendsAndImplementsClausesOpt match {case Some(e) => e.parents case None => ilistEmpty}
   def superClassOpt: Option[JawaType] = extendsAndImplementsClausesOpt match{case Some(e) => e.superClassOpt case None => None}
   def interfaces: IList[JawaType] = extendsAndImplementsClausesOpt match {case Some(e) => e.interfaces case None => ilistEmpty}
-  def fields: IList[Field with Declaration] = instanceFieldDeclarationBlock.instanceFields ++ staticFields
-  def instanceFields: IList[InstanceFieldDeclaration] = instanceFieldDeclarationBlock.instanceFields
+  def fields: IList[Field with Declaration] = instanceFields ++ staticFields
   def typ: JawaType = cityp.typ
   def toCode: String = {
+    val instancePart = if(instanceFields.isEmpty) "" else s"\n  ${instanceFields.map(f => f.toCode).mkString("\n  ")}\n"
     val staticPart = if(staticFields.isEmpty) "" else s"${staticFields.map(sf => sf.toCode).mkString("\n")}\n"
     val methodPart = if(methods.isEmpty) "" else s"${methods.map(m => m.toCode).mkString("\n")}"
-    s"record ${cityp.toCode} ${annotations.map(anno => anno.toCode).mkString(" ")}${extendsAndImplementsClausesOpt match {case Some(eic) => " " + eic.toCode case None => ""}}\n${instanceFieldDeclarationBlock.toCode}\n$staticPart$methodPart"
+    s"record ${cityp.toCode} ${annotations.map(anno => anno.toCode).mkString(" ")}${extendsAndImplementsClausesOpt match {case Some(eic) => " " + eic.toCode case None => ""}}\n{$instancePart}\n$staticPart$methodPart"
   }
 }
 
@@ -230,18 +241,21 @@ case class TypeExpressionValue(
     typExp: TypeExpression) extends AnnotationValue {
   def value: String = typExp.typ.name
   def toCode: String = typExp.toCode
+  pos = typExp.pos
 }
 
 case class SymbolValue(
     sym: JawaSymbol) extends AnnotationValue {
   def value: String = sym.id.text
   def toCode: String = sym.toCode
+  pos = sym.pos
 }
 
 case class TokenValue(
     token: Token) extends AnnotationValue {
   def value: String = token.text
   def toCode: String = token.rawText
+  pos = token.pos
 }
 
 case class StatementValue(statements: IList[Statement]) extends AnnotationValue {
@@ -272,13 +286,6 @@ sealed trait Field extends JawaAstNode {
   def FQN: String
   def fieldName: String = getFieldNameFromFieldFQN(FQN)
   def isStatic: Boolean
-}
-
-case class InstanceFieldDeclarationBlock(instanceFields: IList[InstanceFieldDeclaration]) extends JawaAstNode {
-  def toCode: String = {
-    val instancePart = if(instanceFields.isEmpty) "" else s"\n  ${instanceFields.map(f => f.toCode).mkString("\n  ")}\n"
-    s"{$instancePart}"
-  }
 }
 
 case class InstanceFieldDeclaration(
@@ -323,16 +330,19 @@ case class TypeFragment(position: Position) extends JawaAstNode {
 case class MethodDeclaration(
     returnType: Type,
     methodSymbol: MethodDefSymbol,
-    paramClause: ParamClause,
+    params: IList[Param],
     annotations: IList[Annotation],
     var body: Body) extends Declaration with ParsableAstNode {
   def isConstructor: Boolean = isJawaConstructor(name)
   def name: String = methodSymbol.id.text.substring(methodSymbol.id.text.lastIndexOf(".") + 1)
   def owner: String = signature.getClassName
   def signature: Signature = new Signature(annotations.find { a => a.key == "signature" }.get.value)
-  def thisParam: Option[Param] = paramClause.thisParam
-  def param(i: Int): Param = paramClause.param(i)
-  def paramList: IList[Param] = paramClause.paramlist
+  def thisParam: Option[Param] = params.find(x => x.isThis)
+  def param(i: Int): Param = i match {
+    case n if n >= 0 && n < paramList.size => paramList(n)
+    case _ => throw new IndexOutOfBoundsException("List size " + paramList.size + " but index " + i)
+  }
+  def paramList: IList[Param] = params.filterNot(_.isThis)
   def resolvedBody: ResolvedBody = body match {
     case rb: ResolvedBody => rb
     case ub: UnresolvedBody =>
@@ -340,19 +350,9 @@ case class MethodDeclaration(
       body.asInstanceOf[ResolvedBody]
   }
   def toCode: String = {
-    s"procedure ${returnType.toCode} ${methodSymbol.toCode}${paramClause.toCode} ${annotations.map(anno => anno.toCode).mkString(" ")}\n${body.toCode}"
+    val annoPart = annotations.map(anno => anno.toCode).mkString(" ")
+    s"procedure ${returnType.toCode} ${methodSymbol.toCode}(${params.map(p => p.toCode).mkString(", ")}) $annoPart\n".trim + body.toCode
   }
-}
-
-case class ParamClause(params: IList[Param]) extends JawaAstNode {
-  def thisParam: Option[Param] = params.find(x => x.isThis)
-  def param(i: Int): Param =
-    i match {
-      case n if n >= 0 && n < paramlist.size => paramlist(n)
-      case _ => throw new IndexOutOfBoundsException("List size " + paramlist.size + " but index " + i)
-    }
-  def paramlist: IList[Param] = params.filterNot(_.isThis)
-  def toCode: String = s"(${params.map(p => p.toCode).mkString(", ")})"
 }
 
 case class Param(
@@ -362,7 +362,10 @@ case class Param(
   def isThis: Boolean = annotations.exists { a => a.key == "kind" && a.value == "this" }
   def isObject: Boolean = annotations.exists { a => a.key == "kind" && (a.value == "this" || a.value == "object") }
   def name: String = paramSymbol.id.text
-  def toCode: String = s"${typ.toCode} ${paramSymbol.toCode} ${annotations.map(anno => anno.toCode).mkString(" ")}"
+  def toCode: String = {
+    val annoPart = annotations.map(anno => anno.toCode).mkString(" ")
+    s"${typ.toCode} ${paramSymbol.toCode} $annoPart".trim
+  }
 }
 
 sealed trait Body extends ParsableAstNode
@@ -390,7 +393,7 @@ case class ResolvedBody(
     val localPart = if(locals.isEmpty) "" else s"    ${locals.map(l => l.toCode).mkString("\n    ")}\n\n"
     val locationPart = if(locations.isEmpty) "" else s"    ${locations.map(l => l.toCode).mkString("\n    ")}\n"
     val ccPart = if(catchClauses.isEmpty) "" else s"    ${catchClauses.map(cc => cc.toCode).mkString("\n    ")}\n}"
-    s"{$localPart$locationPart$ccPart}"
+    s"{\n$localPart$locationPart$ccPart}"
   }
 }
 
@@ -402,7 +405,7 @@ case class LocalVarDeclaration(
     case Some(t) => t.typ
     case None => JAVA_TOPLEVEL_OBJECT_TYPE
   }
-  def toCode: String = s"${typOpt match {case Some(t) => t.toCode + " " case None => ""}}${varSymbol.toCode}"
+  def toCode: String = s"${typOpt match {case Some(t) => t.toCode + " " case None => ""}}${varSymbol.toCode};"
 }
 
 case class Location(
@@ -413,7 +416,7 @@ case class Location(
     else locationSymbol.location
   }
   def locationIndex: Int = locationSymbol.locationIndex
-  def toCode: String = "  " + s"${locationSymbol.toCode}  ${statement.toCode}".trim + ";"
+  def toCode: String = s"${locationSymbol.toCode}  ${statement.toCode}".trim
 }
 
 /**
@@ -458,16 +461,16 @@ case class CallStatement(
   def isSuper: Boolean = kind == "super"
   def isDirect: Boolean = kind == "direct"
   def isInterface: Boolean = kind == "interface"
-  def recvVarOpt: Option[VarSymbol] = if(isStatic) None else Some(rhs.argClause.varSymbols.head)
-  def argVars: IList[VarSymbol] = if(isStatic) rhs.argClause.varSymbols else rhs.argClause.varSymbols.tail
+  def recvVarOpt: Option[VarSymbol] = if(isStatic) None else Some(rhs.varSymbols.head)
+  def argVars: IList[VarSymbol] = if(isStatic) rhs.varSymbols else rhs.varSymbols.tail
   def argVar(i: Int): VarSymbol = {
     i match {
       case n if n >= 0 && n < argVars.size => argVars(n)
       case _ => throw new IndexOutOfBoundsException("List size " + argVars.size + " but index " + i)
     }
   }
-  def recvOpt: Option[String] = if(isStatic) None else Some(rhs.argClause.arg(0))
-  def args: IList[String] = if(isStatic) rhs.argClause.varSymbols.map(_.id.text) else rhs.argClause.varSymbols.tail.map(_.id.text)
+  def recvOpt: Option[String] = if(isStatic) None else Some(rhs.arg(0))
+  def args: IList[String] = if(isStatic) rhs.varSymbols.map(_.id.text) else rhs.varSymbols.tail.map(_.id.text)
   def arg(i: Int): String = {
     i match {
       case n if n >= 0 && n < args.size => args(n)
@@ -477,7 +480,15 @@ case class CallStatement(
 
   override def getLhs: Option[Expression with LHS] = lhsOpt
   override def getRhs: Expression with RHS = rhs
-  def toCode: String = s"call ${lhsOpt match {case Some(lhs) => lhs.toCode + ":= " case None => ""}}${rhs.toCode} ${annotations.map(anno => anno.toCode).mkString(" ")}"
+  def toCode: String = {
+    val lhsPart = lhsOpt match {
+      case Some(lhs) => lhs.toCode + ":= "
+      case None => ""
+    }
+    val rhsPart = rhs.toCode
+    val annoPart = annotations.map(anno => anno.toCode).mkString(" ")
+    s"call $lhsPart$rhsPart $annoPart".trim + ";"
+  }
 }
 
 case class CallLhs(lhs: VarSymbol) extends Expression with LHS {
@@ -486,16 +497,12 @@ case class CallLhs(lhs: VarSymbol) extends Expression with LHS {
 
 case class CallRhs(
     methodNameSymbol: MethodNameSymbol,
-    argClause: ArgClause) extends Expression with RHS {
-  def toCode: String = s"${methodNameSymbol.toCode}${argClause.toCode}"
-}
-
-case class ArgClause(varSymbols: IList[VarSymbol]) extends JawaAstNode {
+    varSymbols: IList[VarSymbol]) extends Expression with RHS {
   def arg(i: Int): String = i match {
     case n if n >= 0 && n < varSymbols.size => varSymbols(n).id.text
     case _ => throw new IndexOutOfBoundsException("List size " + varSymbols.size + " but index " + i)
   }
-  def toCode: String = s"(${varSymbols.map(vs => vs.toCode).mkString(", ")})"
+  def toCode: String = s"${methodNameSymbol.toCode}(${varSymbols.map(vs => vs.toCode).mkString(", ")})"
 }
 
 case class AssignmentStatement(
@@ -508,28 +515,31 @@ case class AssignmentStatement(
   override def getLhs: Option[Expression with LHS] = Some(lhs)
 
   override def getRhs: Expression with RHS = rhs
-  def toCode: String = s"${lhs.toCode}:= ${rhs.toCode} ${annotations.map(anno => anno.toCode).mkString(" ")}"
+  def toCode: String = {
+    val annoPart = annotations.map(anno => anno.toCode).mkString(" ")
+    s"${lhs.toCode}:= ${rhs.toCode} $annoPart".trim + ";"
+  }
 }
 
 case class ThrowStatement(varSymbol: VarSymbol) extends Statement {
-  def toCode: String = s"throw ${varSymbol.toCode}"
+  def toCode: String = s"throw ${varSymbol.toCode};"
 }
 
 case class IfStatement(
     cond: BinaryExpression,
     targetLocation: LocationSymbol) extends Jump {
-  def toCode: String = s"if ${cond.toCode} then goto ${targetLocation.toCode}"
+  def toCode: String = s"if ${cond.toCode} then goto ${targetLocation.toCode};"
 }
 
 case class GotoStatement(targetLocation: LocationSymbol) extends Jump {
-  def toCode: String = s"goto ${targetLocation.toCode}"
+  def toCode: String = s"goto ${targetLocation.toCode};"
 }
 
 case class SwitchStatement(
     condition: VarSymbol,
     cases: IList[SwitchCase],
     defaultCaseOpt: Option[SwitchDefaultCase]) extends Jump {
-  def toCode: String = s"switch ${condition.toCode}\n              ${cases.map(c => c.toCode).mkString("\n              ")}${defaultCaseOpt match {case Some(d) => "\n              " + d.toCode case None => ""}}"
+  def toCode: String = s"switch ${condition.toCode}\n              ${cases.map(c => c.toCode).mkString("\n              ")}${defaultCaseOpt match {case Some(d) => "\n              " + d.toCode case None => ""}};"
 }
 
 case class SwitchCase(
@@ -546,7 +556,11 @@ case class ReturnStatement(
     varOpt: Option[VarSymbol],
     annotations: IList[Annotation]) extends Jump {
   def kind: String = annotations.find { a => a.key == "kind" }.map(_.value).getOrElse("")
-  def toCode: String = s"return${varOpt match {case Some(v) => " " + v.toCode case None => ""}} ${annotations.map(anno => anno.toCode).mkString(" ")}"
+  def toCode: String = {
+    val varPart = varOpt match {case Some(v) => " " + v.toCode case None => ""}
+    val annoPart = annotations.map(anno => anno.toCode).mkString(" ")
+    s"return$varPart $annoPart".trim + ";"
+  }
 }
 
 case class MonitorStatement(
@@ -554,7 +568,7 @@ case class MonitorStatement(
     varSymbol: VarSymbol) extends Statement {
   def isEnter: Boolean = monitor.tokenType == MONITOR_ENTER
   def isExit: Boolean = monitor.tokenType == MONITOR_EXIT
-  def toCode: String = s"@${monitor.rawText} ${varSymbol.toCode}"
+  def toCode: String = s"@${monitor.rawText} ${varSymbol.toCode};"
 }
 
 case class EmptyStatement(

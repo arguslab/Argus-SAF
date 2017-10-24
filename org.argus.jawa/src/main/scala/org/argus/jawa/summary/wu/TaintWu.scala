@@ -101,7 +101,7 @@ class TaintWu[T <: Global](
             if(cs.lhsOpt.isDefined) {
               res += Some(-1)
             }
-            for(i <- cs.rhs.argClause.varSymbols.indices) {
+            for(i <- cs.rhs.varSymbols.indices) {
               res += Some(i)
             }
             if(in.getCalleeSet.exists{ c =>

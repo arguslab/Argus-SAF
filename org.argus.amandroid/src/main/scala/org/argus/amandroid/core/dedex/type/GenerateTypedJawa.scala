@@ -70,7 +70,7 @@ object GenerateTypedJawa {
       extendsList.add(extOrImpTemplate)
     }
     recTemplate.add("extends", extendsList)
-    recTemplate.add("attributes", clazz.instanceFieldDeclarationBlock.instanceFields.map(_.toCode).asJava)
+    recTemplate.add("attributes", clazz.instanceFields.map(_.toCode).asJava)
     recTemplate.add("globals", clazz.staticFields.map(_.toCode).asJava)
     recTemplate.add("procedures", generateProcedures(global, clazz, template))
     recTemplate.render()
@@ -210,7 +210,7 @@ object GenerateTypedJawa {
               }
               code = resolveVar(global, code, be.left, uses, localvars, realnameMap)
             case cr: CallRhs =>
-              cr.argClause.varSymbols.reverse.foreach { v =>
+              cr.varSymbols.reverse.foreach { v =>
                 code = resolveVar(global, code, v, uses, localvars, realnameMap)
               }
             case ce: CastExpression =>

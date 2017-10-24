@@ -62,10 +62,12 @@ class JawaParser(tokens: Array[Token], reporter: Reporter) extends JavaKnowledge
     val cityp: TypeDefSymbol = typeDefSymbol()
     val annotations_ : IList[Annotation] = annotations()
     val extendsAndImplimentsClausesOpt_ : Option[ExtendsAndImplementsClauses] = extendsAndImplementsClausesOpt()
-    val instanceFieldDeclarationBlock_ : InstanceFieldDeclarationBlock = instanceFieldDeclarationBlock()
+    accept(LBRACE)
+    val instanceFields: IList[InstanceFieldDeclaration] = instanceFieldDeclarations()
+    accept(RBRACE)
     val staticFields: IList[StaticFieldDeclaration] = staticFieldDeclarations()
     val methods: IList[MethodDeclaration] = methodDeclarations(resolveBody)
-    val cid = ClassOrInterfaceDeclaration(cityp, annotations_, extendsAndImplimentsClausesOpt_, instanceFieldDeclarationBlock_, staticFields, methods)
+    val cid = ClassOrInterfaceDeclaration(cityp, annotations_, extendsAndImplimentsClausesOpt_, instanceFields, staticFields, methods)
     cid.pos = getPos(coi.pos, cid.immediateChildren.last.pos)
     cid
   }
@@ -260,15 +262,6 @@ class JawaParser(tokens: Array[Token], reporter: Reporter) extends JavaKnowledge
     eai
   }
   
-  private def instanceFieldDeclarationBlock(): InstanceFieldDeclarationBlock = {
-    val lbrace = accept(LBRACE)
-    val instanceFields: IList[InstanceFieldDeclaration] = instanceFieldDeclarations()
-    val rbrace = accept(RBRACE)
-    val ifdb = InstanceFieldDeclarationBlock(instanceFields)
-    ifdb.pos = getPos(lbrace.pos, rbrace.pos)
-    ifdb
-  }
-  
   private def instanceFieldDeclarations(): IList[InstanceFieldDeclaration] = {
     val instanceFields: MList[InstanceFieldDeclaration] = mlistEmpty
     while(currentTokenType != RBRACE){
@@ -325,10 +318,20 @@ class JawaParser(tokens: Array[Token], reporter: Reporter) extends JavaKnowledge
     val method = accept(METHOD)
     val returnType: Type = typ()
     val defSymbol: MethodDefSymbol = methodDefSymbol()
-    val paramClause_ : ParamClause = paramClause()
+    accept(LPAREN)
+    val params: MList[Param] = mlistEmpty
+    while(currentTokenType != RPAREN) {
+      val param_ : Param = param()
+      currentTokenType match {
+        case COMMA => nextToken()
+        case _ =>
+      }
+      params += param_
+    }
+    accept(RPAREN)
     val annotations_ : IList[Annotation] = annotations()
     val body_ : Body = body0(resolveBody)
-    val md = MethodDeclaration(returnType, defSymbol, paramClause_, annotations_, body_)
+    val md = MethodDeclaration(returnType, defSymbol, params.toList, annotations_, body_)
     defSymbol.signature = md.signature
     md.getAllChildren foreach {
       case vd: VarDefSymbol => vd.owner = md
@@ -339,23 +342,6 @@ class JawaParser(tokens: Array[Token], reporter: Reporter) extends JavaKnowledge
     }
     md.pos = getPos(method.pos, body_.pos)
     md
-  }
-  
-  private def paramClause(): ParamClause = {
-    val lparen = accept(LPAREN)
-    val params: MList[Param] = mlistEmpty
-    while(currentTokenType != RPAREN) {
-      val param_ : Param = param()
-      currentTokenType match {
-        case COMMA => nextToken()
-        case _ =>
-      }
-      params += param_
-    }
-    val rparen = accept(RPAREN)
-    val pc = ParamClause(params.toList)
-    pc.pos = getPos(lparen.pos, rparen.pos)
-    pc
   }
   
   private def param(): Param = {
@@ -529,14 +515,7 @@ class JawaParser(tokens: Array[Token], reporter: Reporter) extends JavaKnowledge
 
   private def callRhs(): CallRhs = {
     val nameSymbol: MethodNameSymbol = methodNameSymbol()
-    val argClause_ : ArgClause = argClause()
-    val cr = CallRhs(nameSymbol, argClause_)
-    cr.pos = getPos(nameSymbol.pos, argClause_.pos)
-    cr
-  }
-  
-  private def argClause(): ArgClause = {
-    val lparen = accept(LPAREN)
+    accept(LPAREN)
     val varIDs: MList[VarSymbol] = mlistEmpty
     while(currentTokenType != RPAREN) {
       val varSymbol_ : VarSymbol = varSymbol()
@@ -547,9 +526,9 @@ class JawaParser(tokens: Array[Token], reporter: Reporter) extends JavaKnowledge
       varIDs += varSymbol_
     }
     val rparen = accept(RPAREN)
-    val ac = ArgClause(varIDs.toList)
-    ac.pos = getPos(lparen.pos, rparen.pos)
-    ac
+    val cr = CallRhs(nameSymbol, varIDs.toList)
+    cr.pos = getPos(nameSymbol.pos, rparen.pos)
+    cr
   }
   
   private def assignmentStatement(): AssignmentStatement = {

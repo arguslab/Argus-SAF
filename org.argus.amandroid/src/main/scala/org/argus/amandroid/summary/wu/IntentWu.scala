@@ -36,7 +36,7 @@ class IntentWu(
       loc.statement match {
         case cs: CallStatement if InterComponentCommunicationModel.isIccOperation(cs.signature) =>
           val trackedSlots: MSet[(PTASlot, Boolean)] = msetEmpty
-          val intentSlot = VarSlot(cs.rhs.argClause.arg(1))
+          val intentSlot = VarSlot(cs.rhs.arg(1))
           trackedSlots += ((intentSlot, true))
           pointsToResolve(context) = trackedSlots.toSet
         case _ =>
