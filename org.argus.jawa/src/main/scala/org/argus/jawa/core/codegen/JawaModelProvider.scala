@@ -124,8 +124,8 @@ InvokeStmtWithoutReturn(funcName, params, annotations) ::= <<
 call `$funcName$`($params ; separator=", "$) $annotations ; separator=" "$
 >>
 
-FieldAccessExp(base, field) ::= <<
-$base$.`$field$`
+FieldAccessExp(base, field, typ) ::= <<
+$base$.`$field$` @kind ^$typ$
 >>
 
 FilledNewArray(baseTyp, args) ::= <<

@@ -60,17 +60,17 @@ record `b.a.a.a`  @kind class @AccessFlag PUBLIC_FINAL extends  `java.io.Externa
 #L013a94.   v1:= "text/plain; charset=unicode; class=java.io.InputStream" @kind `object`;
 #L013a98.   v2:= "Plain Text" @kind `object`;
 #L013a9c.   call temp:=  `<init>`(v0, v1, v2) @signature `Lb/a/a/a;.<init>:(Ljava/lang/String;Ljava/lang/String;)V` @kind direct;
-#L013aa2.   `@@b.a.a.a.a` := v0  @kind `object`;
+#L013aa2.   `@@b.a.a.a.a` @type ^`b.a.a.a` := v0 @kind `object`;
 #L013aa6.   v0:= new `b.a.a.a`;
-#L013aaa.   v1:= "application/x-java-serialized-object; class=java.lang.String" @kind `object`;
+#L013aaa.   v1:= "application/x-java-serialized-object; class=java.lang.String" @kind object;
 #L013aae.   v2:= "Unicode String" @kind `object`;
 #L013ab2.   call temp:=  `<init>`(v0, v1, v2) @signature `Lb/a/a/a;.<init>:(Ljava/lang/String;Ljava/lang/String;)V` @kind direct;
-#L013ab8.   `@@b.a.a.a.b` := v0  @kind `object`;
+#L013ab8.   `@@b.a.a.a.b` @type ^`b.a.a.a` := v0 @kind `object`;
 #L013abc.   v0:= new `b.a.a.a`;
 #L013ac0.   v1:= "application/x-java-file-list; class=java.util.List" @kind `object`;
 #L013ac4.   v2:= "application/x-java-file-list" @kind `object`;
 #L013ac8.   call temp:=  `<init>`(v0, v1, v2) @signature `Lb/a/a/a;.<init>:(Ljava/lang/String;Ljava/lang/String;)V` @kind direct;
-#L013ace.   `@@b.a.a.a.c` := v0  @kind `object`;
+#L013ace.   `@@b.a.a.a.c` @type ^`b.a.a.a` := v0 @kind `object`;
 #L013ad2.   v0:= 16I  @kind int;
 #L013ad6.   v0:= new `java.lang.String`[v0];
 #L013ada.   v1:= 0I  @kind int;
@@ -121,9 +121,9 @@ record `b.a.a.a`  @kind class @AccessFlag PUBLIC_FINAL extends  `java.io.Externa
 #L013b7e.   v1:= 15I  @kind int;
 #L013b82.   v2:= "text/plain" @kind `object`;
 #L013b86.   v0[v1]:= v2  @kind `object`;
-#L013b8a.   `@@b.a.a.a.d` := v0  @kind `object`;
+#L013b8a.   `@@b.a.a.a.d` @type ^`java.lang.String`[] := v0  @kind `object`;
 #L013b8e.   v0:= 0I  @kind int;
-#L013b90.   `@@b.a.a.a.e` := v0  @kind `object`;
+#L013b90.   `@@b.a.a.a.e` @type ^`b.a.a.a` := v0  @kind `object`;
 #L013b94.   return @kind void ;
 
    }

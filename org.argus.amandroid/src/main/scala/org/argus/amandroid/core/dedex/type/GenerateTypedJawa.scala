@@ -15,6 +15,7 @@ import java.util
 import org.argus.amandroid.core.dedex.`type`.LocalTypeResolver.VarType
 import org.argus.jawa.alir.rda.VarSlot
 import org.argus.jawa.ast._
+import org.argus.jawa.compiler.lexer.{Token, Tokens}
 import org.argus.jawa.compiler.parser._
 import org.argus.jawa.core.codegen.JawaModelProvider
 import org.argus.jawa.core.io.Position
@@ -168,16 +169,7 @@ object GenerateTypedJawa {
     localVarsTemplate
   }
 
-  private def updateCode(loccode: String, pos: Position, newtext: String): String = {
-    val sb: StringBuffer = new StringBuffer
-    sb.append(loccode)
-    val start = pos.column
-    val end = pos.column + pos.end - pos.start + 1
-    sb.replace(start, end, newtext)
-    sb.toString.intern()
-  }
-
-  private def resolveVar(global: Global, code: String, varSymbol: VarSymbol, types: IMap[VarSlot, VarType], localvars: MMap[String, (JawaType, Boolean)], realnameMap: MMap[String, String]): String = {
+  private def resolveVar(global: Global, varSymbol: VarSymbol, types: IMap[VarSlot, VarType], localvars: MMap[String, (JawaType, Boolean)], realnameMap: MMap[String, String]): VarSymbol = {
     val pos = varSymbol.id.pos
     val slot = VarSlot(varSymbol.varName)
     val typ: JawaType = types.get(slot) match {
@@ -185,7 +177,7 @@ object GenerateTypedJawa {
       case None => throw new LocalTypeResolveException(pos, "Type should be resolved.")
     }
     val varName = genVarName(varSymbol.varName, typ, None, isParam = false, localvars, realnameMap)
-    updateCode(code, pos, varName)
+    VarSymbol(Token(varSymbol.id.tokenType, varSymbol.id.pos, varName))(varSymbol.pos)
   }
 
   private def generateBody(global: Global, method: MethodDeclaration, localvars: MMap[String, (JawaType, Boolean)], realnameMap: MMap[String, String], def_types: IMap[Int, IMap[VarSlot, VarType]], use_types: IMap[Int, IMap[VarSlot, VarType]], template: STGroupString): ST = {
@@ -193,131 +185,178 @@ object GenerateTypedJawa {
 
     val codes: util.ArrayList[String] = new util.ArrayList[String]
     method.resolvedBody.locations.foreach { location =>
-      var code = location.toCode
       val defs: IMap[VarSlot, VarType] = def_types.getOrElse(location.locationIndex, imapEmpty)
       val uses: IMap[VarSlot, VarType] = use_types.getOrElse(location.locationIndex, imapEmpty)
       var nullable: Option[Position] = None
-      location.statement match {
-        case a: Assignment =>
+      val newStatement: Statement = location.statement match {
+        case a: AssignmentStatement =>
+          var lhs = a.lhs
+          var rhs = a.rhs
           a.getRhs match {
             case ae: AccessExpression =>
-              code = resolveVar(global, code, ae.varSymbol, uses, localvars, realnameMap)
+              val vs = resolveVar(global, ae.varSymbol, uses, localvars, realnameMap)
+              rhs = AccessExpression(vs, ae.fieldSym, ae.typExp)(ae.pos)
             case be: BinaryExpression =>
-              be.right match {
+              val left = resolveVar(global, be.left, uses, localvars, realnameMap)
+              val right: Either[VarSymbol, Either[LiteralExpression, NullExpression]] = be.right match {
                 case Left(v) =>
-                  code = resolveVar(global, code, v, uses, localvars, realnameMap)
-                case Right(_) =>
+                  val vs = resolveVar(global, v, uses, localvars, realnameMap)
+                  Left(vs)
+                case r @ Right(_) =>
+                  r
               }
-              code = resolveVar(global, code, be.left, uses, localvars, realnameMap)
-            case cr: CallRhs =>
-              cr.varSymbols.reverse.foreach { v =>
-                code = resolveVar(global, code, v, uses, localvars, realnameMap)
-              }
+              rhs = BinaryExpression(left, be.op, right)(be.pos)
             case ce: CastExpression =>
-              code = resolveVar(global, code, ce.varSym, uses, localvars, realnameMap)
+              val vs = resolveVar(global, ce.varSym, uses, localvars, realnameMap)
+              rhs = CastExpression(ce.typ, vs)(ce.pos)
             case ce: CmpExpression =>
-              code = resolveVar(global, code, ce.var2Symbol, uses, localvars, realnameMap)
-              code = resolveVar(global, code, ce.var1Symbol, uses, localvars, realnameMap)
+              val var2Symbol = resolveVar(global, ce.var2Symbol, uses, localvars, realnameMap)
+              val var1Symbol = resolveVar(global, ce.var1Symbol, uses, localvars, realnameMap)
+              rhs = CmpExpression(ce.cmp, var1Symbol, var2Symbol)(ce.pos)
             case _: ConstClassExpression =>
             case _: ExceptionExpression =>
             case ie: IndexingExpression =>
-              ie.indices.reverse.foreach { i =>
-                i.index match {
+              val indices = ie.indices.map { i =>
+                val index: Either[VarSymbol, LiteralExpression] = i.index match {
                   case Left(v) =>
-                    code = resolveVar(global, code, v, uses, localvars, realnameMap)
-                  case Right(_) =>
+                    val vs = resolveVar(global, v, uses, localvars, realnameMap)
+                    Left(vs)
+                  case r @ Right(_) =>
+                    r
                 }
+                IndexingSuffix(index)(i.pos)
               }
-              code = resolveVar(global, code, ie.varSymbol, uses, localvars, realnameMap)
+              val vs = resolveVar(global, ie.varSymbol, uses, localvars, realnameMap)
+              rhs = IndexingExpression(vs, indices)(ie.pos)
             case ie: InstanceOfExpression =>
-              code = resolveVar(global, code, ie.varSymbol, uses, localvars, realnameMap)
+              val vs = resolveVar(global, ie.varSymbol, uses, localvars, realnameMap)
+              rhs = InstanceOfExpression(vs, ie.typExp)(ie.pos)
             case le: LengthExpression =>
-              code = resolveVar(global, code, le.varSymbol, uses, localvars, realnameMap)
+              val vs = resolveVar(global, le.varSymbol, uses, localvars, realnameMap)
+              rhs = LengthExpression(vs)(le.pos)
             case le: LiteralExpression =>
               if(le.isInt && le.getInt == 0) {
                 nullable = Some(le.pos)
               }
-            case ne: NameExpression =>
-              ne.varSymbol match {
-                case Left(v) =>
-                  code = resolveVar(global, code, v, uses, localvars, realnameMap)
-                case Right(_) =>
-              }
+            case ne: VariableNameExpression =>
+              val vs = resolveVar(global, ne.varSymbol, uses, localvars, realnameMap)
+              rhs = VariableNameExpression(vs)(ne.pos)
+            case _: StaticFieldAccessExpression =>
             case ne: NewExpression =>
-              ne.typeFragmentsWithInit.reverse.foreach { init =>
-                init.varSymbols.reverse.foreach { v =>
-                  code = resolveVar(global, code, v, uses, localvars, realnameMap)
+              val tfinit: IList[TypeFragmentWithInit] = ne.typeFragmentsWithInit.map { init =>
+                val varSymbols = init.varSymbols.map { v =>
+                  resolveVar(global, v, uses, localvars, realnameMap)
                 }
+                TypeFragmentWithInit(varSymbols)(init.pos)
               }
+              rhs = NewExpression(ne.base, tfinit)(ne.pos)
             case _: NullExpression =>
             case _: TupleExpression =>
             case ue: UnaryExpression =>
-              code = resolveVar(global, code, ue.unary, uses, localvars, realnameMap)
+              val vs = resolveVar(global, ue.unary, uses, localvars, realnameMap)
+              rhs = UnaryExpression(ue.op, vs)(ue.pos)
+            case _ =>
           }
           a.getLhs foreach {
             case ae: AccessExpression =>
-              code = resolveVar(global, code, ae.varSymbol, uses, localvars, realnameMap)
-            case cl: CallLhs =>
-              code = resolveVar(global, code, cl.lhs, defs, localvars, realnameMap)
+              val vs = resolveVar(global, ae.varSymbol, uses, localvars, realnameMap)
+              lhs = AccessExpression(vs, ae.fieldSym, ae.typExp)(ae.pos)
             case ie: IndexingExpression =>
-              ie.indices.reverse.foreach { i =>
-                i.index match {
+              val indices: IList[IndexingSuffix] = ie.indices.map { i =>
+                val index: Either[VarSymbol, LiteralExpression] = i.index match {
                   case Left(v) =>
-                    code = resolveVar(global, code, v, uses, localvars, realnameMap)
-                  case Right(_) =>
+                    val vs = resolveVar(global, v, uses, localvars, realnameMap)
+                    Left(vs)
+                  case r @ Right(_) =>
+                    r
                 }
+                IndexingSuffix(index)(i.pos)
               }
-              code = resolveVar(global, code, ie.varSymbol, uses, localvars, realnameMap)
-            case ne: NameExpression =>
-              ne.varSymbol match {
-                case Left(v) =>
-                  nullable match {
-                    case Some(pos) =>
-                      val typ: JawaType = defs.get(VarSlot(v.varName)) match {
-                        case Some(t) => t.getJawaType(global)
-                        case None => throw new LocalTypeResolveException(pos, "Type should be resolved.")
-                      }
-                      if(typ.isObject) code = updateCode(code, pos, "null")
-                    case None =>
+              val vs = resolveVar(global, ie.varSymbol, uses, localvars, realnameMap)
+              lhs = IndexingExpression(vs, indices)(ie.pos)
+            case ne: VariableNameExpression =>
+              nullable match {
+                case Some(pos) =>
+                  val typ: JawaType = defs.get(VarSlot(ne.varSymbol.varName)) match {
+                    case Some(t) => t.getJawaType(global)
+                    case None => throw new LocalTypeResolveException(pos, "Type should be resolved.")
                   }
-                  code = resolveVar(global, code, v, defs, localvars, realnameMap)
-                case Right(_) =>
+                  if(typ.isObject) {
+                    rhs = NullExpression(Token(Tokens.NULL, pos, "null"))(pos)
+                  }
+                case None =>
               }
+              val vs = resolveVar(global, ne.varSymbol, defs, localvars, realnameMap)
+              lhs = VariableNameExpression(vs)(ne.pos)
+            case _: StaticFieldAccessExpression =>
+            case _ =>
           }
-        case _: EmptyStatement =>
+          AssignmentStatement(lhs, rhs, a.annotations)(a.pos)
+        case cs: CallStatement =>
+          val varSymbols = cs.rhs.varSymbols.map { v =>
+            resolveVar(global, v, uses, localvars, realnameMap)
+          }
+          val rhs = CallRhs(cs.rhs.methodNameSymbol, varSymbols)(cs.rhs.pos)
+          val lhsOpt = cs.lhsOpt match {
+            case Some(lhs) =>
+              val vs = resolveVar(global, lhs.lhs, defs, localvars, realnameMap)
+              Some(CallLhs(vs)(lhs.pos))
+            case None =>
+              None
+          }
+          CallStatement(lhsOpt, rhs, cs.annotations)(cs.pos)
+        case e: EmptyStatement =>
+          e
         case ms: MonitorStatement =>
-          code = resolveVar(global, code, ms.varSymbol, uses, localvars, realnameMap)
-        case _: GotoStatement =>
+          val vs = resolveVar(global, ms.varSymbol, uses, localvars, realnameMap)
+          MonitorStatement(ms.monitor, vs)(ms.pos)
+        case g: GotoStatement =>
+          g
         case is: IfStatement =>
-          is.cond.right match {
+          val right: Either[VarSymbol, Either[LiteralExpression, NullExpression]] = is.cond.right match {
             case Left(v) =>
-              code = resolveVar(global, code, v, uses, localvars, realnameMap)
+              val vs = resolveVar(global, v, uses, localvars, realnameMap)
+              Left(vs)
             case Right(l) =>
-              l match {
+              val ln: Either[LiteralExpression, NullExpression] = l match {
                 case Left(i) =>
                   val typ: JawaType = uses.get(VarSlot(is.cond.left.varName)) match {
                     case Some(t) => t.getJawaType(global)
                     case None => throw new LocalTypeResolveException(is.cond.left.pos, "Type should be resolved.")
                   }
                   if(typ.isObject) {
-                    code = updateCode(code, i.pos, "null")
+                    Right(NullExpression(Token(Tokens.NULL, i.pos, "null"))(i.pos))
+                  } else {
+                    Left(i)
                   }
-                case Right(_) =>
+                case r @ Right(_) =>
+                  r
               }
+              Right(ln)
           }
-          code = resolveVar(global, code, is.cond.left, uses, localvars, realnameMap)
+          val left = resolveVar(global, is.cond.left, uses, localvars, realnameMap)
+          val be = BinaryExpression(left, is.cond.op, right)(is.cond.pos)
+          IfStatement(be, is.targetLocation)(is.pos)
         case rs: ReturnStatement =>
-          rs.varOpt match {
+          val varOpt = rs.varOpt match {
             case Some(v) =>
-              code = resolveVar(global, code, v, uses, localvars, realnameMap)
+              val vs = resolveVar(global, v, uses, localvars, realnameMap)
+              Some(vs)
             case None =>
+              None
           }
+          ReturnStatement(varOpt, rs.annotations)(rs.pos)
         case ss: SwitchStatement =>
-          code = resolveVar(global, code, ss.condition, uses, localvars, realnameMap)
+          val vs = resolveVar(global, ss.condition, uses, localvars, realnameMap)
+          SwitchStatement(vs, ss.cases, ss.defaultCaseOpt)(ss.pos)
         case ts: ThrowStatement =>
-          code = resolveVar(global, code, ts.varSymbol, uses, localvars, realnameMap)
+          val vs = resolveVar(global, ts.varSymbol, uses, localvars, realnameMap)
+          ThrowStatement(vs)(ts.pos)
+        case a =>
+          a
       }
-      codes.add(code)
+      val newLoc = Location(location.locationSymbol, newStatement)(location.pos)
+      codes.add(newLoc.toCode)
     }
     bodyTemplate.add("codeFragments", codes)
     bodyTemplate

@@ -10,22 +10,21 @@
 
 package org.argus.jawa.core.frontend.javafile
 
-import com.github.javaparser.JavaParser
-import org.argus.jawa.core.{JawaType, Reporter}
+import org.argus.jawa.ast.java.Java2Jawa
 import org.argus.jawa.core.frontend.MyClass
-import org.argus.jawa.core.io.SourceFile
+import org.argus.jawa.core.frontend.jawafile.JawaFileParser
+import org.argus.jawa.core.io.JavaSourceFile
 import org.argus.jawa.core.util._
+import org.argus.jawa.core.{Global, JawaType, Reporter}
 
 /**
   * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
   */
-object JavafileParser {
-  final val TITLE = "JavafileParser"
+object JavaFileParser {
+  final val TITLE = "JavaFileParser"
   final val debug = true
-  def parse(file: SourceFile, reporter: Reporter): IMap[JawaType, MyClass] = {
-    val cu = JavaParser.parse(file.code)
-    val mjv = new MyJavaVisitor
-    cu.accept(mjv, null)
-    mjv.getClasses
+  def parse(global: Global, file: JavaSourceFile, reporter: Reporter): IMap[JawaType, MyClass] = {
+    val j2j = new Java2Jawa(global, file)
+    JawaFileParser.resolve(j2j.process(false))
   }
 }

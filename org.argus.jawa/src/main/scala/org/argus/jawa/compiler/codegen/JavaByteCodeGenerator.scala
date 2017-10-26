@@ -119,12 +119,11 @@ class JavaByteCodeGenerator(javaVersion: Int) {
     val af: Int = AccessFlag.getAccessFlags(md.accessModifier)
     val mod: Int = AccessFlag.getJavaFlags(af)
     val mv = cw.visitMethod(mod, md.name, md.signature.getDescriptor, null, null)
-    
     val body: ResolvedBody = md.body match {
       case rb: ResolvedBody =>
         rb
-      case ub: UnresolvedBody =>
-        ub.resolve
+      case ub: Body with Unresolved =>
+        ub.resolve(md.signature)
     }
     var i = 0
     md.thisParam.foreach{
@@ -349,14 +348,8 @@ class JavaByteCodeGenerator(javaVersion: Int) {
     }
     for(i <- 0 until cs.signature.getParameterNum){
       val arg = cs.arg(i)
-      val reqtyp: Option[JawaType] = cs.signature.getParameterTypes(i) match {
-        case p if p.isPrimitive => Some(p)
-        case _ => None
-      }
-      val acttyp: Option[JawaType] = this.locals(arg).typ match {
-        case p if p.isPrimitive => Some(p)
-        case _ => None
-      }
+      val reqtyp: JawaType = cs.signature.getParameterTypes(i)
+      val acttyp: JawaType = this.locals(arg).typ
       visitVarLoad(mv, arg)
       handleTypeImplicitConvert(mv, reqtyp, acttyp)
     }
@@ -386,128 +379,75 @@ class JavaByteCodeGenerator(javaVersion: Int) {
         }
     }
   }
-  
-  /**
-   * typ could be:
-   * move: "", long, object
-   * return: "", long, object, Void
-   * aget: int, long, object, boolean, byte, char, short
-   * aput: int, long, object, boolean, byte, char, short
-   * iget: int, long, boolean, byte, char, short, types
-   * iput: int, long, boolean, byte, char, short, types
-   * sget: int, long, boolean, byte, char, short, types
-   * sput: int, long, boolean, byte, char, short, types
-   * unop: int, long, float, double
-   * biop: int, long, float, double
-   * const: int, long, float, double
-   * lit: int
-   * cast: i2l, i2f, i2d, l2i, l2f, l2d, f2i, f2l, f2d, d2i, d2l, d2f, i2b, i2c, i2s, object
-   */
+
   private def visitAssignmentStatement(mv: MethodVisitor, as: AssignmentStatement): Unit = {
     val kind: String = as.kind
-    val typOpt: Option[JawaType] = as.typOpt
     val lhs = as.lhs
     val rhs = as.rhs
     
     //This is used to deal with implicit type conversion
-    var lhsTyp: Option[JawaType] = None
-    
-    lhs match {
+    val lhsTyp: JawaType = lhs match {
       case ie: IndexingExpression =>
         visitArrayAccess(mv, ie)
-        val p = JawaType.generateType(this.locals(ie.base).typ.baseTyp, this.locals(ie.base).typ.dimensions - ie.dimensions)
-        lhsTyp = Some(p)
+        val typ = this.locals(ie.base).typ
+        JawaType.generateType(typ.baseTyp, typ.dimensions - ie.dimensions)
       case ae: AccessExpression =>
         visitFieldAccess(mv, ae)
-        lhsTyp = Some(typOpt.get)
-      case ne: NameExpression =>
-        ne.varSymbol match {
-          case Left(v) =>
-            lhsTyp = Some(this.locals(v.varName).typ)
-          case Right(_) =>
-            lhsTyp = Some(typOpt.get)
-        }
-      case _ =>
+        ae.typ
+      case vne: VariableNameExpression =>
+        this.locals(vne.name).typ
+      case sfae: StaticFieldAccessExpression =>
+        sfae.typ
+      case a => // This will never happen
+        throw new JawaByteCodeGenException(lhs.pos, "visitAssignmentStatement problem: " + a + " " + kind)
     }
     
     rhs match {
       case _: TupleExpression =>
         lhs match {
-          case expression: NameExpression =>
-            expression.varSymbol match {
-              case Left(varSym) =>
-                visitVarLoad(mv, varSym.varName)
-              case Right(fnSym) =>
-                val t = JavaKnowledge.getTypeFromName(kind)
-                mv.visitFieldInsn(Opcodes.GETSTATIC, fnSym.baseType.name.replaceAll("\\.", "/"), fnSym.fieldName, JavaKnowledge.formatTypeToSignature(t))
-            }
+          case vne: VariableNameExpression =>
+            visitVarLoad(mv, vne.name)
+          case sfae: StaticFieldAccessExpression =>
+            mv.visitFieldInsn(Opcodes.GETSTATIC, sfae.fieldNameSymbol.baseType.name.replaceAll("\\.", "/"), sfae.fieldNameSymbol.fieldName, JavaKnowledge.formatTypeToSignature(lhsTyp))
           case _ =>
         }
       case _ =>
     }
     
-    visitRhsExpression(mv, rhs, kind, typOpt, lhsTyp)
-    visitLhsExpression(mv, lhs, kind, typOpt)
+    visitRhsExpression(mv, rhs, kind, lhsTyp)
+    visitLhsExpression(mv, lhs)
   }
   
-  private def visitLhsExpression(mv: MethodVisitor, lhs: Expression with LHS, kind: String, typOpt: Option[JawaType]): Unit = lhs match {
-    case ne: NameExpression =>
-      ne.varSymbol match {
-        case Left(_) =>
-          visitVarStore(mv, ne.name)
-        case Right(fnSym) =>
-          mv.visitFieldInsn(Opcodes.PUTSTATIC, fnSym.baseType.name.replaceAll("\\.", "/"), fnSym.fieldName, JavaKnowledge.formatTypeToSignature(typOpt.get))
-      }
+  private def visitLhsExpression(mv: MethodVisitor, lhs: Expression with LHS): Unit = lhs match {
+    case vne: VariableNameExpression =>
+      visitVarStore(mv, vne.name)
+    case sfae: StaticFieldAccessExpression =>
+      mv.visitFieldInsn(Opcodes.PUTSTATIC, sfae.fieldNameSymbol.baseType.name.replaceAll("\\.", "/"), sfae.fieldNameSymbol.fieldName, JavaKnowledge.formatTypeToSignature(sfae.typ))
     case ie: IndexingExpression =>
-      visitIndexStore(mv, ie, kind)
+      visitIndexStore(mv, ie)
     case ae: AccessExpression =>
-      visitFieldStore(mv, ae, typOpt.get)
-    case _ => throw new JawaByteCodeGenException(lhs.pos, "visitLhsExpression problem: " + lhs + " " + kind)
+      visitFieldStore(mv, ae, ae.typ)
+    case _ => throw new JawaByteCodeGenException(lhs.pos, "visitLhsExpression problem: " + lhs)
   }
   
-  private def visitRhsExpression(mv: MethodVisitor, rhs: Expression with RHS, kind: String, typOpt: Option[JawaType], lhsTyp: Option[JawaType]): Unit = rhs match {
-    case ne: NameExpression =>
-      ne.varSymbol match {
-        case Left(varSym) =>
-          visitVarLoad(mv, ne.name)
-          var rhsTyp: Option[JawaType] = None
-          this.locals(varSym.varName).typ match {
-            case pt if pt.isPrimitive =>
-              rhsTyp = Some(pt)
-            case _ =>
-          }
-          handleTypeImplicitConvert(mv, lhsTyp, rhsTyp)
-        case Right(fnSym) =>
-          mv.visitFieldInsn(Opcodes.GETSTATIC, fnSym.baseType.name.replaceAll("\\.", "/"), fnSym.fieldName, JavaKnowledge.formatTypeToSignature(typOpt.get))
-          var rhsTyp: Option[JawaType] = None
-          typOpt.get match {
-            case pt if pt.isPrimitive =>
-              rhsTyp = Some(pt)
-            case _ =>
-          }
-          handleTypeImplicitConvert(mv, lhsTyp, rhsTyp)
-      }
+  private def visitRhsExpression(mv: MethodVisitor, rhs: Expression with RHS, kind: String, lhsTyp: JawaType): Unit = rhs match {
+    case vne: VariableNameExpression =>
+      visitVarLoad(mv, vne.name)
+      val rhsTyp: JawaType = this.locals(vne.name).typ
+      handleTypeImplicitConvert(mv, lhsTyp, rhsTyp)
+    case sfae: StaticFieldAccessExpression =>
+      mv.visitFieldInsn(Opcodes.GETSTATIC, sfae.fieldNameSymbol.baseType.name.replaceAll("\\.", "/"), sfae.fieldNameSymbol.fieldName, JavaKnowledge.formatTypeToSignature(sfae.typ))
+      handleTypeImplicitConvert(mv, lhsTyp, sfae.typ)
     case _: ExceptionExpression =>
     case _: NullExpression =>
       mv.visitInsn(Opcodes.ACONST_NULL)
     case ie: IndexingExpression =>
-      visitIndexLoad(mv, ie, kind)
-      var rhsTyp: Option[JawaType] = None
-      val tmp = JawaType.generateType(this.locals(ie.base).typ.baseTyp, this.locals(ie.base).typ.dimensions - ie.dimensions)
-      tmp match{
-        case p if p.isPrimitive => rhsTyp = Some(p)
-        case _ =>
-      }
+      visitIndexLoad(mv, ie)
+      val rhsTyp = JawaType.generateType(this.locals(ie.base).typ.baseTyp, this.locals(ie.base).typ.dimensions - ie.dimensions)
       handleTypeImplicitConvert(mv, lhsTyp, rhsTyp)
     case ae: AccessExpression =>
-      visitFieldLoad(mv, ae, typOpt.get)
-      var rhsTyp: Option[JawaType] = None
-      typOpt.get match {
-        case pt if pt.isPrimitive =>
-          rhsTyp = Some(pt)
-        case _ =>
-      }
-      handleTypeImplicitConvert(mv, lhsTyp, rhsTyp)
+      visitFieldLoad(mv, ae, ae.typ)
+      handleTypeImplicitConvert(mv, lhsTyp, ae.typ)
     case te: TupleExpression =>
       visitTupleExpression(mv, lhsTyp, te)
     case ce: CastExpression =>
@@ -518,15 +458,10 @@ class JavaByteCodeGenerator(javaVersion: Int) {
       visitLiteralExpression(mv, le)
     case ue: UnaryExpression =>
       visitUnaryExpression(mv, ue)
-      var rhsTyp: Option[JawaType] = None
-      this.locals(ue.unary.varName).typ match {
-        case pt if pt.isPrimitive =>
-          rhsTyp = Some(pt)
-        case _ =>
-      }
+      val rhsTyp: JawaType = this.locals(ue.unary.varName).typ
       handleTypeImplicitConvert(mv, lhsTyp, rhsTyp)
     case be: BinaryExpression =>
-      visitBinaryExpression(mv, be, kind, lhsTyp)
+      visitBinaryExpression(mv, be, lhsTyp)
     case ce: CmpExpression =>
       visitCmpExpression(mv, ce)
     case ie: InstanceOfExpression =>
@@ -538,10 +473,10 @@ class JavaByteCodeGenerator(javaVersion: Int) {
     case _ =>  throw new JawaByteCodeGenException(rhs.pos, "visitRhsExpression problem: " + rhs + " " + kind)
   }
   
-  private def handleTypeImplicitConvert(mv: MethodVisitor, lhsTyp: Option[JawaType], rhsTyp: Option[JawaType]): Unit = {
-    if(lhsTyp.isDefined && rhsTyp.isDefined){
-      val lhs = lhsTyp.get.name
-      val rhs = rhsTyp.get.name
+  private def handleTypeImplicitConvert(mv: MethodVisitor, lhsTyp: JawaType, rhsTyp: JawaType): Unit = {
+    if(lhsTyp.isPrimitive && rhsTyp.isPrimitive){
+      val lhs = lhsTyp.name
+      val rhs = rhsTyp.name
       (rhs, lhs) match {
         case ("int", "long") => 
           mv.visitInsn(Opcodes.I2L)
@@ -595,36 +530,27 @@ class JavaByteCodeGenerator(javaVersion: Int) {
   }
   
   private def visitCmpExpression(mv: MethodVisitor, ce: CmpExpression): Unit = {
-    val reqTyp: Option[JawaType] = ce.cmp.text match {
-      case "fcmpl" => 
-        Some(new JawaType("float"))
+    val reqTyp: JawaType = ce.cmp.text match {
+      case "fcmpl" =>
+        JavaKnowledge.FLOAT
       case "dcmpl" =>
-        Some(new JawaType("double"))
-      case "fcmpg" => 
-        Some(new JawaType("float"))
+        JavaKnowledge.DOUBLE
+      case "fcmpg" =>
+        JavaKnowledge.FLOAT
       case "dcmpg" =>
-        Some(new JawaType("double"))
+        JavaKnowledge.DOUBLE
       case "lcmp" =>
-        Some(new JawaType("long"))
-      case _ => None
+        JavaKnowledge.LONG
+      case _ =>
+        JavaKnowledge.JAVA_TOPLEVEL_OBJECT_TYPE
     }
     val first = ce.var1Symbol.varName
     visitVarLoad(mv, first)
-    var rhs1Typ: Option[JawaType] = None
-    this.locals(first).typ match {
-      case pt if pt.isPrimitive =>
-        rhs1Typ = Some(pt)
-      case _ =>
-    }
+    val rhs1Typ: JawaType = this.locals(first).typ
     handleTypeImplicitConvert(mv, reqTyp, rhs1Typ)
     val second = ce.var2Symbol.varName
     visitVarLoad(mv, second)
-    var rhs2Typ: Option[JawaType] = None
-    this.locals(second).typ match {
-      case pt if pt.isPrimitive =>
-        rhs2Typ = Some(pt)
-      case _ =>
-    }
+    val rhs2Typ: JawaType = this.locals(second).typ
     handleTypeImplicitConvert(mv, reqTyp, rhs2Typ)
     ce.cmp.text match {
       case "fcmpl" => 
@@ -641,7 +567,7 @@ class JavaByteCodeGenerator(javaVersion: Int) {
     }
   }
   
-  private def visitTupleExpression(mv: MethodVisitor, lhsTyp: Option[JawaType], te: TupleExpression): Unit = {
+  private def visitTupleExpression(mv: MethodVisitor, lhsTyp: JawaType, te: TupleExpression): Unit = {
     val integers = te.integers
     val size = integers.size
     for(i <- 0 until size){
@@ -649,47 +575,33 @@ class JavaByteCodeGenerator(javaVersion: Int) {
       mv.visitInsn(Opcodes.DUP)
       generateIntConst(mv, i)
       generateIntConst(mv, integer)
-      lhsTyp.get match {
+      lhsTyp match {
         case typ if typ.baseTyp == "char" => mv.visitInsn(Opcodes.CASTORE)
         case _ => mv.visitInsn(Opcodes.IASTORE)
       }
     }
   }
   
-  private def visitBinaryExpression(mv: MethodVisitor, be: BinaryExpression, kind: String, lhsTyp: Option[JawaType]): Unit = {
+  private def visitBinaryExpression(mv: MethodVisitor, be: BinaryExpression, lhsTyp: JawaType): Unit = {
     visitVarLoad(mv, be.left.varName)
-    var rhs1Typ: Option[JawaType] = None
-    this.locals(be.left.varName).typ match {
-      case pt if pt.isPrimitive =>
-        rhs1Typ = Some(pt)
-      case _ =>
-    }
+    val rhs1Typ: JawaType = this.locals(be.left.varName).typ
     handleTypeImplicitConvert(mv, lhsTyp, rhs1Typ)
-    var rhs2Typ: Option[JawaType] = None
-    be.right match {
+    val rhs2Typ: JawaType = be.right match {
       case Left(va) =>
         visitVarLoad(mv, va.varName)
-        this.locals(va.varName).typ match {
-          case pt if pt.isPrimitive =>
-            rhs2Typ = Some(pt)
-          case _ =>
-        }
+        this.locals(va.varName).typ
       case Right(lit) =>
         lit match {
           case Left(i) =>
             generateIntConst(mv, i.getInt)
-            rhs2Typ = Some(new JawaType("int"))
+            JavaKnowledge.INT
           case Right(_) => throw new JawaByteCodeGenException(be.pos, "Should not be here!")
         }
     }
     handleTypeImplicitConvert(mv, lhsTyp, rhs2Typ)
-    val k = rhs1Typ match {
-      case Some(t) =>
-        t.jawaName match {
-          case "int" | "boolean" | "char" | "byte" | "short" => "int"
-          case n => n
-        }
-      case None => kind
+    val k = rhs1Typ.jawaName match {
+      case "int" | "boolean" | "char" | "byte" | "short" => "int"
+      case n => n
     }
     be.op.text match {
       case "+" =>
@@ -799,7 +711,7 @@ class JavaByteCodeGenerator(javaVersion: Int) {
         lit match {
           case x if x.endsWith("i") | x.endsWith("I") => generateIntConst(mv, le.getInt)
           case x if x.endsWith("l") | x.endsWith("L") => generateLongConst(mv, le.getLong)
-          case _ => throw new JawaByteCodeGenException(le.pos, "visitLiteralExpression - INTEGER_LITERAL - problem: " + le.getString + " " + le)
+          case _ => generateIntConst(mv, le.getInt)
         }
       case _ =>
         throw new JawaByteCodeGenException(le.pos, "visitLiteralExpression problem: " + le.getString + " " + le)
@@ -828,12 +740,9 @@ class JavaByteCodeGenerator(javaVersion: Int) {
     }
   }
   
-  private def visitIndexLoad(mv: MethodVisitor, ie: IndexingExpression, kind: String): Unit = {
+  private def visitIndexLoad(mv: MethodVisitor, ie: IndexingExpression): Unit = {
     visitArrayAccess(mv, ie)
-    val k = this.locals.get(ie.base) match {
-      case Some(t) => t.typ.baseType.typ
-      case None => kind
-    }
+    val k = this.locals(ie.base).typ.baseType.typ
     k match {
       case "boolean" => mv.visitInsn(Opcodes.BALOAD)
       case "char" => mv.visitInsn(Opcodes.CALOAD)
@@ -846,11 +755,8 @@ class JavaByteCodeGenerator(javaVersion: Int) {
     }
   }
   
-  private def visitIndexStore(mv: MethodVisitor, ie: IndexingExpression, kind: String): Unit = {
-    val k = this.locals.get(ie.base) match {
-      case Some(t) => t.typ.baseType.typ
-      case None => kind
-    }
+  private def visitIndexStore(mv: MethodVisitor, ie: IndexingExpression): Unit = {
+    val k = this.locals(ie.base).typ.baseType.typ
     k match {
       case "boolean" => mv.visitInsn(Opcodes.BASTORE)
       case "char" => mv.visitInsn(Opcodes.CASTORE)
@@ -874,10 +780,10 @@ class JavaByteCodeGenerator(javaVersion: Int) {
   
   private def visitArrayAccess(mv: MethodVisitor, ie: IndexingExpression): Unit = {
     val base: String = ie.base
-    val dimentions: Int = ie.dimensions
+    val dimensions: Int = ie.dimensions
     val indexs = ie.indices.map(_.index)
     mv.visitVarInsn(Opcodes.ALOAD, this.locals(base).index)
-    for(i <- 0 until dimentions){
+    for(i <- 0 until dimensions){
       val index = indexs(i)
       index match {
         case Left(vs) => 
@@ -886,7 +792,7 @@ class JavaByteCodeGenerator(javaVersion: Int) {
           generateIntConst(mv, t.getInt)
       }
     }
-    for(_ <- 0 to dimentions - 2){
+    for(_ <- 0 to dimensions - 2){
         mv.visitInsn(Opcodes.AALOAD)
     }
   }

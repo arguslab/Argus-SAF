@@ -14,21 +14,11 @@ public class ConstructorWithSuper {
 
     ConstructorWithSuper() {
         super();
-        this.i = 0;
-    }
-
-    void bar() {
-
+        this.i = 1;
     }
 
     public static int main() {
-        Constructor1 c = new Constructor1();
+        ConstructorWithSuper c = new ConstructorWithSuper();
         return c.i;
-    }
-
-    class Inner {
-        void foo() {
-            super.bar();
-        }
     }
 }

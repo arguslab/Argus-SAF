@@ -373,12 +373,12 @@ abstract class MethodGenerator(global: Global) {
     val mBaseField = template.getInstanceOf("FieldAccessExp")
     mBaseField.add("base", base)
     mBaseField.add("field", field)
+    mBaseField.add("typ", JawaModelProvider.generateType(fieldType, template))
     val asmt = template.getInstanceOf("AssignmentStmt")
     asmt.add("lhs", mBaseField)
     asmt.add("rhs", rhs)
     val annotations = new util.ArrayList[ST]
     annotations.add(JawaModelProvider.generateAnnotation("kind", annoTyp, template))
-    annotations.add(JawaModelProvider.generateAnnotation("type", "^" + JawaModelProvider.generateType(fieldType, template).render(), template))
     asmt.add("annotations", annotations)
     codefg.setCode(asmt)
   }

@@ -34,10 +34,8 @@ final class JawaDefRef(callRef: Boolean)
           l match {
             case cl: CallLhs =>
               result += VarSlot(cl.lhs.varName)
-            case ne: NameExpression =>
-              if(!ne.isStatic) {
-                result += VarSlot(ne.name)
-              }
+            case vne: VariableNameExpression =>
+              result += VarSlot(vne.name)
             case _ =>
           }
         case None =>

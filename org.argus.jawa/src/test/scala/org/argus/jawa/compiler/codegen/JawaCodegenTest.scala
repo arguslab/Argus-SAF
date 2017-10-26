@@ -116,13 +116,13 @@ class JawaCodegenTest extends FlatSpec with Matchers {
     genCode(jf)
   }
 
-  "Generate code" should "not throw an exception on Instanceof1" in {
-    val jf = new JawaSourceFile(new PlainFile(new File(getClass.getResource("/jawa_typed/instance/Instanceof1.jawa").getPath)))
+  "Generate code" should "not throw an exception on InstanceOf1" in {
+    val jf = new JawaSourceFile(new PlainFile(new File(getClass.getResource("/jawa_typed/instance/InstanceOf1.jawa").getPath)))
     genCode(jf)
   }
 
-  "Generate code" should "not throw an exception on Instanceof2" in {
-    val jf = new JawaSourceFile(new PlainFile(new File(getClass.getResource("/jawa_typed/instance/Instanceof2.jawa").getPath)))
+  "Generate code" should "not throw an exception on InstanceOf2" in {
+    val jf = new JawaSourceFile(new PlainFile(new File(getClass.getResource("/jawa_typed/instance/InstanceOf2.jawa").getPath)))
     genCode(jf)
   }
 
@@ -189,9 +189,8 @@ class JawaCodegenTest extends FlatSpec with Matchers {
     val cu = parser(Left(newcode), reporter).compilationUnit(true)
     val css = new JavaByteCodeGenerator("1.8").generate(Some(global), cu)
     val pw = new PrintWriter(System.out)
-    css foreach {
-      case (_, bytecodes) =>
-        JavaByteCodeGenerator.outputByteCodes(pw, bytecodes)
+    css foreach { case (_, bytecodes) =>
+      JavaByteCodeGenerator.outputByteCodes(pw, bytecodes)
     }
   }
 }

@@ -29,9 +29,11 @@ class Java2JawaTest extends FlatSpec with Matchers {
     new TestFile(file)
   }
 
-  "/java/parser/as/Assert1.java" should "throw AssertionError" in {
-    an[AssertionError] should be thrownBy run("/java/parser/as/Assert1.java")
-  }
+//  "/java/parser/as/Assert1.java" should "throw AssertionError" in {
+//    an[AssertionError] should be thrownBy run("/java/parser/as/Assert1.java")
+//  }
+
+  "/java/parser/cons/StaticInitializer.java" produce (1)
 
 //  "/java/parser/cons/ConstructorWithSuper.java" produce (1)
 
@@ -46,12 +48,13 @@ class Java2JawaTest extends FlatSpec with Matchers {
 
   def run(file: String): Any = {
     val fileUri = FileUtil.toUri(getClass.getResource(file).getPath)
-    val sf = new JavaSourceFile(new PlainFile(FileUtil.toFile(fileUri)))
     val global = new Global("test", new PrintReporter(MsgLevel.INFO))
     global.setJavaLib(getClass.getResource("/libs/rt.jar").getPath)
     global.load(FileUtil.toUri(getClass.getResource("/java/parser").getPath), Constants.JAVA_FILE_EXT, NoLibraryAPISummary.isLibraryClass)
+    val sf = new JavaSourceFile(global, new PlainFile(FileUtil.toFile(fileUri)))
     val j2j = new Java2Jawa(global, sf)
-    val cu = j2j.process
+    val cu = j2j.process(true)
+    println(cu.toCode)
     val css = new JavaByteCodeGenerator("1.8").generate(Some(global), cu)
     val ccl: CustomClassLoader = new CustomClassLoader()
     var result: Any = null

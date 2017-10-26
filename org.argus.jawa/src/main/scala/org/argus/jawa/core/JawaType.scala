@@ -51,7 +51,9 @@ case class JawaType(baseType: JawaBaseType, dimensions: Int) extends JavaKnowled
   def this(pkg: Option[JawaPackage], typ: String) = this(JawaBaseType(pkg, typ), 0)
   def this(pkgAndTyp: String, dimensions: Int) = this(JavaKnowledge.separatePkgAndTyp(pkgAndTyp), dimensions)
   def this(pkgAndTyp: String) = this(pkgAndTyp, 0)
-  
+
+  require(dimensions >= 0, s"Class type must have positive dimension. baseType: ${baseType.name}, dimensions: $dimensions")
+
   /**
    * Package will be None if it's array, primitive, no package class. e.g. int -> None, java.lang.Object -> Some("java.lang")
    * java.lang.Object[] -> None

@@ -179,7 +179,7 @@ case class JawaClass(global: Global, typ: JawaType, accessFlags: Int) extends Ja
   /**
    * return true if the field is declared in this class
    */
-  def declaresField(name: String): Boolean = getDeclaredFields.exists(_.getName == name)
+  def declaresField(name: String): Boolean = fields.contains(name)
 
   /**
    * return true if the field is declared in this class
@@ -198,14 +198,18 @@ case class JawaClass(global: Global, typ: JawaType, accessFlags: Int) extends Ja
    * get field from this class by the given name
    */
   def getField(name: String, typ: JawaType): Option[JawaField] = {
-    if(!isValidFieldName(name)){
-      global.reporter.error(TITLE, "field name is not valid " + name)
-      return None
+    val field = getDeclaredField(name) match {
+      case Some(f) if f.typ == typ => Some(f)
+      case _ =>
+        if(hasSuperClass) {
+          getSuperClass.getField(name, typ)
+        } else {
+          None
+        }
     }
-    val fopt = getFields.find(_.getName == name)
-    fopt match{
-      case Some(f) => Some(f)
-      case None => 
+    field match {
+      case f @ Some(_) => f
+      case None =>
         if(isUnknown){
           Some(JawaField(this, name, typ, AccessFlag.getAccessFlags("PUBLIC")))
         } else {
@@ -218,11 +222,15 @@ case class JawaClass(global: Global, typ: JawaType, accessFlags: Int) extends Ja
     * get field from this class by the given name
     */
   def getField(name: String): Option[JawaField] = {
-    if(!isValidFieldName(name)){
-      global.reporter.error(TITLE, "field name is not valid " + name)
-      return None
+    getDeclaredField(name) match {
+      case f @ Some(_) => f
+      case None =>
+        if(hasSuperClass) {
+          getSuperClass.getField(name)
+        } else {
+          None
+        }
     }
-    getFields.find(_.getName == name)
   }
   
   /**
@@ -233,24 +241,35 @@ case class JawaClass(global: Global, typ: JawaType, accessFlags: Int) extends Ja
       global.reporter.error(TITLE, "field name is not valid " + name)
       return None
     }
-    this.fields.get(name) match {
-      case Some(f) => Some(f)
-      case None =>
-        global.reporter.error(TITLE, "No field " + name + " in class " + getName)
-        None
-    }
+    this.fields.get(name)
   }
 
   /**
     * get method from this class by the given subsignature
     */
   def getMethod(subSig: String): Option[JawaMethod] = {
-    getMethods.find(_.getSubSignature == subSig) match{
-      case Some(p) => Some(p)
+    getDeclaredMethod(subSig) match {
+      case m @ Some(_) => m
       case None =>
-        if(isUnknown){
-          val signature = generateSignatureFromOwnerAndMethodSubSignature(this, subSig)
-          Some(generateUnknownJawaMethod(this, signature))
+        if(hasSuperClass) {
+          getSuperClass.getMethod(subSig)
+        } else {
+          if(isUnknown){
+            val signature = generateSignatureFromOwnerAndMethodSubSignature(this, subSig)
+            Some(generateUnknownJawaMethod(this, signature))
+          } else None
+        }
+    }
+  }
+
+  def getMethodByNameAndArgTypes(name: String, argTypes: IList[JawaType]): Option[JawaMethod] = {
+    getDeclaredMethodsByName(name).find { m =>
+      m.getParamTypes == argTypes
+    } match {
+      case m @ Some(_) => m
+      case None =>
+        if(hasSuperClass) {
+          getSuperClass.getMethodByNameAndArgTypes(name, argTypes)
         } else None
     }
   }
@@ -341,13 +360,12 @@ case class JawaClass(global: Global, typ: JawaType, accessFlags: Int) extends Ja
   /**
    * get method by the given name, parameter types and return type
    */
-  def getDeclaredMethod(name: String, paramTyps: List[String], returnTyp: JawaType): JawaMethod = {
+  def getDeclaredMethod(name: String, paramTypes: List[String], returnTyp: JawaType): JawaMethod = {
     var ap: JawaMethod = null
-    getDeclaredMethods.foreach{
-      method=>
-        if(method.getName == name && method.getParamTypes == paramTyps && method.getReturnType == returnTyp) ap = method
+    getDeclaredMethods.foreach{ method=>
+      if(method.getName == name && method.getParamTypes == paramTypes && method.getReturnType == returnTyp) ap = method
     }
-    if(ap == null) throw new RuntimeException("In " + getName + " does not have method " + name + "(" + paramTyps + ")" + returnTyp)
+    if(ap == null) throw new RuntimeException("In " + getName + " does not have method " + name + "(" + paramTypes + ")" + returnTyp)
     else ap
   }
 

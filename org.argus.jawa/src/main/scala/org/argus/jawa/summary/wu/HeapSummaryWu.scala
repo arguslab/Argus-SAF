@@ -109,15 +109,13 @@ class HeapSummaryWu(
             case None =>
           }
         }
-      case ne: NameExpression =>
-        if(ne.isStatic) {
-          inss = ptaresult.pointsToSet(context, StaticFieldSlot(ne.name))
-          inss.foreach { ins =>
-            heapMap.get(ins) match {
-              case Some(hb) =>
-                lhsBases += hb
-              case None =>
-            }
+      case sfae: StaticFieldAccessExpression =>
+        inss = ptaresult.pointsToSet(context, StaticFieldSlot(sfae.name))
+        inss.foreach { ins =>
+          heapMap.get(ins) match {
+            case Some(hb) =>
+              lhsBases += hb
+            case None =>
           }
         }
       case _ =>
@@ -131,12 +129,10 @@ class HeapSummaryWu(
           case ie: IndexingExpression =>
             inss = ptaresult.pointsToSet(context, VarSlot(ie.varSymbol.varName))
             inss = inss.flatMap(ins => ptaresult.pointsToSet(context, ArraySlot(ins)))
-          case ne: NameExpression =>
-            if(ne.isStatic) {
-              inss = ptaresult.pointsToSet(context, StaticFieldSlot(ne.name))
-            } else {
-              inss = ptaresult.pointsToSet(context, VarSlot(ne.name))
-            }
+          case sfae: StaticFieldAccessExpression =>
+            inss = ptaresult.pointsToSet(context, StaticFieldSlot(sfae.name))
+          case ne: VariableNameExpression =>
+            inss = ptaresult.pointsToSet(context, VarSlot(ne.name))
           case _ =>
         }
         val rhsBases: ISet[HeapBase] = inss.flatMap(ins => heapMap.get(ins))
