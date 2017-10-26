@@ -100,4 +100,5 @@ For more information on building and developing Argus-SAF, please also check out
  
 ## What to contribute
 
-If you don't know what to contribute, please check out our [challenges need to resolve](CHALLENGE.md).
+If you don't know what to contribute,
+you can checkout the [issue tracker](https://github.com/arguslab/Argus-SAF/issues) with `help wanted` label, and claim one to help yourself warm up with Argus-SAF.
