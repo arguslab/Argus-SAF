@@ -214,14 +214,12 @@ abstract class DataFlowWu[T <: Global] (
             }
           }
         }
-      case ne: NameExpression =>
-        if(ne.isStatic) {
-          val slot = StaticFieldSlot(ne.name)
-          val inss = ptaresult.pointsToSet(context, slot)
-          inss.foreach { ins =>
-            if(ins.defSite == context) {
-              heapMap(ins) = SuGlobal(ne.name, None)
-            }
+      case sfae: StaticFieldAccessExpression =>
+        val slot = StaticFieldSlot(sfae.name)
+        val inss = ptaresult.pointsToSet(context, slot)
+        inss.foreach { ins =>
+          if(ins.defSite == context) {
+            heapMap(ins) = SuGlobal(sfae.name, None)
           }
         }
       case _ =>
@@ -253,23 +251,21 @@ abstract class DataFlowWu[T <: Global] (
               false
           }
         }
-      case ne: NameExpression =>
-        if(ne.isStatic) {
-          val slot = StaticFieldSlot(ne.name)
-          val inss = ptaresult.pointsToSet(context, slot)
-          kill ++= inss
-          inss.foreach { ins =>
-            heapMap.get(ins) match {
-              case Some(sh) =>
-                heapBaseOpt = Some(sh)
-              case None =>
-                heapBaseOpt = Some(SuGlobal(ne.name, None))
-            }
+      case sfae: StaticFieldAccessExpression =>
+        val slot = StaticFieldSlot(sfae.name)
+        val inss = ptaresult.pointsToSet(context, slot)
+        kill ++= inss
+        inss.foreach { ins =>
+          heapMap.get(ins) match {
+            case Some(sh) =>
+              heapBaseOpt = Some(sh)
+            case None =>
+              heapBaseOpt = Some(SuGlobal(sfae.name, None))
           }
         }
       case _ =>
     }
-    val (gen, _) = ReachingFactsAnalysisHelper.processRHS(as.rhs, as.typOpt, context, ptaresult)
+    val (gen, _) = ReachingFactsAnalysisHelper.processRHS(as.rhs, context, ptaresult)
     heapBaseOpt match {
       case Some(heapBase) =>
         setHeapMap(heapBase, gen, kill)

@@ -19,7 +19,7 @@ import org.argus.jawa.alir.cfg._
 import org.argus.jawa.alir.dda.{IDDGNode, MultiDataDependenceGraph}
 import org.argus.jawa.alir.dfa.InterProceduralDataFlowGraph
 import org.argus.jawa.alir.pta.{Instance, VarSlot}
-import org.argus.jawa.ast.{AssignmentStatement, NameExpression}
+import org.argus.jawa.ast.{AssignmentStatement, StaticFieldAccessExpression}
 import org.argus.jawa.core._
 import org.argus.jawa.core.util._
 
@@ -57,21 +57,16 @@ object ComponentSummaryTable {
         val method = apk.getMethod(nn.getOwner).get
         method.getBody.resolvedBody.locations(nn.locIndex).statement match {
           case as: AssignmentStatement =>
-            val typ = as.typOpt
             val lhs = as.lhs
             val rhs = as.rhs
             lhs match {
-              case ne: NameExpression =>
-                if (ne.isStatic) {
-                  sf_summary.addCaller(nn, StaticFieldWrite(component, new FieldFQN(ne.name, typ.get)))
-                }
+              case ne: StaticFieldAccessExpression =>
+                sf_summary.addCaller(nn, StaticFieldWrite(component, new FieldFQN(ne.name, ne.typ)))
               case _ =>
             }
             rhs match {
-              case ne: NameExpression =>
-                if (ne.isStatic) {
-                  sf_summary.addCallee(nn, StaticFieldRead(component, new FieldFQN(ne.name, typ.get)))
-                }
+              case ne: StaticFieldAccessExpression =>
+                sf_summary.addCallee(nn, StaticFieldRead(component, new FieldFQN(ne.name, ne.typ)))
               case _ =>
             }
           case _ =>

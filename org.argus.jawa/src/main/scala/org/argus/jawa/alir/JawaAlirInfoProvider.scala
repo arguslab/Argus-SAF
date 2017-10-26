@@ -47,8 +47,7 @@ object JawaAlirInfoProvider {
   def buildCfg(md: MethodDeclaration, global: Global): IntraProceduralControlFlowGraph[CFGNode] = {
 	  val ENTRY_NODE_LABEL = "Entry"
 	  val EXIT_NODE_LABEL = "Exit"
-    val rb = md.resolvedBody
-	  ControlFlowGraph(rb, ENTRY_NODE_LABEL, EXIT_NODE_LABEL, siff(rb, global))
+	  ControlFlowGraph(md, ENTRY_NODE_LABEL, EXIT_NODE_LABEL, siff(md.resolvedBody, global))
 	}
 	
 	private def buildRda (md: MethodDeclaration, cfg: IntraProceduralControlFlowGraph[CFGNode], initialFacts: ISet[ReachingDefinitionAnalysis.RDFact] = isetEmpty, callRef: Boolean) = {

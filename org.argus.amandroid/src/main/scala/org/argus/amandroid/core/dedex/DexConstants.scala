@@ -24,7 +24,7 @@ trait DexConstants {
   def moveResult(x: String, y: String): String = "%s:= %s;".format(x, y) // 0xa
   def moveResultWide(x: String, y: String): String = "%s:= %s @kind wide;".format(x, y) // 0xb
   def moveResultObject(x: String, y: String): String = "%s:= %s @kind object;".format(x, y) // 0xc
-  def moveExc(x: String, y: String): String = "%s:= Exception @kind object @type ^%s;".format(x, y) // 0xd
+  def moveExc(x: String, y: String): String = "%s:= Exception @type ^%s @kind object;".format(x, y) // 0xd
   def returnVoid = "return @kind void;" // 0xe
   def `return`(x: String): String = "return %s;".format(x)  // 0xf
   def returnWide(x: String): String = "return %s @kind wide;".format(x) // 0x10
@@ -115,33 +115,33 @@ trait DexConstants {
   def aputChar(x: String, y: String, z: String): String = "%s[%s]:= %s @kind char;".format(x, y, z) // 0x50
   def aputShort(x: String, y: String, z: String): String = "%s[%s]:= %s @kind short;".format(x, y, z) // 0x51
   def iget(x: String, y: String, field: String, typ: String): String = "%s:= %s.`%s` @type ^%s;".format(x, y, field, typ) // 0x52
-  def igetWide(x: String, y: String, field: String, typ: String): String = "%s:= %s.`%s` @kind wide @type ^%s;".format(x, y, field, typ) // 0x53
-  def igetObject(x: String, y: String, field: String, typ: String): String = "%s:= %s.`%s` @kind object @type ^%s;".format(x, y, field, typ) // 0x54
-  def igetBool(x: String, y: String, field: String, typ: String): String = "%s:= %s.`%s` @kind boolean @type ^%s;".format(x, y, field, typ) // 0x55
-  def igetByte(x: String, y: String, field: String, typ: String): String = "%s:= %s.`%s` @kind byte @type ^%s;".format(x, y, field, typ) // 0x56
-  def igetChar(x: String, y: String, field: String, typ: String): String = "%s:= %s.`%s` @kind char @type ^%s;".format(x, y, field, typ) // 0x57
-  def igetShort(x: String, y: String, field: String, typ: String): String = "%s:= %s.`%s` @kind short @type ^%s;".format(x, y, field, typ) // 0x58
-  def iput(x: String, field: String, y: String, typ: String): String = "%s.`%s`:= %s @type ^%s;".format(x, field, y, typ) // 0x59
-  def iputWide(x: String, field: String, y: String, typ: String): String = "%s.`%s`:= %s @kind wide @type ^%s;".format(x, field, y, typ) // 0x5a
-  def iputObject(x: String, field: String, y: String, typ: String): String = "%s.`%s`:= %s @kind object @type ^%s;".format(x, field, y, typ) // 0x5b
-  def iputBool(x: String, field: String, y: String, typ: String): String = "%s.`%s`:= %s @kind boolean @type ^%s;".format(x, field, y, typ) // 0x5c
-  def iputByte(x: String, field: String, y: String, typ: String): String = "%s.`%s`:= %s @kind byte @type ^%s;".format(x, field, y, typ) // 0x5d
-  def iputChar(x: String, field: String, y: String, typ: String): String = "%s.`%s`:= %s @kind char @type ^%s;".format(x, field, y, typ) // 0x5e
-  def iputShort(x: String, field: String, y: String, typ: String): String = "%s.`%s`:= %s @kind short @type ^%s;".format(x, field, y, typ) // 0x5f
+  def igetWide(x: String, y: String, field: String, typ: String): String = "%s:= %s.`%s` @type ^%s @kind wide;".format(x, y, field, typ) // 0x53
+  def igetObject(x: String, y: String, field: String, typ: String): String = "%s:= %s.`%s` @type ^%s @kind object;".format(x, y, field, typ) // 0x54
+  def igetBool(x: String, y: String, field: String, typ: String): String = "%s:= %s.`%s` @type ^%s @kind boolean;".format(x, y, field, typ) // 0x55
+  def igetByte(x: String, y: String, field: String, typ: String): String = "%s:= %s.`%s` @type ^%s @kind byte;".format(x, y, field, typ) // 0x56
+  def igetChar(x: String, y: String, field: String, typ: String): String = "%s:= %s.`%s` @type ^%s @kind char;".format(x, y, field, typ) // 0x57
+  def igetShort(x: String, y: String, field: String, typ: String): String = "%s:= %s.`%s` @type ^%s @kind short;".format(x, y, field, typ) // 0x58
+  def iput(x: String, field: String, y: String, typ: String): String = "%s.`%s` @type ^%s := %s;".format(x, field, typ, y) // 0x59
+  def iputWide(x: String, field: String, y: String, typ: String): String = "%s.`%s` @type ^%s := %s @kind wide;".format(x, field, typ, y) // 0x5a
+  def iputObject(x: String, field: String, y: String, typ: String): String = "%s.`%s` @type ^%s := %s @kind object;".format(x, field, typ, y) // 0x5b
+  def iputBool(x: String, field: String, y: String, typ: String): String = "%s.`%s` @type ^%s := %s @kind boolean;".format(x, field, typ, y) // 0x5c
+  def iputByte(x: String, field: String, y: String, typ: String): String = "%s.`%s` @type ^%s := %s @kind byte;".format(x, field, typ, y) // 0x5d
+  def iputChar(x: String, field: String, y: String, typ: String): String = "%s.`%s` @type ^%s := %s @kind char;".format(x, field, typ, y) // 0x5e
+  def iputShort(x: String, field: String, y: String, typ: String): String = "%s.`%s` @type ^%s := %s @kind short;".format(x, field, typ, y) // 0x5f
   def sget(x: String, field: String, typ: String): String = "%s:= `@@%s` @type ^%s;".format(x, field, typ) // 0x60
-  def sgetWide(x: String, field: String, typ: String): String = "%s:= `@@%s` @kind long @type ^%s;".format(x, field, typ) // 0x61
-  def sgetObject(x: String, field: String, typ: String): String = "%s:= `@@%s` @kind object @type ^%s;".format(x, field, typ) // 0x62
-  def sgetBool(x: String, field: String, typ: String): String = "%s:= `@@%s` @kind boolean @type ^%s;".format(x, field, typ) // 0x63
-  def sgetByte(x: String, field: String, typ: String): String = "%s:= `@@%s` @kind byte @type ^%s;".format(x, field, typ) // 0x64
-  def sgetChar(x: String, field: String, typ: String): String = "%s:= `@@%s` @kind char @type ^%s;".format(x, field, typ) // 0x65
-  def sgetShort(x: String, field: String, typ: String): String = "%s:= `@@%s` @kind short @type ^%s;".format(x, field, typ) // 0x66
-  def sput(field: String, x: String, typ: String): String = "`@@%s`:= %s @type ^%s;".format(field, x, typ) // 0x67
-  def sputWide(field: String, x: String, typ: String): String = "`@@%s`:= %s @kind wide @type ^%s;".format(field, x, typ) // 0x68
-  def sputObject(field: String, x: String, typ: String): String = "`@@%s`:= %s @kind object @type ^%s;".format(field, x, typ) // 0x69
-  def sputBool(field: String, x: String, typ: String): String = "`@@%s`:= %s @kind boolean @type ^%s;".format(field, x, typ) // 0x6a
-  def sputByte(field: String, x: String, typ: String): String = "`@@%s`:= %s @kind byte @type ^%s;".format(field, x, typ) // 0x6b
-  def sputChar(field: String, x: String, typ: String): String = "`@@%s`:= %s @kind char @type ^%s;".format(field, x, typ) // 0x6c
-  def sputShort(field: String, x: String, typ: String): String = "`@@%s`:= %s @kind short @type ^%s;".format(field, x, typ) // 0x6d
+  def sgetWide(x: String, field: String, typ: String): String = "%s:= `@@%s` @type ^%s @kind wide;".format(x, field, typ) // 0x61
+  def sgetObject(x: String, field: String, typ: String): String = "%s:= `@@%s` @type ^%s @kind object;".format(x, field, typ) // 0x62
+  def sgetBool(x: String, field: String, typ: String): String = "%s:= `@@%s` @type ^%s @kind boolean;".format(x, field, typ) // 0x63
+  def sgetByte(x: String, field: String, typ: String): String = "%s:= `@@%s` @type ^%s @kind byte;".format(x, field, typ) // 0x64
+  def sgetChar(x: String, field: String, typ: String): String = "%s:= `@@%s` @type ^%s @kind char;".format(x, field, typ) // 0x65
+  def sgetShort(x: String, field: String, typ: String): String = "%s:= `@@%s` @type ^%s @kind short;".format(x, field, typ) // 0x66
+  def sput(field: String, x: String, typ: String): String = "`@@%s` @type ^%s := %s;".format(field, typ, x) // 0x67
+  def sputWide(field: String, x: String, typ: String): String = "`@@%s` @type ^%s := %s @kind wide;".format(field, typ, x) // 0x68
+  def sputObject(field: String, x: String, typ: String): String = "`@@%s` @type ^%s := %s @kind object;".format(field, typ, x) // 0x69
+  def sputBool(field: String, x: String, typ: String): String = "`@@%s` @type ^%s := %s @kind boolean;".format(field, typ, x) // 0x6a
+  def sputByte(field: String, x: String, typ: String): String = "`@@%s` @type ^%s := %s @kind byte;".format(field, typ, x) // 0x6b
+  def sputChar(field: String, x: String, typ: String): String = "`@@%s` @type ^%s := %s @kind char;".format(field, typ, x) // 0x6c
+  def sputShort(field: String, x: String, typ: String): String = "`@@%s` @type ^%s := %s @kind short;".format(field, typ, x) // 0x6d
   def invokeVirtual(retName: Option[String], methodName: String, args: IList[String], sig: Signature, classTyp: String) = s"call ${if(retName.isDefined) retName.get + ":= " else ""}`$methodName`(${args.mkString(", ")}) @signature `$sig` @kind virtual;" // 0x6e
   def invokeSuper(retName: Option[String], methodName: String, args: IList[String], sig: Signature, classTyp: String) = s"call ${if(retName.isDefined) retName.get + ":= " else ""}`$methodName`(${args.mkString(", ")}) @signature `$sig` @kind super;" // 0x6f
   def invokeDirect(retName: Option[String], methodName: String, args: IList[String], sig: Signature, classTyp: String) = s"call ${if(retName.isDefined) retName.get + ":= " else ""}`$methodName`(${args.mkString(", ")}) @signature `$sig` @kind direct;" // 0x70
@@ -259,14 +259,14 @@ trait DexConstants {
   def shrLit8(x: String, y: String, z: Int): String = "%s:= %s ^> %d;".format(x, y, z) // 0xe1
   def ushrLit8(x: String, y: String, z: Int): String = "%s:= %s ^>> %d;".format(x, y, z) // 0xe2
   def igetVolatile(x: String, y: String, field: String, typ: String): String = "%s:= %s.`%s` @type ^%s;".format(x, y, field, typ) // 0xe3
-  def iputVolatile(x: String, field: String, y: String, typ: String): String = "%s.`%s`:= %s @type ^%s;".format(x, field, y, typ) // 0xe4
+  def iputVolatile(x: String, field: String, y: String, typ: String): String = "%s.`%s` @type ^%s := %s;".format(x, field, typ, y) // 0xe4
   def sgetVolatile(x: String, field: String, typ: String): String = "%s:= `@@%s` @type ^%s;".format(x, field, typ) // 0xe5
-  def sputVolatile(field: String, x: String, typ: String): String = "`@@%s`:= %s @type ^%s;".format(field, x, typ) // 0xe6
-  def igetObjectVolatile(x: String, y: String, field: String, typ: String): String = "%s:= %s.`%s` @kind object @type ^%s;".format(x, y, field, typ) // 0xe7
-  def igetWideVolatile(x: String, y: String, field: String, typ: String): String = "%s:= %s.`%s` @kind wide @type ^%s;".format(x, y, field, typ) // 0xe8
-  def iputWideVolatile(x: String, field: String, y: String, typ: String): String = "%s.`%s`:= %s @kind wide @type ^%s;".format(x, field, y, typ) // 0xe9
-  def sgetWideVolatile(x: String, field: String, typ: String): String = "%s:= `@@%s` @kind wide @type ^%s;".format(x, field, typ) // 0xea
-  def sputWideVolatile(field: String, x: String, typ: String): String = "`@@%s`:= %s @kind wide @type ^%s;".format(field, x, typ) // 0xeb
+  def sputVolatile(field: String, x: String, typ: String): String = "`@@%s` @type ^%s := %s;".format(field, typ, x) // 0xe6
+  def igetObjectVolatile(x: String, y: String, field: String, typ: String): String = "%s:= %s.`%s` @type ^%s @kind object;".format(x, y, field, typ) // 0xe7
+  def igetWideVolatile(x: String, y: String, field: String, typ: String): String = "%s:= %s.`%s` @type ^%s @kind wide;".format(x, y, field, typ) // 0xe8
+  def iputWideVolatile(x: String, field: String, y: String, typ: String): String = "%s.`%s` @type ^%s := %s @kind wide ;".format(x, field, typ, y) // 0xe9
+  def sgetWideVolatile(x: String, field: String, typ: String): String = "%s:= `@@%s` @type ^%s @kind wide;".format(x, field, typ) // 0xea
+  def sputWideVolatile(field: String, x: String, typ: String): String = "`@@%s` @type ^%s := %s @kind wide;".format(field, typ, x) // 0xeb
   // unused 0xec 0xed
   def executeInline(retName: Option[String], methodName: String, args: IList[String], sig: Signature, classTyp: String) = // 0xee
     s"call ${if(retName.isDefined) retName.get + ":= " else ""}`$methodName`(${args.mkString(", ")}) @signature `$sig` @kind static;"
@@ -278,19 +278,19 @@ trait DexConstants {
   def returnVoidBarrier = "return @kind void;" // 0xf1
   def igetQuick(x: String, y: String, field: String, typ: String): String = "%s:= %s.`%s` @type ^%s;".format(x, y, field, typ) // 0xf2
   def igetQuick(x: Int, y: Int, vtableOffset: Int): String = "@fieldAccess iget_quick @lhsreg v%d @basereg v%d @vtable_offset 0x%x".format(x, y, vtableOffset) // 0xf2
-  def igetWideQuick(x: String, y: String, field: String, typ: String): String = "%s:= %s.`%s` @kind wide @type ^%s;".format(x, y, field, typ) // 0xf3
+  def igetWideQuick(x: String, y: String, field: String, typ: String): String = "%s:= %s.`%s` @type ^%s @kind wide;".format(x, y, field, typ) // 0xf3
   def igetWideQuick(x: Int, y: Int, vtableOffset: Int): String = "@fieldAccess iget_wide_quick @lhsreg v%d @basereg v%d @vtable_offset 0x%x".format(x, y, vtableOffset) // 0xf3
-  def igetObjectQuick(x: String, y: String, field: String, typ: String): String = "%s:= %s.`%s` @kind object @type ^%s;".format(x, y, field, typ) // 0xf4
+  def igetObjectQuick(x: String, y: String, field: String, typ: String): String = "%s:= %s.`%s` @type ^%s @kind object;".format(x, y, field, typ) // 0xf4
   def igetObjectQuick(x: Int, y: Int, vtableOffset: Int): String = "@fieldAccess iget_object_quick @lhsreg v%d @basereg v%d @vtable_offset 0x%x".format(x, y, vtableOffset) // 0xf4
   def igetBoolQuick(x: Int, y: Int, vtableOffset: Int): String = "@fieldAccess iget_boolean_quick @lhsreg v%d @basereg v%d @vtable_offset 0x%x".format(x, y, vtableOffset)
   def igetByteQuick(x: Int, y: Int, vtableOffset: Int): String = "@fieldAccess iget_byte_quick @lhsreg v%d @basereg v%d @vtable_offset 0x%x".format(x, y, vtableOffset)
   def igetCharQuick(x: Int, y: Int, vtableOffset: Int): String = "@fieldAccess iget_char_quick @lhsreg v%d @basereg v%d @vtable_offset 0x%x".format(x, y, vtableOffset)
   def igetShortQuick(x: Int, y: Int, vtableOffset: Int): String = "@fieldAccess iget_short_quick @lhsreg v%d @basereg v%d @vtable_offset 0x%x".format(x, y, vtableOffset)
-  def iputQuick(x: String, field: String, y: String, typ: String): String = "%s.`%s`:= %s @type ^%s;".format(x, field, y, typ) // 0xf5
+  def iputQuick(x: String, field: String, y: String, typ: String): String = "%s.`%s` @type ^%s := %s;".format(x, field, typ, y) // 0xf5
   def iputQuick(x: Int, y: Int, vtableOffset: Int): String = "@fieldStore iput_quick @basereg v%d @rhsreg v%d @vtable_offset 0x%x".format(x, y, vtableOffset) // 0xf5
-  def iputWideQuick(x: String, field: String, y: String, typ: String): String = "%s.`%s`:= %s @kind wide @type ^%s;".format(x, field, y, typ) // 0xf6
+  def iputWideQuick(x: String, field: String, y: String, typ: String): String = "%s.`%s` @type ^%s := %s @kind wide;".format(x, field, typ, y) // 0xf6
   def iputWideQuick(x: Int, y: Int, vtableOffset: Int): String = "@fieldStore iput_wide_quick @basereg v%d @rhsreg v%d @vtable_offset 0x%x".format(x, y, vtableOffset) // 0xf6
-  def iputObjectQuick(x: String, field: String, y: String, typ: String): String = "%s.`%s`:= %s @kind object @type ^%s;".format(x, field, y, typ) // 0xf7
+  def iputObjectQuick(x: String, field: String, y: String, typ: String): String = "%s.`%s` @type ^%s := %s @kind object;".format(x, field, typ, y) // 0xf7
   def iputObjectQuick(x: Int, y: Int, vtableOffset: Int): String = "@fieldStore iput_object_quick @basereg v%d @rhsreg v%d @vtable_offset 0x%x".format(x, y, vtableOffset) // 0xf7
   def iputBoolQuick(x: Int, y: Int, vtableOffset: Int): String = "@fieldStore iput_boolean_quick @basereg v%d @rhsreg v%d @vtable_offset 0x%x".format(x, y, vtableOffset)
   def iputByteQuick(x: Int, y: Int, vtableOffset: Int): String = "@fieldStore iput_byte_quick @basereg v%d @rhsreg v%d @vtable_offset 0x%x".format(x, y, vtableOffset)
@@ -308,8 +308,8 @@ trait DexConstants {
 //  def invokeSuperQuickRange(className: String, methodName: String, argbase: Int, argsize: Int, sig: Signature, classTyp: String) = // 0xfb
 //    s"call temp:= `$methodName`(${(0 to argsize - 1).map(i => "v" + (argbase + i)).mkString(", ")}) @signature `$sig` @kind super;"
   def invokeSuperQuickRange(argbase: Int, argsize: Int, vtableOffset: Int) = s"@invoke super_quick_range ${(0 until argsize).map(i => "@arg" + i + " v" + (argbase + i)).mkString(" ")} @vtable_offset ${"0x%x".format(vtableOffset)}" // 0xfb
-  def iputObjectVolatile(x: String, field: String, y: String, typ: String): String = "%s.`%s`:= %s @kind object @type ^%s;".format(x, field, y, typ) // 0xfc
-  def sgetObjectVolatile(x: String, field: String, typ: String): String = "%s:= `@@%s` @kind object @type ^%s;".format(x, field, typ) // 0xfd
-  def sputObjectVolatile(field: String, x: String, typ: String): String = "`@@%s`:= %s @kind object @type ^%s;".format(field, x, typ) // 0xfe
+  def iputObjectVolatile(x: String, field: String, y: String, typ: String): String = "%s.`%s` @type ^%s := %s @kind object;".format(x, field, typ, y) // 0xfc
+  def sgetObjectVolatile(x: String, field: String, typ: String): String = "%s:= `@@%s` @type ^%s @kind object;".format(x, field, typ) // 0xfd
+  def sputObjectVolatile(field: String, x: String, typ: String): String = "`@@%s` @type ^%s := %s @kind object;".format(field, typ, x) // 0xfe
   //unused 0xff
 }

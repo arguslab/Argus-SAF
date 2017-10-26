@@ -104,12 +104,12 @@ class LocalTypeResolverTest extends FlatSpec with Matchers {
     assert(compareValue("/field/FieldAccess2.jawa"))
   }
 
-  "Resolve local type" should "get same result on Instanceof1" in {
-    assert(compareValue("/instance/Instanceof1.jawa"))
+  "Resolve local type" should "get same result on InstanceOf1" in {
+    assert(compareValue("/instance/InstanceOf1.jawa"))
   }
 
-  "Resolve local type" should "get same result on Instanceof2" in {
-    assert(compareValue("/instance/Instanceof2.jawa"))
+  "Resolve local type" should "get same result on InstanceOf2" in {
+    assert(compareValue("/instance/InstanceOf2.jawa"))
   }
 
   "Resolve local type" should "get same result on IfJump1" in {

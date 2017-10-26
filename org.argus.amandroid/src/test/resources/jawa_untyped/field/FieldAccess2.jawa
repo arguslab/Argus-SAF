@@ -12,13 +12,13 @@ record `com.fgwei.FieldAccess2` @kind class @AccessFlag PUBLIC {
     procedure `java.lang.String` `getTaint` (`com.fgwei.FieldAccess2` v6 @kind this) @signature `Lcom/fgwei/FieldAccess2;.getTaint:()Ljava/lang/String;` @AccessFlag PRIVATE {
       v3;
 
-  #L026fc6.  v3:= v6.`com.fgwei.FieldAccess2.i1` @kind object @type ^`java.lang.String`;
+  #L026fc6.  v3:= v6.`com.fgwei.FieldAccess2.i1` @type ^`java.lang.String` @kind object;
   #L026fdc.  return v3 @kind object;
 
    }
     procedure `void` `setTaint` (`com.fgwei.FieldAccess2` v2 @kind this, `java.lang.String` v3) @signature `Lcom/fgwei/FieldAccess2;.setTaint:(Ljava/lang/String;)V` @AccessFlag PRIVATE {
       
-  #L026ff0.  v2.`com.fgwei.FieldAccess2.i1`:= v3 @kind object @type ^`java.lang.String`;
+  #L026ff0.  v2.`com.fgwei.FieldAccess2.i1` @type ^`java.lang.String` := v3 @kind object;
   #L027022.  return @kind void;
 
    }

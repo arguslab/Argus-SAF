@@ -9,14 +9,10 @@
  */
 package parser.cons;
 
-public class ConstructorWithSuper {
-    int i;
+public class StaticInitializer {
+    static int i = 1;
 
-    Constructor1() {
-        i = 0;
-    }
     public static int main() {
-        Constructor1 c = new Constructor1();
-        return c.i;
+        return i;
     }
 }

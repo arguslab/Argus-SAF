@@ -109,7 +109,7 @@ class AndroidReachingFactsAnalysis(
         }
         cs.lhsOpt match {
           case Some(lhs) =>
-            val slotsWithMark = ReachingFactsAnalysisHelper.processLHS(lhs, None, callerContext, ptaresult).toSet
+            val slotsWithMark = ReachingFactsAnalysisHelper.processLHS(lhs, callerContext, ptaresult).toSet
             for (rdf <- s) {
               //if it is a strong definition, we can kill the existing definition
               if (slotsWithMark.contains(rdf.s, true)) {
@@ -189,7 +189,7 @@ class AndroidReachingFactsAnalysis(
           // kill the strong update for caller return node
           cs.lhsOpt match {
             case Some(lhs) =>
-              val slotsWithMark = ReachingFactsAnalysisHelper.processLHS(lhs, None, callerNode.getContext, ptaresult).toSet
+              val slotsWithMark = ReachingFactsAnalysisHelper.processLHS(lhs, callerNode.getContext, ptaresult).toSet
               for (rdf <- result) {
                 //if it is a strong definition, we can kill the existing definition
                 if (slotsWithMark.exists{case (s, st) => s.getId == rdf.s.getId && st}) {

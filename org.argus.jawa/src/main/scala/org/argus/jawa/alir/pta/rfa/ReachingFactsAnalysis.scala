@@ -84,21 +84,17 @@ class ReachingFactsAnalysis(
     }
 
     private def handleAssignmentStatement(s: ISet[RFAFact], a: AssignmentStatement, currentNode: ICFGNode): ISet[RFAFact] = {
-      val typ = a match {
-        case as: AssignmentStatement => as.typOpt
-        case _ => None
-      }
       var result: ISet[RFAFact] = isetEmpty
       if(isInterestingAssignment(a)) {
         val lhsOpt = a.getLhs
         val rhs = a.getRhs
-        val heapUnknownFacts = ReachingFactsAnalysisHelper.getHeapUnknownFacts(rhs, typ, currentNode.getContext, ptaresult)
+        val heapUnknownFacts = ReachingFactsAnalysisHelper.getHeapUnknownFacts(rhs, currentNode.getContext, ptaresult)
         result ++= heapUnknownFacts
         val slots: IMap[PTASlot, Boolean] = lhsOpt match {
-          case Some(lhs) => ReachingFactsAnalysisHelper.processLHS(lhs, typ, currentNode.getContext, ptaresult)
+          case Some(lhs) => ReachingFactsAnalysisHelper.processLHS(lhs, currentNode.getContext, ptaresult)
           case None => imapEmpty
         }
-        val (values, extraFacts) = ReachingFactsAnalysisHelper.processRHS(rhs, typ, currentNode.getContext, ptaresult)
+        val (values, extraFacts) = ReachingFactsAnalysisHelper.processRHS(rhs, currentNode.getContext, ptaresult)
         slots.foreach {
           case (slot, _) =>
             result ++= values.map{v => new RFAFact(slot, v)}
@@ -128,15 +124,11 @@ class ReachingFactsAnalysis(
   class Kill extends MonotonicFunction[ICFGNode, RFAFact] {
 
     private def handleAssignmentStatement(s: ISet[RFAFact], a: AssignmentStatement, currentNode: ICFGNode): ISet[RFAFact] = {
-      val typ = a match {
-        case as: AssignmentStatement => as.typOpt
-        case _ => None
-      }
       var result = s
       val lhsOpt = a.getLhs
       lhsOpt match {
         case Some(lhs) =>
-          val slotsWithMark = ReachingFactsAnalysisHelper.processLHS(lhs, typ, currentNode.getContext, ptaresult).toSet
+          val slotsWithMark = ReachingFactsAnalysisHelper.processLHS(lhs, currentNode.getContext, ptaresult).toSet
           for (rdf <- s) {
             //if it is a strong definition, we can kill the existing definition
             if (slotsWithMark.contains(rdf.s, true)) {
@@ -235,7 +227,7 @@ class ReachingFactsAnalysis(
       checkAndLoadClasses(statement, node)
       statement match {
         case a: AssignmentStatement =>
-          ReachingFactsAnalysisHelper.updatePTAResultRHS(a.rhs, a.typOpt, node.getContext, s, ptaresult)
+          ReachingFactsAnalysisHelper.updatePTAResultRHS(a.rhs, node.getContext, s, ptaresult)
           ReachingFactsAnalysisHelper.updatePTAResultLHS(a.lhs, node.getContext, s, ptaresult)
         case _: EmptyStatement =>
         case m: MonitorStatement =>
@@ -246,7 +238,7 @@ class ReachingFactsAnalysis(
               ReachingFactsAnalysisHelper.updatePTAResultCallJump(cs, node.getContext, s, ptaresult)
             case _: GotoStatement =>
             case is: IfStatement =>
-              ReachingFactsAnalysisHelper.updatePTAResultExp(is.cond, None, node.getContext, s, ptaresult)
+              ReachingFactsAnalysisHelper.updatePTAResultExp(is.cond, node.getContext, s, ptaresult)
             case rs: ReturnStatement =>
               rs.varOpt match {
                 case Some(v) =>

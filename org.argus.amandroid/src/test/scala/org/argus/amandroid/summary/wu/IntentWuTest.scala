@@ -31,7 +31,7 @@ import org.scalatest.{FlatSpec, Matchers}
 import scala.language.implicitConversions
 
 class IntentWuTest extends FlatSpec with Matchers {
-  final val DEBUG = false
+  final val DEBUG = true
 
   trait MyTest {
     def ep(sigStr: String): MyTest
@@ -240,7 +240,6 @@ class IntentWuTest extends FlatSpec with Matchers {
         val strategy = DecompileStrategy(layout)
         val settings = DecompilerSettings(debugMode = false, forceDelete = true, strategy, reporter)
         val apk = yard.loadApk(fileUri, settings, collectInfo = true, resolveCallBack = true)
-
         val sm: SummaryManager = new AndroidSummaryProvider(apk).getSummaryManager
         val analysis = new BottomUpSummaryGenerator[Global](apk, sm, handler,
           PTSummary(_, _),

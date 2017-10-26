@@ -18,7 +18,7 @@ record `com.fgwei.FieldAccess1` @kind class @AccessFlag PUBLIC {
    }
     procedure `void` `setTaint` (`com.fgwei.FieldAccess1` v2 @kind this, `int` v3) @signature `Lcom/fgwei/FieldAccess1;.setTaint:(I)V` @AccessFlag PRIVATE {
       
-  #L026ff0.  v2.`com.fgwei.FieldAccess1.i1`:= v3 @type ^`int`;
+  #L026ff0.  v2.`com.fgwei.FieldAccess1.i1` @type ^`int` := v3;
   #L027022.  return @kind void;
 
    }

@@ -29,7 +29,7 @@ object LocalTypeResolver {
   type Result = MonotoneDataFlowAnalysisResult[N, TypeFact]
 
   object CertainLevel extends Enumeration {
-    val NOT_SURE, PROBABLY, CERTAIN = Value
+    val NOT_SURE, PROBABLY, CERTAIN, IS = Value
   }
 
   class VarType {
@@ -60,15 +60,24 @@ object LocalTypeResolver {
         val prims = typs.filter(_.isPrimitive)
         val objs = typs.filter(_.isObject)
         if(objs.nonEmpty) {
-          objs.find{ t =>
+          if(objs.size == 1) return objs.headOption
+          var dimensions = 0
+          val baseTypes = objs map { obj =>
+            if(obj.dimensions > dimensions) {
+              dimensions = obj.dimensions
+            }
+            JawaType(obj.baseType, 0)
+          }
+          baseTypes.find{ t =>
             val clazz = global.getClassOrResolve(t)
             val allParentsIncluding = clazz.getAllParents.map(_.getType) + clazz.getType
             objs.diff(allParentsIncluding).isEmpty
           } match {
-            case Some(t) => Some(t)
-            case None => Some(JavaKnowledge.JAVA_TOPLEVEL_OBJECT_TYPE)
+            case Some(t) => Some(JawaType.addDimensions(t, dimensions))
+            case None => Some(JawaType.addDimensions(JavaKnowledge.JAVA_TOPLEVEL_OBJECT_TYPE, dimensions))
           }
         } else if(prims.nonEmpty) {
+          if(prims.size == 1) return prims.headOption
           Some(resolvePrimitives(typs))
         } else None
       }
@@ -78,15 +87,19 @@ object LocalTypeResolver {
       typ_cache match {
         case Some(t) => t
         case None =>
-          val rt = resolveType(global, getTypes.filter(_._2 == CertainLevel.CERTAIN).map(_._1)) match {
+          val rt = resolveType(global, getTypes.filter(_._2 == CertainLevel.IS).map(_._1)) match {
             case Some(typ) => typ
             case None =>
-              resolveType(global, getTypes.filter(_._2 == CertainLevel.PROBABLY).map(_._1)) match {
+              resolveType(global, getTypes.filter(_._2 == CertainLevel.CERTAIN).map(_._1)) match {
                 case Some(typ) => typ
                 case None =>
-                  resolveType(global, getTypes.filter(_._2 == CertainLevel.NOT_SURE).map(_._1)) match {
+                  resolveType(global, getTypes.filter(_._2 == CertainLevel.PROBABLY).map(_._1)) match {
                     case Some(typ) => typ
-                    case None => throw new LocalTypeResolveException(NoPosition, "Should not be here.")
+                    case None =>
+                      resolveType(global, getTypes.filter(_._2 == CertainLevel.NOT_SURE).map(_._1)) match {
+                        case Some(typ) => typ
+                        case None => throw new LocalTypeResolveException(NoPosition, "Should not be here.")
+                      }
                   }
               }
           }
@@ -180,18 +193,15 @@ object LocalTypeResolver {
                       throw new LocalTypeResolveException(e.pos, "Should never go here: " + e.toCode)
                   }
                   result += ((defSlot, defType))
-                case ne: NameExpression =>
-                  ne.varSymbol match {
-                    case Left(v) =>
-                      use_types.getOrElse(locIndex, mmapEmpty).get(VarSlot(v.varName)) match {
-                        case Some(typ) =>
-                          result += ((defSlot, typ))
-                        case None =>
-                          throw new LocalTypeResolveException(e.pos, "Should never go here: " + e.toCode)
-                      }
-                    case Right(_) =>
-                      result += ((defSlot, defType))
+                case vne: VariableNameExpression =>
+                  use_types.getOrElse(locIndex, mmapEmpty).get(VarSlot(vne.varSymbol.varName)) match {
+                    case Some(typ) =>
+                      result += ((defSlot, typ))
+                    case None =>
+                      throw new LocalTypeResolveException(e.pos, "Should never go here: " + e.toCode)
                   }
+                case _: StaticFieldAccessExpression =>
+                  result += ((defSlot, defType))
                 case _: TupleExpression =>
                   s.find{case (slot, _) => slot == defSlot} match {
                     case Some((_, typ)) =>
@@ -231,15 +241,11 @@ object LocalTypeResolver {
               lhs match {
                 case cl: CallLhs =>
                   r = r.filter{case (slot, _) => slot != VarSlot(cl.lhs.varName)}
-                case ne: NameExpression =>
+                case ne: VariableNameExpression =>
                   a.getRhs match {
                     case _: TupleExpression =>
                     case _ =>
-                      ne.varSymbol match {
-                        case Left(v) =>
-                          r = r.filter{case (slot, _) => slot != VarSlot(v.varName)}
-                        case Right(_) =>
-                      }
+                      r = r.filter{case (slot, _) => slot != VarSlot(ne.varSymbol.varName)}
                   }
                 case _ =>
               }
@@ -259,8 +265,8 @@ object LocalTypeResolver {
         val (rhsTyp, level): (JawaType, CertainLevel.Value) = as.rhs match {
           case ae: AccessExpression =>
             uses += ((VarSlot(ae.base), new VarType().addType(JavaKnowledge.JAVA_TOPLEVEL_OBJECT_TYPE, CertainLevel.NOT_SURE)))
-            val typ = as.typOpt.getOrElse(throw new LocalTypeResolveException(statement.pos, "AccessExpression should have type annotation: " + statement.toCode))
-            (typ, CertainLevel.CERTAIN)
+            val typ = ae.typ
+            (typ, CertainLevel.IS)
           case be: BinaryExpression =>
             val (typ, c) = getTypeFromKind(as.kind)
             uses += ((VarSlot(be.left.varName), new VarType().addType(typ, c)))
@@ -272,15 +278,15 @@ object LocalTypeResolver {
             (typ, c)
           case ce: CastExpression =>
             uses += ((VarSlot(ce.varName), new VarType().addType(getTypeFromCast(as.kind))))
-            (ce.typ.typ, CertainLevel.CERTAIN)
+            (ce.typ.typ, CertainLevel.IS)
           case ce: CmpExpression =>
             uses += ((VarSlot(ce.var1Symbol.varName), new VarType().addType(ce.paramType, CertainLevel.CERTAIN)))
             uses += ((VarSlot(ce.var2Symbol.varName), new VarType().addType(ce.paramType, CertainLevel.CERTAIN)))
-            (JavaKnowledge.BOOLEAN, CertainLevel.CERTAIN)
+            (JavaKnowledge.BOOLEAN, CertainLevel.IS)
           case _: ConstClassExpression =>
-            (JavaKnowledge.CLASS, CertainLevel.CERTAIN)
+            (JavaKnowledge.CLASS, CertainLevel.IS)
           case e: ExceptionExpression =>
-            (e.typ, CertainLevel.CERTAIN)
+            (e.typ, CertainLevel.IS)
           case ie: IndexingExpression =>
             val (typ, level) = getTypeFromKind(as.kind)
             uses += ((VarSlot(ie.base), new VarType().addType(JawaType.addDimensions(typ, ie.dimensions), level)))
@@ -294,13 +300,13 @@ object LocalTypeResolver {
             (typ, level)
           case ie: InstanceOfExpression =>
             uses += ((VarSlot(ie.varSymbol.varName), new VarType().addType(ie.typExp.typ, CertainLevel.PROBABLY)))
-            (JavaKnowledge.BOOLEAN, CertainLevel.CERTAIN)
+            (JavaKnowledge.BOOLEAN, CertainLevel.IS)
           case le: LengthExpression =>
             uses += ((VarSlot(le.varSymbol.varName), new VarType().addType(JawaType.addDimensions(JavaKnowledge.JAVA_TOPLEVEL_OBJECT_TYPE, 1), CertainLevel.NOT_SURE)))
-            (JavaKnowledge.INT, CertainLevel.CERTAIN)
+            (JavaKnowledge.INT, CertainLevel.IS)
           case le: LiteralExpression =>
             if(le.isString) {
-              (JavaKnowledge.STRING, CertainLevel.CERTAIN)
+              (JavaKnowledge.STRING, CertainLevel.IS)
             } else if(le.isLong) {
               (JavaKnowledge.LONG, CertainLevel.PROBABLY)
             } else if(le.isDouble) {
@@ -318,29 +324,20 @@ object LocalTypeResolver {
             } else {
               throw new LocalTypeResolveException(statement.pos, "LiteralExpression is not expected: " + statement.toCode)
             }
-          case ne: NameExpression =>
-            ne.varSymbol match {
-              case Left(v) =>
-                val typ = as.typOpt match {
-                  case Some(t) => (t, CertainLevel.CERTAIN)
-                  case None => getTypeFromKind(as.kind)
-                }
-                uses += ((VarSlot(v.varName), new VarType().addType(typ)))
-                typ
-              case Right(_) =>
-                val typ = as.typOpt match {
-                  case Some(t) => t
-                  case None => throw new LocalTypeResolveException(statement.pos, "Static NameExpression should have type annotation: " + statement.toCode)
-                }
-                (typ, CertainLevel.CERTAIN)
-            }
+          case vne: VariableNameExpression =>
+            val typ = getTypeFromKind(as.kind)
+            uses += ((VarSlot(vne.varSymbol.varName), new VarType().addType(typ)))
+            typ
+          case sfae: StaticFieldAccessExpression =>
+            val typ = sfae.typ
+            (typ, CertainLevel.IS)
           case ne: NewExpression =>
             ne.typeFragmentsWithInit.foreach { init =>
               init.varNames.foreach { name =>
-                uses += ((VarSlot(name), new VarType().addType(JavaKnowledge.INT, CertainLevel.CERTAIN)))
+                uses += ((VarSlot(name), new VarType().addType(JavaKnowledge.INT, CertainLevel.IS)))
               }
             }
-            (ne.typ, CertainLevel.CERTAIN)
+            (ne.typ, CertainLevel.IS)
           case _: NullExpression =>
             (JavaKnowledge.JAVA_TOPLEVEL_OBJECT_TYPE, CertainLevel.PROBABLY)
           case te: TupleExpression =>
@@ -369,19 +366,16 @@ object LocalTypeResolver {
                 case Right(_) =>
               }
             }
-          case ne: NameExpression =>
-            ne.varSymbol match {
-              case Left(v) =>
-                defs = Some((VarSlot(v.varName), defPoints.getOrElseUpdate(v.pos, new VarType().addType(rhsTyp, level))))
-              case Right(_) =>
-            }
+          case vne: VariableNameExpression =>
+            defs = Some((VarSlot(vne.varSymbol.varName), defPoints.getOrElseUpdate(vne.varSymbol.pos, new VarType().addType(rhsTyp, level))))
+          case _: StaticFieldAccessExpression =>
           case _ => throw new LocalTypeResolveException(statement.pos, "Unexpected LHS expression: " + statement.toCode)
         }
       case cs: CallStatement =>
         val sig = cs.signature
         cs.lhsOpt match {
           case Some(lhs) =>
-            defs = Some((VarSlot(lhs.lhs.varName), defPoints.getOrElseUpdate(lhs.pos, new VarType().addType(sig.getReturnType, CertainLevel.CERTAIN))))
+            defs = Some((VarSlot(lhs.lhs.varName), defPoints.getOrElseUpdate(lhs.pos, new VarType().addType(sig.getReturnType, CertainLevel.IS))))
           case None =>
         }
         cs.recvVarOpt match {

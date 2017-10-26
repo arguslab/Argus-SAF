@@ -10,16 +10,15 @@
 
 package org.argus.jawa.alir.dda
 
-import org.argus.jawa.alir.{AlirEdge, LibSideEffectProvider}
 import org.argus.jawa.alir.cfg.{ICFGCallNode, ICFGExitNode, ICFGNormalNode}
 import org.argus.jawa.alir.dfa.InterProceduralDataFlowGraph
 import org.argus.jawa.alir.interprocedural.IndirectCallee
-import org.argus.jawa.alir.pta.{ArraySlot, FieldSlot, PTAResult, VarSlot}
+import org.argus.jawa.alir.pta._
 import org.argus.jawa.alir.rda.{DefDesc, LocDefDesc, ParamDefDesc}
+import org.argus.jawa.alir.{AlirEdge, LibSideEffectProvider}
 import org.argus.jawa.ast._
-import org.argus.jawa.compiler.parser._
+import org.argus.jawa.core.Global
 import org.argus.jawa.core.io.NoPosition
-import org.argus.jawa.core.{Global, JawaType}
 import org.argus.jawa.core.util._
 
 /**
@@ -213,9 +212,8 @@ object InterProceduralDataDependenceAnalysis {
       case as: AssignmentStatement =>
         val lhs = as.lhs
         val rhs = as.rhs
-        val typ: Option[JawaType] = as.typOpt
         result ++= processLHS(global, node, lhs, ptaresult, irdaFacts, iddg)
-        result ++= processRHS(global, node, rhs, typ, ptaresult, irdaFacts, iddg)
+        result ++= processRHS(global, node, rhs, ptaresult, irdaFacts, iddg)
       case rs: ReturnStatement =>
         if (rs.varOpt.isDefined) {
           result ++= searchRda(global, rs.varOpt.get.varName, node, irdaFacts, iddg)
@@ -261,7 +259,6 @@ object InterProceduralDataDependenceAnalysis {
       global: Global,
       node: Node,
       rhs: Expression with RHS,
-      typ: Option[JawaType],
       ptaresult: PTAResult,
       irdaFacts: ISet[InterProceduralReachingDefinitionAnalysis.IRDFact],
       iddg: InterProceduralDataDependenceGraph[Node]): ISet[Node] = {
@@ -269,7 +266,12 @@ object InterProceduralDataDependenceAnalysis {
     rhs match {
       case ne: NameExpression =>
         result ++= searchRda(global, ne.name, node, irdaFacts, iddg)
-        val slot = VarSlot(ne.name)
+        val slot = ne match {
+          case vne: VariableNameExpression =>
+            VarSlot(vne.name)
+          case sfae: StaticFieldAccessExpression =>
+            StaticFieldSlot(sfae.name)
+        }
         val value = ptaresult.pointsToSet(node.getContext, slot)
         value.foreach{ ins =>
           result ++= iddg.findDefSite(ins.defSite)

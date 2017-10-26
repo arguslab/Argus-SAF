@@ -13,9 +13,13 @@ package org.argus.jawa.core.io
 import java.io.{BufferedReader, StringReader}
 
 import com.github.javaparser.JavaParser
-import com.github.javaparser.ast.{CompilationUnit => JavaCompilationUnit}
+import com.github.javaparser.ast.body.{BodyDeclaration, TypeDeclaration}
+import com.github.javaparser.ast.{NodeList, CompilationUnit => JavaCompilationUnit}
 import org.argus.jawa.core.Chars._
-import org.argus.jawa.core.JawaType
+import org.argus.jawa.core.{Global, JawaType, Reporter}
+import org.argus.jawa.core.frontend.MyClass
+import org.argus.jawa.core.frontend.javafile.JavaFileParser
+import org.argus.jawa.core.frontend.jawafile.JawaFileParser
 import org.argus.jawa.core.util._
 
 import scala.annotation.tailrec
@@ -56,6 +60,8 @@ abstract class SourceFile {
     if (content(offset).isWhitespace) skipWhitespace(offset + 1) else offset
 
   def identifier(pos: Position): Option[String] = None
+
+  def parse(reporter: Reporter): IMap[JawaType, MyClass]
 }
 
 /** An object representing a missing source file.
@@ -69,6 +75,7 @@ object NoSourceFile extends SourceFile {
   def length: Int = -1
   def offsetToLine(offset: Int): Int = -1
   def lineToOffset(index: Int): Int = -1
+  def parse(reporter: Reporter): IMap[JawaType, MyClass] = imapEmpty
   override def toString = "<no source file>"
 }
 
@@ -78,7 +85,7 @@ class StringFile(code: String) extends  VirtualFile("<String>", "<String>") {
   content = code.getBytes()
 }
 
-class DefaultSourceFile(val file: AbstractFile) extends SourceFile {
+abstract class DefaultSourceFile(val file: AbstractFile) extends SourceFile {
   def this(sourceName: String)   = this(new VirtualFile(sourceName))
 
   // If non-whitespace tokens run all the way up to EOF,
@@ -172,9 +179,10 @@ class JawaSourceFile(file: AbstractFile) extends DefaultSourceFile(file) {
     val c = code
     c.replaceAll("(record `)", "DELIMITER_JAWA_HAHAHA$1").split("DELIMITER_JAWA_HAHAHA").tail.toSet
   }
+  def parse(reporter: Reporter): IMap[JawaType, MyClass] = JawaFileParser.parse(this, reporter)
 }
 
-class JavaSourceFile(file: AbstractFile) extends DefaultSourceFile(file) {
+class JavaSourceFile(global: Global, file: AbstractFile) extends DefaultSourceFile(file) {
   private var javacu: Option[JavaCompilationUnit] = None
   def getJavaCU: JavaCompilationUnit = {
     javacu match {
@@ -185,6 +193,17 @@ class JavaSourceFile(file: AbstractFile) extends DefaultSourceFile(file) {
         cu
     }
   }
+  private def visitTypes(typ: JawaType, members: NodeList[BodyDeclaration[_ <: BodyDeclaration[_]]]): ISet[JawaType] = {
+    val types: MSet[JawaType] = msetEmpty
+    members.forEach {
+      case td: TypeDeclaration[_] =>
+        val innerTyp = new JawaType(s"${typ.jawaName}$$${td.getNameAsString}")
+        types += innerTyp
+        types ++= visitTypes(innerTyp, td.getMembers)
+      case _ =>
+    }
+    types.toSet
+  }
   def getTypes: ISet[JawaType] = {
     val types: MSet[JawaType] = msetEmpty
     val cu = getJavaCU
@@ -193,8 +212,11 @@ class JavaSourceFile(file: AbstractFile) extends DefaultSourceFile(file) {
       packageName = cu.getPackageDeclaration.get().getName.asString() + "."
     }
     cu.getTypes.forEach{ typ =>
-      types += new JawaType(s"$packageName${typ.getNameAsString}")
+      val classType = new JawaType(s"$packageName${typ.getNameAsString}")
+      types += classType
+      types ++= visitTypes(classType, typ.getMembers)
     }
     types.toSet
   }
+  def parse(reporter: Reporter): IMap[JawaType, MyClass] = JavaFileParser.parse(global, this, reporter)
 }

@@ -12,7 +12,6 @@ package org.argus.jawa.alir.cfg
 
 import org.argus.jawa.alir._
 import org.argus.jawa.ast._
-import org.argus.jawa.compiler.parser._
 import org.argus.jawa.core.util._
 import org.jgrapht.ext.ComponentNameProvider
 
@@ -68,7 +67,7 @@ abstract class IntraProceduralControlFlowGraph[N <: CFGNode]
     n
   }
 
-  override protected val vIDProvider = new ComponentNameProvider[N]() {
+  override protected val vIDProvider: ComponentNameProvider[N] = new ComponentNameProvider[N]() {
     def filterLabel(uri: String): String = uri.filter(_.isUnicodeIdentifierPart) // filters out the special characters like '/', '.', '%', etc.
     def getName(v: N): String = {
       val str = v match {
@@ -106,19 +105,16 @@ object ControlFlowGraph {
   }
   
   def apply(
-    body: Body,
+    md: MethodDeclaration,
     entryLabel: String, exitLabel: String,
-    shouldIncludeFlow: ShouldIncludeFlowFunction = defaultSiff): IntraProceduralControlFlowGraph[Node] = build(body, entryLabel, exitLabel, shouldIncludeFlow)
+    shouldIncludeFlow: ShouldIncludeFlowFunction = defaultSiff): IntraProceduralControlFlowGraph[Node] = build(md, entryLabel, exitLabel, shouldIncludeFlow)
 
   def build(
-    body: Body,
+    md: MethodDeclaration,
     entryLabel: String, exitLabel: String,
     shouldIncludeFlow: ShouldIncludeFlowFunction): IntraProceduralControlFlowGraph[Node] = {
 
-    val resolvedBody = body match {
-      case rb: ResolvedBody => rb
-      case ub: UnresolvedBody => ub.resolve
-    }
+    val resolvedBody = md.resolvedBody
     val locationDecls = resolvedBody.locations
     val result = new Cfg()
     if (locationDecls.isEmpty) return result

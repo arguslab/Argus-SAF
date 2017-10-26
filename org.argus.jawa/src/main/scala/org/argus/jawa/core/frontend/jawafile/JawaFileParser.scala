@@ -8,7 +8,7 @@
  * Detailed contributors are listed in the CONTRIBUTOR.md
  */
 
-package org.argus.jawa.core.frontend.sourcefile
+package org.argus.jawa.core.frontend.jawafile
 
 import org.argus.jawa.ast.{CompilationUnit, MethodDeclaration}
 import org.argus.jawa.core.io.SourceFile
@@ -20,8 +20,8 @@ import org.argus.jawa.core.util._
 /**
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
  */
-object SourcefileParser {
-  final val TITLE = "SourcefileParser"
+object JawaFileParser {
+  final val TITLE = "JawaFileParser"
   final val debug = false
   def parse(file: SourceFile, reporter: Reporter): IMap[JawaType, MyClass] = {
     parse(file.code, reporter)

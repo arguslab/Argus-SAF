@@ -16,7 +16,7 @@ import hu.ssh.progressbar.ProgressBar
 import org.argus.jawa.compiler.codegen.JavaByteCodeGenerator
 import org.argus.jawa.compiler.lexer.JawaLexer
 import org.argus.jawa.compiler.parser.JawaParser
-import org.argus.jawa.core.{DefaultReporter, Global, JawaType}
+import org.argus.jawa.core.{Constants, DefaultReporter, Global, JawaType}
 import org.argus.jawa.core.io.{JawaSourceFile, PlainFile}
 import org.argus.jawa.core.util._
 
@@ -30,7 +30,7 @@ final class JawaCompiler(javaVersionStr: String) {
   private def parser(s: Either[String, JawaSourceFile]) = new JawaParser(JawaLexer.tokenise(s, reporter).toArray, reporter)
   def compile(sources: Array[File], outputDirs: Array[File], globalOpt: Option[Global], progress: ProgressBar): Unit = {
     def codeGenHandler: File => Unit = { source =>
-      require(source.getPath.endsWith("jawa"), "Wrong file extension to compile " + source)
+      require(source.getPath.endsWith(Constants.JAWA_FILE_EXT), "Wrong file extension to compile " + source)
       val file = new JawaSourceFile(new PlainFile(source))
       val cu = parser(Right(file)).compilationUnit(true)
       val css: ISet[(JawaType, Array[Byte])] = new JavaByteCodeGenerator(javaVersionStr).generate(globalOpt, cu).toSet

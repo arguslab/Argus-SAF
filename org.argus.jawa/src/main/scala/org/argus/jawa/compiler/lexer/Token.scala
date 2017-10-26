@@ -10,7 +10,7 @@
 
 package org.argus.jawa.compiler.lexer
 
-import org.argus.jawa.core.io.{RangePosition, SourceFile}
+import org.argus.jawa.core.io.{Position, SourceFile}
 
 /**
  * A token of Jawa source.
@@ -19,7 +19,7 @@ import org.argus.jawa.core.io.{RangePosition, SourceFile}
  * @param pos Position in the text.
  * @param rawText the text associated with the token.
  */
-case class Token(tokenType: TokenType, pos: RangePosition, rawText: String) {
+case class Token(tokenType: TokenType, pos: Position, rawText: String) {
 
   private[lexer] var associatedWhitespaceAndComments_ : HiddenTokens = _
 

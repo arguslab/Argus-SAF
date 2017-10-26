@@ -62,36 +62,36 @@ object PointsCollector {
     val procPoint = collectMethodPoint(ownerSig, md)
     points += procPoint
     
-    def processLHS(e: Expression with LHS, typ: Option[JawaType]): Point with Left = {
+    def processLHS(e: Expression with LHS): Point with Left = {
       e match {
-        case ne: NameExpression =>
-          if(ne.isStatic){
-            val fqn = new FieldFQN(ne.name, typ.get)
-            PointStaticFieldL(fqn, locUri, locIndex, ownerSig)
-          } else {
-            PointL(ne.name, locUri, locIndex, ownerSig)
-          }
+        case vne: VariableNameExpression =>
+          PointL(vne.name, locUri, locIndex, ownerSig)
+        case sfae: StaticFieldAccessExpression =>
+          val fqn = new FieldFQN(sfae.name, sfae.typ)
+          PointStaticFieldL(fqn, locUri, locIndex, ownerSig)
         case ie: IndexingExpression =>
           val dimensions = ie.dimensions
           PointMyArrayL(ie.base, dimensions, locUri, locIndex, ownerSig)
         case ae: AccessExpression =>
           val baseName = ae.base
           val pBase = PointBaseL(baseName, locUri, locIndex, ownerSig)
-          val fqn = new FieldFQN(ae.fieldSym.FQN, typ.get)
+          val fqn = new FieldFQN(ae.fieldSym.FQN, ae.typ)
           val pfl = PointFieldL(pBase, fqn, locUri, locIndex, ownerSig)
           pBase.setFieldPoint(pfl)
           pfl
         case cl: CallLhs =>
           PointL(cl.lhs.varName, locUri, locIndex, ownerSig)
+        case _ =>
+          throw new RuntimeException(s"Unknown left hand side $e")
       }
     }
     
-    def processRHS(e: Expression with RHS, typ: Option[JawaType]): Point with Right = {
+    def processRHS(e: Expression with RHS): Point with Right = {
       e match {
         case ae: AccessExpression =>
           val baseName = ae.base
           val pBase = PointBaseR(baseName, locUri, locIndex, ownerSig)
-          val fqn = new FieldFQN(ae.fieldSym.FQN, typ.get)
+          val fqn = new FieldFQN(ae.fieldSym.FQN, ae.typ)
           val pfr = PointFieldR(pBase, fqn, locUri, locIndex, ownerSig)
           pBase.setFieldPoint(pfr)
           pfr
@@ -103,8 +103,8 @@ object PointsCollector {
 //        case ce: CmpExpression =>
         case ce: ConstClassExpression =>
           PointClassO(new JawaType("java.lang.Class"), ce.typExp.typ, locUri, locIndex, ownerSig)
-        case _: ExceptionExpression =>
-          PointExceptionR(typ.get.toUnknown, locUri, locIndex, ownerSig)
+        case ee: ExceptionExpression =>
+          PointExceptionR(ee.typ.toUnknown, locUri, locIndex, ownerSig)
         case ie: IndexingExpression =>
           val dimensions = ie.dimensions
           PointMyArrayR(ie.base, dimensions, locUri, locIndex, ownerSig)
@@ -114,13 +114,11 @@ object PointsCollector {
           PointLengthR(le.varSymbol.varName, locUri, locIndex, ownerSig)
         case le: LiteralExpression =>
           PointStringO(new JawaType("java.lang.String"), le.getString , locUri, locIndex, ownerSig)
-        case ne: NameExpression =>
-          if(ne.isStatic){
-            val fqn = new FieldFQN(ne.name, typ.get)
-            PointStaticFieldR(fqn, locUri, locIndex, ownerSig)
-          } else {
-            PointR(ne.name, locUri, locIndex, ownerSig)
-          }
+        case vne: VariableNameExpression =>
+          PointR(vne.name, locUri, locIndex, ownerSig)
+        case sfae: StaticFieldAccessExpression =>
+          val fqn = new FieldFQN(sfae.name, sfae.typ)
+          PointStaticFieldR(fqn, locUri, locIndex, ownerSig)
         case ne: NewExpression =>
           PointO(ne.typ, locUri, locIndex, ownerSig)
         case _: NullExpression =>
@@ -139,51 +137,50 @@ object PointsCollector {
       case as: AssignmentStatement =>
         var pl: Option[Point with Left] = None
         var pr: Option[Point with Right] = None
-        val typ = as.typOpt
         
         as.getRhs match {
           case ae: AccessExpression =>
             if(as.kind == "object"){
-              pl = Some(processLHS(as.lhs, typ))
-              pr = Some(processRHS(ae, typ))
+              pl = Some(processLHS(as.lhs))
+              pr = Some(processRHS(ae))
             }
           case _: BinaryExpression =>
           case _: CallRhs =>
           case ce: CastExpression =>
-            pl = Some(processLHS(as.lhs, typ))
-            pr = Some(processRHS(ce, typ))
+            pl = Some(processLHS(as.lhs))
+            pr = Some(processRHS(ce))
           case _: CmpExpression =>
           case ce: ConstClassExpression =>
-            pl = Some(processLHS(as.lhs, typ))
-            pr = Some(processRHS(ce, typ))
+            pl = Some(processLHS(as.lhs))
+            pr = Some(processRHS(ce))
           case ee: ExceptionExpression =>
-            pl = Some(processLHS(as.lhs, typ))
-            pr = Some(processRHS(ee, typ))
+            pl = Some(processLHS(as.lhs))
+            pr = Some(processRHS(ee))
           case ie: IndexingExpression =>
-            pl = Some(processLHS(as.lhs, typ))
-            pr = Some(processRHS(ie, typ))
+            pl = Some(processLHS(as.lhs))
+            pr = Some(processRHS(ie))
           case ie: InstanceOfExpression =>
-            pl = Some(processLHS(as.lhs, typ))
-            pr = Some(processRHS(ie, typ))
+            pl = Some(processLHS(as.lhs))
+            pr = Some(processRHS(ie))
           case le: LengthExpression =>
-            pl = Some(processLHS(as.lhs, typ))
-            pr = Some(processRHS(le, typ))
+            pl = Some(processLHS(as.lhs))
+            pr = Some(processRHS(le))
           case le: LiteralExpression =>
             if(le.isString){
-              pl = Some(processLHS(as.lhs, typ))
-              pr = Some(processRHS(le, typ))
+              pl = Some(processLHS(as.lhs))
+              pr = Some(processRHS(le))
             }
           case ne: NameExpression =>
             if(as.kind == "object"){
-              pl = Some(processLHS(as.lhs, typ))
-              pr = Some(processRHS(ne, typ))
+              pl = Some(processLHS(as.lhs))
+              pr = Some(processRHS(ne))
             }
           case ne: NewExpression =>
-            pl = Some(processLHS(as.lhs, typ))
-            pr = Some(processRHS(ne, typ))
+            pl = Some(processLHS(as.lhs))
+            pr = Some(processRHS(ne))
           case ne: NullExpression =>
-            pl = Some(processLHS(as.lhs, typ))
-            pr = Some(processRHS(ne, typ))
+            pl = Some(processLHS(as.lhs))
+            pr = Some(processRHS(ne))
           case _: TupleExpression =>
           case _: UnaryExpression =>
         }
@@ -219,7 +216,7 @@ object PointsCollector {
           }
         argPsCall foreach {case (_, p) => p.setContainer(pi)}
         argPsReturn foreach {case (_, p) => p.setContainer(pi)}
-        val pl = cs.lhsOpt.map{lhs => processLHS(lhs, None)}
+        val pl = cs.lhsOpt.map{lhs => processLHS(lhs)}
         val callPoint: PointCall = PointCall(pl, pi, locUri, locIndex, ownerSig)
         points += callPoint
         false
