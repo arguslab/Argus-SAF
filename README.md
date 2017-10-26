@@ -97,8 +97,6 @@ the directory where Scala plugin repository is and then import it as SBT project
 To contribute to the Argus-SAF, please send us a [pull request](https://help.github.com/articles/using-pull-requests/#fork--pull) from your fork of this repository!
 
 For more information on building and developing Argus-SAF, please also check out our [guidelines for contributing](CONTRIBUTING.md). People who provided excellent ideas are listed in [contributor](CONTRIBUTOR.md).
-
-People who provided excellent ideas are listed in [contributor](CONTRIBUTOR.md).
  
 ## What to contribute
 
