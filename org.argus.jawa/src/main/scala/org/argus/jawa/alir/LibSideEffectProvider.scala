@@ -10,41 +10,41 @@
 
 package org.argus.jawa.alir
 
-import org.argus.jawa.core.util._
-
-import org.argus.jawa.alir.sideEffectAnalysis.InterProceduralSideEffectAnalysisResult
-import org.argus.jawa.core.Signature
-
-/**
- * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
- * @author <a href="mailto:sroy@k-state.edu">Sankardas Roy</a>
- */ 
-object LibSideEffectProvider {
-  var ipsear: InterProceduralSideEffectAnalysisResult = null
-	def init(ipsear: InterProceduralSideEffectAnalysisResult) = {
-	  this.ipsear = ipsear
-	}
-  
-//  def init(zipFile: File): Unit = {
-//    val reader = new GZIPInputStream(new FileInputStream(zipFile))
-//    val interPSEA = AndroidXStream.fromXml(reader).asInstanceOf[InterproceduralSideEffectAnalysisResult]
-//    reader.close()
-//    this.ipsear = interPSEA
+//import org.argus.jawa.core.util._
+//
+//import org.argus.jawa.alir.sideEffectAnalysis.InterProceduralSideEffectAnalysisResult
+//import org.argus.jawa.core.Signature
+//
+///**
+// * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
+// * @author <a href="mailto:sroy@k-state.edu">Sankardas Roy</a>
+// */
+//object LibSideEffectProvider {
+//  var ipsear: InterProceduralSideEffectAnalysisResult = null
+//	def init(ipsear: InterProceduralSideEffectAnalysisResult) = {
+//	  this.ipsear = ipsear
+//	}
+//
+////  def init(zipFile: File): Unit = {
+////    val reader = new GZIPInputStream(new FileInputStream(zipFile))
+////    val interPSEA = AndroidXStream.fromXml(reader).asInstanceOf[InterproceduralSideEffectAnalysisResult]
+////    reader.close()
+////    this.ipsear = interPSEA
+////  }
+//
+////  def init: Unit = {
+////
+////    init(AndroidGlobal"/LibSummary/AndroidLibSideEffectResult.xml.zip")
+////  }
+//
+//  def isDefined: Boolean = ipsear != null
+//
+//  def getInfluencedFields(position: Int, calleeSig: Signature): ISet[String] = {
+//    require(isDefined)
+//    val resultopt = this.ipsear.result(calleeSig)
+//    resultopt match{
+//      case Some(result) => result.writeMap.getOrElse(position, isetEmpty)
+//      case None => Set("ALL")
+//    }
 //  }
-  
-//  def init: Unit = {
-//    
-//    init(AndroidGlobal"/LibSummary/AndroidLibSideEffectResult.xml.zip")
-//  }
-  
-  def isDefined: Boolean = ipsear != null
-  
-  def getInfluencedFields(position: Int, calleeSig: Signature): ISet[String] = {
-    require(isDefined)
-    val resultopt = this.ipsear.result(calleeSig)
-    resultopt match{
-      case Some(result) => result.writeMap.getOrElse(position, isetEmpty)
-      case None => Set("ALL")
-    }
-  }
-}
+//}

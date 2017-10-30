@@ -32,6 +32,10 @@ class Java2Jawa(val global: Global, val sourceFile: JavaSourceFile) {
 
   private val typeMap: MMap[String, JawaType] = mmapEmpty
 
+  private val paramMap: MMap[Signature, IMap[String, JawaType]] = mmapEmpty
+
+  def getParams(sig: Signature): IMap[String, JawaType] = paramMap.getOrElse(sig, imapEmpty)
+
   protected[java] def findTypeOpt(name: String): Option[JawaType] = {
     typeMap.get(name) match {
       case t @ Some(_) => t
@@ -524,6 +528,9 @@ class Java2Jawa(val global: Global, val sourceFile: JavaSourceFile) {
     annotationExprs.forEach{ anno =>
       annotations += processAnnotationExpr(anno)
     }
+    paramMap(sig) = params.map { param =>
+      param.paramSymbol.varName -> param.typ.typ
+    }.toMap
     val body = if(bodyBlock.isPresent) {
       if(resolveBody) {
         processBody(sig, bodyBlock.get)

@@ -55,13 +55,13 @@ class ModelCallResolver(
       icfg.getCallGraph.addCall(callerNode.getOwner, calleeSig)
       val calleep = global.getMethodOrResolve(calleeSig).get
       if(handler.isModelCall(calleep)) {
-        returnFacts = handler.doModelCall(sm, s, calleep, cs.lhsOpt.map(_.lhs.varName), cs.recvOpt, cs.args, callerContext)
+        returnFacts = handler.doModelCall(sm, s, calleep, cs.lhsOpt.map(lhs => lhs.name), cs.recvOpt, cs.args, callerContext)
       } else {
         sm.getSummary[HeapSummary](calleeSig) match {
           case Some(summary) =>
-            returnFacts = HeapSummaryProcessor.process(global, summary, cs.lhsOpt.map(_.lhs.varName), cs.recvOpt, cs.args, s, callerContext)
+            returnFacts = HeapSummaryProcessor.process(global, summary, cs.lhsOpt.map(lhs => lhs.name), cs.recvOpt, cs.args, s, callerContext)
           case None => // might be due to randomly broken loop
-            val (newF, delF) = ReachingFactsAnalysisHelper.getUnknownObject(calleep, s, cs.lhsOpt.map(_.lhs.varName), cs.recvOpt, cs.args, callerContext)
+            val (newF, delF) = ReachingFactsAnalysisHelper.getUnknownObject(calleep, s, cs.lhsOpt.map(lhs => lhs.name), cs.recvOpt, cs.args, callerContext)
             returnFacts = returnFacts -- delF ++ newF
         }
       }

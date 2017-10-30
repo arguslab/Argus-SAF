@@ -15,7 +15,7 @@ import org.argus.jawa.alir.dfa.InterProceduralDataFlowGraph
 import org.argus.jawa.alir.interprocedural.IndirectCallee
 import org.argus.jawa.alir.pta._
 import org.argus.jawa.alir.rda.{DefDesc, LocDefDesc, ParamDefDesc}
-import org.argus.jawa.alir.{AlirEdge, LibSideEffectProvider}
+import org.argus.jawa.alir.AlirEdge
 import org.argus.jawa.ast._
 import org.argus.jawa.core.Global
 import org.argus.jawa.core.io.NoPosition
@@ -165,14 +165,14 @@ object InterProceduralDataDependenceAnalysis {
     calleeSet.foreach{ callee =>
       val calleeSig = callee.callee
       if(global.isSystemLibraryClasses(calleeSig.getClassType) || global.isUserLibraryClasses(calleeSig.getClassType)) {
-        val sideEffectResult =
-          if(LibSideEffectProvider.isDefined) LibSideEffectProvider.ipsear.result(calleeSig)
-          else None
+//        val sideEffectResult =
+//          if(LibSideEffectProvider.isDefined) LibSideEffectProvider.ipsear.result(calleeSig)
+//          else None
         for(i <- virtualBodyNode.argNames.indices) {
           val argSlot = VarSlot(virtualBodyNode.argNames(i))
           val argInss = ptaresult.pointsToSet(virtualBodyNode.getContext, argSlot)
           argInss.foreach (ins => result ++= iddg.findDefSite(ins.defSite))
-          if(sideEffectResult.isDefined) {
+//          if(sideEffectResult.isDefined) {
 //              val readmap = sideEffectResult.get.readMap
 //              val position = i
 //              val fields = readmap.getOrElse(position, Set())
@@ -183,17 +183,17 @@ object InterProceduralDataDependenceAnalysis {
 //                  argRelatedValue.foreach{ins => result ++= iddg.findDefSite(ins.defSite)}
 //                }
 //              }
-          } else if({
-            val calleep = global.getMethod(calleeSig)
-            if(calleep.isDefined) calleep.get.isConcrete
-            else false
-          }) {
+//          } else if({
+//            val calleep = global.getMethod(calleeSig)
+//            if(calleep.isDefined) calleep.get.isConcrete
+//            else false
+//          }) {
 //              val argRelatedValue = ptaresult.getRelatedHeapInstances(argInss, virtualBodyNode.getContext)
 //              argRelatedValue.foreach{
 //                ins =>
 //                  result ++= iddg.findDefSite(ins.defSite)
 //              }
-          }
+//          }
         }
       }
     }
@@ -245,7 +245,6 @@ object InterProceduralDataDependenceAnalysis {
       iddg: InterProceduralDataDependenceGraph[Node]): ISet[Node] = {
     var result = isetEmpty[Node]
     lhs match {
-      case _: NameExpression =>
       case ae: AccessExpression =>
         result ++= searchRda(global, ae.base, node, irdaFacts, iddg)
       case ie: IndexingExpression =>
@@ -264,14 +263,16 @@ object InterProceduralDataDependenceAnalysis {
       iddg: InterProceduralDataDependenceGraph[Node]): ISet[Node] = {
     val result = msetEmpty[Node]
     rhs match {
-      case ne: NameExpression =>
-        result ++= searchRda(global, ne.name, node, irdaFacts, iddg)
-        val slot = ne match {
-          case vne: VariableNameExpression =>
-            VarSlot(vne.name)
-          case sfae: StaticFieldAccessExpression =>
-            StaticFieldSlot(sfae.name)
+      case vne: VariableNameExpression =>
+        result ++= searchRda(global, vne.name, node, irdaFacts, iddg)
+        val slot = VarSlot(vne.name)
+        val value = ptaresult.pointsToSet(node.getContext, slot)
+        value.foreach{ ins =>
+          result ++= iddg.findDefSite(ins.defSite)
         }
+      case sfae: StaticFieldAccessExpression =>
+        result ++= searchRda(global, sfae.name, node, irdaFacts, iddg)
+        val slot = StaticFieldSlot(sfae.name)
         val value = ptaresult.pointsToSet(node.getContext, slot)
         value.foreach{ ins =>
           result ++= iddg.findDefSite(ins.defSite)

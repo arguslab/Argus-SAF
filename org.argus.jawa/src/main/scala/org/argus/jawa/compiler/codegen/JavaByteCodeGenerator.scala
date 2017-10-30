@@ -126,22 +126,19 @@ class JavaByteCodeGenerator(javaVersion: Int) {
         ub.resolve(md.signature)
     }
     var i = 0
-    md.thisParam.foreach{
-      t =>
-        locals(t.name) = LocalIndex("this", t.typ.typ, i)
-        i += 1
+    md.thisParam.foreach{ t =>
+      locals(t.name) = LocalIndex("this", t.typ.typ, i)
+      i += 1
     }
-    md.paramList.foreach{
-      param =>
-        locals(param.name) = LocalIndex(param.name, param.typ.typ, i)
-        if(param.typ.typ.name == "long" || param.typ.typ.name == "double") i += 1
-        i += 1
+    md.paramList.foreach{ param =>
+      locals(param.name) = LocalIndex(param.name, param.typ.typ, i)
+      if(param.typ.typ.name == "long" || param.typ.typ.name == "double") i += 1
+      i += 1
     }
-    body.locals.foreach{
-      local =>
-        locals(local.varSymbol.varName) = LocalIndex(local.varSymbol.varName, local.typ, i)
-        if(local.typ.name == "long" || local.typ.name == "double") i += 1
-        i += 1
+    body.locals.foreach{ local =>
+      locals(local.varSymbol.varName) = LocalIndex(local.varSymbol.varName, local.typ, i)
+      if(local.typ.name == "long" || local.typ.name == "double") i += 1
+      i += 1
     }
     this.maxLocals = this.locals.size
     body.locations foreach { location =>
@@ -372,7 +369,7 @@ class JavaByteCodeGenerator(javaVersion: Int) {
       case "void" =>
       case typ =>
         cs.lhsOpt match {
-          case Some(lhs) => visitVarStore(mv, lhs.lhs.varName)
+          case Some(lhs) => visitVarStore(mv, lhs.name)
           case _ => 
             if(typ == "long" || typ == "double") mv.visitInsn(Opcodes.POP2)
             else mv.visitInsn(Opcodes.POP)

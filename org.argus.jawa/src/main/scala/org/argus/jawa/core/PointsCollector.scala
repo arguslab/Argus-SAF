@@ -79,8 +79,6 @@ object PointsCollector {
           val pfl = PointFieldL(pBase, fqn, locUri, locIndex, ownerSig)
           pBase.setFieldPoint(pfl)
           pfl
-        case cl: CallLhs =>
-          PointL(cl.lhs.varName, locUri, locIndex, ownerSig)
         case _ =>
           throw new RuntimeException(s"Unknown left hand side $e")
       }
@@ -170,10 +168,15 @@ object PointsCollector {
               pl = Some(processLHS(as.lhs))
               pr = Some(processRHS(le))
             }
-          case ne: NameExpression =>
+          case vne: VariableNameExpression =>
             if(as.kind == "object"){
               pl = Some(processLHS(as.lhs))
-              pr = Some(processRHS(ne))
+              pr = Some(processRHS(vne))
+            }
+          case sfae: StaticFieldAccessExpression =>
+            if(sfae.typ.isObject){
+              pl = Some(processLHS(as.lhs))
+              pr = Some(processRHS(sfae))
             }
           case ne: NewExpression =>
             pl = Some(processLHS(as.lhs))

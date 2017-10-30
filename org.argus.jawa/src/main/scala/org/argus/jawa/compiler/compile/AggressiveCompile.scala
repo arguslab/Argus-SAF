@@ -35,14 +35,14 @@ class AggressiveCompile(cacheFile: File) {
     val incSrc = sources
     val (javaSrcs, jawaSrcs) = incSrc partition javaOnly
     
-    def compileJawa() =
+    def compileJawa(): Unit =
       if(jawaSrcs.nonEmpty) {
         val sources = jawaSrcs
         timed("Jawa compilation", log) {
           compiler.compile(sources.toArray, outputDirs.toArray, globalOpt, progress)
         }
       }
-    def compileJava() =
+    def compileJava(): Unit =
       if(javaSrcs.nonEmpty) {
         @tailrec def ancestor(f1: File, f2: File): Boolean =
           if (f2 eq null) false else

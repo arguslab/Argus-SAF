@@ -239,8 +239,6 @@ object LocalTypeResolver {
           a.getLhs match {
             case Some(lhs) =>
               lhs match {
-                case cl: CallLhs =>
-                  r = r.filter{case (slot, _) => slot != VarSlot(cl.lhs.varName)}
                 case ne: VariableNameExpression =>
                   a.getRhs match {
                     case _: TupleExpression =>
@@ -367,7 +365,7 @@ object LocalTypeResolver {
               }
             }
           case vne: VariableNameExpression =>
-            defs = Some((VarSlot(vne.varSymbol.varName), defPoints.getOrElseUpdate(vne.varSymbol.pos, new VarType().addType(rhsTyp, level))))
+            defs = Some((VarSlot(vne.name), defPoints.getOrElseUpdate(vne.varSymbol.pos, new VarType().addType(rhsTyp, level))))
           case _: StaticFieldAccessExpression =>
           case _ => throw new LocalTypeResolveException(statement.pos, "Unexpected LHS expression: " + statement.toCode)
         }
@@ -375,7 +373,7 @@ object LocalTypeResolver {
         val sig = cs.signature
         cs.lhsOpt match {
           case Some(lhs) =>
-            defs = Some((VarSlot(lhs.lhs.varName), defPoints.getOrElseUpdate(lhs.pos, new VarType().addType(sig.getReturnType, CertainLevel.IS))))
+            defs = Some((VarSlot(lhs.name), defPoints.getOrElseUpdate(lhs.pos, new VarType().addType(sig.getReturnType, CertainLevel.IS))))
           case None =>
         }
         cs.recvVarOpt match {

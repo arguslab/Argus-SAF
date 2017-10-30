@@ -463,9 +463,11 @@ class JawaParser(tokens: Array[Token], reporter: Reporter) extends JavaKnowledge
   private def callStatement(): CallStatement = {
     val call = accept(CALL)
     val ahead2 = lookahead(1)
-    val lhsOpt: Option[CallLhs] = ahead2 match {
+    val lhsOpt: Option[VariableNameExpression] = ahead2 match {
       case ASSIGN_OP =>
-        Some(callLhs())
+        val lhs = variableNameExpression()
+        accept(ASSIGN_OP)
+        Some(lhs)
       case _ => None
     }
     val rhs: CallRhs = callRhs()
@@ -477,12 +479,6 @@ class JawaParser(tokens: Array[Token], reporter: Reporter) extends JavaKnowledge
     val cs = CallStatement(lhsOpt, rhs, annotations_)(getPos(call.pos, lastPos))
     rhs.methodNameSymbol.signature = cs.signature
     cs
-  }
-
-  private def callLhs(): CallLhs = {
-    val lhs: VarSymbol = varSymbol()
-    accept(ASSIGN_OP)
-    CallLhs(lhs)(lhs.pos)
   }
 
   private def callRhs(): CallRhs = {

@@ -149,7 +149,7 @@ class InterProceduralControlFlowGraph[Node <: ICFGNode] extends ControlFlowGraph
           val c = addICFGCallNode(callerContext.copy.setContext(calleeSig, ln.locUri))
           c.setOwner(calleeProc.getSignature)
           c.asInstanceOf[ICFGInvokeNode].argNames = (cs.recvOpt ++ cs.args).toList
-          c.asInstanceOf[ICFGInvokeNode].retNameOpt = cs.lhsOpt.map(_.lhs.varName)
+          c.asInstanceOf[ICFGInvokeNode].retNameOpt = cs.lhsOpt.map(lhs => lhs.name)
           c.asInstanceOf[ICFGLocNode].setLocIndex(ln.locIndex)
           c.asInstanceOf[ICFGInvokeNode].setCalleeSig(cs.signature)
           c.asInstanceOf[ICFGInvokeNode].setCallType(cs.kind)
@@ -158,7 +158,7 @@ class InterProceduralControlFlowGraph[Node <: ICFGNode] extends ControlFlowGraph
             val r = addICFGReturnNode(callerContext.copy.setContext(calleeSig, ln.locUri))
             r.setOwner(calleeProc.getSignature)
             r.asInstanceOf[ICFGInvokeNode].argNames = (cs.recvOpt ++ cs.args).toList
-            r.asInstanceOf[ICFGInvokeNode].retNameOpt = cs.lhsOpt.map(_.lhs.varName)
+            r.asInstanceOf[ICFGInvokeNode].retNameOpt = cs.lhsOpt.map(lhs => lhs.name)
             r.asInstanceOf[ICFGLocNode].setLocIndex(ln.locIndex)
             r.asInstanceOf[ICFGInvokeNode].setCalleeSig(cs.signature)
             r.asInstanceOf[ICFGInvokeNode].setCallType(cs.kind)

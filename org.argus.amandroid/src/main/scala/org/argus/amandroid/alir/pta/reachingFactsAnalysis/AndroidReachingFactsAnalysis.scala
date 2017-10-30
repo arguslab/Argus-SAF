@@ -85,7 +85,7 @@ class AndroidReachingFactsAnalysis(
           } else if (AndroidModelCallHandler.isRPCCall(apk, currentComponent.getType, calleeSig)) {
             // don't do anything for the RPC call now.
           } else { // for non-ICC-RPC model call
-            returnFacts = AndroidModelCallHandler.doModelCall(sm, s, calleep, cs.lhsOpt.map(_.lhs.varName), cs.recvOpt, cs.args, callerContext)
+            returnFacts = AndroidModelCallHandler.doModelCall(sm, s, calleep, cs.lhsOpt.map(lhs => lhs.name), cs.recvOpt, cs.args, callerContext)
             if(InterComponentCommunicationModel.isRegisterReceiver(calleeSig)) {
               registerReceiverNodes += callerNode.asInstanceOf[ICFGCallNode]
             }
@@ -157,7 +157,7 @@ class AndroidReachingFactsAnalysis(
         case crn: ICFGReturnNode =>
           val calleeVarFacts = calleeS.filter(_.s.isInstanceOf[VarSlot]).map{f=>(f.s.asInstanceOf[VarSlot], f.v)}
           val cs = apk.getMethod(crn.getOwner).get.getBody.resolvedBody.locations(crn.locIndex).statement.asInstanceOf[CallStatement]
-          val lhsSlotOpt: Option[VarSlot] = cs.lhsOpt.map{lhs=>VarSlot(lhs.lhs.varName)}
+          val lhsSlotOpt: Option[VarSlot] = cs.lhsOpt.map{lhs=>VarSlot(lhs.name)}
           val retSlotOpt: Option[VarSlot] = returnMap.get(calleeMethod.getSignature) match {
             case Some(v) => Some(v)
             case None =>

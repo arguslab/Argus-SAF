@@ -39,7 +39,7 @@ class HeapSummaryWu(
           case as: AssignmentStatement =>
             processAssignment(as, context, rules)
           case cs: CallStatement =>
-            val retOpt = cs.lhsOpt.map(lhs => lhs.lhs.varName)
+            val retOpt = cs.lhsOpt.map(lhs => lhs.name)
             val callees = node.asInstanceOf[ICFGInvokeNode].getCalleeSet
             callees foreach { callee =>
               val calleeSig = callee.callee

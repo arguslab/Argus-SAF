@@ -18,7 +18,6 @@ import org.argus.jawa.alir.dfa._
 import org.argus.jawa.alir.interprocedural.CallResolver
 import org.argus.jawa.alir.pta.model.ModelCallHandler
 import org.argus.jawa.alir.pta._
-import org.argus.jawa.alir.pta.rfa.ReachingFactsAnalysisHelper.getNameSlotFromNameExp
 import org.argus.jawa.ast._
 import org.argus.jawa.core.util._
 import org.argus.jawa.core._
@@ -189,27 +188,20 @@ class ReachingFactsAnalysis(
     a match {
       case as: AssignmentStatement =>
         as.lhs match {
-          case ne: NameExpression =>
-            val slot = ReachingFactsAnalysisHelper.getNameSlotFromNameExp(ne)
-            slot match {
-              case slot1: StaticFieldSlot =>
-                val recTyp = JavaKnowledge.getClassTypeFromFieldFQN(slot1.fqn)
-                checkClass(recTyp, currentNode)
-              case _ =>
-            }
+          case sfae: StaticFieldAccessExpression =>
+            val slot = StaticFieldSlot(sfae.name)
+            val recTyp = JavaKnowledge.getClassTypeFromFieldFQN(slot.fqn)
+            checkClass(recTyp, currentNode)
           case _ =>
         }
         as.rhs match {
           case ne: NewExpression =>
             val typ = ne.typ
             checkClass(typ, currentNode)
-          case ne: NameExpression =>
-            val slot = ReachingFactsAnalysisHelper.getNameSlotFromNameExp(ne)
-            if (slot.isInstanceOf[StaticFieldSlot]) {
-              val fqn = ne.name
-              val recTyp = JavaKnowledge.getClassTypeFromFieldFQN(fqn)
-              checkClass(recTyp, currentNode)
-            }
+          case sfae: StaticFieldAccessExpression =>
+            val slot = StaticFieldSlot(sfae.name)
+            val recTyp = JavaKnowledge.getClassTypeFromFieldFQN(slot.fqn)
+            checkClass(recTyp, currentNode)
           case _ =>
         }
       case cs: CallStatement =>
@@ -259,11 +251,11 @@ class ReachingFactsAnalysis(
           a.getLhs match {
             case Some(lhs) =>
               lhs match {
-                case ne: NameExpression =>
-                  val slot = getNameSlotFromNameExp(ne)
+                case vne: VariableNameExpression =>
+                  val slot = VarSlot(vne.name)
                   s.filter { fact => fact.s == slot }.foreach(f => ptaresult.addInstance(node.getContext, slot, f.v))
-                case cl: CallLhs =>
-                  val slot = VarSlot(cl.lhs.varName)
+                case sfae: StaticFieldAccessExpression =>
+                  val slot = StaticFieldSlot(sfae.name)
                   s.filter { fact => fact.s == slot }.foreach(f => ptaresult.addInstance(node.getContext, slot, f.v))
                 case _ =>
               }

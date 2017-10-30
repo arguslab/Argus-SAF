@@ -445,7 +445,7 @@ sealed trait Assignment extends Statement {
 }
 
 case class CallStatement(
-    lhsOpt: Option[CallLhs],
+    lhsOpt: Option[VariableNameExpression],
     rhs: CallRhs,
     annotations: IList[Annotation])(implicit val pos: Position) extends Assignment with Jump {
   //default is virtual call
@@ -484,10 +484,6 @@ case class CallStatement(
     val annoPart = annotations.map(anno => anno.toCode).mkString(" ")
     s"call $lhsPart$rhsPart $annoPart".trim + ";"
   }
-}
-
-case class CallLhs(lhs: VarSymbol)(implicit val pos: Position) extends Expression with LHS {
-  def toCode: String = lhs.toCode
 }
 
 case class CallRhs(
@@ -573,11 +569,11 @@ sealed trait Expression extends JawaAstNode
 
 /** LHS expressions:
   *   AccessExpression
-  *   CallLhs
   *   IndexingExpression
-  *   NameExpression
+  *   VariableNameExpression
+  *   StaticFieldAccessExpression
   */
-sealed trait LHS
+sealed trait LHS extends RHS
 
 /** RHS expressions:
   *   AccessExpression
@@ -591,7 +587,8 @@ sealed trait LHS
   *   InstanceOfExpression
   *   LengthExpression
   *   LiteralExpression
-  *   NameExpression
+  *   VariableNameExpression
+  *   StaticFieldAccessExpression
   *   NewExpression
   *   NullExpression
   *   TupleExpression
@@ -599,17 +596,12 @@ sealed trait LHS
   */
 sealed trait RHS
 
-// FieldNameSymbol here is static fields
-trait NameExpression extends Expression with LHS with RHS {
-  def name: String
-}
-
-case class VariableNameExpression(varSymbol: VarSymbol)(implicit val pos: Position) extends NameExpression {
+case class VariableNameExpression(varSymbol: VarSymbol)(implicit val pos: Position) extends Expression with LHS {
   def name: String = varSymbol.varName
   def toCode: String = varSymbol.toCode
 }
 
-case class StaticFieldAccessExpression(fieldNameSymbol: FieldNameSymbol, typExp: TypeExpression)(implicit val pos: Position) extends NameExpression {
+case class StaticFieldAccessExpression(fieldNameSymbol: FieldNameSymbol, typExp: TypeExpression)(implicit val pos: Position) extends Expression with LHS {
   def name: String = fieldNameSymbol.FQN
   def toCode: String = s"${fieldNameSymbol.toCode} @type ${typExp.toCode}"
   def typ: JawaType = typExp.typ
@@ -634,7 +626,7 @@ case class LengthExpression(varSymbol: VarSymbol)(implicit val pos: Position) ex
 
 case class IndexingExpression(
     varSymbol: VarSymbol,
-    indices: IList[IndexingSuffix])(implicit val pos: Position) extends Expression with LHS with RHS {
+    indices: IList[IndexingSuffix])(implicit val pos: Position) extends Expression with LHS {
   def base: String = varSymbol.varName
   def dimensions: Int = indices.size
   def toCode: String = s"${varSymbol.toCode}${indices.map(i => i.toCode).mkString("")}"
@@ -647,7 +639,7 @@ case class IndexingSuffix(index: Either[VarSymbol, LiteralExpression])(implicit 
 case class AccessExpression(
     varSymbol: VarSymbol,
     fieldSym: FieldNameSymbol,
-    typExp: TypeExpression)(implicit val pos: Position) extends Expression with LHS with RHS {
+    typExp: TypeExpression)(implicit val pos: Position) extends Expression with LHS {
   def base: String = varSymbol.varName
   def fieldName: String = fieldSym.fieldName
   def toCode: String = s"${varSymbol.toCode}.${fieldSym.toCode} @type ${typExp.toCode}"

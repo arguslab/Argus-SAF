@@ -10,6 +10,7 @@
 
 package org.argus.jawa.ast.java
 
+import java.io.PrintWriter
 import java.lang.reflect.InvocationTargetException
 
 import org.argus.jawa.compiler.codegen.JavaByteCodeGenerator
@@ -29,13 +30,77 @@ class Java2JawaTest extends FlatSpec with Matchers {
     new TestFile(file)
   }
 
-//  "/java/parser/as/Assert1.java" should "throw AssertionError" in {
-//    an[AssertionError] should be thrownBy run("/java/parser/as/Assert1.java")
-//  }
+  "/java/parser/as/Assert1.java" should "throw AssertionError" in {
+    an[AssertionError] should be thrownBy run("/java/parser/as/Assert1.java")
+  }
 
   "/java/parser/cons/StaticInitializer.java" produce (1)
 
+  "/java/parser/cons/StaticInitializerMixed.java" produce (2)
+
+  "/java/parser/cons/StaticInitializerWithStaticBlock.java" produce (1)
+
 //  "/java/parser/cons/ConstructorWithSuper.java" produce (1)
+
+  "/java/parser/expr/assignexpr/AND.java" produce (0)
+
+  "/java/parser/expr/assignexpr/DIVIDE.java" produce (3)
+
+  "/java/parser/expr/assignexpr/LEFT_SHIFT.java" produce (4)
+
+  "/java/parser/expr/assignexpr/MINUS.java" produce (-1)
+
+  "/java/parser/expr/assignexpr/MULTIPLY.java" produce (6)
+
+  "/java/parser/expr/assignexpr/OR.java" produce (3)
+
+  "/java/parser/expr/assignexpr/PLUS.java" produce (3)
+
+  "/java/parser/expr/assignexpr/REMAINDER.java" produce (0)
+
+  "/java/parser/expr/assignexpr/SIGNED_RIGHT_SHIFT.java" produce (2)
+
+  "/java/parser/expr/assignexpr/UNSIGNED_RIGHT_SHIFT.java" produce (2)
+
+  "/java/parser/expr/assignexpr/XOR.java" produce (3)
+
+  "/java/parser/expr/binaryexpr/AND.java" produce (false)
+
+  "/java/parser/expr/binaryexpr/BINARY_AND.java" produce (0)
+
+  "/java/parser/expr/binaryexpr/BINARY_OR.java" produce (1)
+
+  "/java/parser/expr/binaryexpr/DIVIDE.java" produce (0)
+
+  "/java/parser/expr/binaryexpr/EQUALS.java" produce (false)
+
+  "/java/parser/expr/binaryexpr/GREATER.java" produce (false)
+
+  "/java/parser/expr/binaryexpr/GREATER_EQUALS.java" produce (true)
+
+  "/java/parser/expr/binaryexpr/LEFT_SHIFT.java" produce (2)
+
+  "/java/parser/expr/binaryexpr/LESS.java" produce (true)
+
+  "/java/parser/expr/binaryexpr/LESS_EQUALS.java" produce (true)
+
+  "/java/parser/expr/binaryexpr/MINUS.java" produce (0)
+
+  "/java/parser/expr/binaryexpr/MULTIPLY.java" produce (6)
+
+  "/java/parser/expr/binaryexpr/NOT_EQUALS.java" produce (true)
+
+  "/java/parser/expr/binaryexpr/OR.java" produce (true)
+
+  "/java/parser/expr/binaryexpr/PLUS.java" produce (3)
+
+  "/java/parser/expr/binaryexpr/REMAINDER.java" produce (1)
+
+  "/java/parser/expr/binaryexpr/SIGNED_RIGHT_SHIFT.java" produce (1)
+
+  "/java/parser/expr/binaryexpr/UNSIGNED_RIGHT_SHIFT.java" produce (1)
+
+  "/java/parser/expr/binaryexpr/XOR.java" produce (true)
 
   class TestFile(file: String) {
     def produce(tp: Any): Unit = {
@@ -58,6 +123,10 @@ class Java2JawaTest extends FlatSpec with Matchers {
     val css = new JavaByteCodeGenerator("1.8").generate(Some(global), cu)
     val ccl: CustomClassLoader = new CustomClassLoader()
     var result: Any = null
+//    val pw = new PrintWriter(System.out)
+//    css foreach { case (_, bytecodes) =>
+//      JavaByteCodeGenerator.outputByteCodes(pw, bytecodes)
+//    }
     css foreach { case (typ, bytecodes) =>
       try{
         val c = ccl.loadClass(typ.name, bytecodes)

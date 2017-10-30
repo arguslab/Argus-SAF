@@ -299,8 +299,8 @@ object GenerateTypedJawa {
           val rhs = CallRhs(cs.rhs.methodNameSymbol, varSymbols)(cs.rhs.pos)
           val lhsOpt = cs.lhsOpt match {
             case Some(lhs) =>
-              val vs = resolveVar(global, lhs.lhs, defs, localvars, realnameMap)
-              Some(CallLhs(vs)(lhs.pos))
+              val vs = resolveVar(global, lhs.varSymbol, defs, localvars, realnameMap)
+              Some(VariableNameExpression(vs)(lhs.pos))
             case None =>
               None
           }

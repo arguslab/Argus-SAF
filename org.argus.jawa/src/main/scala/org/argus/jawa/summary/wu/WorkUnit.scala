@@ -435,7 +435,7 @@ abstract class PointsToWu[T <: Global] (
                   summary.rules.foreach {
                     case ptr: PTSummaryRule =>
                       val hb = ptr.heapBase
-                      val retOpt = cs.lhsOpt.map(lhs => lhs.lhs.varName)
+                      val retOpt = cs.lhsOpt.map(lhs => lhs.name)
                       val (newhbs, inss) = processHeapBase(hb, retOpt, cs.recvOpt, cs.arg, context, ptr.trackHeap)
                       newhbs.foreach { case (s, nhbs) =>
                         var slot: PTASlot = s

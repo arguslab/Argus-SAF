@@ -55,8 +55,10 @@ object ExplicitValueFinder {
         as.rhs match{
           case t: LiteralExpression =>
             result = Left(t)
-          case ne: NameExpression =>
+          case ne: VariableNameExpression =>
             result = Right(ne.name)
+          case sfne: StaticFieldAccessExpression =>
+            result = Right(sfne.name)
           case _ =>
         }
       case _ =>
@@ -107,8 +109,10 @@ object ExplicitValueFinder {
             result = Left(true)
           case _: LiteralExpression =>
             result = Left(true)
-          case ne: NameExpression =>
+          case ne: VariableNameExpression =>
             result = Right(ne.name)
+          case sfae: StaticFieldAccessExpression =>
+            result = Right(sfae.name)
           case _: TupleExpression =>
             result = Left(true)
           case _: UnaryExpression =>

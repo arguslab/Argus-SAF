@@ -184,7 +184,7 @@ class TaintWu[T <: Global](
             val ns: NameSlot = pos match {
               case Some(i) =>
                 if(i == -1) {
-                  VarSlot(cs.lhsOpt.map(lhs => lhs.lhs.varName).getOrElse("hack"))
+                  VarSlot(cs.lhsOpt.map(lhs => lhs.name).getOrElse("hack"))
                 } else {
                   val varName = if(cs.isStatic) {
                     cs.arg(i)
@@ -196,7 +196,7 @@ class TaintWu[T <: Global](
                   VarSlot(varName)
                 }
               case None =>
-                VarSlot(cs.lhsOpt.map(lhs => lhs.lhs.varName).getOrElse("hack"))
+                VarSlot(cs.lhsOpt.map(lhs => lhs.name).getOrElse("hack"))
             }
             ptaresult.pointsToSet(node.getContext, ns)
           case _ =>

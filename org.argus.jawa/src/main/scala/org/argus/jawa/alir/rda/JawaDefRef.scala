@@ -32,8 +32,6 @@ final class JawaDefRef(callRef: Boolean)
       lhs match {
         case Some(l) =>
           l match {
-            case cl: CallLhs =>
-              result += VarSlot(cl.lhs.varName)
             case vne: VariableNameExpression =>
               result += VarSlot(vne.name)
             case _ =>

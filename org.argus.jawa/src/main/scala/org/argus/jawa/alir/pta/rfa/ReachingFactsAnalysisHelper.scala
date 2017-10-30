@@ -196,7 +196,6 @@ object ReachingFactsAnalysisHelper {
 
   def updatePTAResultLHS(lhs: Expression with LHS, currentContext: Context, s: ISet[RFAFact], ptaresult: PTAResult)(implicit factory: SimHeap): Unit = {
     lhs match {
-      case _: NameExpression =>
       case ae: AccessExpression =>
         val baseSlot = VarSlot(ae.base)
         val baseValue = s.filter { fact => fact.s.getId == baseSlot.getId }.map(_.v)
@@ -287,8 +286,11 @@ object ReachingFactsAnalysisHelper {
             }
           case Right(_) =>
         }
-      case ne: NameExpression =>
-        val slot = getNameSlotFromNameExp(ne)
+      case vne: VariableNameExpression =>
+        val slot = VarSlot(vne.name)
+        s.filter { fact => fact.s == slot }.foreach(f => ptaresult.addInstance(currentContext, slot, f.v))
+      case sfae: StaticFieldAccessExpression =>
+        val slot = StaticFieldSlot(sfae.name)
         s.filter { fact => fact.s == slot }.foreach(f => ptaresult.addInstance(currentContext, slot, f.v))
       case ae: AccessExpression =>
         resolvePTAResultAccessExp(ae, ae.typ, currentContext, s, ptaresult)
@@ -366,8 +368,11 @@ object ReachingFactsAnalysisHelper {
   def processLHS(lhs: Expression with LHS, currentContext: Context, ptaresult: PTAResult): IMap[PTASlot, Boolean] = {
     val result: MMap[PTASlot, Boolean] = mmapEmpty
     lhs match{
-      case ne: NameExpression =>
-        val slot = getNameSlotFromNameExp(ne)
+      case vne: VariableNameExpression =>
+        val slot = VarSlot(vne.name)
+        result(slot) = true
+      case sfae: StaticFieldAccessExpression =>
+        val slot = StaticFieldSlot(sfae.name)
         result(slot) = true
       case ae: AccessExpression =>
         val baseSlot = VarSlot(ae.base)
@@ -385,9 +390,6 @@ object ReachingFactsAnalysisHelper {
         baseValue.foreach{ ins =>
           result(ArraySlot(ins)) = false
         }
-      case cl: CallLhs =>
-        val slot = VarSlot(cl.lhs.varName)
-        result(slot) = true
     }
     result.toMap
   }
@@ -399,8 +401,12 @@ object ReachingFactsAnalysisHelper {
     var result: ISet[Instance] = isetEmpty
     var extraFacts: ISet[RFAFact] = isetEmpty
     rhs match{
-      case ne: NameExpression =>
-        val slot = getNameSlotFromNameExp(ne)
+      case vne: VariableNameExpression =>
+        val slot = VarSlot(vne.name)
+        val value: ISet[Instance] = ptaResult.pointsToSet(currentContext, slot)
+        result ++= value
+      case sfae: StaticFieldAccessExpression =>
+        val slot = StaticFieldSlot(sfae.name)
         val value: ISet[Instance] = ptaResult.pointsToSet(currentContext, slot)
         result ++= value
       case ce: ConstClassExpression =>
@@ -508,14 +514,5 @@ object ReachingFactsAnalysisHelper {
       }
     }
     result
-  }
-  
-  def getNameSlotFromNameExp(ne: NameExpression): NameSlot = {
-    ne match {
-      case vne: VariableNameExpression =>
-        VarSlot(vne.name)
-      case sfae: StaticFieldAccessExpression =>
-        StaticFieldSlot(sfae.name)
-    }
   }
 }
