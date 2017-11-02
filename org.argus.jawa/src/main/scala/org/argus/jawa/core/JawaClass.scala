@@ -341,15 +341,15 @@ case class JawaClass(global: Global, typ: JawaType, accessFlags: Int) extends Ja
     * get all the methods accessible from the class
     */
   def getMethods: ISet[JawaMethod] = {
-    var results = getDeclaredMethods
+    val results: MSet[JawaMethod] = msetEmpty ++ getDeclaredMethods
     var rec = this
     while(rec.hasSuperClass){
       val parent = rec.getSuperClass
-      val fields = parent.getDeclaredMethods.filter(f => !f.isPrivate && !results.exists(_.getName == f.getName))
-      results ++= fields
+      val ms = parent.getDeclaredMethods.filter(m => !m.isPrivate && !results.exists(_.getSubSignature == m.getSubSignature))
+      results ++= ms
       rec = parent
     }
-    results
+    results.toSet
   }
 
   /**
