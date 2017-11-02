@@ -7,16 +7,12 @@
  *
  * Detailed contributors are listed in the CONTRIBUTOR.md
  */
-package parser.cons;
+package parser.expr.vardeclexpr;
 
-public class ConstructorWithoutSuper {
-    int i;
-
-    ConstructorWithoutSuper() {
-        i = 1;
-    }
-    public static int main() {
-        ConstructorWithoutSuper c = new ConstructorWithoutSuper();
-        return c.i;
+public class VariableDeclarationPrimitive2 {
+    public static double main() {
+        double i, j = 2D;
+        i = 1D;
+        return i + j;
     }
 }

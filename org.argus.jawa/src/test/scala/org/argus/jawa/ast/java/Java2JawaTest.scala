@@ -40,7 +40,9 @@ class Java2JawaTest extends FlatSpec with Matchers {
 
   "/java/parser/cons/StaticInitializerWithStaticBlock.java" produce (1)
 
-//  "/java/parser/cons/ConstructorWithSuper.java" produce (1)
+  "/java/parser/cons/ConstructorWithoutSuper.java" produce (1)
+
+  "/java/parser/cons/ConstructorWithSuper.java" produce (1)
 
   "/java/parser/expr/assignexpr/AND.java" produce (0)
 
@@ -101,6 +103,10 @@ class Java2JawaTest extends FlatSpec with Matchers {
   "/java/parser/expr/binaryexpr/UNSIGNED_RIGHT_SHIFT.java" produce (1)
 
   "/java/parser/expr/binaryexpr/XOR.java" produce (true)
+
+  "/java/parser/expr/vardeclexpr/VariableDeclarationPrimitive.java" produce (3)
+
+  "/java/parser/expr/vardeclexpr/VariableDeclarationPrimitive2.java" produce (3D)
 
   class TestFile(file: String) {
     def produce(tp: Any): Unit = {

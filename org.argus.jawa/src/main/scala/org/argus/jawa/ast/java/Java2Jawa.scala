@@ -61,12 +61,12 @@ class Java2Jawa(val global: Global, val sourceFile: JavaSourceFile) {
           case None =>
             // Check imports
             imports.forEach { imp =>
-              if(!imp.isStatic && !imp.isAsterisk) {
+              if(!imp.isAsterisk) {
                 val typ = new JawaType(imp.getNameAsString)
                 if(typ.jawaName.endsWith(name)) {
                   typOpt = Some(typ)
                 }
-              } else if(!imp.isStatic && imp.isAsterisk) {
+              } else if(imp.isAsterisk) {
                 val typ = new JawaType(s"${imp.getNameAsString}.$name")
                 if(global.containsClass(typ)) {
                   typOpt = Some(typ)
@@ -87,6 +87,11 @@ class Java2Jawa(val global: Global, val sourceFile: JavaSourceFile) {
         typOpt match {
           case Some(t) => typeMap(name) = t
           case None =>
+            val dotIndex = name.lastIndexOf('.')
+            if(dotIndex >= 0) {
+              val innerName = new StringBuilder(name).replace(dotIndex, dotIndex + 1, "$").toString()
+              typOpt = findTypeOpt(innerName)
+            }
         }
         typOpt
     }
@@ -515,7 +520,7 @@ class Java2Jawa(val global: Global, val sourceFile: JavaSourceFile) {
       params += param
     }
     val annotations: MList[JawaAnnotation] = mlistEmpty
-    // add singature annotation
+    // add signature annotation
     val sig = JavaKnowledge.genSignature(owner.typ, methodSymbol.methodName, paramTypes.toList, returnType.typ)
     val signatureKey = Token(Tokens.ID, mdPos, "signature")
     val signatureValue = TokenValue(Token(Tokens.ID, mdPos, sig.signature.apostrophe))(mdPos)

@@ -86,7 +86,7 @@ object GenerateTypedJawa {
   }
 
   private def genVarName(v: String, typ: JawaType, nameOpt: Option[String], isParam: Boolean, localvars: MMap[String, (JawaType, Boolean)], realnameMap: MMap[String, String]): String = {
-    var newvar = typ.baseTyp.substring(typ.baseTyp.lastIndexOf(".") + 1) + {if(typ.dimensions > 0)"_arr" + typ.dimensions else ""} + "_" + v
+    var newvar = typ.baseType.name + {if(typ.dimensions > 0)"_arr" + typ.dimensions else ""} + "_" + v
     while(localvars.contains(newvar) && localvars(newvar)._1 != typ) newvar = "a_" + newvar
     if(!localvars.contains(newvar)) localvars(newvar) = (typ, isParam)
     nameOpt match {
