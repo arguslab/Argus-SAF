@@ -242,14 +242,12 @@ object GenerateTypedJawa {
               val vs = resolveVar(global, ne.varSymbol, uses, localvars, realnameMap)
               rhs = VariableNameExpression(vs)(ne.pos)
             case _: StaticFieldAccessExpression =>
-            case ne: NewExpression =>
-              val tfinit: IList[TypeFragmentWithInit] = ne.typeFragmentsWithInit.map { init =>
-                val varSymbols = init.varSymbols.map { v =>
-                  resolveVar(global, v, uses, localvars, realnameMap)
-                }
-                TypeFragmentWithInit(varSymbols)(init.pos)
+            case _: NewExpression =>
+            case nae: NewArrayExpression =>
+              val vss = nae.varSymbols.map { vs =>
+                resolveVar(global, vs, uses, localvars, realnameMap)
               }
-              rhs = NewExpression(ne.base, tfinit)(ne.pos)
+              rhs = NewArrayExpression(nae.base, vss)(nae.pos)
             case _: NullExpression =>
             case _: TupleExpression =>
             case ue: UnaryExpression =>

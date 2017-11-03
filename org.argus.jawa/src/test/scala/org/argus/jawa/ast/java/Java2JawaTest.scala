@@ -44,6 +44,8 @@ class Java2JawaTest extends FlatSpec with Matchers {
 
   "/java/parser/cons/ConstructorWithSuper.java" produce (1)
 
+//  "/java/parser/cons/InnerConstructor.java" produce (1)
+
   "/java/parser/expr/assignexpr/AND.java" produce (0)
 
   "/java/parser/expr/assignexpr/DIVIDE.java" produce (3)

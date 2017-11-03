@@ -68,7 +68,7 @@ lazy val argus_saf: Project =
   .settings(argusSafSettings)
   .settings(buildInfoSettings)
   .aggregate(
-    jawa, amandroid
+    saf_library, jawa, amandroid
   )
   .settings(publishSettings)
   .settings(
@@ -86,6 +86,20 @@ lazy val argus_saf: Project =
     publishArtifact in (Compile, packageSrc) := false
   )
 
+lazy val saf_library: Project =
+  newProject("saf-library", file("org.argus.saf.library"))
+    .settings(
+      assemblyOption in assembly := (assemblyOption in assembly).value.copy(includeScala = false),
+      assemblyJarName in assembly := s"${name.value}-${version.value}.jar",
+      mainClass in assembly := None,
+      artifact in (Compile, assembly) ~= { art =>
+        art.copy(`classifier` = None)
+      },
+      addArtifact(artifact in (Compile, assembly), assembly),
+      publishArtifact in (Compile, packageBin) := false
+    )
+    .settings(publishSettings)
+
 lazy val jawa: Project =
   newProject("jawa", file("org.argus.jawa"))
   .settings(libraryDependencies ++= DependencyGroups.jawa)
@@ -93,18 +107,8 @@ lazy val jawa: Project =
 
 lazy val amandroid: Project =
   newProject("amandroid", file("org.argus.amandroid"))
-  .dependsOn(jawa)
+  .dependsOn(jawa, saf_library)
   .settings(libraryDependencies ++= DependencyGroups.amandroid)
-  .settings(
-    assemblyOption in assembly := (assemblyOption in assembly).value.copy(includeScala = false),
-    assemblyJarName in assembly := s"${name.value}-${version.value}.jar",
-    mainClass in assembly := None,
-    artifact in (Compile, assembly) ~= { art =>
-      art.copy(`classifier` = None)
-    },
-    addArtifact(artifact in (Compile, assembly), assembly),
-    publishArtifact in (Compile, packageBin) := false
-  )
   .settings(publishSettings)
 
 lazy val amandroid_concurrent: Project =
@@ -129,6 +133,7 @@ releaseProcess := Seq(
   ReleaseStep(releaseStepTask(assembly)),
   tagRelease,
   publishArtifacts,
+  ReleaseStep(releaseStepTask(bintrayRelease in saf_library)),
   ReleaseStep(releaseStepTask(bintrayRelease in jawa)),
   ReleaseStep(releaseStepTask(bintrayRelease in amandroid)),
   ReleaseStep(releaseStepTask(bintrayRelease in argus_saf)),

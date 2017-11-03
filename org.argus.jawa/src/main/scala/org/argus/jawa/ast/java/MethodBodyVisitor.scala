@@ -14,7 +14,7 @@ import com.github.javaparser.ast.body.VariableDeclarator
 import com.github.javaparser.ast.expr._
 import com.github.javaparser.ast.stmt._
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter
-import org.argus.jawa.ast.{AccessExpression, AssignmentStatement, BinaryExpression, CallRhs, CallStatement, EmptyStatement, FieldNameSymbol, GotoStatement, IfStatement, LHS, LiteralExpression, LocalVarDeclaration, Location, LocationDefSymbol, LocationSymbol, MethodNameSymbol, NewExpression, NullExpression, RHS, ReturnStatement, StaticFieldAccessExpression, ThrowStatement, TokenValue, TypeExpression, TypeFragmentWithInit, TypeSymbol, VarDefSymbol, VarSymbol, VariableNameExpression, Annotation => JawaAnnotation, CatchClause => JawaCatchClause, Expression => JawaExpression, Statement => JawaStatement}
+import org.argus.jawa.ast.{AccessExpression, AssignmentStatement, BinaryExpression, CallRhs, CallStatement, EmptyStatement, FieldNameSymbol, GotoStatement, IfStatement, LHS, LiteralExpression, LocalVarDeclaration, Location, LocationDefSymbol, LocationSymbol, MethodNameSymbol, NewExpression, NullExpression, RHS, ReturnStatement, StaticFieldAccessExpression, ThrowStatement, TokenValue, TypeExpression, TypeSymbol, VarDefSymbol, VarSymbol, VariableNameExpression, Annotation => JawaAnnotation, CatchClause => JawaCatchClause, Expression => JawaExpression, Statement => JawaStatement, Type => JawaTypeAst}
 import org.argus.jawa.compiler.lexer.{Token, Tokens}
 import org.argus.jawa.core.{JavaKnowledge, JawaPackage, JawaType, Signature}
 import org.argus.jawa.core.io.{Position => JawaPosition, RangePosition}
@@ -129,10 +129,11 @@ class MethodBodyVisitor(j2j: Java2Jawa, ownerSig: Signature, ownerPos: RangePosi
     */
   override def visit(as: AssertStmt, arg: Void): Unit = {
     isLeft = false
+    val asRange = as.toRange
     as.getCheck.accept(this, arg)
-    val biExpr = BinaryExpression(resultHolder, Token(Tokens.OP, getKeyWordRange(as), "!="), Right(Left(LiteralExpression(Token(Tokens.INTEGER_LITERAL, getKeyWordRange(as), "0"))(as.toRange))))(as.toRange)
+    val biExpr = BinaryExpression(resultHolder, Token(Tokens.OP, getKeyWordRange(as), "!="), Right(Left(LiteralExpression(Token(Tokens.INTEGER_LITERAL, getKeyWordRange(as), "0"))(asRange))))(asRange)
     val label = s"Label$labelCount"
-    val ifStmt = IfStatement(biExpr, LocationSymbol(Token(Tokens.ID, getKeyWordRange(as), label))(as.toRange))(as.toRange)
+    val ifStmt = IfStatement(biExpr, LocationSymbol(Token(Tokens.ID, getKeyWordRange(as), label))(asRange))(asRange)
     createLocation(getKeyWordRange(as), ifStmt)
     as.getMessage.ifPresent { m =>
       isLeft = false
@@ -140,12 +141,13 @@ class MethodBodyVisitor(j2j: Java2Jawa, ownerSig: Signature, ownerPos: RangePosi
     }
     // create AssertionError
     val assertType = new JawaType("java.lang.AssertionError")
-    val assertVarName = checkAndAddVariable(assertType, as.toRange, "assertionError", as.toRange)
-    val assertVarSymbol = VarSymbol(Token(Tokens.ID, as.toRange, assertVarName.apostrophe))(as.toRange)
-    val assertNameExp = VariableNameExpression(assertVarSymbol)(as.toRange)
-    val assertNewExp = NewExpression(TypeSymbol(Token(Tokens.ID, as.toRange, assertType.jawaName.apostrophe))(as.toRange), ilistEmpty)(as.toRange)
-    val assertAssign = AssignmentStatement(assertNameExp, assertNewExp, ilistEmpty)(as.toRange)
-    createLocation(as.toRange, assertAssign)
+    val assertVarName = checkAndAddVariable(assertType, asRange, "assertionError", asRange)
+    val assertVarSymbol = VarSymbol(Token(Tokens.ID, asRange, assertVarName.apostrophe))(asRange)
+    val assertNameExp = VariableNameExpression(assertVarSymbol)(asRange)
+    val assertTypeSymbol = TypeSymbol(Token(Tokens.ID, asRange, assertType.jawaName.apostrophe))(asRange)
+    val assertNewExp = NewExpression(JawaTypeAst(assertTypeSymbol, ilistEmpty)(asRange))(asRange)
+    val assertAssign = AssignmentStatement(assertNameExp, assertNewExp, ilistEmpty)(asRange)
+    createLocation(asRange, assertAssign)
 
     // create AssertionError init
     val assertInitVarSymbols: MList[VarSymbol] = mlistEmpty
@@ -163,14 +165,14 @@ class MethodBodyVisitor(j2j: Java2Jawa, ownerSig: Signature, ownerPos: RangePosi
       }
       assertInitParamTyps += paramType
     }
-    val assertInitCall = generateCall(None, assertType, "<init>", as.toRange, assertInitVarSymbols.toList, assertInitParamTyps.toList, JavaKnowledge.VOID, "direct")
-    createLocation(as.toRange, assertInitCall)
+    val assertInitCall = generateCall(None, assertType, "<init>", asRange, assertInitVarSymbols.toList, assertInitParamTyps.toList, JavaKnowledge.VOID, "direct")
+    createLocation(asRange, assertInitCall)
 
     // create throw statement
-    val assertThrow = ThrowStatement(assertVarSymbol)(as.toRange)
-    createLocation(as.toRange, assertThrow)
+    val assertThrow = ThrowStatement(assertVarSymbol)(asRange)
+    createLocation(asRange, assertThrow)
 
-    createLabel(as.toRange)
+    createLabel(asRange)
   }
 
   override def visit(blockStmt: BlockStmt, arg: Void): Unit = {
@@ -344,6 +346,39 @@ class MethodBodyVisitor(j2j: Java2Jawa, ownerSig: Signature, ownerPos: RangePosi
     val be = AssignmentStatement(VariableNameExpression(left)(l.toRange), LiteralExpression(Token(Tokens.STRING_LITERAL, l.toRange, b))(l.toRange), ilistEmpty)(l.toRange)
     createLocation(l.toRange, be)
     resultHolder = left
+  }
+
+  /**
+    * java:
+    *   new arr[1][2];
+    *
+    * jawa:
+    *   temp1:= 1;
+    *   temp2:= 2;
+    *   temp:= new arr[temp1][temp2];
+    *
+    * java:
+    *   new arr[][]{{1, 2}, {3, 4}};
+    *
+    * jawa:
+    *   temp:= new arr[2][2];
+    *
+    */
+  override def visit(ace: ArrayCreationExpr, arg: Void): Unit = {
+
+  }
+
+  /**
+    * java:
+    *   arr[0][1];
+    *
+    * jawa:
+    *   temp1:= 0;
+    *   temp2:= 1;
+    *   temp:= arr[temp1][temp2];
+    */
+  override def visit(aae: ArrayAccessExpr, arg: Void): Unit = {
+
   }
 
   /**
@@ -624,15 +659,11 @@ class MethodBodyVisitor(j2j: Java2Jawa, ownerSig: Signature, ownerPos: RangePosi
       case Right(pkg) =>
         throw Java2JawaException(oce.getType.toRange, s"ObjectCreationExpr should not be package. Package name: ${pkg.toPkgString(".")}")
     }
-    val baseTyp = TypeSymbol(Token(Tokens.ID, oce.getType.toRange, typ.jawaName.apostrophe))(oce.getType.toRange)
-    val typeFragmentsWithInit: MList[TypeFragmentWithInit] = mlistEmpty
-    for(_ <- 0 until typ.dimensions) {
-      typeFragmentsWithInit += TypeFragmentWithInit(ilistEmpty)(oce.getType.toRange)
-    }
+    val baseTypeSymbol = TypeSymbol(Token(Tokens.ID, oce.getType.toRange, typ.jawaName.apostrophe))(oce.getType.toRange)
     val temp = checkAndAddVariable(typ, oce.toRange, s"${typ.baseType.name}_temp", oce.toRange)
-    val temp_var = VarSymbol(Token(Tokens.ID, baseTyp.pos, temp.apostrophe))(baseTyp.pos)
-    val temp_vne = VariableNameExpression(temp_var)(baseTyp.pos)
-    val newExp = NewExpression(baseTyp, typeFragmentsWithInit.toList)(temp_vne.pos)
+    val temp_var = VarSymbol(Token(Tokens.ID, baseTypeSymbol.pos, temp.apostrophe))(baseTypeSymbol.pos)
+    val temp_vne = VariableNameExpression(temp_var)(baseTypeSymbol.pos)
+    val newExp = NewExpression(JawaTypeAst(baseTypeSymbol, ilistEmpty)(baseTypeSymbol.pos))(temp_vne.pos)
     val assign_stmt = AssignmentStatement(temp_vne, newExp, ilistEmpty)(temp_vne.pos)
     createLocation(getKeyWordRange(oce), assign_stmt)
     val args: MList[VarSymbol] = mlistEmpty

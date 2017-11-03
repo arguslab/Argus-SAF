@@ -283,7 +283,7 @@ class Java2Jawa(val global: Global, val sourceFile: JavaSourceFile) {
         } else {
           None
         }
-        val (instanceFieldDeclarationBlock, staticFields, methods, inners) = processMembers(cityp, cid, resolveBody)
+        val (instanceFieldDeclarationBlock, staticFields, methods, inners) = processMembers(owner, cityp, cid, resolveBody)
         JawaClassOrInterfaceDeclaration(cityp, annotations.toList, extendsAndImplementsClausesOpt, instanceFieldDeclarationBlock, staticFields, methods)(cid.toRange) :: inners
       case _: EnumDeclaration =>
         ilistEmpty // TODO
@@ -292,7 +292,7 @@ class Java2Jawa(val global: Global, val sourceFile: JavaSourceFile) {
     }
   }
 
-  def processMembers(owner: TypeDefSymbol, typ: TypeDeclaration[_], resolveBody: Boolean): (IList[InstanceFieldDeclaration], IList[StaticFieldDeclaration], IList[JawaMethodDeclaration], IList[JawaClassOrInterfaceDeclaration]) = {
+  def processMembers(outer: Option[TypeDefSymbol], owner: TypeDefSymbol, typ: TypeDeclaration[_], resolveBody: Boolean): (IList[InstanceFieldDeclaration], IList[StaticFieldDeclaration], IList[JawaMethodDeclaration], IList[JawaClassOrInterfaceDeclaration]) = {
     val initializers = new NodeList[InitializerDeclaration]()
     val fields = new NodeList[FieldDeclaration]()
     val constructors = new NodeList[ConstructorDeclaration]()
@@ -318,7 +318,7 @@ class Java2Jawa(val global: Global, val sourceFile: JavaSourceFile) {
     val (instanceFields, staticFields) = processFields(owner, fields)
     // Resolve methods
     val mds: MList[JawaMethodDeclaration] = mlistEmpty
-    mds ++= processConstructors(owner, typ, initializers, fields, constructors, resolveBody)
+    mds ++= processConstructors(outer, owner, typ, initializers, fields, constructors, resolveBody)
     methods.forEach { m =>
       mds += processMethod(owner, m, resolveBody)
     }
@@ -367,7 +367,7 @@ class Java2Jawa(val global: Global, val sourceFile: JavaSourceFile) {
     * If the superclass has no no-arg constructor or it isn't accessible then not specifying the superclass constructor to be called (in the subclass constructor)
     * is a compiler error so it must be specified.
     */
-  def processConstructors(owner: TypeDefSymbol, typ: TypeDeclaration[_], initializers: NodeList[InitializerDeclaration], fields: NodeList[FieldDeclaration], constructors: NodeList[ConstructorDeclaration], resolveBody: Boolean): IList[JawaMethodDeclaration] = {
+  def processConstructors(outer: Option[TypeDefSymbol], owner: TypeDefSymbol, typ: TypeDeclaration[_], initializers: NodeList[InitializerDeclaration], fields: NodeList[FieldDeclaration], constructors: NodeList[ConstructorDeclaration], resolveBody: Boolean): IList[JawaMethodDeclaration] = {
     val staticFieldsWithInitializer: MList[VariableDeclarator] = mlistEmpty
     val nonStaticFieldsWithInitializer: MList[VariableDeclarator] = mlistEmpty
     fields.forEach { f =>

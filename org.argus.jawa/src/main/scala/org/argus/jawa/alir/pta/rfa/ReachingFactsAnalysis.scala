@@ -73,7 +73,7 @@ class ReachingFactsAnalysis(
             case _: CastExpression => true
             case _: ConstClassExpression => true
             case _: ExceptionExpression => true
-            case _: NewExpression => true
+            case _: Expression with New => true
             case _: NullExpression => true
             case _ =>
               as.kind == "object"
@@ -195,7 +195,7 @@ class ReachingFactsAnalysis(
           case _ =>
         }
         as.rhs match {
-          case ne: NewExpression =>
+          case ne: Expression with New =>
             val typ = ne.typ
             checkClass(typ, currentNode)
           case sfae: StaticFieldAccessExpression =>

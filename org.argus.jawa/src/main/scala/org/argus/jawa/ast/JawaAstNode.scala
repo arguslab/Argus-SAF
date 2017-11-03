@@ -500,7 +500,7 @@ case class AssignmentStatement(
     lhs: Expression with LHS,
     rhs: Expression with RHS,
     annotations: IList[Annotation])(implicit val pos: Position) extends Assignment {
-  def kind: String = annotations.find { a => a.key == "kind" }.map(_.value).getOrElse({if(rhs.isInstanceOf[NewExpression])"object" else ""})
+  def kind: String = annotations.find { a => a.key == "kind" }.map(_.value).getOrElse({if(rhs.isInstanceOf[Expression with New])"object" else ""})
 
   override def getLhs: Option[Expression with LHS] = Some(lhs)
 
@@ -658,19 +658,22 @@ case class CastExpression(
   def toCode: String = s"(${typ.toCode}) ${varSym.toCode}"
 }
 
-case class NewExpression(
-    base: TypeSymbol,
-    typeFragmentsWithInit: IList[TypeFragmentWithInit])(implicit val pos: Position) extends Expression with RHS {
-  def dimensions: Int = typeFragmentsWithInit.size
-  def baseType: JawaType = base.typ
-  def typ: JawaType = getType(baseType.baseTyp, dimensions)
-  def toCode: String = s"new ${base.toCode}${typeFragmentsWithInit.map(tf => tf.toCode).mkString("")}"
+trait New {
+  def typ: JawaType
 }
 
-case class TypeFragmentWithInit(varSymbols: IList[VarSymbol])(implicit val pos: Position) extends JawaAstNode {
-  def varNames: IList[String] = varSymbols.map(_.varName)
-  def varName(i: Int): String = varNames(i)
-  def toCode: String = s"[${varSymbols.map(vs => vs.toCode).mkString(", ")}]"
+case class NewExpression(base: Type)(implicit val pos: Position) extends Expression with RHS with New {
+  def typ: JawaType = base.typ
+  def toCode: String = s"new ${base.toCode}"
+}
+
+case class NewArrayExpression(
+    base: Type,
+    varSymbols: IList[VarSymbol])(implicit val pos: Position) extends Expression with RHS with New {
+  def dimensions: Int = base.dimensions + 1
+  def baseType: JawaType = base.typ
+  def typ: JawaType = getType(baseType.baseTyp, dimensions)
+  def toCode: String = s"new ${base.toCode}[${varSymbols.map(vs => vs.toCode).mkString("," )}]"
 }
 
 case class InstanceOfExpression(

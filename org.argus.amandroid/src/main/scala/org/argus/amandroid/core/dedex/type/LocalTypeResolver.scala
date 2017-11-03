@@ -330,12 +330,12 @@ object LocalTypeResolver {
             val typ = sfae.typ
             (typ, CertainLevel.IS)
           case ne: NewExpression =>
-            ne.typeFragmentsWithInit.foreach { init =>
-              init.varNames.foreach { name =>
-                uses += ((VarSlot(name), new VarType().addType(JavaKnowledge.INT, CertainLevel.IS)))
-              }
-            }
             (ne.typ, CertainLevel.IS)
+          case nae: NewArrayExpression =>
+            nae.varSymbols.foreach { vs =>
+              uses += ((VarSlot(vs.varName), new VarType().addType(JavaKnowledge.INT, CertainLevel.IS)))
+            }
+            (nae.typ, CertainLevel.IS)
           case _: NullExpression =>
             (JavaKnowledge.JAVA_TOPLEVEL_OBJECT_TYPE, CertainLevel.PROBABLY)
           case te: TupleExpression =>

@@ -451,6 +451,8 @@ class JavaByteCodeGenerator(javaVersion: Int) {
       visitCastExpression(mv, ce, kind)
     case ne: NewExpression =>
       visitNewExpression(mv, ne)
+    case nae: NewArrayExpression =>
+      visitNewArrayExpression(mv, nae)
     case le: LiteralExpression =>
       visitLiteralExpression(mv, le)
     case ue: UnaryExpression =>
@@ -716,24 +718,23 @@ class JavaByteCodeGenerator(javaVersion: Int) {
   }
   
   private def visitNewExpression(mv: MethodVisitor, ne: NewExpression): Unit = {
-    if(ne.typ.isArray){
-      ne.typeFragmentsWithInit.head.varNames foreach {
-        varName =>
-          visitVarLoad(mv, varName)
-      }
-      ne.typ.baseType match {
-        case pt if pt.name == "byte" => mv.visitIntInsn(Opcodes.NEWARRAY, Opcodes.T_BYTE)
-        case pt if pt.name == "short" => mv.visitIntInsn(Opcodes.NEWARRAY, Opcodes.T_SHORT)
-        case pt if pt.name == "int" => mv.visitIntInsn(Opcodes.NEWARRAY, Opcodes.T_INT)
-        case pt if pt.name == "long" => mv.visitIntInsn(Opcodes.NEWARRAY, Opcodes.T_LONG)
-        case pt if pt.name == "float" => mv.visitIntInsn(Opcodes.NEWARRAY, Opcodes.T_FLOAT)
-        case pt if pt.name == "double" => mv.visitIntInsn(Opcodes.NEWARRAY, Opcodes.T_DOUBLE)
-        case pt if pt.name == "boolean" => mv.visitIntInsn(Opcodes.NEWARRAY, Opcodes.T_BOOLEAN)
-        case pt if pt.name == "char" => mv.visitIntInsn(Opcodes.NEWARRAY, Opcodes.T_CHAR)
-        case _ => mv.visitTypeInsn(Opcodes.ANEWARRAY, getClassName(ne.typ.baseTyp))
-      }
-    } else {
-      mv.visitTypeInsn(Opcodes.NEW, getClassName(ne.typ.name))
+    mv.visitTypeInsn(Opcodes.NEW, getClassName(ne.typ.name))
+  }
+
+  private def visitNewArrayExpression(mv: MethodVisitor, nae: NewArrayExpression): Unit = {
+    nae.varSymbols foreach { vs =>
+      visitVarLoad(mv, vs.varName)
+    }
+    nae.baseType match {
+      case pt if pt.name == "byte" => mv.visitIntInsn(Opcodes.NEWARRAY, Opcodes.T_BYTE)
+      case pt if pt.name == "short" => mv.visitIntInsn(Opcodes.NEWARRAY, Opcodes.T_SHORT)
+      case pt if pt.name == "int" => mv.visitIntInsn(Opcodes.NEWARRAY, Opcodes.T_INT)
+      case pt if pt.name == "long" => mv.visitIntInsn(Opcodes.NEWARRAY, Opcodes.T_LONG)
+      case pt if pt.name == "float" => mv.visitIntInsn(Opcodes.NEWARRAY, Opcodes.T_FLOAT)
+      case pt if pt.name == "double" => mv.visitIntInsn(Opcodes.NEWARRAY, Opcodes.T_DOUBLE)
+      case pt if pt.name == "boolean" => mv.visitIntInsn(Opcodes.NEWARRAY, Opcodes.T_BOOLEAN)
+      case pt if pt.name == "char" => mv.visitIntInsn(Opcodes.NEWARRAY, Opcodes.T_CHAR)
+      case _ => mv.visitTypeInsn(Opcodes.ANEWARRAY, getClassName(nae.baseType.name))
     }
   }
   

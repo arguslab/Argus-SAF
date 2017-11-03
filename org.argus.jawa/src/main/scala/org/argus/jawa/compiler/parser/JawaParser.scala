@@ -773,24 +773,26 @@ class JawaParser(tokens: Array[Token], reporter: Reporter) extends JavaKnowledge
     CastExpression(typ_, varSym)(getPos(lparen.pos, varSym.pos))
   }
   
-  private def newExpression(): NewExpression = {
+  private def newExpression(): Expression with RHS with New = {
     val n = accept(NEW)
-    val baseTypeSymbol: TypeSymbol = typeSymbol()
-    val typeFragments: MList[TypeFragmentWithInit] = mlistEmpty
-    def loop() {
-      currentTokenType match {
-        case LBRACKET =>
-          typeFragments += typeFragmentWithInit()
-          loop()
-        case _ =>
-      }
+    val base: Type = typ()
+    currentTokenType match {
+      case LBRACKET =>
+        accept(LBRACKET)
+        val varSymbols: MList[VarSymbol] = mlistEmpty
+        while(currentTokenType != RBRACKET) {
+          val varSymbol_ : VarSymbol = varSymbol()
+          currentTokenType match {
+            case COMMA => nextToken()
+            case _ =>
+          }
+          varSymbols += varSymbol_
+        }
+        val rbracket = accept(RBRACKET)
+        NewArrayExpression(base, varSymbols.toList)(getPos(n.pos, rbracket.pos))
+      case _ =>
+        NewExpression(base)(getPos(n.pos, base.pos))
     }
-    loop()
-    val lastPos = typeFragments.lastOption match {
-      case Some(t) => t.pos
-      case None => baseTypeSymbol.pos
-    }
-    NewExpression(baseTypeSymbol, typeFragments.toList)(getPos(n.pos, lastPos))
   }
   
   private def literalExpression(): LiteralExpression = {
@@ -899,9 +901,14 @@ class JawaParser(tokens: Array[Token], reporter: Reporter) extends JavaKnowledge
     def loop() {
       currentTokenType match {
         case LBRACKET =>
-          val tf = typeFragment()
-          typeFragments += tf
-          loop()
+          val next: TokenType = lookahead(1)
+          next match {
+            case RBRACKET =>
+              val tf = typeFragment()
+              typeFragments += tf
+              loop()
+            case _ =>
+          }
         case _ =>
       }
     }
@@ -917,21 +924,6 @@ class JawaParser(tokens: Array[Token], reporter: Reporter) extends JavaKnowledge
     val lbracket = accept(LBRACKET)
     val rbracket = accept(RBRACKET)
     TypeFragment()(getPos(lbracket.pos, rbracket.pos))
-  }
-  
-  private def typeFragmentWithInit(): TypeFragmentWithInit = {
-    val lbracket = accept(LBRACKET)
-    val varSymbols: MList[VarSymbol] = mlistEmpty
-    while(currentTokenType != RBRACKET) {
-      val varSymbol_ : VarSymbol = varSymbol()
-      currentTokenType match {
-        case COMMA => nextToken()
-        case _ =>
-      }
-      varSymbols += varSymbol_
-    }
-    val rbracket = accept(RBRACKET)
-    TypeFragmentWithInit(varSymbols.toList)(getPos(lbracket.pos, rbracket.pos))
   }
   
   private def isUnaryOP(token: Token): Boolean = {

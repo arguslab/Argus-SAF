@@ -432,7 +432,7 @@ object ReachingFactsAnalysisHelper {
           val value: ISet[Instance] = Set(ins)
           result ++= value
         }
-      case ne: NewExpression =>
+      case ne: Expression with New =>
         val ins =
           if(ne.typ == new JawaType("java.lang.String")){
             PTAConcreteStringInstance("", currentContext)

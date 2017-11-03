@@ -117,7 +117,7 @@ object PointsCollector {
         case sfae: StaticFieldAccessExpression =>
           val fqn = new FieldFQN(sfae.name, sfae.typ)
           PointStaticFieldR(fqn, locUri, locIndex, ownerSig)
-        case ne: NewExpression =>
+        case ne: Expression with New =>
           PointO(ne.typ, locUri, locIndex, ownerSig)
         case _: NullExpression =>
           PointO(JavaKnowledge.JAVA_TOPLEVEL_OBJECT_TYPE, locUri, locIndex, ownerSig)
@@ -178,7 +178,7 @@ object PointsCollector {
               pl = Some(processLHS(as.lhs))
               pr = Some(processRHS(sfae))
             }
-          case ne: NewExpression =>
+          case ne: Expression with RHS with New =>
             pl = Some(processLHS(as.lhs))
             pr = Some(processRHS(ne))
           case ne: NullExpression =>
