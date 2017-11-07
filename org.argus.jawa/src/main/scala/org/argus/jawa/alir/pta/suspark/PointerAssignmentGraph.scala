@@ -133,15 +133,18 @@ class PointerAssignmentGraph[Node <: PtaNode]
   }
 
   def getStaticCallWithNoParam: ISet[PtaNode] = {
-    newNodes.filter { node =>
+    val nodes: MSet[PtaNode] = msetEmpty
+    newNodes.foreach { node =>
       node.point match {
         case pi: Point with Invoke =>
           if(pi.invokeTyp.equals("static") && pi.sig.getParameterNum == 0) {
-            true
-          } else false
-        case _ => false
+            nodes += node
+          }
+        case _ =>
       }
-    }.toSet
+    }
+    newNodes.clear()
+    nodes.toSet
   }
   
   def handleModelCall(pi: Point with Invoke, context: Context, callee: Callee): Unit = {
@@ -336,22 +339,22 @@ class PointerAssignmentGraph[Node <: PtaNode]
       case(typ, edgeMap) =>
         edgeMap.foreach{
           case(src, dsts) =>
-            val s = context
+            val s = context.copy
             src match {
               case lp: Point with Loc => s.setContext(pSig, lp.locUri)
               case _ => s.setContext(pSig, src.ownerSig.signature)
             }
             val srcNode = getNode(src, s)
-            dsts.foreach{
-              dst => 
-                val t = context
-                dst match {
-                  case lp: Point with Loc => t.setContext(pSig, lp.locUri)
-                  case _ => t.setContext(pSig, dst.ownerSig.signature)
-                }
-                val targetNode = getNode(dst, t)
-                if(!graph.containsEdge(srcNode, targetNode))
-                  edges += addEdge(srcNode, targetNode, typ)
+            dsts.foreach{ dst =>
+              val t = context.copy
+              dst match {
+                case lp: Point with Loc => t.setContext(pSig, lp.locUri)
+                case _ => t.setContext(pSig, dst.ownerSig.signature)
+              }
+              val targetNode = getNode(dst, t)
+              if(!graph.containsEdge(srcNode, targetNode)) {
+                edges += addEdge(srcNode, targetNode, typ)
+              }
             }
         }
     }

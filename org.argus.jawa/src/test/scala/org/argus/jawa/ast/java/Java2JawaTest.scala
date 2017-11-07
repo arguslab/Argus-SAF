@@ -46,6 +46,10 @@ class Java2JawaTest extends FlatSpec with Matchers {
 
 //  "/java/parser/cons/InnerConstructor.java" produce (1)
 
+  "/java/parser/expr/arraycreationexpr/ArrayCreationInit.java" produce (3)
+
+//  "/java/parser/expr/arraycreationexpr/ArrayCreationNoInit.java" produce (2)
+
   "/java/parser/expr/assignexpr/AND.java" produce (0)
 
   "/java/parser/expr/assignexpr/DIVIDE.java" produce (3)
@@ -131,10 +135,10 @@ class Java2JawaTest extends FlatSpec with Matchers {
     val css = new JavaByteCodeGenerator("1.8").generate(Some(global), cu)
     val ccl: CustomClassLoader = new CustomClassLoader()
     var result: Any = null
-//    val pw = new PrintWriter(System.out)
-//    css foreach { case (_, bytecodes) =>
-//      JavaByteCodeGenerator.outputByteCodes(pw, bytecodes)
-//    }
+    val pw = new PrintWriter(System.out)
+    css foreach { case (_, bytecodes) =>
+      JavaByteCodeGenerator.outputByteCodes(pw, bytecodes)
+    }
     css foreach { case (typ, bytecodes) =>
       try{
         val c = ccl.loadClass(typ.name, bytecodes)

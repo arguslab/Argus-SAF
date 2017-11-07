@@ -740,8 +740,9 @@ class JavaByteCodeGenerator(javaVersion: Int) {
   
   private def visitIndexLoad(mv: MethodVisitor, ie: IndexingExpression): Unit = {
     visitArrayAccess(mv, ie)
-    val k = this.locals(ie.base).typ.baseType.typ
-    k match {
+    val k = this.locals(ie.base).typ
+    val array_type = JawaType(k.baseType, k.dimensions - 1)
+    array_type.jawaName match {
       case "boolean" => mv.visitInsn(Opcodes.BALOAD)
       case "char" => mv.visitInsn(Opcodes.CALOAD)
       case "double" => mv.visitInsn(Opcodes.DALOAD)
@@ -754,8 +755,9 @@ class JavaByteCodeGenerator(javaVersion: Int) {
   }
   
   private def visitIndexStore(mv: MethodVisitor, ie: IndexingExpression): Unit = {
-    val k = this.locals(ie.base).typ.baseType.typ
-    k match {
+    val k = this.locals(ie.base).typ
+    val array_type = JawaType(k.baseType, k.dimensions - 1)
+    array_type.jawaName match {
       case "boolean" => mv.visitInsn(Opcodes.BASTORE)
       case "char" => mv.visitInsn(Opcodes.CASTORE)
       case "double" => mv.visitInsn(Opcodes.DASTORE)

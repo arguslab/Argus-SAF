@@ -218,7 +218,7 @@ class InterProceduralSuperSpark(global: Global) {
       case Some(pi) =>
         val callr = new DefaultCallr(pi)
         val callerNode = icfg.getICFGCallNode(node.context)
-        global.getMethodOrResolve(pi.sig) match {
+        global.getMethodOrResolve(callerNode.getOwner) match {
           case Some(method) =>
             method.getBody.resolvedBody.location(callerNode.getContext.getCurrentLocUri).statement match {
               case cs: CallStatement =>

@@ -250,9 +250,12 @@ object ReachingFactsAnalysisHelper {
           f.v
         }
         if(temp.isEmpty){
-          if(!(JavaKnowledge.isJavaPrimitive(ins.typ.baseTyp) && ins.typ.dimensions <= 1)) {
-            val uIns = PTAInstance(JawaType(ins.typ.baseType, ins.typ.dimensions - 1), currentContext)
-            ptaresult.addInstance(currentContext, arraySlot, uIns)
+          if(ins.typ.dimensions > 0) {
+            val baseType = JawaType(ins.typ.baseType, ins.typ.dimensions - 1)
+            if(baseType.isObject) {
+              val uIns = PTAInstance(baseType, currentContext)
+              ptaresult.addInstance(currentContext, arraySlot, uIns)
+            }
           }
         }
       }

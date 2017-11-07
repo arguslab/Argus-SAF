@@ -332,7 +332,7 @@ case class MethodDeclaration(
   }
   def toCode: String = {
     val annoPart = annotations.map(anno => anno.toCode).mkString(" ")
-    s"procedure ${returnType.toCode} ${methodSymbol.toCode}(${params.map(p => p.toCode).mkString(", ")}) $annoPart\n".trim + body.toCode
+    s"procedure ${returnType.toCode} ${methodSymbol.toCode}(${params.map(p => p.toCode).mkString(", ")}) $annoPart".trim + "\n" + body.toCode
   }
 }
 
@@ -382,8 +382,8 @@ case class ResolvedBody(
       index >= cc.range.fromLocation.locationIndex && index <= cc.range.toLocation.locationIndex
     }
   }
-  def location(locUri: String): Location = locations.find(l => l.locationUri.equals(locUri)).get
-  def location(locIndex: Int): Location = locations(locIndex)
+  def location(locUri: String): Location = locations.find(l => l.locationUri.equals(locUri)).getOrElse(throw new RuntimeException(s"Location uri $locUri not found in \n$toCode"))
+  def location(locIndex: Int): Location = locations.lift(locIndex).getOrElse(throw new RuntimeException(s"Location index $locIndex not found in \n$toCode"))
   def toCode: String = {
     val localPart = if(locals.isEmpty) "" else s"    ${locals.map(l => l.toCode).mkString("\n    ")}\n\n"
     val locationPart = if(locations.isEmpty) "" else s"    ${locations.map(l => l.toCode).mkString("\n    ")}\n"
