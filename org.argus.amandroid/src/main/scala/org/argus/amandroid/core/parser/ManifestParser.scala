@@ -195,9 +195,6 @@ class ManifestParser{
     if (className.startsWith(".")){
       this.currentComponent = toJawaClass(this.packageName + className)
       this.components += (this.currentComponent -> baseClass)
-    } else if (className.substring(0, 1).equals(className.substring(0, 1).toUpperCase())){
-      this.currentComponent = toJawaClass(this.packageName + "." + className)
-      this.components += (this.currentComponent -> baseClass)
     } else if (this.packageName != "" && !className.contains(".")){
       this.currentComponent = toJawaClass(this.packageName + "." + className)
       this.components += (this.currentComponent -> baseClass)

@@ -14,7 +14,7 @@ import com.github.javaparser.ast.body.VariableDeclarator
 import com.github.javaparser.ast.expr._
 import com.github.javaparser.ast.stmt._
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter
-import org.argus.jawa.ast.{AccessExpression, AssignmentStatement, BinaryExpression, CallRhs, CallStatement, EmptyStatement, FieldNameSymbol, GotoStatement, IfStatement, IndexingExpression, IndexingSuffix, LHS, LiteralExpression, LocalVarDeclaration, Location, LocationDefSymbol, LocationSymbol, MethodNameSymbol, NewArrayExpression, NewExpression, NullExpression, RHS, ReturnStatement, StaticFieldAccessExpression, ThrowStatement, TokenValue, TupleExpression, TypeExpression, TypeSymbol, VarDefSymbol, VarSymbol, VariableNameExpression, Annotation => JawaAnnotation, CatchClause => JawaCatchClause, Expression => JawaExpression, Statement => JawaStatement, Type => JawaTypeAst}
+import org.argus.jawa.ast.{AccessExpression, AssignmentStatement, BinaryExpression, CallRhs, CallStatement, EmptyStatement, FieldNameSymbol, GotoStatement, IfStatement, IndexingExpression, IndexingSuffix, LHS, LiteralExpression, LocalVarDeclaration, Location, LocationDefSymbol, LocationSymbol, MethodNameSymbol, NewArrayExpression, NewExpression, RHS, ReturnStatement, StaticFieldAccessExpression, ThrowStatement, TokenValue, TupleExpression, TypeExpression, TypeSymbol, VarDefSymbol, VarSymbol, VariableNameExpression, Annotation => JawaAnnotation, CatchClause => JawaCatchClause, Expression => JawaExpression, Statement => JawaStatement, Type => JawaTypeAst}
 import org.argus.jawa.compiler.lexer.{Token, Tokens}
 import org.argus.jawa.core.{JavaKnowledge, JawaPackage, JawaType, Signature}
 import org.argus.jawa.core.io.{RangePosition, Position => JawaPosition}
