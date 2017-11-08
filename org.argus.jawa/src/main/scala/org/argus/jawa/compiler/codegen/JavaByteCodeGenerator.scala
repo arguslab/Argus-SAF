@@ -725,16 +725,20 @@ class JavaByteCodeGenerator(javaVersion: Int) {
     nae.varSymbols foreach { vs =>
       visitVarLoad(mv, vs.varName)
     }
-    nae.baseType match {
-      case pt if pt.name == "byte" => mv.visitIntInsn(Opcodes.NEWARRAY, Opcodes.T_BYTE)
-      case pt if pt.name == "short" => mv.visitIntInsn(Opcodes.NEWARRAY, Opcodes.T_SHORT)
-      case pt if pt.name == "int" => mv.visitIntInsn(Opcodes.NEWARRAY, Opcodes.T_INT)
-      case pt if pt.name == "long" => mv.visitIntInsn(Opcodes.NEWARRAY, Opcodes.T_LONG)
-      case pt if pt.name == "float" => mv.visitIntInsn(Opcodes.NEWARRAY, Opcodes.T_FLOAT)
-      case pt if pt.name == "double" => mv.visitIntInsn(Opcodes.NEWARRAY, Opcodes.T_DOUBLE)
-      case pt if pt.name == "boolean" => mv.visitIntInsn(Opcodes.NEWARRAY, Opcodes.T_BOOLEAN)
-      case pt if pt.name == "char" => mv.visitIntInsn(Opcodes.NEWARRAY, Opcodes.T_CHAR)
-      case _ => mv.visitTypeInsn(Opcodes.ANEWARRAY, getClassName(nae.baseType.name))
+    if(nae.varSymbols.size >= 2) {
+      mv.visitMultiANewArrayInsn(getClassName(nae.typ.name), nae.dimensions)
+    } else {
+      nae.baseType match {
+        case pt if pt.name == "byte" => mv.visitIntInsn(Opcodes.NEWARRAY, Opcodes.T_BYTE)
+        case pt if pt.name == "short" => mv.visitIntInsn(Opcodes.NEWARRAY, Opcodes.T_SHORT)
+        case pt if pt.name == "int" => mv.visitIntInsn(Opcodes.NEWARRAY, Opcodes.T_INT)
+        case pt if pt.name == "long" => mv.visitIntInsn(Opcodes.NEWARRAY, Opcodes.T_LONG)
+        case pt if pt.name == "float" => mv.visitIntInsn(Opcodes.NEWARRAY, Opcodes.T_FLOAT)
+        case pt if pt.name == "double" => mv.visitIntInsn(Opcodes.NEWARRAY, Opcodes.T_DOUBLE)
+        case pt if pt.name == "boolean" => mv.visitIntInsn(Opcodes.NEWARRAY, Opcodes.T_BOOLEAN)
+        case pt if pt.name == "char" => mv.visitIntInsn(Opcodes.NEWARRAY, Opcodes.T_CHAR)
+        case _ => mv.visitTypeInsn(Opcodes.ANEWARRAY, getClassName(nae.baseType.name))
+      }
     }
   }
   

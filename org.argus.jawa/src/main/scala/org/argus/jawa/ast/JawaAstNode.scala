@@ -670,7 +670,7 @@ case class NewExpression(base: Type)(implicit val pos: Position) extends Express
 case class NewArrayExpression(
     base: Type,
     varSymbols: IList[VarSymbol])(implicit val pos: Position) extends Expression with RHS with New {
-  def dimensions: Int = base.dimensions + 1
+  def dimensions: Int = base.dimensions + varSymbols.size
   def baseType: JawaType = base.typ
   def typ: JawaType = getType(baseType.baseTyp, dimensions)
   def toCode: String = s"new ${base.toCode}[${varSymbols.map(vs => vs.toCode).mkString("," )}]"

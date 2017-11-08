@@ -410,7 +410,7 @@ class Java2Jawa(val global: Global, val sourceFile: JavaSourceFile) {
       frontStatements.addAll(nsi.getBody.getStatements)
     }
     if(constructors.isEmpty) {
-      constructors.add(new ConstructorDeclaration(typ.getModifiers, new NodeList[AnnotationExpr], new NodeList[TypeParameter], typ.getName, new NodeList[Parameter], new NodeList[ReferenceType], new BlockStmt(frontStatements)))
+      constructors.add(new ConstructorDeclaration(typ.getModifiers, new NodeList[AnnotationExpr], new NodeList[TypeParameter], typ.getName, new NodeList[Parameter], new NodeList[ReferenceType], new BlockStmt()))
     }
     constructors.forEach { cons =>
       val bodyBlock = makeConstructorBody(frontStatements, cons.getBody.getStatements)

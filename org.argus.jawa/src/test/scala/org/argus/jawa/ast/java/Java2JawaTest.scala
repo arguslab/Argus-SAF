@@ -30,89 +30,115 @@ class Java2JawaTest extends FlatSpec with Matchers {
     new TestFile(file)
   }
 
-//  "/java/parser/as/Assert1.java" should "throw AssertionError" in {
-//    an[AssertionError] should be thrownBy run("/java/parser/as/Assert1.java")
-//  }
-//
-//  "/java/parser/cons/StaticInitializer.java" produce (1)
-//
-//  "/java/parser/cons/StaticInitializerMixed.java" produce (2)
-//
-//  "/java/parser/cons/StaticInitializerWithStaticBlock.java" produce (1)
-//
-//  "/java/parser/cons/ConstructorWithoutSuper.java" produce (1)
-//
-//  "/java/parser/cons/ConstructorWithSuper.java" produce (1)
+  "/java/parser/as/Assert1.java" should "throw AssertionError" in {
+    an[AssertionError] should be thrownBy run("/java/parser/as/Assert1.java")
+  }
+
+  "/java/parser/cons/StaticInitializer.java" produce (1)
+
+  "/java/parser/cons/StaticInitializerMixed.java" produce (2)
+
+  "/java/parser/cons/StaticInitializerWithStaticBlock.java" produce (1)
+
+  "/java/parser/cons/ConstructorWithoutSuper.java" produce (1)
+
+  "/java/parser/cons/ConstructorWithSuper.java" produce (1)
 
 //  "/java/parser/cons/InnerConstructor.java" produce (1)
+
+  "/java/parser/expr/arraycreationexpr/ArrayCreationComplex.java" produce (11)
 
   "/java/parser/expr/arraycreationexpr/ArrayCreationInit.java" produce (3)
 
   "/java/parser/expr/arraycreationexpr/ArrayCreationNoInit.java" produce (2)
 
-//  "/java/parser/expr/assignexpr/AND.java" produce (0)
-//
-//  "/java/parser/expr/assignexpr/DIVIDE.java" produce (3)
-//
-//  "/java/parser/expr/assignexpr/LEFT_SHIFT.java" produce (4)
-//
-//  "/java/parser/expr/assignexpr/MINUS.java" produce (-1)
-//
-//  "/java/parser/expr/assignexpr/MULTIPLY.java" produce (6)
-//
-//  "/java/parser/expr/assignexpr/OR.java" produce (3)
-//
-//  "/java/parser/expr/assignexpr/PLUS.java" produce (3)
-//
-//  "/java/parser/expr/assignexpr/REMAINDER.java" produce (0)
-//
-//  "/java/parser/expr/assignexpr/SIGNED_RIGHT_SHIFT.java" produce (2)
-//
-//  "/java/parser/expr/assignexpr/UNSIGNED_RIGHT_SHIFT.java" produce (2)
-//
-//  "/java/parser/expr/assignexpr/XOR.java" produce (3)
-//
-//  "/java/parser/expr/binaryexpr/AND.java" produce (false)
-//
-//  "/java/parser/expr/binaryexpr/BINARY_AND.java" produce (0)
-//
-//  "/java/parser/expr/binaryexpr/BINARY_OR.java" produce (1)
-//
-//  "/java/parser/expr/binaryexpr/DIVIDE.java" produce (0)
-//
-//  "/java/parser/expr/binaryexpr/EQUALS.java" produce (false)
-//
-//  "/java/parser/expr/binaryexpr/GREATER.java" produce (false)
-//
-//  "/java/parser/expr/binaryexpr/GREATER_EQUALS.java" produce (true)
-//
-//  "/java/parser/expr/binaryexpr/LEFT_SHIFT.java" produce (2)
-//
-//  "/java/parser/expr/binaryexpr/LESS.java" produce (true)
-//
-//  "/java/parser/expr/binaryexpr/LESS_EQUALS.java" produce (true)
-//
-//  "/java/parser/expr/binaryexpr/MINUS.java" produce (0)
-//
-//  "/java/parser/expr/binaryexpr/MULTIPLY.java" produce (6)
-//
-//  "/java/parser/expr/binaryexpr/NOT_EQUALS.java" produce (true)
-//
-//  "/java/parser/expr/binaryexpr/OR.java" produce (true)
-//
-//  "/java/parser/expr/binaryexpr/PLUS.java" produce (3)
-//
-//  "/java/parser/expr/binaryexpr/REMAINDER.java" produce (1)
-//
-//  "/java/parser/expr/binaryexpr/SIGNED_RIGHT_SHIFT.java" produce (1)
-//
-//  "/java/parser/expr/binaryexpr/UNSIGNED_RIGHT_SHIFT.java" produce (1)
-//
-//  "/java/parser/expr/binaryexpr/XOR.java" produce (true)
-//
-//  "/java/parser/expr/vardeclexpr/VariableDeclarationPrimitive.java" produce (3)
-//
-//  "/java/parser/expr/vardeclexpr/VariableDeclarationPrimitive2.java" produce (3D)
+  "/java/parser/expr/assignexpr/AND.java" produce (0)
+
+  "/java/parser/expr/assignexpr/DIVIDE.java" produce (3)
+
+  "/java/parser/expr/assignexpr/LEFT_SHIFT.java" produce (4)
+
+  "/java/parser/expr/assignexpr/MINUS.java" produce (-1)
+
+  "/java/parser/expr/assignexpr/MULTIPLY.java" produce (6)
+
+  "/java/parser/expr/assignexpr/OR.java" produce (3)
+
+  "/java/parser/expr/assignexpr/PLUS.java" produce (3)
+
+  "/java/parser/expr/assignexpr/REMAINDER.java" produce (0)
+
+  "/java/parser/expr/assignexpr/SIGNED_RIGHT_SHIFT.java" produce (2)
+
+  "/java/parser/expr/assignexpr/UNSIGNED_RIGHT_SHIFT.java" produce (2)
+
+  "/java/parser/expr/assignexpr/XOR.java" produce (3)
+
+  "/java/parser/expr/binaryexpr/AND.java" produce (false)
+
+  "/java/parser/expr/binaryexpr/BINARY_AND.java" produce (0)
+
+  "/java/parser/expr/binaryexpr/BINARY_OR.java" produce (1)
+
+  "/java/parser/expr/binaryexpr/DIVIDE.java" produce (0)
+
+  "/java/parser/expr/binaryexpr/EQUALS.java" produce (false)
+
+  "/java/parser/expr/binaryexpr/GREATER.java" produce (false)
+
+  "/java/parser/expr/binaryexpr/GREATER_EQUALS.java" produce (true)
+
+  "/java/parser/expr/binaryexpr/LEFT_SHIFT.java" produce (2)
+
+  "/java/parser/expr/binaryexpr/LESS.java" produce (true)
+
+  "/java/parser/expr/binaryexpr/LESS_EQUALS.java" produce (true)
+
+  "/java/parser/expr/binaryexpr/MINUS.java" produce (0)
+
+  "/java/parser/expr/binaryexpr/MULTIPLY.java" produce (6)
+
+  "/java/parser/expr/binaryexpr/NOT_EQUALS.java" produce (true)
+
+  "/java/parser/expr/binaryexpr/OR.java" produce (true)
+
+  "/java/parser/expr/binaryexpr/PLUS.java" produce (3)
+
+  "/java/parser/expr/binaryexpr/REMAINDER.java" produce (1)
+
+  "/java/parser/expr/binaryexpr/SIGNED_RIGHT_SHIFT.java" produce (1)
+
+  "/java/parser/expr/binaryexpr/UNSIGNED_RIGHT_SHIFT.java" produce (1)
+
+  "/java/parser/expr/binaryexpr/XOR.java" produce (true)
+
+  "/java/parser/expr/castexpr/CastObject.java" produce (1)
+
+  "/java/parser/expr/classexpr/ClassExpression.java" produce (true)
+
+  "/java/parser/expr/instanceofexpr/InstanceOfExpression.java" produce (true)
+
+  "/java/parser/expr/unaryexpr/BITWISE_COMPLEMENT.java" produce (-9)
+
+  "/java/parser/expr/unaryexpr/Complex.java" produce (-3)
+
+  "/java/parser/expr/unaryexpr/LOGICAL_COMPLEMENT.java" produce (false)
+
+  "/java/parser/expr/unaryexpr/MINUS.java" produce (-1)
+
+  "/java/parser/expr/unaryexpr/PLUS.java" produce (1)
+
+  "/java/parser/expr/unaryexpr/POSTFIX_DECREMENT.java" produce (1)
+
+  "/java/parser/expr/unaryexpr/POSTFIX_INCREMENT.java" produce (1)
+
+  "/java/parser/expr/unaryexpr/PREFIX_DECREMENT.java" produce (0)
+
+  "/java/parser/expr/unaryexpr/PREFIX_INCREMENT.java" produce (2)
+
+  "/java/parser/expr/vardeclexpr/VariableDeclarationPrimitive.java" produce (3)
+
+  "/java/parser/expr/vardeclexpr/VariableDeclarationPrimitive2.java" produce (3D)
 
   class TestFile(file: String) {
     def produce(tp: Any): Unit = {
