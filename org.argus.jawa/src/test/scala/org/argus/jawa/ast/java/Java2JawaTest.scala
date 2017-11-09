@@ -16,7 +16,7 @@ import java.lang.reflect.InvocationTargetException
 import org.argus.jawa.compiler.codegen.JavaByteCodeGenerator
 import org.argus.jawa.compiler.util.ReadClassFile.CustomClassLoader
 import org.argus.jawa.core._
-import org.argus.jawa.core.io.{JavaSourceFile, PlainFile}
+import org.argus.jawa.core.io.JavaSourceFile
 import org.argus.jawa.core.util.FileUtil
 import org.scalatest.{FlatSpec, Matchers}
 
@@ -31,7 +31,7 @@ class Java2JawaTest extends FlatSpec with Matchers {
   }
 
   "/java/parser/as/Assert1.java" should "throw AssertionError" in {
-    an[AssertionError] should be thrownBy run("/java/parser/as/Assert1.java")
+    an[AssertionError] should be thrownBy run("/java/parser/as/Assert1.java", loadpkg = false)
   }
 
   "/java/parser/cons/StaticInitializer.java" produce (1)
@@ -116,6 +116,8 @@ class Java2JawaTest extends FlatSpec with Matchers {
 
   "/java/parser/expr/classexpr/ClassExpression.java" produce (true)
 
+  "/java/parser/expr/conditionalexpr/ConditionalExpr.java" produce (3)
+
   "/java/parser/expr/instanceofexpr/InstanceOfExpression.java" produce (true)
 
   "/java/parser/expr/unaryexpr/BITWISE_COMPLEMENT.java" produce (-9)
@@ -140,41 +142,54 @@ class Java2JawaTest extends FlatSpec with Matchers {
 
   "/java/parser/expr/vardeclexpr/VariableDeclarationPrimitive2.java" produce (3D)
 
+  "/java/parser/imports/ImportsTest.java" produce (7, true)
+
+  "/java/parser/imports/StaticImportsTest.java" produce (5, true)
+
   class TestFile(file: String) {
-    def produce(tp: Any): Unit = {
+    def produce(tp: Any, loadpkg: Boolean = false): Unit = {
       file should "produce expected result" in {
-        val r = run(file)
+        val r = run(file, loadpkg)
         assert(r == tp)
       }
     }
   }
 
-  def run(file: String): Any = {
-    val fileUri = FileUtil.toUri(getClass.getResource(file).getPath)
+  def run(file: String, loadpkg: Boolean): Any = {
+    val path = file.substring(0, file.lastIndexOf("/"))
+    val className = file.substring(6, file.length - 5).replace("/", ".")
     val global = new Global("test", new PrintReporter(MsgLevel.INFO))
     global.setJavaLib(getClass.getResource("/libs/rt.jar").getPath)
-    global.load(FileUtil.toUri(getClass.getResource("/java/parser").getPath), Constants.JAVA_FILE_EXT, NoLibraryAPISummary.isLibraryClass)
-    val sf = new JavaSourceFile(global, new PlainFile(FileUtil.toFile(fileUri)))
-    val j2j = new Java2Jawa(global, sf)
-    val cu = j2j.process(true)
-    println(cu.toCode)
-    val css = new JavaByteCodeGenerator("1.8").generate(Some(global), cu)
-    val ccl: CustomClassLoader = new CustomClassLoader()
-    var result: Any = null
-    val pw = new PrintWriter(System.out)
-    css foreach { case (_, bytecodes) =>
-      JavaByteCodeGenerator.outputByteCodes(pw, bytecodes)
+    val map = if(loadpkg) {
+      global.load(FileUtil.toUri(getClass.getResource(path).getPath), Constants.JAVA_FILE_EXT, NoLibraryAPISummary.isLibraryClass)
+    } else {
+      global.load(FileUtil.toUri(getClass.getResource(file).getPath), NoLibraryAPISummary.isLibraryClass)
     }
-    css foreach { case (typ, bytecodes) =>
-      try{
-        val c = ccl.loadClass(typ.name, bytecodes)
-        result = c.getMethod("main").invoke(null)
-      } catch {
-        case ite: InvocationTargetException =>
-          throw ite.getTargetException
-        case ilv: java.lang.VerifyError =>
-          throw new RuntimeException(ilv.getMessage)
-      }
+    val ccl: CustomClassLoader = new CustomClassLoader()
+    map.foreach {
+      case (_, sf) =>
+        val jsf = sf.asInstanceOf[JavaSourceFile]
+        val j2j = new Java2Jawa(global, jsf)
+        val cu = j2j.process(true)
+        println(cu.toCode)
+        val css = new JavaByteCodeGenerator("1.8").generate(Some(global), cu)
+        val pw = new PrintWriter(System.out)
+        css foreach { case (ctyp, bytecodes) =>
+          JavaByteCodeGenerator.outputByteCodes(pw, bytecodes)
+          ccl.loadClass(ctyp.name, bytecodes)
+        }
+    }
+
+    var result: Any = null
+
+    try{
+      val c = ccl.loadClass(className)
+      result = c.getMethod("main").invoke(null)
+    } catch {
+      case ite: InvocationTargetException =>
+        throw ite.getTargetException
+      case ilv: java.lang.VerifyError =>
+        throw new RuntimeException(ilv.getMessage)
     }
     result
   }

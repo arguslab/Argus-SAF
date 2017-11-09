@@ -30,25 +30,27 @@ trait JawaClasspathManager extends JavaKnowledge { self: Global =>
   /**
     * load code from given root dir
     */
-  def load(fileRootUri: FileResourceUri, ext: String, isLib: (JawaType => Boolean)): Unit = {
+  def load(fileRootUri: FileResourceUri, ext: String, isLib: (JawaType => Boolean)): IMap[JawaType, SourceFile] = {
     val fileUris = FileUtil.listFiles(fileRootUri, ext, recursive = true)
-    fileUris.foreach{ fileUri =>
+    fileUris.flatMap{ fileUri =>
       load(fileUri, isLib)
-    }
+    }.toMap
   }
 
   /**
     * load code from given file
     */
-  def load(fileUri: FileResourceUri, isLib: (JawaType => Boolean)): Unit = {
+  def load(fileUri: FileResourceUri, isLib: (JawaType => Boolean)): IMap[JawaType, SourceFile] = {
     fileUri match {
       case jawafile if jawafile.endsWith(Constants.JAWA_FILE_EXT) => loadJawa(FileUtil.toFile(jawafile), isLib)
       case javafile if javafile.endsWith(Constants.JAVA_FILE_EXT) => loadJava(FileUtil.toFile(javafile), isLib)
-      case _ => reporter.warning(TITLE, s"Try to load class from unknown source file: $fileUri")
+      case _ =>
+        reporter.warning(TITLE, s"Try to load class from unknown source file: $fileUri")
+        imapEmpty
     }
   }
 
-  private def loadJawa(filePath: Path, isLib: (JawaType => Boolean)): Unit = {
+  private def loadJawa(filePath: Path, isLib: (JawaType => Boolean)): IMap[JawaType, SourceFile] = {
     val source = new JawaSourceFile(new PlainFile(filePath))
     val codes = source.getClassCodes
     val classTypes: MSet[JawaType] = msetEmpty
@@ -60,24 +62,26 @@ trait JawaClasspathManager extends JavaKnowledge { self: Global =>
         case e: Exception => reporter.warning(TITLE, e.getMessage)
       }
     }
-    classTypes.foreach { typ =>
+    classTypes.map { typ =>
       if (isLib(typ)) {
         this.userLibraryClassCodes(typ) = source
       } else {
         this.applicationClassCodes(typ) = source
       }
-    }
+      typ -> source
+    }.toMap
   }
 
-  private def loadJava(filePath: Path, isLib: (JawaType => Boolean)): Unit = {
+  private def loadJava(filePath: Path, isLib: (JawaType => Boolean)): IMap[JawaType, SourceFile] = {
     val source = new JavaSourceFile(self, new PlainFile(filePath))
-    source.getTypes.foreach { typ =>
+    source.getTypes.map { typ =>
       if (isLib(typ)) {
         this.userLibraryClassCodes(typ) = source
       } else {
         this.applicationClassCodes(typ) = source
       }
-    }
+      typ -> source
+    }.toMap
   }
 
   /**

@@ -7,12 +7,16 @@
  *
  * Detailed contributors are listed in the CONTRIBUTOR.md
  */
-package parser.expr.assignexpr;
+package parser.imports;
 
-public class XOR {
-    static int i = 1;
-    static int j = 2;
+import parser.imports.pkg1.Ana;
+import parser.imports.pkg2.*;
+
+public class ImportsTest {
     public static int main() {
-        return j ^= i;
+        Ana a = new Ana(); // Should able to get direct import
+        Bob b = new Bob(); // Should able to get asterisk import
+        int sum = a.i + b.i;
+        return sum;
     }
 }

@@ -7,12 +7,13 @@
  *
  * Detailed contributors are listed in the CONTRIBUTOR.md
  */
-package parser.expr.assignexpr;
+package parser.expr.conditionalexpr;
 
-public class XOR {
-    static int i = 1;
-    static int j = 2;
+public class ConditionalExpr {
     public static int main() {
-        return j ^= i;
+        boolean b = true;
+        int i = b ? 1 : 0;
+        int j = b ? i + 2 : i + 1;
+        return j;
     }
 }

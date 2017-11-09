@@ -7,12 +7,14 @@
  *
  * Detailed contributors are listed in the CONTRIBUTOR.md
  */
-package parser.expr.assignexpr;
+package parser.imports;
 
-public class XOR {
-    static int i = 1;
-    static int j = 2;
+import static parser.imports.staticpkg.StaticField.i;
+import static parser.imports.staticpkg.StaticContainer.*;
+
+public class StaticImportsTest {
     public static int main() {
-        return j ^= i;
+        int sum = i + j;
+        return sum;
     }
 }

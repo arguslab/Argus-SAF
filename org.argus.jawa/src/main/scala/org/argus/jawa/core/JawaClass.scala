@@ -262,9 +262,38 @@ case class JawaClass(global: Global, typ: JawaType, accessFlags: Int) extends Ja
     }
   }
 
+  /**
+    * get method from this class by the given method name
+    */
+  def getMethodsByName(methodName: String): Set[JawaMethod] = {
+    getMethods.filter(method => method.getName == methodName)
+  }
+
   def getMethodByNameAndArgTypes(name: String, argTypes: IList[JawaType]): Option[JawaMethod] = {
     getDeclaredMethodsByName(name).find { m =>
-      m.getParamTypes == argTypes
+      var result = true
+      if (m.getParamTypes.size == argTypes.size) {
+        if(m.getParamTypes != argTypes) {
+          for (i <- m.getParamTypes.indices) {
+            val pType = m.getParamType(i)
+            val aType = argTypes(i)
+            if(pType.isPrimitive || aType.isPrimitive) {
+              if(pType != aType) {
+                result = false
+              }
+            } else {
+              val pClass = global.getClassOrResolve(pType)
+              val aClass = global.getClassOrResolve(aType)
+              if (!global.getClassHierarchy.isClassRecursivelySubClassOfIncluding(aClass, pClass)) {
+                result = false
+              }
+            }
+          }
+        }
+      } else {
+        result = false
+      }
+      result
     } match {
       case m @ Some(_) => m
       case None =>
@@ -319,7 +348,7 @@ case class JawaClass(global: Global, typ: JawaType, accessFlags: Int) extends Ja
    * get method from this class by the given method name
    */
   def getDeclaredMethodsByName(methodName: String): Set[JawaMethod] = {
-    getDeclaredMethods.filter(method=> method.getName == methodName)
+    getDeclaredMethods.filter(method => method.getName == methodName)
   }
 
   /**
@@ -422,6 +451,11 @@ case class JawaClass(global: Global, typ: JawaType, accessFlags: Int) extends Ja
     else if(!this.methods.contains(ap.getSubSignature)) global.reporter.error(TITLE, "The method " + ap.getName + " is not declared in class " + getName)
     else this.methods -= ap.getSubSignature
   }
+
+  /**
+    * get static methods
+    */
+  def getStaticMethods: ISet[JawaMethod] = getMethods.filter(m => m.isStatic)
 
   /**
    * get interface size

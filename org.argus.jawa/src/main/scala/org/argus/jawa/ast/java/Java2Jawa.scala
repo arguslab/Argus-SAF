@@ -26,124 +26,13 @@ import org.argus.jawa.core.{Global, JavaKnowledge, JawaType, Signature}
 
 class Java2Jawa(val global: Global, val sourceFile: JavaSourceFile) {
 
-  private var packageName: String = ""
+  protected[java] var packageName: String = ""
 
-  private val imports: NodeList[ImportDeclaration] = sourceFile.getJavaCU.getImports
-
-  private val typeMap: MMap[String, JawaType] = mmapEmpty
+  protected[java] val imports: ImportHandler = new ImportHandler(this, sourceFile.getJavaCU.getImports)
 
   private val paramMap: MMap[Signature, IMap[String, JawaType]] = mmapEmpty
 
   def getParams(sig: Signature): IMap[String, JawaType] = paramMap.getOrElse(sig, imapEmpty)
-
-  protected[java] def findTypeOpt(name: String): Option[JawaType] = {
-    typeMap.get(name) match {
-      case t @ Some(_) => t
-      case None =>
-        var typOpt: Option[JawaType] = None
-        // Check whether itself is FQN
-        val firstTry = new JawaType(name)
-        if(global.containsClass(firstTry)) {
-          typOpt = Some(firstTry)
-        }
-        typOpt match {
-          case None =>
-            // check current package
-            if(packageName.nonEmpty) {
-              val checkCurrent = new JawaType(s"$packageName.$name")
-              if(global.containsClass(checkCurrent)) {
-                typOpt = Some(checkCurrent)
-              }
-            }
-          case _ =>
-        }
-        typOpt match {
-          case None =>
-            // Check imports
-            imports.forEach { imp =>
-              if(!imp.isAsterisk) {
-                val typ = new JawaType(imp.getNameAsString)
-                if(typ.jawaName.endsWith(name)) {
-                  typOpt = Some(typ)
-                }
-              } else if(imp.isAsterisk) {
-                val typ = new JawaType(s"${imp.getNameAsString}.$name")
-                if(global.containsClass(typ)) {
-                  typOpt = Some(typ)
-                }
-              }
-            }
-          case _ =>
-        }
-        typOpt match {
-          case None =>
-            // java.lang.* is implicit applied
-            val typ = new JawaType(s"java.lang.$name")
-            if(global.containsClass(typ)) {
-              typOpt = Some(typ)
-            }
-          case _ =>
-        }
-        typOpt match {
-          case Some(t) => typeMap(name) = t
-          case None =>
-            val dotIndex = name.lastIndexOf('.')
-            if(dotIndex >= 0) {
-              val innerName = new StringBuilder(name).replace(dotIndex, dotIndex + 1, "$").toString()
-              typOpt = findTypeOpt(innerName)
-            }
-        }
-        typOpt
-    }
-  }
-
-  protected[java] def findType(name: String, pos: RangePosition): JawaType = {
-    findTypeOpt(name) match {
-      case Some(typ) => typ
-      case None =>
-        global.reporter.error(pos, s"Could not resolve type: $name")
-        val hackType = new JawaType(name)
-        typeMap(name) = hackType
-        hackType
-    }
-  }
-
-  protected[java] def findType(javaType: Type): JawaType = {
-    var typStr: String = null
-    var dimension: Int = 0
-    javaType match {
-      case at: ArrayType =>
-        typStr = findType(at.getElementType).jawaName
-        dimension = at.getArrayLevel
-      case cit: ClassOrInterfaceType =>
-        typStr = findType(cit.getNameAsString, cit.getName.toRange).jawaName
-      case it: IntersectionType =>
-        val jawaTypes: MList[JawaType] = mlistEmpty
-        it.getElements.forEach{ elem =>
-          jawaTypes += findType(elem)
-        }
-        typStr = jawaTypes.map(t => t.jawaName).mkString("&")
-      case pt: PrimitiveType =>
-        pt.getType match {
-          case PrimitiveType.Primitive.BOOLEAN => typStr = "boolean"
-          case PrimitiveType.Primitive.BYTE => typStr = "byte"
-          case PrimitiveType.Primitive.CHAR => typStr = "char"
-          case PrimitiveType.Primitive.DOUBLE => typStr = "double"
-          case PrimitiveType.Primitive.FLOAT => typStr = "float"
-          case PrimitiveType.Primitive.INT => typStr = "int"
-          case PrimitiveType.Primitive.LONG => typStr = "long"
-          case PrimitiveType.Primitive.SHORT => typStr = "short"
-          case _ =>
-            global.reporter.error(javaType.toRange.pos, s"Unknown primitive type: $pt")
-            typStr = "int"
-        }
-      case _: VoidType =>
-        typStr = "void"
-      case _ =>
-        throw Java2JawaException(javaType.toRange, s"${javaType.getClass} is not handled by jawa: $javaType, please contact author: fgwei521@gmail.com")
-    }
-    new JawaType(typStr, dimension)
-  }
 
   private val superType: MMap[JawaType, JawaType] = mmapEmpty
   protected[java] def getSuperType(typ: JawaType): JawaType = superType.getOrElseUpdate(typ, JavaKnowledge.JAVA_TOPLEVEL_OBJECT_TYPE)
@@ -199,7 +88,7 @@ class Java2Jawa(val global: Global, val sourceFile: JavaSourceFile) {
   }
 
   protected[java] def handleType(javaType: Type): JawaTypeAst = {
-    val jawaType = findType(javaType)
+    val jawaType = imports.findType(javaType)
     handleJawaType(jawaType, javaType.getElementType.toRange)
   }
 
@@ -262,7 +151,7 @@ class Java2Jawa(val global: Global, val sourceFile: JavaSourceFile) {
             val kindKey = Token(Tokens.ID, getKeyWordRange(cid), "kind")
             val kindValue = TokenValue(Token(Tokens.ID, getKeyWordRange(cid), "class"))(getKeyWordRange(cid))
             val annotation: JawaAnnotation = JawaAnnotation(kindKey, Some(kindValue))(getKeyWordRange(cid))
-            val sTyp = findType(et)
+            val sTyp = imports.findType(et)
             superType(cityp.typ) = sTyp
             val ei = ExtendAndImplement(TypeSymbol(Token(Tokens.ID, et.toRange, sTyp.jawaName.apostrophe))(et.toRange), List(annotation))(et.toRange)
             parentTyps += ei
@@ -272,7 +161,7 @@ class Java2Jawa(val global: Global, val sourceFile: JavaSourceFile) {
             val kindKey = Token(Tokens.ID, getKeyWordRange(cid), "kind")
             val kindValue = TokenValue(Token(Tokens.ID, getKeyWordRange(cid), "interface"))(getKeyWordRange(cid))
             val annotation: JawaAnnotation = JawaAnnotation(kindKey, Some(kindValue))(getKeyWordRange(cid))
-            val ei = ExtendAndImplement(TypeSymbol(Token(Tokens.ID, it.toRange, findType(it).jawaName.apostrophe))(it.toRange), List(annotation))(it.toRange)
+            val ei = ExtendAndImplement(TypeSymbol(Token(Tokens.ID, it.toRange, imports.findType(it).jawaName.apostrophe))(it.toRange), List(annotation))(it.toRange)
             parentTyps += ei
           }
           val nodes = new NodeList[ClassOrInterfaceType](cid.getExtendedTypes)
@@ -577,7 +466,7 @@ class Java2Jawa(val global: Global, val sourceFile: JavaSourceFile) {
   }
 
   def processAnnotationExpr(ae: AnnotationExpr): JawaAnnotation = {
-    val annoKey = Token(Tokens.ID, ae.getName.toRange, findType(ae.getNameAsString, ae.getName.toRange).jawaName.apostrophe)
+    val annoKey = Token(Tokens.ID, ae.getName.toRange, imports.findType(ae.getNameAsString, ae.getName.toRange).jawaName.apostrophe)
     val annoValue: Option[AnnotationValue] = ae match {
       case _: NormalAnnotationExpr =>
         Some(StatementValue(ilistEmpty)(ae.toRange)) // TODO
@@ -590,4 +479,4 @@ class Java2Jawa(val global: Global, val sourceFile: JavaSourceFile) {
 
 }
 
-case class Java2JawaException(pos: RangePosition, msg: String) extends RuntimeException
+case class Java2JawaException(pos: Position, msg: String) extends RuntimeException(msg)

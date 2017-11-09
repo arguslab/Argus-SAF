@@ -124,6 +124,32 @@ trait JawaClassLoadManager extends JavaKnowledge with JawaResolver { self: Globa
    * current Global contains the given class or not
    */
   def containsClass(typ: JawaType): Boolean = containsClassFile(typ)
+
+  def containsClassByName(name: String): Boolean = containsClass(new JawaType(name))
+
+  /**
+    * Search jawa type using canonical name
+    * @param canonicalname Java canonical name, such as "com.example.Test.Inner"
+    * @return If it is a jawa type return JawaType(com.example.Test&Inner), if not return None
+    */
+  def containsClassCanonical(canonicalname: String): Option[JawaType] = {
+    if(containsClassByName(canonicalname)) {
+      Some(new JawaType(canonicalname))
+    } else {
+      var name = canonicalname
+      var result = false
+      while (!result && name.contains(".")) {
+        val idx = name.lastIndexOf(".")
+        name = new StringBuilder(name).replace(idx, idx + 1, "$").toString
+        result = containsClassByName(name)
+      }
+      if(result) {
+        Some(new JawaType(name))
+      } else {
+        None
+      }
+    }
+  }
   
   /**
    * grab field from Global. Input example is java.lang.Throwable.stackState

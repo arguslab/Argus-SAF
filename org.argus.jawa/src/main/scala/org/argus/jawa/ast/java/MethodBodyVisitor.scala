@@ -24,12 +24,27 @@ class MethodBodyVisitor(j2j: Java2Jawa, ownerSig: Signature, ownerPos: RangePosi
 
   import j2j._
 
+  imports.resolveStaticImports()
+
   var lineCount: Int = 0
   var labelCount: Int = 0
 
   val thisVar: VarSymbol = VarSymbol(Token(Tokens.ID, ownerPos, "this".apostrophe))(ownerPos)
+  var scopes: IList[MMap[String, String]] = ilistEmpty
+  var varDeclNameMap: MMap[String, String] = mmapEmpty ++ getParams(ownerSig).map { case (name, _) => name -> name}
   val localVariables: MMap[String, JawaType] = mmapEmpty ++ getParams(ownerSig)
   val localVarDeclarations: MList[LocalVarDeclaration] = mlistEmpty
+
+  def scopeStart(): Unit = {
+    scopes = varDeclNameMap :: scopes
+    varDeclNameMap = mmapEmpty ++ varDeclNameMap
+  }
+
+  def scopeEnd(): Unit = {
+    varDeclNameMap.clear()
+    varDeclNameMap = scopes.head
+    scopes = scopes.tail
+  }
 
   trait LocPresentation {
     def num: Int
@@ -96,22 +111,27 @@ class MethodBodyVisitor(j2j: Java2Jawa, ownerSig: Signature, ownerPos: RangePosi
   /**
     * expectedName could be already exist, if type did not match we will create a new name by adding numbers
     */
-  private def checkAndAddVariable(varType: JawaType, typPos: JawaPosition, expectedName: String, namePos: JawaPosition): String = {
+  private def checkAndAddVariable(varType: JawaType, typPos: JawaPosition, expectedName: String, namePos: JawaPosition, isTemp: Boolean): String = {
     var needAdd: Boolean = false
     var varName = expectedName
     if(localVariables.contains(varName)) {
       var i = 1
-      while (localVariables.contains(varName)) {
-        varName = expectedName + i
-        i += 1
-        needAdd = true
+      if(isTemp) {
+        while (localVariables.contains(varName)) {
+          varName = expectedName + i
+          i += 1
+          needAdd = true
+        }
+        localVariables(varName) = varType
+      } else {
+        varName = varDeclNameMap.getOrElseUpdate(expectedName, expectedName)
+        while (localVariables.getOrElseUpdate(varName, varType) != varType) {
+          varName = varName + i
+          i += 1
+          needAdd = true
+        }
+        varDeclNameMap(expectedName) = varName
       }
-      localVariables(varName) = varType
-//      while (localVariables.getOrElseUpdate(varName, varType) != varType) {
-//        varName = varName + i
-//        i += 1
-//        needAdd = true
-//      }
     } else {
       needAdd = true
     }
@@ -124,6 +144,19 @@ class MethodBodyVisitor(j2j: Java2Jawa, ownerSig: Signature, ownerPos: RangePosi
     }
     varName
   }
+
+  private def getVariableType(varName: String, pos: JawaPosition, isTemp: Boolean): JawaType = {
+    val name = if(isTemp) {
+      varName
+    } else {
+      varDeclNameMap.getOrElse(varName, varName)
+    }
+    localVariables.getOrElse(name, throw Java2JawaException(pos, s"Type should already been set for variable: $name"))
+  }
+
+  //***********************************************************************************************
+  //                                          Visit Statements
+  //***********************************************************************************************
 
   /**
     * java:
@@ -139,11 +172,11 @@ class MethodBodyVisitor(j2j: Java2Jawa, ownerSig: Signature, ownerPos: RangePosi
     */
   override def visit(as: AssertStmt, arg: Void): Unit = {
     isLeft = false
-    val asRange = as.toRange
+    val as_range = as.toRange
     as.getCheck.accept(this, arg)
-    val biExpr = BinaryExpression(resultHolder, Token(Tokens.OP, getKeyWordRange(as), "!="), Right(Left(LiteralExpression(Token(Tokens.INTEGER_LITERAL, getKeyWordRange(as), "0"))(asRange))))(asRange)
+    val biExpr = BinaryExpression(resultHolder, Token(Tokens.OP, getKeyWordRange(as), "!="), Right(Left(LiteralExpression(Token(Tokens.INTEGER_LITERAL, getKeyWordRange(as), "0"))(as_range))))(as_range)
     val label = s"Label$labelCount"
-    val ifStmt = IfStatement(biExpr, LocationSymbol(Token(Tokens.ID, getKeyWordRange(as), label))(asRange))(asRange)
+    val ifStmt = IfStatement(biExpr, LocationSymbol(Token(Tokens.ID, getKeyWordRange(as), label))(as_range))(as_range)
     createLocation(getKeyWordRange(as), ifStmt)
     as.getMessage.ifPresent { m =>
       isLeft = false
@@ -151,45 +184,38 @@ class MethodBodyVisitor(j2j: Java2Jawa, ownerSig: Signature, ownerPos: RangePosi
     }
     // create AssertionError
     val assertType = new JawaType("java.lang.AssertionError")
-    val assertVarName = checkAndAddVariable(assertType, asRange, "assertionError", asRange)
-    val assertVarSymbol = VarSymbol(Token(Tokens.ID, asRange, assertVarName.apostrophe))(asRange)
-    val assertNameExp = VariableNameExpression(assertVarSymbol)(asRange)
-    val assertTypeSymbol = TypeSymbol(Token(Tokens.ID, asRange, assertType.jawaName.apostrophe))(asRange)
-    val assertNewExp = NewExpression(JawaTypeAst(assertTypeSymbol, ilistEmpty)(asRange))(asRange)
-    val assertAssign = AssignmentStatement(assertNameExp, assertNewExp, ilistEmpty)(asRange)
-    createLocation(asRange, assertAssign)
+    val assertVarName = checkAndAddVariable(assertType, as_range, "assertion_error", as_range, isTemp = true)
+    val assertVarSymbol = VarSymbol(Token(Tokens.ID, as_range, assertVarName.apostrophe))(as_range)
+    val assertNameExp = VariableNameExpression(assertVarSymbol)(as_range)
+    val assertTypeSymbol = TypeSymbol(Token(Tokens.ID, as_range, assertType.jawaName.apostrophe))(as_range)
+    val assertNewExp = NewExpression(JawaTypeAst(assertTypeSymbol, ilistEmpty)(as_range))(as_range)
+    val assertAssign = AssignmentStatement(assertNameExp, assertNewExp, ilistEmpty)(as_range)
+    createLocation(as_range, assertAssign)
 
     // create AssertionError init
     val assertInitVarSymbols: MList[VarSymbol] = mlistEmpty
-    assertInitVarSymbols += assertVarSymbol
-    val assertInitParamTyps: MList[JawaType] = mlistEmpty
     as.getMessage.ifPresent { msg =>
       isLeft = false
       msg.accept(this, arg)
       assertInitVarSymbols += resultHolder
-      val msgType = localVariables.getOrElse(resultHolder.varName, JavaKnowledge.STRING)
-      val paramType = msgType match {
-        case t if t.isObject =>
-          JavaKnowledge.JAVA_TOPLEVEL_OBJECT_TYPE
-        case t => t
-      }
-      assertInitParamTyps += paramType
     }
-    val assertInitCall = generateCall(None, assertType, "<init>", asRange, assertInitVarSymbols.toList, assertInitParamTyps.toList, JavaKnowledge.VOID, "direct")
-    createLocation(asRange, assertInitCall)
+    val assertInitCall = generateCall(None, assertType, "<init>", as_range, assertVarSymbol, assertInitVarSymbols.toList, JavaKnowledge.VOID, "direct")
+    createLocation(as_range, assertInitCall)
 
     // create throw statement
-    val assertThrow = ThrowStatement(assertVarSymbol)(asRange)
-    createLocation(asRange, assertThrow)
+    val assertThrow = ThrowStatement(assertVarSymbol)(as_range)
+    createLocation(as_range, assertThrow)
 
-    createLabel(asRange)
+    createLabel(as_range)
   }
 
   override def visit(blockStmt: BlockStmt, arg: Void): Unit = {
+    scopeStart()
     blockStmt.getStatements.forEach{ stmt =>
       isLeft = true
       stmt.accept(this, arg)
     }
+    scopeEnd()
   }
 
   /**
@@ -202,20 +228,17 @@ class MethodBodyVisitor(j2j: Java2Jawa, ownerSig: Signature, ownerPos: RangePosi
     */
   override def visit(ecis: ExplicitConstructorInvocationStmt, arg: Void): Unit = {
     val args: MList[VarSymbol] = mlistEmpty
-    val argTypes: MList[JawaType] = mlistEmpty
-    args += thisVar
     ecis.getArguments.forEach { argument =>
       isLeft = false
       argument.accept(this, arg)
       args += resultHolder
-      argTypes += localVariables.getOrElse(resultHolder.varName, JavaKnowledge.JAVA_TOPLEVEL_OBJECT_TYPE)
     }
     val classType = if(ecis.isThis) {
       ownerSig.getClassType
     } else {
       getSuperType(ownerSig.getClassType)
     }
-    val call = generateCall(None, classType, "<init>", ecis.toRange, args.toList, argTypes.toList, JavaKnowledge.VOID, "direct")
+    val call = generateCall(None, classType, "<init>", ecis.toRange, thisVar, args.toList, JavaKnowledge.VOID, "direct")
     createLocation(ecis.toRange, call)
   }
 
@@ -251,11 +274,19 @@ class MethodBodyVisitor(j2j: Java2Jawa, ownerSig: Signature, ownerPos: RangePosi
     createLocation(rs.toRange, reStat)
   }
 
-  private def generateCall(lhsOpt: Option[VariableNameExpression], classType: JawaType, methodName: String, namePos: JawaPosition, args: IList[VarSymbol], argTypes: IList[JawaType], retType: JawaType, kind: String): CallStatement = {
-    val sig = JavaKnowledge.genSignature(classType, methodName, argTypes, retType)
+  private def generateCall(lhsOpt: Option[VariableNameExpression], classType: JawaType, methodName: String, namePos: JawaPosition, recv: VarSymbol, args: IList[VarSymbol], retType: JawaType, kind: String): CallStatement = {
+    val clazz = global.getClassOrResolve(classType)
+    val argTypes = args.map(arg => getVariableType(arg.varName, arg.pos, isTemp = true))
+    val method = clazz.getMethodByNameAndArgTypes(methodName, argTypes).getOrElse(throw Java2JawaException(namePos, s"Could not find method $methodName with argTypes $argTypes in class $classType"))
+    val sig = method.getSignature
     val mns = MethodNameSymbol(Token(Tokens.ID, namePos, methodName.apostrophe))(namePos)
     mns.signature = sig
-    val rhs = CallRhs(mns, args)(namePos)
+    val arguments = if(!method.isStatic) {
+      recv :: args
+    } else {
+      args
+    }
+    val rhs = CallRhs(mns, arguments)(namePos)
     val annotations: MList[JawaAnnotation] = mlistEmpty
     // add singature annotation
     val signatureKey = Token(Tokens.ID, namePos, "signature")
@@ -292,7 +323,7 @@ class MethodBodyVisitor(j2j: Java2Jawa, ownerSig: Signature, ownerPos: RangePosi
       case _ : StringLiteralExpr => ("string_temp", JavaKnowledge.STRING)
       case _ => throw Java2JawaException(l.toRange, s"${l.getClass} is not handled by jawa: $l, please contact author: fgwei521@gmail.com")
     }
-    VarSymbol(Token(Tokens.ID, l.toRange, checkAndAddVariable(typ, l.toRange, varName, l.toRange).apostrophe))(l.toRange)
+    VarSymbol(Token(Tokens.ID, l.toRange, checkAndAddVariable(typ, l.toRange, varName, l.toRange, isTemp = true).apostrophe))(l.toRange)
   }
 
   private def getLiteralExpression(l: LiteralExpr): LiteralExpression = {
@@ -380,7 +411,7 @@ class MethodBodyVisitor(j2j: Java2Jawa, ownerSig: Signature, ownerPos: RangePosi
   }
 
   private def createIntAssignment(name: String, lit: Int, pos: JawaPosition): VarSymbol = {
-    val vs = VarSymbol(Token(Tokens.ID, pos, checkAndAddVariable(JavaKnowledge.INT, pos, name, pos).apostrophe))(pos)
+    val vs = VarSymbol(Token(Tokens.ID, pos, checkAndAddVariable(JavaKnowledge.INT, pos, name, pos, isTemp = true).apostrophe))(pos)
     val vne = VariableNameExpression(vs)(pos)
     val litexp = LiteralExpression(Token(Tokens.INTEGER_LITERAL, pos, lit.toString))(pos)
     val dimension_assign = AssignmentStatement(vne, litexp, ilistEmpty)(pos)
@@ -420,7 +451,7 @@ class MethodBodyVisitor(j2j: Java2Jawa, ownerSig: Signature, ownerPos: RangePosi
       val dimensions_vs = createIntAssignment("int_temp", dimensions, init_range)
       val arr_type1 = JawaType(arrType.baseType, arrType.dimensions - 1)
       val nae = NewArrayExpression(handleJawaType(arr_type1, init_range), List(dimensions_vs))(init_range)
-      val nae_temp_name = checkAndAddVariable(arrType, init_range, generateTempVarName(arrType), init_range)
+      val nae_temp_name = checkAndAddVariable(arrType, init_range, generateTempVarName(arrType), init_range, isTemp = true)
       val nae_temp_vs = VarSymbol(Token(Tokens.ID, init_range, nae_temp_name.apostrophe))(init_range)
       val nae_temp_vne = VariableNameExpression(nae_temp_vs)(init_range)
       val nae_assign = AssignmentStatement(nae_temp_vne, nae, ilistEmpty)(init_range)
@@ -438,7 +469,7 @@ class MethodBodyVisitor(j2j: Java2Jawa, ownerSig: Signature, ownerPos: RangePosi
         }
       }
       val typeRange = ace.getElementType.toRange
-      val temp = checkAndAddVariable(arrType, typeRange, generateTempVarName(arrType), typeRange)
+      val temp = checkAndAddVariable(arrType, typeRange, generateTempVarName(arrType), typeRange, isTemp = true)
       val temp_vs = VarSymbol(Token(Tokens.ID, typeRange, temp.apostrophe))(typeRange)
       val temp_vne = VariableNameExpression(temp_vs)(typeRange)
       val nae = NewArrayExpression(arrBaseType, vss.toList)(ace.toRange)
@@ -450,7 +481,7 @@ class MethodBodyVisitor(j2j: Java2Jawa, ownerSig: Signature, ownerPos: RangePosi
 
   override def visit(aie: ArrayInitializerExpr, arg: Void): Unit = {
     val base_vs = resultHolder
-    val base_typ = localVariables.getOrElse(base_vs.varName, throw Java2JawaException(aie.toRange, "Array Type for ArrayInitializerExpr should always set."))
+    val base_typ = getVariableType(base_vs.varName, base_vs.pos, isTemp = true)
     val aie_range = aie.toRange
     var allLiteral = true
     val constants: MList[LiteralExpression] = mlistEmpty
@@ -491,7 +522,7 @@ class MethodBodyVisitor(j2j: Java2Jawa, ownerSig: Signature, ownerPos: RangePosi
           val dimensions = v.asInstanceOf[ArrayInitializerExpr].getValues.size()
           val dimensions_vs = createIntAssignment("int_temp", dimensions, aie_range)
           val arr_type1 = JawaType(base_typ.baseType, base_typ.dimensions - 1)
-          val nae_temp_name = checkAndAddVariable(arr_type1, aie_range, generateTempVarName(arr_type1), aie_range)
+          val nae_temp_name = checkAndAddVariable(arr_type1, aie_range, generateTempVarName(arr_type1), aie_range, isTemp = true)
           val nae_temp_vs = VarSymbol(Token(Tokens.ID, aie_range, nae_temp_name.apostrophe))(aie_range)
           val nae_temp_vne = VariableNameExpression(nae_temp_vs)(aie_range)
           val arr_type2 = JawaType(arr_type1.baseType, arr_type1.dimensions - 1)
@@ -541,9 +572,9 @@ class MethodBodyVisitor(j2j: Java2Jawa, ownerSig: Signature, ownerPos: RangePosi
     isLeft = false
     aae.getIndex.accept(this, arg)
     val idx_vs = resultHolder
-    val name_type = localVariables.getOrElse(name_vs.varName, throw Java2JawaException(aae_range, "Array Type for ArrayInitializerExpr should always set."))
+    val name_type = getVariableType(name_vs.varName, name_vs.pos, isTemp = true)
     val temp_type = JawaType(name_type.baseType, name_type.dimensions - 1)
-    val temp_name = checkAndAddVariable(temp_type, aae_range, generateTempVarName(temp_type), aae_range)
+    val temp_name = checkAndAddVariable(temp_type, aae_range, generateTempVarName(temp_type), aae_range, isTemp = true)
     val temp_vs = VarSymbol(Token(Tokens.ID, aae_range, temp_name.apostrophe))(aae_range)
     val idx_exp = IndexingExpression(name_vs, List(IndexingSuffix(Left(idx_vs))(aae_range)))(aae_range)
     if(left) {
@@ -584,7 +615,7 @@ class MethodBodyVisitor(j2j: Java2Jawa, ownerSig: Signature, ownerPos: RangePosi
     isLeft = false
     ae.getValue.accept(this, arg)
     val temp1 = resultHolder
-    val temp1Type = localVariables.getOrElse(temp1.varName, JavaKnowledge.JAVA_TOPLEVEL_OBJECT_TYPE)
+    val temp1Type = getVariableType(temp1.varName, temp1.pos, isTemp = true)
     val annotations: MList[JawaAnnotation] = mlistEmpty
     val rhs: JawaExpression with RHS = ae.getOperator match {
       case AssignExpr.Operator.ASSIGN =>
@@ -619,7 +650,7 @@ class MethodBodyVisitor(j2j: Java2Jawa, ownerSig: Signature, ownerPos: RangePosi
     val assign = AssignmentStatement(LHS, rhs, annotations.toList)(ae.toRange)
     createLocation(ae.toRange, assign)
     if(!left) {
-      val tempName = checkAndAddVariable(temp1Type, ae.toRange, generateTempVarName(temp1Type), ae.toRange)
+      val tempName = checkAndAddVariable(temp1Type, ae.toRange, generateTempVarName(temp1Type), ae.toRange, isTemp = true)
       val tempVar = VarSymbol(Token(Tokens.ID, ae.toRange, tempName.apostrophe))(ae.toRange)
       val tempannotations: MList[JawaAnnotation] = mlistEmpty
       if (temp1Type.isObject) {
@@ -656,6 +687,7 @@ class MethodBodyVisitor(j2j: Java2Jawa, ownerSig: Signature, ownerPos: RangePosi
     *   Label2:
     */
   override def visit(be: BinaryExpr, arg: Void): Unit = {
+    val be_range = be.toRange
     isLeft = false
     be.getLeft.accept(this, arg)
     val temp1 = resultHolder
@@ -685,29 +717,29 @@ class MethodBodyVisitor(j2j: Java2Jawa, ownerSig: Signature, ownerPos: RangePosi
     }
     op match {
       case Left(o) =>
-        val biExpr = BinaryExpression(temp1, Token(Tokens.OP, getKeyWordRange(be), o), Left(temp2))(be.toRange)
+        val biExpr = BinaryExpression(temp1, Token(Tokens.OP, getKeyWordRange(be), o), Left(temp2))(be_range)
         val label = s"Label$labelCount"
-        val ifStmt = IfStatement(biExpr, LocationSymbol(Token(Tokens.ID, getKeyWordRange(be), label))(be.toRange))(be.toRange)
+        val ifStmt = IfStatement(biExpr, LocationSymbol(Token(Tokens.ID, getKeyWordRange(be), label))(be_range))(be_range)
         createLocation(getKeyWordRange(be), ifStmt)
-        val temp3Name = checkAndAddVariable(JavaKnowledge.BOOLEAN, be.toRange, "boolean_temp", be.toRange)
-        val temp3Var = VarSymbol(Token(Tokens.ID, be.toRange, temp3Name.apostrophe))(be.toRange)
-        val assignStmt1 = AssignmentStatement(VariableNameExpression(temp3Var)(be.toRange), LiteralExpression(Token(Tokens.INTEGER_LITERAL, be.toRange, "0"))(be.toRange), ilistEmpty)(be.toRange)
+        val temp3Name = checkAndAddVariable(JavaKnowledge.BOOLEAN, be_range, "boolean_temp", be_range, isTemp = true)
+        val temp3Var = VarSymbol(Token(Tokens.ID, be_range, temp3Name.apostrophe))(be_range)
+        val assignStmt1 = AssignmentStatement(VariableNameExpression(temp3Var)(be_range), LiteralExpression(Token(Tokens.INTEGER_LITERAL, be_range, "0"))(be_range), ilistEmpty)(be_range)
         createLocation(getKeyWordRange(be), assignStmt1)
         val label2 = s"Label${labelCount + 1}"
-        val gotoStmt = GotoStatement(LocationSymbol(Token(Tokens.ID, be.toRange, label2))(be.toRange))(be.toRange)
+        val gotoStmt = GotoStatement(LocationSymbol(Token(Tokens.ID, be_range, label2))(be_range))(be_range)
         createLocation(getKeyWordRange(be), gotoStmt)
         createLabel(getKeyWordRange(be))
-        val assignStmt2 = AssignmentStatement(VariableNameExpression(temp3Var)(be.toRange), LiteralExpression(Token(Tokens.INTEGER_LITERAL, be.toRange, "1"))(be.toRange), ilistEmpty)(be.toRange)
+        val assignStmt2 = AssignmentStatement(VariableNameExpression(temp3Var)(be_range), LiteralExpression(Token(Tokens.INTEGER_LITERAL, be_range, "1"))(be_range), ilistEmpty)(be_range)
         createLocation(getKeyWordRange(be), assignStmt2)
         createLabel(getKeyWordRange(be))
         resultHolder = temp3Var
       case Right(o) =>
-        val binExp = BinaryExpression(temp1, Token(Tokens.OP, getKeyWordRange(be), o), Left(temp2))(be.toRange)
-        val typ = localVariables.getOrElse(temp1.varName, JavaKnowledge.INT)
+        val binExp = BinaryExpression(temp1, Token(Tokens.OP, getKeyWordRange(be), o), Left(temp2))(be_range)
+        val typ = getVariableType(temp1.varName, temp1.pos, isTemp = true)
         val expectedName = if(typ.isObject) "object_temp" else s"${typ.simpleName}_temp"
-        val temp3Name = checkAndAddVariable(typ, be.toRange, expectedName, be.toRange)
-        val temp3Var = VarSymbol(Token(Tokens.ID, be.toRange, temp3Name.apostrophe))(be.toRange)
-        val assignStmt = AssignmentStatement(VariableNameExpression(temp3Var)(be.toRange), binExp, ilistEmpty)(be.toRange)
+        val temp3Name = checkAndAddVariable(typ, be_range, expectedName, be_range, isTemp = true)
+        val temp3Var = VarSymbol(Token(Tokens.ID, be_range, temp3Name.apostrophe))(be_range)
+        val assignStmt = AssignmentStatement(VariableNameExpression(temp3Var)(be_range), binExp, ilistEmpty)(be_range)
         createLocation(getKeyWordRange(be), assignStmt)
         resultHolder = temp3Var
     }
@@ -729,7 +761,7 @@ class MethodBodyVisitor(j2j: Java2Jawa, ownerSig: Signature, ownerPos: RangePosi
     val temp = resultHolder
     val cast_type = handleType(ce.getType)
     val cexp = CastExpression(cast_type, temp)(ce_range)
-    val temp2Name = checkAndAddVariable(cast_type.typ, ce_range, generateTempVarName(cast_type.typ), ce_range)
+    val temp2Name = checkAndAddVariable(cast_type.typ, ce_range, generateTempVarName(cast_type.typ), ce_range, isTemp = true)
     val temp2Var = VarSymbol(Token(Tokens.ID, ce_range, temp2Name.apostrophe))(ce_range)
     val temp2annotations: MList[JawaAnnotation] = mlistEmpty
     if (cast_type.typ.isObject) {
@@ -751,7 +783,7 @@ class MethodBodyVisitor(j2j: Java2Jawa, ownerSig: Signature, ownerPos: RangePosi
     */
   override def visit(ce: ClassExpr, arg: Void): Unit = {
     val ce_range = ce.toRange
-    val tempName = checkAndAddVariable(JavaKnowledge.CLASS, ce_range, generateTempVarName(JavaKnowledge.CLASS), ce_range)
+    val tempName = checkAndAddVariable(JavaKnowledge.CLASS, ce_range, generateTempVarName(JavaKnowledge.CLASS), ce_range, isTemp = true)
     val tempVar = VarSymbol(Token(Tokens.ID, ce_range, tempName.apostrophe))(ce_range)
     val cc = ConstClassExpression(TypeExpression(handleType(ce.getType))(ce_range))(ce_range)
     val kindKey = Token(Tokens.ID, ce_range, "kind")
@@ -759,6 +791,54 @@ class MethodBodyVisitor(j2j: Java2Jawa, ownerSig: Signature, ownerPos: RangePosi
     val ce_assign = AssignmentStatement(VariableNameExpression(tempVar)(ce_range), cc, List(JawaAnnotation(kindKey, Some(kindValue))(ce_range)))(ce_range)
     createLocation(getKeyWordRange(ce), ce_assign)
     resultHolder = tempVar
+  }
+
+  /**
+    * java:
+    *   i ? a : b;
+    *
+    * jawa:
+    *   temp:= i;
+    *   if temp != 0 then goto Label1;
+    *   temp1:= a;
+    *   goto Label2;
+    *   Label1:
+    *   temp1:= b;
+    *   Label2:
+    */
+  override def visit(ce: ConditionalExpr, arg: Void): Unit = {
+    val ce_range = ce.toRange
+
+    isLeft = false
+    ce.getCondition.accept(this, arg)
+    val temp = resultHolder
+    val biExpr = BinaryExpression(temp, Token(Tokens.OP, ce_range, "=="), Right(Left(LiteralExpression(Token(Tokens.INTEGER_LITERAL, ce_range, "0"))(ce_range))))(ce_range)
+    val label = s"Label$labelCount"
+    val ifStmt = IfStatement(biExpr, LocationSymbol(Token(Tokens.ID, getKeyWordRange(ce), label))(ce_range))(ce_range)
+    createLocation(getKeyWordRange(ce), ifStmt)
+
+    isLeft = false
+    ce.getThenExpr.accept(this, arg)
+    val result1 = resultHolder
+    val temp1_type = getVariableType(result1.varName, result1.pos, isTemp = true)
+    val temp1_name = checkAndAddVariable(temp1_type, ce_range, generateTempVarName(temp1_type), ce_range, isTemp = true)
+    val temp1_var = VarSymbol(Token(Tokens.ID, ce_range, temp1_name.apostrophe))(ce_range)
+    val assignStmt1 = AssignmentStatement(VariableNameExpression(temp1_var)(ce_range), VariableNameExpression(result1)(ce_range), ilistEmpty)(ce_range)
+    createLocation(getKeyWordRange(ce), assignStmt1)
+
+    val label2 = s"Label${labelCount + 1}"
+    val gotoStmt = GotoStatement(LocationSymbol(Token(Tokens.ID, ce_range, label2))(ce_range))(ce_range)
+    createLocation(getKeyWordRange(ce), gotoStmt)
+
+    createLabel(getKeyWordRange(ce))
+    isLeft = false
+    ce.getElseExpr.accept(this, arg)
+    val result2 = resultHolder
+    val assignStmt2 = AssignmentStatement(VariableNameExpression(temp1_var)(ce_range), VariableNameExpression(result2)(ce_range), ilistEmpty)(ce_range)
+    createLocation(getKeyWordRange(ce), assignStmt2)
+
+    createLabel(getKeyWordRange(ce))
+    resultHolder = temp1_var
   }
 
   /**
@@ -796,7 +876,7 @@ class MethodBodyVisitor(j2j: Java2Jawa, ownerSig: Signature, ownerPos: RangePosi
             if(left) {
               LHS = exp
             } else {
-              val temp2_name = checkAndAddVariable(f.typ, fae.toRange, s"field_${f.getName}", fae.toRange)
+              val temp2_name = checkAndAddVariable(f.typ, fae.toRange, s"field_${f.getName}", fae.toRange, isTemp = true)
               val temp2_var = VarSymbol(Token(Tokens.ID, fae.toRange, temp2_name.apostrophe))(fae.toRange)
               val temp2_vne = VariableNameExpression(temp2_var)(temp2_var.pos)
               val annotations: MList[JawaAnnotation] = mlistEmpty
@@ -830,13 +910,44 @@ class MethodBodyVisitor(j2j: Java2Jawa, ownerSig: Signature, ownerPos: RangePosi
     isLeft = false
     ie.getExpression.accept(this, arg)
     val temp = resultHolder
-    val temp2Name = checkAndAddVariable(JavaKnowledge.BOOLEAN, ie_range, generateTempVarName(JavaKnowledge.BOOLEAN), ie_range)
+    val temp2Name = checkAndAddVariable(JavaKnowledge.BOOLEAN, ie_range, generateTempVarName(JavaKnowledge.BOOLEAN), ie_range, isTemp = true)
     val temp2Var = VarSymbol(Token(Tokens.ID, ie_range, temp2Name.apostrophe))(ie_range)
     val type_ast = handleType(ie.getType)
     val ioe = InstanceOfExpression(temp, TypeExpression(type_ast)(ie_range))(ie_range)
     val ie_assign = AssignmentStatement(VariableNameExpression(temp2Var)(ie_range), ioe, ilistEmpty)(ie_range)
     createLocation(getKeyWordRange(ie), ie_assign)
     resultHolder = temp2Var
+  }
+
+  /**
+    * java:
+    *   foo(arg1, arg3);
+    *
+    * jawa:
+    *   temp1:= arg1;
+    *   temp2:= arg2;
+    *   call temp:= `foo`(temp1, temp2) @signature `Lx;.foo:(Ly;Lz;)La;` @kind virtual;
+    */
+  override def visit(mce: MethodCallExpr, arg: Void): Unit = {
+    var ownerType = ownerSig.getClassType
+    mce.getScope.ifPresent{ s =>
+      resolveScope(s) match {
+        case Left(typ) =>
+          ownerType = typ
+        case Right(pkg) =>
+          throw Java2JawaException(s.toRange, s"MethodCallExpr scope should not be package. Package name: ${pkg.toPkgString(".")}")
+      }
+    }
+    val methodName = mce.getNameAsString
+    val argVars: MList[VarSymbol] = mlistEmpty
+    val argTypes: MList[JawaType] = mlistEmpty
+    mce.getArguments.forEach{ argument =>
+      isLeft = false
+      argument.accept(this, arg)
+      val arg_vs = resultHolder
+      val arg_type = getVariableType(arg_vs.varName, argument.toRange, isTemp = true)
+      argTypes += arg_type
+    }
   }
 
   /**
@@ -854,37 +965,56 @@ class MethodBodyVisitor(j2j: Java2Jawa, ownerSig: Signature, ownerPos: RangePosi
     *
     */
   override def visit(ne: NameExpr, arg: Void): Unit = {
+    val ne_range = ne.toRange
     val clazz = global.getClassOrResolve(ownerSig.getClassType)
-    clazz.getField(ne.getNameAsString) match {
+    val ifField = clazz.getField(ne.getNameAsString) match {
       case Some(f) =>
-        val typeExp = TypeExpression(handleJawaType(f.typ, ne.toRange))(ne.toRange)
+        Some(f)
+      case None =>
+        imports.getStaticField(ne)
+    }
+    ifField match {
+      case Some(f) =>
+        val typeExp = TypeExpression(handleJawaType(f.typ, ne_range))(ne_range)
         val exp = if(f.isStatic) {
-          StaticFieldAccessExpression(FieldNameSymbol(Token(Tokens.ID, ne.toRange, s"@@${f.FQN.fqn}".apostrophe))(ne.toRange), typeExp)(ne.toRange)
+          StaticFieldAccessExpression(FieldNameSymbol(Token(Tokens.ID, ne_range, s"@@${f.FQN.fqn}".apostrophe))(ne_range), typeExp)(ne_range)
         } else {
-          AccessExpression(thisVar, FieldNameSymbol(Token(Tokens.ID, ne.getName.toRange, f.FQN.fqn.apostrophe))(ne.toRange), typeExp)(ne.toRange)
+          AccessExpression(thisVar, FieldNameSymbol(Token(Tokens.ID, ne.getName.toRange, f.FQN.fqn.apostrophe))(ne_range), typeExp)(ne_range)
         }
         if(isLeft) {
           LHS = exp
         } else {
-          val temp = checkAndAddVariable(f.typ, ne.toRange, s"field_${f.getName}", ne.toRange)
-          val tempVs = VarSymbol(Token(Tokens.ID, ne.toRange, temp.apostrophe))(ne.toRange)
+          val temp = checkAndAddVariable(f.typ, ne_range, s"field_${f.getName}", ne_range, isTemp = true)
+          val tempVs = VarSymbol(Token(Tokens.ID, ne_range, temp.apostrophe))(ne_range)
           val annotations: MList[JawaAnnotation] = mlistEmpty
           if (f.isObject) {
-            val kindKey = Token(Tokens.ID, ne.toRange, "kind")
-            val kindValue = TokenValue(Token(Tokens.ID, ne.toRange, "object"))(ne.toRange)
-            annotations += JawaAnnotation(kindKey, Some(kindValue))(ne.toRange)
+            val kindKey = Token(Tokens.ID, ne_range, "kind")
+            val kindValue = TokenValue(Token(Tokens.ID, ne_range, "object"))(ne_range)
+            annotations += JawaAnnotation(kindKey, Some(kindValue))(ne_range)
           }
-          val assign = AssignmentStatement(VariableNameExpression(tempVs)(ne.toRange), exp, annotations.toList)(ne.toRange)
-          createLocation(ne.toRange, assign)
+          val assign = AssignmentStatement(VariableNameExpression(tempVs)(ne_range), exp, annotations.toList)(ne_range)
+          createLocation(ne_range, assign)
           resultHolder = tempVs
         }
       case None =>
-        val vs = VarSymbol(Token(Tokens.ID, ne.toRange, ne.getNameAsString.apostrophe))(ne.toRange) // TODO: fix the name
+        val var_type = getVariableType(ne.getNameAsString, ne_range, isTemp = false)
+        val var_name = checkAndAddVariable(var_type, ne_range, ne.getNameAsString, ne_range, isTemp = false)
+        val vs = VarSymbol(Token(Tokens.ID, ne_range, var_name.apostrophe))(ne_range)
         if(isLeft) {
           val name = VariableNameExpression(vs)(vs.pos)
           LHS = name
         } else {
-          resultHolder = vs
+          val temp = checkAndAddVariable(var_type, ne_range, generateTempVarName(var_type), ne_range, isTemp = true)
+          val tempVs = VarSymbol(Token(Tokens.ID, ne_range, temp.apostrophe))(ne_range)
+          val annotations: MList[JawaAnnotation] = mlistEmpty
+          if (var_type.isObject) {
+            val kindKey = Token(Tokens.ID, ne_range, "kind")
+            val kindValue = TokenValue(Token(Tokens.ID, ne_range, "object"))(ne_range)
+            annotations += JawaAnnotation(kindKey, Some(kindValue))(ne_range)
+          }
+          val assign = AssignmentStatement(VariableNameExpression(tempVs)(ne_range), VariableNameExpression(vs)(ne_range), annotations.toList)(ne_range)
+          createLocation(ne_range, assign)
+          resultHolder = tempVs
         }
     }
   }
@@ -904,39 +1034,36 @@ class MethodBodyVisitor(j2j: Java2Jawa, ownerSig: Signature, ownerPos: RangePosi
     *   call <init>(temp, temp2, arg1_temp, arg2_temp) @kind direct;
     */
   override def visit(oce: ObjectCreationExpr, arg: Void): Unit = {
+    val oce_range = oce.toRange
     val typ = resolveScope(oce) match {
       case Left(t) => t
       case Right(pkg) =>
         throw Java2JawaException(oce.getType.toRange, s"ObjectCreationExpr should not be package. Package name: ${pkg.toPkgString(".")}")
     }
     val baseTypeSymbol = TypeSymbol(Token(Tokens.ID, oce.getType.toRange, typ.jawaName.apostrophe))(oce.getType.toRange)
-    val temp = checkAndAddVariable(typ, oce.toRange, generateTempVarName(typ), oce.toRange)
+    val temp = checkAndAddVariable(typ, oce_range, generateTempVarName(typ), oce_range, isTemp = true)
     val temp_var = VarSymbol(Token(Tokens.ID, baseTypeSymbol.pos, temp.apostrophe))(baseTypeSymbol.pos)
     val temp_vne = VariableNameExpression(temp_var)(baseTypeSymbol.pos)
     val newExp = NewExpression(JawaTypeAst(baseTypeSymbol, ilistEmpty)(baseTypeSymbol.pos))(temp_vne.pos)
     val assign_stmt = AssignmentStatement(temp_vne, newExp, ilistEmpty)(temp_vne.pos)
     createLocation(getKeyWordRange(oce), assign_stmt)
     val args: MList[VarSymbol] = mlistEmpty
-    args += temp_var
-    val arg_types: MList[JawaType] = mlistEmpty
     oce.getScope.ifPresent{ s =>
       isLeft = false
       s.accept(this, arg)
       val outerVar = resultHolder
-      val class_temp = checkAndAddVariable(JavaKnowledge.CLASS, oce.toRange, "class_temp", oce.toRange)
-      val lhs = VariableNameExpression(VarSymbol(Token(Tokens.ID, oce.toRange, class_temp.apostrophe))(oce.toRange))(oce.toRange)
-      val call = generateCall(Some(lhs), JavaKnowledge.JAVA_TOPLEVEL_OBJECT_TYPE, "getClass", oce.toRange, List(outerVar), ilistEmpty, JavaKnowledge.CLASS, "virtual")
+      val class_temp = checkAndAddVariable(JavaKnowledge.CLASS, oce_range, "class_temp", oce_range, isTemp = true)
+      val lhs = VariableNameExpression(VarSymbol(Token(Tokens.ID, oce_range, class_temp.apostrophe))(oce_range))(oce_range)
+      val call = generateCall(Some(lhs), JavaKnowledge.JAVA_TOPLEVEL_OBJECT_TYPE, "getClass", oce_range, outerVar, ilistEmpty, JavaKnowledge.CLASS, "virtual")
       createLocation(getKeyWordRange(oce), call)
       args += outerVar
-      arg_types += JavaKnowledge.getOuterTypeFrom(typ)
     }
     oce.getArguments.forEach{ argument =>
       isLeft = false
       argument.accept(this, arg)
       args += resultHolder
-      arg_types += localVariables.getOrElse(resultHolder.varName, throw Java2JawaException(argument.toRange, s"Cannot resolve argument type for: $argument"))
     }
-    val init_call = generateCall(None, typ, "<init>", assign_stmt.pos, args.toList, arg_types.toList, JavaKnowledge.VOID, "direct")
+    val init_call = generateCall(None, typ, "<init>", assign_stmt.pos, temp_var, args.toList, JavaKnowledge.VOID, "direct")
     createLocation(getKeyWordRange(oce), init_call)
     resultHolder = temp_var
     // TODO: add anonymous class handle logic
@@ -992,12 +1119,7 @@ class MethodBodyVisitor(j2j: Java2Jawa, ownerSig: Signature, ownerPos: RangePosi
     val ue_range = ue.toRange
     isLeft = false
     ue.getExpression.accept(this, arg)
-    val vs = resultHolder
-    val vs_type = localVariables.getOrElse(vs.varName, throw Java2JawaException(ue_range, s"Type should already been set for variable: $vs"))
-    val temp_name = checkAndAddVariable(vs_type, ue_range, generateTempVarName(vs_type), ue_range)
-    val temp = VarSymbol(Token(Tokens.ID, ue_range, temp_name.apostrophe))(ue_range)
-    val temp_assign = AssignmentStatement(VariableNameExpression(temp)(ue_range), VariableNameExpression(vs)(ue_range), ilistEmpty)(ue_range)
-    createLocation(getKeyWordRange(ue), temp_assign)
+    val temp = resultHolder
     ue.getOperator match {
       case UnaryExpr.Operator.POSTFIX_DECREMENT =>
         isLeft = true
@@ -1087,8 +1209,9 @@ class MethodBodyVisitor(j2j: Java2Jawa, ownerSig: Signature, ownerPos: RangePosi
   }
 
   override def visit(vd: VariableDeclarator, arg: Void): Unit = {
+    val vd_range = vd.toRange
     val varType = handleType(vd.getType)
-    val varName = checkAndAddVariable(varType.typ, vd.getName.toRange, vd.getNameAsString, vd.getName.toRange)
+    val varName = checkAndAddVariable(varType.typ, vd.getName.toRange, vd.getNameAsString, vd.getName.toRange, isTemp = false)
     vd.getInitializer.ifPresent { init =>
       isLeft = false
       init.accept(this, arg)
@@ -1096,11 +1219,11 @@ class MethodBodyVisitor(j2j: Java2Jawa, ownerSig: Signature, ownerPos: RangePosi
       val vne = VariableNameExpression(vs)(vd.getName.toRange)
       val annotations: MList[JawaAnnotation] = mlistEmpty
       if (varType.typ.isObject) {
-        val kindKey = Token(Tokens.ID, vd.toRange, "kind")
-        val kindValue = TokenValue(Token(Tokens.ID, vd.toRange, "object"))(vd.toRange)
-        annotations += JawaAnnotation(kindKey, Some(kindValue))(vd.toRange)
+        val kindKey = Token(Tokens.ID, vd_range, "kind")
+        val kindValue = TokenValue(Token(Tokens.ID, vd_range, "object"))(vd_range)
+        annotations += JawaAnnotation(kindKey, Some(kindValue))(vd_range)
       }
-      val assignStmt = AssignmentStatement(vne, VariableNameExpression(resultHolder)(vd.toRange), annotations.toList)(vd.toRange)
+      val assignStmt = AssignmentStatement(vne, VariableNameExpression(resultHolder)(vd_range), annotations.toList)(vd_range)
       createLocation(getKeyWordRange(vd), assignStmt)
       resultHolder = vs
     }
@@ -1109,14 +1232,27 @@ class MethodBodyVisitor(j2j: Java2Jawa, ownerSig: Signature, ownerPos: RangePosi
   private def resolveScope(scope: Expression): Either[JawaType, JawaPackage] = {
     scope match {
       case ne: NameExpr =>
-        val name = ne.getNameAsString
+        // If its a local variable
+        val name = varDeclNameMap.getOrElse(ne.getNameAsString, ne.getNameAsString)
         localVariables.get(name) match {
           case Some(typ) => Left(typ)
           case None =>
-            findTypeOpt(name) match {
-              case Some(typ) => Left(typ)
-              case None => // it must be a package part
-                Right(JawaPackage(name, None))
+            // If its a field
+            val thisClass = global.getClassOrResolve(ownerSig.getClassType)
+            thisClass.getField(name) match {
+              case Some(f) =>
+                Left(f.getType)
+              case None =>
+                // If its a static field from static import
+                imports.getStaticField(ne) match {
+                  case Some(f) => Left(f.typ)
+                  case None =>
+                    imports.findTypeOpt(name) match {
+                      case Some(typ) => Left(typ)
+                      case None => // it must be a package part
+                        Right(JawaPackage(name, None))
+                    }
+                }
             }
         }
       case fae: FieldAccessExpr =>
@@ -1128,7 +1264,7 @@ class MethodBodyVisitor(j2j: Java2Jawa, ownerSig: Signature, ownerPos: RangePosi
               case None => throw Java2JawaException(fae.getName.toRange, s"Field ${fae.getNameAsString} not found from class ${typ.jawaName}.")
             }
           case Right(pkg) =>
-            findTypeOpt(s"${pkg.toPkgString(".")}.${fae.getNameAsString}") match {
+            imports.findTypeOpt(s"${pkg.toPkgString(".")}.${fae.getNameAsString}") match {
               case Some(typ) => Left(typ)
               case None => Right(JawaPackage(fae.getNameAsString, Some(pkg)))
             }
@@ -1141,7 +1277,7 @@ class MethodBodyVisitor(j2j: Java2Jawa, ownerSig: Signature, ownerPos: RangePosi
             throw Java2JawaException(scope.toRange, s"Array access on package is not allowed. Package name: ${pkg.toPkgString(".")}")
         }
       case ace: ArrayCreationExpr =>
-        Left(findType(ace.createdType()))
+        Left(imports.findType(ace.createdType()))
       case _: ClassExpr =>
         Left(JavaKnowledge.CLASS)
       case ee: EnclosedExpr =>
@@ -1187,9 +1323,9 @@ class MethodBodyVisitor(j2j: Java2Jawa, ownerSig: Signature, ownerPos: RangePosi
         baseTypOpt match {
           case Some(bt) =>
             val className = s"${bt.baseTyp}$$${oce.getType.getNameAsString}"
-            Left(findType(className, oce.getType.toRange))
+            Left(imports.findType(className, oce.getType.toRange))
           case None =>
-            Left(findType(oce.getType))
+            Left(imports.findType(oce.getType))
         }
       case _: SuperExpr =>
         Left(getSuperType(ownerSig.getClassType))

@@ -9,7 +9,7 @@
  */
 package parser.expr.binaryexpr;
 
-public class DIVIDE {
+public class EQUALS {
     static int i = 0;
     static int j = 1;
     public static boolean main() {

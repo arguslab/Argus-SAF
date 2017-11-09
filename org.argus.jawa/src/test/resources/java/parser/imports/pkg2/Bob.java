@@ -7,12 +7,8 @@
  *
  * Detailed contributors are listed in the CONTRIBUTOR.md
  */
-package parser.expr.assignexpr;
+package parser.imports.pkg2;
 
-public class XOR {
-    static int i = 1;
-    static int j = 2;
-    public static int main() {
-        return j ^= i;
-    }
+public class Bob {
+    public int i = 4;
 }
