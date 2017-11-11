@@ -17,87 +17,87 @@ java.lang.StringBuffer:value:java.lang.String;
 ;
 
 `Ljava/lang/StringBuffer;.append:(C)Ljava/lang/Appendable;`:
-  this.value = java.lang.String@~
+  this.value += java.lang.String@~
   ret = this
 ;
 
 `Ljava/lang/StringBuffer;.append:(C)Ljava/lang/StringBuffer;`:
-  this.value = java.lang.String@~
+  this.value += java.lang.String@~
   ret = this
 ;
 
 `Ljava/lang/StringBuffer;.append:(D)Ljava/lang/StringBuffer;`:
-  this.value = java.lang.String@~
+  this.value += java.lang.String@~
   ret = this
 ;
 
 `Ljava/lang/StringBuffer;.append:(F)Ljava/lang/StringBuffer;`:
-  this.value = java.lang.String@~
+  this.value += java.lang.String@~
   ret = this
 ;
 
 `Ljava/lang/StringBuffer;.append:(I)Ljava/lang/StringBuffer;`:
-  this.value = java.lang.String@~
+  this.value += java.lang.String@~
   ret = this
 ;
 
 `Ljava/lang/StringBuffer;.append:(J)Ljava/lang/StringBuffer;`:
-  this.value = java.lang.String@~
+  this.value += java.lang.String@~
   ret = this
 ;
 
 `Ljava/lang/StringBuffer;.append:(Ljava/lang/CharSequence;)Ljava/lang/Appendable;`:
-  this.value = java.lang.String@~
+  this.value += java.lang.String@~
   ret = this
 ;
 
 `Ljava/lang/StringBuffer;.append:(Ljava/lang/CharSequence;)Ljava/lang/StringBuffer;`:
-  this.value = java.lang.String@~
+  this.value += java.lang.String@~
   ret = this
 ;
 
 `Ljava/lang/StringBuffer;.append:(Ljava/lang/CharSequence;II)Ljava/lang/Appendable;`:
-  this.value = java.lang.String@~
+  this.value += java.lang.String@~
   ret = this
 ;
 
 `Ljava/lang/StringBuffer;.append:(Ljava/lang/CharSequence;II)Ljava/lang/StringBuffer;`:
-  this.value = java.lang.String@~
+  this.value += java.lang.String@~
   ret = this
 ;
 
 `Ljava/lang/StringBuffer;.append:(Ljava/lang/Object;)Ljava/lang/StringBuffer;`:
-  this.value = java.lang.String@~
+  this.value += java.lang.String@~
   ret = this
 ;
 
 `Ljava/lang/StringBuffer;.append:(Ljava/lang/String;)Ljava/lang/StringBuffer;`:
-  this.value = java.lang.String@~
+  this.value += java.lang.String@~
   ret = this
 ;
 
 `Ljava/lang/StringBuffer;.append:(Ljava/lang/StringBuffer;)Ljava/lang/StringBuffer;`:
-  this.value = java.lang.String@~
+  this.value += java.lang.String@~
   ret = this
 ;
 
 `Ljava/lang/StringBuffer;.append:(Z)Ljava/lang/StringBuffer;`:
-  this.value = java.lang.String@~
+  this.value += java.lang.String@~
   ret = this
 ;
 
 `Ljava/lang/StringBuffer;.append:([C)Ljava/lang/StringBuffer;`:
-  this.value = java.lang.String@~
+  this.value += java.lang.String@~
   ret = this
 ;
 
 `Ljava/lang/StringBuffer;.append:([CII)Ljava/lang/StringBuffer;`:
-  this.value = java.lang.String@~
+  this.value += java.lang.String@~
   ret = this
 ;
 
 `Ljava/lang/StringBuffer;.appendCodePoint:(I)Ljava/lang/StringBuffer;`:
-  this.value = java.lang.String@~
+  this.value += java.lang.String@~
   ret = this
 ;
 
