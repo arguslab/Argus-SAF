@@ -7,14 +7,17 @@
  *
  * Detailed contributors are listed in the CONTRIBUTOR.md
  */
-package parser.imports;
+package parser.stmt.forstmt;
 
-import static parser.imports.staticpkg.StaticField.i;
-import static parser.imports.staticpkg.StaticContainer.*;
-
-public class StaticImportsTest {
+public class ForNested {
     public static int main() {
-        int sum = i + j(j);
-        return sum;
+        int x = 0;
+        for (int i = 1; i <= 5; i++) {   // outer loop iterates 5 times.
+            for (int j = 1; j <= 10; j++) {  // for each iteration of outer loop,
+                // inner loop iterates 10 times
+                x = i * j;
+            }
+        }
+        return x;
     }
 }

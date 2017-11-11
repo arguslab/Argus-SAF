@@ -479,4 +479,4 @@ class Java2Jawa(val global: Global, val sourceFile: JavaSourceFile) {
 
 }
 
-case class Java2JawaException(pos: Position, msg: String) extends RuntimeException(msg)
+case class Java2JawaException(pos: Position, msg: String) extends RuntimeException(s"$pos: $msg")

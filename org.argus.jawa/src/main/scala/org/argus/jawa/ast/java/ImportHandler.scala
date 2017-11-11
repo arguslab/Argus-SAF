@@ -23,7 +23,7 @@ class ImportHandler(j2j: Java2Jawa, imports: NodeList[ImportDeclaration]) {
   private val pkgs: MSet[String] = msetEmpty
   private val staticContainer: MSet[JawaType] = msetEmpty
   private val staticFields: MSet[JawaField] = msetEmpty
-  private val staticMethods: MSet[Signature] = msetEmpty
+  private val staticMethods: MSet[JawaMethod] = msetEmpty
 
   imports.forEach{ imp =>
     if(!imp.isStatic) {
@@ -52,7 +52,7 @@ class ImportHandler(j2j: Java2Jawa, imports: NodeList[ImportDeclaration]) {
                 global.containsClassCanonical(name) match {
                   case Some(typ) =>
                     val clazz = global.getClassOrResolve(typ)
-                    staticMethods ++= clazz.getMethodsByName(part).filter(m => m.isStatic).map(m => m.getSignature)
+                    staticMethods ++= clazz.getMethodsByName(part).filter(m => m.isStatic)
                     staticFields ++= clazz.getStaticFields.filter(f => f.name == part && f.isStatic)
                   case None =>
                     throw Java2JawaException(imp.toRange, s"Cannot resolve static import $imp")
@@ -76,6 +76,23 @@ class ImportHandler(j2j: Java2Jawa, imports: NodeList[ImportDeclaration]) {
       clazz.getStaticFields.foreach { sf =>
         if(sf.getName == fieldName) {
           return Some(sf)
+        }
+      }
+    }
+    None
+  }
+
+  def getStaticMethod(name: String, argTypes: IList[JawaType]): Option[JawaMethod] = {
+    staticMethods.foreach { m =>
+      if(m.matches(name, argTypes)) {
+        return Some(m)
+      }
+    }
+    staticContainer.foreach { sc =>
+      val clazz = global.getClassOrResolve(sc)
+      clazz.getStaticMethods.foreach { m =>
+        if(m.matches(name, argTypes)) {
+          return Some(m)
         }
       }
     }

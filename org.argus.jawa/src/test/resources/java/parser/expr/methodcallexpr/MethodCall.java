@@ -7,10 +7,14 @@
  *
  * Detailed contributors are listed in the CONTRIBUTOR.md
  */
-package parser.as;
+package parser.expr.methodcallexpr;
 
-public class Assert1 {
-    public static void main() {
-        assert false;
+public class MethodCall {
+    private int foo(int i) {
+        return i + 1;
+    }
+    public static int main() {
+        MethodCall o = new MethodCall();
+        return o.foo(1);
     }
 }

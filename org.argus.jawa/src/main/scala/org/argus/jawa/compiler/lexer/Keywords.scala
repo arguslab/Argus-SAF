@@ -35,4 +35,5 @@ object Keywords {
     "call" -> CALL,
     "new" -> NEW)
 
+  def isKeyWord(s: String): Boolean = apply(s).isDefined
 }

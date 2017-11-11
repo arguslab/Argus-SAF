@@ -7,11 +7,13 @@
  *
  * Detailed contributors are listed in the CONTRIBUTOR.md
  */
-package parser.imports.staticpkg;
+package parser.expr.methodcallexpr;
 
-public class StaticContainer {
-    public static int j = 3;
-    public static int j(int x) {
-        return x + 1;
+public class StaticCall {
+    private static int foo(int i) {
+        return i + 1;
+    }
+    public static int main() {
+        return foo(1);
     }
 }

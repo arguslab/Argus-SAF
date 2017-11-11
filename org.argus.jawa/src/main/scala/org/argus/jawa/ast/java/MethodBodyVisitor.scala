@@ -15,10 +15,12 @@ import com.github.javaparser.ast.expr._
 import com.github.javaparser.ast.stmt._
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter
 import org.argus.jawa.ast.{AccessExpression, AssignmentStatement, BinaryExpression, CallRhs, CallStatement, CastExpression, ConstClassExpression, EmptyStatement, FieldNameSymbol, GotoStatement, IfStatement, IndexingExpression, IndexingSuffix, InstanceOfExpression, LHS, LiteralExpression, LocalVarDeclaration, Location, LocationDefSymbol, LocationSymbol, MethodNameSymbol, NewArrayExpression, NewExpression, RHS, ReturnStatement, StaticFieldAccessExpression, ThrowStatement, TokenValue, TupleExpression, TypeExpression, TypeSymbol, UnaryExpression, VarDefSymbol, VarSymbol, VariableNameExpression, Annotation => JawaAnnotation, CatchClause => JawaCatchClause, Expression => JawaExpression, Statement => JawaStatement, Type => JawaTypeAst}
-import org.argus.jawa.compiler.lexer.{Token, Tokens}
-import org.argus.jawa.core.{JavaKnowledge, JawaPackage, JawaType, Signature}
-import org.argus.jawa.core.io.{RangePosition, Position => JawaPosition}
+import org.argus.jawa.compiler.lexer.{Keywords, Token, Tokens}
+import org.argus.jawa.core.{JavaKnowledge, JawaMethod, JawaPackage, JawaType, Signature}
+import org.argus.jawa.core.io.{NoPosition, RangePosition, Position => JawaPosition}
 import org.argus.jawa.core.util._
+
+import scala.util.{Failure, Success, Try}
 
 class MethodBodyVisitor(j2j: Java2Jawa, ownerSig: Signature, ownerPos: RangePosition) extends VoidVisitorAdapter[Void] {
 
@@ -26,83 +28,14 @@ class MethodBodyVisitor(j2j: Java2Jawa, ownerSig: Signature, ownerPos: RangePosi
 
   imports.resolveStaticImports()
 
-  var lineCount: Int = 0
-  var labelCount: Int = 0
+  //******************************************************************************
+  //                         Local Variable management
+  //******************************************************************************
 
   val thisVar: VarSymbol = VarSymbol(Token(Tokens.ID, ownerPos, "this".apostrophe))(ownerPos)
-  var scopes: IList[MMap[String, String]] = ilistEmpty
-  var varDeclNameMap: MMap[String, String] = mmapEmpty ++ getParams(ownerSig).map { case (name, _) => name -> name}
+
   val localVariables: MMap[String, JawaType] = mmapEmpty ++ getParams(ownerSig)
   val localVarDeclarations: MList[LocalVarDeclaration] = mlistEmpty
-
-  def scopeStart(): Unit = {
-    scopes = varDeclNameMap :: scopes
-    varDeclNameMap = mmapEmpty ++ varDeclNameMap
-  }
-
-  def scopeEnd(): Unit = {
-    varDeclNameMap.clear()
-    varDeclNameMap = scopes.head
-    scopes = scopes.tail
-  }
-
-  trait LocPresentation {
-    def num: Int
-    def index: Int
-    def pos: JawaPosition
-  }
-  case class Loc(num: Int, index: Int, pos: JawaPosition) extends LocPresentation
-  case class Label(num: Int, index: Int, pos: JawaPosition) extends LocPresentation
-  private val statements: MList[(LocPresentation, JawaStatement)] = mlistEmpty
-  val catchClauses: MList[JawaCatchClause] = mlistEmpty
-
-  def locations: IList[Location] = {
-    checkVoidReturn()
-    val digits: Int = if (lineCount == 0) 1 else 1 + Math.floor(Math.log10(Math.abs(lineCount))).toInt
-    val format = "#L%%0%dd.".format(digits)
-    statements.map { case (presentation, statement) =>
-      val locStr = presentation match {
-        case Loc(num, _, _) =>
-          format.format(num)
-        case Label(num, _, _) =>
-          s"#Label$num."
-      }
-      val lds = LocationDefSymbol(Token(Tokens.LOCATION_ID, presentation.pos, locStr))(presentation.pos)
-      lds.locationIndex = presentation.index
-      Location(lds, statement)(presentation.pos)
-    }.toList
-  }
-
-  private def checkVoidReturn(): Unit = {
-    if(ownerSig.getReturnType == JavaKnowledge.VOID) {
-      var needVoidReturn = false
-      statements.lastOption match {
-        case Some((_, s)) =>
-          if(!s.isInstanceOf[ReturnStatement] && !s.isInstanceOf[ThrowStatement]) {
-            needVoidReturn = true
-          }
-        case None =>
-          needVoidReturn = true
-      }
-      if(needVoidReturn) {
-        val kindKey = Token(Tokens.ID, ownerPos, "kind")
-        val kindValue = TokenValue(Token(Tokens.ID, ownerPos, "void"))(ownerPos)
-        val annotation: JawaAnnotation = JawaAnnotation(kindKey, Some(kindValue))(ownerPos)
-        val rs = ReturnStatement(None, List(annotation))(ownerPos)
-        createLocation(ownerPos, rs)
-      }
-    }
-  }
-
-  private def createLocation(pos: JawaPosition, statement: JawaStatement): Unit = {
-    statements += ((Loc(lineCount, lineCount + labelCount, pos), statement))
-    lineCount += 1
-  }
-
-  private def createLabel(pos: JawaPosition): Unit = {
-    statements += ((Label(labelCount, lineCount + labelCount, pos), EmptyStatement(List())(pos)))
-    labelCount += 1
-  }
 
   private def generateTempVarName(varType: JawaType): String = {
     s"${varType.baseType.name}${if(varType.isArray) s"_arr${varType.dimensions}" else ""}_temp"
@@ -154,6 +87,151 @@ class MethodBodyVisitor(j2j: Java2Jawa, ownerSig: Signature, ownerPos: RangePosi
     localVariables.getOrElse(name, throw Java2JawaException(pos, s"Type should already been set for variable: $name"))
   }
 
+  //************************ Local Variable management End ***********************
+
+  //******************************************************************************
+  //                         Scope management
+  //******************************************************************************
+
+  var scopes: IList[MMap[String, String]] = ilistEmpty
+  var varDeclNameMap: MMap[String, String] = mmapEmpty ++ getParams(ownerSig).map { case (name, _) => name -> name}
+
+  def scopeStart(): Unit = {
+    scopes = varDeclNameMap :: scopes
+    varDeclNameMap = mmapEmpty ++ varDeclNameMap
+  }
+
+  def scopeEnd(): Unit = {
+    varDeclNameMap.clear()
+    varDeclNameMap = scopes.head
+    scopes = scopes.tail
+  }
+
+  //************************* Scope management End *******************************
+
+  //******************************************************************************
+  //                         Location and label management
+  //******************************************************************************
+
+  var lineCount: Int = 0
+
+  trait LocPresentation {
+    def index: Int
+    def pos: JawaPosition
+  }
+  case class Loc(num: Int, index: Int, pos: JawaPosition) extends LocPresentation
+  case class Label(label: String, index: Int, pos: JawaPosition) extends LocPresentation
+  private val statements: MList[(LocPresentation, JawaStatement)] = mlistEmpty
+  val catchClauses: MList[JawaCatchClause] = mlistEmpty
+
+  def locations: IList[Location] = {
+    checkVoidReturn()
+    val digits: Int = if (lineCount == 0) 1 else 1 + Math.floor(Math.log10(Math.abs(lineCount))).toInt
+    val format = "#L%%0%dd.".format(digits)
+    statements.map { case (presentation, statement) =>
+      val locStr = presentation match {
+        case Loc(num, _, _) =>
+          format.format(num)
+        case Label(l, _, _) =>
+          s"#$l."
+      }
+      val lds = LocationDefSymbol(Token(Tokens.LOCATION_ID, presentation.pos, locStr))(presentation.pos)
+      lds.locationIndex = presentation.index
+      Location(lds, statement)(presentation.pos)
+    }.toList
+  }
+
+  object LabelType extends Enumeration {
+    val NORMAL, DO, WHILE, FOR, SWITCH = Value
+  }
+
+  var labelCount: Int = 0
+  val labelMap: MMap[LabelType.Value, Int] = mmapEmpty
+
+  private def updateLabel(t: LabelType.Value): Unit = {
+    labelMap(t) = labelMap.getOrElse(t, 0) + 1
+  }
+
+  private def getLabel(t: LabelType.Value, start: Boolean): String = {
+    val num = labelMap.getOrElseUpdate(t, 0)
+    val label = t match {
+      case LabelType.NORMAL => "Label"
+      case LabelType.DO =>
+        if(start) {
+          "Do_start_"
+        } else {
+          "Do_end_"
+        }
+      case LabelType.WHILE =>
+        if(start) {
+          "While_start_"
+        } else {
+          "While_end_"
+        }
+      case LabelType.FOR =>
+        if(start) {
+          "For_start_"
+        } else {
+          "For_end_"
+        }
+      case LabelType.SWITCH =>
+        if(start) {
+          "Switch_start_"
+        } else {
+          "Switch_end_"
+        }
+    }
+    s"$label$num"
+  }
+
+  private def getNormalLabel: String = {
+    val num = labelMap.getOrElseUpdate(LabelType.NORMAL, 0)
+    updateLabel(LabelType.NORMAL)
+    s"Label$num"
+  }
+
+  private def createLocation(pos: JawaPosition, statement: JawaStatement): Unit = {
+    statements += ((Loc(lineCount, lineCount + labelCount, pos), statement))
+    lineCount += 1
+  }
+
+  private def getLabel(label: String): String = {
+    if(Keywords.isKeyWord(label)) {
+      s"${label}_label"
+    } else {
+      label
+    }
+  }
+
+  private def createLabel(pos: JawaPosition, label: String): Unit = {
+    val l = getLabel(label)
+    statements += ((Label(l, lineCount + labelCount, pos), EmptyStatement(ilistEmpty)(pos)))
+    labelCount += 1
+  }
+
+  private def checkVoidReturn(): Unit = {
+    if(ownerSig.getReturnType == JavaKnowledge.VOID) {
+      var needVoidReturn = false
+      statements.lastOption match {
+        case Some((_, s)) =>
+          if(!s.isInstanceOf[ReturnStatement] && !s.isInstanceOf[ThrowStatement]) {
+            needVoidReturn = true
+          }
+        case None =>
+          needVoidReturn = true
+      }
+      if(needVoidReturn) {
+        val kindKey = Token(Tokens.ID, ownerPos, "kind")
+        val kindValue = TokenValue(Token(Tokens.ID, ownerPos, "void"))(ownerPos)
+        val annotation: JawaAnnotation = JawaAnnotation(kindKey, Some(kindValue))(ownerPos)
+        val rs = ReturnStatement(None, List(annotation))(ownerPos)
+        createLocation(ownerPos, rs)
+      }
+    }
+  }
+
+  //********************** Location and label management End *********************
+
   //***********************************************************************************************
   //                                          Visit Statements
   //***********************************************************************************************
@@ -175,7 +253,7 @@ class MethodBodyVisitor(j2j: Java2Jawa, ownerSig: Signature, ownerPos: RangePosi
     val as_range = as.toRange
     as.getCheck.accept(this, arg)
     val biExpr = BinaryExpression(resultHolder, Token(Tokens.OP, getKeyWordRange(as), "!="), Right(Left(LiteralExpression(Token(Tokens.INTEGER_LITERAL, getKeyWordRange(as), "0"))(as_range))))(as_range)
-    val label = s"Label$labelCount"
+    val label = getNormalLabel
     val ifStmt = IfStatement(biExpr, LocationSymbol(Token(Tokens.ID, getKeyWordRange(as), label))(as_range))(as_range)
     createLocation(getKeyWordRange(as), ifStmt)
     as.getMessage.ifPresent { m =>
@@ -199,23 +277,183 @@ class MethodBodyVisitor(j2j: Java2Jawa, ownerSig: Signature, ownerPos: RangePosi
       msg.accept(this, arg)
       assertInitVarSymbols += resultHolder
     }
-    val assertInitCall = generateCall(None, assertType, "<init>", as_range, assertVarSymbol, assertInitVarSymbols.toList, JavaKnowledge.VOID, "direct")
+    val assertInitCall = generateCall(None, assertType, "<init>", as_range, Some(assertVarSymbol), assertInitVarSymbols.toList, "direct")
     createLocation(as_range, assertInitCall)
 
     // create throw statement
     val assertThrow = ThrowStatement(assertVarSymbol)(as_range)
     createLocation(as_range, assertThrow)
 
-    createLabel(as_range)
+    createLabel(as_range, label)
   }
 
-  override def visit(blockStmt: BlockStmt, arg: Void): Unit = {
+  override def visit(bs: BlockStmt, arg: Void): Unit = {
     scopeStart()
-    blockStmt.getStatements.forEach{ stmt =>
+    bs.getStatements.forEach{ stmt =>
       isLeft = true
       stmt.accept(this, arg)
     }
     scopeEnd()
+  }
+
+  //******************************************************************************
+  //                         Loop, switch, break, continue
+  //******************************************************************************
+
+  private var startLabels: IList[String] = ilistEmpty
+  private var endLabels: IList[String] = ilistEmpty
+  private def startLabel: String = startLabels.headOption.getOrElse(throw Java2JawaException(NoPosition, "Access label before init."))
+  private def endLabel: String = endLabels.headOption.getOrElse(throw Java2JawaException(NoPosition, "Access label before init."))
+  private def pushLabel(t: LabelType.Value): Unit = {
+    val be = getLabel(t, start = true)
+    val af = getLabel(t, start = false)
+    startLabels = be :: startLabels
+    endLabels = af :: endLabels
+    updateLabel(t)
+  }
+  private def popLabel(): Unit = {
+    startLabels = startLabels.tail
+    endLabels = endLabels.tail
+  }
+
+  /**
+    * java:
+    *   break abc;
+    *
+    * jawa:
+    *   goto abc;
+    */
+  override def visit(bs: BreakStmt, arg: Void): Unit = {
+    val bs_range = bs.toRange
+    var l = endLabel
+    bs.getLabel.ifPresent(label => l = getLabel(label.getIdentifier))
+    val goto = GotoStatement(LocationSymbol(Token(Tokens.ID, bs_range, l))(bs_range))(bs_range)
+    createLocation(bs_range, goto)
+  }
+
+  /**
+    * java:
+    *   continue abc;
+    *
+    * jawa:
+    *   goto abc;
+    */
+  override def visit(cs: ContinueStmt, arg: Void): Unit = {
+    val cs_range = cs.toRange
+    var l = startLabel
+    cs.getLabel.ifPresent(label => l = getLabel(label.getIdentifier))
+    val goto = GotoStatement(LocationSymbol(Token(Tokens.ID, cs_range, l))(cs_range))(cs_range)
+    createLocation(cs_range, goto)
+  }
+
+  /**
+    * java:
+    *   do {
+    *     body;
+    *   } while (cond);
+    *
+    * jawa:
+    *   Do_start:
+    *   body;
+    *   temp:= cond;
+    *   if cond == 0 then goto Do_start;
+    *   Do_end:
+    */
+  override def visit(ds: DoStmt, arg: Void): Unit = {
+    val ds_range = ds.toRange
+    pushLabel(LabelType.DO)
+
+    // start label
+    createLabel(ds_range, startLabel)
+
+    // body
+    ds.getBody.accept(this, arg)
+
+    // condition
+    isLeft = false
+    ds.getCondition.accept(this, arg)
+    val cond_res = resultHolder
+
+    val cond_range = ds.getCondition.toRange
+    val cond_exp = BinaryExpression(cond_res, Token(Tokens.OP, cond_range, "!="), Right(Left(LiteralExpression(Token(Tokens.ID, cond_range, "0"))(cond_range))))(cond_range)
+    val if_stmt = IfStatement(cond_exp, LocationSymbol(Token(Tokens.ID, ds_range, startLabel))(ds_range))(ds_range)
+    createLocation(cond_range, if_stmt)
+
+    // end label
+    createLabel(ds_range, endLabel)
+
+    popLabel()
+  }
+
+  /**
+    * java:
+    *   for(init; cond; update) {
+    *     body
+    *   }
+    *
+    * jawa:
+    *   temp:= init;
+    *   For_start:
+    *   temp2:= cond;
+    *   if temp2 == 0 then goto For_end;
+    *   body;
+    *   update;
+    *   goto For_start;
+    *   For_end:
+    *
+    * java:
+    *   for(;;) {}
+    *
+    * jawa:
+    *   For_start:
+    *   goto For_start;
+    *   For_end:
+    */
+  override def visit(fs: ForStmt, arg: Void): Unit = {
+    val fs_range = fs.toRange
+    pushLabel(LabelType.FOR)
+
+    // init
+    fs.getInitialization.forEach{ init =>
+      isLeft = false
+      init.accept(this, arg)
+    }
+
+    // start label
+    createLabel(fs_range, startLabel)
+
+    // cond (if exists)
+    fs.getCompare.ifPresent{ c =>
+      isLeft = false
+      c.accept(this, arg)
+      val cond_res = resultHolder
+      val cond_range = c.toRange
+      val cond_exp = BinaryExpression(cond_res, Token(Tokens.OP, cond_range, "=="), Right(Left(LiteralExpression(Token(Tokens.ID, cond_range, "0"))(cond_range))))(cond_range)
+      val if_stmt = IfStatement(cond_exp, LocationSymbol(Token(Tokens.ID, fs_range, endLabel))(fs_range))(fs_range)
+      createLocation(cond_range, if_stmt)
+    }
+
+    // body
+    fs.getBody.accept(this, arg)
+
+    // update
+    fs.getUpdate.forEach{ u =>
+      isLeft = false
+      u.accept(this, arg)
+    }
+
+    val goto = GotoStatement(LocationSymbol(Token(Tokens.ID, fs_range, startLabel))(fs_range))(fs_range)
+    createLocation(fs_range, goto)
+
+    // end label
+    createLabel(fs_range, endLabel)
+    popLabel()
+  }
+
+  //************************ Loop, switch, break, continue End *******************
+
+  override def visit(es: EmptyStmt, arg: Void): Unit = {
+    createLocation(es.toRange, EmptyStatement(ilistEmpty)(es.toRange))
   }
 
   /**
@@ -238,8 +476,79 @@ class MethodBodyVisitor(j2j: Java2Jawa, ownerSig: Signature, ownerPos: RangePosi
     } else {
       getSuperType(ownerSig.getClassType)
     }
-    val call = generateCall(None, classType, "<init>", ecis.toRange, thisVar, args.toList, JavaKnowledge.VOID, "direct")
+    val call = generateCall(None, classType, "<init>", ecis.toRange, Some(thisVar), args.toList, "direct")
     createLocation(ecis.toRange, call)
+  }
+
+  override def visit(es: ExpressionStmt, arg: Void): Unit = {
+    isLeft = false
+    es.getExpression.accept(this, arg)
+  }
+
+  private def handleIfStmt(is: IfStmt, arg: Void, endLabel: String): Unit = {
+    val is_range = is.toRange
+
+    // cond
+    isLeft = false
+    is.getCondition.accept(this, arg)
+    val cond_res = resultHolder
+    val cond_range = is.getCondition.toRange
+    val cond_exp = BinaryExpression(cond_res, Token(Tokens.OP, cond_range, "=="), Right(Left(LiteralExpression(Token(Tokens.ID, cond_range, "0"))(cond_range))))(cond_range)
+    val else_label = if(is.getElseStmt.isPresent) {
+      getNormalLabel
+    } else {
+      endLabel
+    }
+    val if_stmt = IfStatement(cond_exp, LocationSymbol(Token(Tokens.ID, is_range, else_label))(is_range))(is_range)
+    createLocation(cond_range, if_stmt)
+
+    // body
+    is.getThenStmt.accept(this, arg)
+
+    // goto end
+    val goto = GotoStatement(LocationSymbol(Token(Tokens.ID, is_range, endLabel))(is_range))(is_range)
+    createLocation(is_range, goto)
+
+    // else
+    is.getElseStmt.ifPresent{ es =>
+      createLabel(is_range, else_label)
+      es match {
+        case eis: IfStmt =>
+          handleIfStmt(eis, arg, endLabel)
+        case stmt: Statement =>
+          stmt.accept(this, arg)
+      }
+    }
+  }
+
+  /**
+    * java:
+    *   if(cond1) {
+    *     body1;
+    *   } else if(cond2) {
+    *     body2;
+    *   } else {
+    *     body3;
+    *   }
+    *
+    * jawa:
+    *   temp1:= cond1;
+    *   if temp1 == 0 then goto Label0;
+    *   body1;
+    *   goto If_end;
+    *   Label0:
+    *   temp2:= cond2;
+    *   if cond2 == 0 then goto Label1;
+    *   body2;
+    *   goto If_end;
+    *   Label1;
+    *   body3;
+    *   If_end:
+    */
+  override def visit(is: IfStmt, arg: Void): Unit = {
+    val endLabel = getNormalLabel
+    handleIfStmt(is, arg, endLabel)
+    createLabel(is.toRange, endLabel)
   }
 
   /**
@@ -274,17 +583,22 @@ class MethodBodyVisitor(j2j: Java2Jawa, ownerSig: Signature, ownerPos: RangePosi
     createLocation(rs.toRange, reStat)
   }
 
-  private def generateCall(lhsOpt: Option[VariableNameExpression], classType: JawaType, methodName: String, namePos: JawaPosition, recv: VarSymbol, args: IList[VarSymbol], retType: JawaType, kind: String): CallStatement = {
-    val clazz = global.getClassOrResolve(classType)
-    val argTypes = args.map(arg => getVariableType(arg.varName, arg.pos, isTemp = true))
-    val method = clazz.getMethodByNameAndArgTypes(methodName, argTypes).getOrElse(throw Java2JawaException(namePos, s"Could not find method $methodName with argTypes $argTypes in class $classType"))
-    val sig = method.getSignature
-    val mns = MethodNameSymbol(Token(Tokens.ID, namePos, methodName.apostrophe))(namePos)
+  //***********************************************************************************************
+  //                                          Visit Expression
+  //***********************************************************************************************
+
+  private var resultHolder: VarSymbol = _
+  private var LHS: JawaExpression with LHS = _
+  // Toggle to control generate resultHolder or LHS
+  private var isLeft = false
+
+
+  private def generateCall(lhsOpt: Option[VariableNameExpression], sig: Signature, namePos: JawaPosition, recv: Option[VarSymbol], args: IList[VarSymbol], kind: String): CallStatement = {
+    val mns = MethodNameSymbol(Token(Tokens.ID, namePos, sig.methodName.apostrophe))(namePos)
     mns.signature = sig
-    val arguments = if(!method.isStatic) {
-      recv :: args
-    } else {
-      args
+    val arguments = recv match {
+      case Some(vs) => vs :: args
+      case None => args
     }
     val rhs = CallRhs(mns, arguments)(namePos)
     val annotations: MList[JawaAnnotation] = mlistEmpty
@@ -299,14 +613,23 @@ class MethodBodyVisitor(j2j: Java2Jawa, ownerSig: Signature, ownerPos: RangePosi
     CallStatement(lhsOpt, rhs, annotations.toList)(namePos)
   }
 
-  //***********************************************************************************************
-  //                                          Visit Expression
-  //***********************************************************************************************
+  private def resolveMethod(classType: JawaType, methodName: String, namePos: JawaPosition, args: IList[VarSymbol]): Try[JawaMethod] = {
+    val clazz = global.getClassOrResolve(classType)
+    val argTypes = args.map(arg => getVariableType(arg.varName, arg.pos, isTemp = true))
+    clazz.getMethodByNameAndArgTypes(methodName, argTypes) match {
+      case Some(m) => Success(m)
+      case None => Failure(Java2JawaException(namePos, s"Could not find method $methodName with argTypes $argTypes in class $classType"))
+    }
+  }
 
-  private var resultHolder: VarSymbol = _
-  private var LHS: JawaExpression with LHS = _
-  // Toggle to control generate resultHolder or LHS
-  private var isLeft = false
+  private def generateCall(lhsOpt: Option[VariableNameExpression], classType: JawaType, methodName: String, namePos: JawaPosition, recv: Option[VarSymbol], args: IList[VarSymbol], kind: String): CallStatement = {
+    val method = resolveMethod(classType, methodName, namePos, args) match {
+      case Success(m) => m
+      case Failure(e) => throw e
+    }
+    val sig = method.getSignature
+    generateCall(lhsOpt, sig, namePos, recv, args, kind)
+  }
 
   //*********************************************************************
   //                       LiteralExpr
@@ -409,6 +732,10 @@ class MethodBodyVisitor(j2j: Java2Jawa, ownerSig: Signature, ownerPos: RangePosi
     createLocation(l.toRange, be)
     resultHolder = left
   }
+
+  //*********************************************************************
+  //                       LiteralExpr End
+  //*********************************************************************
 
   private def createIntAssignment(name: String, lit: Int, pos: JawaPosition): VarSymbol = {
     val vs = VarSymbol(Token(Tokens.ID, pos, checkAndAddVariable(JavaKnowledge.INT, pos, name, pos, isTemp = true).apostrophe))(pos)
@@ -718,20 +1045,20 @@ class MethodBodyVisitor(j2j: Java2Jawa, ownerSig: Signature, ownerPos: RangePosi
     op match {
       case Left(o) =>
         val biExpr = BinaryExpression(temp1, Token(Tokens.OP, getKeyWordRange(be), o), Left(temp2))(be_range)
-        val label = s"Label$labelCount"
+        val label = getNormalLabel
         val ifStmt = IfStatement(biExpr, LocationSymbol(Token(Tokens.ID, getKeyWordRange(be), label))(be_range))(be_range)
         createLocation(getKeyWordRange(be), ifStmt)
         val temp3Name = checkAndAddVariable(JavaKnowledge.BOOLEAN, be_range, "boolean_temp", be_range, isTemp = true)
         val temp3Var = VarSymbol(Token(Tokens.ID, be_range, temp3Name.apostrophe))(be_range)
         val assignStmt1 = AssignmentStatement(VariableNameExpression(temp3Var)(be_range), LiteralExpression(Token(Tokens.INTEGER_LITERAL, be_range, "0"))(be_range), ilistEmpty)(be_range)
         createLocation(getKeyWordRange(be), assignStmt1)
-        val label2 = s"Label${labelCount + 1}"
+        val label2 = getNormalLabel
         val gotoStmt = GotoStatement(LocationSymbol(Token(Tokens.ID, be_range, label2))(be_range))(be_range)
         createLocation(getKeyWordRange(be), gotoStmt)
-        createLabel(getKeyWordRange(be))
+        createLabel(getKeyWordRange(be), label)
         val assignStmt2 = AssignmentStatement(VariableNameExpression(temp3Var)(be_range), LiteralExpression(Token(Tokens.INTEGER_LITERAL, be_range, "1"))(be_range), ilistEmpty)(be_range)
         createLocation(getKeyWordRange(be), assignStmt2)
-        createLabel(getKeyWordRange(be))
+        createLabel(getKeyWordRange(be), label2)
         resultHolder = temp3Var
       case Right(o) =>
         val binExp = BinaryExpression(temp1, Token(Tokens.OP, getKeyWordRange(be), o), Left(temp2))(be_range)
@@ -813,7 +1140,7 @@ class MethodBodyVisitor(j2j: Java2Jawa, ownerSig: Signature, ownerPos: RangePosi
     ce.getCondition.accept(this, arg)
     val temp = resultHolder
     val biExpr = BinaryExpression(temp, Token(Tokens.OP, ce_range, "=="), Right(Left(LiteralExpression(Token(Tokens.INTEGER_LITERAL, ce_range, "0"))(ce_range))))(ce_range)
-    val label = s"Label$labelCount"
+    val label = getNormalLabel
     val ifStmt = IfStatement(biExpr, LocationSymbol(Token(Tokens.ID, getKeyWordRange(ce), label))(ce_range))(ce_range)
     createLocation(getKeyWordRange(ce), ifStmt)
 
@@ -826,18 +1153,18 @@ class MethodBodyVisitor(j2j: Java2Jawa, ownerSig: Signature, ownerPos: RangePosi
     val assignStmt1 = AssignmentStatement(VariableNameExpression(temp1_var)(ce_range), VariableNameExpression(result1)(ce_range), ilistEmpty)(ce_range)
     createLocation(getKeyWordRange(ce), assignStmt1)
 
-    val label2 = s"Label${labelCount + 1}"
+    val label2 = getNormalLabel
     val gotoStmt = GotoStatement(LocationSymbol(Token(Tokens.ID, ce_range, label2))(ce_range))(ce_range)
     createLocation(getKeyWordRange(ce), gotoStmt)
 
-    createLabel(getKeyWordRange(ce))
+    createLabel(getKeyWordRange(ce), label)
     isLeft = false
     ce.getElseExpr.accept(this, arg)
     val result2 = resultHolder
     val assignStmt2 = AssignmentStatement(VariableNameExpression(temp1_var)(ce_range), VariableNameExpression(result2)(ce_range), ilistEmpty)(ce_range)
     createLocation(getKeyWordRange(ce), assignStmt2)
 
-    createLabel(getKeyWordRange(ce))
+    createLabel(getKeyWordRange(ce), label2)
     resultHolder = temp1_var
   }
 
@@ -919,6 +1246,10 @@ class MethodBodyVisitor(j2j: Java2Jawa, ownerSig: Signature, ownerPos: RangePosi
     resultHolder = temp2Var
   }
 
+  override def visit(le: LambdaExpr, arg: Void): Unit = {
+    // TODO: handle lambda
+  }
+
   /**
     * java:
     *   foo(arg1, arg3);
@@ -929,6 +1260,7 @@ class MethodBodyVisitor(j2j: Java2Jawa, ownerSig: Signature, ownerPos: RangePosi
     *   call temp:= `foo`(temp1, temp2) @signature `Lx;.foo:(Ly;Lz;)La;` @kind virtual;
     */
   override def visit(mce: MethodCallExpr, arg: Void): Unit = {
+    val name_range = mce.getName.toRange
     var ownerType = ownerSig.getClassType
     mce.getScope.ifPresent{ s =>
       resolveScope(s) match {
@@ -939,15 +1271,55 @@ class MethodBodyVisitor(j2j: Java2Jawa, ownerSig: Signature, ownerPos: RangePosi
       }
     }
     val methodName = mce.getNameAsString
-    val argVars: MList[VarSymbol] = mlistEmpty
-    val argTypes: MList[JawaType] = mlistEmpty
+    val args: MList[VarSymbol] = mlistEmpty
     mce.getArguments.forEach{ argument =>
       isLeft = false
       argument.accept(this, arg)
-      val arg_vs = resultHolder
-      val arg_type = getVariableType(arg_vs.varName, argument.toRange, isTemp = true)
-      argTypes += arg_type
+      args += resultHolder
     }
+    val method: JawaMethod = resolveMethod(ownerType, methodName, mce.toRange, args.toList) match {
+      case Success(m) => m
+      case Failure(_) =>
+        // Check if its static imported method
+        val argTypes = args.map(arg => getVariableType(arg.varName, arg.pos, isTemp = true))
+        imports.getStaticMethod(methodName, argTypes.toList) match {
+          case Some(m) => m
+          case None => throw Java2JawaException(mce.toRange, s"Could not resolve method call $mce")
+        }
+    }
+    var recv: Option[VarSymbol] = None
+    var kind = if(method.getDeclaringClass.isInterface) "interface" else "virtual"
+    if(method.isStatic) {
+      kind = "static"
+    } else {
+      if(mce.getScope.isPresent) {
+        val scope = mce.getScope.get()
+        if(scope.isInstanceOf[SuperExpr]) {
+          kind = "super"
+        }
+        isLeft = false
+        scope.accept(this, arg)
+        recv = Some(resultHolder)
+      } else {
+        recv = Some(thisVar)
+      }
+    }
+    var temp_vns: Option[VariableNameExpression] = None
+    method.getReturnType match {
+      case t if t == JavaKnowledge.VOID =>
+        resultHolder = null
+      case t =>
+        val temp_name = checkAndAddVariable(t, name_range, generateTempVarName(t), name_range, isTemp = true)
+        val temp_vs = VarSymbol(Token(Tokens.ID, name_range, temp_name.apostrophe))(name_range)
+        resultHolder = temp_vs
+        temp_vns = Some(VariableNameExpression(temp_vs)(name_range))
+    }
+    val cs = generateCall(temp_vns, method.getSignature, name_range, recv, args.toList, kind)
+    createLocation(getKeyWordRange(mce), cs)
+  }
+
+  override def visit(mre: MethodReferenceExpr, arg: Void): Unit = {
+    // TODO: handle lambda
   }
 
   /**
@@ -1054,7 +1426,7 @@ class MethodBodyVisitor(j2j: Java2Jawa, ownerSig: Signature, ownerPos: RangePosi
       val outerVar = resultHolder
       val class_temp = checkAndAddVariable(JavaKnowledge.CLASS, oce_range, "class_temp", oce_range, isTemp = true)
       val lhs = VariableNameExpression(VarSymbol(Token(Tokens.ID, oce_range, class_temp.apostrophe))(oce_range))(oce_range)
-      val call = generateCall(Some(lhs), JavaKnowledge.JAVA_TOPLEVEL_OBJECT_TYPE, "getClass", oce_range, outerVar, ilistEmpty, JavaKnowledge.CLASS, "virtual")
+      val call = generateCall(Some(lhs), JavaKnowledge.JAVA_TOPLEVEL_OBJECT_TYPE, "getClass", oce_range, Some(outerVar), ilistEmpty, "virtual")
       createLocation(getKeyWordRange(oce), call)
       args += outerVar
     }
@@ -1063,7 +1435,7 @@ class MethodBodyVisitor(j2j: Java2Jawa, ownerSig: Signature, ownerPos: RangePosi
       argument.accept(this, arg)
       args += resultHolder
     }
-    val init_call = generateCall(None, typ, "<init>", assign_stmt.pos, temp_var, args.toList, JavaKnowledge.VOID, "direct")
+    val init_call = generateCall(None, typ, "<init>", assign_stmt.pos, Some(temp_var), args.toList, "direct")
     createLocation(getKeyWordRange(oce), init_call)
     resultHolder = temp_var
     // TODO: add anonymous class handle logic
@@ -1161,18 +1533,18 @@ class MethodBodyVisitor(j2j: Java2Jawa, ownerSig: Signature, ownerPos: RangePosi
         createLocation(getKeyWordRange(ue), assign)
       case UnaryExpr.Operator.LOGICAL_COMPLEMENT =>
         val biExpr = BinaryExpression(temp, Token(Tokens.OP, ue_range, "!="), Right(Left(LiteralExpression(Token(Tokens.INTEGER_LITERAL, ue_range, "0"))(ue_range))))(ue_range)
-        val label = s"Label$labelCount"
+        val label = getNormalLabel
         val ifStmt = IfStatement(biExpr, LocationSymbol(Token(Tokens.ID, ue_range, label))(ue_range))(ue_range)
         createLocation(getKeyWordRange(ue), ifStmt)
         val true_assign = AssignmentStatement(VariableNameExpression(temp)(ue_range), LiteralExpression(Token(Tokens.INTEGER_LITERAL, ue_range, "1"))(ue_range), ilistEmpty)(ue_range)
         createLocation(getKeyWordRange(ue), true_assign)
-        val label2 = s"Label${labelCount + 1}"
+        val label2 = getNormalLabel
         val goto = GotoStatement(LocationSymbol(Token(Tokens.ID, ue_range, label2))(ue_range))(ue_range)
         createLocation(getKeyWordRange(ue), goto)
-        createLabel(getKeyWordRange(ue))
+        createLabel(getKeyWordRange(ue), label)
         val false_assign = AssignmentStatement(VariableNameExpression(temp)(ue_range), LiteralExpression(Token(Tokens.INTEGER_LITERAL, ue_range, "0"))(ue_range), ilistEmpty)(ue_range)
         createLocation(getKeyWordRange(ue), false_assign)
-        createLabel(getKeyWordRange(ue))
+        createLabel(getKeyWordRange(ue), label2)
       case UnaryExpr.Operator.MINUS =>
         val uexpr = UnaryExpression(Token(Tokens.OP, ue_range, "-"), temp)(ue_range)
         val assign = AssignmentStatement(VariableNameExpression(temp)(ue_range), uexpr, ilistEmpty)(ue_range)

@@ -7,11 +7,10 @@
  *
  * Detailed contributors are listed in the CONTRIBUTOR.md
  */
-package parser.imports.staticpkg;
+package parser.stmt.assertstmt;
 
-public class StaticContainer {
-    public static int j = 3;
-    public static int j(int x) {
-        return x + 1;
+public class Assert1 {
+    public static void main() {
+        assert false;
     }
 }

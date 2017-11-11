@@ -137,6 +137,32 @@ case class JawaMethod(declaringClass: JawaClass,
    * return type. e.g. boolean
    */
   def getReturnType: JawaType = this.returnType
+
+  def matches(name: String, argTypes: IList[JawaType]): Boolean = {
+    var result = true
+    if (getParamTypes.size == argTypes.size) {
+      if(getParamTypes != argTypes) {
+        for (i <- getParamTypes.indices) {
+          val pType = getParamType(i)
+          val aType = argTypes(i)
+          if(pType.isPrimitive || aType.isPrimitive) {
+            if(pType != aType) {
+              result = false
+            }
+          } else {
+            val pClass = getDeclaringClass.global.getClassOrResolve(pType)
+            val aClass = getDeclaringClass.global.getClassOrResolve(aType)
+            if (!getDeclaringClass.global.getClassHierarchy.isClassRecursivelySubClassOfIncluding(aClass, pClass)) {
+              result = false
+            }
+          }
+        }
+      }
+    } else {
+      result = false
+    }
+    result
+  }
   
   /**
    * exceptions thrown by this method

@@ -271,29 +271,7 @@ case class JawaClass(global: Global, typ: JawaType, accessFlags: Int) extends Ja
 
   def getMethodByNameAndArgTypes(name: String, argTypes: IList[JawaType]): Option[JawaMethod] = {
     getDeclaredMethodsByName(name).find { m =>
-      var result = true
-      if (m.getParamTypes.size == argTypes.size) {
-        if(m.getParamTypes != argTypes) {
-          for (i <- m.getParamTypes.indices) {
-            val pType = m.getParamType(i)
-            val aType = argTypes(i)
-            if(pType.isPrimitive || aType.isPrimitive) {
-              if(pType != aType) {
-                result = false
-              }
-            } else {
-              val pClass = global.getClassOrResolve(pType)
-              val aClass = global.getClassOrResolve(aType)
-              if (!global.getClassHierarchy.isClassRecursivelySubClassOfIncluding(aClass, pClass)) {
-                result = false
-              }
-            }
-          }
-        }
-      } else {
-        result = false
-      }
-      result
+      m.matches(name, argTypes)
     } match {
       case m @ Some(_) => m
       case None =>

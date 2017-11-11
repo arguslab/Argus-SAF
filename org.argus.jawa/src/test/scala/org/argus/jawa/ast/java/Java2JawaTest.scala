@@ -30,10 +30,6 @@ class Java2JawaTest extends FlatSpec with Matchers {
     new TestFile(file)
   }
 
-  "/java/parser/as/Assert1.java" should "throw AssertionError" in {
-    an[AssertionError] should be thrownBy run("/java/parser/as/Assert1.java", loadpkg = false)
-  }
-
   "/java/parser/cons/StaticInitializer.java" produce (1)
 
   "/java/parser/cons/StaticInitializerMixed.java" produce (2)
@@ -120,6 +116,10 @@ class Java2JawaTest extends FlatSpec with Matchers {
 
   "/java/parser/expr/instanceofexpr/InstanceOfExpression.java" produce (true)
 
+  "/java/parser/expr/methodcallexpr/MethodCall.java" produce (2)
+
+  "/java/parser/expr/methodcallexpr/StaticCall.java" produce (2)
+
   "/java/parser/expr/unaryexpr/BITWISE_COMPLEMENT.java" produce (-9)
 
   "/java/parser/expr/unaryexpr/Complex.java" produce (-3)
@@ -144,7 +144,23 @@ class Java2JawaTest extends FlatSpec with Matchers {
 
   "/java/parser/imports/ImportsTest.java" produce (7, true)
 
-  "/java/parser/imports/StaticImportsTest.java" produce (5, true)
+  "/java/parser/imports/StaticImportsTest.java" produce (6, true)
+
+  "/java/parser/stmt/assertstmt/Assert1.java" should "throw AssertionError" in {
+    an[AssertionError] should be thrownBy run("/java/parser/stmt/assertstmt/Assert1.java", loadpkg = false)
+  }
+
+  "/java/parser/stmt/dostmt/DoWhile.java" produce (10)
+
+  "/java/parser/stmt/dostmt/DoWhileNested.java" produce (1002)
+
+  "/java/parser/stmt/forstmt/For.java" produce (45)
+
+  "/java/parser/stmt/forstmt/ForNested.java" produce (50)
+
+  "/java/parser/stmt/forstmt/ForNoCompare.java" produce (10)
+
+  "/java/parser/stmt/ifstmt/IfElseIf.java" produce (11)
 
   class TestFile(file: String) {
     def produce(tp: Any, loadpkg: Boolean = false): Unit = {
@@ -175,7 +191,7 @@ class Java2JawaTest extends FlatSpec with Matchers {
         val css = new JavaByteCodeGenerator("1.8").generate(Some(global), cu)
         val pw = new PrintWriter(System.out)
         css foreach { case (ctyp, bytecodes) =>
-          JavaByteCodeGenerator.outputByteCodes(pw, bytecodes)
+//          JavaByteCodeGenerator.outputByteCodes(pw, bytecodes)
           ccl.loadClass(ctyp.name, bytecodes)
         }
     }
