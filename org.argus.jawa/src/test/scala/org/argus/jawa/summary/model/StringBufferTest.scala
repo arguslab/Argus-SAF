@@ -61,6 +61,7 @@ class StringBufferTest extends SuTestBase("StringBuffer.safsu") {
     thisValueFact
   ) produce (
     thisFact,
+    thisValueFact,
     new RFAFact(FieldSlot(thisInstance, "value"), PTAPointStringInstance(currentContext)),
     new RFAFact(VarSlot("temp"), thisInstance)
   )
@@ -70,6 +71,7 @@ class StringBufferTest extends SuTestBase("StringBuffer.safsu") {
     thisValueFact
   ) produce (
     thisFact,
+    thisValueFact,
     new RFAFact(FieldSlot(thisInstance, "value"), PTAPointStringInstance(currentContext)),
     new RFAFact(VarSlot("temp"), thisInstance)
   )
@@ -79,6 +81,7 @@ class StringBufferTest extends SuTestBase("StringBuffer.safsu") {
     thisValueFact
   ) produce (
     thisFact,
+    thisValueFact,
     new RFAFact(FieldSlot(thisInstance, "value"), PTAPointStringInstance(currentContext)),
     new RFAFact(VarSlot("temp"), thisInstance)
   )
@@ -88,6 +91,7 @@ class StringBufferTest extends SuTestBase("StringBuffer.safsu") {
     thisValueFact
   ) produce (
     thisFact,
+    thisValueFact,
     new RFAFact(FieldSlot(thisInstance, "value"), PTAPointStringInstance(currentContext)),
     new RFAFact(VarSlot("temp"), thisInstance)
   )
@@ -97,6 +101,7 @@ class StringBufferTest extends SuTestBase("StringBuffer.safsu") {
     thisValueFact
   ) produce (
     thisFact,
+    thisValueFact,
     new RFAFact(FieldSlot(thisInstance, "value"), PTAPointStringInstance(currentContext)),
     new RFAFact(VarSlot("temp"), thisInstance)
   )
@@ -106,6 +111,7 @@ class StringBufferTest extends SuTestBase("StringBuffer.safsu") {
     thisValueFact
   ) produce (
     thisFact,
+    thisValueFact,
     new RFAFact(FieldSlot(thisInstance, "value"), PTAPointStringInstance(currentContext)),
     new RFAFact(VarSlot("temp"), thisInstance)
   )
@@ -115,6 +121,7 @@ class StringBufferTest extends SuTestBase("StringBuffer.safsu") {
     thisValueFact
   ) produce (
     thisFact,
+    thisValueFact,
     new RFAFact(FieldSlot(thisInstance, "value"), PTAPointStringInstance(currentContext)),
     new RFAFact(VarSlot("temp"), thisInstance)
   )
@@ -124,6 +131,7 @@ class StringBufferTest extends SuTestBase("StringBuffer.safsu") {
     thisValueFact
   ) produce (
     thisFact,
+    thisValueFact,
     new RFAFact(FieldSlot(thisInstance, "value"), PTAPointStringInstance(currentContext)),
     new RFAFact(VarSlot("temp"), thisInstance)
   )
@@ -133,6 +141,7 @@ class StringBufferTest extends SuTestBase("StringBuffer.safsu") {
     thisValueFact
   ) produce (
     thisFact,
+    thisValueFact,
     new RFAFact(FieldSlot(thisInstance, "value"), PTAPointStringInstance(currentContext)),
     new RFAFact(VarSlot("temp"), thisInstance)
   )
@@ -142,6 +151,7 @@ class StringBufferTest extends SuTestBase("StringBuffer.safsu") {
     thisValueFact
   ) produce (
     thisFact,
+    thisValueFact,
     new RFAFact(FieldSlot(thisInstance, "value"), PTAPointStringInstance(currentContext)),
     new RFAFact(VarSlot("temp"), thisInstance)
   )
@@ -151,6 +161,7 @@ class StringBufferTest extends SuTestBase("StringBuffer.safsu") {
     thisValueFact
   ) produce (
     thisFact,
+    thisValueFact,
     new RFAFact(FieldSlot(thisInstance, "value"), PTAPointStringInstance(currentContext)),
     new RFAFact(VarSlot("temp"), thisInstance)
   )
@@ -160,6 +171,7 @@ class StringBufferTest extends SuTestBase("StringBuffer.safsu") {
     thisValueFact
   ) produce (
     thisFact,
+    thisValueFact,
     new RFAFact(FieldSlot(thisInstance, "value"), PTAPointStringInstance(currentContext)),
     new RFAFact(VarSlot("temp"), thisInstance)
   )
@@ -169,6 +181,7 @@ class StringBufferTest extends SuTestBase("StringBuffer.safsu") {
     thisValueFact
   ) produce (
     thisFact,
+    thisValueFact,
     new RFAFact(FieldSlot(thisInstance, "value"), PTAPointStringInstance(currentContext)),
     new RFAFact(VarSlot("temp"), thisInstance)
   )
@@ -178,6 +191,7 @@ class StringBufferTest extends SuTestBase("StringBuffer.safsu") {
     thisValueFact
   ) produce (
     thisFact,
+    thisValueFact,
     new RFAFact(FieldSlot(thisInstance, "value"), PTAPointStringInstance(currentContext)),
     new RFAFact(VarSlot("temp"), thisInstance)
   )
@@ -187,6 +201,7 @@ class StringBufferTest extends SuTestBase("StringBuffer.safsu") {
     thisValueFact
   ) produce (
     thisFact,
+    thisValueFact,
     new RFAFact(FieldSlot(thisInstance, "value"), PTAPointStringInstance(currentContext)),
     new RFAFact(VarSlot("temp"), thisInstance)
   )
@@ -196,6 +211,7 @@ class StringBufferTest extends SuTestBase("StringBuffer.safsu") {
     thisValueFact
   ) produce (
     thisFact,
+    thisValueFact,
     new RFAFact(FieldSlot(thisInstance, "value"), PTAPointStringInstance(currentContext)),
     new RFAFact(VarSlot("temp"), thisInstance)
   )
@@ -205,6 +221,7 @@ class StringBufferTest extends SuTestBase("StringBuffer.safsu") {
     thisValueFact
   ) produce (
     thisFact,
+    thisValueFact,
     new RFAFact(FieldSlot(thisInstance, "value"), PTAPointStringInstance(currentContext)),
     new RFAFact(VarSlot("temp"), thisInstance)
   )
