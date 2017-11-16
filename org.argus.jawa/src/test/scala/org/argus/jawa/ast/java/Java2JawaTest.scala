@@ -150,9 +150,17 @@ class Java2JawaTest extends FlatSpec with Matchers {
     an[AssertionError] should be thrownBy run("/java/parser/stmt/assertstmt/Assert1.java", loadpkg = false)
   }
 
+  "/java/parser/stmt/assertstmt/AssertObject.java" should "throw AssertionError" in {
+    an[AssertionError] should be thrownBy run("/java/parser/stmt/assertstmt/AssertObject.java", loadpkg = false)
+  }
+
   "/java/parser/stmt/dostmt/DoWhile.java" produce (10)
 
   "/java/parser/stmt/dostmt/DoWhileNested.java" produce (1002)
+
+  "/java/parser/stmt/foreachstmt/Foreach.java" produce (10)
+
+  "/java/parser/stmt/foreachstmt/ForeachNested.java" produce (80)
 
   "/java/parser/stmt/forstmt/For.java" produce (45)
 
@@ -161,6 +169,28 @@ class Java2JawaTest extends FlatSpec with Matchers {
   "/java/parser/stmt/forstmt/ForNoCompare.java" produce (10)
 
   "/java/parser/stmt/ifstmt/IfElseIf.java" produce (11)
+
+  "/java/parser/stmt/labeledstmt/LabelBreak.java" produce (10)
+
+  "/java/parser/stmt/labeledstmt/LabelContinue.java" produce (11)
+
+  "/java/parser/stmt/switchstmt/Switch.java" produce (1101)
+
+  "/java/parser/stmt/switchstmt/SwitchNotMatch.java" produce (1)
+
+  "/java/parser/stmt/switchstmt/SwitchString.java" produce (1101)
+
+  "/java/parser/stmt/switchstmt/SwitchStringNotMatch.java" produce (1)
+
+//  "/java/parser/stmt/synchronizedstmt/Synchronized.java" produce (1)
+
+  "/java/parser/stmt/throwstmt/ThrowException.java" should "throw AssertionError" in {
+    an[RuntimeException] should be thrownBy run("/java/parser/stmt/throwstmt/ThrowException.java", loadpkg = false)
+  }
+
+  "/java/parser/stmt/whilestmt/While.java" produce (10)
+
+  "/java/parser/stmt/whilestmt/WhileNested.java" produce (1002)
 
   class TestFile(file: String) {
     def produce(tp: Any, loadpkg: Boolean = false): Unit = {

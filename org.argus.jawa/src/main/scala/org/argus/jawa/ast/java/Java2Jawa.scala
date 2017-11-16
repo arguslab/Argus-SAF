@@ -62,6 +62,7 @@ class Java2Jawa(val global: Global, val sourceFile: JavaSourceFile) {
 
   implicit class StringProcess(str: String) {
     def apostrophe: String = "`%s`".format(str)
+    def doublequotes: String = "\"%s\"".format(str)
   }
 
   protected[java] def getJawaAccessFlag(modifiers: util.EnumSet[Modifier], isConstructor: Boolean): String = {
