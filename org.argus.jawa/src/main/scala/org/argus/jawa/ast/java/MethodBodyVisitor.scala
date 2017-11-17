@@ -682,7 +682,7 @@ class MethodBodyVisitor(j2j: Java2Jawa, ownerSig: Signature, ownerPos: RangePosi
       val hc_switch = SwitchStatement(hc_temp_vs, hc_cases.toList, hc_default)(ss_range)
       createLocation(ss_range, hc_switch)
 
-      // handle each string equal
+      // handle each string equals
       var idx: Int = 0
       hcList.foreach {
         case (label, pos, str, stmts) =>
