@@ -31,7 +31,7 @@ import org.scalatest.{FlatSpec, Matchers}
 import scala.language.implicitConversions
 
 class IntentWuTest extends FlatSpec with Matchers {
-  final val DEBUG = true
+  final val DEBUG = false
 
   trait MyTest {
     def ep(sigStr: String): MyTest

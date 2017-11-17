@@ -28,7 +28,7 @@ class StringBufferTest extends SuTestBase("StringBuffer.safsu") {
     thisFact,
   ) produce (
     thisFact,
-    new RFAFact(FieldSlot(thisInstance, "value"), PTAConcreteStringInstance("", currentContext))
+    new RFAFact(FieldSlot(thisInstance, "value"), PTAPointStringInstance(currentContext))
   )
 
   "Ljava/lang/StringBuffer;.<init>:(I)V" with_input (

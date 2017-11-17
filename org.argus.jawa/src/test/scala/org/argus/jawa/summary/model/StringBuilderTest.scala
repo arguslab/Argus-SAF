@@ -28,7 +28,7 @@ class StringBuilderTest extends SuTestBase("StringBuilder.safsu") {
     thisFact,
   ) produce (
     thisFact,
-    new RFAFact(FieldSlot(thisInstance, "value"), PTAConcreteStringInstance("", currentContext))
+    new RFAFact(FieldSlot(thisInstance, "value"), PTAPointStringInstance(currentContext))
   )
 
   "Ljava/lang/StringBuilder;.<init>:(I)V" with_input (

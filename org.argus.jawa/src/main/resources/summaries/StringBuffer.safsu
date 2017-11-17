@@ -1,7 +1,7 @@
 java.lang.StringBuffer:value:java.lang.String;
 
 `Ljava/lang/StringBuffer;.<init>:()V`:
-   this.value = ""@~
+   this.value = java.lang.String@~
 ;
 
 `Ljava/lang/StringBuffer;.<init>:(I)V`:

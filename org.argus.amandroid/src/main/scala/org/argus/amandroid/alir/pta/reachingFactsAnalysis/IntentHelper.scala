@@ -52,7 +52,9 @@ object IntentHelper {
       var actions: ISet[String] = isetEmpty[String]
       val acFieldSlot = FieldSlot(intentIns, AndroidConstants.INTENT_ACTION)
       s.pointsToSet(currentContext, acFieldSlot).foreach {
-        case instance: PTAConcreteStringInstance => actions += instance.string
+        case instance: PTAConcreteStringInstance =>
+          println(instance)
+          actions += instance.string
         case _ => precise = false
       }
 
