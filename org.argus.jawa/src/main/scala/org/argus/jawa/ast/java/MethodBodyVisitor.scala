@@ -143,7 +143,7 @@ class MethodBodyVisitor(j2j: Java2Jawa, ownerSig: Signature, ownerPos: RangePosi
   }
 
   object LabelType extends Enumeration {
-    val NORMAL, DO, WHILE, FOR, SWITCH = Value
+    val NORMAL, DO, WHILE, FOR, SWITCH, IF, ELSE = Value
   }
 
   var labelCount: Int = 0
@@ -180,6 +180,18 @@ class MethodBodyVisitor(j2j: Java2Jawa, ownerSig: Signature, ownerPos: RangePosi
           "Switch_start_"
         } else {
           "Switch_end_"
+        }
+      case LabelType.IF =>
+        if(start) {
+          "If_start_"
+        } else {
+          "If_end_"
+        }
+      case LabelType.ELSE =>
+        if(start) {
+          "Else_start_"
+        } else {
+          "Else_end_"
         }
     }
     s"$label$num"
@@ -839,41 +851,6 @@ class MethodBodyVisitor(j2j: Java2Jawa, ownerSig: Signature, ownerPos: RangePosi
     es.getExpression.accept(this, arg)
   }
 
-  private def handleIfStmt(is: IfStmt, arg: Void, endLabel: String): Unit = {
-    val is_range = is.toRange
-
-    // cond
-    isLeft = false
-    is.getCondition.accept(this, arg)
-    val cond_res = resultHolder
-    val cond_range = is.getCondition.toRange
-    val else_label = if(is.getElseStmt.isPresent) {
-      getNormalLabel
-    } else {
-      endLabel
-    }
-    val if_stmt = createIfStatement(cond_res, Token(Tokens.OP, cond_range, "=="), LocationSymbol(Token(Tokens.ID, is_range, else_label))(is_range), is_range)
-    createLocation(cond_range, if_stmt)
-
-    // body
-    is.getThenStmt.accept(this, arg)
-
-    // goto end
-    val goto = GotoStatement(LocationSymbol(Token(Tokens.ID, is_range, endLabel))(is_range))(is_range)
-    createLocation(is_range, goto)
-
-    // else
-    is.getElseStmt.ifPresent{ es =>
-      createLabel(is_range, else_label)
-      es match {
-        case eis: IfStmt =>
-          handleIfStmt(eis, arg, endLabel)
-        case stmt: Statement =>
-          stmt.accept(this, arg)
-      }
-    }
-  }
-
   /**
     * java:
     *   if(cond1) {
@@ -885,23 +862,66 @@ class MethodBodyVisitor(j2j: Java2Jawa, ownerSig: Signature, ownerPos: RangePosi
     *   }
     *
     * jawa:
+    *   If_start1:
     *   temp1:= cond1;
-    *   if temp1 == 0 then goto Label0;
+    *   if temp1 == 0 then goto Else_start1;
     *   body1;
-    *   goto If_end;
-    *   Label0:
+    *
+    *   goto Else_end1;
+    *
+    *   Else1:
+    *
+    *   If_start2:
     *   temp2:= cond2;
-    *   if cond2 == 0 then goto Label1;
+    *   if cond2 == 0 then goto Else_start2;
     *   body2;
-    *   goto If_end;
-    *   Label1;
+    *
+    *   goto If_end2;
+    *
+    *   Else2:
     *   body3;
-    *   If_end:
+    *
+    *   If_end2:
+    *
+    *   If_end1:
     */
   override def visit(is: IfStmt, arg: Void): Unit = {
-    val endLabel = getNormalLabel
-    handleIfStmt(is, arg, endLabel)
-    createLabel(is.toRange, endLabel)
+    val is_range = is.toRange
+    pushLabel(LabelType.IF)
+
+    createLabel(is_range, startLabel)
+
+    // cond
+    isLeft = false
+    is.getCondition.accept(this, arg)
+    val cond_res = resultHolder
+    val cond_range = is.getCondition.toRange
+
+    val else_label = if(is.getElseStmt.isPresent) {
+      pushLabel(LabelType.ELSE)
+      startLabel
+    } else {
+      endLabel
+    }
+    val if_stmt = createIfStatement(cond_res, Token(Tokens.OP, cond_range, "=="), LocationSymbol(Token(Tokens.ID, is_range, else_label))(is_range), is_range)
+    createLocation(cond_range, if_stmt)
+
+    // body
+    is.getThenStmt.accept(this, arg)
+
+    is.getElseStmt.ifPresent { es =>
+      // goto end
+      val goto = GotoStatement(LocationSymbol(Token(Tokens.ID, is_range, endLabel))(is_range))(is_range)
+      createLocation(is_range, goto)
+
+      // else
+      createLabel(is_range, startLabel)
+      es.accept(this, arg)
+      createLabel(is_range, endLabel)
+      popLabel()
+    }
+    createLabel(is_range, endLabel)
+    popLabel()
   }
 
   override def visit(lcds: LocalClassDeclarationStmt, arg: Void): Unit = {
@@ -1004,21 +1024,104 @@ class MethodBodyVisitor(j2j: Java2Jawa, ownerSig: Signature, ownerPos: RangePosi
 
   /**
     * java:
-    *   try (res) {
+    *   try {
     *     body1;
     *   }
     *   catch (Exception e) {
     *     body2;
     *   }
-    *   finally {
+    *
+    * jawa:
+    *   Try_start:
+    *   body1;
+    *   Try_end:
+    *   goto Catch_end;
+    *   Catch_start:
+    *   temp:= Exception @type `java.lang.Exception`;
+    *   body2;
+    *   Catch_end:
+    *
+    *   catch `java.lang.Exception` @[Try_start..Try_end] goto Catch_start;
+    *
+    * java:
+    *   try {
+    *     body1;
+    *   }
+    *   catch (Exception e) {
+    *     body2;
+    *   } finally {
     *     body3;
     *   }
     *
     * jawa:
+    *   Try_start:
+    *   body1;
+    *   Try_end:
+    *   goto Catch_end;
+    *   Catch_start:
+    *   temp:= Exception @type `java.lang.Exception`;
+    *   body2;
+    *   Catch_end:
+    *   Finally_start:
+    *   body3;
+    *   Finally_end:
     *
+    *   catch `java.lang.Exception` @[Try_start..Try_end] goto Catch_start;
+    *   catch `java.lang.Throwable` @[Try_start..Try_end] goto Finally_start;
+    *   catch `java.lang.Throwable` @[Catch_start..Catch_end] goto Finally_start;
+    *
+    * java:
+    *   try(resource1;resource2) {
+    *     body1;
+    *   }
+    *   catch (Exception e) {
+    *     body2;
+    *   } finally {
+    *     body3;
+    *   }
+    *
+    * jawa:
+    *   Try_start1:
+    *   res_temp1:= resource1;
+    *   Throwable_temp1:= null;
+    *   Try_start2:
+    *   res_temp2:= resource2;
+    *   Throwable_temp2:= null;
+    *   Try_start3:
+    *   body1;
+    *   Try_end3;
+    *   Catch_start1:
+    *   temp1:= Exception @type `java.lang.Throwable`;
+    *   Throwable_temp2:= temp1;
+    *   throw Throwable_temp2;
+    *   Catch_end1:
+    *   Finally_start1:
+    *   if res_temp2 == null then goto Finally_end1;
+    *   if Throwable_temp2 == null then goto ;
+    *   Try_start4:
+    *   call `close`(res_temp2) @signature `...` @kind virtual;
+    *   Try_end4:
+    *   Catch_start2:
+    *   temp2:= Exception @type `java.lang.Throwable`;
+    *   call `addSuppressed`(Throwable_temp2, temp2) @signature `...` @kind virtual;
+    *   Catch_end2:
+    *
+    *   Finally_end1:
+    *   Try_end1:
+    *   goto Catch_end;
+    *   Catch_start:
+    *   temp:= Exception @type `java.lang.Exception`;
+    *   body2;
+    *   Catch_end:
+    *   Finally_start:
+    *   body3;
+    *   Finally_end:
+    *
+    *   catch `java.lang.Exception` @[Try_start..Try_end] goto Catch_start;
+    *   catch `java.lang.Throwable` @[Try_start..Try_end] goto Finally_start;
+    *   catch `java.lang.Throwable` @[Catch_start..Catch_end] goto Finally_start;
     */
   override def visit(ts: TryStmt, arg: Void): Unit = {
-
   }
 
   //*********************** Try, throw, Synchronized *****************
