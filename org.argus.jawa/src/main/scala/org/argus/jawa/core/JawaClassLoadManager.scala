@@ -150,6 +150,42 @@ trait JawaClassLoadManager extends JavaKnowledge with JawaResolver { self: Globa
       }
     }
   }
+
+  /**
+    * Find common parent for two types
+    */
+  def join(left: JawaType, right: JawaType): JawaType = {
+    if(left.isPrimitive || right.isPrimitive) {
+      throw new RuntimeException("Cannot join primitive types.")
+    }
+    val left_class = getClassOrResolve(left)
+    val right_class = getClassOrResolve(right)
+    if(right_class.isAssignableFrom(left_class)) {
+      right
+    } else {
+      var parent = left_class
+      while(parent.hasSuperClass && !parent.isAssignableFrom(right_class)) {
+        parent = parent.getSuperClass
+      }
+      parent.getType
+    }
+  }
+
+  /**
+    * Find common parent for types
+    */
+  def join(types: ISet[JawaType]): JawaType = {
+    types.headOption match {
+      case Some(head) =>
+        var result: JawaType = head
+        types.tail.foreach { typ =>
+          result = join(result, typ)
+        }
+        result
+      case None =>
+        throw new RuntimeException("Cannot join empty list of types.")
+    }
+  }
   
   /**
    * grab field from Global. Input example is java.lang.Throwable.stackState
@@ -228,10 +264,10 @@ trait JawaClassLoadManager extends JavaKnowledge with JawaResolver { self: Globa
    */
   def findEntryPoints(entryMethodName: String): ISet[JawaMethod] = {
     val ep: MSet[JawaMethod] = msetEmpty
-    getApplicationClasses.foreach{
-      appRec =>
-        if(appRec.declaresMethodByName(entryMethodName))
-          appRec.getDeclaredMethodByName(entryMethodName) foreach{ep += _}
+    getApplicationClasses.foreach{ appRec =>
+      if(appRec.declaresMethodByName(entryMethodName)) {
+        ep ++= appRec.getDeclaredMethodByName(entryMethodName)
+      }
     }
     ep.toSet
   }

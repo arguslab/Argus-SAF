@@ -188,6 +188,18 @@ class Java2JawaTest extends FlatSpec with Matchers {
     an[RuntimeException] should be thrownBy run("/java/parser/stmt/throwstmt/ThrowException.java", loadpkg = false)
   }
 
+  "/java/parser/stmt/trystmt/TryCatch.java" produce (1)
+
+  "/java/parser/stmt/trystmt/TryCatchFinally.java" produce (2)
+
+  "/java/parser/stmt/trystmt/TryCatchFinallyWithResources.java" produce (1010)
+
+  "/java/parser/stmt/trystmt/TryCatchs.java" produce (4)
+
+  "/java/parser/stmt/trystmt/TryCatchUnionType.java" produce (4)
+
+  "/java/parser/stmt/trystmt/TryFinally.java" produce (2)
+
   "/java/parser/stmt/whilestmt/While.java" produce (10)
 
   "/java/parser/stmt/whilestmt/WhileNested.java" produce (1002)

@@ -360,16 +360,6 @@ class JawaParser(tokens: Array[Token], reporter: Reporter) extends JavaKnowledge
             ss.defaultCaseOpt.foreach { ss_def =>
               locationSymbols += ss_def.targetLocation
             }
-          case as: AssignmentStatement =>
-            as.rhs match {
-              case e: ExceptionExpression =>
-                rb.catchClauses.find(_.targetLocation.locationIndex == l.locationIndex) match {
-                  case Some(cc) =>
-                    e.typ = cc.typ.typ
-                  case None => throw new JawaParserException(l.pos, "ExceptionExpression should have corresponding CatchClause: " + l.toCode)
-                }
-              case _ =>
-            }
           case _ =>
         }
       }
@@ -700,7 +690,10 @@ class JawaParser(tokens: Array[Token], reporter: Reporter) extends JavaKnowledge
   
   private def exceptionExpression(): ExceptionExpression = {
     val exce = accept(EXCEPTION)
-    ExceptionExpression()(exce.pos)
+    accept(AT)
+    nextToken()
+    val typExp: TypeExpression = typExpression()
+    ExceptionExpression(typExp)(getPos(exce.pos, typExp.pos))
   }
 
   private def variableNameExpression(): VariableNameExpression = {

@@ -93,6 +93,12 @@ class Java2Jawa(val global: Global, val sourceFile: JavaSourceFile) {
     handleJawaType(jawaType, javaType.getElementType.toRange)
   }
 
+  protected[java] def handleTypes(javaType: Type): IList[JawaTypeAst] = {
+    imports.findTypes(javaType).map { t =>
+      handleJawaType(t, javaType.getElementType.toRange)
+    }
+  }
+
   protected[java] def handleJawaType(jawaType: JawaType, pos: Position): JawaTypeAst = {
     val baseTypeSymbol: TypeSymbol = TypeSymbol(Token(Tokens.ID, pos, jawaType.baseTyp.apostrophe))(pos)
     val typeFragments: IList[TypeFragment] = (0 until jawaType.dimensions).map { _ =>

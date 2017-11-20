@@ -188,6 +188,7 @@ class ImportHandler(j2j: Java2Jawa, imports: NodeList[ImportDeclaration]) {
     }
   }
 
+  // Does not handle IntersectionType and UnionType
   protected[java] def findType(javaType: Type): JawaType = {
     var typStr: String = null
     var dimension: Int = 0
@@ -197,12 +198,6 @@ class ImportHandler(j2j: Java2Jawa, imports: NodeList[ImportDeclaration]) {
         dimension = at.getArrayLevel
       case cit: ClassOrInterfaceType =>
         typStr = findType(cit.getNameAsString, cit.getName.toRange).jawaName
-      case it: IntersectionType =>
-        val jawaTypes: MList[JawaType] = mlistEmpty
-        it.getElements.forEach{ elem =>
-          jawaTypes += findType(elem)
-        }
-        typStr = jawaTypes.map(t => t.jawaName).mkString("&")
       case pt: PrimitiveType =>
         pt.getType match {
           case PrimitiveType.Primitive.BOOLEAN => typStr = "boolean"
@@ -223,5 +218,31 @@ class ImportHandler(j2j: Java2Jawa, imports: NodeList[ImportDeclaration]) {
         throw Java2JawaException(javaType.toRange, s"${javaType.getClass} is not handled by jawa: $javaType, please contact author: fgwei521@gmail.com")
     }
     new JawaType(typStr, dimension)
+  }
+
+  // Handle all types.
+  protected[java] def findTypes(javaType: Type): IList[JawaType] = {
+    val jawaTypes: MList[JawaType] = mlistEmpty
+    javaType match {
+      case at: ArrayType =>
+        jawaTypes += findType(at)
+      case cit: ClassOrInterfaceType =>
+        jawaTypes += findType(cit)
+      case it: IntersectionType =>
+        it.getElements.forEach{ elem =>
+          jawaTypes ++= findTypes(elem)
+        }
+      case ut: UnionType =>
+        ut.getElements.forEach{ elem =>
+          jawaTypes ++= findTypes(elem)
+        }
+      case pt: PrimitiveType =>
+        jawaTypes += findType(pt)
+      case _: VoidType =>
+        jawaTypes += findType(javaType)
+      case _ =>
+        throw Java2JawaException(javaType.toRange, s"${javaType.getClass} is not handled by jawa: $javaType, please contact author: fgwei521@gmail.com")
+    }
+    jawaTypes.toList
   }
 }

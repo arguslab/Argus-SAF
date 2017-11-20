@@ -386,7 +386,7 @@ case class ResolvedBody(
   def location(locIndex: Int): Location = locations.lift(locIndex).getOrElse(throw new RuntimeException(s"Location index $locIndex not found in \n$toCode"))
   def toCode: String = {
     val localPart = if(locals.isEmpty) "" else s"    ${locals.map(l => l.toCode).mkString("\n    ")}\n\n"
-    val locationPart = if(locations.isEmpty) "" else s"    ${locations.map(l => l.toCode).mkString("\n    ")}\n"
+    val locationPart = if(locations.isEmpty) "" else s"    ${locations.map(l => l.toCode).mkString("\n    ")}\n\n"
     val ccPart = if(catchClauses.isEmpty) "" else s"    ${catchClauses.map(cc => cc.toCode).mkString("\n    ")}\n}"
     s"{\n$localPart$locationPart$ccPart}"
   }
@@ -607,9 +607,9 @@ case class StaticFieldAccessExpression(fieldNameSymbol: FieldNameSymbol, typExp:
   def typ: JawaType = typExp.typ
 }
 
-case class ExceptionExpression()(implicit val pos: Position) extends Expression with RHS {
-  var typ: JawaType = _
-  def toCode: String = "Exception"
+case class ExceptionExpression(typExp: TypeExpression)(implicit val pos: Position) extends Expression with RHS {
+  def typ: JawaType = typExp.typ
+  def toCode: String = s"Exception @type ${typExp.toCode}"
 }
 
 case class NullExpression(nul: Token)(implicit val pos: Position) extends Expression with RHS {
@@ -752,7 +752,7 @@ case class CatchClause(
     targetLocation: LocationSymbol)(implicit val pos: Position) extends JawaAstNode {
   def from: String = range.fromLocation.location
   def to: String = range.toLocation.location
-  def toCode: String = s"  catch ${typ.toCode} ${range.toCode} goto ${targetLocation.toCode};"
+  def toCode: String = s"catch ${typ.toCode} ${range.toCode} goto ${targetLocation.toCode};"
 }
 
 case class CatchRange(

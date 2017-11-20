@@ -10,14 +10,15 @@
 
 package org.argus.jawa.ast.java
 
+import com.github.javaparser.JavaParser
 import com.github.javaparser.ast.NodeList
-import com.github.javaparser.ast.body.VariableDeclarator
+import com.github.javaparser.ast.body.{Parameter, VariableDeclarator}
 import com.github.javaparser.ast.expr._
 import com.github.javaparser.ast.stmt._
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter
-import org.argus.jawa.ast.{AccessExpression, AssignmentStatement, BinaryExpression, CallRhs, CallStatement, CastExpression, ConstClassExpression, EmptyStatement, FieldNameSymbol, GotoStatement, IfStatement, IndexingExpression, IndexingSuffix, InstanceOfExpression, LHS, LengthExpression, LiteralExpression, LocalVarDeclaration, Location, LocationDefSymbol, LocationSymbol, MethodNameSymbol, MonitorStatement, NewArrayExpression, NewExpression, NullExpression, RHS, ReturnStatement, StaticFieldAccessExpression, SwitchCase, SwitchDefaultCase, SwitchStatement, ThrowStatement, TokenValue, TupleExpression, TypeExpression, TypeSymbol, UnaryExpression, VarDefSymbol, VarSymbol, VariableNameExpression, Annotation => JawaAnnotation, CatchClause => JawaCatchClause, Expression => JawaExpression, Statement => JawaStatement, Type => JawaTypeAst}
+import org.argus.jawa.ast.{AccessExpression, AssignmentStatement, BinaryExpression, CallRhs, CallStatement, CastExpression, CatchRange, ConstClassExpression, EmptyStatement, ExceptionExpression, FieldNameSymbol, GotoStatement, IfStatement, IndexingExpression, IndexingSuffix, InstanceOfExpression, LHS, LengthExpression, LiteralExpression, LocalVarDeclaration, Location, LocationDefSymbol, LocationSymbol, MethodNameSymbol, MonitorStatement, NewArrayExpression, NewExpression, NullExpression, RHS, ReturnStatement, StaticFieldAccessExpression, SwitchCase, SwitchDefaultCase, SwitchStatement, ThrowStatement, TokenValue, TupleExpression, TypeExpression, TypeSymbol, UnaryExpression, VarDefSymbol, VarSymbol, VariableNameExpression, Annotation => JawaAnnotation, CatchClause => JawaCatchClause, Expression => JawaExpression, Statement => JawaStatement, Type => JawaTypeAst}
 import org.argus.jawa.compiler.lexer.{Keywords, Token, Tokens}
-import org.argus.jawa.core.{JavaKnowledge, JawaMethod, JawaPackage, JawaType, Signature}
+import org.argus.jawa.core.{ExceptionCenter, JavaKnowledge, JawaMethod, JawaPackage, JawaType, Signature}
 import org.argus.jawa.core.io.{NoPosition, RangePosition, Position => JawaPosition}
 import org.argus.jawa.core.util._
 
@@ -143,7 +144,7 @@ class MethodBodyVisitor(j2j: Java2Jawa, ownerSig: Signature, ownerPos: RangePosi
   }
 
   object LabelType extends Enumeration {
-    val NORMAL, DO, WHILE, FOR, SWITCH, IF, ELSE = Value
+    val NORMAL, DO, WHILE, FOR, SWITCH, IF, ELSE, IF_END, TRY, CATCH_BLOCK, FINALLY, CATCH = Value
   }
 
   var labelCount: Int = 0
@@ -157,6 +158,9 @@ class MethodBodyVisitor(j2j: Java2Jawa, ownerSig: Signature, ownerPos: RangePosi
     val num = labelMap.getOrElseUpdate(t, 0)
     val label = t match {
       case LabelType.NORMAL => "Label"
+      case LabelType.IF => "If"
+      case LabelType.ELSE => "Else"
+      case LabelType.IF_END => "If_end"
       case LabelType.DO =>
         if(start) {
           "Do_start_"
@@ -181,17 +185,35 @@ class MethodBodyVisitor(j2j: Java2Jawa, ownerSig: Signature, ownerPos: RangePosi
         } else {
           "Switch_end_"
         }
-      case LabelType.IF =>
+      case LabelType.DO =>
         if(start) {
-          "If_start_"
+          "Do_start_"
         } else {
-          "If_end_"
+          "Do_end_"
         }
-      case LabelType.ELSE =>
+      case LabelType.TRY =>
         if(start) {
-          "Else_start_"
+          "Try_start_"
         } else {
-          "Else_end_"
+          "Try_end_"
+        }
+      case LabelType.CATCH_BLOCK =>
+        if(start) {
+          "Catchblock_start_"
+        } else {
+          "Catchblock_end_"
+        }
+      case LabelType.CATCH =>
+        if(start) {
+          "Catch_start_"
+        } else {
+          "Catch_end_"
+        }
+      case LabelType.FINALLY =>
+        if(start) {
+          "Finally_start_"
+        } else {
+          "Finally_end_"
         }
     }
     s"$label$num"
@@ -338,6 +360,29 @@ class MethodBodyVisitor(j2j: Java2Jawa, ownerSig: Signature, ownerPos: RangePosi
   private def popLabel(): Unit = {
     startLabels = startLabels.tail
     endLabels = endLabels.tail
+  }
+
+  private def getIfLabels: (String, String, String) = {
+    val if_label = getLabel(LabelType.IF, start = true)
+    val else_label = getLabel(LabelType.ELSE, start = true)
+    val if_end_label = getLabel(LabelType.IF_END, start = true)
+    updateLabel(LabelType.IF)
+    updateLabel(LabelType.ELSE)
+    updateLabel(LabelType.IF_END)
+    (if_label, else_label, if_end_label)
+  }
+
+  private def getTryLabels: (String, String, String, String, String, String) = {
+    val try_start_label = getLabel(LabelType.TRY, start = true)
+    val try_end_label = getLabel(LabelType.TRY, start = false)
+    val catchblock_start_label = getLabel(LabelType.CATCH_BLOCK, start = true)
+    val catchblock_end_label = getLabel(LabelType.CATCH_BLOCK, start = false)
+    val finally_start_label = getLabel(LabelType.FINALLY, start = true)
+    val finally_end_label = getLabel(LabelType.FINALLY, start = false)
+    updateLabel(LabelType.TRY)
+    updateLabel(LabelType.CATCH_BLOCK)
+    updateLabel(LabelType.FINALLY)
+    (try_start_label, try_end_label, catchblock_start_label, catchblock_end_label, finally_start_label, finally_end_label)
   }
 
   /**
@@ -862,7 +907,7 @@ class MethodBodyVisitor(j2j: Java2Jawa, ownerSig: Signature, ownerPos: RangePosi
     *   }
     *
     * jawa:
-    *   If_start1:
+    *   If1:
     *   temp1:= cond1;
     *   if temp1 == 0 then goto Else_start1;
     *   body1;
@@ -871,7 +916,7 @@ class MethodBodyVisitor(j2j: Java2Jawa, ownerSig: Signature, ownerPos: RangePosi
     *
     *   Else1:
     *
-    *   If_start2:
+    *   If2:
     *   temp2:= cond2;
     *   if cond2 == 0 then goto Else_start2;
     *   body2;
@@ -887,9 +932,9 @@ class MethodBodyVisitor(j2j: Java2Jawa, ownerSig: Signature, ownerPos: RangePosi
     */
   override def visit(is: IfStmt, arg: Void): Unit = {
     val is_range = is.toRange
-    pushLabel(LabelType.IF)
+    val (if_label, else_label, if_end_label) = getIfLabels
 
-    createLabel(is_range, startLabel)
+    createLabel(is_range, if_label)
 
     // cond
     isLeft = false
@@ -897,13 +942,12 @@ class MethodBodyVisitor(j2j: Java2Jawa, ownerSig: Signature, ownerPos: RangePosi
     val cond_res = resultHolder
     val cond_range = is.getCondition.toRange
 
-    val else_label = if(is.getElseStmt.isPresent) {
-      pushLabel(LabelType.ELSE)
-      startLabel
+    val end_label = if(is.getElseStmt.isPresent) {
+      else_label
     } else {
-      endLabel
+      if_end_label
     }
-    val if_stmt = createIfStatement(cond_res, Token(Tokens.OP, cond_range, "=="), LocationSymbol(Token(Tokens.ID, is_range, else_label))(is_range), is_range)
+    val if_stmt = createIfStatement(cond_res, Token(Tokens.OP, cond_range, "=="), LocationSymbol(Token(Tokens.ID, is_range, end_label))(is_range), is_range)
     createLocation(cond_range, if_stmt)
 
     // body
@@ -911,17 +955,14 @@ class MethodBodyVisitor(j2j: Java2Jawa, ownerSig: Signature, ownerPos: RangePosi
 
     is.getElseStmt.ifPresent { es =>
       // goto end
-      val goto = GotoStatement(LocationSymbol(Token(Tokens.ID, is_range, endLabel))(is_range))(is_range)
+      val goto = GotoStatement(LocationSymbol(Token(Tokens.ID, is_range, if_end_label))(is_range))(is_range)
       createLocation(is_range, goto)
 
       // else
-      createLabel(is_range, startLabel)
+      createLabel(is_range, else_label)
       es.accept(this, arg)
-      createLabel(is_range, endLabel)
-      popLabel()
     }
-    createLabel(is_range, endLabel)
-    popLabel()
+    createLabel(is_range, if_end_label)
   }
 
   override def visit(lcds: LocalClassDeclarationStmt, arg: Void): Unit = {
@@ -963,6 +1004,13 @@ class MethodBodyVisitor(j2j: Java2Jawa, ownerSig: Signature, ownerPos: RangePosi
   //******************************************************************************
   //                         Try, throw, Synchronized
   //******************************************************************************
+
+  private def addExceptionHandler(typ: JawaType, pos: JawaPosition, start: String, end: String, target: String): Unit = {
+    val ex_typ_ast = handleJawaType(typ, pos)
+    val range = CatchRange(LocationSymbol(Token(Tokens.ID, pos, start))(pos), LocationSymbol(Token(Tokens.ID, pos, end))(pos))(pos)
+    val cc = JawaCatchClause(ex_typ_ast, range, LocationSymbol(Token(Tokens.ID, pos, target))(pos))(pos)
+    catchClauses += cc
+  }
 
   /**
     * java:
@@ -1022,6 +1070,85 @@ class MethodBodyVisitor(j2j: Java2Jawa, ownerSig: Signature, ownerPos: RangePosi
     createLocation(ts_range, tstmt)
   }
 
+  private def handleResources(resources: NodeList[Expression], body: BlockStmt, count: Int): NodeList[Statement] = {
+    val stmts = new NodeList[Statement]()
+    val head = resources.remove(0)
+    stmts.add(new ExpressionStmt(head))
+
+    val res_expr: Expression = head match {
+      case vde: VariableDeclarationExpr =>
+        new NameExpr(vde.getVariables.get(0).getName)
+      case e => e
+    }
+
+    // Throwable = null
+    val t_type = JavaParser.parseClassOrInterfaceType("Throwable")
+    val t_name = s"throwable$count"
+    val t_vd = new VariableDeclarator(t_type, t_name, new NullLiteralExpr())
+    val t_ex = new VariableDeclarationExpr(t_vd)
+    stmts.add(new ExpressionStmt(t_ex))
+
+    // try { ... } catch { ... }
+
+    val try_block: BlockStmt = if(resources.isEmpty) {
+      body
+    } else {
+      new BlockStmt(handleResources(resources, body, count + 1))
+    }
+
+    // catch
+    val catch_name = "t"
+    val catch_param = new Parameter(t_type, catch_name)
+    val catch_body_stmts = new NodeList[Statement]()
+    val assign = new AssignExpr(new NameExpr(t_name), new NameExpr(catch_name), AssignExpr.Operator.ASSIGN)
+    catch_body_stmts.add(new ExpressionStmt(assign))
+    val throw_ = new ThrowStmt(new NameExpr(t_name))
+    catch_body_stmts.add(throw_)
+    val catch_body: BlockStmt = new BlockStmt(catch_body_stmts)
+    val catch_clause: CatchClause = new CatchClause(catch_param, catch_body)
+    val catch_clauses = new NodeList[CatchClause]()
+    catch_clauses.add(catch_clause)
+
+    // finally
+    val if1_cond = new BinaryExpr(res_expr, new NullLiteralExpr(), BinaryExpr.Operator.NOT_EQUALS)
+
+    val if2_cond = new BinaryExpr(new NameExpr(t_name), new NullLiteralExpr(), BinaryExpr.Operator.NOT_EQUALS)
+    val mcall2: MethodCallExpr = new MethodCallExpr(res_expr, "close")
+    val try2_stmts = new NodeList[Statement]()
+    try2_stmts.add(new ExpressionStmt(mcall2))
+    val try2_block: BlockStmt = new BlockStmt(try2_stmts)
+
+    val catch2_body_stmts = new NodeList[Statement]()
+    val mcall_suppressed_args: NodeList[Expression] = new NodeList[Expression]()
+    mcall_suppressed_args.add(new NameExpr(catch_name))
+    val mcall_suppressed: MethodCallExpr = new MethodCallExpr(new NameExpr(t_name), "addSuppressed", mcall_suppressed_args)
+    catch2_body_stmts.add(new ExpressionStmt(mcall_suppressed))
+    val catch2_body: BlockStmt = new BlockStmt(catch2_body_stmts)
+
+    val catch2_clause: CatchClause = new CatchClause(catch_param, catch2_body)
+    val catch2_clauses = new NodeList[CatchClause]()
+    catch2_clauses.add(catch2_clause)
+    val try2 = new TryStmt(try2_block, catch2_clauses, null)
+    val then2_stmts = new NodeList[Statement]()
+    then2_stmts.add(try2)
+    val then2: BlockStmt = new BlockStmt(then2_stmts)
+
+    val else2_stmts = new NodeList[Statement]()
+    else2_stmts.add(new ExpressionStmt(mcall2))
+    val else2: BlockStmt = new BlockStmt(else2_stmts)
+    val if2_stmt = new IfStmt(if2_cond, then2, else2)
+    val then1_stmts = new NodeList[Statement]()
+    then1_stmts.add(if2_stmt)
+    val then1: BlockStmt = new BlockStmt(then1_stmts)
+    val if1_stmt = new IfStmt(if1_cond, then1, null)
+    val finally_stmts = new NodeList[Statement]()
+    finally_stmts.add(if1_stmt)
+    val finally_block: BlockStmt = new BlockStmt(finally_stmts)
+    val try_stmt = new TryStmt(try_block, catch_clauses, finally_block)
+    stmts.add(try_stmt)
+    stmts
+  }
+
   /**
     * java:
     *   try {
@@ -1035,11 +1162,13 @@ class MethodBodyVisitor(j2j: Java2Jawa, ownerSig: Signature, ownerPos: RangePosi
     *   Try_start:
     *   body1;
     *   Try_end:
-    *   goto Catch_end;
+    *   goto Catchblock_end;
+    *   Catchblock_start:
     *   Catch_start:
     *   temp:= Exception @type `java.lang.Exception`;
     *   body2;
     *   Catch_end:
+    *   Catchblock_end:
     *
     *   catch `java.lang.Exception` @[Try_start..Try_end] goto Catch_start;
     *
@@ -1057,71 +1186,172 @@ class MethodBodyVisitor(j2j: Java2Jawa, ownerSig: Signature, ownerPos: RangePosi
     *   Try_start:
     *   body1;
     *   Try_end:
-    *   goto Catch_end;
+    *
+    *   body3;
+    *
+    *   goto Catchblock_end;
+    *
+    *   Catchblock_start:
+    *
     *   Catch_start:
     *   temp:= Exception @type `java.lang.Exception`;
     *   body2;
     *   Catch_end:
-    *   Finally_start:
+    *
     *   body3;
+    *
+    *   Catchblock_end:
+    *
+    *   goto Finally_end;
+    *
+    *   Finally_start:
+    *   temp:= Exception @type `java.lang.Throwable`;
+    *   body3;
+    *   throw temp;
     *   Finally_end:
     *
     *   catch `java.lang.Exception` @[Try_start..Try_end] goto Catch_start;
     *   catch `java.lang.Throwable` @[Try_start..Try_end] goto Finally_start;
     *   catch `java.lang.Throwable` @[Catch_start..Catch_end] goto Finally_start;
     *
-    * java:
-    *   try(resource1;resource2) {
-    *     body1;
-    *   }
-    *   catch (Exception e) {
-    *     body2;
-    *   } finally {
-    *     body3;
+    * java 8-9 with resources:
+    *   try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
+    *        GZIPOutputStream gzip = new GZIPOutputStream(baos)) {
+    *     gzip.write("TEST".getBytes("UTF-8"));
+    *   } catch (IOException ioe) {
+    *     ioe.printStackTrace();
     *   }
     *
-    * jawa:
-    *   Try_start1:
-    *   res_temp1:= resource1;
-    *   Throwable_temp1:= null;
-    *   Try_start2:
-    *   res_temp2:= resource2;
-    *   Throwable_temp2:= null;
-    *   Try_start3:
-    *   body1;
-    *   Try_end3;
-    *   Catch_start1:
-    *   temp1:= Exception @type `java.lang.Throwable`;
-    *   Throwable_temp2:= temp1;
-    *   throw Throwable_temp2;
-    *   Catch_end1:
-    *   Finally_start1:
-    *   if res_temp2 == null then goto Finally_end1;
-    *   if Throwable_temp2 == null then goto ;
-    *   Try_start4:
-    *   call `close`(res_temp2) @signature `...` @kind virtual;
-    *   Try_end4:
-    *   Catch_start2:
-    *   temp2:= Exception @type `java.lang.Throwable`;
-    *   call `addSuppressed`(Throwable_temp2, temp2) @signature `...` @kind virtual;
-    *   Catch_end2:
-    *
-    *   Finally_end1:
-    *   Try_end1:
-    *   goto Catch_end;
-    *   Catch_start:
-    *   temp:= Exception @type `java.lang.Exception`;
-    *   body2;
-    *   Catch_end:
-    *   Finally_start:
-    *   body3;
-    *   Finally_end:
-    *
-    *   catch `java.lang.Exception` @[Try_start..Try_end] goto Catch_start;
-    *   catch `java.lang.Throwable` @[Try_start..Try_end] goto Finally_start;
-    *   catch `java.lang.Throwable` @[Catch_start..Catch_end] goto Finally_start;
+    * change to java old first:
+    *   try {
+    *     final GZIPOutputStream gzip = new GZIPOutputStream(System.out);
+    *     Throwable gzipEx = null;
+    *     try {
+    *       gzip.write("TEST".getBytes("UTF-8"));
+    *     } catch (Throwable t) {
+    *       gzipEx = t;
+    *       throw t;
+    *     } finally {
+    *       if (gzip != null) {
+    *         if (gzipEx != null) {
+    *           try {
+    *             gzip.close();
+    *           } catch (Throwable t) {
+    *             gzipEx.addSuppressed(t);
+    *           }
+    *         } else {
+    *           gzip.close();
+    *         }
+    *       }
+    *     }
+    *   } catch (IOException ioe) {
+    *     ioe.printStackTrace();
+    *   }
     */
   override def visit(ts: TryStmt, arg: Void): Unit = {
+    val ts_range = ts.toRange
+    val (try_start_label, try_end_label, catchblock_start_label, catchblock_end_label, finally_start_label, finally_end_label) = getTryLabels
+    val end_label = if(ts.getFinallyBlock.isPresent) {
+      finally_end_label
+    } else {
+      catchblock_end_label
+    }
+
+    createLabel(ts_range, try_start_label)
+
+    if(ts.getResources.isEmpty) {
+      ts.getTryBlock.accept(this, arg)
+    } else {
+      // handle resources
+      handleResources(ts.getResources, ts.getTryBlock, 0).forEach{ stmt =>
+        stmt.accept(this, arg)
+      }
+    }
+
+    createLabel(ts_range, try_end_label)
+
+    ts.getFinallyBlock.ifPresent { fin =>
+      fin.accept(this, arg)
+    }
+
+    // goto
+    val goto = GotoStatement(LocationSymbol(Token(Tokens.ID, ts_range, end_label))(ts_range))(ts_range)
+    createLocation(ts_range, goto)
+
+    val cc_labels: MList[(String, String)] = mlistEmpty
+    if(ts.getCatchClauses.isNonEmpty) {
+
+      // catch block start
+      createLabel(ts_range, catchblock_start_label)
+
+      ts.getCatchClauses.forEach { cc =>
+        val catch_start_label = getLabel(LabelType.CATCH, start = true)
+        val catch_end_label = getLabel(LabelType.CATCH, start = false)
+        cc_labels += ((catch_start_label, catch_end_label))
+        updateLabel(LabelType.CATCH)
+
+        // catch start
+        createLabel(ts_range, catch_start_label)
+        val ex_types = handleTypes(cc.getParameter.getType)
+        val ex_type = global.join(ex_types.map(t => t.typ).toSet)
+
+        val ex_name = checkAndAddVariable(ex_type, cc.getParameter.getType.toRange, cc.getParameter.getNameAsString, cc.getParameter.getName.toRange, isTemp = false)
+        val ex_vs = VarSymbol(Token(Tokens.ID, ts_range, ex_name.apostrophe))(ts_range)
+        val ex_vne = VariableNameExpression(ex_vs)(ts_range)
+        val ex_typ_ast = handleJawaType(ex_type, ts_range)
+        val ex_expr = ExceptionExpression(TypeExpression(ex_typ_ast)(ts_range))(ts_range)
+        val ex_assign = AssignmentStatement(ex_vne, ex_expr, ilistEmpty)(ts_range)
+        createLocation(ts_range, ex_assign)
+
+        // catch body
+        cc.getBody.accept(this, arg)
+
+        ex_types.foreach { typ =>
+          addExceptionHandler(typ.typ, typ.pos, try_start_label, try_end_label, catch_start_label)
+        }
+
+
+        // catch end
+        createLabel(ts_range, catch_end_label)
+
+        ts.getFinallyBlock.ifPresent { fin =>
+          fin.accept(this, arg)
+        }
+
+        // goto
+        val goto = GotoStatement(LocationSymbol(Token(Tokens.ID, ts_range, end_label))(ts_range))(ts_range)
+        createLocation(ts_range, goto)
+      }
+
+      // catch block end
+      createLabel(ts_range, catchblock_end_label)
+    }
+
+    ts.getFinallyBlock.ifPresent{ fin =>
+      val fin_range = fin.toRange
+      createLabel(fin_range, finally_start_label)
+
+      val ex_name = checkAndAddVariable(ExceptionCenter.THROWABLE, fin_range, generateTempVarName(ExceptionCenter.THROWABLE), fin_range, isTemp = true)
+      val ex_vs = VarSymbol(Token(Tokens.ID, ts_range, ex_name.apostrophe))(ts_range)
+      val ex_vne = VariableNameExpression(ex_vs)(ts_range)
+      val ex_typ_ast = handleJawaType(ExceptionCenter.THROWABLE, ts_range)
+      val ex_expr = ExceptionExpression(TypeExpression(ex_typ_ast)(ts_range))(ts_range)
+      val ex_assign = AssignmentStatement(ex_vne, ex_expr, ilistEmpty)(ts_range)
+      createLocation(ts_range, ex_assign)
+
+      fin.accept(this, arg)
+
+      val ts = ThrowStatement(ex_vs)(fin_range)
+      createLocation(fin_range, ts)
+
+      createLabel(fin_range, finally_end_label)
+
+      addExceptionHandler(ExceptionCenter.THROWABLE, fin_range, try_start_label, try_end_label, finally_start_label)
+      cc_labels.foreach { case (cc_start, cc_end) =>
+        addExceptionHandler(ExceptionCenter.THROWABLE, fin_range, cc_start, cc_end, finally_start_label)
+      }
+    }
+
   }
 
   //*********************** Try, throw, Synchronized *****************
@@ -1631,19 +1861,20 @@ class MethodBodyVisitor(j2j: Java2Jawa, ownerSig: Signature, ownerPos: RangePosi
     isLeft = false
     ce.getExpression.accept(this, arg)
     val temp = resultHolder
-    val cast_type = handleType(ce.getType)
-    val cexp = CastExpression(cast_type, temp)(ce_range)
-    val temp2Name = checkAndAddVariable(cast_type.typ, ce_range, generateTempVarName(cast_type.typ), ce_range, isTemp = true)
-    val temp2Var = VarSymbol(Token(Tokens.ID, ce_range, temp2Name.apostrophe))(ce_range)
-    val temp2annotations: MList[JawaAnnotation] = mlistEmpty
-    if (cast_type.typ.isObject) {
-      val kindKey = Token(Tokens.ID, ce_range, "kind")
-      val kindValue = TokenValue(Token(Tokens.ID, ce_range, "object"))(ce_range)
-      temp2annotations += JawaAnnotation(kindKey, Some(kindValue))(ce_range)
+    handleTypes(ce.getType).foreach { cast_type =>
+      val cexp = CastExpression(cast_type, temp)(ce_range)
+      val temp2Name = checkAndAddVariable(cast_type.typ, ce_range, generateTempVarName(cast_type.typ), ce_range, isTemp = true)
+      val temp2Var = VarSymbol(Token(Tokens.ID, ce_range, temp2Name.apostrophe))(ce_range)
+      val temp2annotations: MList[JawaAnnotation] = mlistEmpty
+      if (cast_type.typ.isObject) {
+        val kindKey = Token(Tokens.ID, ce_range, "kind")
+        val kindValue = TokenValue(Token(Tokens.ID, ce_range, "object"))(ce_range)
+        temp2annotations += JawaAnnotation(kindKey, Some(kindValue))(ce_range)
+      }
+      val cast_assign = AssignmentStatement(VariableNameExpression(temp2Var)(ce_range), cexp, temp2annotations.toList)(ce_range)
+      createLocation(getKeyWordRange(ce), cast_assign)
+      resultHolder = temp2Var
     }
-    val cast_assign = AssignmentStatement(VariableNameExpression(temp2Var)(ce_range), cexp, temp2annotations.toList)(ce_range)
-    createLocation(getKeyWordRange(ce), cast_assign)
-    resultHolder = temp2Var
   }
 
   /**
