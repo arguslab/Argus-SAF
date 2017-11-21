@@ -100,6 +100,8 @@ class Java2JawaTest extends FlatSpec with Matchers {
 
   "/java/parser/expr/binaryexpr/PLUS.java" produce (3)
 
+  "/java/parser/expr/binaryexpr/PLUS_multi.java" produce (8)
+
   "/java/parser/expr/binaryexpr/REMAINDER.java" produce (1)
 
   "/java/parser/expr/binaryexpr/SIGNED_RIGHT_SHIFT.java" produce (1)
@@ -203,6 +205,12 @@ class Java2JawaTest extends FlatSpec with Matchers {
   "/java/parser/stmt/whilestmt/While.java" produce (10)
 
   "/java/parser/stmt/whilestmt/WhileNested.java" produce (1002)
+
+  "/java/parser/stringop/StringConcat.java" produce ("abcc")
+
+  "/java/parser/stringop/StringPlusEq.java" produce ("abc")
+
+  "/java/parser/stringop/StringWithOther.java" produce ("aclass java.lang.Object1c")
 
   class TestFile(file: String) {
     def produce(tp: Any, loadpkg: Boolean = false): Unit = {

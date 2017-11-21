@@ -1404,6 +1404,34 @@ class MethodBodyVisitor(j2j: Java2Jawa, ownerSig: Signature, ownerPos: RangePosi
     generateCall(lhsOpt, sig, namePos, recv, args, kind)
   }
 
+  private def buildString(vses: IList[VarSymbol], pos: JawaPosition): VarSymbol = {
+    // StringBuilder sb = new StringBuilder();
+    val sb = new JawaType("java.lang.StringBuilder")
+    val sb_var = checkAndAddVariable(sb, pos, generateTempVarName(sb), pos, isTemp = true)
+    val sb_vs = VarSymbol(Token(Tokens.ID, pos, sb_var.apostrophe))(pos)
+    val sb_vne = VariableNameExpression(sb_vs)(pos)
+    val sb_typ_ast = handleJawaType(sb, pos)
+    val sb_new = NewExpression(sb_typ_ast)(pos)
+    val sb_assign = AssignmentStatement(sb_vne, sb_new, ilistEmpty)(pos)
+    createLocation(pos, sb_assign)
+    val init_call = generateCall(None, sb, "<init>", pos, Some(sb_vs), ilistEmpty, "direct")
+    createLocation(pos, init_call)
+
+    vses.foreach { vs =>
+      // sb.append();
+      val c = generateCall(None, sb, "append", vs.pos, Some(sb_vs), List(vs), "virtual")
+      createLocation(vs.pos, c)
+    }
+
+    // temp = sb.toString();
+    val temp = checkAndAddVariable(JavaKnowledge.STRING, pos, generateTempVarName(JavaKnowledge.STRING), pos, isTemp = true)
+    val temp_vs = VarSymbol(Token(Tokens.ID, pos, temp.apostrophe))(pos)
+    val temp_vne = VariableNameExpression(temp_vs)(pos)
+    val toString_c = generateCall(Some(temp_vne), new Signature("Ljava/lang/StringBuilder;.toString:()Ljava/lang/String;"), pos, Some(sb_vs), ilistEmpty, "virtual")
+    createLocation(pos, toString_c)
+    temp_vs
+  }
+
   //*********************************************************************
   //                       LiteralExpr
   //*********************************************************************
@@ -1713,6 +1741,7 @@ class MethodBodyVisitor(j2j: Java2Jawa, ownerSig: Signature, ownerPos: RangePosi
     *   temp:= left;
     */
   override def visit(ae: AssignExpr, arg: Void): Unit = {
+    val ae_range = ae.toRange
     val left = isLeft
     isLeft = false
     ae.getValue.accept(this, arg)
@@ -1722,11 +1751,11 @@ class MethodBodyVisitor(j2j: Java2Jawa, ownerSig: Signature, ownerPos: RangePosi
     val rhs: JawaExpression with RHS = ae.getOperator match {
       case AssignExpr.Operator.ASSIGN =>
         if(temp1Type.isObject) {
-          val kindKey = Token(Tokens.ID, ae.toRange, "kind")
-          val kindValue = TokenValue(Token(Tokens.ID, ae.toRange, "object"))(ae.toRange)
-          annotations += JawaAnnotation(kindKey, Some(kindValue))(ae.toRange)
+          val kindKey = Token(Tokens.ID, ae_range, "kind")
+          val kindValue = TokenValue(Token(Tokens.ID, ae_range, "object"))(ae_range)
+          annotations += JawaAnnotation(kindKey, Some(kindValue))(ae_range)
         }
-        VariableNameExpression(temp1)(ae.toRange)
+        VariableNameExpression(temp1)(ae_range)
       case op =>
         isLeft = false
         ae.getTarget.accept(this, arg)
@@ -1743,24 +1772,29 @@ class MethodBodyVisitor(j2j: Java2Jawa, ownerSig: Signature, ownerPos: RangePosi
           case AssignExpr.Operator.SIGNED_RIGHT_SHIFT => "^>"
           case AssignExpr.Operator.UNSIGNED_RIGHT_SHIFT => "^>>"
           case AssignExpr.Operator.XOR => "^~"
-          case _ => throw Java2JawaException(ae.toRange, s"Unhandled operator $op, please contact author: fgwei521@gmail.com")
+          case _ => throw Java2JawaException(ae_range, s"Unhandled operator $op, please contact author: fgwei521@gmail.com")
         }
-        BinaryExpression(temp2, Token(Tokens.OP, getKeyWordRange(ae), opStr), Left(temp1))(ae.toRange)
+        if(temp1Type == JavaKnowledge.STRING) {
+          val vs = buildString(List(temp2, temp1), ae_range)
+          VariableNameExpression(vs)(ae_range)
+        } else {
+          BinaryExpression(temp2, Token(Tokens.OP, getKeyWordRange(ae), opStr), Left(temp1))(ae_range)
+        }
     }
     isLeft = true
     ae.getTarget.accept(this, arg)
-    val assign = AssignmentStatement(LHS, rhs, annotations.toList)(ae.toRange)
-    createLocation(ae.toRange, assign)
+    val assign = AssignmentStatement(LHS, rhs, annotations.toList)(ae_range)
+    createLocation(ae_range, assign)
     if(!left) {
-      val tempName = checkAndAddVariable(temp1Type, ae.toRange, generateTempVarName(temp1Type), ae.toRange, isTemp = true)
-      val tempVar = VarSymbol(Token(Tokens.ID, ae.toRange, tempName.apostrophe))(ae.toRange)
+      val tempName = checkAndAddVariable(temp1Type, ae_range, generateTempVarName(temp1Type), ae_range, isTemp = true)
+      val tempVar = VarSymbol(Token(Tokens.ID, ae_range, tempName.apostrophe))(ae_range)
       val tempannotations: MList[JawaAnnotation] = mlistEmpty
       if (temp1Type.isObject) {
-        val kindKey = Token(Tokens.ID, ae.toRange, "kind")
-        val kindValue = TokenValue(Token(Tokens.ID, ae.toRange, "object"))(ae.toRange)
-        tempannotations += JawaAnnotation(kindKey, Some(kindValue))(ae.toRange)
+        val kindKey = Token(Tokens.ID, ae_range, "kind")
+        val kindValue = TokenValue(Token(Tokens.ID, ae_range, "object"))(ae_range)
+        tempannotations += JawaAnnotation(kindKey, Some(kindValue))(ae_range)
       }
-      val tempAssign = AssignmentStatement(VariableNameExpression(tempVar)(ae.toRange), LHS, tempannotations.toList)(ae.toRange)
+      val tempAssign = AssignmentStatement(VariableNameExpression(tempVar)(ae_range), LHS, tempannotations.toList)(ae_range)
       createLocation(getKeyWordRange(ae), tempAssign)
       resultHolder = tempVar
     }
@@ -1790,60 +1824,117 @@ class MethodBodyVisitor(j2j: Java2Jawa, ownerSig: Signature, ownerPos: RangePosi
     */
   override def visit(be: BinaryExpr, arg: Void): Unit = {
     val be_range = be.toRange
-    isLeft = false
-    be.getLeft.accept(this, arg)
-    val temp1 = resultHolder
-    isLeft = false
-    be.getRight.accept(this, arg)
-    val temp2 = resultHolder
-    val op: Either[String, String] = be.getOperator match {
-      case BinaryExpr.Operator.AND => Right("^&")
-      case BinaryExpr.Operator.BINARY_AND => Right("^&")
-      case BinaryExpr.Operator.BINARY_OR => Right("^|")
-      case BinaryExpr.Operator.DIVIDE => Right("/")
-      case BinaryExpr.Operator.EQUALS => Left("==")
-      case BinaryExpr.Operator.GREATER => Left(">")
-      case BinaryExpr.Operator.GREATER_EQUALS => Left(">=")
-      case BinaryExpr.Operator.LEFT_SHIFT => Right("^<")
-      case BinaryExpr.Operator.LESS => Left("<")
-      case BinaryExpr.Operator.LESS_EQUALS => Left("<=")
-      case BinaryExpr.Operator.MINUS => Right("-")
-      case BinaryExpr.Operator.MULTIPLY => Right("*")
-      case BinaryExpr.Operator.NOT_EQUALS => Left("!=")
-      case BinaryExpr.Operator.OR => Right("^|")
-      case BinaryExpr.Operator.PLUS => Right("+")
-      case BinaryExpr.Operator.REMAINDER => Right("%%")
-      case BinaryExpr.Operator.SIGNED_RIGHT_SHIFT => Right("^>")
-      case BinaryExpr.Operator.UNSIGNED_RIGHT_SHIFT => Right("^>>")
-      case BinaryExpr.Operator.XOR => Right("^~")
+
+    var allPlus = true
+    def getParts(part: BinaryExpr): IList[Expression] = {
+      val parts: MList[Expression] = mlistEmpty
+      if(part.getOperator != BinaryExpr.Operator.PLUS) {
+        allPlus = false
+        return parts.toList
+      }
+      part.getLeft match {
+        case e: BinaryExpr =>
+          parts ++= getParts(e)
+        case e: Expression =>
+          parts += e
+      }
+      part.getRight match {
+        case e: BinaryExpr =>
+          parts ++= getParts(e)
+        case e: Expression =>
+          parts += e
+      }
+      parts.toList
     }
-    op match {
-      case Left(o) =>
-        val biExpr = BinaryExpression(temp1, Token(Tokens.OP, getKeyWordRange(be), o), Left(temp2))(be_range)
-        val label = getNormalLabel
-        val ifStmt = IfStatement(biExpr, LocationSymbol(Token(Tokens.ID, getKeyWordRange(be), label))(be_range))(be_range)
-        createLocation(getKeyWordRange(be), ifStmt)
-        val temp3Name = checkAndAddVariable(JavaKnowledge.BOOLEAN, be_range, "boolean_temp", be_range, isTemp = true)
-        val temp3Var = VarSymbol(Token(Tokens.ID, be_range, temp3Name.apostrophe))(be_range)
-        val assignStmt1 = AssignmentStatement(VariableNameExpression(temp3Var)(be_range), LiteralExpression(Token(Tokens.INTEGER_LITERAL, be_range, "0"))(be_range), ilistEmpty)(be_range)
-        createLocation(getKeyWordRange(be), assignStmt1)
-        val label2 = getNormalLabel
-        val gotoStmt = GotoStatement(LocationSymbol(Token(Tokens.ID, be_range, label2))(be_range))(be_range)
-        createLocation(getKeyWordRange(be), gotoStmt)
-        createLabel(getKeyWordRange(be), label)
-        val assignStmt2 = AssignmentStatement(VariableNameExpression(temp3Var)(be_range), LiteralExpression(Token(Tokens.INTEGER_LITERAL, be_range, "1"))(be_range), ilistEmpty)(be_range)
-        createLocation(getKeyWordRange(be), assignStmt2)
-        createLabel(getKeyWordRange(be), label2)
-        resultHolder = temp3Var
-      case Right(o) =>
-        val binExp = BinaryExpression(temp1, Token(Tokens.OP, getKeyWordRange(be), o), Left(temp2))(be_range)
-        val typ = getVariableType(temp1.varName, temp1.pos, isTemp = true)
-        val expectedName = if(typ.isObject) "object_temp" else s"${typ.simpleName}_temp"
-        val temp3Name = checkAndAddVariable(typ, be_range, expectedName, be_range, isTemp = true)
-        val temp3Var = VarSymbol(Token(Tokens.ID, be_range, temp3Name.apostrophe))(be_range)
-        val assignStmt = AssignmentStatement(VariableNameExpression(temp3Var)(be_range), binExp, ilistEmpty)(be_range)
-        createLocation(getKeyWordRange(be), assignStmt)
-        resultHolder = temp3Var
+
+    val parts = getParts(be)
+
+    if(allPlus) {
+      var anyString = false
+      val vses = parts.map { part =>
+        isLeft = false
+        part.accept(this, arg)
+        val vs = resultHolder
+        val typ = getVariableType(vs.varName, be_range, isTemp = true)
+        if(typ == JavaKnowledge.STRING) {
+          anyString = true
+        }
+        vs
+      }
+      if(anyString) {
+        resultHolder = buildString(vses, be_range)
+      } else {
+        vses.headOption match {
+          case Some(head) =>
+            var left_vs = head
+            vses.tail.foreach { right_vs =>
+              val left_typ = getVariableType(left_vs.varName, left_vs.pos, isTemp = true)
+              val binExp = BinaryExpression(left_vs, Token(Tokens.OP, be_range, "+"), Left(right_vs))(be_range)
+              val temp3_name = checkAndAddVariable(left_typ, be_range, generateTempVarName(left_typ), be_range, isTemp = true)
+              val temp3_vs = VarSymbol(Token(Tokens.ID, be_range, temp3_name.apostrophe))(be_range)
+              val assignStmt = AssignmentStatement(VariableNameExpression(temp3_vs)(be_range), binExp, ilistEmpty)(be_range)
+              createLocation(getKeyWordRange(be), assignStmt)
+              left_vs = temp3_vs
+            }
+            resultHolder = left_vs
+          case None =>
+        }
+      }
+    } else {
+      isLeft = false
+      be.getLeft.accept(this, arg)
+      val temp1 = resultHolder
+      isLeft = false
+      be.getRight.accept(this, arg)
+      val temp2 = resultHolder
+      val op: Either[String, String] = be.getOperator match {
+        case BinaryExpr.Operator.AND => Right("^&")
+        case BinaryExpr.Operator.BINARY_AND => Right("^&")
+        case BinaryExpr.Operator.BINARY_OR => Right("^|")
+        case BinaryExpr.Operator.DIVIDE => Right("/")
+        case BinaryExpr.Operator.EQUALS => Left("==")
+        case BinaryExpr.Operator.GREATER => Left(">")
+        case BinaryExpr.Operator.GREATER_EQUALS => Left(">=")
+        case BinaryExpr.Operator.LEFT_SHIFT => Right("^<")
+        case BinaryExpr.Operator.LESS => Left("<")
+        case BinaryExpr.Operator.LESS_EQUALS => Left("<=")
+        case BinaryExpr.Operator.MINUS => Right("-")
+        case BinaryExpr.Operator.MULTIPLY => Right("*")
+        case BinaryExpr.Operator.NOT_EQUALS => Left("!=")
+        case BinaryExpr.Operator.OR => Right("^|")
+        case BinaryExpr.Operator.PLUS => Right("+")
+        case BinaryExpr.Operator.REMAINDER => Right("%%")
+        case BinaryExpr.Operator.SIGNED_RIGHT_SHIFT => Right("^>")
+        case BinaryExpr.Operator.UNSIGNED_RIGHT_SHIFT => Right("^>>")
+        case BinaryExpr.Operator.XOR => Right("^~")
+      }
+      op match {
+        case Left(o) =>
+          val biExpr = BinaryExpression(temp1, Token(Tokens.OP, getKeyWordRange(be), o), Left(temp2))(be_range)
+          val label = getNormalLabel
+          val ifStmt = IfStatement(biExpr, LocationSymbol(Token(Tokens.ID, getKeyWordRange(be), label))(be_range))(be_range)
+          createLocation(getKeyWordRange(be), ifStmt)
+          val temp3Name = checkAndAddVariable(JavaKnowledge.BOOLEAN, be_range, "boolean_temp", be_range, isTemp = true)
+          val temp3Var = VarSymbol(Token(Tokens.ID, be_range, temp3Name.apostrophe))(be_range)
+          val assignStmt1 = AssignmentStatement(VariableNameExpression(temp3Var)(be_range), LiteralExpression(Token(Tokens.INTEGER_LITERAL, be_range, "0"))(be_range), ilistEmpty)(be_range)
+          createLocation(getKeyWordRange(be), assignStmt1)
+          val label2 = getNormalLabel
+          val gotoStmt = GotoStatement(LocationSymbol(Token(Tokens.ID, be_range, label2))(be_range))(be_range)
+          createLocation(getKeyWordRange(be), gotoStmt)
+          createLabel(getKeyWordRange(be), label)
+          val assignStmt2 = AssignmentStatement(VariableNameExpression(temp3Var)(be_range), LiteralExpression(Token(Tokens.INTEGER_LITERAL, be_range, "1"))(be_range), ilistEmpty)(be_range)
+          createLocation(getKeyWordRange(be), assignStmt2)
+          createLabel(getKeyWordRange(be), label2)
+          resultHolder = temp3Var
+        case Right(o) =>
+          val typ = getVariableType(temp1.varName, temp1.pos, isTemp = true)
+          val binExp = BinaryExpression(temp1, Token(Tokens.OP, be_range, o), Left(temp2))(be_range)
+          val temp3Name = checkAndAddVariable(typ, be_range, generateTempVarName(typ), be_range, isTemp = true)
+          val temp3Var = VarSymbol(Token(Tokens.ID, be_range, temp3Name.apostrophe))(be_range)
+          val assignStmt = AssignmentStatement(VariableNameExpression(temp3Var)(be_range), binExp, ilistEmpty)(be_range)
+          createLocation(getKeyWordRange(be), assignStmt)
+          resultHolder = temp3Var
+      }
     }
   }
 
