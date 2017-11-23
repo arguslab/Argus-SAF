@@ -122,6 +122,8 @@ class Java2JawaTest extends FlatSpec with Matchers {
 
   "/java/parser/expr/methodcallexpr/StaticCall.java" produce (2)
 
+  "/java/parser/expr/objectcreationexpr/AnonymousClass.java" produce ("sr")
+
   "/java/parser/expr/unaryexpr/BITWISE_COMPLEMENT.java" produce (-9)
 
   "/java/parser/expr/unaryexpr/Complex.java" produce (-3)

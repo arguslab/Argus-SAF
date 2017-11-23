@@ -11,7 +11,7 @@
 package org.argus.jawa.ast
 
 import com.github.javaparser.ast.stmt.BlockStmt
-import org.argus.jawa.ast.java.{Java2Jawa, MethodBodyVisitor}
+import org.argus.jawa.ast.java.{ClassResolver, MethodBodyVisitor}
 import org.argus.jawa.compiler.lexer.Token
 import org.argus.jawa.compiler.lexer.Tokens._
 import org.argus.jawa.compiler.parser._
@@ -26,14 +26,14 @@ import scala.language.implicitConversions
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
  */
 sealed trait JawaAstNode extends CaseClassReflector with JavaKnowledge {
-  
+
   //for CompilationUnit it will be null
   var enclosingTopLevelClass: TypeDefSymbol = _
-  
+
   def getAllChildrenInclude: IList[JawaAstNode] = {
     this :: getAllChildren
   }
-  
+
   def getAllChildren: IList[JawaAstNode] = {
     val allAsts: MList[JawaAstNode] = mlistEmpty
     val worklist: MList[JawaAstNode] = mlistEmpty
@@ -275,7 +275,7 @@ sealed trait Field extends JawaAstNode {
 }
 
 case class InstanceFieldDeclaration(
-    typ: Type, 
+    typ: Type,
     fieldSymbol: FieldDefSymbol,
     annotations: IList[Annotation])(implicit val pos: Position) extends Field with Declaration {
   def FQN: String = fieldSymbol.FQN
@@ -337,8 +337,8 @@ case class MethodDeclaration(
 }
 
 case class Param(
-    typ: Type, 
-    paramSymbol: VarDefSymbol, 
+    typ: Type,
+    paramSymbol: VarDefSymbol,
     annotations: IList[Annotation])(implicit val pos: Position) extends JawaAstNode {
   def isThis: Boolean = annotations.exists { a => a.key == "kind" && a.value == "this" }
   def isObject: Boolean = annotations.exists { a => a.key == "kind" && (a.value == "this" || a.value == "object") }
@@ -363,9 +363,9 @@ case class UnresolvedBodyJawa(bodytokens: IList[Token])(implicit val pos: Positi
   def toCode: String = "{}"
 }
 
-case class UnresolvedBodyJava(bodyBlock: BlockStmt)(implicit val pos: Position, j2j: Java2Jawa) extends Body with Unresolved {
+case class UnresolvedBodyJava(bodyBlock: BlockStmt)(implicit val pos: Position, cr: ClassResolver) extends Body with Unresolved {
   def resolve(sig: Signature): ResolvedBody = {
-    val visitor = new MethodBodyVisitor(j2j, sig, j2j.TransRange(bodyBlock).toRange)
+    val visitor = new MethodBodyVisitor(cr, sig, cr.j2j.TransRange(bodyBlock).toRange)
     bodyBlock.accept(visitor, null)
     ResolvedBody(visitor.localVarDeclarations.toList, visitor.locations, visitor.catchClauses.toList)
   }
@@ -374,8 +374,8 @@ case class UnresolvedBodyJava(bodyBlock: BlockStmt)(implicit val pos: Position, 
 }
 
 case class ResolvedBody(
-    locals: IList[LocalVarDeclaration], 
-    locations: IList[Location], 
+    locals: IList[LocalVarDeclaration],
+    locations: IList[Location],
     catchClauses: IList[CatchClause])(implicit val pos: Position) extends Body {
   def getCatchClauses(index: Int): IList[CatchClause] = {
     catchClauses.filter{ cc =>
@@ -404,7 +404,7 @@ case class LocalVarDeclaration(
 }
 
 case class Location(
-    locationSymbol: LocationDefSymbol, 
+    locationSymbol: LocationDefSymbol,
     statement: Statement)(implicit val pos: Position) extends ParsableAstNode {
   def locationUri: String = {
     if(locationSymbol.id.length <= 1) ""
@@ -635,7 +635,7 @@ case class IndexingExpression(
 case class IndexingSuffix(index: Either[VarSymbol, LiteralExpression])(implicit val pos: Position) extends JawaAstNode {
   def toCode: String = s"[${index match {case Left(vs) => vs.toCode case Right(le) => le.toCode}}]"
 }
-    
+
 case class AccessExpression(
     varSymbol: VarSymbol,
     fieldSym: FieldNameSymbol,
