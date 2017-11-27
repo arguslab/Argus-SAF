@@ -15,7 +15,7 @@ package org.argus.jawa.core
  */
 object Constants {
   final val ALL_FIELD = "ALL.FIELD"
-  def ALL_FIELD_FQN(typ: JawaType) = FieldFQN(typ, ALL_FIELD, JavaKnowledge.JAVA_TOPLEVEL_OBJECT_TYPE)
+  def ALL_FIELD_FQN(typ: JawaType) = FieldFQN(typ, ALL_FIELD, JavaKnowledge.OBJECT)
 
   final val JAWA_FILE_EXT = "jawa"
   final val JAVA_FILE_EXT = "java"

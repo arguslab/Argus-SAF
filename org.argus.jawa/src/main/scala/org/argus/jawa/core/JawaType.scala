@@ -46,7 +46,7 @@ final case class JawaBaseType(pkg: Option[JawaPackage], name: String, unknown: B
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
  * @author <a href="mailto:sroy@k-state.edu">Sankardas Roy</a>
  */ 
-case class JawaType(baseType: JawaBaseType, dimensions: Int) extends JavaKnowledge {
+case class JawaType(baseType: JawaBaseType, dimensions: Int) {
   def this(baseType: JawaBaseType) = this(baseType, 0)
   def this(pkg: Option[JawaPackage], typ: String) = this(JawaBaseType(pkg, typ), 0)
   def this(pkgAndTyp: String, dimensions: Int) = this(JavaKnowledge.separatePkgAndTyp(pkgAndTyp), dimensions)
@@ -69,8 +69,8 @@ case class JawaType(baseType: JawaBaseType, dimensions: Int) extends JavaKnowled
    */
   def getType: String = baseType.typ
   def isArray: Boolean = dimensions > 0
-  def isPrimitive: Boolean = baseType.pkg.isEmpty && isJavaPrimitive(baseType.typ) && dimensions == 0
-  def isDWordPrimitive: Boolean = isPrimitive && JAVA_DWORD_PRIMITIVES.contains(baseType.typ)
+  def isPrimitive: Boolean = baseType.pkg.isEmpty && JavaKnowledge.isJavaPrimitive(baseType.typ) && dimensions == 0
+  def isDWordPrimitive: Boolean = isPrimitive && JavaKnowledge.JAVA_DWORD_PRIMITIVES.contains(baseType.typ)
   def isObject: Boolean = !isPrimitive
   def toUnknown: JawaType = JawaType(baseType.toUnknown, dimensions)
   def removeUnknown(): JawaType = JawaType(baseType.removeUnknown(), dimensions)
@@ -82,17 +82,17 @@ case class JawaType(baseType: JawaBaseType, dimensions: Int) extends JavaKnowled
   def baseTyp: String = {
     baseType.typ
   }
-  def name: String = formatTypeToName(this)
+  def name: String = JavaKnowledge.formatTypeToName(this)
   def simpleName: String = {
     canonicalName.substring(canonicalName.lastIndexOf(".") + 1)
   }
   def jawaName: String = {
     val base = baseTyp
-    assign(base, dimensions, "[]", front = false)
+    JavaKnowledge.assign(base, dimensions, "[]", front = false)
   }
   def canonicalName: String = {
     val base = baseTyp.replaceAll("\\$", ".")
-    assign(base, dimensions, "[]", front = false)
+    JavaKnowledge.assign(base, dimensions, "[]", front = false)
   }
 
   /**

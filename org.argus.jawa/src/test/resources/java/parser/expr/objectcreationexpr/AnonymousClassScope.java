@@ -9,16 +9,19 @@
  */
 package parser.expr.objectcreationexpr;
 
-import java.io.Serializable;
-
-public class AnonymousClass {
-    public static String main() {
-        Serializable sr = new Serializable () {
-            @Override
-            public String toString() {
-                return "sr";
+public class AnonymousClassScope {
+    class C {
+        public int i() {
+            return 1;
+        }
+    }
+    public static int main() {
+        AnonymousClassScope m = new AnonymousClassScope();
+        C c = m.new C() {
+            public int i() {
+                return 2;
             }
         };
-        return sr.toString();
+        return c.i();
     }
 }

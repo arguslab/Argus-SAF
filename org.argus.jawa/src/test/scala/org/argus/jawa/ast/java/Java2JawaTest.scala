@@ -10,14 +10,13 @@
 
 package org.argus.jawa.ast.java
 
-import java.io.PrintWriter
 import java.lang.reflect.InvocationTargetException
 
 import org.argus.jawa.compiler.codegen.JavaByteCodeGenerator
 import org.argus.jawa.compiler.util.ReadClassFile.CustomClassLoader
 import org.argus.jawa.core._
-import org.argus.jawa.core.io.JavaSourceFile
-import org.argus.jawa.core.util.FileUtil
+import org.argus.jawa.core.frontend.javafile.JavaSourceFile
+import org.argus.jawa.core.util._
 import org.scalatest.{FlatSpec, Matchers}
 
 import scala.language.implicitConversions
@@ -40,7 +39,7 @@ class Java2JawaTest extends FlatSpec with Matchers {
 
   "/java/parser/cons/ConstructorWithSuper.java" produce (1)
 
-//  "/java/parser/cons/InnerConstructor.java" produce (1)
+  "/java/parser/cons/InnerConstructor.java" produce (1)
 
   "/java/parser/expr/arraycreationexpr/ArrayCreationComplex.java" produce (11)
 
@@ -124,6 +123,10 @@ class Java2JawaTest extends FlatSpec with Matchers {
 
   "/java/parser/expr/objectcreationexpr/AnonymousClass.java" produce ("sr")
 
+  "/java/parser/expr/objectcreationexpr/AnonymousClassMulti.java" produce ("srdd")
+
+  "/java/parser/expr/objectcreationexpr/AnonymousClassScope.java" produce (2)
+
   "/java/parser/expr/unaryexpr/BITWISE_COMPLEMENT.java" produce (-9)
 
   "/java/parser/expr/unaryexpr/Complex.java" produce (-3)
@@ -178,6 +181,10 @@ class Java2JawaTest extends FlatSpec with Matchers {
 
   "/java/parser/stmt/labeledstmt/LabelContinue.java" produce (11)
 
+  "/java/parser/stmt/localclassdeclarationstmt/LocalClass.java" produce (1)
+
+  "/java/parser/stmt/localclassdeclarationstmt/LocalClassMulti.java" produce (6)
+
   "/java/parser/stmt/switchstmt/Switch.java" produce (1101)
 
   "/java/parser/stmt/switchstmt/SwitchNotMatch.java" produce (1)
@@ -223,29 +230,47 @@ class Java2JawaTest extends FlatSpec with Matchers {
     }
   }
 
+  def loadClass(clz: JawaClass, classes: MMap[JawaType, Array[Byte]], ccl: CustomClassLoader, loadedClasses: MSet[JawaType]): Unit = {
+    clz.getInterfaces.foreach { i =>
+      loadClass(i, classes, ccl, loadedClasses)
+    }
+    if(clz.hasSuperClass) {
+      loadClass(clz.getSuperClass, classes, ccl, loadedClasses)
+    }
+    classes.get(clz.getType) match {
+      case Some(bytecodes) =>
+        if(!loadedClasses.contains(clz.getType)) {
+          ccl.loadClass(clz.getType.name, bytecodes)
+          loadedClasses.add(clz.getType)
+        }
+      case None =>
+    }
+  }
+
   def run(file: String, loadpkg: Boolean): Any = {
     val path = file.substring(0, file.lastIndexOf("/"))
     val className = file.substring(6, file.length - 5).replace("/", ".")
     val global = new Global("test", new PrintReporter(MsgLevel.INFO))
     global.setJavaLib(getClass.getResource("/libs/rt.jar").getPath)
     val map = if(loadpkg) {
-      global.load(FileUtil.toUri(getClass.getResource(path).getPath), Constants.JAVA_FILE_EXT, NoLibraryAPISummary.isLibraryClass)
+      global.load(FileUtil.toUri(getClass.getResource(path).getPath), Constants.JAVA_FILE_EXT)
     } else {
-      global.load(FileUtil.toUri(getClass.getResource(file).getPath), NoLibraryAPISummary.isLibraryClass)
+      global.load(FileUtil.toUri(getClass.getResource(file).getPath))
     }
     val ccl: CustomClassLoader = new CustomClassLoader()
-    map.foreach {
-      case (_, sf) =>
-        val jsf = sf.asInstanceOf[JavaSourceFile]
-        val j2j = new Java2Jawa(global, jsf)
-        val cu = j2j.process(true)
-        println(cu.toCode)
-        val css = new JavaByteCodeGenerator("1.8").generate(Some(global), cu)
-        val pw = new PrintWriter(System.out)
-        css foreach { case (ctyp, bytecodes) =>
-//          JavaByteCodeGenerator.outputByteCodes(pw, bytecodes)
-          ccl.loadClass(ctyp.name, bytecodes)
-        }
+    val classes: MMap[JawaType, Array[Byte]] = mmapEmpty
+    val sfs = map.map{case (_, sf) => sf}.toSet
+    sfs.foreach { sf =>
+      val jsf = sf.asInstanceOf[JavaSourceFile]
+      val cu = jsf.getJawaCU
+      println(cu.toCode)
+      val css = new JavaByteCodeGenerator("1.8").generate(Some(global), cu)
+      classes ++= css
+    }
+    val loadedClasses: MSet[JawaType] = msetEmpty
+    classes.foreach { case (typ, _) =>
+      val clz = global.getClassOrResolve(typ)
+      loadClass(clz, classes, ccl, loadedClasses)
     }
 
     var result: Any = null

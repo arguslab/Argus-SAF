@@ -92,7 +92,7 @@ class IntentWuTest extends FlatSpec with Matchers {
         val reporter = if(DEBUG) new PrintReporter(MsgLevel.INFO) else new PrintReporter(MsgLevel.NO)
         val global = new Global("test", reporter)
         global.setJavaLib(getClass.getResource("/libs/android.jar").getPath)
-        global.load(FileUtil.toUri(getClass.getResource(file).getPath), NoLibraryAPISummary.isLibraryClass)
+        global.load(FileUtil.toUri(getClass.getResource(file).getPath))
         val sm: SummaryManager = new AndroidSummaryProvider(global).getSummaryManager
         val cg = SignatureBasedCallGraph(global, Set(entrypoint), None)
         val analysis = new BottomUpSummaryGenerator[Global](global, sm, handler,

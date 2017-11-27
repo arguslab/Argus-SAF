@@ -7,18 +7,16 @@
  *
  * Detailed contributors are listed in the CONTRIBUTOR.md
  */
-package parser.expr.objectcreationexpr;
+package parser.stmt.localclassdeclarationstmt;
 
-import java.io.Serializable;
-
-public class AnonymousClass {
-    public static String main() {
-        Serializable sr = new Serializable () {
-            @Override
-            public String toString() {
-                return "sr";
+public class LocalClass {
+    public static int main() {
+        class Local {
+            int l() {
+                return 1;
             }
-        };
-        return sr.toString();
+        }
+        Local lo = new Local();
+        return lo.l();
     }
 }

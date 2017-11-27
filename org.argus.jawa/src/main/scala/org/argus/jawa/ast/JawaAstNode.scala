@@ -11,7 +11,7 @@
 package org.argus.jawa.ast
 
 import com.github.javaparser.ast.stmt.BlockStmt
-import org.argus.jawa.ast.java.{ClassResolver, MethodBodyVisitor}
+import org.argus.jawa.ast.java.ClassResolver
 import org.argus.jawa.compiler.lexer.Token
 import org.argus.jawa.compiler.lexer.Tokens._
 import org.argus.jawa.compiler.parser._
@@ -332,7 +332,7 @@ case class MethodDeclaration(
   }
   def toCode: String = {
     val annoPart = annotations.map(anno => anno.toCode).mkString(" ")
-    s"procedure ${returnType.toCode} ${methodSymbol.toCode}(${params.map(p => p.toCode).mkString(", ")}) $annoPart".trim + "\n" + body.toCode
+    s"procedure ${returnType.toCode} ${methodSymbol.toCode}(${params.map(p => p.toCode).mkString(", ")}) $annoPart".trim + "\n" + resolvedBody.toCode
   }
 }
 
@@ -365,9 +365,7 @@ case class UnresolvedBodyJawa(bodytokens: IList[Token])(implicit val pos: Positi
 
 case class UnresolvedBodyJava(bodyBlock: BlockStmt)(implicit val pos: Position, cr: ClassResolver) extends Body with Unresolved {
   def resolve(sig: Signature): ResolvedBody = {
-    val visitor = new MethodBodyVisitor(cr, sig, cr.j2j.TransRange(bodyBlock).toRange)
-    bodyBlock.accept(visitor, null)
-    ResolvedBody(visitor.localVarDeclarations.toList, visitor.locations, visitor.catchClauses.toList)
+    cr.processBody(sig, bodyBlock)
   }
 
   def toCode: String = "{}"
@@ -398,7 +396,7 @@ case class LocalVarDeclaration(
   def annotations: IList[Annotation] = ilistEmpty
   def typ: JawaType = typOpt match {
     case Some(t) => t.typ
-    case None => JAVA_TOPLEVEL_OBJECT_TYPE
+    case None => JavaKnowledge.OBJECT
   }
   def toCode: String = s"${typOpt match {case Some(t) => t.toCode + " " case None => ""}}${varSymbol.toCode};"
 }

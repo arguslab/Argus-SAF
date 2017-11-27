@@ -10,17 +10,14 @@
 package parser.cons;
 
 public class InnerConstructor {
-    private int i = 0;
-
     public static int main() {
         InnerConstructor m = new InnerConstructor();
         Inner inner = m.new Inner();
-
-        return m.i;
+        return inner.i;
     }
 
     class Inner {
-
+        int i = 0;
         Inner() {
             i = 1;
         }

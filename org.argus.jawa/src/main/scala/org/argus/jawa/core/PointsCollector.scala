@@ -120,7 +120,7 @@ object PointsCollector {
         case ne: Expression with New =>
           PointO(ne.typ, locUri, locIndex, ownerSig)
         case _: NullExpression =>
-          PointO(JavaKnowledge.JAVA_TOPLEVEL_OBJECT_TYPE, locUri, locIndex, ownerSig)
+          PointO(JavaKnowledge.OBJECT, locUri, locIndex, ownerSig)
 //        case te: TupleExpression =>
 //        case _: UnaryExpression =>
         case _ => throw new RuntimeException("Unexpected rhs expression: " + e)

@@ -576,7 +576,7 @@ case class JawaClass(global: Global, typ: JawaType, accessFlags: Int) extends Ja
       }
       found
     } else if(!isInterface && other.isInterface) {
-      getType == JAVA_TOPLEVEL_OBJECT_TYPE
+      getType == JavaKnowledge.OBJECT
     } else {
       isAssignableFrom(other.getSuperClass)
     }

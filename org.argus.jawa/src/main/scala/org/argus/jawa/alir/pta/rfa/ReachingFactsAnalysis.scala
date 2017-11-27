@@ -52,7 +52,7 @@ class ReachingFactsAnalysis(
     val initial: ISet[RFAFact] = isetEmpty
     val ip = new Ip(icfg)
     icfg.collectCfgToBaseGraph(entryPointProc, initContext, isFirst = true, callr.needReturnNode())
-    val iota: ISet[RFAFact] = initialFacts + new RFAFact(StaticFieldSlot("Analysis.RFAiota"), PTAInstance(JavaKnowledge.JAVA_TOPLEVEL_OBJECT_TYPE.toUnknown, initContext.copy))
+    val iota: ISet[RFAFact] = initialFacts + new RFAFact(StaticFieldSlot("Analysis.RFAiota"), PTAInstance(JavaKnowledge.OBJECT.toUnknown, initContext.copy))
     try {
       mdf = MonotoneDataFlowAnalysisFramework[ICFGNode, RFAFact, Context](icfg,
         forward = true, lub = true, ip, gen, kill, Some(callr), iota, initial)

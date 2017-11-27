@@ -152,7 +152,7 @@ object AppInfoCollector {
     val dmGen = new AsyncTaskEnvGenerator(apk)
     dmGen.setSubstituteClassMap(AndroidSubstituteClassMap.getSubstituteClassMap)
     dmGen.setCurrentComponent(typ)
-    dmGen.generateWithParam(List((typ, "this"), (new JawaType(JavaKnowledge.JAVA_TOPLEVEL_OBJECT, 1), "object")), List(), "run", "PUBLIC")
+    dmGen.generateWithParam(List((typ, "this"), (JawaType.addDimensions(JavaKnowledge.OBJECT, 1), "object")), List(), "run", "PUBLIC")
   }
 
   def dynamicRegisterReceiver(apk: ApkGlobal, comRec: JawaClass, iDB: IntentFilterDataBase, permission: ISet[String]): Unit = {

@@ -100,7 +100,7 @@ object ReachingFactsAnalysisHelper {
       argValues.foreach { ins =>
         for(f <- influencedFields) {
           val fs = FieldSlot(ins, f.fieldName)
-          val uins = PTAInstance(JavaKnowledge.JAVA_TOPLEVEL_OBJECT_TYPE.toUnknown, currentContext)
+          val uins = PTAInstance(JavaKnowledge.OBJECT.toUnknown, currentContext)
           genFacts += new RFAFact(fs, uins)
         }
       }
@@ -140,7 +140,7 @@ object ReachingFactsAnalysisHelper {
       argValues.foreach { ins =>
         for(f <- influencedFields) {
           val fs = FieldSlot(ins, f.fieldName)
-          val uins = PTAInstance(JavaKnowledge.JAVA_TOPLEVEL_OBJECT_TYPE.toUnknown, currentContext)
+          val uins = PTAInstance(JavaKnowledge.OBJECT.toUnknown, currentContext)
           genFacts += new RFAFact(fs, uins)
         }
       }
@@ -420,7 +420,7 @@ object ReachingFactsAnalysisHelper {
         ptaResult.addInstance(currentContext, fs, ins)
         result += classInstance
       case _: NullExpression =>
-        val inst = JavaKnowledge.JAVA_TOPLEVEL_OBJECT_TYPE.toUnknown
+        val inst = JavaKnowledge.OBJECT.toUnknown
         val ins = PTAInstance(inst, currentContext)
         val value: ISet[Instance] = Set(ins)
         result ++= value
@@ -430,7 +430,7 @@ object ReachingFactsAnalysisHelper {
           val value: ISet[Instance] = Set(ins)
           result ++= value
         } else if(le.isInt && le.getInt == 0){
-          val inst = JavaKnowledge.JAVA_TOPLEVEL_OBJECT_TYPE.toUnknown
+          val inst = JavaKnowledge.OBJECT.toUnknown
           val ins = PTAInstance(inst, currentContext)
           val value: ISet[Instance] = Set(ins)
           result ++= value

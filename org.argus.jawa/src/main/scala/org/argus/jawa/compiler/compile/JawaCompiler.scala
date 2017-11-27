@@ -16,8 +16,9 @@ import hu.ssh.progressbar.ProgressBar
 import org.argus.jawa.compiler.codegen.JavaByteCodeGenerator
 import org.argus.jawa.compiler.lexer.JawaLexer
 import org.argus.jawa.compiler.parser.JawaParser
+import org.argus.jawa.core.frontend.jawafile.JawaSourceFile
 import org.argus.jawa.core.{Constants, DefaultReporter, Global, JawaType}
-import org.argus.jawa.core.io.{JawaSourceFile, PlainFile}
+import org.argus.jawa.core.io.PlainFile
 import org.argus.jawa.core.util._
 
 import scala.language.postfixOps

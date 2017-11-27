@@ -86,7 +86,7 @@ class JavaByteCodeGenerator(javaVersion: Int) {
     
     val superName: String = cid.superClassOpt match {
       case Some(su) => getClassName(su.name)
-      case None => if(cid.typ.name != JavaKnowledge.JAVA_TOPLEVEL_OBJECT) getClassName(JavaKnowledge.JAVA_TOPLEVEL_OBJECT) else null
+      case None => if(cid.typ != JavaKnowledge.OBJECT) getClassName(JavaKnowledge.OBJECT.jawaName) else null
     }
     val interfaceNames: IList[String] = cid.interfaces map(i => getClassName(i.name))
     if(!AccessFlag.isInterface(af) && (superName != null || interfaceNames.nonEmpty)) mod = mod | Opcodes.ACC_SUPER
@@ -541,7 +541,7 @@ class JavaByteCodeGenerator(javaVersion: Int) {
       case "lcmp" =>
         JavaKnowledge.LONG
       case _ =>
-        JavaKnowledge.JAVA_TOPLEVEL_OBJECT_TYPE
+        JavaKnowledge.OBJECT
     }
     val first = ce.var1Symbol.varName
     visitVarLoad(mv, first)

@@ -15,7 +15,8 @@ import java.io._
 import org.antlr.v4.runtime.{CharStreams, Token => AntlrToken}
 import org.argus.jawa.compiler.Antlr4PilarLexer
 import org.argus.jawa.core.Reporter
-import org.argus.jawa.core.io.{JawaSourceFile, RangePosition, SourceFile, StringFile}
+import org.argus.jawa.core.frontend.jawafile.JawaSourceFile
+import org.argus.jawa.core.io.{RangePosition, SourceFile, StringFile}
 
 class JawaLexer(aplexer: Antlr4PilarLexer, file: SourceFile, reporter: Reporter) extends Iterator[Token] {
   val sourceFile: SourceFile = file

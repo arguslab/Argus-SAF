@@ -12,15 +12,12 @@ package org.argus.jawa.core.io
 
 import java.io.{BufferedReader, StringReader}
 
-import com.github.javaparser.JavaParser
-import com.github.javaparser.ast.body.{BodyDeclaration, TypeDeclaration}
-import com.github.javaparser.ast.{NodeList, CompilationUnit => JavaCompilationUnit}
 import org.argus.jawa.core.Chars._
-import org.argus.jawa.core.{Global, JawaType, Reporter}
 import org.argus.jawa.core.frontend.MyClass
-import org.argus.jawa.core.frontend.javafile.JavaFileParser
-import org.argus.jawa.core.frontend.jawafile.JawaFileParser
+import org.argus.jawa.core.frontend.javafile.JavaSourceFile
+import org.argus.jawa.core.frontend.jawafile.JawaSourceFile
 import org.argus.jawa.core.util._
+import org.argus.jawa.core.{JawaType, Reporter}
 
 import scala.annotation.tailrec
 import scala.collection.mutable.ArrayBuffer
@@ -169,54 +166,8 @@ abstract class DefaultSourceFile(val file: AbstractFile) extends SourceFile {
 
   override def equals(that: Any): Boolean = that match {
     case that: JawaSourceFile => file.path == that.file.path && start == that.start
+    case that: JavaSourceFile => file.path == that.file.path && start == that.start
     case _ => false
   }
   override def hashCode: Int = file.path.## + start.##
-}
-
-class JawaSourceFile(file: AbstractFile) extends DefaultSourceFile(file) {
-  def getClassCodes: ISet[String] = {
-    val c = code
-    c.replaceAll("(record `)", "DELIMITER_JAWA_HAHAHA$1").split("DELIMITER_JAWA_HAHAHA").tail.toSet
-  }
-  def parse(reporter: Reporter): IMap[JawaType, MyClass] = JawaFileParser.parse(this, reporter)
-}
-
-class JavaSourceFile(global: Global, file: AbstractFile) extends DefaultSourceFile(file) {
-  private var javacu: Option[JavaCompilationUnit] = None
-  def getJavaCU: JavaCompilationUnit = {
-    javacu match {
-      case Some(cu) => cu
-      case None =>
-        val cu = JavaParser.parse(file.input)
-        javacu = Some(cu)
-        cu
-    }
-  }
-  private def visitTypes(typ: JawaType, members: NodeList[BodyDeclaration[_ <: BodyDeclaration[_]]]): ISet[JawaType] = {
-    val types: MSet[JawaType] = msetEmpty
-    members.forEach {
-      case td: TypeDeclaration[_] =>
-        val innerTyp = new JawaType(s"${typ.jawaName}$$${td.getNameAsString}")
-        types += innerTyp
-        types ++= visitTypes(innerTyp, td.getMembers)
-      case _ =>
-    }
-    types.toSet
-  }
-  def getTypes: ISet[JawaType] = {
-    val types: MSet[JawaType] = msetEmpty
-    val cu = getJavaCU
-    var packageName = ""
-    if(cu.getPackageDeclaration.isPresent) {
-      packageName = cu.getPackageDeclaration.get().getName.asString() + "."
-    }
-    cu.getTypes.forEach{ typ =>
-      val classType = new JawaType(s"$packageName${typ.getNameAsString}")
-      types += classType
-      types ++= visitTypes(classType, typ.getMembers)
-    }
-    types.toSet
-  }
-  def parse(reporter: Reporter): IMap[JawaType, MyClass] = JavaFileParser.parse(global, this, reporter)
 }

@@ -10,7 +10,7 @@
 
 package org.argus.jawa.core.frontend.jawafile
 
-import org.argus.jawa.ast.{CompilationUnit, MethodDeclaration}
+import org.argus.jawa.ast.{ClassOrInterfaceDeclaration, CompilationUnit, MethodDeclaration}
 import org.argus.jawa.core.io.SourceFile
 import org.argus.jawa.core._
 import org.argus.jawa.core.frontend.{MyClass, MyField, MyMethod}
@@ -47,33 +47,37 @@ object JawaFileParser {
   def resolve(cu: CompilationUnit): IMap[JawaType, MyClass] = {
     val classes: MMap[JawaType, MyClass] = mmapEmpty
     cu.topDecls foreach { cd =>
-      val typ = cd.typ
-      val accessFlag = AccessFlag.getAccessFlags(cd.accessModifier)
-      val superType = cd.superClassOpt match {
-        case Some(a) => Some(a)
-        case None =>
-          if(typ != JavaKnowledge.JAVA_TOPLEVEL_OBJECT_TYPE) Some(JavaKnowledge.JAVA_TOPLEVEL_OBJECT_TYPE)
-          else None
-      }
-      val interfaces = cd.interfaces
-      var outerType: Option[JawaType] = None
-      if(JavaKnowledge.isInnerClass(typ)) outerType = Some(JavaKnowledge.getOuterTypeFrom(typ))
-      val myclass = MyClass(accessFlag, typ, superType, interfaces, outerType)
-      classes(typ) = myclass
-      cd.fields foreach { field =>
-        val fieldType: JawaType = field.typ.typ
-        val FQN: FieldFQN = new FieldFQN(field.FQN, fieldType)
-        val accessFlag: Int = AccessFlag.getAccessFlags(field.accessModifier)
-        val f = MyField(accessFlag, FQN)
-        myclass.addField(f)
-      }
-      myclass.addField(createClassField(myclass))
-      cd.methods foreach { method =>
-        val m = resolveMethod(method)
-        myclass.addMethod(m)
-      }
+      classes(cd.typ) = resolveClass(cd)
     }
     classes.toMap
+  }
+
+  def resolveClass(cd: ClassOrInterfaceDeclaration): MyClass = {
+    val typ = cd.typ
+    val accessFlag = AccessFlag.getAccessFlags(cd.accessModifier)
+    val superType = cd.superClassOpt match {
+      case Some(a) => Some(a)
+      case None =>
+        if(typ != JavaKnowledge.OBJECT) Some(JavaKnowledge.OBJECT)
+        else None
+    }
+    val interfaces = cd.interfaces
+    var outerType: Option[JawaType] = None
+    if(JavaKnowledge.isInnerClass(typ)) outerType = Some(JavaKnowledge.getOuterTypeFrom(typ))
+    val myclass = MyClass(accessFlag, typ, superType, interfaces, outerType)
+    cd.fields foreach { field =>
+      val fieldType: JawaType = field.typ.typ
+      val FQN: FieldFQN = new FieldFQN(field.FQN, fieldType)
+      val accessFlag: Int = AccessFlag.getAccessFlags(field.accessModifier)
+      val f = MyField(accessFlag, FQN)
+      myclass.addField(f)
+    }
+    myclass.addField(createClassField(myclass))
+    cd.methods foreach { method =>
+      val m = resolveMethod(method)
+      myclass.addMethod(m)
+    }
+    myclass
   }
 
   private def createClassField(rec: MyClass): MyField = {

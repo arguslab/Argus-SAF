@@ -305,8 +305,8 @@ class ClassSuTest extends SuTestBase("Class.safsu") {
   ) produce (
     thisFact,
     thisNameFact,
-    new RFAFact(VarSlot("temp"), PTAInstance(new JawaType(JavaKnowledge.JAVA_TOPLEVEL_OBJECT, 1), currentContext)),
-    new RFAFact(ArraySlot(PTAInstance(new JawaType(JavaKnowledge.JAVA_TOPLEVEL_OBJECT, 1), currentContext)), PTAInstance(JavaKnowledge.JAVA_TOPLEVEL_OBJECT_TYPE.toUnknown, currentContext))
+    new RFAFact(VarSlot("temp"), PTAInstance(JawaType.addDimensions(JavaKnowledge.OBJECT, 1), currentContext)),
+    new RFAFact(ArraySlot(PTAInstance(JawaType.addDimensions(JavaKnowledge.OBJECT, 1), currentContext)), PTAInstance(JavaKnowledge.OBJECT.toUnknown, currentContext))
   )
 
   "Ljava/lang/Class;.getField:(Ljava/lang/String;)Ljava/lang/reflect/Field;" with_input (
@@ -430,8 +430,8 @@ class ClassSuTest extends SuTestBase("Class.safsu") {
   ) produce (
     thisFact,
     thisNameFact,
-    new RFAFact(VarSlot("temp"), PTAInstance(new JawaType(JavaKnowledge.JAVA_TOPLEVEL_OBJECT, 1), currentContext)),
-    new RFAFact(ArraySlot(PTAInstance(new JawaType(JavaKnowledge.JAVA_TOPLEVEL_OBJECT, 1), currentContext)), PTAInstance(JavaKnowledge.JAVA_TOPLEVEL_OBJECT_TYPE.toUnknown, currentContext))
+    new RFAFact(VarSlot("temp"), PTAInstance(JawaType.addDimensions(JavaKnowledge.OBJECT, 1), currentContext)),
+    new RFAFact(ArraySlot(PTAInstance(JawaType.addDimensions(JavaKnowledge.OBJECT, 1), currentContext)), PTAInstance(JavaKnowledge.OBJECT.toUnknown, currentContext))
   )
 
   "Ljava/lang/Class;.getSimpleName:()Ljava/lang/String;" with_input (
@@ -493,7 +493,7 @@ class ClassSuTest extends SuTestBase("Class.safsu") {
   ) produce (
     thisFact,
     thisNameFact,
-    new RFAFact(VarSlot("temp"), PTAInstance(JavaKnowledge.JAVA_TOPLEVEL_OBJECT_TYPE.toUnknown, currentContext)),
+    new RFAFact(VarSlot("temp"), PTAInstance(JavaKnowledge.OBJECT.toUnknown, currentContext)),
   )
 
   "Ljava/lang/Class;.toString:()Ljava/lang/String;" with_input (

@@ -11,7 +11,7 @@ package parser.expr.objectcreationexpr;
 
 import java.io.Serializable;
 
-public class AnonymousClass {
+public class AnonymousClassMulti {
     public static String main() {
         Serializable sr = new Serializable () {
             @Override
@@ -19,6 +19,12 @@ public class AnonymousClass {
                 return "sr";
             }
         };
-        return sr.toString();
+        Serializable sr2 = new Serializable () {
+            @Override
+            public String toString() {
+                return "dd";
+            }
+        };
+        return sr.toString() + sr2.toString();
     }
 }

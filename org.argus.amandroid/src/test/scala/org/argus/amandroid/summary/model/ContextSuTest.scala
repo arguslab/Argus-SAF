@@ -33,7 +33,7 @@ class ContextSuTest extends SuTestBase("Context.safsu") {
   ) produce (
     thisFact,
     thisBaseFact,
-    new RFAFact(VarSlot("temp"), PTAInstance(JavaKnowledge.JAVA_TOPLEVEL_OBJECT_TYPE.toUnknown, currentContext))
+    new RFAFact(VarSlot("temp"), PTAInstance(JavaKnowledge.OBJECT.toUnknown, currentContext))
   )
 
   "Landroid/content/Context;.getBaseContext:()Landroid/content/Context;" with_input (

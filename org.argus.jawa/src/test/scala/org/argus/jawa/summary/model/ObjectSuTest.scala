@@ -18,7 +18,7 @@ import org.argus.jawa.core.JavaKnowledge
   * Created by fgwei on 6/15/17.
   */
 class ObjectSuTest extends SuTestBase("Object.safsu") {
-  val thisInstance = PTAInstance(JavaKnowledge.JAVA_TOPLEVEL_OBJECT_TYPE, defContext)
+  val thisInstance = PTAInstance(JavaKnowledge.OBJECT, defContext)
   val thisFact = new RFAFact(VarSlot("v0"), thisInstance)
 
   "Ljava/lang/Object;.<init>:()V" with_input thisFact produce thisFact

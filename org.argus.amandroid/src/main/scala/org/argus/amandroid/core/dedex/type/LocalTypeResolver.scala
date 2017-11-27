@@ -74,7 +74,7 @@ object LocalTypeResolver {
             objs.diff(allParentsIncluding).isEmpty
           } match {
             case Some(t) => Some(JawaType.addDimensions(t, dimensions))
-            case None => Some(JawaType.addDimensions(JavaKnowledge.JAVA_TOPLEVEL_OBJECT_TYPE, dimensions))
+            case None => Some(JawaType.addDimensions(JavaKnowledge.OBJECT, dimensions))
           }
         } else if(prims.nonEmpty) {
           if(prims.size == 1) return prims.headOption
@@ -262,7 +262,7 @@ object LocalTypeResolver {
       case as: AssignmentStatement =>
         val (rhsTyp, level): (JawaType, CertainLevel.Value) = as.rhs match {
           case ae: AccessExpression =>
-            uses += ((VarSlot(ae.base), new VarType().addType(JavaKnowledge.JAVA_TOPLEVEL_OBJECT_TYPE, CertainLevel.NOT_SURE)))
+            uses += ((VarSlot(ae.base), new VarType().addType(JavaKnowledge.OBJECT, CertainLevel.NOT_SURE)))
             val typ = ae.typ
             (typ, CertainLevel.IS)
           case be: BinaryExpression =>
@@ -300,7 +300,7 @@ object LocalTypeResolver {
             uses += ((VarSlot(ie.varSymbol.varName), new VarType().addType(ie.typExp.typ, CertainLevel.PROBABLY)))
             (JavaKnowledge.BOOLEAN, CertainLevel.IS)
           case le: LengthExpression =>
-            uses += ((VarSlot(le.varSymbol.varName), new VarType().addType(JawaType.addDimensions(JavaKnowledge.JAVA_TOPLEVEL_OBJECT_TYPE, 1), CertainLevel.NOT_SURE)))
+            uses += ((VarSlot(le.varSymbol.varName), new VarType().addType(JawaType.addDimensions(JavaKnowledge.OBJECT, 1), CertainLevel.NOT_SURE)))
             (JavaKnowledge.INT, CertainLevel.IS)
           case le: LiteralExpression =>
             if(le.isString) {
@@ -337,7 +337,7 @@ object LocalTypeResolver {
             }
             (nae.typ, CertainLevel.IS)
           case _: NullExpression =>
-            (JavaKnowledge.JAVA_TOPLEVEL_OBJECT_TYPE, CertainLevel.PROBABLY)
+            (JavaKnowledge.OBJECT, CertainLevel.PROBABLY)
           case te: TupleExpression =>
             val typ = te.constants.find{ con =>
               con.isLong
@@ -354,7 +354,7 @@ object LocalTypeResolver {
         }
         as.lhs match {
           case ae: AccessExpression =>
-            uses += ((VarSlot(ae.base), new VarType().addType(JavaKnowledge.JAVA_TOPLEVEL_OBJECT_TYPE, CertainLevel.NOT_SURE)))
+            uses += ((VarSlot(ae.base), new VarType().addType(JavaKnowledge.OBJECT, CertainLevel.NOT_SURE)))
           case ie: IndexingExpression =>
             uses += ((VarSlot(ie.base), new VarType().addType(JawaType.addDimensions(rhsTyp, ie.dimensions), level)))
             ie.indices foreach { i =>
@@ -383,7 +383,7 @@ object LocalTypeResolver {
         }
         for(i <- cs.argVars.indices) {
           val arg = cs.argVar(i)
-          val typ = sig.getParameterTypes.lift(i).getOrElse(JavaKnowledge.JAVA_TOPLEVEL_OBJECT_TYPE)
+          val typ = sig.getParameterTypes.lift(i).getOrElse(JavaKnowledge.OBJECT)
           uses += ((VarSlot(arg.varName), new VarType().addType(typ, CertainLevel.CERTAIN)))
         }
       case _: EmptyStatement =>
@@ -402,7 +402,7 @@ object LocalTypeResolver {
             }
         }
       case ms: MonitorStatement =>
-        uses += ((VarSlot(ms.varSymbol.varName), new VarType().addType(JavaKnowledge.JAVA_TOPLEVEL_OBJECT_TYPE, CertainLevel.NOT_SURE)))
+        uses += ((VarSlot(ms.varSymbol.varName), new VarType().addType(JavaKnowledge.OBJECT, CertainLevel.NOT_SURE)))
       case rs: ReturnStatement =>
         rs.varOpt.foreach { v =>
           uses += ((VarSlot(v.varName), new VarType().addType(md.signature.getReturnType, CertainLevel.CERTAIN)))
@@ -418,7 +418,7 @@ object LocalTypeResolver {
   private def getTypeFromKind(kind: String): (JawaType, CertainLevel.Value) = {
     kind match {
       case "wide" => (JavaKnowledge.LONG, CertainLevel.PROBABLY)
-      case "object" => (JavaKnowledge.JAVA_TOPLEVEL_OBJECT_TYPE, CertainLevel.NOT_SURE)
+      case "object" => (JavaKnowledge.OBJECT, CertainLevel.NOT_SURE)
       case "boolean" => (JavaKnowledge.BOOLEAN, CertainLevel.CERTAIN)
       case "byte" => (JavaKnowledge.BYTE, CertainLevel.CERTAIN)
       case "char" => (JavaKnowledge.CHAR, CertainLevel.CERTAIN)
@@ -436,7 +436,7 @@ object LocalTypeResolver {
       case "l2i" | "l2f" | "l2d" => (JavaKnowledge.LONG, CertainLevel.CERTAIN)
       case "f2i" | "f2l" | "f2d" => (JavaKnowledge.FLOAT, CertainLevel.CERTAIN)
       case "d2i" | "d2l" | "d2f" => (JavaKnowledge.DOUBLE, CertainLevel.CERTAIN)
-      case _ => (JavaKnowledge.JAVA_TOPLEVEL_OBJECT_TYPE, CertainLevel.NOT_SURE)
+      case _ => (JavaKnowledge.OBJECT, CertainLevel.NOT_SURE)
     }
   }
 }

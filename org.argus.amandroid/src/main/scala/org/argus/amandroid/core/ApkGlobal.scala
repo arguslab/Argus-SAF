@@ -108,6 +108,8 @@ class ApkGlobal(val model: ApkModel, reporter: Reporter) extends Global(model.na
   }
   setJavaLib(AndroidGlobalConfig.settings.lib_files)
 
+  libSummary = new DefaultLibraryAPISummary(AndroidGlobalConfig.settings.third_party_lib_file)
+
   def nameUri: FileResourceUri = model.nameUri
 
   def load(): Unit = {
@@ -115,15 +117,15 @@ class ApkGlobal(val model: ApkModel, reporter: Reporter) extends Global(model.na
     model.layout.sourceFolders foreach { src =>
       val fileUri = FileUtil.appendFileName(outApkUri, src)
       if(FileUtil.toFile(fileUri).exists()) {
-        load(fileUri, Constants.JAWA_FILE_EXT, _ => false)
-        load(fileUri, Constants.JAVA_FILE_EXT, _ => false)
+        load(fileUri, Constants.JAWA_FILE_EXT)
+        load(fileUri, Constants.JAVA_FILE_EXT)
       }
     }
     model.layout.libFolders foreach { lib =>
       val fileUri = FileUtil.appendFileName(outApkUri, lib)
       if(FileUtil.toFile(fileUri).exists()) {
-        load(fileUri, Constants.JAWA_FILE_EXT, _ => true)
-        load(fileUri, Constants.JAVA_FILE_EXT, _ => true)
+        load(fileUri, Constants.JAWA_FILE_EXT)
+        load(fileUri, Constants.JAVA_FILE_EXT)
       }
     }
   }

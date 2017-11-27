@@ -182,7 +182,7 @@ class JawaStyleCodeGenerator(ddFile: DexBackedDexFile, filter: (JawaType => Deco
       val global = new Global("Type", reporter)
       global.setJavaLib(AndroidGlobalConfig.settings.lib_files)
       val codes: IMap[JawaType, String] = (result ++ needType).toMap
-      global.loadJawaCode(codes, NoLibraryAPISummary.isLibraryClass)
+      global.loadJawaCode(codes)
       result ++= ProgressBarUtil.withProgressBar("Resolving types...", progressBar)(needType.toSet, handleType(global))
     }
     if(listener.isDefined) listener.get.onGenerateEnd(result.size, errorOccurred)

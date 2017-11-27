@@ -247,7 +247,7 @@ object HeapSummaryProcessor {
                       rhsInss.foreach { i =>
                         inss.foreach{ ins =>
                           extraFacts += new RFAFact(FieldSlot(ins, "key"), i)
-                          extraFacts += new RFAFact(MapSlot(ins, i), PTAInstance(JavaKnowledge.JAVA_TOPLEVEL_OBJECT_TYPE.toUnknown, context))
+                          extraFacts += new RFAFact(MapSlot(ins, i), PTAInstance(JavaKnowledge.OBJECT.toUnknown, context))
                         }
                       }
                       instances = rhsInss
@@ -278,14 +278,14 @@ object HeapSummaryProcessor {
         val baseClass = global.getClassOrResolve(fs.instance.typ)
         baseClass.getField(fs.fieldName) match {
           case Some(f) => Some(Instance.getInstance(f.getType, context, toUnknown = false))
-          case None => Some(Instance.getInstance(JavaKnowledge.JAVA_TOPLEVEL_OBJECT_TYPE, context, toUnknown = true))
+          case None => Some(Instance.getInstance(JavaKnowledge.OBJECT, context, toUnknown = true))
         }
       case as: ArraySlot =>
         require(as.instance.typ.dimensions > 0, "Array type dimensions should larger than 0.")
         val typ = JawaType(as.instance.typ.baseType, as.instance.typ.dimensions - 1)
         Some(Instance.getInstance(typ, context, toUnknown = true))
       case _: MapSlot =>
-        Some(Instance.getInstance(JavaKnowledge.JAVA_TOPLEVEL_OBJECT_TYPE, context, toUnknown = true))
+        Some(Instance.getInstance(JavaKnowledge.OBJECT, context, toUnknown = true))
       case _ => None // should not be here
     }
   }

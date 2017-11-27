@@ -201,7 +201,7 @@ case class DexInstructionToJawaParser(
       } else {
         val ptyp =
           if (ptyps.isDefinedAt(j)) ptyps(j)
-          else JavaKnowledge.JAVA_TOPLEVEL_OBJECT_TYPE
+          else JavaKnowledge.OBJECT
         ptyp match {
           case pt if pt.jawaName == "long" || pt.jawaName == "double" =>
             if (!nextpass) {

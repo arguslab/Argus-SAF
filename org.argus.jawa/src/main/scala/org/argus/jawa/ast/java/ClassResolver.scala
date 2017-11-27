@@ -24,7 +24,7 @@ import org.argus.jawa.core.io.{Position, RangePosition}
 import org.argus.jawa.core.util._
 import org.argus.jawa.core.{JavaKnowledge, JawaType, Signature}
 
-class ClassResolver(val j2j: Java2Jawa, outer: Option[JawaType], typ: TypeDeclaration[_]) {
+class ClassResolver(val j2j: Java2Jawa, outer: Option[JawaType], typ: TypeDeclaration[_], isAnonymous: Boolean, isLocal: Option[Int]) {
   import j2j._
 
   protected[java] def getJawaAccessFlag(modifiers: util.EnumSet[Modifier], isConstructor: Boolean): String = {
@@ -55,12 +55,6 @@ class ClassResolver(val j2j: Java2Jawa, outer: Option[JawaType], typ: TypeDeclar
     handleJawaType(jawaType, javaType.getElementType.toRange)
   }
 
-  protected[java] def handleTypes(javaType: Type): IList[JawaTypeAst] = {
-    imports.findTypes(javaType).map { t =>
-      handleJawaType(t, javaType.getElementType.toRange)
-    }
-  }
-
   protected[java] def handleJawaType(jawaType: JawaType, pos: Position): JawaTypeAst = {
     val baseTypeSymbol: TypeSymbol = TypeSymbol(Token(Tokens.ID, pos, jawaType.baseTyp.apostrophe))(pos)
     val typeFragments: IList[TypeFragment] = (0 until jawaType.dimensions).map { _ =>
@@ -73,7 +67,7 @@ class ClassResolver(val j2j: Java2Jawa, outer: Option[JawaType], typ: TypeDeclar
 
   def getParams(sig: Signature): IMap[String, JawaType] = paramMap.getOrElse(sig, imapEmpty)
 
-  protected[java] var superType: JawaType = JavaKnowledge.JAVA_TOPLEVEL_OBJECT_TYPE
+  protected[java] var superType: JawaType = JavaKnowledge.OBJECT
 
   private var anonymousCounter = 0
   protected[java] def getAnonymousClassName: String = {
@@ -81,13 +75,24 @@ class ClassResolver(val j2j: Java2Jawa, outer: Option[JawaType], typ: TypeDeclar
     anonymousCounter.toString
   }
 
-  def process(resolveBody: Boolean): (JawaClassOrInterfaceDeclaration, IList[JawaClassOrInterfaceDeclaration]) = {
+  private val localClassCounter: MMap[String, Int] = mmapEmpty
+  protected[java] def getLocalClassNum(name: String): Int = {
+    val c = localClassCounter.getOrElse(name, 1)
+    localClassCounter(name) = c + 1
+    c
+  }
+
+  def process(): JawaClassOrInterfaceDeclaration = {
     typ match {
       case cid: ClassOrInterfaceDeclaration =>
         val cid_range = cid.toRange
         val cityp: TypeDefSymbol = outer match {
           case Some(o) =>
-            TypeDefSymbol(Token(Tokens.ID, cid.getName.toRange, s"${o.jawaName}$$${cid.getNameAsString}".apostrophe))(cid.getName.toRange)
+            val name = isLocal match {
+              case Some(i) => s"$i${cid.getNameAsString}"
+              case None => cid.getNameAsString
+            }
+            TypeDefSymbol(Token(Tokens.ID, cid.getName.toRange, s"${o.jawaName}$$$name".apostrophe))(cid.getName.toRange)
           case None =>
             TypeDefSymbol(Token(Tokens.ID, cid.getName.toRange, s"$packageName.${cid.getNameAsString}".apostrophe))(cid.getName.toRange)
         }
@@ -132,8 +137,11 @@ class ClassResolver(val j2j: Java2Jawa, outer: Option[JawaType], typ: TypeDeclar
         } else {
           None
         }
-        val (instanceFieldDeclarationBlock, staticFields, methods, inners) = processMembers(outer, cityp, cid, resolveBody)
-        (JawaClassOrInterfaceDeclaration(cityp, annotations.toList, extendsAndImplementsClausesOpt, instanceFieldDeclarationBlock, staticFields, methods)(cid.toRange), inners)
+        val (instanceFieldDeclarationBlock, staticFields, methods) = processMembers(outer, cityp, cid)
+        val jcid = JawaClassOrInterfaceDeclaration(cityp, annotations.toList, extendsAndImplementsClausesOpt, instanceFieldDeclarationBlock, staticFields, methods)(cid.toRange)
+        topDecls += jcid
+        jcid.getAllChildrenInclude foreach (_.enclosingTopLevelClass = cityp)
+        jcid
       case _: EnumDeclaration =>
         throw Java2JawaException(typ.toRange, "Have not handle EnumDeclaration") // TODO
       case _: AnnotationDeclaration =>
@@ -141,7 +149,7 @@ class ClassResolver(val j2j: Java2Jawa, outer: Option[JawaType], typ: TypeDeclar
     }
   }
 
-  def processMembers(outer: Option[JawaType], owner: TypeDefSymbol, typ: TypeDeclaration[_], resolveBody: Boolean): (IList[InstanceFieldDeclaration], IList[StaticFieldDeclaration], IList[JawaMethodDeclaration], IList[JawaClassOrInterfaceDeclaration]) = {
+  def processMembers(outer: Option[JawaType], owner: TypeDefSymbol, typ: TypeDeclaration[_]): (IList[InstanceFieldDeclaration], IList[StaticFieldDeclaration], IList[JawaMethodDeclaration]) = {
     val initializers = new NodeList[InitializerDeclaration]()
     val fields = new NodeList[FieldDeclaration]()
     val constructors = new NodeList[ConstructorDeclaration]()
@@ -167,17 +175,15 @@ class ClassResolver(val j2j: Java2Jawa, outer: Option[JawaType], typ: TypeDeclar
     val (instanceFields, staticFields) = processFields(owner, fields)
     // Resolve methods
     val mds: MList[JawaMethodDeclaration] = mlistEmpty
-    mds ++= processConstructors(owner, typ, initializers, fields, constructors, resolveBody)
+    mds ++= processConstructors(owner, typ, initializers, fields, constructors)
     methods.forEach { m =>
-      mds += processMethod(owner, m, resolveBody)
+      mds += processMethod(owner, m)
     }
     // Resolve inner classes
-    val innerCids: MList[JawaClassOrInterfaceDeclaration] = mlistEmpty
     innerTypes.forEach { inner =>
-      val (i, is) = new ClassResolver(j2j, Some(owner.typ), inner).process(resolveBody)
-      innerCids ++= i :: is
+      new ClassResolver(j2j, Some(owner.typ), inner, false, None).process()
     }
-    (instanceFields, staticFields, mds.toList, innerCids.toList)
+    (instanceFields, staticFields, mds.toList)
   }
 
   def processFields(owner: TypeDefSymbol, fields: NodeList[FieldDeclaration]): (IList[InstanceFieldDeclaration], IList[StaticFieldDeclaration]) = {
@@ -217,7 +223,7 @@ class ClassResolver(val j2j: Java2Jawa, outer: Option[JawaType], typ: TypeDeclar
     * If the superclass has no no-arg constructor or it isn't accessible then not specifying the superclass constructor to be called (in the subclass constructor)
     * is a compiler error so it must be specified.
     */
-  def processConstructors(owner: TypeDefSymbol, typ: TypeDeclaration[_], initializers: NodeList[InitializerDeclaration], fields: NodeList[FieldDeclaration], constructors: NodeList[ConstructorDeclaration], resolveBody: Boolean): IList[JawaMethodDeclaration] = {
+  def processConstructors(owner: TypeDefSymbol, typ: TypeDeclaration[_], initializers: NodeList[InitializerDeclaration], fields: NodeList[FieldDeclaration], constructors: NodeList[ConstructorDeclaration]): IList[JawaMethodDeclaration] = {
     val staticFieldsWithInitializer: MList[VariableDeclarator] = mlistEmpty
     val nonStaticFieldsWithInitializer: MList[VariableDeclarator] = mlistEmpty
     fields.forEach { f =>
@@ -247,7 +253,7 @@ class ClassResolver(val j2j: Java2Jawa, outer: Option[JawaType], typ: TypeDeclar
     val mds: MList[JawaMethodDeclaration] = mlistEmpty
     // Process static initializer
     if(staticFieldsWithInitializer.nonEmpty || staticInitializers.nonEmpty) {
-      mds += processStaticConstructor(owner, typ, staticFieldsWithInitializer.toList, staticInitializers.toList, resolveBody)
+      mds += processStaticConstructor(owner, typ, staticFieldsWithInitializer.toList, staticInitializers.toList)
     }
     // Process non-static initializer
     val frontStatements: NodeList[Statement] = new NodeList[Statement]()
@@ -265,7 +271,7 @@ class ClassResolver(val j2j: Java2Jawa, outer: Option[JawaType], typ: TypeDeclar
     constructors.forEach { cons =>
       val bodyBlock = makeConstructorBody(frontStatements, cons.getBody.getStatements)
       cons.setBody(bodyBlock)
-      mds += processConstructor(owner, cons, resolveBody)
+      mds += processConstructor(owner, cons)
     }
     mds.toList
   }
@@ -285,7 +291,7 @@ class ClassResolver(val j2j: Java2Jawa, outer: Option[JawaType], typ: TypeDeclar
     new BlockStmt(statements)
   }
 
-  private def processStaticConstructor(owner: TypeDefSymbol, typ: TypeDeclaration[_], staticFieldsWithInitializer: IList[VariableDeclarator], staticInitializers: IList[InitializerDeclaration], resolveBody: Boolean): JawaMethodDeclaration = {
+  private def processStaticConstructor(owner: TypeDefSymbol, typ: TypeDeclaration[_], staticFieldsWithInitializer: IList[VariableDeclarator], staticInitializers: IList[InitializerDeclaration]): JawaMethodDeclaration = {
     val statements: NodeList[Statement] = new NodeList[Statement]()
     staticFieldsWithInitializer foreach { sfi =>
       val target = new NameExpr(sfi.getName)
@@ -306,12 +312,10 @@ class ClassResolver(val j2j: Java2Jawa, outer: Option[JawaType], typ: TypeDeclar
       new NodeList[Parameter](),
       util.EnumSet.of(Modifier.STATIC),
       new NodeList[AnnotationExpr](),
-      Optional.ofNullable(new BlockStmt(statements)),
-      resolveBody
-    )
+      Optional.ofNullable(new BlockStmt(statements)))
   }
 
-  private def processConstructor(owner: TypeDefSymbol, cons: ConstructorDeclaration, resolveBody: Boolean): JawaMethodDeclaration = {
+  private def processConstructor(owner: TypeDefSymbol, cons: ConstructorDeclaration): JawaMethodDeclaration = {
     doProcessMethod(
       owner,
       cons.toRange,
@@ -323,11 +327,10 @@ class ClassResolver(val j2j: Java2Jawa, outer: Option[JawaType], typ: TypeDeclar
       cons.getParameters,
       cons.getModifiers,
       cons.getAnnotations,
-      Optional.ofNullable(cons.getBody),
-      resolveBody)
+      Optional.ofNullable(cons.getBody))
   }
 
-  def processMethod(owner: TypeDefSymbol, md: MethodDeclaration, resolveBody: Boolean): JawaMethodDeclaration = {
+  def processMethod(owner: TypeDefSymbol, md: MethodDeclaration): JawaMethodDeclaration = {
     doProcessMethod(
       owner,
       md.toRange,
@@ -339,8 +342,7 @@ class ClassResolver(val j2j: Java2Jawa, outer: Option[JawaType], typ: TypeDeclar
       md.getParameters,
       md.getModifiers,
       md.getAnnotations,
-      md.getBody,
-      resolveBody)
+      md.getBody)
   }
 
   private def doProcessMethod(
@@ -354,8 +356,7 @@ class ClassResolver(val j2j: Java2Jawa, outer: Option[JawaType], typ: TypeDeclar
       parameters: NodeList[Parameter],
       modifiers: util.EnumSet[Modifier],
       annotationExprs: NodeList[AnnotationExpr],
-      bodyBlock: Optional[BlockStmt],
-      resolveBody: Boolean): JawaMethodDeclaration = {
+      bodyBlock: Optional[BlockStmt]): JawaMethodDeclaration = {
     val returnType: JawaTypeAst = handleType(returnTyp)
     val methodSymbol: MethodDefSymbol = MethodDefSymbol(Token(Tokens.ID, namePos, methodName.apostrophe))(namePos)
     val params: MList[Param] = mlistEmpty
@@ -387,11 +388,7 @@ class ClassResolver(val j2j: Java2Jawa, outer: Option[JawaType], typ: TypeDeclar
       param.paramSymbol.varName -> param.typ.typ
     }.toMap
     val body = if(bodyBlock.isPresent) {
-      if(resolveBody) {
-        processBody(sig, bodyBlock.get)
-      } else {
-        UnresolvedBodyJava(bodyBlock.get)(bodyBlock.get.toRange, this)
-      }
+      UnresolvedBodyJava(bodyBlock.get)(bodyBlock.get.toRange, this)
     } else {
       ResolvedBody(ilistEmpty, ilistEmpty, ilistEmpty)(mdPos)
     }

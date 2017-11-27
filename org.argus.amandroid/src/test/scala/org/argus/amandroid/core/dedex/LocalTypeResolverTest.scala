@@ -164,7 +164,7 @@ class LocalTypeResolverTest extends FlatSpec with Matchers {
     val untyped = getClass.getResource("/jawa_untyped" + path).getPath
     val global = new Global("test", reporter)
     global.setJavaLib(getClass.getResource("/libs/android.jar").getPath)
-    global.load(FileUtil.toUri(untyped), NoLibraryAPISummary.isLibraryClass)
+    global.load(FileUtil.toUri(untyped))
     val newcode = GenerateTypedJawa(FileUtil.readFileContent(FileUtil.toUri(untyped)), global)
     val cu = new JawaParser(JawaLexer.tokenise(Left(newcode), reporter).toArray, reporter).compilationUnit(true)
     val css = new JavaByteCodeGenerator("1.8").generate(Some(global), cu)
@@ -232,7 +232,7 @@ class LocalTypeResolverTest extends FlatSpec with Matchers {
     dedex.decompile(dexUri, settings)
     val global = new Global("test", reporter)
     global.setJavaLib(getClass.getResource("/libs/android.jar").getPath)
-    global.loadJawaCode(dedex.getCodes, NoLibraryAPISummary.isLibraryClass)
+    global.loadJawaCode(dedex.getCodes)
     val total = dedex.getCodes.size
     var i = 0
     val newcodes = dedex.getCodes.map { case (t, code) =>

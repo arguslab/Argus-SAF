@@ -84,7 +84,7 @@ object CallHandler {
    */
   def getVirtualCalleeMethod(global: Global, fromType: JawaType, pSubSig: String): Option[JawaMethod] = {
     val typ =
-      if(fromType.isArray) JavaKnowledge.JAVA_TOPLEVEL_OBJECT_TYPE  // any array in java is an Object, so primitive type array is an object, object's method can be called
+      if(fromType.isArray) JavaKnowledge.OBJECT  // any array in java is an Object, so primitive type array is an object, object's method can be called
       else fromType
     val from = global.getClassOrResolve(typ)
     global.getClassHierarchy.resolveConcreteDispatch(from, pSubSig)
@@ -95,7 +95,7 @@ object CallHandler {
    */
   def getUnknownVirtualCalleeMethods(global: Global, baseType: JawaType, pSubSig: String): ISet[JawaMethod] = {
     val typ =
-      if(baseType.isArray) JavaKnowledge.JAVA_TOPLEVEL_OBJECT_TYPE  // any array in java is an Object, so primitive type array is an object, object's method can be called
+      if(baseType.isArray) JavaKnowledge.OBJECT  // any array in java is an Object, so primitive type array is an object, object's method can be called
       else baseType.removeUnknown()
     val baseRec = global.getClassOrResolve(typ)
     val methods = global.getClassHierarchy.resolveAbstractDispatch(baseRec, pSubSig)

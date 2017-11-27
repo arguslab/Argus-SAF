@@ -25,12 +25,14 @@ class ImportHandler(j2j: Java2Jawa, imports: NodeList[ImportDeclaration]) {
   private val staticFields: MSet[JawaField] = msetEmpty
   private val staticMethods: MSet[JawaMethod] = msetEmpty
 
-  imports.forEach{ imp =>
-    if(!imp.isStatic) {
-      if(imp.isAsterisk) {
-        pkgs += imp.getNameAsString
-      } else {
-        types ++= global.containsClassCanonical(imp.getNameAsString)
+  def processImports(): Unit = {
+    imports.forEach { imp =>
+      if (!imp.isStatic) {
+        if (imp.isAsterisk) {
+          pkgs += imp.getNameAsString
+        } else {
+          types ++= global.containsClassCanonical(imp.getNameAsString)
+        }
       }
     }
   }
@@ -118,6 +120,19 @@ class ImportHandler(j2j: Java2Jawa, imports: NodeList[ImportDeclaration]) {
               val checkCurrent = new JawaType(s"$packageName.$name")
               if(global.containsClass(checkCurrent)) {
                 typOpt = Some(checkCurrent)
+              }
+            }
+          case _ =>
+        }
+        typOpt match {
+          case None =>
+            // check inner type
+            topDecls.foreach { decl =>
+              val newname = name.replaceAll("\\.", "&")
+              val finalname = s"${decl.typ.jawaName}$$$newname"
+              val finaltype = new JawaType(finalname)
+              if(global.containsClass(finaltype)) {
+                typOpt = Some(finaltype)
               }
             }
           case _ =>

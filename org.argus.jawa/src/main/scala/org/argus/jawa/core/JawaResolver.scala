@@ -52,15 +52,15 @@ trait JawaResolver extends JavaKnowledge { self: Global =>
       if(classType.baseType.unknown) {
         val baseCls = getClassOrResolve(classType.removeUnknown())
         if(baseCls.isInterface) {
-          if(rec.getType != JAVA_TOPLEVEL_OBJECT_TYPE)
-            rec.setSuperClass(getClassOrResolve(JAVA_TOPLEVEL_OBJECT_TYPE))
+          if(rec.getType != JavaKnowledge.OBJECT)
+            rec.setSuperClass(getClassOrResolve(JavaKnowledge.OBJECT))
           rec.addInterface(baseCls)
         } else {
           rec.setSuperClass(baseCls)
         }
       } else {
-        if(rec.getType != JAVA_TOPLEVEL_OBJECT_TYPE)
-          rec.setSuperClass(getClassOrResolve(JAVA_TOPLEVEL_OBJECT_TYPE))
+        if(rec.getType != JavaKnowledge.OBJECT)
+          rec.setSuperClass(getClassOrResolve(JavaKnowledge.OBJECT))
         reporter.echo(TITLE, "Add phantom class " + rec)
         addClassNotFound(classType)
       }
@@ -81,7 +81,7 @@ trait JawaResolver extends JavaKnowledge { self: Global =>
     val clazz = if(classType.isArray){
       resolveArrayClass(classType)
     } else {
-      val mc = getMyClass(classType).get
+      val mc = getMyClass(classType).getOrElse(throw JawaResolverError(s"Cannot get MyClass for $classType"))
       resolveFromMyClass(mc)
     }
     clazz
@@ -100,7 +100,7 @@ trait JawaResolver extends JavaKnowledge { self: Global =>
         if(baseaf.contains("FINAL")) baseaf else "FINAL_" + baseaf
       }
     val clazz: JawaClass = new JawaClass(this, typ, recAccessFlag)
-    clazz.setSuperClass(getClassOrResolve(JAVA_TOPLEVEL_OBJECT_TYPE))
+    clazz.setSuperClass(getClassOrResolve(JavaKnowledge.OBJECT))
     new JawaField(clazz, "class", new JawaType("java.lang.Class"), "FINAL_STATIC")
     new JawaField(clazz, "length", new JawaType("int"), "FINAL")
     clazz

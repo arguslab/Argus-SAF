@@ -15,7 +15,8 @@ import com.github.javaparser.ast.expr._
 import org.argus.jawa.ast.{AnnotationValue, StatementValue, Annotation => JawaAnnotation, ClassOrInterfaceDeclaration => JawaClassOrInterfaceDeclaration, CompilationUnit => JawaCompilationUnit}
 import org.argus.jawa.compiler.lexer.{Token, Tokens}
 import org.argus.jawa.core.Global
-import org.argus.jawa.core.io.{JavaSourceFile, Position, RangePosition}
+import org.argus.jawa.core.frontend.javafile.JavaSourceFile
+import org.argus.jawa.core.io.{Position, RangePosition}
 import org.argus.jawa.core.util._
 
 class Java2Jawa(val global: Global, val sourceFile: JavaSourceFile) {
@@ -24,6 +25,7 @@ class Java2Jawa(val global: Global, val sourceFile: JavaSourceFile) {
 
   protected[java] val imports: ImportHandler = new ImportHandler(this, sourceFile.getJavaCU.getImports)
 
+  protected[java] val topDecls: MList[JawaClassOrInterfaceDeclaration] = mlistEmpty
 
   implicit class TransRange(node: Node) {
     def toRange: RangePosition = {
@@ -43,26 +45,32 @@ class Java2Jawa(val global: Global, val sourceFile: JavaSourceFile) {
     def doublequotes: String = "\"%s\"".format(str)
   }
 
-  def process(resolveBody: Boolean): JawaCompilationUnit = {
-    process(sourceFile.getJavaCU, resolveBody)
+  def process(): IList[JawaClassOrInterfaceDeclaration] = {
+    if(topDecls.isEmpty) {
+      process(sourceFile.getJavaCU)
+    }
+    topDecls.toList
   }
 
-  def process(cu: CompilationUnit, resolveBody: Boolean): JawaCompilationUnit = {
+  def genCU(): JawaCompilationUnit = {
+    val cids = process()
+    cids.foreach { cid =>
+      cid.methods.foreach { md =>
+        md.resolvedBody
+      }
+    }
+    JawaCompilationUnit(topDecls.toList)(sourceFile.getJavaCU.toRange)
+  }
+
+  def process(cu: CompilationUnit): Unit = {
+    imports.processImports()
     val pd = cu.getPackageDeclaration
     if(pd.isPresent) {
       packageName = pd.get().getName.asString()
     }
-    val topDecls: MList[JawaClassOrInterfaceDeclaration] = mlistEmpty
     cu.getTypes.forEach{ typ =>
-      val (i, is) = new ClassResolver(this, None, typ).process(resolveBody)
-      topDecls ++= i :: is
+      new ClassResolver(this, None, typ, false, None).process()
     }
-    val result = JawaCompilationUnit(topDecls.toList)(cu.toRange)
-    result.topDecls foreach { cid =>
-      val typ = cid.cityp
-      cid.getAllChildrenInclude foreach (_.enclosingTopLevelClass = typ)
-    }
-    result
   }
 
 

@@ -28,8 +28,8 @@ class MissingHeapTest extends SuTestBase("Map.safsu") {
     thisFact,
     new RFAFact(FieldSlot(thisInstance, "entries"), PTAInstance(new JawaType("java.util.HashMap$Entries"), currentContext)),
     new RFAFact(FieldSlot(PTAInstance(new JawaType("java.util.HashMap$Entries"), currentContext), "key"), PTAConcreteStringInstance("String", defContext4)),
-    new RFAFact(MapSlot(PTAInstance(new JawaType("java.util.HashMap$Entries"), currentContext), PTAConcreteStringInstance("String", defContext4)), PTAInstance(JavaKnowledge.JAVA_TOPLEVEL_OBJECT_TYPE.toUnknown, currentContext)),
+    new RFAFact(MapSlot(PTAInstance(new JawaType("java.util.HashMap$Entries"), currentContext), PTAConcreteStringInstance("String", defContext4)), PTAInstance(JavaKnowledge.OBJECT.toUnknown, currentContext)),
     new RFAFact(VarSlot("v1"), PTAConcreteStringInstance("String", defContext4)),
-    new RFAFact(VarSlot("temp"), PTAInstance(JavaKnowledge.JAVA_TOPLEVEL_OBJECT_TYPE.toUnknown, currentContext))
+    new RFAFact(VarSlot("temp"), PTAInstance(JavaKnowledge.OBJECT.toUnknown, currentContext))
   )
 }

@@ -12,6 +12,7 @@ package org.argus.jawa.ast.java
 
 import com.github.javaparser.JavaParser
 import com.github.javaparser.ast.NodeList
+import com.github.javaparser.ast.`type`.{IntersectionType, Type, UnionType}
 import com.github.javaparser.ast.body.{ClassOrInterfaceDeclaration, Parameter, VariableDeclarator}
 import com.github.javaparser.ast.expr._
 import com.github.javaparser.ast.stmt._
@@ -30,6 +31,43 @@ class MethodBodyVisitor(cr: ClassResolver, ownerSig: Signature, ownerPos: RangeP
   import cr.j2j._
 
   imports.resolveStaticImports()
+
+  //******************************************************************************
+  //                         Type management
+  //******************************************************************************
+  val localClasses: MMap[String, JawaType] = mmapEmpty
+
+  private def handleType(javaType: Type): JawaTypeAst = {
+    val typ = localClasses.get(javaType.asString()) match {
+      case Some(t) =>
+        t
+      case None =>
+        imports.findType(javaType)
+    }
+    handleJawaType(typ, javaType.toRange)
+  }
+
+  private def handleTypes(javaType: Type): IList[JawaTypeAst] = {
+    val types: MList[JawaType] = mlistEmpty
+    javaType match {
+      case ut: UnionType =>
+        ut.getElements.forEach { elem =>
+          types += handleType(elem).typ
+        }
+      case it: IntersectionType =>
+        it.getElements.forEach { elem =>
+          types += handleType(elem).typ
+        }
+      case t =>
+        types += handleType(t).typ
+    }
+    types.map { t =>
+      handleJawaType(t, javaType.getElementType.toRange)
+    }.toList
+  }
+
+  //************************ Type management End ***********************
+
 
   //******************************************************************************
   //                         Local Variable management
@@ -961,7 +999,10 @@ class MethodBodyVisitor(cr: ClassResolver, ownerSig: Signature, ownerPos: RangeP
   }
 
   override def visit(lcds: LocalClassDeclarationStmt, arg: Void): Unit = {
-    // TODO: handle
+    val anonCr = new ClassResolver(j2j, Some(ownerSig.getClassType), lcds.getClassDeclaration, false, Some(getLocalClassNum(lcds.getClassDeclaration.getNameAsString)))
+    val anon = anonCr.process()
+    global.loadJavaClass(anon.typ, sourceFile)
+    localClasses(lcds.getClassDeclaration.getNameAsString) = anon.typ
   }
 
   /**
@@ -1438,7 +1479,7 @@ class MethodBodyVisitor(cr: ClassResolver, ownerSig: Signature, ownerPos: RangeP
       case _ : DoubleLiteralExpr => ("double_temp", JavaKnowledge.DOUBLE)
       case _ : IntegerLiteralExpr => ("int_temp", JavaKnowledge.INT)
       case _ : LongLiteralExpr => ("long_temp", JavaKnowledge.LONG)
-      case _ : NullLiteralExpr => ("Object_temp", JavaKnowledge.JAVA_TOPLEVEL_OBJECT_TYPE)
+      case _ : NullLiteralExpr => ("Object_temp", JavaKnowledge.OBJECT)
       case _ : StringLiteralExpr => ("String_temp", JavaKnowledge.STRING)
       case _ => throw Java2JawaException(l.toRange, s"${l.getClass} is not handled by jawa: $l, please contact author: fgwei521@gmail.com")
     }
@@ -2284,10 +2325,10 @@ class MethodBodyVisitor(cr: ClassResolver, ownerSig: Signature, ownerPos: RangeP
         anonCid.addExtendedType(typ.canonicalName)
       }
       anonCid.setMembers(acb)
-      val anonCr = new ClassResolver(cr.j2j, Some(ownerSig.getClassType), anonCid)
-      val (anon, _) = anonCr.process(false)
-      global
+      val anonCr = new ClassResolver(j2j, Some(ownerSig.getClassType), anonCid, true, None)
+      val anon = anonCr.process()
       typ = anon.typ
+      global.loadJavaClass(typ, sourceFile)
     }
     val baseTypeSymbol = TypeSymbol(Token(Tokens.ID, oce.getType.toRange, typ.jawaName.apostrophe))(oce.getType.toRange)
     val temp = checkAndAddVariable(typ, oce_range, generateTempVarName(typ), oce_range, isTemp = true)
@@ -2303,9 +2344,8 @@ class MethodBodyVisitor(cr: ClassResolver, ownerSig: Signature, ownerPos: RangeP
       val outerVar = resultHolder
       val class_temp = checkAndAddVariable(JavaKnowledge.CLASS, oce_range, "class_temp", oce_range, isTemp = true)
       val lhs = VariableNameExpression(VarSymbol(Token(Tokens.ID, oce_range, class_temp.apostrophe))(oce_range))(oce_range)
-      val call = generateCall(Some(lhs), JavaKnowledge.JAVA_TOPLEVEL_OBJECT_TYPE, "getClass", oce_range, Some(outerVar), ilistEmpty, "virtual")
+      val call = generateCall(Some(lhs), JavaKnowledge.OBJECT, "getClass", oce_range, Some(outerVar), ilistEmpty, "virtual")
       createLocation(oce_range, call)
-      args += outerVar
     }
     oce.getArguments.forEach{ argument =>
       isLeft = false
@@ -2528,7 +2568,12 @@ class MethodBodyVisitor(cr: ClassResolver, ownerSig: Signature, ownerPos: RangeP
             throw Java2JawaException(scope.toRange, s"Array access on package is not allowed. Package name: ${pkg.toPkgString(".")}")
         }
       case ace: ArrayCreationExpr =>
-        Left(imports.findType(ace.createdType()))
+        localClasses.get(ace.createdType().asString()) match {
+          case Some(t) =>
+            Left(t)
+          case None =>
+            Left(imports.findType(ace.createdType()))
+        }
       case _: ClassExpr =>
         Left(JavaKnowledge.CLASS)
       case ee: EnclosedExpr =>
@@ -2576,7 +2621,12 @@ class MethodBodyVisitor(cr: ClassResolver, ownerSig: Signature, ownerPos: RangeP
             val className = s"${bt.baseTyp}$$${oce.getType.getNameAsString}"
             Left(imports.findType(className, oce.getType.toRange))
           case None =>
-            Left(imports.findType(oce.getType))
+            localClasses.get(oce.getType.getNameAsString) match {
+              case Some(t) =>
+                Left(t)
+              case None =>
+                Left(imports.findType(oce.getType))
+            }
         }
       case _: SuperExpr =>
         Left(superType)

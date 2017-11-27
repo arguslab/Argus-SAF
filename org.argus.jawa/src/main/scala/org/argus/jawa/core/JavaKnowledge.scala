@@ -13,21 +13,20 @@ package org.argus.jawa.core
 import org.argus.jawa.core.util._
 
 trait JavaKnowledge {
-  def JAVA_TOPLEVEL_OBJECT: String = "java.lang.Object"
-  def JAVA_TOPLEVEL_OBJECT_TYPE: JawaType = new JawaType(JAVA_TOPLEVEL_OBJECT)
+
   def JAVA_PRIMITIVES: ISet[String] = Set("byte", "short", "int", "float", "boolean", "char", "void") ++ JAVA_DWORD_PRIMITIVES
   def JAVA_DWORD_PRIMITIVES = Set("long", "double")
 
   /**
-   * return whether given type is java primitive type
-   */
+    * return whether given type is java primitive type
+    */
   def isJavaPrimitive(typ: JawaType): Boolean = typ.isPrimitive
-  
+
   /**
-   * return whether given type is java primitive type
-   */
+    * return whether given type is java primitive type
+    */
   def isJavaPrimitive(name: String): Boolean = this.JAVA_PRIMITIVES.contains(name)
-  
+
   object ClassCategory extends Enumeration {
     val APPLICATION, USER_LIBRARY, SYSTEM_LIBRARY = Value
   }
@@ -70,10 +69,11 @@ trait JavaKnowledge {
    * input: "[Ljava/lang/String;"  output: ("Ljava/lang/String;", 1)
    */
   private def getDimensionsAndRemoveArrayFromSig(sig: String): (String, Int) = {
-    val d =
-      if(sig.startsWith("["))
-        sig.lastIndexOf('[') - sig.indexOf('[') + 1
-      else 0
+    val d = if(sig.startsWith("[")) {
+      sig.lastIndexOf('[') - sig.indexOf('[') + 1
+    } else {
+      0
+    }
     val tmp = sig.substring(sig.lastIndexOf('[') + 1)
     (tmp, d)
   }
@@ -188,7 +188,7 @@ trait JavaKnowledge {
   /**
    * input ("Ljava/lang/String;", 1, "[", true) output "[Ljava/lang/String;"
    */
-  protected def assign(str: String, dimension: Int, pattern: String, front: Boolean): String = {
+  protected[jawa] def assign(str: String, dimension: Int, pattern: String, front: Boolean): String = {
     val sb = new StringBuffer
     if(front){
       for(_ <- 1 to dimension) sb.append(pattern)
@@ -351,4 +351,5 @@ object JavaKnowledge extends JavaKnowledge {
   def CLASS: JawaType = new JawaType("java.lang.Class")
   def STRING: JawaType = new JawaType("java.lang.String")
   def THREAD: JawaType = new JawaType("java.lang.Thread")
+  def OBJECT: JawaType = new JawaType("java.lang.Object")
 }
