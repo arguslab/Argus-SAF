@@ -999,7 +999,7 @@ class MethodBodyVisitor(cr: ClassResolver, ownerSig: Signature, ownerPos: RangeP
   }
 
   override def visit(lcds: LocalClassDeclarationStmt, arg: Void): Unit = {
-    val anonCr = new ClassResolver(j2j, Some(ownerSig.getClassType), lcds.getClassDeclaration, false, Some(getLocalClassNum(lcds.getClassDeclaration.getNameAsString)))
+    val anonCr = new ClassResolver(j2j, Some(ownerSig.getClassType), cr.innerLevel + 1, lcds.getClassDeclaration, false, Some(getLocalClassNum(lcds.getClassDeclaration.getNameAsString)))
     val anon = anonCr.process()
     global.loadJavaClass(anon.typ, sourceFile)
     localClasses(lcds.getClassDeclaration.getNameAsString) = anon.typ
@@ -2325,7 +2325,7 @@ class MethodBodyVisitor(cr: ClassResolver, ownerSig: Signature, ownerPos: RangeP
         anonCid.addExtendedType(typ.canonicalName)
       }
       anonCid.setMembers(acb)
-      val anonCr = new ClassResolver(j2j, Some(ownerSig.getClassType), anonCid, true, None)
+      val anonCr = new ClassResolver(j2j, Some(ownerSig.getClassType), cr.innerLevel + 1, anonCid, true, None)
       val anon = anonCr.process()
       typ = anon.typ
       global.loadJavaClass(typ, sourceFile)

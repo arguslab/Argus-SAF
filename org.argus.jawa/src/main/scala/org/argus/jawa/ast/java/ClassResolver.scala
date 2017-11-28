@@ -22,9 +22,15 @@ import org.argus.jawa.ast.{ExtendAndImplement, ExtendsAndImplementsClauses, Fiel
 import org.argus.jawa.compiler.lexer.{Token, Tokens}
 import org.argus.jawa.core.io.{Position, RangePosition}
 import org.argus.jawa.core.util._
-import org.argus.jawa.core.{JavaKnowledge, JawaType, Signature}
+import org.argus.jawa.core.{AccessFlag, JavaKnowledge, JawaType, Signature}
 
-class ClassResolver(val j2j: Java2Jawa, outer: Option[JawaType], typ: TypeDeclaration[_], isAnonymous: Boolean, isLocal: Option[Int]) {
+class ClassResolver(
+    val j2j: Java2Jawa,
+    outer: Option[JawaType],
+    val innerLevel: Int, // used to produce this$0...
+    typ: TypeDeclaration[_],
+    isAnonymous: Boolean,
+    isLocal: Option[Int]) {
   import j2j._
 
   protected[java] def getJawaAccessFlag(modifiers: util.EnumSet[Modifier], isConstructor: Boolean): String = {
@@ -50,7 +56,7 @@ class ClassResolver(val j2j: Java2Jawa, outer: Option[JawaType], typ: TypeDeclar
     flags.mkString("_")
   }
 
-  protected[java] def handleType(javaType: Type): JawaTypeAst = {
+  private def handleType(javaType: Type): JawaTypeAst = {
     val jawaType = imports.findType(javaType)
     handleJawaType(jawaType, javaType.getElementType.toRange)
   }
@@ -65,7 +71,7 @@ class ClassResolver(val j2j: Java2Jawa, outer: Option[JawaType], typ: TypeDeclar
 
   private val paramMap: MMap[Signature, IMap[String, JawaType]] = mmapEmpty
 
-  def getParams(sig: Signature): IMap[String, JawaType] = paramMap.getOrElse(sig, imapEmpty)
+  protected[java] def getParams(sig: Signature): IMap[String, JawaType] = paramMap.getOrElse(sig, imapEmpty)
 
   protected[java] var superType: JawaType = JavaKnowledge.OBJECT
 
@@ -103,12 +109,15 @@ class ClassResolver(val j2j: Java2Jawa, outer: Option[JawaType], typ: TypeDeclar
         annotations += JawaAnnotation(kindKey, Some(kindValue))(cid_range)
         // add access flag annotation
         val accessFlagKey = Token(Tokens.ID, cid_range, "AccessFlag")
-        val accessFlagValue = TokenValue(Token(Tokens.ID, cid_range, getJawaAccessFlag(cid.getModifiers, isConstructor = false)))(cid_range)
+        val accessFlagStr = getJawaAccessFlag(cid.getModifiers, isConstructor = false)
+        val accessFlagValue = TokenValue(Token(Tokens.ID, cid_range, accessFlagStr))(cid_range)
         annotations += JawaAnnotation(accessFlagKey, Some(accessFlagValue))(cid_range)
         // add java annotations
         cid.getAnnotations.forEach{ anno =>
           annotations += processAnnotationExpr(anno)
         }
+
+        val isStatic: Boolean = AccessFlag.isStatic(AccessFlag.getAccessFlags(accessFlagStr))
 
         // Resolve extends
         val extendsAndImplementsClausesOpt: Option[ExtendsAndImplementsClauses] = if(cid.getExtendedTypes.size() + cid.getImplementedTypes.size() > 0) {
@@ -137,7 +146,7 @@ class ClassResolver(val j2j: Java2Jawa, outer: Option[JawaType], typ: TypeDeclar
         } else {
           None
         }
-        val (instanceFieldDeclarationBlock, staticFields, methods) = processMembers(outer, cityp, cid)
+        val (instanceFieldDeclarationBlock, staticFields, methods) = processMembers(outer, cityp, cid, isStatic)
         val jcid = JawaClassOrInterfaceDeclaration(cityp, annotations.toList, extendsAndImplementsClausesOpt, instanceFieldDeclarationBlock, staticFields, methods)(cid.toRange)
         topDecls += jcid
         jcid.getAllChildrenInclude foreach (_.enclosingTopLevelClass = cityp)
@@ -149,7 +158,7 @@ class ClassResolver(val j2j: Java2Jawa, outer: Option[JawaType], typ: TypeDeclar
     }
   }
 
-  def processMembers(outer: Option[JawaType], owner: TypeDefSymbol, typ: TypeDeclaration[_]): (IList[InstanceFieldDeclaration], IList[StaticFieldDeclaration], IList[JawaMethodDeclaration]) = {
+  def processMembers(outer: Option[JawaType], owner: TypeDefSymbol, typ: TypeDeclaration[_], isStatic: Boolean): (IList[InstanceFieldDeclaration], IList[StaticFieldDeclaration], IList[JawaMethodDeclaration]) = {
     val initializers = new NodeList[InitializerDeclaration]()
     val fields = new NodeList[FieldDeclaration]()
     val constructors = new NodeList[ConstructorDeclaration]()
@@ -179,9 +188,15 @@ class ClassResolver(val j2j: Java2Jawa, outer: Option[JawaType], typ: TypeDeclar
     methods.forEach { m =>
       mds += processMethod(owner, m)
     }
+
     // Resolve inner classes
+    val iLevel = if(isStatic) {
+      1
+    } else {
+      innerLevel + 1
+    }
     innerTypes.forEach { inner =>
-      new ClassResolver(j2j, Some(owner.typ), inner, false, None).process()
+      new ClassResolver(j2j, Some(owner.typ), iLevel, inner, false, None).process()
     }
     (instanceFields, staticFields, mds.toList)
   }

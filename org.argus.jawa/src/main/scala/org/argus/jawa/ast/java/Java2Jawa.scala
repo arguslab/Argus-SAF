@@ -69,7 +69,7 @@ class Java2Jawa(val global: Global, val sourceFile: JavaSourceFile) {
       packageName = pd.get().getName.asString()
     }
     cu.getTypes.forEach{ typ =>
-      new ClassResolver(this, None, typ, false, None).process()
+      new ClassResolver(this, None, 0, typ, false, None).process()
     }
   }
 
