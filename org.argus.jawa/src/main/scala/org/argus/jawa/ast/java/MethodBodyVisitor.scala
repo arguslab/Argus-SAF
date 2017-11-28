@@ -10,8 +10,10 @@
 
 package org.argus.jawa.ast.java
 
+import java.util
+
 import com.github.javaparser.JavaParser
-import com.github.javaparser.ast.NodeList
+import com.github.javaparser.ast.{Modifier, NodeList}
 import com.github.javaparser.ast.`type`.{IntersectionType, Type, UnionType}
 import com.github.javaparser.ast.body.{ClassOrInterfaceDeclaration, Parameter, VariableDeclarator}
 import com.github.javaparser.ast.expr._
@@ -31,6 +33,8 @@ class MethodBodyVisitor(cr: ClassResolver, ownerSig: Signature, ownerPos: RangeP
   import cr.j2j._
 
   imports.resolveStaticImports()
+
+  private def isStatic = isStaticMethod(ownerSig)
 
   //******************************************************************************
   //                         Type management
@@ -76,6 +80,7 @@ class MethodBodyVisitor(cr: ClassResolver, ownerSig: Signature, ownerPos: RangeP
   val thisVar: VarSymbol = VarSymbol(Token(Tokens.ID, ownerPos, "this".apostrophe))(ownerPos)
 
   val localVariables: MMap[String, JawaType] = mmapEmpty ++ getParams(ownerSig)
+  localVariables("this") = ownerSig.getClassType
   val localVarDeclarations: MList[LocalVarDeclaration] = mlistEmpty
 
   private def generateTempVarName(varType: JawaType): String = {
@@ -999,7 +1004,7 @@ class MethodBodyVisitor(cr: ClassResolver, ownerSig: Signature, ownerPos: RangeP
   }
 
   override def visit(lcds: LocalClassDeclarationStmt, arg: Void): Unit = {
-    val anonCr = new ClassResolver(j2j, Some(ownerSig.getClassType), cr.innerLevel + 1, lcds.getClassDeclaration, false, Some(getLocalClassNum(lcds.getClassDeclaration.getNameAsString)))
+    val anonCr = new ClassResolver(j2j, Some(ownerSig.getClassType), cr.innerLevel + 1, lcds.getClassDeclaration, false, Some(getLocalClassNum(lcds.getClassDeclaration.getNameAsString)), isStatic)
     val anon = anonCr.process()
     global.loadJavaClass(anon.typ, sourceFile)
     localClasses(lcds.getClassDeclaration.getNameAsString) = anon.typ
@@ -2317,6 +2322,14 @@ class MethodBodyVisitor(cr: ClassResolver, ownerSig: Signature, ownerPos: RangeP
     oce.getAnonymousClassBody.ifPresent{ acb =>
       val anonName = getAnonymousClassName
       val anonCid = new ClassOrInterfaceDeclaration
+      val staticContext = if(oce.getScope.isPresent) {
+        false
+      } else {
+        isStatic
+      }
+      if(staticContext) {
+        anonCid.addModifier(Modifier.FINAL)
+      }
       anonCid.setName(anonName)
       val clazz = global.getClassOrResolve(typ)
       if(clazz.isInterface) {
@@ -2325,7 +2338,7 @@ class MethodBodyVisitor(cr: ClassResolver, ownerSig: Signature, ownerPos: RangeP
         anonCid.addExtendedType(typ.canonicalName)
       }
       anonCid.setMembers(acb)
-      val anonCr = new ClassResolver(j2j, Some(ownerSig.getClassType), cr.innerLevel + 1, anonCid, true, None)
+      val anonCr = new ClassResolver(j2j, Some(ownerSig.getClassType), cr.innerLevel + 1, anonCid, true, None, staticContext)
       val anon = anonCr.process()
       typ = anon.typ
       global.loadJavaClass(typ, sourceFile)
@@ -2337,6 +2350,13 @@ class MethodBodyVisitor(cr: ClassResolver, ownerSig: Signature, ownerPos: RangeP
     val newExp = NewExpression(JawaTypeAst(baseTypeSymbol, ilistEmpty)(baseTypeSymbol.pos))(temp_vne.pos)
     val assign_stmt = AssignmentStatement(temp_vne, newExp, ilistEmpty)(temp_vne.pos)
     createLocation(oce_range, assign_stmt)
+
+    var outer_vs: Option[VarSymbol] = if(!isStatic && JavaKnowledge.isInnerClass(typ) && JavaKnowledge.getOuterTypeFrom(typ) == ownerSig.getClassType) {
+      Some(thisVar)
+    } else {
+      None
+    }
+
     val args: MList[VarSymbol] = mlistEmpty
     oce.getScope.ifPresent{ s =>
       isLeft = false
@@ -2346,7 +2366,9 @@ class MethodBodyVisitor(cr: ClassResolver, ownerSig: Signature, ownerPos: RangeP
       val lhs = VariableNameExpression(VarSymbol(Token(Tokens.ID, oce_range, class_temp.apostrophe))(oce_range))(oce_range)
       val call = generateCall(Some(lhs), JavaKnowledge.OBJECT, "getClass", oce_range, Some(outerVar), ilistEmpty, "virtual")
       createLocation(oce_range, call)
+      outer_vs = Some(outerVar)
     }
+    args ++= outer_vs
     oce.getArguments.forEach{ argument =>
       isLeft = false
       argument.accept(this, arg)

@@ -90,6 +90,7 @@ class JavaByteCodeGenerator(javaVersion: Int) {
     }
     val interfaceNames: IList[String] = cid.interfaces map(i => getClassName(i.name))
     if(!AccessFlag.isInterface(af) && (superName != null || interfaceNames.nonEmpty)) mod = mod | Opcodes.ACC_SUPER
+    if(AccessFlag.isFinal(af)) mod = mod | Opcodes.ACC_SUPER
     cw.visit(javaVersion, mod, getClassName(cid.typ.name), null, superName, interfaceNames.toArray)
     cw.visitSource(null, null)
     cid.fields foreach {

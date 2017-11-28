@@ -13,6 +13,7 @@ package org.argus.jawa.ast.java
 import java.util
 import java.util.Optional
 
+import com.github.javaparser.JavaParser
 import com.github.javaparser.ast._
 import com.github.javaparser.ast.`type`._
 import com.github.javaparser.ast.body._
@@ -22,7 +23,7 @@ import org.argus.jawa.ast.{ExtendAndImplement, ExtendsAndImplementsClauses, Fiel
 import org.argus.jawa.compiler.lexer.{Token, Tokens}
 import org.argus.jawa.core.io.{Position, RangePosition}
 import org.argus.jawa.core.util._
-import org.argus.jawa.core.{AccessFlag, JavaKnowledge, JawaType, Signature}
+import org.argus.jawa.core.{JavaKnowledge, JawaType, Signature}
 
 class ClassResolver(
     val j2j: Java2Jawa,
@@ -30,7 +31,8 @@ class ClassResolver(
     val innerLevel: Int, // used to produce this$0...
     typ: TypeDeclaration[_],
     isAnonymous: Boolean,
-    isLocal: Option[Int]) {
+    isLocal: Option[Int],
+    staticContext: Boolean) {
   import j2j._
 
   protected[java] def getJawaAccessFlag(modifiers: util.EnumSet[Modifier], isConstructor: Boolean): String = {
@@ -88,6 +90,9 @@ class ClassResolver(
     c
   }
 
+  private val staticMethods: MSet[Signature] = msetEmpty
+  protected[java] def isStaticMethod(sig: Signature): Boolean = staticMethods.contains(sig)
+
   def process(): JawaClassOrInterfaceDeclaration = {
     typ match {
       case cid: ClassOrInterfaceDeclaration =>
@@ -117,8 +122,6 @@ class ClassResolver(
           annotations += processAnnotationExpr(anno)
         }
 
-        val isStatic: Boolean = AccessFlag.isStatic(AccessFlag.getAccessFlags(accessFlagStr))
-
         // Resolve extends
         val extendsAndImplementsClausesOpt: Option[ExtendsAndImplementsClauses] = if(cid.getExtendedTypes.size() + cid.getImplementedTypes.size() > 0) {
           val parentTyps: MList[ExtendAndImplement] = mlistEmpty
@@ -146,7 +149,7 @@ class ClassResolver(
         } else {
           None
         }
-        val (instanceFieldDeclarationBlock, staticFields, methods) = processMembers(outer, cityp, cid, isStatic)
+        val (instanceFieldDeclarationBlock, staticFields, methods) = processMembers(outer, cityp, cid)
         val jcid = JawaClassOrInterfaceDeclaration(cityp, annotations.toList, extendsAndImplementsClausesOpt, instanceFieldDeclarationBlock, staticFields, methods)(cid.toRange)
         topDecls += jcid
         jcid.getAllChildrenInclude foreach (_.enclosingTopLevelClass = cityp)
@@ -158,7 +161,7 @@ class ClassResolver(
     }
   }
 
-  def processMembers(outer: Option[JawaType], owner: TypeDefSymbol, typ: TypeDeclaration[_], isStatic: Boolean): (IList[InstanceFieldDeclaration], IList[StaticFieldDeclaration], IList[JawaMethodDeclaration]) = {
+  def processMembers(outer: Option[JawaType], owner: TypeDefSymbol, typ: TypeDeclaration[_]): (IList[InstanceFieldDeclaration], IList[StaticFieldDeclaration], IList[JawaMethodDeclaration]) = {
     val initializers = new NodeList[InitializerDeclaration]()
     val fields = new NodeList[FieldDeclaration]()
     val constructors = new NodeList[ConstructorDeclaration]()
@@ -181,7 +184,7 @@ class ClassResolver(
       case u: BodyDeclaration[_] =>
         global.reporter.warning(u.toRange, "Unhandled member: " + u)
     }
-    val (instanceFields, staticFields) = processFields(owner, fields)
+
     // Resolve methods
     val mds: MList[JawaMethodDeclaration] = mlistEmpty
     mds ++= processConstructors(owner, typ, initializers, fields, constructors)
@@ -189,14 +192,17 @@ class ClassResolver(
       mds += processMethod(owner, m)
     }
 
+    val (instanceFields, staticFields) = processFields(owner, fields)
+
     // Resolve inner classes
-    val iLevel = if(isStatic) {
+    val iLevel = if(staticContext) {
       1
     } else {
       innerLevel + 1
     }
     innerTypes.forEach { inner =>
-      new ClassResolver(j2j, Some(owner.typ), iLevel, inner, false, None).process()
+      val static = inner.getModifiers.contains(Modifier.STATIC)
+      new ClassResolver(j2j, Some(owner.typ), iLevel, inner, false, None, static).process()
     }
     (instanceFields, staticFields, mds.toList)
   }
@@ -238,7 +244,12 @@ class ClassResolver(
     * If the superclass has no no-arg constructor or it isn't accessible then not specifying the superclass constructor to be called (in the subclass constructor)
     * is a compiler error so it must be specified.
     */
-  def processConstructors(owner: TypeDefSymbol, typ: TypeDeclaration[_], initializers: NodeList[InitializerDeclaration], fields: NodeList[FieldDeclaration], constructors: NodeList[ConstructorDeclaration]): IList[JawaMethodDeclaration] = {
+  def processConstructors(
+      owner: TypeDefSymbol,
+      typ: TypeDeclaration[_],
+      initializers: NodeList[InitializerDeclaration],
+      fields: NodeList[FieldDeclaration],
+      constructors: NodeList[ConstructorDeclaration]): IList[JawaMethodDeclaration] = {
     val staticFieldsWithInitializer: MList[VariableDeclarator] = mlistEmpty
     val nonStaticFieldsWithInitializer: MList[VariableDeclarator] = mlistEmpty
     fields.forEach { f =>
@@ -281,9 +292,33 @@ class ClassResolver(
       frontStatements.addAll(nsi.getBody.getStatements)
     }
     if(constructors.isEmpty) {
-      constructors.add(new ConstructorDeclaration(typ.getModifiers, new NodeList[AnnotationExpr], new NodeList[TypeParameter], typ.getName, new NodeList[Parameter], new NodeList[ReferenceType], new BlockStmt()))
+      val modifiers = util.EnumSet.noneOf(classOf[Modifier])
+      if(typ.getModifiers.contains(Modifier.PUBLIC)) {
+        modifiers.add(Modifier.PUBLIC)
+      }
+      constructors.add(new ConstructorDeclaration(modifiers, new NodeList[AnnotationExpr], new NodeList[TypeParameter], typ.getName, new NodeList[Parameter], new NodeList[ReferenceType], new BlockStmt()))
     }
     constructors.forEach { cons =>
+      if(!staticContext && innerLevel > 0) {
+        // add field
+        // final synthetic
+        val modifier = util.EnumSet.of(Modifier.FINAL)
+        val varType = JavaParser.parseClassOrInterfaceType(outer.get.canonicalName)
+        val varName = s"this$$${innerLevel - 1}"
+        val vd = new VariableDeclarator(varType, varName)
+        val fd = new FieldDeclaration(modifier, vd)
+        fields.add(fd)
+
+        // add param to constructor
+        val paramName = s"${outer.get.simpleName}$$outer"
+        val param = new Parameter(varType, paramName)
+        cons.getParameters.add(0, param)
+
+        // add assign
+        val target = new NameExpr(varName)
+        val value = new NameExpr(paramName)
+        frontStatements.add(0, new ExpressionStmt(new AssignExpr(target, value, AssignExpr.Operator.ASSIGN)))
+      }
       val bodyBlock = makeConstructorBody(frontStatements, cons.getBody.getStatements)
       cons.setBody(bodyBlock)
       mds += processConstructor(owner, cons)
@@ -409,6 +444,9 @@ class ClassResolver(
     }
     val jmd = JawaMethodDeclaration(returnType, methodSymbol, params.toList, annotations.toList, body)(mdPos)
     methodSymbol.signature = jmd.signature
+    if(isStatic) {
+      staticMethods += jmd.signature
+    }
     jmd
   }
 

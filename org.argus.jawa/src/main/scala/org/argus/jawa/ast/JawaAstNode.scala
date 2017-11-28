@@ -367,7 +367,6 @@ case class UnresolvedBodyJava(bodyBlock: BlockStmt)(implicit val pos: Position, 
   def resolve(sig: Signature): ResolvedBody = {
     cr.processBody(sig, bodyBlock)
   }
-
   def toCode: String = "{}"
 }
 

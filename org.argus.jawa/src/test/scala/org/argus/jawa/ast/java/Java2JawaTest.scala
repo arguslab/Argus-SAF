@@ -125,7 +125,7 @@ class Java2JawaTest extends FlatSpec with Matchers {
 
   "/java/parser/expr/objectcreationexpr/AnonymousClassMulti.java" produce ("srdd")
 
-  "/java/parser/expr/objectcreationexpr/AnonymousClassScope.java" produce (2)
+//  "/java/parser/expr/objectcreationexpr/AnonymousClassScope.java" produce (2)
 
   "/java/parser/expr/unaryexpr/BITWISE_COMPLEMENT.java" produce (-9)
 
