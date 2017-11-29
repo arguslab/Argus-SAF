@@ -153,11 +153,21 @@ class JavaByteCodeGenerator(javaVersion: Int) {
       val typ: String = getClassName(catchClause.typ.typ.name)
       mv.visitTryCatchBlock(from, to, target, typ)
     }
-    val initLabel = new Label()
     mv.visitCode()
+
+    val initLabel = new Label()
     mv.visitLabel(initLabel)
-    
-    body.locations foreach { location =>
+
+    val start: Int = body.locations.headOption match {
+      case Some(Location(_, EmptyStatement(_))) => 1
+      case _ => 0
+    }
+    val end: Int = body.locations.lastOption match {
+      case Some(Location(_, EmptyStatement(_))) => body.locations.size - 1
+      case _ => body.locations.size
+    }
+    (start until end) foreach { i =>
+      val location = body.location(i)
       val locLabel = this.locations(location.locationUri)
       mv.visitLabel(locLabel)
       val line = location.pos match {
@@ -167,12 +177,10 @@ class JavaByteCodeGenerator(javaVersion: Int) {
       mv.visitLineNumber(line, locLabel)
       visitLocation(mv, location)
     }
-    
     val endLabel = new Label()
     mv.visitLabel(endLabel)
-    this.locals foreach {
-      case (_, local) =>
-        mv.visitLocalVariable(local.varname, JavaKnowledge.formatTypeToSignature(local.typ), null, initLabel, endLabel, local.index)
+    this.locals foreach { case (_, local) =>
+      mv.visitLocalVariable(local.varname, JavaKnowledge.formatTypeToSignature(local.typ), null, initLabel, endLabel, local.index)
     }
     try {
       mv.visitMaxs(0, this.maxLocals)

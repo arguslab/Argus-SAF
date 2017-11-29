@@ -19,7 +19,7 @@ import com.github.javaparser.ast.`type`._
 import com.github.javaparser.ast.body._
 import com.github.javaparser.ast.expr._
 import com.github.javaparser.ast.stmt._
-import org.argus.jawa.ast.{ExtendAndImplement, ExtendsAndImplementsClauses, FieldDefSymbol, InstanceFieldDeclaration, MethodDefSymbol, Param, ResolvedBody, StaticFieldDeclaration, TokenValue, TypeDefSymbol, TypeFragment, TypeSymbol, UnresolvedBodyJava, VarDefSymbol, Annotation => JawaAnnotation, ClassOrInterfaceDeclaration => JawaClassOrInterfaceDeclaration, MethodDeclaration => JawaMethodDeclaration, Type => JawaTypeAst}
+import org.argus.jawa.ast.{ExtendAndImplement, ExtendsAndImplementsClauses, FieldDefSymbol, InstanceFieldDeclaration, MethodDefSymbol, Parameter => JawaParameter, ResolvedBody, StaticFieldDeclaration, TokenValue, TypeDefSymbol, TypeFragment, TypeSymbol, UnresolvedBodyJava, VarDefSymbol, Annotation => JawaAnnotation, ClassOrInterfaceDeclaration => JawaClassOrInterfaceDeclaration, MethodDeclaration => JawaMethodDeclaration, Type => JawaTypeAst}
 import org.argus.jawa.compiler.lexer.{Token, Tokens}
 import org.argus.jawa.core.io.{Position, RangePosition}
 import org.argus.jawa.core.util._
@@ -409,7 +409,7 @@ class ClassResolver(
       bodyBlock: Optional[BlockStmt]): JawaMethodDeclaration = {
     val returnType: JawaTypeAst = handleType(returnTyp)
     val methodSymbol: MethodDefSymbol = MethodDefSymbol(Token(Tokens.ID, namePos, methodName.apostrophe))(namePos)
-    val params: MList[Param] = mlistEmpty
+    val params: MList[JawaParameter] = mlistEmpty
     if(!isStatic) {
       val jta = JawaTypeAst(TypeSymbol(owner.id)(namePos), ilistEmpty)(namePos)
       params += getParam(jta, "this", namePos, isThis = true)
@@ -450,12 +450,12 @@ class ClassResolver(
     jmd
   }
 
-  def processParameter(param: Parameter): Param = {
+  def processParameter(param: Parameter): JawaParameter = {
     val typ: JawaTypeAst = handleType(param.getType)
     getParam(typ, param.getNameAsString, param.getName.toRange, isThis = false)
   }
 
-  private def getParam(typ: JawaTypeAst, name: String, pos: RangePosition, isThis: Boolean): Param = {
+  private def getParam(typ: JawaTypeAst, name: String, pos: RangePosition, isThis: Boolean): JawaParameter = {
     val paramSymbol: VarDefSymbol = VarDefSymbol(Token(Tokens.ID, pos, name.apostrophe))(pos)
     val annotations: MList[JawaAnnotation] = mlistEmpty
     if(isThis) {
@@ -467,7 +467,7 @@ class ClassResolver(
       val kindValue = TokenValue(Token(Tokens.ID, pos, "object"))(pos)
       annotations += JawaAnnotation(kindKey, Some(kindValue))(pos)
     }
-    Param(typ, paramSymbol, annotations.toList)(pos)
+    JawaParameter(typ, paramSymbol, annotations.toList)(pos)
   }
 
   def processBody(sig: Signature, bodyBlock: BlockStmt): ResolvedBody = {

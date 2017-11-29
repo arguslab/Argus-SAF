@@ -140,6 +140,8 @@ case class MethodDefSymbol(id: Token)(implicit val pos: Position) extends DefSym
 }
 
 case class MethodNameSymbol(id: Token)(implicit val pos: Position) extends RefSymbol with MethodSym {
+  def this(name: String, pos: Position) = this(Token(Tokens.ID, pos, s"`$name`"))(pos)
+  def this(name: String) = this(name, NoPosition)
   var signature: Signature = _
   def baseType: JawaType = signature.getClassType
   def methodName: String = id.text
@@ -147,7 +149,7 @@ case class MethodNameSymbol(id: Token)(implicit val pos: Position) extends RefSy
 }
 
 case class FieldDefSymbol(id: Token)(implicit val pos: Position) extends DefSymbol with FieldSym {
-  def this(name: String, pos: Position) = this(Token(Tokens.ID, pos, s"`$name`"))(pos)
+  def this(name: String, pos: Position) = this(Token({if(name.contains("@@")) Tokens.STATIC_ID else Tokens.ID}, pos, s"`$name`"))(pos)
   def this(name: String) = this(name, NoPosition)
   def FQN: String = id.text.replaceAll("@@", "")
   def baseType: JawaType = getClassTypeFromFieldFQN(FQN)
@@ -156,6 +158,8 @@ case class FieldDefSymbol(id: Token)(implicit val pos: Position) extends DefSymb
 }
 
 case class FieldNameSymbol(id: Token)(implicit val pos: Position) extends RefSymbol with FieldSym {
+  def this(name: String, pos: Position) = this(Token({if(name.contains("@@")) Tokens.STATIC_ID else Tokens.ID}, pos, s"`$name`"))(pos)
+  def this(name: String) = this(name, NoPosition)
   def FQN: String = id.text.replaceAll("@@", "")
   def baseType: JawaType = getClassTypeFromFieldFQN(FQN)
   def fieldName: String = getFieldNameFromFieldFQN(FQN)
@@ -324,6 +328,7 @@ case class TypeExpression(typ_ : Type)(implicit val pos: Position) extends JawaA
   def this(str: String, d: Int, pos: Position) = this(new Type(str, d, pos))(pos)
   def this(str: String, d: Int) = this(str, d, NoPosition)
   def this(str: String) = this(str, 0)
+  def this(t: JawaType) = this(t.baseTyp, t.dimensions)
   def typ: JawaType = typ_.typ
   def toCode: String = s"^${typ_.toCode}"
 }
@@ -344,21 +349,21 @@ case class TypeFragment()(implicit val pos: Position) extends JawaAstNode {
 }
 
 case class MethodDeclaration(
-    returnType: Type,
-    methodSymbol: MethodDefSymbol,
-    params: IList[Param],
-    annotations: IList[Annotation],
-    var body: Body)(implicit val pos: Position) extends Declaration with ParsableAstNode {
+                              returnType: Type,
+                              methodSymbol: MethodDefSymbol,
+                              params: IList[Parameter],
+                              annotations: IList[Annotation],
+                              var body: Body)(implicit val pos: Position) extends Declaration with ParsableAstNode {
   def isConstructor: Boolean = isJawaConstructor(name)
   def name: String = methodSymbol.id.text.substring(methodSymbol.id.text.lastIndexOf(".") + 1)
   def owner: String = signature.getClassName
   def signature: Signature = new Signature(annotations.find { a => a.key == "signature" }.get.value)
-  def thisParam: Option[Param] = params.find(x => x.isThis)
-  def param(i: Int): Param = i match {
+  def thisParam: Option[Parameter] = params.find(x => x.isThis)
+  def param(i: Int): Parameter = i match {
     case n if n >= 0 && n < paramList.size => paramList(n)
     case _ => throw new IndexOutOfBoundsException("List size " + paramList.size + " but index " + i)
   }
-  def paramList: IList[Param] = params.filterNot(_.isThis)
+  def paramList: IList[Parameter] = params.filterNot(_.isThis)
   def resolvedBody: ResolvedBody = body match {
     case rb: ResolvedBody => rb
     case ub: Body with Unresolved =>
@@ -371,7 +376,7 @@ case class MethodDeclaration(
   }
 }
 
-case class Param(
+case class Parameter(
     typ: Type,
     paramSymbol: VarDefSymbol,
     annotations: IList[Annotation])(implicit val pos: Position) extends JawaAstNode {
@@ -428,6 +433,7 @@ case class ResolvedBody(
 case class LocalVarDeclaration(
     typOpt: Option[Type],
     varSymbol: VarDefSymbol)(implicit val pos: Position) extends Declaration {
+  def this(t: JawaType, name: String) = this(Some(new Type(t)), new VarDefSymbol(name))(NoPosition)
   def annotations: IList[Annotation] = ilistEmpty
   def typ: JawaType = typOpt match {
     case Some(t) => t.typ
@@ -482,6 +488,15 @@ case class CallStatement(
     lhsOpt: Option[VariableNameExpression],
     rhs: CallRhs,
     annotations: IList[Annotation])(implicit val pos: Position) extends Assignment with Jump {
+  def this(retVar: Option[String], methodName: String, argNames: IList[String], sig: Signature, kind: String) =
+    this(
+      retVar.map(r => new VariableNameExpression(r)),
+      new CallRhs(methodName, argNames),
+      List(
+        new Annotation("signature", SymbolValue(new SignatureSymbol(sig))(NoPosition)),
+        new Annotation("kind", new TokenValue(kind))
+      )
+    )(NoPosition)
   //default is virtual call
   def kind: String = annotations.find { a => a.key == "kind" }.map(_.value).getOrElse("virtual")
   def signature: Signature = new Signature(annotations.find { a => a.key == "signature" }.get.value)
@@ -523,6 +538,7 @@ case class CallStatement(
 case class CallRhs(
     methodNameSymbol: MethodNameSymbol,
     varSymbols: IList[VarSymbol])(implicit val pos: Position) extends Expression with RHS {
+  def this(name: String, argNames: IList[String]) = this(new MethodNameSymbol(name), argNames.map(n => new VarSymbol(n)))(NoPosition)
   def arg(i: Int): String = i match {
     case n if n >= 0 && n < varSymbols.size => varSymbols(n).id.text
     case _ => throw new IndexOutOfBoundsException("List size " + varSymbols.size + " but index " + i)
@@ -534,6 +550,13 @@ case class AssignmentStatement(
     lhs: Expression with LHS,
     rhs: Expression with RHS,
     annotations: IList[Annotation])(implicit val pos: Position) extends Assignment {
+  def this(lName: String, rName: String, annotations: IList[Annotation]) = this(new VariableNameExpression(lName), new VariableNameExpression(rName), annotations)(NoPosition)
+  def this(lName: String, i: Int) = this(new VariableNameExpression(lName), new LiteralExpression(i), ilistEmpty)(NoPosition)
+  def this(lName: String, l: Long) = this(new VariableNameExpression(lName), new LiteralExpression(l), ilistEmpty)(NoPosition)
+  def this(lName: String, f: Float) = this(new VariableNameExpression(lName), new LiteralExpression(f), ilistEmpty)(NoPosition)
+  def this(lName: String, d: Double) = this(new VariableNameExpression(lName), new LiteralExpression(d), ilistEmpty)(NoPosition)
+  def this(lName: String, rExpr: Expression with RHS, annotations: IList[Annotation]) = this(new VariableNameExpression(lName), rExpr, annotations)(NoPosition)
+  def this(lExpr: Expression with LHS, rName: String, annotations: IList[Annotation]) = this(lExpr, new VariableNameExpression(rName) , annotations)(NoPosition)
   def kind: String = annotations.find { a => a.key == "kind" }.map(_.value).getOrElse({if(rhs.isInstanceOf[Expression with New])"object" else ""})
 
   override def getLhs: Option[Expression with LHS] = Some(lhs)
@@ -546,6 +569,7 @@ case class AssignmentStatement(
 }
 
 case class ThrowStatement(varSymbol: VarSymbol)(implicit val pos: Position) extends Statement {
+  def this(name: String) = this(new VarSymbol(name))(NoPosition)
   def toCode: String = s"throw ${varSymbol.toCode};"
 }
 
@@ -579,6 +603,10 @@ case class SwitchDefaultCase(targetLocation: LocationSymbol)(implicit val pos: P
 case class ReturnStatement(
     varOpt: Option[VarSymbol],
     annotations: IList[Annotation])(implicit val pos: Position) extends Jump {
+  def this() = this(None, List(new Annotation("kind", new TokenValue("void"))))(NoPosition)
+  def this(name: String, annotations: IList[Annotation]) = this(Some(new VarSymbol(name)), annotations)(NoPosition)
+  def this(name: String) = this(name, ilistEmpty)
+
   def kind: String = annotations.find { a => a.key == "kind" }.map(_.value).getOrElse("")
   def toCode: String = {
     val varPart = varOpt match {case Some(v) => " " + v.toCode case None => ""}
@@ -590,12 +618,14 @@ case class ReturnStatement(
 case class MonitorStatement(
     monitor: Token,
     varSymbol: VarSymbol)(implicit val pos: Position) extends Statement {
+  def this(m: String, varName: String) = this({if(m == "monitorenter") Token(Tokens.MONITOR_ENTER, NoPosition, m) else Token(Tokens.MONITOR_EXIT, NoPosition, m)}, new VarSymbol(varName))(NoPosition)
   def isEnter: Boolean = monitor.tokenType == MONITOR_ENTER
   def isExit: Boolean = monitor.tokenType == MONITOR_EXIT
   def toCode: String = s"@${monitor.rawText} ${varSymbol.toCode};"
 }
 
 case class EmptyStatement(annotations: MList[Annotation])(implicit val pos: Position) extends Statement {
+  def this() = this(mlistEmpty)(NoPosition)
   def toCode: String = annotations.map(anno => anno.toCode).mkString(" ")
 }
 
@@ -631,11 +661,14 @@ sealed trait LHS extends RHS
 sealed trait RHS
 
 case class VariableNameExpression(varSymbol: VarSymbol)(implicit val pos: Position) extends Expression with LHS {
+  def this(name: String, pos: Position) = this(new VarSymbol(name))(pos)
+  def this(name: String) = this(name, NoPosition)
   def name: String = varSymbol.varName
   def toCode: String = varSymbol.toCode
 }
 
 case class StaticFieldAccessExpression(fieldNameSymbol: FieldNameSymbol, typExp: TypeExpression)(implicit val pos: Position) extends Expression with LHS {
+  def this(name: String, typ: JawaType) = this(new FieldNameSymbol(name), new TypeExpression(typ))(NoPosition)
   def name: String = fieldNameSymbol.FQN
   def toCode: String = s"${fieldNameSymbol.toCode} @type ${typExp.toCode}"
   def typ: JawaType = typExp.typ
@@ -647,6 +680,7 @@ case class ExceptionExpression(typExp: TypeExpression)(implicit val pos: Positio
 }
 
 case class NullExpression(nul: Token)(implicit val pos: Position) extends Expression with RHS {
+  def this() = this(Token(Tokens.NULL, NoPosition, "null"))(NoPosition)
   def toCode: String = nul.rawText
 }
 
@@ -655,6 +689,7 @@ case class ConstClassExpression(typExp: TypeExpression)(implicit val pos: Positi
 }
 
 case class LengthExpression(varSymbol: VarSymbol)(implicit val pos: Position) extends Expression with RHS {
+  def this(name: String) = this(new VarSymbol(name))(NoPosition)
   def toCode: String = s"length @variable ${varSymbol.toCode}"
 }
 
@@ -674,6 +709,7 @@ case class AccessExpression(
     varSymbol: VarSymbol,
     fieldSym: FieldNameSymbol,
     typExp: TypeExpression)(implicit val pos: Position) extends Expression with LHS {
+  def this(varName: String, fieldName: String, typ: JawaType) = this(new VarSymbol(varName), new FieldNameSymbol(fieldName), new TypeExpression(typ))(NoPosition)
   def base: String = varSymbol.varName
   def fieldName: String = fieldSym.fieldName
   def toCode: String = s"${varSymbol.toCode}.${fieldSym.toCode} @type ${typExp.toCode}"
@@ -688,6 +724,7 @@ case class TupleExpression(constants: IList[LiteralExpression])(implicit val pos
 case class CastExpression(
     typ: Type,
     varSym: VarSymbol)(implicit val pos: Position) extends Expression with RHS {
+  def this(t: JawaType, varName: String) = this(new Type(t), new VarSymbol(varName))(NoPosition)
   def varName: String = varSym.varName
   def toCode: String = s"(${typ.toCode}) ${varSym.toCode}"
 }
@@ -697,6 +734,7 @@ trait New {
 }
 
 case class NewExpression(base: Type)(implicit val pos: Position) extends Expression with RHS with New {
+  def this(t: JawaType) = this(new Type(t))(NoPosition)
   def typ: JawaType = base.typ
   def toCode: String = s"new ${base.toCode}"
 }
@@ -704,6 +742,7 @@ case class NewExpression(base: Type)(implicit val pos: Position) extends Express
 case class NewArrayExpression(
     base: Type,
     varSymbols: IList[VarSymbol])(implicit val pos: Position) extends Expression with RHS with New {
+  def this(t: JawaType, varNames: IList[String]) = this(new Type(t), varNames.map(vn => new VarSymbol(vn)))(NoPosition)
   def dimensions: Int = base.dimensions + varSymbols.size
   def baseType: JawaType = base.typ
   def typ: JawaType = getType(baseType.baseTyp, dimensions)
@@ -713,10 +752,19 @@ case class NewArrayExpression(
 case class InstanceOfExpression(
     varSymbol: VarSymbol,
     typExp: TypeExpression)(implicit val pos: Position) extends Expression with RHS {
+  def this(varName: String, t: JawaType) = this(new VarSymbol(varName), new TypeExpression(t))(NoPosition)
   def toCode: String = s"instanceof @variable ${varSymbol.toCode} @type ${typExp.toCode}"
 }
 
 case class LiteralExpression(constant: Token)(implicit val pos: Position) extends Expression with RHS {
+  def this(i: Int, pos: Position) = this(Token(Tokens.INTEGER_LITERAL, pos, s"$i"))(pos)
+  def this(i: Int) = this(i, NoPosition)
+  def this(l: Long, pos: Position) = this(Token(Tokens.INTEGER_LITERAL, pos, s"${l}L"))(pos)
+  def this(l: Long) = this(l, NoPosition)
+  def this(f: Float, pos: Position) = this(Token(Tokens.INTEGER_LITERAL, pos, s"${f}F"))(pos)
+  def this(f: Float) = this(f, NoPosition)
+  def this(d: Double, pos: Position) = this(Token(Tokens.INTEGER_LITERAL, pos, s"${d}D"))(pos)
+  def this(d: Double) = this(d, NoPosition)
   private def getLiteral: String = {
     val lit = constant.text
     constant.tokenType match {
@@ -756,6 +804,7 @@ case class LiteralExpression(constant: Token)(implicit val pos: Position) extend
 case class UnaryExpression(
   op: Token,
   unary: VarSymbol)(implicit val pos: Position) extends Expression with RHS {
+  def this(op: String, name: String) = this(Token(Tokens.OP, NoPosition, op), new VarSymbol(name))(NoPosition)
   def toCode: String = s"${op.rawText}${unary.toCode}"
 }
 
@@ -763,6 +812,9 @@ case class BinaryExpression(
   left: VarSymbol,
   op: Token,
   right: Either[VarSymbol, Either[LiteralExpression, NullExpression]])(implicit val pos: Position) extends Expression with RHS {
+  def this(l: String, op: String, r: String) = this(new VarSymbol(l), Token(Tokens.OP, NoPosition, op), Left(new VarSymbol(r)))(NoPosition)
+  def this(l: String, op: String, le: LiteralExpression) = this(new VarSymbol(l), Token(Tokens.OP, NoPosition, op), Right(Left(le)))(NoPosition)
+  def this(l: String, op: String) = this(new VarSymbol(l), Token(Tokens.OP, NoPosition, op), Right(Right(new NullExpression())))(NoPosition)
   def toCode: String = s"${left.toCode} ${op.rawText} ${right match {case Left(vs) => vs.toCode case Right(ln) => ln match {case Left(le) => le.toCode case Right(ne) => ne.toCode}}}"
 }
 

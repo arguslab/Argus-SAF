@@ -292,9 +292,9 @@ class JawaParser(tokens: Array[Token], reporter: Reporter) extends JavaKnowledge
     val returnType: Type = typ()
     val defSymbol: MethodDefSymbol = methodDefSymbol()
     accept(LPAREN)
-    val params: MList[Param] = mlistEmpty
+    val params: MList[Parameter] = mlistEmpty
     while(currentTokenType != RPAREN) {
-      val param_ : Param = param()
+      val param_ : Parameter = param()
       currentTokenType match {
         case COMMA => nextToken()
         case _ =>
@@ -316,7 +316,7 @@ class JawaParser(tokens: Array[Token], reporter: Reporter) extends JavaKnowledge
     md
   }
   
-  private def param(): Param = {
+  private def param(): Parameter = {
     val typ_ : Type = typ()
     val defSymbol: VarDefSymbol = varDefSymbol()
     val annotations_ = annotations()
@@ -324,7 +324,7 @@ class JawaParser(tokens: Array[Token], reporter: Reporter) extends JavaKnowledge
       case Some(a) => a.pos
       case None => defSymbol.pos
     }
-    Param(typ_, defSymbol, annotations_)(getPos(typ_.pos, lastPos))
+    Parameter(typ_, defSymbol, annotations_)(getPos(typ_.pos, lastPos))
   }
   
   def body(resolveBody: Boolean): Body = body0(resolveBody)

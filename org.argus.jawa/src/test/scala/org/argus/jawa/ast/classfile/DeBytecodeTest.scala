@@ -20,6 +20,8 @@ import org.argus.jawa.core.io.PlainFile
 import org.argus.jawa.core.util._
 import org.scalatest.{FlatSpec, Matchers}
 
+import scala.language.implicitConversions
+
 class DeBytecodeTest extends FlatSpec with Matchers {
 
   val DEBUG = true
@@ -28,15 +30,15 @@ class DeBytecodeTest extends FlatSpec with Matchers {
     new TestFile(file)
   }
 
-//  "/class/parser/cons/StaticInitializer.class" produce_same()
-//
-//  "/class/parser/cons/StaticInitializerMixed.class" produce_same()
-//
-//  "/class/parser/cons/StaticInitializerWithStaticBlock.class" produce_same()
-//
-//  "/class/parser/cons/ConstructorWithoutSuper.class" produce_same()
-//
-//  "/class/parser/cons/ConstructorWithSuper.class" produce_same()
+  "/class/parser/cons/StaticInitializer.class" produce_same()
+
+  "/class/parser/cons/StaticInitializerMixed.class" produce_same()
+
+  "/class/parser/cons/StaticInitializerWithStaticBlock.class" produce_same()
+
+  "/class/parser/cons/ConstructorWithoutSuper.class" produce_same()
+
+  "/class/parser/cons/ConstructorWithSuper.class" produce_same()
 
 //  "/class/parser/cons/InnerConstructor.class" produce (1)
 
