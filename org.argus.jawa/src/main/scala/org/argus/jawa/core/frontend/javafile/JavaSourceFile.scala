@@ -18,7 +18,7 @@ import com.github.javaparser.ast.body.{BodyDeclaration, TypeDeclaration}
 import org.argus.jawa.ast.java.Java2Jawa
 import org.argus.jawa.core.{Global, JawaType, Reporter}
 import org.argus.jawa.core.frontend.MyClass
-import org.argus.jawa.core.frontend.jawafile.JawaFileParser
+import org.argus.jawa.core.frontend.jawafile.JawaAstParser
 import org.argus.jawa.core.io.{AbstractFile, DefaultSourceFile}
 import org.argus.jawa.core.util.{IMap, ISet, MSet, msetEmpty}
 
@@ -65,7 +65,7 @@ class JavaSourceFile(global: Global, file: AbstractFile) extends DefaultSourceFi
   def parse(reporter: Reporter): IMap[JawaType, MyClass] = {
     val cids = j2j.process()
     cids.map { cid =>
-      cid.typ -> JawaFileParser.resolveClass(cid)
+      cid.typ -> JawaAstParser.resolveClass(cid)
     }.toMap
   }
 

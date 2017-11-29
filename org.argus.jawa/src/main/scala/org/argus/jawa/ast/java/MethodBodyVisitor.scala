@@ -10,8 +10,6 @@
 
 package org.argus.jawa.ast.java
 
-import java.util
-
 import com.github.javaparser.JavaParser
 import com.github.javaparser.ast.{Modifier, NodeList}
 import com.github.javaparser.ast.`type`.{IntersectionType, Type, UnionType}
@@ -278,7 +276,7 @@ class MethodBodyVisitor(cr: ClassResolver, ownerSig: Signature, ownerPos: RangeP
 
   private def createLabel(pos: JawaPosition, label: String): Unit = {
     val l = getLabel(label)
-    statements += ((Label(l, lineCount + labelCount, pos), EmptyStatement(ilistEmpty)(pos)))
+    statements += ((Label(l, lineCount + labelCount, pos), EmptyStatement(mlistEmpty)(pos)))
     labelCount += 1
   }
 
@@ -902,7 +900,7 @@ class MethodBodyVisitor(cr: ClassResolver, ownerSig: Signature, ownerPos: RangeP
   //************************ Loop, switch, break, continue End *******************
 
   override def visit(es: EmptyStmt, arg: Void): Unit = {
-    createLocation(es.toRange, EmptyStatement(ilistEmpty)(es.toRange))
+    createLocation(es.toRange, EmptyStatement(mlistEmpty)(es.toRange))
   }
 
   /**

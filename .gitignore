@@ -9,11 +9,8 @@
 !.idea/uiDesigner.xml
 /classes
 /dist
-/out
 /SDK/*SDK
-/target
 /*.bat
-*.class
 out
 build
 .DS_Store

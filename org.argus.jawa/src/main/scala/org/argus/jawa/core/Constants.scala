@@ -17,8 +17,9 @@ object Constants {
   final val ALL_FIELD = "ALL.FIELD"
   def ALL_FIELD_FQN(typ: JawaType) = FieldFQN(typ, ALL_FIELD, JavaKnowledge.OBJECT)
 
-  final val JAWA_FILE_EXT = "jawa"
-  final val JAVA_FILE_EXT = "java"
+  final val JAWA_FILE_EXT = ".jawa"
+  final val JAVA_FILE_EXT = ".java"
+  final val CLASS_FILE_EXT = ".class"
 
 
   final val THREAD = "java.lang.Thread"

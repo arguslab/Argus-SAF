@@ -20,5 +20,5 @@ class JawaSourceFile(file: AbstractFile) extends DefaultSourceFile(file) {
     val c = code
     c.replaceAll("(record `)", "DELIMITER_JAWA_HAHAHA$1").split("DELIMITER_JAWA_HAHAHA").tail.toSet
   }
-  def parse(reporter: Reporter): IMap[JawaType, MyClass] = JawaFileParser.parse(this, reporter)
+  def parse(reporter: Reporter): IMap[JawaType, MyClass] = JawaAstParser.parse(this, reporter)
 }

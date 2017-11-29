@@ -20,7 +20,7 @@ import org.argus.jawa.core.util._
 /**
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
  */
-object JawaFileParser {
+object JawaAstParser {
   final val TITLE = "JawaFileParser"
   final val debug = false
   def parse(file: SourceFile, reporter: Reporter): IMap[JawaType, MyClass] = {

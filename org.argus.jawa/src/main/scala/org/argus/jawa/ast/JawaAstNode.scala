@@ -12,11 +12,11 @@ package org.argus.jawa.ast
 
 import com.github.javaparser.ast.stmt.BlockStmt
 import org.argus.jawa.ast.java.ClassResolver
-import org.argus.jawa.compiler.lexer.Token
+import org.argus.jawa.compiler.lexer.{Token, Tokens}
 import org.argus.jawa.compiler.lexer.Tokens._
 import org.argus.jawa.compiler.parser._
 import org.argus.jawa.compiler.util.CaseClassReflector
-import org.argus.jawa.core.io.Position
+import org.argus.jawa.core.io.{NoPosition, Position}
 import org.argus.jawa.core.util._
 import org.argus.jawa.core.{DefaultReporter, JavaKnowledge, JawaType, Signature}
 
@@ -55,6 +55,7 @@ sealed trait JawaAstNode extends CaseClassReflector with JavaKnowledge {
     case _: Token                  => Nil
     case Some(x)                   => immediateAstNodes(x)
     case xs: IList[_]              => xs flatMap { immediateAstNodes }
+    case xs: MList[_]              => xs.toList flatMap { immediateAstNodes }
     case Left(x)                   => immediateAstNodes(x)
     case Right(x)                  => immediateAstNodes(x)
     case (l, r)                    => immediateAstNodes(l) ++ immediateAstNodes(r)
@@ -116,16 +117,22 @@ sealed trait LocationSym{
 }
 
 case class TypeDefSymbol(id: Token)(implicit val pos: Position) extends DefSymbol with ClassSym {
+  def this(name: String, pos: Position) = this(Token(Tokens.ID, pos, s"`$name`"))(pos)
+  def this(name: String) = this(name, NoPosition)
   def typ: JawaType = getTypeFromJawaName(id.text)
   def toCode: String = id.rawText
 }
 
 case class TypeSymbol(id: Token)(implicit val pos: Position) extends RefSymbol with ClassSym {
+  def this(name: String, pos: Position) = this(Token(Tokens.ID, pos, s"`$name`"))(pos)
+  def this(name: String) = this(name, NoPosition)
   def typ: JawaType = getTypeFromJawaName(id.text)
   def toCode: String = id.rawText
 }
 
 case class MethodDefSymbol(id: Token)(implicit val pos: Position) extends DefSymbol with MethodSym {
+  def this(name: String, pos: Position) = this(Token(Tokens.ID, pos, s"`$name`"))(pos)
+  def this(name: String) = this(name, NoPosition)
   var signature: Signature = _
   def baseType: JawaType = signature.getClassType
   def methodName: String = id.text
@@ -140,6 +147,8 @@ case class MethodNameSymbol(id: Token)(implicit val pos: Position) extends RefSy
 }
 
 case class FieldDefSymbol(id: Token)(implicit val pos: Position) extends DefSymbol with FieldSym {
+  def this(name: String, pos: Position) = this(Token(Tokens.ID, pos, s"`$name`"))(pos)
+  def this(name: String) = this(name, NoPosition)
   def FQN: String = id.text.replaceAll("@@", "")
   def baseType: JawaType = getClassTypeFromFieldFQN(FQN)
   def fieldName: String = getFieldNameFromFieldFQN(FQN)
@@ -154,18 +163,25 @@ case class FieldNameSymbol(id: Token)(implicit val pos: Position) extends RefSym
 }
 
 case class SignatureSymbol(id: Token)(implicit val pos: Position) extends RefSymbol with MethodSym {
+  def this(sig: String, pos: Position) = this(Token(Tokens.ID, pos, s"`$sig`"))(pos)
+  def this(sig: String) = this(sig, NoPosition)
+  def this(sig: Signature) = this(sig.signature)
   def signature: Signature = new Signature(id.text)
   def methodName: String = signature.methodName
   def toCode: String = id.rawText
 }
 
 case class VarDefSymbol(id: Token)(implicit val pos: Position) extends DefSymbol with VarSym {
+  def this(name: String, pos: Position) = this(Token(Tokens.ID, pos, s"`$name`"))(pos)
+  def this(name: String) = this(name, NoPosition)
   var owner: MethodDeclaration = _
   def varName: String = id.text
   def toCode: String = id.rawText
 }
 
 case class VarSymbol(id: Token)(implicit val pos: Position) extends RefSymbol with VarSym {
+  def this(name: String, pos: Position) = this(Token(Tokens.ID, pos, s"`$name`"))(pos)
+  def this(name: String) = this(name, NoPosition)
   var owner: MethodDeclaration = _
   def varName: String = id.text
   def toCode: String = id.rawText
@@ -175,6 +191,8 @@ case class VarSymbol(id: Token)(implicit val pos: Position) extends RefSymbol wi
  * LocationSymbol is following form: #L00001. or just #
  */
 case class LocationDefSymbol(id: Token)(implicit val pos: Position) extends DefSymbol with LocationSym {
+  def this(name: String, pos: Position) = this(Token(Tokens.LOCATION_ID, pos, s"#$name."))(pos)
+  def this(name: String) = this(name, NoPosition)
   var owner: MethodDeclaration = _
   def location: String = {
     if(id.text == "#") id.text
@@ -187,6 +205,8 @@ case class LocationDefSymbol(id: Token)(implicit val pos: Position) extends DefS
  * JumpLocationSymbol is following form: L00001
  */
 case class LocationSymbol(id: Token)(implicit val pos: Position) extends RefSymbol with LocationSym {
+  def this(name: String, pos: Position) = this(Token(Tokens.ID, pos, name))(pos)
+  def this(name: String) = this(name, NoPosition)
   var owner: MethodDeclaration = _
   def location: String = id.text
   def toCode: String = id.rawText
@@ -218,6 +238,9 @@ case class ClassOrInterfaceDeclaration(
 case class Annotation(
     annotationID: Token,
     annotationValueOpt: Option[AnnotationValue])(implicit val pos: Position) extends JawaAstNode {
+  def this(key: String, valueOpt: Option[AnnotationValue]) = this(Token(Tokens.ID, NoPosition, key), valueOpt)(NoPosition)
+  def this(key: String, value: AnnotationValue) = this(key, Some(value))
+  def this(key: String) = this(key, None)
   def key: String = annotationID.text
   def value: String = annotationValueOpt.map(_.value).getOrElse("")
   def toCode: String = {
@@ -230,6 +253,9 @@ sealed trait AnnotationValue extends JawaAstNode {
 }
 
 case class TypeExpressionValue(typExp: TypeExpression)(implicit val pos: Position) extends AnnotationValue {
+  def this(str: String, d: Int, pos: Position) = this(new TypeExpression(str, d, pos))(pos)
+  def this(str: String, d: Int) = this(str, d, NoPosition)
+  def this(str: String) = this(str, 0)
   def value: String = typExp.typ.name
   def toCode: String = typExp.toCode
 }
@@ -240,6 +266,8 @@ case class SymbolValue(sym: JawaSymbol)(implicit val pos: Position) extends Anno
 }
 
 case class TokenValue(token: Token)(implicit val pos: Position) extends AnnotationValue {
+  def this(str: String, pos: Position) = this(Token(Tokens.ID, pos, str))(pos)
+  def this(str: String) = this(str, NoPosition)
   def value: String = token.text
   def toCode: String = token.rawText
 }
@@ -293,11 +321,18 @@ case class StaticFieldDeclaration(
 }
 
 case class TypeExpression(typ_ : Type)(implicit val pos: Position) extends JawaAstNode {
+  def this(str: String, d: Int, pos: Position) = this(new Type(str, d, pos))(pos)
+  def this(str: String, d: Int) = this(str, d, NoPosition)
+  def this(str: String) = this(str, 0)
   def typ: JawaType = typ_.typ
   def toCode: String = s"^${typ_.toCode}"
 }
 
 case class Type(base: TypeSymbol, typeFragments: IList[TypeFragment])(implicit val pos: Position) extends JawaAstNode {
+  def this(str: String, d: Int, pos: Position) = this(new TypeSymbol(str, pos), (0 until d).map(_ => TypeFragment()(pos)).toList)(pos)
+  def this(str: String, d: Int) = this(str, d, NoPosition)
+  def this(str: String) = this(str, 0)
+  def this(t: JawaType) = this(t.baseTyp, t.dimensions)
   def dimensions: Int = typeFragments.size
   def baseType: JawaType =  base.typ
   def typ: JawaType = getType(baseType.baseTyp, dimensions)
@@ -340,6 +375,7 @@ case class Param(
     typ: Type,
     paramSymbol: VarDefSymbol,
     annotations: IList[Annotation])(implicit val pos: Position) extends JawaAstNode {
+  def this(t: JawaType, name: String, annotations: IList[Annotation]) = this(new Type(t), new VarDefSymbol(name), annotations)(NoPosition)
   def isThis: Boolean = annotations.exists { a => a.key == "kind" && a.value == "this" }
   def isObject: Boolean = annotations.exists { a => a.key == "kind" && (a.value == "this" || a.value == "object") }
   def name: String = paramSymbol.id.text
@@ -403,6 +439,7 @@ case class LocalVarDeclaration(
 case class Location(
     locationSymbol: LocationDefSymbol,
     statement: Statement)(implicit val pos: Position) extends ParsableAstNode {
+  def this(loc: String, statement: Statement) = this(new LocationDefSymbol(loc), statement)(NoPosition)
   def locationUri: String = {
     if(locationSymbol.id.length <= 1) ""
     else locationSymbol.location
@@ -558,7 +595,7 @@ case class MonitorStatement(
   def toCode: String = s"@${monitor.rawText} ${varSymbol.toCode};"
 }
 
-case class EmptyStatement(annotations: IList[Annotation])(implicit val pos: Position) extends Statement {
+case class EmptyStatement(annotations: MList[Annotation])(implicit val pos: Position) extends Statement {
   def toCode: String = annotations.map(anno => anno.toCode).mkString(" ")
 }
 

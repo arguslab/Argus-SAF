@@ -10,6 +10,7 @@
 
 package org.argus.jawa.core
 
+import org.argus.jawa.core.util._
 import org.objectweb.asm.Opcodes
 
 /**
@@ -56,6 +57,28 @@ object AccessFlag{
     if(str.contains("DECLARED_SYNCHRONIZED")) af = af | DECLARED_SYNCHRONIZED
     else if(str.contains("SYNCHRONIZED")) af = af | SYNCHRONIZED
     af
+  }
+
+  def getAccessFlagString(af: Int): String = {
+    val flags: MList[String] = mlistEmpty
+    if(isAbstract(af)) flags += "ABSTRACT"
+    if(isFinal(af)) flags += "FINAL"
+    if(isInterface(af)) flags += "INTERFACE"
+    if(isNative(af)) flags += "NATIVE"
+    if(isPrivate(af)) flags += "PRIVATE"
+    else if(isProtected(af)) flags += "PROTECTED"
+    else if(isPublic(af)) flags += "PUBLIC"
+    if(isStatic(af)) flags += "STATIC"
+    if(isTransient(af)) flags += "TRANSIENT"
+    if(isVolatile(af)) flags += "VOLATILE"
+    if(isStrictFP(af)) flags += "STRICTFP"
+    if(isAnnotation(af)) flags += "ANNOTATION"
+    if(isEnum(af)) flags += "ENUM"
+    if(isSynthetic(af)) flags += "SYNTHETIC"
+    if(isConstructor(af)) flags += "CONSTRUCTOR"
+    if(isDeclaredSynchronized(af)) flags += "DECLARED_SYNCHRONIZED"
+    else if(isSynchronized(af)) flags += "SYNCHRONIZED"
+    flags.mkString("_")
   }
   
   def isAbstract(af: Int): Boolean = (af & ABSTRACT) != 0

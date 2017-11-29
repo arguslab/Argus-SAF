@@ -10,15 +10,15 @@
 
 package org.argus.jawa.core
 
-import org.argus.jawa.core.util._
+import com.google.common.cache.{Cache, CacheBuilder, CacheLoader, LoadingCache}
 import org.argus.jawa.core.backend.JavaPlatform
 import org.argus.jawa.core.backend.classpath._
-import org.argus.jawa.core.io._
-import com.google.common.cache.{Cache, CacheBuilder, CacheLoader, LoadingCache}
 import org.argus.jawa.core.frontend.MyClass
-import org.argus.jawa.core.frontend.classfile.ClassfileParser
+import org.argus.jawa.core.frontend.classfile.JavaClassFile
 import org.argus.jawa.core.frontend.javafile.JavaSourceFile
 import org.argus.jawa.core.frontend.jawafile.JawaSourceFile
+import org.argus.jawa.core.io._
+import org.argus.jawa.core.util._
 
 /**
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
@@ -48,6 +48,7 @@ trait JawaClasspathManager extends JavaKnowledge { self: Global =>
     fileUri match {
       case jawafile if jawafile.endsWith(Constants.JAWA_FILE_EXT) => loadJawa(FileUtil.toFile(jawafile))
       case javafile if javafile.endsWith(Constants.JAVA_FILE_EXT) => loadJava(FileUtil.toFile(javafile))
+      case classfile if classfile.endsWith(Constants.CLASS_FILE_EXT) => loadClass(FileUtil.toFile(classfile))
       case _ =>
         reporter.warning(TITLE, s"Try to load class from unknown source file: $fileUri")
         imapEmpty
@@ -86,6 +87,17 @@ trait JawaClasspathManager extends JavaKnowledge { self: Global =>
       }
       typ -> source
     }.toMap
+  }
+
+  private def loadClass(filePath: Path): IMap[JawaType, SourceFile] = {
+    val source = new JavaClassFile(new PlainFile(filePath))
+    val typ = source.getType
+    if (libSummary.isLibraryClass(typ)) {
+      this.userLibraryClassCodes(typ) = source
+    } else {
+      this.applicationClassCodes(typ) = source
+    }
+    Map(typ -> source)
   }
 
   /**
@@ -201,7 +213,13 @@ trait JawaClasspathManager extends JavaKnowledge { self: Global =>
               case None =>
                 this.cachedClassRepresentation.get(typ) match {
                   case Some(cs) =>
-                    ClassfileParser.parse(cs.binary.get, reporter)
+                    cs.binary match {
+                      case Some(bin) =>
+                        val classfile = new JavaClassFile(bin)
+                        classfile.parse(reporter)
+                      case None =>
+                        imapEmpty
+                    }
                   case None =>
                     imapEmpty
                 }

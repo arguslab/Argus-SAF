@@ -607,7 +607,7 @@ class JawaParser(tokens: Array[Token], reporter: Reporter) extends JavaKnowledge
     val annotations_ : IList[Annotation] = annotations()
     val pos = if(annotations_.isEmpty) NoPosition
     else getPos(annotations_.head.pos, annotations_.last.pos)
-    EmptyStatement(annotations_)(pos)
+    EmptyStatement(mlistEmpty ++ annotations_)(pos)
   }
   
   private def expression_lhs(): Expression with LHS = {
