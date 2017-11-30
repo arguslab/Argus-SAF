@@ -8,7 +8,7 @@
  * Detailed contributors are listed in the CONTRIBUTOR.md
  */
 
-package org.argus.jawa.ast.java
+package org.argus.jawa.ast.javafile
 
 import java.util
 import java.util.Optional
@@ -35,7 +35,7 @@ class ClassResolver(
     staticContext: Boolean) {
   import j2j._
 
-  protected[java] def getJawaAccessFlag(modifiers: util.EnumSet[Modifier], isConstructor: Boolean): String = {
+  protected[javafile] def getJawaAccessFlag(modifiers: util.EnumSet[Modifier], isConstructor: Boolean): String = {
     val flags: MList[String] = mlistEmpty
     modifiers.forEach {
       case Modifier.PUBLIC => flags += "PUBLIC"
@@ -63,7 +63,7 @@ class ClassResolver(
     handleJawaType(jawaType, javaType.getElementType.toRange)
   }
 
-  protected[java] def handleJawaType(jawaType: JawaType, pos: Position): JawaTypeAst = {
+  protected[javafile] def handleJawaType(jawaType: JawaType, pos: Position): JawaTypeAst = {
     val baseTypeSymbol: TypeSymbol = TypeSymbol(Token(Tokens.ID, pos, jawaType.baseTyp.apostrophe))(pos)
     val typeFragments: IList[TypeFragment] = (0 until jawaType.dimensions).map { _ =>
       TypeFragment()(pos)
@@ -73,25 +73,25 @@ class ClassResolver(
 
   private val paramMap: MMap[Signature, IMap[String, JawaType]] = mmapEmpty
 
-  protected[java] def getParams(sig: Signature): IMap[String, JawaType] = paramMap.getOrElse(sig, imapEmpty)
+  protected[javafile] def getParams(sig: Signature): IMap[String, JawaType] = paramMap.getOrElse(sig, imapEmpty)
 
-  protected[java] var superType: JawaType = JavaKnowledge.OBJECT
+  protected[javafile] var superType: JawaType = JavaKnowledge.OBJECT
 
   private var anonymousCounter = 0
-  protected[java] def getAnonymousClassName: String = {
+  protected[javafile] def getAnonymousClassName: String = {
     anonymousCounter += 1
     anonymousCounter.toString
   }
 
   private val localClassCounter: MMap[String, Int] = mmapEmpty
-  protected[java] def getLocalClassNum(name: String): Int = {
+  protected[javafile] def getLocalClassNum(name: String): Int = {
     val c = localClassCounter.getOrElse(name, 1)
     localClassCounter(name) = c + 1
     c
   }
 
   private val staticMethods: MSet[Signature] = msetEmpty
-  protected[java] def isStaticMethod(sig: Signature): Boolean = staticMethods.contains(sig)
+  protected[javafile] def isStaticMethod(sig: Signature): Boolean = staticMethods.contains(sig)
 
   def process(): JawaClassOrInterfaceDeclaration = {
     typ match {

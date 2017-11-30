@@ -8,7 +8,7 @@
  * Detailed contributors are listed in the CONTRIBUTOR.md
  */
 
-package org.argus.jawa.ast.java
+package org.argus.jawa.ast.javafile
 
 import java.lang.reflect.InvocationTargetException
 

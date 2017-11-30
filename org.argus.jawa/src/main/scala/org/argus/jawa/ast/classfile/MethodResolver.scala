@@ -43,7 +43,7 @@ class MethodResolver(
   }
 
   private def store(i: Int, typ: JawaType): String = {
-    val name = checkAndAddVariable(typ, isTemp = false)
+    val name = checkAndAddVariable(typ, Some(i))
     localVariables(i) = ((typ, name))
     name
   }
@@ -52,37 +52,14 @@ class MethodResolver(
 
   private def getVarType(name: String): JawaType = usedVariables.getOrElse(name, throw DeBytecodeException(s"Variable $name does not exist."))
 
-  // handle this
-  if(!AccessFlag.isStatic(accessFlag) && !AccessFlag.isInterface(accessFlag)) {
-    params += new Parameter(signature.getClassType, "this", List(new Annotation("kind", new TokenValue("this"))))
-    localVariables(num) = ((signature.getClassType, "this"))
-    usedVariables("this") = signature.getClassType
-    num += 1
-  }
-
   val locals: MList[LocalVarDeclaration] = mlistEmpty
 
-  // handle params
-  private var paramCounter = 0
-  override def visitParameter(name: String, access: Int): Unit = {
-    val typ: JawaType = signature.getParameterTypes.lift(paramCounter).getOrElse(throw DeBytecodeException(s"Sig: $signature does not have type for param num $paramCounter"))
-    val annotations: IList[Annotation] = if(typ.isObject) {
-      List(new Annotation("kind", new TokenValue("object")))
-    } else {
-      ilistEmpty
-    }
-    params += new Parameter(typ, name, annotations)
-    localVariables(num) = ((typ, name))
-    usedVariables(name) = typ
-    paramCounter += 1
-    num += 1
-  }
-
-  private def checkAndAddVariable(varType: JawaType, isTemp: Boolean): String = {
-    val expectedName = if(isTemp) {
-      s"${varType.baseType.name}${if(varType.isArray) s"_arr${varType.dimensions}" else ""}_temp"
-    } else {
-      s"${varType.baseType.name}${if(varType.isArray) s"_arr${varType.dimensions}" else ""}"
+  private def checkAndAddVariable(varType: JawaType, idxOpt: Option[Int]): String = {
+    val expectedName = idxOpt match {
+      case Some(idx) =>
+        s"${varType.baseType.name}${if(varType.isArray) s"_arr${varType.dimensions}" else ""}_$idx"
+      case None =>
+        s"${varType.baseType.name}${if(varType.isArray) s"_arr${varType.dimensions}" else ""}_temp"
     }
     var varName = expectedName
     var i = 1
@@ -110,14 +87,9 @@ class MethodResolver(
   private var stackVars: IList[String] = ilistEmpty
 
   private def push(typ: JawaType): String = {
-    val varName = checkAndAddVariable(typ, isTemp = true)
+    val varName = checkAndAddVariable(typ, None)
     stackVars = varName :: stackVars
     varName
-  }
-
-  private def push(str: String): String = {
-    stackVars = str :: stackVars
-    str
   }
 
   private def dup(pos: Int): Unit = {
@@ -136,6 +108,27 @@ class MethodResolver(
     val varName :: tail = stackVars
     stackVars = tail
     varName
+  }
+
+  // handle this
+  if(!AccessFlag.isStatic(accessFlag) && !AccessFlag.isInterface(accessFlag)) {
+    params += new Parameter(signature.getClassType, "this", List(new Annotation("kind", new TokenValue("this"))))
+    localVariables(num) = ((signature.getClassType, "this"))
+    usedVariables("this") = signature.getClassType
+    num += 1
+  }
+
+  signature.getParameterTypes.foreach { typ =>
+    val name = s"${typ.baseType.name}${if(typ.isArray) s"_arr${typ.dimensions}" else ""}_$num"
+    val annotations: IList[Annotation] = if(typ.isObject) {
+      List(objectAnnotation)
+    } else {
+      ilistEmpty
+    }
+    params += new Parameter(typ, name, annotations)
+    localVariables(num) = ((typ, name))
+    usedVariables(name) = typ
+    num += 1
   }
 
   //************************ Local Variable management End ***********************
@@ -798,21 +791,24 @@ class MethodResolver(
     opcode match {
       case ILOAD =>
         val (_, name) = load(v)
-        val temp = push(name)
-        new AssignmentStatement(temp, name, ilistEmpty)
+        val temp = push(JavaKnowledge.INT)
+        stmt = Some(new AssignmentStatement(temp, name, ilistEmpty))
       case LLOAD =>
         val (_, name) = load(v)
-        val temp = push(name)
-        new AssignmentStatement(temp, name, ilistEmpty)
+        val temp = push(JavaKnowledge.LONG)
+        stmt = Some(new AssignmentStatement(temp, name, ilistEmpty))
       case FLOAD =>
         val (_, name) = load(v)
-        push(name)
+        val temp = push(JavaKnowledge.FLOAT)
+        stmt = Some(new AssignmentStatement(temp, name, ilistEmpty))
       case DLOAD =>
         val (_, name) = load(v)
-        push(name)
+        val temp = push(JavaKnowledge.DOUBLE)
+        stmt = Some(new AssignmentStatement(temp, name, ilistEmpty))
       case ALOAD =>
-        val (_, name) = load(v)
-        push(name)
+        val (t, name) = load(v)
+        val temp = push(t)
+        stmt = Some(new AssignmentStatement(temp, name, List(objectAnnotation)))
       case ISTORE =>
         val temp = pop
         val typ = getVarType(temp)
@@ -1179,8 +1175,39 @@ class MethodResolver(
     *                    classes whose version is 51.0.
     */
   override def visitLdcInsn(cst: Any): Unit = {
-    //TODO
-    throw DeBytecodeException(s"Unhandled Ldc")
+    val (typ, expr) = cst.getClass.getName match {
+      case "java.lang.Integer" =>
+        val le = new LiteralExpression(cst.asInstanceOf[java.lang.Integer].intValue())
+        (JavaKnowledge.INT, le)
+      case "java.lang.Float" =>
+        val le = new LiteralExpression(cst.asInstanceOf[java.lang.Float].floatValue())
+        (JavaKnowledge.FLOAT, le)
+      case "java.lang.Long" =>
+        val le = new LiteralExpression(cst.asInstanceOf[java.lang.Long].longValue())
+        (JavaKnowledge.LONG, le)
+      case "java.lang.Double" =>
+        val le = new LiteralExpression(cst.asInstanceOf[java.lang.Double].doubleValue())
+        (JavaKnowledge.DOUBLE, le)
+      case "java.lang.String" =>
+        val le = new LiteralExpression(cst.asInstanceOf[java.lang.String])
+        (JavaKnowledge.STRING, le)
+      case "org.objectweb.asm.Type" =>
+        val asmType = cst.asInstanceOf[org.objectweb.asm.Type]
+        val t = Option(asmType.getClassName) match {
+          case Some(cn) => // class type
+            JavaKnowledge.getTypeFromJawaName(cn)
+          case None => // method type
+            throw DeBytecodeException(s"Method type is not handled: $cst")
+        }
+        val ce = new ConstClassExpression(t)
+        (JavaKnowledge.CLASS, ce)
+      case "org.objectweb.asm.Handle" =>
+        throw DeBytecodeException(s"Handle is not handled: $cst")
+      case _ => throw DeBytecodeException(s"Unknown opcode for LdcInsn: $cst")
+    }
+    val temp = push(typ)
+    val stmt = new AssignmentStatement(temp, expr, ilistEmpty)
+    createLocation(stmt)
   }
 
   /**
@@ -1193,7 +1220,10 @@ class MethodResolver(
     */
   override def visitIincInsn(v: Int, increment: Int): Unit = {
     val (_, name) = load(v)
-    val be = new BinaryExpression(name, "+", new LiteralExpression(increment))
+    val negative = Math.signum(increment) == -1
+    val num = Math.abs(increment)
+    val op = if(negative) "-" else "+"
+    val be = new BinaryExpression(name, op, new LiteralExpression(num))
     val stmt = new AssignmentStatement(name, be, ilistEmpty)
     createLocation(stmt)
   }
@@ -1212,8 +1242,17 @@ class MethodResolver(
     * beginning of the handler block for the <tt>min + i</tt> key.
     */
   override def visitTableSwitchInsn(min: Int, max: Int, dflt: Label, labels: Label*): Unit = {
-    //TODO
-    throw DeBytecodeException(s"Unhandled TableSwitch")
+    val cond = pop
+    val cases: IList[SwitchCase] = (min to max).map { i =>
+      val idx = i - min
+      val label = labels(idx)
+      val (l, _, _) = handleLabel(label)
+      new SwitchCase(i, l)
+    }.toList
+    val (dl, _, _) = handleLabel(dflt)
+    val defaultCase = new SwitchDefaultCase(dl)
+    val ss = new SwitchStatement(cond, cases, defaultCase)
+    createLocation(ss)
   }
 
   /**
@@ -1228,8 +1267,17 @@ class MethodResolver(
     * beginning of the handler block for the <tt>keys[i]</tt> key.
     */
   override def visitLookupSwitchInsn(dflt: Label, keys: Array[Int], labels: Array[Label]): Unit = {
-    //TODO
-    throw DeBytecodeException(s"Unhandled LookupSwitch")
+    val cond = pop
+    val cases: IList[SwitchCase] = keys.indices.map { i =>
+      val key = keys(i)
+      val label = labels(i)
+      val (l, _, _) = handleLabel(label)
+      new SwitchCase(key, l)
+    }.toList
+    val (dl, _, _) = handleLabel(dflt)
+    val defaultCase = new SwitchDefaultCase(dl)
+    val ss = new SwitchStatement(cond, cases, defaultCase)
+    createLocation(ss)
   }
 
   /**
@@ -1264,7 +1312,7 @@ class MethodResolver(
     * end of the exception handler's scope (exclusive).
     * @param handler
     * beginning of the exception handler's code.
-    * @param type
+    * @param t
     * internal name of the type of exceptions handled by the
     * handler, or <tt>null</tt> to catch any exceptions (for
     * "finally" blocks).
@@ -1272,8 +1320,15 @@ class MethodResolver(
     * if one of the labels has already been visited by this visitor
     * (by the { @link #visitLabel visitLabel} method).
     */
-  override def visitTryCatchBlock(start: Label, end: Label, handler: Label, `type`: String): Unit = {
-    if (mv != null) mv.visitTryCatchBlock(start, end, handler, `type`)
+  override def visitTryCatchBlock(start: Label, end: Label, handler: Label, t: String): Unit = {
+    val typ: JawaType = Option(t) match {
+      case Some(str) => JavaKnowledge.getTypeFromName(getClassName(str))
+      case None => ExceptionCenter.THROWABLE
+    }
+    val (from, _, _) = handleLabel(start)
+    val (to, _, _) = handleLabel(end)
+    val (target, _, _) = handleLabel(handler)
+    catchClauses += new CatchClause(typ, from, to, target)
   }
 
   override def visitLineNumber(line: Int, start: Label): Unit = {

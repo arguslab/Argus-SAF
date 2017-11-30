@@ -11,7 +11,7 @@
 package org.argus.jawa.ast
 
 import com.github.javaparser.ast.stmt.BlockStmt
-import org.argus.jawa.ast.java.ClassResolver
+import org.argus.jawa.ast.javafile.ClassResolver
 import org.argus.jawa.compiler.lexer.{Token, Tokens}
 import org.argus.jawa.compiler.lexer.Tokens._
 import org.argus.jawa.compiler.parser._
@@ -589,16 +589,20 @@ case class SwitchStatement(
     condition: VarSymbol,
     cases: IList[SwitchCase],
     defaultCaseOpt: Option[SwitchDefaultCase])(implicit val pos: Position) extends Jump {
+  def this(cond: String, cases: IList[SwitchCase], default: SwitchDefaultCase) = this(new VarSymbol(cond), cases, Some(default))(NoPosition)
+  def this(cond: String, cases: IList[SwitchCase]) = this(new VarSymbol(cond), cases, None)(NoPosition)
   def toCode: String = s"switch ${condition.toCode}\n              ${cases.map(c => c.toCode).mkString("\n              ")}${defaultCaseOpt match {case Some(d) => "\n              " + d.toCode case None => ""}};"
 }
 
 case class SwitchCase(
     constant: Token,
     targetLocation: LocationSymbol)(implicit val pos: Position) extends JawaAstNode {
+  def this(i: Int, target: String) = this(Token(Tokens.INTEGER_LITERAL, NoPosition, s"$i"), new LocationSymbol(target))(NoPosition)
   def toCode: String = s"| ${constant.rawText} => goto ${targetLocation.toCode}"
 }
 
 case class SwitchDefaultCase(targetLocation: LocationSymbol)(implicit val pos: Position) extends JawaAstNode {
+  def this(target: String) = this(new LocationSymbol(target))(NoPosition)
   def toCode: String = s"| else => goto ${targetLocation.toCode}"
 }
 
@@ -687,6 +691,7 @@ case class NullExpression(nul: Token)(implicit val pos: Position) extends Expres
 }
 
 case class ConstClassExpression(typExp: TypeExpression)(implicit val pos: Position) extends Expression with RHS {
+  def this(t: JawaType) = this(new TypeExpression(t))(NoPosition)
   def toCode: String = s"constclass @type ${typExp.toCode}"
 }
 
@@ -766,10 +771,14 @@ case class LiteralExpression(constant: Token)(implicit val pos: Position) extend
   def this(i: Int) = this(i, NoPosition)
   def this(l: Long, pos: Position) = this(Token(Tokens.INTEGER_LITERAL, pos, s"${l}L"))(pos)
   def this(l: Long) = this(l, NoPosition)
-  def this(f: Float, pos: Position) = this(Token(Tokens.INTEGER_LITERAL, pos, s"${f}F"))(pos)
+  def this(f: Float, pos: Position) = this(Token(Tokens.FLOATING_POINT_LITERAL, pos, s"${f}F"))(pos)
   def this(f: Float) = this(f, NoPosition)
-  def this(d: Double, pos: Position) = this(Token(Tokens.INTEGER_LITERAL, pos, s"${d}D"))(pos)
+  def this(d: Double, pos: Position) = this(Token(Tokens.FLOATING_POINT_LITERAL, pos, s"${d}D"))(pos)
   def this(d: Double) = this(d, NoPosition)
+  def this(c: Char, pos: Position) = this(Token(Tokens.CHARACTER_LITERAL, pos, s"$c"))(pos)
+  def this(c: Char) = this(c, NoPosition)
+  def this(s: String, pos: Position) = this(Token(Tokens.STRING_LITERAL, pos, "\"" +s + "\""))(pos)
+  def this(s: String) = this(s, NoPosition)
   private def getLiteral: String = {
     val lit = constant.text
     constant.tokenType match {
@@ -842,6 +851,7 @@ case class CatchClause(
     typ: Type,
     range: CatchRange,
     targetLocation: LocationSymbol)(implicit val pos: Position) extends JawaAstNode {
+  def this(t: JawaType, from: String, to: String, target: String) = this(new Type(t), new CatchRange(from, to), new LocationSymbol(target))(NoPosition)
   def from: String = range.fromLocation.location
   def to: String = range.toLocation.location
   def toCode: String = s"catch ${typ.toCode} ${range.toCode} goto ${targetLocation.toCode};"
@@ -850,5 +860,6 @@ case class CatchClause(
 case class CatchRange(
     fromLocation: LocationSymbol,
     toLocation: LocationSymbol)(implicit val pos: Position) extends JawaAstNode {
+  def this(from: String, to: String) = this(new LocationSymbol(from), new LocationSymbol(to))(NoPosition)
   def toCode: String = s"@[${fromLocation.toCode}..${toLocation.toCode}]"
 }

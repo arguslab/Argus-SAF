@@ -8,7 +8,7 @@
  * Detailed contributors are listed in the CONTRIBUTOR.md
  */
 
-package org.argus.jawa.ast.java
+package org.argus.jawa.ast.javafile
 
 import com.github.javaparser.ast._
 import com.github.javaparser.ast.expr._
@@ -21,11 +21,11 @@ import org.argus.jawa.core.util._
 
 class Java2Jawa(val global: Global, val sourceFile: JavaSourceFile) {
 
-  protected[java] var packageName: String = ""
+  protected[javafile] var packageName: String = ""
 
-  protected[java] val imports: ImportHandler = new ImportHandler(this, sourceFile.getJavaCU.getImports)
+  protected[javafile] val imports: ImportHandler = new ImportHandler(this, sourceFile.getJavaCU.getImports)
 
-  protected[java] val topDecls: MList[JawaClassOrInterfaceDeclaration] = mlistEmpty
+  protected[javafile] val topDecls: MList[JawaClassOrInterfaceDeclaration] = mlistEmpty
 
   implicit class TransRange(node: Node) {
     def toRange: RangePosition = {

@@ -183,9 +183,9 @@ class DeBytecodeTest extends FlatSpec with Matchers {
 
   "/class/parser/stmt/labeledstmt/LabelContinue.class" produce_same()
 
-  "/class/parser/stmt/localclassdeclarationstmt/LocalClass.class" produce_same()
-
-  "/class/parser/stmt/localclassdeclarationstmt/LocalClassMulti.class" produce_same()
+//  "/class/parser/stmt/localclassdeclarationstmt/LocalClass.class" produce_same()
+//
+//  "/class/parser/stmt/localclassdeclarationstmt/LocalClassMulti.class" produce_same()
 
   "/class/parser/stmt/switchstmt/Switch.class" produce_same()
 
@@ -228,7 +228,7 @@ class DeBytecodeTest extends FlatSpec with Matchers {
       file should "produce same result" in {
         val e = runBytecode(List(file))
         val r = run(List(file))
-        assert(e == r)
+        assert(r == e)
       }
     }
   }

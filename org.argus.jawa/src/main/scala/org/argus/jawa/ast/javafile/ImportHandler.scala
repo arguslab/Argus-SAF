@@ -8,7 +8,7 @@
  * Detailed contributors are listed in the CONTRIBUTOR.md
  */
 
-package org.argus.jawa.ast.java
+package org.argus.jawa.ast.javafile
 
 import com.github.javaparser.ast.`type`._
 import com.github.javaparser.ast.expr.NameExpr
@@ -103,7 +103,7 @@ class ImportHandler(j2j: Java2Jawa, imports: NodeList[ImportDeclaration]) {
 
   private val typeMap: MMap[String, JawaType] = mmapEmpty
 
-  protected[java] def findTypeOpt(name: String): Option[JawaType] = {
+  protected[javafile] def findTypeOpt(name: String): Option[JawaType] = {
     typeMap.get(name) match {
       case t @ Some(_) => t
       case None =>
@@ -192,7 +192,7 @@ class ImportHandler(j2j: Java2Jawa, imports: NodeList[ImportDeclaration]) {
     }
   }
 
-  protected[java] def findType(name: String, pos: RangePosition): JawaType = {
+  protected[javafile] def findType(name: String, pos: RangePosition): JawaType = {
     findTypeOpt(name) match {
       case Some(typ) => typ
       case None =>
@@ -204,7 +204,7 @@ class ImportHandler(j2j: Java2Jawa, imports: NodeList[ImportDeclaration]) {
   }
 
   // Does not handle IntersectionType and UnionType
-  protected[java] def findType(javaType: Type): JawaType = {
+  protected[javafile] def findType(javaType: Type): JawaType = {
     var typStr: String = null
     var dimension: Int = 0
     javaType match {
@@ -236,7 +236,7 @@ class ImportHandler(j2j: Java2Jawa, imports: NodeList[ImportDeclaration]) {
   }
 
   // Handle all types.
-  protected[java] def findTypes(javaType: Type): IList[JawaType] = {
+  protected[javafile] def findTypes(javaType: Type): IList[JawaType] = {
     val jawaTypes: MList[JawaType] = mlistEmpty
     javaType match {
       case at: ArrayType =>

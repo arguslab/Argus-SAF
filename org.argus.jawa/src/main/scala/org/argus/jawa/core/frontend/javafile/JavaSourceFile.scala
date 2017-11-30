@@ -15,7 +15,7 @@ import com.github.javaparser.ast.{CompilationUnit, NodeList}
 import org.argus.jawa.ast.{CompilationUnit => JawaCompilationUnit}
 
 import com.github.javaparser.ast.body.{BodyDeclaration, TypeDeclaration}
-import org.argus.jawa.ast.java.Java2Jawa
+import org.argus.jawa.ast.javafile.Java2Jawa
 import org.argus.jawa.core.{Global, JawaType, Reporter}
 import org.argus.jawa.core.frontend.MyClass
 import org.argus.jawa.core.frontend.jawafile.JawaAstParser
