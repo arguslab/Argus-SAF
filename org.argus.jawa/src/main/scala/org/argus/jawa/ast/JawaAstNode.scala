@@ -576,10 +576,12 @@ case class ThrowStatement(varSymbol: VarSymbol)(implicit val pos: Position) exte
 case class IfStatement(
     cond: BinaryExpression,
     targetLocation: LocationSymbol)(implicit val pos: Position) extends Jump {
+  def this(cond: BinaryExpression, label: String) = this(cond, new LocationSymbol(label))(NoPosition)
   def toCode: String = s"if ${cond.toCode} then goto ${targetLocation.toCode};"
 }
 
 case class GotoStatement(targetLocation: LocationSymbol)(implicit val pos: Position) extends Jump {
+  def this(target: String) = this(new LocationSymbol(target))(NoPosition)
   def toCode: String = s"goto ${targetLocation.toCode};"
 }
 
@@ -696,12 +698,15 @@ case class LengthExpression(varSymbol: VarSymbol)(implicit val pos: Position) ex
 case class IndexingExpression(
     varSymbol: VarSymbol,
     indices: IList[IndexingSuffix])(implicit val pos: Position) extends Expression with LHS {
+  def this(base: String, idxs: IList[String]) = this(new VarSymbol(base), idxs.map(i => new IndexingSuffix(i)))(NoPosition)
   def base: String = varSymbol.varName
   def dimensions: Int = indices.size
   def toCode: String = s"${varSymbol.toCode}${indices.map(i => i.toCode).mkString("")}"
 }
 
 case class IndexingSuffix(index: Either[VarSymbol, LiteralExpression])(implicit val pos: Position) extends JawaAstNode {
+  def this(idx: String) = this(Left(new VarSymbol(idx)))(NoPosition)
+  def this(idx: Int) = this(Right(new LiteralExpression(idx)))(NoPosition)
   def toCode: String = s"[${index match {case Left(vs) => vs.toCode case Right(le) => le.toCode}}]"
 }
 
@@ -743,7 +748,7 @@ case class NewArrayExpression(
     base: Type,
     varSymbols: IList[VarSymbol])(implicit val pos: Position) extends Expression with RHS with New {
   def this(t: JawaType, varNames: IList[String]) = this(new Type(t), varNames.map(vn => new VarSymbol(vn)))(NoPosition)
-  def dimensions: Int = base.dimensions + varSymbols.size
+  def dimensions: Int = base.dimensions + 1
   def baseType: JawaType = base.typ
   def typ: JawaType = getType(baseType.baseTyp, dimensions)
   def toCode: String = s"new ${base.toCode}[${varSymbols.map(vs => vs.toCode).mkString("," )}]"
@@ -822,6 +827,7 @@ case class CmpExpression(
     cmp: Token,
     var1Symbol: VarSymbol,
     var2Symbol: VarSymbol)(implicit val pos: Position) extends Expression with RHS {
+  def this(c: String, v1Name: String, v2Name: String) = this(Token(Tokens.CMP, NoPosition, c), new VarSymbol(v1Name), new VarSymbol(v2Name))(NoPosition)
   def paramType: JawaType = {
     cmp.text match {
       case "fcmpl" | "fcmpg" => JavaKnowledge.FLOAT

@@ -10,6 +10,7 @@
 
 package org.argus.jawa.ast.classfile
 
+import java.io.PrintWriter
 import java.lang.reflect.InvocationTargetException
 
 import org.argus.jawa.compiler.codegen.JavaByteCodeGenerator
@@ -275,6 +276,7 @@ class DeBytecodeTest extends FlatSpec with Matchers {
   def run(classFiles: Seq[String]): Any = {
     var className: String = ""
     val ccl: CustomClassLoader = new CustomClassLoader()
+    val pw = new PrintWriter(System.out)
     classFiles.foreach { file =>
       className = file.substring(7, file.length - 6).replace("/", ".")
       val classfile = new JavaClassFile(new PlainFile(getClass.getResource(file).getPath))
@@ -282,6 +284,7 @@ class DeBytecodeTest extends FlatSpec with Matchers {
       println(cu.toCode)
       val css = new JavaByteCodeGenerator("1.8").generate(None, cu)
       css.foreach{ case (typ, bytes) =>
+        JavaByteCodeGenerator.outputByteCodes(pw, bytes)
         ccl.loadClass(typ.name, bytes)
       }
       className = classfile.getType.name

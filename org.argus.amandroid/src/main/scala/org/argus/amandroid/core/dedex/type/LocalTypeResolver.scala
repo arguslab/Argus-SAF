@@ -280,7 +280,7 @@ object LocalTypeResolver {
           case ce: CmpExpression =>
             uses += ((VarSlot(ce.var1Symbol.varName), new VarType().addType(ce.paramType, CertainLevel.CERTAIN)))
             uses += ((VarSlot(ce.var2Symbol.varName), new VarType().addType(ce.paramType, CertainLevel.CERTAIN)))
-            (JavaKnowledge.BOOLEAN, CertainLevel.IS)
+            (JavaKnowledge.INT, CertainLevel.IS)
           case _: ConstClassExpression =>
             (JavaKnowledge.CLASS, CertainLevel.IS)
           case e: ExceptionExpression =>
