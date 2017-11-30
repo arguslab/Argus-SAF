@@ -223,13 +223,14 @@ class JavaByteCodeGenerator(javaVersion: Int) {
     ms.monitor.tokenType match {
       case MONITOR_ENTER => 
         visitVarLoad(mv, ms.varSymbol.varName)
-        mv.visitInsn(Opcodes.DUP)
-        this.maxLocals += 1
-        mv.visitVarInsn(Opcodes.ASTORE, this.maxLocals)
+//        mv.visitInsn(Opcodes.DUP)
+//        this.maxLocals += 1
+//        mv.visitVarInsn(Opcodes.ASTORE, this.maxLocals)
         mv.visitInsn(Opcodes.MONITORENTER)
       case MONITOR_EXIT => 
-        mv.visitVarInsn(Opcodes.ALOAD, this.maxLocals)
-        this.maxLocals -= 1
+//        mv.visitVarInsn(Opcodes.ALOAD, this.maxLocals)
+//        this.maxLocals -= 1
+        visitVarLoad(mv, ms.varSymbol.varName)
         mv.visitInsn(Opcodes.MONITOREXIT)
       case _ => throw new JawaByteCodeGenException(ms.pos, "visitMonitorStatement problem: " + ms)
     }

@@ -12,7 +12,7 @@ package org.argus.jawa.ast
 
 import com.github.javaparser.ast.stmt.BlockStmt
 import org.argus.jawa.ast.javafile.ClassResolver
-import org.argus.jawa.compiler.lexer.{Token, Tokens}
+import org.argus.jawa.compiler.lexer.{Keywords, Token, Tokens}
 import org.argus.jawa.compiler.lexer.Tokens._
 import org.argus.jawa.compiler.parser._
 import org.argus.jawa.compiler.util.CaseClassReflector
@@ -176,7 +176,7 @@ case class SignatureSymbol(id: Token)(implicit val pos: Position) extends RefSym
 }
 
 case class VarDefSymbol(id: Token)(implicit val pos: Position) extends DefSymbol with VarSym {
-  def this(name: String, pos: Position) = this(Token(Tokens.ID, pos, s"`$name`"))(pos)
+  def this(name: String, pos: Position) = this(Token(Tokens.ID, pos, {if(Keywords.isKeyWord(name)) s"`$name`" else name}))(pos)
   def this(name: String) = this(name, NoPosition)
   var owner: MethodDeclaration = _
   def varName: String = id.text
@@ -184,7 +184,7 @@ case class VarDefSymbol(id: Token)(implicit val pos: Position) extends DefSymbol
 }
 
 case class VarSymbol(id: Token)(implicit val pos: Position) extends RefSymbol with VarSym {
-  def this(name: String, pos: Position) = this(Token(Tokens.ID, pos, s"`$name`"))(pos)
+  def this(name: String, pos: Position) = this(Token(Tokens.ID, pos, {if(Keywords.isKeyWord(name)) s"`$name`" else name}))(pos)
   def this(name: String) = this(name, NoPosition)
   var owner: MethodDeclaration = _
   def varName: String = id.text
@@ -627,7 +627,7 @@ case class MonitorStatement(
   def this(m: String, varName: String) = this({if(m == "monitorenter") Token(Tokens.MONITOR_ENTER, NoPosition, m) else Token(Tokens.MONITOR_EXIT, NoPosition, m)}, new VarSymbol(varName))(NoPosition)
   def isEnter: Boolean = monitor.tokenType == MONITOR_ENTER
   def isExit: Boolean = monitor.tokenType == MONITOR_EXIT
-  def toCode: String = s"@${monitor.rawText} ${varSymbol.toCode};"
+  def toCode: String = s"@${monitor.rawText} ${varSymbol.toCode}"
 }
 
 case class EmptyStatement(annotations: MList[Annotation])(implicit val pos: Position) extends Statement {
@@ -681,6 +681,7 @@ case class StaticFieldAccessExpression(fieldNameSymbol: FieldNameSymbol, typExp:
 }
 
 case class ExceptionExpression(typExp: TypeExpression)(implicit val pos: Position) extends Expression with RHS {
+  def this(t: JawaType) = this(new TypeExpression(t))(NoPosition)
   def typ: JawaType = typExp.typ
   def toCode: String = s"Exception @type ${typExp.toCode}"
 }

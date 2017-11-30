@@ -142,6 +142,8 @@ class MethodResolver(
 
   private val labels: MMap[Label, (String, EmptyStatement, IList[String])] = mmapEmpty
 
+  private val exceptionHandler: MMap[Label, JawaType] = mmapEmpty
+
   private def handleLabel(label: Label): (String, EmptyStatement, IList[String]) = {
     labels.get(label) match {
       case Some(a) => a
@@ -168,6 +170,14 @@ class MethodResolver(
     val loc = new Location(l, es)
     loc.locationSymbol.locationIndex = line
     locations += loc
+    exceptionHandler.get(label) match {
+      case Some(t) =>
+        val temp = push(t)
+        val ee = new ExceptionExpression(t)
+        val stmt = new AssignmentStatement(temp, ee, List(objectAnnotation))
+        createLocation(stmt)
+      case None =>
+    }
   }
 
   private def getClassName(name: String): String = {
@@ -1328,6 +1338,7 @@ class MethodResolver(
     val (from, _, _) = handleLabel(start)
     val (to, _, _) = handleLabel(end)
     val (target, _, _) = handleLabel(handler)
+    exceptionHandler(handler) = typ
     catchClauses += new CatchClause(typ, from, to, target)
   }
 
