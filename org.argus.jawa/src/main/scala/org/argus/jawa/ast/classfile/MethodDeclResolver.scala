@@ -242,11 +242,7 @@
 //    def exec(): Unit
 //  }
 //
-//  trait Stmt {
-//    def toJawa(): Statement
-//  }
-//
-//  case class AssignmentStmt(lhs: VariableInfo, rhs: Either[VariableInfo, ])
+//  private val varMap: MMap[Int, MList[VariableInfo]] = mmapEmpty
 //
 //  /**
 //    * Visits a zero operand instruction.
@@ -268,7 +264,7 @@
 //    * DRETURN, ARETURN, RETURN, ARRAYLENGTH, ATHROW, MONITORENTER,
 //    * or MONITOREXIT.
 //    */
-//  case class Insn(opcode: Int, vars: IList[VariableInfo]) extends Instruction {
+//  case class Insn(opcode: Int) extends Instruction {
 //    def exec(): Unit = {
 //      var stmt: Option[Statement] = None
 //      opcode match {
@@ -1410,7 +1406,13 @@
 //  // Normal instructions
 //  // -------------------------------------------------------------------------
 //
+//  var loc: Int = 0
+//
 //  override def visitInsn(opcode: Int): Unit = {
+//    opcode match {
+//      case ACONST_NULL =>
+//
+//    }
 //    insns += Insn(opcode)
 //  }
 //
