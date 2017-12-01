@@ -1,247 +1,247 @@
-///*
-// * Copyright (c) 2017. Fengguo Wei and others.
-// * All rights reserved. This program and the accompanying materials
-// * are made available under the terms of the Eclipse Public License v1.0
-// * which accompanies this distribution, and is available at
-// * http://www.eclipse.org/legal/epl-v10.html
-// *
-// * Detailed contributors are listed in the CONTRIBUTOR.md
-// */
-//
-//package org.argus.jawa.ast.classfile
-//
-//import org.argus.jawa.ast._
-//import org.argus.jawa.core._
-//import org.argus.jawa.core.io.NoPosition
-//import org.argus.jawa.core.util._
-//import org.objectweb.asm.{Handle, Label, MethodVisitor, Opcodes}
-//
-//class MethodDeclResolver(
-//    api: Int,
-//    accessFlag: Int,
-//    signature: Signature,
-//    methods: MList[MethodDeclaration]) extends MethodVisitor(api) {
-//  val returnType: Type = new Type(signature.getReturnType)
-//  val methodSymbol: MethodDefSymbol = new MethodDefSymbol(signature.methodName)
-//  methodSymbol.signature = signature
-//
-//  val annotations: IList[Annotation] = List(
-//    new Annotation("signature", SymbolValue(new SignatureSymbol(signature))(NoPosition)),
-//    new Annotation("AccessFlag", new TokenValue(AccessFlag.getAccessFlagString(accessFlag)))
-//  )
-//
-//  private def getClassName(name: String): String = {
-//    name.replaceAll("/", ".")
-//  }
-//
-//  // -------------------------------------------------------------------------
-//  // Label
-//  // -------------------------------------------------------------------------
-//  private var labelCount: Int = 0
-//
-//  private val labels: MMap[Label, (String, MList[Annotation])] = mmapEmpty
-//
-//  private def handleLabel(label: Label): (String, MList[Annotation]) = {
-//    labels.get(label) match {
-//      case Some(a) => a
-//      case None =>
-//        val l = s"Label$labelCount"
-//        val annos: MList[Annotation] = mlistEmpty
-//        labels(label) = ((l, annos))
-//        labelCount += 1
-//        (l, annos)
-//    }
-//  }
-//
-//  private val labelIdxs: MMap[Label, Int] = mmapEmpty
-//
-//  var labelIdx: Int = 0
-//  var currentLabel: Label = _
-//  override def visitLabel(label: Label): Unit = {
-//    currentLabel = label
+/*
+ * Copyright (c) 2017. Fengguo Wei and others.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ *
+ * Detailed contributors are listed in the CONTRIBUTOR.md
+ */
+
+package org.argus.jawa.ast.classfile
+
+import org.argus.jawa.ast._
+import org.argus.jawa.core._
+import org.argus.jawa.core.io.NoPosition
+import org.argus.jawa.core.util._
+import org.objectweb.asm.{Handle, Label, MethodVisitor, Opcodes}
+
+class MethodDeclResolver(
+    api: Int,
+    accessFlag: Int,
+    signature: Signature,
+    methods: MList[MethodDeclaration]) extends MethodVisitor(api) {
+  val returnType: Type = new Type(signature.getReturnType)
+  val methodSymbol: MethodDefSymbol = new MethodDefSymbol(signature.methodName)
+  methodSymbol.signature = signature
+
+  val annotations: IList[Annotation] = List(
+    new Annotation("signature", SymbolValue(new SignatureSymbol(signature))(NoPosition)),
+    new Annotation("AccessFlag", new TokenValue(AccessFlag.getAccessFlagString(accessFlag)))
+  )
+
+  private def getClassName(name: String): String = {
+    name.replaceAll("/", ".")
+  }
+
+  // -------------------------------------------------------------------------
+  // Label
+  // -------------------------------------------------------------------------
+  private var labelCount: Int = 0
+
+  private val labels: MMap[Label, (String, MList[Annotation])] = mmapEmpty
+
+  private def handleLabel(label: Label): (String, MList[Annotation]) = {
+    labels.get(label) match {
+      case Some(a) => a
+      case None =>
+        val l = s"Label$labelCount"
+        val annos: MList[Annotation] = mlistEmpty
+        labels(label) = ((l, annos))
+        labelCount += 1
+        (l, annos)
+    }
+  }
+
+  private val labelIdxs: MMap[Label, Int] = mmapEmpty
+
+  var labelIdx: Int = 0
+  var currentLabel: Label = _
+  override def visitLabel(label: Label): Unit = {
+    currentLabel = label
 //    insns += LabelInsn(label)
-//    labelIdxs(label) = labelIdx
-//    labelIdx += 1
-//  }
-//
-//  override def visitLineNumber(line: Int, start: Label): Unit = {
-//    labels.get(start) match {
-//      case Some((_, annos)) =>
-//        annos += new Annotation("line", new TokenValue(s"$line"))
-//      case _ =>
-//    }
-//  }
-//
-//  // -------------------------------------------------------------------------
-//  // Variable management
-//  // -------------------------------------------------------------------------
-//
-//  private val params: MList[Parameter] = mlistEmpty
-//
-//  private val parameterIdx: MMap[Int, (Boolean, JawaType)] = mmapEmpty
-//  private var num: Int = 0
-//  if(!AccessFlag.isStatic(accessFlag) && !AccessFlag.isInterface(accessFlag)) {
-//    parameterIdx(num) = ((true, signature.getClassType))
-//    num += 1
-//  }
-//  signature.getParameterTypes.foreach { typ =>
-//    parameterIdx(num) = ((false, typ))
-//    if(typ.isDWordPrimitive) {
-//      num += 2
-//    } else {
-//      num += 1
-//    }
-//  }
-//
-//  case class VarScope(start: Label, end: Label, typ: JawaType, name: String) {
-//    val min: Int = labelIdxs.getOrElse(start, 0)
-//    val max: Int = labelIdxs.getOrElse(end, Integer.MAX_VALUE)
-//    def inScope(l: Label): Boolean = {
-//      val idx = labelIdxs.getOrElse(l, 0)
-//      min <= idx && idx < max
-//    }
-//  }
-//
-//  private val localVariables: MMap[Int, MSet[VarScope]] = mmapEmpty
-//
-//  /**
-//    * Visits a local variable declaration.
-//    *
-//    * @param name
-//    * the name of a local variable.
-//    * @param desc
-//    * the type descriptor of this local variable.
-//    * @param signature
-//    * the type signature of this local variable. May be
-//    * <tt>null</tt> if the local variable type does not use generic
-//    * types.
-//    * @param start
-//    * the first instruction corresponding to the scope of this local
-//    * variable (inclusive).
-//    * @param end
-//    * the last instruction corresponding to the scope of this local
-//    * variable (exclusive).
-//    * @param index
-//    * the local variable's index.
-//    * @throws IllegalArgumentException
-//    * if one of the labels has not already been visited by this
-//    * visitor (by the { @link #visitLabel visitLabel} method).
-//    */
-//  override def visitLocalVariable(
-//      name: String,
-//      desc: String,
-//      signature: String,
-//      start: Label,
-//      end: Label,
-//      index: Int): Unit = {
-//    parameterIdx.get(index) match {
-//      case Some((isThis, t)) =>
-//        val annos = if(isThis) List(new Annotation("kind", new TokenValue("this"))) else if(t.isObject) List(objectAnnotation) else ilistEmpty
-//        params += new Parameter(t, name, annos)
-//        localVariables.getOrElseUpdate(index, msetEmpty) += VarScope(start, end, t, name)
-//      case None =>
-//        val t = JavaKnowledge.formatSignatureToType(desc)
-//        localVariables.getOrElseUpdate(index, msetEmpty) += VarScope(start, end, t, name)
-//    }
-//  }
-//
-//  private def load(i: Int): (JawaType, String) = {
-//    val scope = localVariables.getOrElse(i, throw DeBytecodeException(s"Failed to load idx $i")).find{ scope =>
-//      scope.inScope(currentLabel)
-//    }.getOrElse(throw DeBytecodeException(s"No variable found at $currentLabel for idx $i"))
-//    (scope.typ, scope.name)
-//  }
-//
-//  private val usedVariables: MMap[String, JawaType] = mmapEmpty
-//
-//  private def getVarType(name: String): JawaType = usedVariables.getOrElse(name, throw DeBytecodeException(s"Variable $name does not exist."))
-//
-//  val locals: MList[LocalVarDeclaration] = mlistEmpty
-//
-//  private def checkAndAddVariable(varType: JawaType): String = {
-//    val expectedName = s"${varType.baseType.name}${if(varType.isArray) s"_arr${varType.dimensions}" else ""}_temp"
-//    var varName = expectedName
-//    var i = 1
-//    while(stackVars.contains(varName)) {
-//      varName = expectedName + i
-//      i += 1
-//      while({
-//        usedVariables.get(varName) match {
-//          case Some(t) => t != varType
-//          case None => false
-//        }
-//      }) {
-//        varName = expectedName + i
-//        i += 1
-//      }
-//    }
-//    if(!usedVariables.contains(varName)) {
-//      val lvd = new LocalVarDeclaration(varType, varName)
-//      locals += lvd
-//      usedVariables(varName) = varType
-//    }
-//    varName
-//  }
-//
-//  // -------------------------------------------------------------------------
-//  // Stack management
-//  // -------------------------------------------------------------------------
-//
-//  class VariableInfo(kind: Option[Int]) {
-//    var typ: JawaType = JavaKnowledge.OBJECT
-////    var name: Option[String] = None
-//  }
-//
-//  private var stackVars: IList[VariableInfo] = ilistEmpty
-//
-//  private def push(typ: JawaType): VariableInfo = {
-//    val vi = new VariableInfo(None)
-//    vi.typ = typ
-//    stackVars = vi :: stackVars
-//    vi
-//  }
-//
-//  private def dup(pos: Int): Unit = {
-//    require(stackVars.size >= pos, s"Stack size less than dup $pos requirement")
-//    val (front, back) = stackVars.splitAt(pos)
-//    stackVars = front ::: stackVars.head :: back
-//  }
-//
-//  private def swap(): Unit = {
-//    require(stackVars.size >= 2, "Stack size less than 2 for swap")
-//    stackVars = stackVars.take(2).reverse ::: stackVars.drop(2)
-//  }
-//
-//  private def pop(expectedType: Option[JawaType]): VariableInfo = {
-//    require(stackVars.nonEmpty, "Stack should not be empty via pop")
-//    val typ :: tail = stackVars
-//    stackVars = tail
-//    if(typ.typ.baseType.unknown) {
-//      expectedType match {
-//        case Some(e) =>
-//          typ.typ = e
-//        case None =>
-//      }
-//    }
-//    typ
-//  }
-//
-//  private val labelStack: MMap[Label, IList[VariableInfo]] = mmapEmpty
-//
-//  private def logStack(label: Label): Unit = labelStack(label) = stackVars
-//
-//  // -------------------------------------------------------------------------
-//  // Instruction factory
-//  // -------------------------------------------------------------------------
-//
-//  val objectAnnotation = new Annotation("kind", new TokenValue("object"))
-//
-//  import Opcodes._
-//
-//  trait Instruction {
-//    def exec(): Unit
-//  }
-//
+    labelIdxs(label) = labelIdx
+    labelIdx += 1
+  }
+
+  override def visitLineNumber(line: Int, start: Label): Unit = {
+    labels.get(start) match {
+      case Some((_, annos)) =>
+        annos += new Annotation("line", new TokenValue(s"$line"))
+      case _ =>
+    }
+  }
+
+  // -------------------------------------------------------------------------
+  // Variable management
+  // -------------------------------------------------------------------------
+
+  private val params: MList[Parameter] = mlistEmpty
+
+  private val parameterIdx: MMap[Int, (Boolean, JawaType)] = mmapEmpty
+  private var num: Int = 0
+  if(!AccessFlag.isStatic(accessFlag) && !AccessFlag.isInterface(accessFlag)) {
+    parameterIdx(num) = ((true, signature.getClassType))
+    num += 1
+  }
+  signature.getParameterTypes.foreach { typ =>
+    parameterIdx(num) = ((false, typ))
+    if(typ.isDWordPrimitive) {
+      num += 2
+    } else {
+      num += 1
+    }
+  }
+
+  case class VarScope(start: Label, end: Label, typ: JawaType, name: String) {
+    val min: Int = labelIdxs.getOrElse(start, 0)
+    val max: Int = labelIdxs.getOrElse(end, Integer.MAX_VALUE)
+    def inScope(l: Label): Boolean = {
+      val idx = labelIdxs.getOrElse(l, 0)
+      min <= idx && idx < max
+    }
+  }
+
+  private val localVariables: MMap[Int, MSet[VarScope]] = mmapEmpty
+
+  /**
+    * Visits a local variable declaration.
+    *
+    * @param name
+    * the name of a local variable.
+    * @param desc
+    * the type descriptor of this local variable.
+    * @param signature
+    * the type signature of this local variable. May be
+    * <tt>null</tt> if the local variable type does not use generic
+    * types.
+    * @param start
+    * the first instruction corresponding to the scope of this local
+    * variable (inclusive).
+    * @param end
+    * the last instruction corresponding to the scope of this local
+    * variable (exclusive).
+    * @param index
+    * the local variable's index.
+    * @throws IllegalArgumentException
+    * if one of the labels has not already been visited by this
+    * visitor (by the { @link #visitLabel visitLabel} method).
+    */
+  override def visitLocalVariable(
+      name: String,
+      desc: String,
+      signature: String,
+      start: Label,
+      end: Label,
+      index: Int): Unit = {
+    parameterIdx.get(index) match {
+      case Some((isThis, t)) =>
+        val annos = if(isThis) List(new Annotation("kind", new TokenValue("this"))) else if(t.isObject) List(objectAnnotation) else ilistEmpty
+        params += new Parameter(t, name, annos)
+        localVariables.getOrElseUpdate(index, msetEmpty) += VarScope(start, end, t, name)
+      case None =>
+        val t = JavaKnowledge.formatSignatureToType(desc)
+        localVariables.getOrElseUpdate(index, msetEmpty) += VarScope(start, end, t, name)
+    }
+  }
+
+  private def load(i: Int): (JawaType, String) = {
+    val scope = localVariables.getOrElse(i, throw DeBytecodeException(s"Failed to load idx $i")).find{ scope =>
+      scope.inScope(currentLabel)
+    }.getOrElse(throw DeBytecodeException(s"No variable found at $currentLabel for idx $i"))
+    (scope.typ, scope.name)
+  }
+
+  private val usedVariables: MMap[String, JawaType] = mmapEmpty
+
+  private def getVarType(name: String): JawaType = usedVariables.getOrElse(name, throw DeBytecodeException(s"Variable $name does not exist."))
+
+  val locals: MList[LocalVarDeclaration] = mlistEmpty
+
+  private def checkAndAddVariable(varType: JawaType): String = {
+    val expectedName = s"${varType.baseType.name}${if(varType.isArray) s"_arr${varType.dimensions}" else ""}_temp"
+    var varName = expectedName
+    var i = 1
+    while(stackVars.contains(varName)) {
+      varName = expectedName + i
+      i += 1
+      while({
+        usedVariables.get(varName) match {
+          case Some(t) => t != varType
+          case None => false
+        }
+      }) {
+        varName = expectedName + i
+        i += 1
+      }
+    }
+    if(!usedVariables.contains(varName)) {
+      val lvd = new LocalVarDeclaration(varType, varName)
+      locals += lvd
+      usedVariables(varName) = varType
+    }
+    varName
+  }
+
+  // -------------------------------------------------------------------------
+  // Stack management
+  // -------------------------------------------------------------------------
+
+  class VariableInfo(kind: Option[Int]) {
+    var typ: JawaType = JavaKnowledge.OBJECT
+//    var name: Option[String] = None
+  }
+
+  private var stackVars: IList[VariableInfo] = ilistEmpty
+
+  private def push(typ: JawaType): VariableInfo = {
+    val vi = new VariableInfo(None)
+    vi.typ = typ
+    stackVars = vi :: stackVars
+    vi
+  }
+
+  private def dup(pos: Int): Unit = {
+    require(stackVars.size >= pos, s"Stack size less than dup $pos requirement")
+    val (front, back) = stackVars.splitAt(pos)
+    stackVars = front ::: stackVars.head :: back
+  }
+
+  private def swap(): Unit = {
+    require(stackVars.size >= 2, "Stack size less than 2 for swap")
+    stackVars = stackVars.take(2).reverse ::: stackVars.drop(2)
+  }
+
+  private def pop(expectedType: Option[JawaType]): VariableInfo = {
+    require(stackVars.nonEmpty, "Stack should not be empty via pop")
+    val typ :: tail = stackVars
+    stackVars = tail
+    if(typ.typ.baseType.unknown) {
+      expectedType match {
+        case Some(e) =>
+          typ.typ = e
+        case None =>
+      }
+    }
+    typ
+  }
+
+  private val labelStack: MMap[Label, IList[VariableInfo]] = mmapEmpty
+
+  private def logStack(label: Label): Unit = labelStack(label) = stackVars
+
+  // -------------------------------------------------------------------------
+  // Instruction factory
+  // -------------------------------------------------------------------------
+
+  val objectAnnotation = new Annotation("kind", new TokenValue("object"))
+
+  import Opcodes._
+
+  trait Instruction {
+    def exec(): Unit
+  }
+
 //  private val varMap: MMap[Int, MList[VariableInfo]] = mmapEmpty
 //
 //  /**
@@ -1399,141 +1399,145 @@
 //      }
 //    }
 //  }
-//
-//  private val insns: MList[Instruction] = mlistEmpty
-//
-//  // -------------------------------------------------------------------------
-//  // Normal instructions
-//  // -------------------------------------------------------------------------
-//
-//  var loc: Int = 0
-//
-//  override def visitInsn(opcode: Int): Unit = {
-//    opcode match {
-//      case ACONST_NULL =>
-//
-//    }
+
+  private val insns: MList[Instruction] = mlistEmpty
+
+  // -------------------------------------------------------------------------
+  // Normal instructions
+  // -------------------------------------------------------------------------
+
+  var loc: Int = 0
+
+  override def visitInsn(opcode: Int): Unit = {
+    opcode match {
+      case ACONST_NULL =>
+
+    }
 //    insns += Insn(opcode)
-//  }
-//
-//  override def visitIntInsn(opcode: Int, operand: Int): Unit = {
+  }
+
+  override def visitIntInsn(opcode: Int, operand: Int): Unit = {
+    opcode match {
+      case ACONST_NULL =>
+        push(JavaKnowledge.OBJECT.toUnknown)
+    }
 //    insns += IntInsn(opcode, operand)
-//  }
-//
-//  override def visitVarInsn(opcode: Int, v: Int): Unit = {
+  }
+
+  override def visitVarInsn(opcode: Int, v: Int): Unit = {
 //    insns += VarInsn(opcode, v)
-//  }
-//
-//  override def visitTypeInsn(opcode: Int, t: String): Unit = {
+  }
+
+  override def visitTypeInsn(opcode: Int, t: String): Unit = {
 //    insns += TypeInsn(opcode, t)
-//  }
-//
-//
-//  override def visitFieldInsn(opcode: Int, owner: String, name: String, desc: String): Unit = {
+  }
+
+
+  override def visitFieldInsn(opcode: Int, owner: String, name: String, desc: String): Unit = {
 //    insns += FieldInsn(opcode, owner, name, desc)
-//  }
-//
-//  override def visitMethodInsn(opcode: Int, owner: String, name: String, desc: String, itf: Boolean): Unit = {
+  }
+
+  override def visitMethodInsn(opcode: Int, owner: String, name: String, desc: String, itf: Boolean): Unit = {
 //    insns += MethodInsn(opcode, owner, name, desc, itf)
-//  }
-//
-//
-//  override def visitInvokeDynamicInsn(name: FileResourceUri, desc: FileResourceUri, bsm: Handle, bsmArgs: AnyRef*): Unit = {
+  }
+
+
+  override def visitInvokeDynamicInsn(name: FileResourceUri, desc: FileResourceUri, bsm: Handle, bsmArgs: AnyRef*): Unit = {
 //    insns += InvokeDynamicInsn(name, desc, bsm, bsmArgs)
-//  }
-//
-//  override def visitJumpInsn(opcode: Int, label: Label): Unit = {
+  }
+
+  override def visitJumpInsn(opcode: Int, label: Label): Unit = {
 //    insns += JumpInsn(opcode, label)
-//  }
-//
-//  // -------------------------------------------------------------------------
-//  // Special instructions
-//  // -------------------------------------------------------------------------
-//
-//  override def visitLdcInsn(cst: Any): Unit = {
+  }
+
+  // -------------------------------------------------------------------------
+  // Special instructions
+  // -------------------------------------------------------------------------
+
+  override def visitLdcInsn(cst: Any): Unit = {
 //    insns += LdcInsn(cst)
-//  }
-//
-//  override def visitIincInsn(v: Int, increment: Int): Unit = {
+  }
+
+  override def visitIincInsn(v: Int, increment: Int): Unit = {
 //    insns += IincInsn(v, increment)
-//  }
-//
-//  override def visitTableSwitchInsn(min: Int, max: Int, dflt: Label, labels: Label*): Unit = {
+  }
+
+  override def visitTableSwitchInsn(min: Int, max: Int, dflt: Label, labels: Label*): Unit = {
 //    insns += TableSwitchInsn(min, max, dflt, labels)
-//  }
-//
-//  override def visitLookupSwitchInsn(dflt: Label, keys: Array[Int], labels: Array[Label]): Unit = {
+  }
+
+  override def visitLookupSwitchInsn(dflt: Label, keys: Array[Int], labels: Array[Label]): Unit = {
 //    insns += LookupSwitchInsn(dflt, keys, labels)
-//  }
-//
-//  override def visitMultiANewArrayInsn(desc: String, dims: Int): Unit = {
+  }
+
+  override def visitMultiANewArrayInsn(desc: String, dims: Int): Unit = {
 //    insns += MultiANewArrayInsn(desc, dims)
-//  }
-//
-//  // -------------------------------------------------------------------------
-//  // Exceptions table entries
-//  // -------------------------------------------------------------------------
-//
-//  private val exceptionHandler: MMap[Label, JawaType] = mmapEmpty
-//
-//  private val catchClauses: MList[CatchClause] = mlistEmpty
-//
-//  /**
-//    * Visits a try catch block.
-//    *
-//    * @param start
-//    * beginning of the exception handler's scope (inclusive).
-//    * @param end
-//    * end of the exception handler's scope (exclusive).
-//    * @param handler
-//    * beginning of the exception handler's code.
-//    * @param t
-//    * internal name of the type of exceptions handled by the
-//    * handler, or <tt>null</tt> to catch any exceptions (for
-//    * "finally" blocks).
-//    * @throws IllegalArgumentException
-//    * if one of the labels has already been visited by this visitor
-//    * (by the { @link #visitLabel visitLabel} method).
-//    */
-//  override def visitTryCatchBlock(start: Label, end: Label, handler: Label, t: String): Unit = {
-//    val typ: JawaType = Option(t) match {
-//      case Some(str) => JavaKnowledge.getTypeFromName(getClassName(str))
-//      case None => ExceptionCenter.THROWABLE
-//    }
-//    val (from, _, _) = handleLabel(start)
-//    val (to, _, _) = handleLabel(end)
-//    val (target, _, _) = handleLabel(handler)
-//    exceptionHandler(handler) = typ
-//    catchClauses += new CatchClause(typ, from, to, target)
-//  }
-//
-//  // -------------------------------------------------------------------------
-//  // Location
-//  // -------------------------------------------------------------------------
-//
-//  private var locCount: Int = 0
-//  private def line: Int = labelCount + locCount
-//
-//  val locations: MList[Location] = mlistEmpty
-//
-//  private def createLocation(stmt: Statement): Unit = {
-//    val l = s"L$locCount"
-//    val loc = new Location(l, stmt)
-//    loc.locationSymbol.locationIndex = line
-//    locations += loc
-//    locCount += 1
-//  }
-//
-//  override def visitEnd(): Unit = {
-//    val body: Body = ResolvedBody(locals.toList, locations.toList, catchClauses.toList)(NoPosition)
-//    val md = MethodDeclaration(returnType, methodSymbol, params.toList, annotations, body)(NoPosition)
-//    md.getAllChildren foreach {
-//      case vd: VarDefSymbol => vd.owner = md
-//      case vs: VarSymbol => vs.owner = md
-//      case ld: LocationDefSymbol => ld.owner = md
-//      case ls: LocationSymbol => ls.owner = md
-//      case _ =>
-//    }
-//    methods += md
-//  }
-//}
+  }
+
+  // -------------------------------------------------------------------------
+  // Exceptions table entries
+  // -------------------------------------------------------------------------
+
+  private val exceptionHandler: MMap[Label, JawaType] = mmapEmpty
+
+  private val catchClauses: MList[CatchClause] = mlistEmpty
+
+  /**
+    * Visits a try catch block.
+    *
+    * @param start
+    * beginning of the exception handler's scope (inclusive).
+    * @param end
+    * end of the exception handler's scope (exclusive).
+    * @param handler
+    * beginning of the exception handler's code.
+    * @param t
+    * internal name of the type of exceptions handled by the
+    * handler, or <tt>null</tt> to catch any exceptions (for
+    * "finally" blocks).
+    * @throws IllegalArgumentException
+    * if one of the labels has already been visited by this visitor
+    * (by the { @link #visitLabel visitLabel} method).
+    */
+  override def visitTryCatchBlock(start: Label, end: Label, handler: Label, t: String): Unit = {
+    val typ: JawaType = Option(t) match {
+      case Some(str) => JavaKnowledge.getTypeFromName(getClassName(str))
+      case None => ExceptionCenter.THROWABLE
+    }
+    val (from, _, _) = handleLabel(start)
+    val (to, _, _) = handleLabel(end)
+    val (target, _, _) = handleLabel(handler)
+    exceptionHandler(handler) = typ
+    catchClauses += new CatchClause(typ, from, to, target)
+  }
+
+  // -------------------------------------------------------------------------
+  // Location
+  // -------------------------------------------------------------------------
+
+  private var locCount: Int = 0
+  private def line: Int = labelCount + locCount
+
+  val locations: MList[Location] = mlistEmpty
+
+  private def createLocation(stmt: Statement): Unit = {
+    val l = s"L$locCount"
+    val loc = new Location(l, stmt)
+    loc.locationSymbol.locationIndex = line
+    locations += loc
+    locCount += 1
+  }
+
+  override def visitEnd(): Unit = {
+    val body: Body = ResolvedBody(locals.toList, locations.toList, catchClauses.toList)(NoPosition)
+    val md = MethodDeclaration(returnType, methodSymbol, params.toList, annotations, body)(NoPosition)
+    md.getAllChildren foreach {
+      case vd: VarDefSymbol => vd.owner = md
+      case vs: VarSymbol => vs.owner = md
+      case ld: LocationDefSymbol => ld.owner = md
+      case ls: LocationSymbol => ls.owner = md
+      case _ =>
+    }
+    methods += md
+  }
+}
