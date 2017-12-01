@@ -27,6 +27,16 @@ trait JavaKnowledge {
     */
   def isJavaPrimitive(name: String): Boolean = this.JAVA_PRIMITIVES.contains(name)
 
+  /**
+    * return whether given type is java dword primitive type
+    */
+  def isJavaDwordPrimitive(typ: JawaType): Boolean = typ.isDWordPrimitive
+
+  /**
+    * return whether given type is java dword primitive type
+    */
+  def isJavaDwordPrimitive(name: String): Boolean = this.JAVA_DWORD_PRIMITIVES.contains(name)
+
   object ClassCategory extends Enumeration {
     val APPLICATION, USER_LIBRARY, SYSTEM_LIBRARY = Value
   }
