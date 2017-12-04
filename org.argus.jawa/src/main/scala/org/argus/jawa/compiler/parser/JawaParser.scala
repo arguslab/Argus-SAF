@@ -17,6 +17,8 @@ import org.argus.jawa.core.io.{DefinedPosition, NoPosition, Position, SourceFile
 import org.argus.jawa.core.{JavaKnowledge, Reporter}
 import org.argus.jawa.core.util._
 
+import scala.util.{Failure, Success, Try}
+
 class JawaParser(tokens: Array[Token], reporter: Reporter) extends JavaKnowledge {
 
   private val logging: Boolean = false
@@ -968,12 +970,12 @@ object JawaParser {
   /**
    * parse the given source as a parsable ast node
    */
-  def parse[T <: ParsableAstNode](source: Either[String, SourceFile], resolveBody: Boolean, reporter: Reporter, claz: Class[T]): Either[T, JawaParserException] = {
+  def parse[T <: ParsableAstNode](source: Either[String, SourceFile], resolveBody: Boolean, reporter: Reporter, claz: Class[T]): Try[T] = {
       val tokens = JawaLexer.tokenise(source, reporter)
       parse(tokens, resolveBody, reporter, claz)
   }
   
-  def parse[T <: ParsableAstNode](tokens: IList[Token], resolveBody: Boolean, reporter: Reporter, clazz: Class[T]): Either[T, JawaParserException] = {
+  def parse[T <: ParsableAstNode](tokens: IList[Token], resolveBody: Boolean, reporter: Reporter, clazz: Class[T]): Try[T] = {
     val parser = new JawaParser(tokens.toArray, reporter)
     try{
       val pasable = clazz.getName match {
@@ -990,11 +992,11 @@ object JawaParser {
         case a =>
           throw new JawaParserException(NoPosition, s"Cannot parse type $a")
       }
-      Left(pasable.asInstanceOf[T])
+      Success(pasable.asInstanceOf[T])
     } catch {
       case e: JawaParserException =>
         reporter.error(e.pos, e.message)
-        Right(e)
+        Failure(e)
     }
   }
 }

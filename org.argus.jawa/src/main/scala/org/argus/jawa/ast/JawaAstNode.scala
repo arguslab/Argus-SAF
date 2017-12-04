@@ -11,6 +11,7 @@
 package org.argus.jawa.ast
 
 import com.github.javaparser.ast.stmt.BlockStmt
+import org.argus.jawa.ast.classfile.BytecodeInstructions
 import org.argus.jawa.ast.javafile.ClassResolver
 import org.argus.jawa.compiler.lexer.{Keywords, Token, Tokens}
 import org.argus.jawa.compiler.lexer.Tokens._
@@ -21,6 +22,7 @@ import org.argus.jawa.core.util._
 import org.argus.jawa.core.{DefaultReporter, JavaKnowledge, JawaType, Signature}
 
 import scala.language.implicitConversions
+import scala.util.{Failure, Success}
 
 /**
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
@@ -349,11 +351,11 @@ case class TypeFragment()(implicit val pos: Position) extends JawaAstNode {
 }
 
 case class MethodDeclaration(
-                              returnType: Type,
-                              methodSymbol: MethodDefSymbol,
-                              params: IList[Parameter],
-                              annotations: IList[Annotation],
-                              var body: Body)(implicit val pos: Position) extends Declaration with ParsableAstNode {
+    returnType: Type,
+    methodSymbol: MethodDefSymbol,
+    params: IList[Parameter],
+    annotations: IList[Annotation],
+    var body: Body)(implicit val pos: Position) extends Declaration with ParsableAstNode {
   def isConstructor: Boolean = isJawaConstructor(name)
   def name: String = methodSymbol.id.text.substring(methodSymbol.id.text.lastIndexOf(".") + 1)
   def owner: String = signature.getClassName
@@ -398,8 +400,8 @@ sealed trait Unresolved {
 
 case class UnresolvedBodyJawa(bodytokens: IList[Token])(implicit val pos: Position) extends Body with Unresolved {
   def resolve(sig: Signature): ResolvedBody = JawaParser.parse[Body](bodytokens, resolveBody = true, new DefaultReporter, classOf[Body]) match {
-    case Left(body) => body.asInstanceOf[ResolvedBody]
-    case Right(t) => throw t
+    case Success(body) => body.asInstanceOf[ResolvedBody]
+    case Failure(t) => throw t
   }
   def toCode: String = "{}"
 }
@@ -407,6 +409,13 @@ case class UnresolvedBodyJawa(bodytokens: IList[Token])(implicit val pos: Positi
 case class UnresolvedBodyJava(bodyBlock: BlockStmt)(implicit val pos: Position, cr: ClassResolver) extends Body with Unresolved {
   def resolve(sig: Signature): ResolvedBody = {
     cr.processBody(sig, bodyBlock)
+  }
+  def toCode: String = "{}"
+}
+
+case class UnresolvedBodyBytecode(bytecode: BytecodeInstructions)(implicit val pos: Position) extends Body with Unresolved {
+  def resolve(sig: Signature): ResolvedBody = {
+    bytecode.genJawa
   }
   def toCode: String = "{}"
 }
