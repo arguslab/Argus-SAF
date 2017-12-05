@@ -16,6 +16,8 @@ import org.argus.jawa.core.frontend.{MyClass, MyMethod}
 import org.argus.jawa.core.frontend.jawafile.JawaAstParser
 import org.argus.jawa.core.util._
 
+import scala.util.{Failure, Success}
+
 /**
  * this object collects info from the symbol table and builds Center, JawaClass, and JawaMethod
  *
@@ -152,10 +154,10 @@ trait JawaResolver extends JavaKnowledge { self: Global =>
 object JawaResolver{
   def parseClass(code: String, reporter: Reporter): CompilationUnit = {
     val model = JawaParser.parse[CompilationUnit](Left(code), resolveBody = false, reporter, classOf[CompilationUnit])
-    model match{case Left(m) => m; case Right(e) => throw e}
+    model match{case Success(m) => m; case Failure(e) => throw e}
   }
   def parseMethod(code: String, reporter: Reporter): MethodDeclaration = {
     val md = JawaParser.parse[MethodDeclaration](Left(code), resolveBody = false, reporter, classOf[MethodDeclaration])
-    md match{case Left(m) => m; case Right(e) => throw e}
+    md match{case Success(m) => m; case Failure(e) => throw e}
   }
 }

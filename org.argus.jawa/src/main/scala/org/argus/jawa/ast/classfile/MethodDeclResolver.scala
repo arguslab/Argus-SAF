@@ -37,32 +37,8 @@ class MethodDeclResolver(
   // -------------------------------------------------------------------------
   // Label
   // -------------------------------------------------------------------------
-  private var labelCount: Int = 0
 
-  private val labels: MMap[Label, (String, MList[Annotation])] = mmapEmpty
-
-  private def handleLabel(label: Label): (String, MList[Annotation]) = {
-    labels.get(label) match {
-      case Some(a) => a
-      case None =>
-        val l = s"Label$labelCount"
-        val annos: MList[Annotation] = mlistEmpty
-        labels(label) = ((l, annos))
-        labelCount += 1
-        (l, annos)
-    }
-  }
-
-  private val labelIdxs: MMap[Label, Int] = mmapEmpty
-
-  var labelIdx: Int = 0
-  var currentLabel: Label = _
-  override def visitLabel(label: Label): Unit = {
-    currentLabel = label
-//    insns += LabelInsn(label)
-    labelIdxs(label) = labelIdx
-    labelIdx += 1
-  }
+  private val labels: MList[Label] = mlistEmpty
 
   override def visitLineNumber(line: Int, start: Label): Unit = {
     labels.get(start) match {
@@ -182,7 +158,6 @@ class MethodDeclResolver(
   }
 
   override def visitJumpInsn(opcode: Int, label: Label): Unit = {
-    handleLabel(label)
     bytecodes.addInsn(bytecodes.JumpInsn(opcode, label))
   }
 
@@ -199,14 +174,10 @@ class MethodDeclResolver(
   }
 
   override def visitTableSwitchInsn(min: Int, max: Int, dflt: Label, labels: Label*): Unit = {
-    labels.foreach(label => handleLabel(label))
-    handleLabel(dflt)
     bytecodes.addInsn(bytecodes.TableSwitchInsn(min, max, dflt, labels))
   }
 
   override def visitLookupSwitchInsn(dflt: Label, keys: Array[Int], labels: Array[Label]): Unit = {
-    labels.foreach(label => handleLabel(label))
-    handleLabel(dflt)
     bytecodes.addInsn(bytecodes.LookupSwitchInsn(dflt, keys, labels))
   }
 
@@ -219,9 +190,6 @@ class MethodDeclResolver(
   // -------------------------------------------------------------------------
 
   override def visitTryCatchBlock(start: Label, end: Label, handler: Label, t: String): Unit = {
-    handleLabel(start)
-    handleLabel(end)
-    handleLabel(handler)
     bytecodes.addInsn(bytecodes.TryCatchBlock(start, end, handler, t))
   }
 
