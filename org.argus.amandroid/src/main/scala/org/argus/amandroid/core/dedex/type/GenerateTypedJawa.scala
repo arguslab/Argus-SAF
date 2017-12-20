@@ -18,12 +18,13 @@ import org.argus.jawa.ast._
 import org.argus.jawa.compiler.lexer.{Token, Tokens}
 import org.argus.jawa.compiler.parser._
 import org.argus.jawa.core.codegen.JawaModelProvider
-import org.argus.jawa.core.io.Position
+import org.argus.jawa.core.io.{NoPosition, Position}
 import org.argus.jawa.core.util._
 import org.argus.jawa.core.{AccessFlag, Global, JavaKnowledge, JawaType}
 import org.stringtemplate.v4.{ST, STGroupString}
 
 import collection.JavaConverters._
+import scala.util.{Failure, Success}
 
 /**
   * Created by fgwei on 4/28/17.
@@ -33,13 +34,13 @@ object GenerateTypedJawa {
   def apply(code: String, global: Global): String = {
     val sb: StringBuilder = new StringBuilder
     JawaParser.parse[CompilationUnit](Left(code), resolveBody = true, global.reporter, classOf[CompilationUnit]) match {
-      case Left(cu) =>
+      case Success(cu) =>
         if(!cu.localTypResolved) {
           cu.topDecls foreach { clazz =>
             sb.append(generateRecord(global, clazz))
           }
         }
-      case Right(e) => global.reporter.error(e.pos, e.message)
+      case Failure(e) => global.reporter.error(NoPosition, e.getMessage)
     }
     sb.toString()
   }

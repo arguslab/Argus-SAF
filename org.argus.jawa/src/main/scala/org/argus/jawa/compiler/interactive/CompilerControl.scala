@@ -15,6 +15,8 @@ import org.argus.jawa.compiler.parser.JawaParser
 import org.argus.jawa.compiler.util._
 import org.argus.jawa.core.io.{AbstractFile, Position, SourceFile}
 
+import scala.util.{Failure, Success}
+
 
 /** Interface of interactive compiler to a client such as an IDE
  *  The model the presentation compiler consists of the following parts:
@@ -162,8 +164,8 @@ trait CompilerControl { self: Global =>
    */
   def parseCompilationUnit(source: SourceFile): Option[CompilationUnit] = {
     JawaParser.parse[CompilationUnit](Right(source), resolveBody = true, reporter, classOf[CompilationUnit]) match {
-      case Left(cu) => Some(cu)
-      case Right(_) => None
+      case Success(cu) => Some(cu)
+      case Failure(_) => None
     }
   }
 

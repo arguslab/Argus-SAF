@@ -12,7 +12,6 @@ package org.argus.jawa.ast
 
 import com.github.javaparser.ast.stmt.BlockStmt
 import org.argus.jawa.ast.classfile.BytecodeInstructions
-import org.argus.jawa.ast.javafile.ClassResolver
 import org.argus.jawa.compiler.lexer.{Keywords, Token, Tokens}
 import org.argus.jawa.compiler.lexer.Tokens._
 import org.argus.jawa.compiler.parser._
@@ -406,12 +405,12 @@ case class UnresolvedBodyJawa(bodytokens: IList[Token])(implicit val pos: Positi
   def toCode: String = "{}"
 }
 
-case class UnresolvedBodyJava(bodyBlock: BlockStmt)(implicit val pos: Position, cr: ClassResolver) extends Body with Unresolved {
-  def resolve(sig: Signature): ResolvedBody = {
-    cr.processBody(sig, bodyBlock)
-  }
-  def toCode: String = "{}"
-}
+//case class UnresolvedBodyJava(bodyBlock: BlockStmt)(implicit val pos: Position, cr: ClassResolver) extends Body with Unresolved {
+//  def resolve(sig: Signature): ResolvedBody = {
+//    cr.processBody(sig, bodyBlock)
+//  }
+//  def toCode: String = "{}"
+//}
 
 case class UnresolvedBodyBytecode(bytecode: BytecodeInstructions)(implicit val pos: Position) extends Body with Unresolved {
   def resolve(sig: Signature): ResolvedBody = {

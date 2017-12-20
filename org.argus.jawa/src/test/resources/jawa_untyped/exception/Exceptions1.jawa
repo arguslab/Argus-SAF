@@ -15,7 +15,7 @@ record `com.fgwei.Exceptions1` @kind class @AccessFlag PUBLIC {
   #L02c19a.  v1:= new `java.lang.RuntimeException`;
   #L02c19e.  call `<init>`(v1) @signature `Ljava/lang/RuntimeException;.<init>:()V` @kind direct;
   #L02c1a4.  throw v1;
-  #L02c1a6.  v6:= Exception @kind object;
+  #L02c1a6.  v6:= Exception @type ^`java.lang.RuntimeException` @kind object;
   #L02c1b0.  v2:= 1I @kind int;
   #L02c1be.  return v2 ;
   catch  `java.lang.RuntimeException` @[L02c16c..L02c1a6] goto L02c1a6;

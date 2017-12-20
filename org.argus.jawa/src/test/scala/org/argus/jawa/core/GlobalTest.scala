@@ -59,8 +59,7 @@ class GlobalTest extends FlatSpec with Matchers {
       myClass.typ == new JawaType("java.lang.Object") &&
       myClass.superType.isEmpty &&
       myClass.interfaces.isEmpty &&
-      myClass.outerType.isEmpty &&
-      myClass.fields.isEmpty
+      myClass.outerType.isEmpty
     )
   }
 

@@ -68,6 +68,9 @@ class ClassResolver(api: Int) extends ClassVisitor(api) {
       val annotation = new Annotation("kind", new TokenValue("interface"))
       parentTyps += ExtendAndImplement(new TypeSymbol(getClassName(interface)), List(annotation))(NoPosition)
     }
+    if(parentTyps.nonEmpty) {
+      extendsAndImplementsClausesOpt = Some(ExtendsAndImplementsClauses(parentTyps.toList)(NoPosition))
+    }
   }
 
   override def visitField(
@@ -95,6 +98,6 @@ class ClassResolver(api: Int) extends ClassVisitor(api) {
                            signature: String, exceptions: scala.Array[String]): MethodVisitor = {
     val accessFlag: Int = AccessFlag.getJawaFlags(access, FlagKind.METHOD, if(name == "<init>" || name == "<clinit>") true else false)
     val signature: Signature = JavaKnowledge.genSignature(JavaKnowledge.formatTypeToSignature(cityp.typ), name, desc)
-    new MethodResolver(api, accessFlag, signature, methods)
+    new MethodDeclResolver(api, accessFlag, signature, methods)
   }
 }

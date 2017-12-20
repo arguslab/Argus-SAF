@@ -30,44 +30,40 @@ class MethodDeclResolver(
     new Annotation("AccessFlag", new TokenValue(AccessFlag.getAccessFlagString(accessFlag)))
   )
 
-  val bytecodes: BytecodeInstructions = new BytecodeInstructions(signature, NoPosition)
+  val lvr: LocalVarResolver = new LocalVarResolver(signature)
 
-  private def objectAnnotation = new Annotation("kind", new TokenValue("object"))
+  val bytecodes: BytecodeInstructions = new BytecodeInstructions(signature, NoPosition, lvr)
 
   // -------------------------------------------------------------------------
   // Label
   // -------------------------------------------------------------------------
   private var labelCount: Int = 0
+  val labels: MMap[Label, LabelInsn] = mmapEmpty
 
-  private val labels: MMap[Label, (String, MList[Annotation])] = mmapEmpty
-
-  private def handleLabel(label: Label): (String, MList[Annotation]) = {
+  private def handleLabel(label: Label): LabelInsn = {
     labels.get(label) match {
-      case Some(a) => a
+      case Some(li) =>
+        li
       case None =>
         val l = s"Label$labelCount"
         val annos: MList[Annotation] = mlistEmpty
-        labels(label) = ((l, annos))
+        val li = LabelInsn(l, annos, None)
+        labels(label) = li
         labelCount += 1
-        (l, annos)
+        li
     }
   }
 
-  private val labelIdxs: MMap[Label, Int] = mmapEmpty
-
-  var labelIdx: Int = 0
-  var currentLabel: Label = _
   override def visitLabel(label: Label): Unit = {
-    currentLabel = label
-//    insns += LabelInsn(label)
-    labelIdxs(label) = labelIdx
-    labelIdx += 1
+    val li = handleLabel(label)
+    val loc = bytecodes.addInsn(li)
+    lvr.labelIdxs(label) = loc
   }
 
   override def visitLineNumber(line: Int, start: Label): Unit = {
     labels.get(start) match {
-      case Some((_, annos)) =>
-        annos += new Annotation("line", new TokenValue(s"$line"))
+      case Some(li) =>
+        li.annotations += new Annotation("line", new TokenValue(s"$line"))
       case _ =>
     }
   }
@@ -92,17 +88,6 @@ class MethodDeclResolver(
       num += 1
     }
   }
-
-  case class VarScope(start: Label, end: Label, typ: JawaType, name: String) {
-    val min: Int = labelIdxs.getOrElse(start, 0)
-    val max: Int = labelIdxs.getOrElse(end, Integer.MAX_VALUE)
-    def inScope(l: Label): Boolean = {
-      val idx = labelIdxs.getOrElse(l, 0)
-      min <= idx && idx < max
-    }
-  }
-
-  private val localVariables: MMap[Int, MSet[VarScope]] = mmapEmpty
 
   /**
     * Visits a local variable declaration.
@@ -136,12 +121,12 @@ class MethodDeclResolver(
       index: Int): Unit = {
     parameterIdx.get(index) match {
       case Some((isThis, t)) =>
-        val annos = if(isThis) List(new Annotation("kind", new TokenValue("this"))) else if(t.isObject) List(objectAnnotation) else ilistEmpty
+        val annos = if(isThis) List(new Annotation("kind", new TokenValue("this"))) else if(t.isObject) List(new Annotation("kind", new TokenValue("object"))) else ilistEmpty
         params += new Parameter(t, name, annos)
-        localVariables.getOrElseUpdate(index, msetEmpty) += VarScope(start, end, t, name)
+        lvr.localVariables.getOrElseUpdate(index, msetEmpty) += new lvr.VarScope(start, end, t, name)
       case None =>
         val t = JavaKnowledge.formatSignatureToType(desc)
-        localVariables.getOrElseUpdate(index, msetEmpty) += VarScope(start, end, t, name)
+        lvr.localVariables.getOrElseUpdate(index, msetEmpty) += new lvr.VarScope(start, end, t, name)
     }
   }
 
@@ -152,38 +137,38 @@ class MethodDeclResolver(
   var loc: Int = 0
 
   override def visitInsn(opcode: Int): Unit = {
-    bytecodes.addInsn(bytecodes.Insn(opcode))
+    bytecodes.addInsn(Insn(opcode))
   }
 
   override def visitIntInsn(opcode: Int, operand: Int): Unit = {
-    bytecodes.addInsn(bytecodes.IntInsn(opcode, operand))
+    bytecodes.addInsn(IntInsn(opcode, operand))
   }
 
   override def visitVarInsn(opcode: Int, v: Int): Unit = {
-    bytecodes.addInsn(bytecodes.VarInsn(opcode, v))
+    bytecodes.addInsn(VarInsn(opcode, v))
   }
 
   override def visitTypeInsn(opcode: Int, t: String): Unit = {
-    bytecodes.addInsn(bytecodes.TypeInsn(opcode, t))
+    bytecodes.addInsn(TypeInsn(opcode, t))
   }
 
 
   override def visitFieldInsn(opcode: Int, owner: String, name: String, desc: String): Unit = {
-    bytecodes.addInsn(bytecodes.FieldInsn(opcode, owner, name, desc))
+    bytecodes.addInsn(FieldInsn(opcode, owner, name, desc))
   }
 
   override def visitMethodInsn(opcode: Int, owner: String, name: String, desc: String, itf: Boolean): Unit = {
-    bytecodes.addInsn(bytecodes.MethodInsn(opcode, owner, name, desc, itf))
+    bytecodes.addInsn(MethodInsn(opcode, owner, name, desc, itf))
   }
 
 
   override def visitInvokeDynamicInsn(name: FileResourceUri, desc: FileResourceUri, bsm: Handle, bsmArgs: AnyRef*): Unit = {
-    bytecodes.addInsn(bytecodes.InvokeDynamicInsn(name, desc, bsm, bsmArgs))
+    bytecodes.addInsn(InvokeDynamicInsn(name, desc, bsm, bsmArgs))
   }
 
   override def visitJumpInsn(opcode: Int, label: Label): Unit = {
-    handleLabel(label)
-    bytecodes.addInsn(bytecodes.JumpInsn(opcode, label))
+    val li = handleLabel(label)
+    bytecodes.addInsn(JumpInsn(opcode, li.label))
   }
 
   // -------------------------------------------------------------------------
@@ -191,41 +176,79 @@ class MethodDeclResolver(
   // -------------------------------------------------------------------------
 
   override def visitLdcInsn(cst: Any): Unit = {
-    bytecodes.addInsn(bytecodes.LdcInsn(cst))
+    bytecodes.addInsn(LdcInsn(cst))
   }
 
   override def visitIincInsn(v: Int, increment: Int): Unit = {
-    bytecodes.addInsn(bytecodes.IincInsn(v, increment))
+    bytecodes.addInsn(IincInsn(v, increment))
   }
 
   override def visitTableSwitchInsn(min: Int, max: Int, dflt: Label, labels: Label*): Unit = {
-    labels.foreach(label => handleLabel(label))
-    handleLabel(dflt)
-    bytecodes.addInsn(bytecodes.TableSwitchInsn(min, max, dflt, labels))
+    val ls = labels.map{ label =>
+      val li = handleLabel(label)
+      li.label
+    }
+    val dt = handleLabel(dflt)
+    bytecodes.addInsn(TableSwitchInsn(min, max, dt.label, ls))
   }
 
   override def visitLookupSwitchInsn(dflt: Label, keys: Array[Int], labels: Array[Label]): Unit = {
-    labels.foreach(label => handleLabel(label))
-    handleLabel(dflt)
-    bytecodes.addInsn(bytecodes.LookupSwitchInsn(dflt, keys, labels))
+    val ls = labels.map{ label =>
+      val li = handleLabel(label)
+      li.label
+    }
+    val dt = handleLabel(dflt)
+    bytecodes.addInsn(LookupSwitchInsn(dt.label, keys, ls))
   }
 
   override def visitMultiANewArrayInsn(desc: String, dims: Int): Unit = {
-    bytecodes.addInsn(bytecodes.MultiANewArrayInsn(desc, dims))
+    bytecodes.addInsn(MultiANewArrayInsn(desc, dims))
   }
 
   // -------------------------------------------------------------------------
   // Exceptions table entries
   // -------------------------------------------------------------------------
 
+  private def getClassName(name: String): String = {
+    name.replaceAll("/", ".")
+  }
+
+  /**
+    * Visits a try catch block.
+    *
+    * @param start
+    * beginning of the exception handler's scope (inclusive).
+    * @param end
+    * end of the exception handler's scope (exclusive).
+    * @param handler
+    * beginning of the exception handler's code.
+    * @param t
+    * internal name of the type of exceptions handled by the
+    * handler, or <tt>null</tt> to catch any exceptions (for
+    * "finally" blocks).
+    * @throws IllegalArgumentException
+    * if one of the labels has already been visited by this visitor
+    * (by the { @link #visitLabel visitLabel} method).
+    */
   override def visitTryCatchBlock(start: Label, end: Label, handler: Label, t: String): Unit = {
-    handleLabel(start)
-    handleLabel(end)
-    handleLabel(handler)
-    bytecodes.addInsn(bytecodes.TryCatchBlock(start, end, handler, t))
+    val typ: JawaType = Option(t) match {
+      case Some(str) => JavaKnowledge.getTypeFromName(getClassName(str))
+      case None => ExceptionCenter.THROWABLE
+    }
+    val from = handleLabel(start)
+    val to = handleLabel(end)
+    val target = handleLabel(handler)
+    labels.get(handler) match {
+      case Some(li) => li.typ = Some(typ)
+      case None =>
+    }
+    bytecodes.catchClauses +=  new CatchClause(typ, from.label, to.label, target.label)
   }
 
   override def visitEnd(): Unit = {
+    params.foreach { param =>
+      bytecodes.usedVars += param.name
+    }
     val body: Body = UnresolvedBodyBytecode(bytecodes)(NoPosition)
     val md = MethodDeclaration(returnType, methodSymbol, params.toList, annotations, body)(NoPosition)
     methods += md

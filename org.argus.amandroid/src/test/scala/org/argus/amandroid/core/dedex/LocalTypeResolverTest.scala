@@ -128,10 +128,6 @@ class LocalTypeResolverTest extends FlatSpec with Matchers {
     assert(compareValue("/jump/SwitchJump2.jawa"))
   }
 
-  "Resolve local type" should "get same result on Monitor1" in {
-    assert(compareValue("/monitor/Monitor1.jawa"))
-  }
-
   private def compareValue(path: String): Boolean = {
     val (m, m2) = compare(path)
     m.invoke(null) == m2.invoke(null)
@@ -166,6 +162,7 @@ class LocalTypeResolverTest extends FlatSpec with Matchers {
     global.setJavaLib(getClass.getResource("/libs/android.jar").getPath)
     global.load(FileUtil.toUri(untyped))
     val newcode = GenerateTypedJawa(FileUtil.readFileContent(FileUtil.toUri(untyped)), global)
+    println(newcode)
     val cu = new JawaParser(JawaLexer.tokenise(Left(newcode), reporter).toArray, reporter).compilationUnit(true)
     val css = new JavaByteCodeGenerator("1.8").generate(Some(global), cu)
     val typed = getClass.getResource("/jawa_typed" + path).getPath

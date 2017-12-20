@@ -11,9 +11,7 @@
 package org.argus.jawa.ast.javafile
 
 import com.github.javaparser.ast._
-import com.github.javaparser.ast.expr._
-import org.argus.jawa.ast.{AnnotationValue, StatementValue, Annotation => JawaAnnotation, ClassOrInterfaceDeclaration => JawaClassOrInterfaceDeclaration, CompilationUnit => JawaCompilationUnit}
-import org.argus.jawa.compiler.lexer.{Token, Tokens}
+import org.argus.jawa.ast.{ClassOrInterfaceDeclaration => JawaClassOrInterfaceDeclaration, CompilationUnit => JawaCompilationUnit}
 import org.argus.jawa.core.Global
 import org.argus.jawa.core.frontend.javafile.JavaSourceFile
 import org.argus.jawa.core.io.{Position, RangePosition}
@@ -23,7 +21,7 @@ class Java2Jawa(val global: Global, val sourceFile: JavaSourceFile) {
 
   protected[javafile] var packageName: String = ""
 
-  protected[javafile] val imports: ImportHandler = new ImportHandler(this, sourceFile.getJavaCU.getImports)
+//  protected[javafile] val imports: ImportHandler = new ImportHandler(this, sourceFile.getJavaCU.getImports)
 
   protected[javafile] val topDecls: MList[JawaClassOrInterfaceDeclaration] = mlistEmpty
 
@@ -63,29 +61,29 @@ class Java2Jawa(val global: Global, val sourceFile: JavaSourceFile) {
   }
 
   def process(cu: CompilationUnit): Unit = {
-    imports.processImports()
-    val pd = cu.getPackageDeclaration
-    if(pd.isPresent) {
-      packageName = pd.get().getName.asString()
-    }
-    cu.getTypes.forEach{ typ =>
-      new ClassResolver(this, None, 0, typ, false, None, false).process()
-    }
+//    imports.processImports()
+//    val pd = cu.getPackageDeclaration
+//    if(pd.isPresent) {
+//      packageName = pd.get().getName.asString()
+//    }
+//    cu.getTypes.forEach{ typ =>
+//      new ClassResolver(this, None, 0, typ, false, None, false).process()
+//    }
   }
 
 
 
-  def processAnnotationExpr(ae: AnnotationExpr): JawaAnnotation = {
-    val annoKey = Token(Tokens.ID, ae.getName.toRange, imports.findType(ae.getNameAsString, ae.getName.toRange).jawaName.apostrophe)
-    val annoValue: Option[AnnotationValue] = ae match {
-      case _: NormalAnnotationExpr =>
-        Some(StatementValue(ilistEmpty)(ae.toRange)) // TODO
-      case _: SingleMemberAnnotationExpr =>
-        Some(StatementValue(ilistEmpty)(ae.toRange)) // TODO
-      case _ => None // MarkerAnnotationExpr
-    }
-    JawaAnnotation(annoKey, annoValue)(ae.toRange)
-  }
+//  def processAnnotationExpr(ae: AnnotationExpr): JawaAnnotation = {
+//    val annoKey = Token(Tokens.ID, ae.getName.toRange, imports.findType(ae.getNameAsString, ae.getName.toRange).jawaName.apostrophe)
+//    val annoValue: Option[AnnotationValue] = ae match {
+//      case _: NormalAnnotationExpr =>
+//        Some(StatementValue(ilistEmpty)(ae.toRange)) // TODO
+//      case _: SingleMemberAnnotationExpr =>
+//        Some(StatementValue(ilistEmpty)(ae.toRange)) // TODO
+//      case _ => None // MarkerAnnotationExpr
+//    }
+//    JawaAnnotation(annoKey, annoValue)(ae.toRange)
+//  }
 
 }
 

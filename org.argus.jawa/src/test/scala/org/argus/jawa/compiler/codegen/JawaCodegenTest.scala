@@ -147,11 +147,6 @@ class JawaCodegenTest extends FlatSpec with Matchers {
     genCode(jf)
   }
 
-  "Generate code" should "not throw an exception on Monitor1" in {
-    val jf = new JawaSourceFile(new PlainFile(new File(getClass.getResource("/jawa_typed/monitor/Monitor1.jawa").getPath)))
-    genCode(jf)
-  }
-
   "Generate code" should "not throw an exception on IJawa" in {
     val jf = new JawaSourceFile(new PlainFile(new File(getClass.getResource("/jawa_typed/interface/IJawa.jawa").getPath)))
     printCode(jf)

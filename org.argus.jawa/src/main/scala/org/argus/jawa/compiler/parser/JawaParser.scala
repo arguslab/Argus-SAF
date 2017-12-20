@@ -933,9 +933,9 @@ class JawaParser(tokens: Array[Token], reporter: Reporter) extends JavaKnowledge
 
   private def isLiteral = isLiteralToken(currentTokenType)
   
-  private def accept(tokenType: TokenType): Token = if (currentTokenType == tokenType)
+  private def accept(tokenType: TokenType): Token = if (currentTokenType == tokenType) {
     nextToken()
-  else {
+  } else {
     throw new JawaParserException(currentToken.pos, "Expected token " + tokenType + " but got " + currentToken)
   }
 
