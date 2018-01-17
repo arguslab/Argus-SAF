@@ -128,6 +128,7 @@ class MethodDeclResolver(
         val t = JavaKnowledge.formatSignatureToType(desc)
         lvr.localVariables.getOrElseUpdate(index, msetEmpty) += new lvr.VarScope(start, end, t, name)
     }
+    parameterIdx.remove(index)
   }
 
   // -------------------------------------------------------------------------
@@ -246,6 +247,14 @@ class MethodDeclResolver(
   }
 
   override def visitEnd(): Unit = {
+    if(params.isEmpty && parameterIdx.nonEmpty) {
+      parameterIdx.toList.sortBy{case (i, _) => i}.foreach { case (index, (isThis, t)) =>
+        val name = if(isThis) "this" else s"v$index"
+        val annos = if(isThis) List(new Annotation("kind", new TokenValue("this"))) else if(t.isObject) List(new Annotation("kind", new TokenValue("object"))) else ilistEmpty
+        params += new Parameter(t, name, annos)
+        lvr.localVariables.getOrElseUpdate(index, msetEmpty) += new lvr.VarScope(0, Integer.MAX_VALUE, t, name)
+      }
+    }
     params.foreach { param =>
       bytecodes.usedVars += param.name
     }

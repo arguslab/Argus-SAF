@@ -70,7 +70,8 @@ class LocalVarResolver(sig: Signature) {
   val labelIdxs: MMap[Label, Int] = mmapEmpty
 
   case class VarScope(min: Int, max: Int, lv: LocalVariable) {
-    def this(start: Label, end: Label, typ: JawaType, name: String) = this(labelIdxs.getOrElse(start, 0), labelIdxs.getOrElse(end, Integer.MAX_VALUE), new LocalVariable(new TypeRepresentation(typ), name))
+    def this(min: Int, max: Int, typ: JawaType, name: String) = this(min, max, new LocalVariable(new TypeRepresentation(typ), name))
+    def this(start: Label, end: Label, typ: JawaType, name: String) = this(labelIdxs.getOrElse(start, 0), labelIdxs.getOrElse(end, Integer.MAX_VALUE), typ, name)
     def inScope(l: Label): Boolean = {
       val idx = labelIdxs.getOrElse(l, 0)
       min <= idx && idx < max

@@ -37,6 +37,17 @@ publishSnapshot := {
   ), state.value), checkCycles = true)
 }
 
+lazy val publishJawaSnapshot = taskKey[Unit]("Publish Snapshot - Custom Task")
+publishJawaSnapshot := {
+  println("Publishing Snapshot ...")
+  val extracted = Project.extract((state in jawa).value)
+  Project.runTask(publishSigned in jawa, extracted.append(Seq(
+    publishTo in jawa := Some("Artifactory Realm" at "http://oss.jfrog.org/artifactory/oss-snapshot-local"),
+    credentials in jawa := List(Path.userHome / ".bintray" / ".artifactory").filter(_.exists).map(Credentials(_))
+  ), state.value), checkCycles = true)
+}
+
+
 val doNotPublishSettings = Seq(
   Keys.`package` :=  file(""),
   packageBin in Global :=  file(""),
