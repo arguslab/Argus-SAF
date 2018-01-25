@@ -10,18 +10,18 @@
 
 package org.argus.amandroid.alir.pta.reachingFactsAnalysis
 
-import org.argus.jawa.core.util._
 import org.argus.amandroid.alir.pta.model.{AndroidModelCallHandler, InterComponentCommunicationModel}
 import org.argus.amandroid.core.ApkGlobal
 import org.argus.jawa.alir.Context
 import org.argus.jawa.alir.cfg._
 import org.argus.jawa.alir.dfa._
-import org.argus.jawa.alir.interprocedural.{CallHandler, CallResolver, Callee}
+import org.argus.jawa.alir.interprocedural.{CallHandler, Callee, MethodCallResolver}
 import org.argus.jawa.alir.pta._
 import org.argus.jawa.alir.pta.model.ModelCallHandler
 import org.argus.jawa.alir.pta.rfa.{RFAFact, ReachingFactsAnalysis, ReachingFactsAnalysisHelper, SimHeap}
-import org.argus.jawa.ast.{CallStatement, Location, ReturnStatement}
+import org.argus.jawa.ast.CallStatement
 import org.argus.jawa.core._
+import org.argus.jawa.core.util._
 import org.argus.jawa.summary.SummaryManager
 
 /**
@@ -54,13 +54,12 @@ class AndroidReachingFactsAnalysis(
     idfg
   }
 
-  class Callr extends CallResolver[Node, RFAFact] {
-    val pureNormalFlagMap: MMap[Node, Boolean] = mmapEmpty
-    val returnMap: MMap[Signature, VarSlot] = mmapEmpty
+  class Callr extends MethodCallResolver(apk, ptaresult, icfg, sm, handler) {
+
     /**
      * It returns the facts for each callee entry node and caller return node
      */
-    def resolveCall(s: ISet[RFAFact], cs: CallStatement, callerNode: Node): (IMap[Node, ISet[RFAFact]], ISet[RFAFact]) = {
+    override def resolveCall(s: ISet[RFAFact], cs: CallStatement, callerNode: Node): (IMap[Node, ISet[RFAFact]], ISet[RFAFact]) = {
       val callerContext = callerNode.getContext
       val calleeSet = CallHandler.getCalleeSet(apk, cs, callerContext, ptaresult)
       val icfgCallnode = icfg.getICFGCallNode(callerContext)
@@ -78,7 +77,7 @@ class AndroidReachingFactsAnalysis(
         val calleeSig: Signature = callee.callee
         icfg.getCallGraph.addCall(callerNode.getOwner, calleeSig)
         val calleep = apk.getMethodOrResolve(calleeSig).get
-        if(AndroidModelCallHandler.isICCCall(calleeSig) || AndroidModelCallHandler.isRPCCall(apk, currentComponent.getType, calleeSig) || AndroidModelCallHandler.isModelCall(calleep)) {
+        if(AndroidModelCallHandler.isICCCall(calleeSig) || AndroidModelCallHandler.isRPCCall(apk, currentComponent.getType, calleeSig) || handler.isModelCall(calleep)) {
           pureNormalFlag = false
           if(AndroidModelCallHandler.isICCCall(calleeSig)) {
             // don't do anything for the ICC call now.
@@ -137,87 +136,5 @@ class AndroidReachingFactsAnalysis(
       }
       calleeFacts.toSet
     }
-
-    private def isReturnJump(loc: Location): Boolean = {
-      loc.statement.isInstanceOf[ReturnStatement]
-    }
-
-    def getAndMapFactsForCaller(calleeS: ISet[RFAFact], callerNode: Node, calleeExitNode: Node): ISet[RFAFact] = {
-      val result = msetEmpty[RFAFact]
-      val kill = msetEmpty[RFAFact]
-      /**
-       * adding global facts to result
-       */
-      result ++= ReachingFactsAnalysisHelper.getGlobalFacts(calleeS)
-
-      val calleeMethod = apk.getMethod(calleeExitNode.getOwner).get
-      val paramSlots: IList[VarSlot] = (calleeMethod.thisOpt ++ calleeMethod.getParamNames).map(VarSlot).toList
-
-      callerNode match {
-        case crn: ICFGReturnNode =>
-          val calleeVarFacts = calleeS.filter(_.s.isInstanceOf[VarSlot]).map{f=>(f.s.asInstanceOf[VarSlot], f.v)}
-          val cs = apk.getMethod(crn.getOwner).get.getBody.resolvedBody.locations(crn.locIndex).statement.asInstanceOf[CallStatement]
-          val lhsSlotOpt: Option[VarSlot] = cs.lhsOpt.map{lhs=>VarSlot(lhs.name)}
-          val retSlotOpt: Option[VarSlot] = returnMap.get(calleeMethod.getSignature) match {
-            case Some(v) => Some(v)
-            case None =>
-              calleeMethod.getBody.resolvedBody.locations.find(l => isReturnJump(l)) match {
-                case Some(r) =>
-                  r.statement.asInstanceOf[ReturnStatement].varOpt match {
-                    case Some(n) =>
-                      val s = VarSlot(n.varName)
-                      returnMap(calleeMethod.getSignature) = s
-                      Some(s)
-                    case None => None
-                  }
-                case None => None
-              }
-          }
-          val argSlots = (cs.recvOpt ++ cs.args).toList.map(VarSlot)
-          for(i <- argSlots.indices) {
-            val argSlot = argSlots(i)
-            var values: ISet[Instance] = isetEmpty
-            calleeVarFacts.foreach{
-              case (s, v) =>
-                if(paramSlots.isDefinedAt(i) && paramSlots(i) == s)
-                  values += v
-            }
-            result ++= values.map(v=> new RFAFact(argSlot, v))
-            val insnums = values.map(heap.getInstanceNum)
-            result ++= ReachingFactsAnalysisHelper.getRelatedHeapFacts(insnums, calleeS)
-          }
-          // kill the strong update for caller return node
-          cs.lhsOpt match {
-            case Some(lhs) =>
-              val slotsWithMark = ReachingFactsAnalysisHelper.processLHS(lhs, callerNode.getContext, ptaresult).toSet
-              for (rdf <- result) {
-                //if it is a strong definition, we can kill the existing definition
-                if (slotsWithMark.exists{case (s, st) => s.getId == rdf.s.getId && st}) {
-                  kill += rdf
-                }
-              }
-            case None =>
-          }
-
-          lhsSlotOpt.foreach { lhsSlot =>
-            var values: ISet[Instance] = isetEmpty
-            retSlotOpt.foreach { retSlot =>
-              calleeVarFacts.foreach{
-                case (s, v) =>
-                  if(s == retSlot){
-                    values += v
-                  }
-              }
-            }
-            result ++= values.map(v => new RFAFact(lhsSlot, v))
-            val insnums = values.map(heap.getInstanceNum)
-            result ++= ReachingFactsAnalysisHelper.getRelatedHeapFacts(insnums, calleeS)
-          }
-        case _: ICFGNode =>
-      }
-      result.toSet -- kill
-    }
-
-    def needReturnNode(): Boolean = true
   }
 }
