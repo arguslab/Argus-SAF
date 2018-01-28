@@ -263,7 +263,7 @@ class TaintWu[T <: Global](
       ts.tainted(sinkIns) match {
         case Some(list) =>
           val path = list ::: ts.sinkDependence.getOrElse(sinkIns, ilistEmpty)
-          if(path.size >= 2) {
+          if(path.lengthCompare(2) >= 0) {
             ts.getSourceNode(path.head) match {
               case Some(sourceNode) =>
                 ts.getSinkNode(path.last) match {

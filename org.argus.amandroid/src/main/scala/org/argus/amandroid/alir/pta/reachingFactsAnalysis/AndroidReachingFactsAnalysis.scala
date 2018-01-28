@@ -17,7 +17,6 @@ import org.argus.jawa.alir.cfg._
 import org.argus.jawa.alir.dfa._
 import org.argus.jawa.alir.interprocedural.{CallHandler, Callee, MethodCallResolver}
 import org.argus.jawa.alir.pta._
-import org.argus.jawa.alir.pta.model.ModelCallHandler
 import org.argus.jawa.alir.pta.rfa.{RFAFact, ReachingFactsAnalysis, ReachingFactsAnalysisHelper, SimHeap}
 import org.argus.jawa.ast.CallStatement
 import org.argus.jawa.core._
@@ -32,7 +31,7 @@ class AndroidReachingFactsAnalysis(
     apk: ApkGlobal,
     icfg: InterProceduralControlFlowGraph[ICFGNode],
     ptaresult: PTAResult,
-    handler: ModelCallHandler,
+    handler: AndroidModelCallHandler,
     sm: SummaryManager,
     clm: ClassLoadManager,
     resolve_static_init: Boolean,
@@ -77,14 +76,14 @@ class AndroidReachingFactsAnalysis(
         val calleeSig: Signature = callee.callee
         icfg.getCallGraph.addCall(callerNode.getOwner, calleeSig)
         val calleep = apk.getMethodOrResolve(calleeSig).get
-        if(AndroidModelCallHandler.isICCCall(calleeSig) || AndroidModelCallHandler.isRPCCall(apk, currentComponent.getType, calleeSig) || handler.isModelCall(calleep)) {
+        if(handler.isICCCall(calleeSig) || handler.isRPCCall(apk, currentComponent.getType, calleeSig) || handler.isModelCall(calleep)) {
           pureNormalFlag = false
-          if(AndroidModelCallHandler.isICCCall(calleeSig)) {
+          if(handler.isICCCall(calleeSig)) {
             // don't do anything for the ICC call now.
-          } else if (AndroidModelCallHandler.isRPCCall(apk, currentComponent.getType, calleeSig)) {
+          } else if (handler.isRPCCall(apk, currentComponent.getType, calleeSig)) {
             // don't do anything for the RPC call now.
           } else { // for non-ICC-RPC model call
-            returnFacts = AndroidModelCallHandler.doModelCall(sm, s, calleep, cs.lhsOpt.map(lhs => lhs.name), cs.recvOpt, cs.args, callerContext)
+            returnFacts = handler.doModelCall(sm, s, calleep, cs.lhsOpt.map(lhs => lhs.name), cs.recvOpt, cs.args, callerContext)
             if(InterComponentCommunicationModel.isRegisterReceiver(calleeSig)) {
               registerReceiverNodes += callerNode.asInstanceOf[ICFGCallNode]
             }

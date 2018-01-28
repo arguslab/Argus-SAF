@@ -57,7 +57,7 @@ class HeapSummaryGeneratorTest extends FlatSpec with Matchers {
   class TestFile(file: String) {
     var entrypoint: Signature = _
 
-    val handler: AndroidModelCallHandler.type = AndroidModelCallHandler
+    val handler: AndroidModelCallHandler = new AndroidModelCallHandler
 
     def ep(sigStr: String): TestFile = {
       entrypoint = new Signature(sigStr)

@@ -74,6 +74,12 @@ class SummaryManager(global: Global)(implicit heap: SimHeap) {
     register(name, code, fileAndSubsigMatch)
   }
 
+  def registerExternalFile(safsuPath: FileResourceUri, name: String, fileAndSubsigMatch: Boolean): Unit = {
+    val url = FileUtil.toFile(safsuPath).toURI.toURL
+    val code = Resources.toString(url, Charsets.UTF_8)
+    register(name, code, fileAndSubsigMatch)
+  }
+
   def getSummariesByFile(name: String): IMap[String, HeapSummary] = {
     this.heapSummariesMatchFileAndSubsig.getOrElse(name, imapEmpty)
   }

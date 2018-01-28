@@ -19,7 +19,7 @@ import org.argus.jawa.core.{JawaMethod, JawaType, Signature}
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
  * @author <a href="mailto:sroy@k-state.edu">Sankardas Roy</a>
  */ 
-object AndroidModelCallHandler extends ModelCallHandler(PTAScopeManager){
+class AndroidModelCallHandler extends ModelCallHandler(PTAScopeManager){
 
   registerModelCall(new BundleModel)
   registerModelCall(new ComponentNameModel)

@@ -49,7 +49,9 @@ trait SourceAndSinkManager[T <: Global] {
    */
   protected val sinks: MMap[Signature, (ISet[Int], ISet[String])] = mmapEmpty
 
-  def parse(): Unit = SSParser.parse(sasFilePath) match {
+  def parse(): Unit = parse(sasFilePath)
+
+  def parse(sasFile: String): Unit = SSParser.parse(sasFile) match {
     case (srcs, sins) =>
       srcs.foreach{
         case (sig, tags) =>
@@ -60,7 +62,6 @@ trait SourceAndSinkManager[T <: Global] {
           this.sinks += (sig -> (poss, tags))
       }
   }
-  
   
   def addSource(source: Signature, tags: ISet[String]): Unit = {
     this.sources += (source -> tags)

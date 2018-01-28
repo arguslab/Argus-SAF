@@ -30,20 +30,18 @@ val buildInfoSettings = Seq(
 lazy val publishSnapshot = taskKey[Unit]("Publish Snapshot - Custom Task")
 publishSnapshot := {
   println("Publishing Snapshot ...")
-  val extracted = Project.extract(state.value)
-  Project.runTask(publishSigned, extracted.append(Seq(
-    publishTo := Some("Artifactory Realm" at "http://oss.jfrog.org/artifactory/oss-snapshot-local"),
-    credentials := List(Path.userHome / ".bintray" / ".artifactory").filter(_.exists).map(Credentials(_))
-  ), state.value), checkCycles = true)
-}
-
-lazy val publishJawaSnapshot = taskKey[Unit]("Publish Snapshot - Custom Task")
-publishJawaSnapshot := {
-  println("Publishing Snapshot ...")
   val extracted = Project.extract((state in jawa).value)
   Project.runTask(publishSigned in jawa, extracted.append(Seq(
     publishTo in jawa := Some("Artifactory Realm" at "http://oss.jfrog.org/artifactory/oss-snapshot-local"),
     credentials in jawa := List(Path.userHome / ".bintray" / ".artifactory").filter(_.exists).map(Credentials(_))
+  ), state.value), checkCycles = true)
+  Project.runTask(publishSigned in saf_library, extracted.append(Seq(
+    publishTo in saf_library := Some("Artifactory Realm" at "http://oss.jfrog.org/artifactory/oss-snapshot-local"),
+    credentials in saf_library := List(Path.userHome / ".bintray" / ".artifactory").filter(_.exists).map(Credentials(_))
+  ), state.value), checkCycles = true)
+  Project.runTask(publishSigned in amandroid, extracted.append(Seq(
+    publishTo in amandroid := Some("Artifactory Realm" at "http://oss.jfrog.org/artifactory/oss-snapshot-local"),
+    credentials in amandroid := List(Path.userHome / ".bintray" / ".artifactory").filter(_.exists).map(Credentials(_))
   ), state.value), checkCycles = true)
 }
 

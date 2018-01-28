@@ -92,12 +92,12 @@ class PointsToAnalysisActor extends Actor with ActorLogging {
   private def rfa(ep: Signature, apk: ApkGlobal, timeout: Duration): InterProceduralDataFlowGraph = {
     log.info("Start rfa for " + ep)
     val m = apk.resolveMethodCode(ep, apk.model.getEnvMap(ep.classTyp)._2)
-    implicit val factory = new SimHeap
+    implicit val heap: SimHeap = new SimHeap
     val initialfacts = AndroidReachingFactsAnalysisConfig.getInitialFactsForMainEnvironment(m)
     val icfg = new InterProceduralControlFlowGraph[ICFGNode]
     val ptaresult = new PTAResult
     val sp = new AndroidSummaryProvider(apk)
-    val analysis = new AndroidReachingFactsAnalysis(apk, icfg, ptaresult, AndroidModelCallHandler, sp.getSummaryManager, new ClassLoadManager, AndroidReachingFactsAnalysisConfig.resolve_static_init, timeout = timeout match{case fd: FiniteDuration => Some(new MyTimeout(fd)) case _ => None })
+    val analysis = new AndroidReachingFactsAnalysis(apk, icfg, ptaresult, new AndroidModelCallHandler, sp.getSummaryManager, new ClassLoadManager, AndroidReachingFactsAnalysisConfig.resolve_static_init, timeout = timeout match{case fd: FiniteDuration => Some(new MyTimeout(fd)) case _ => None })
     analysis.build(m, initialfacts, new Context(apk.nameUri))
   }
   

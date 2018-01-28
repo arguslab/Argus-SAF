@@ -79,7 +79,7 @@ class IntentWuTest extends FlatSpec with Matchers {
   class TestFile(file: String) extends MyTest {
     var entrypoint: Signature = _
 
-    val handler: AndroidModelCallHandler.type = AndroidModelCallHandler
+    val handler: AndroidModelCallHandler = new AndroidModelCallHandler
 
     def ep(sigStr: String): MyTest = {
       entrypoint = new Signature(sigStr)
@@ -221,7 +221,7 @@ class IntentWuTest extends FlatSpec with Matchers {
 
   class TestApk(file: String) extends MyTest {
 
-    val handler: AndroidModelCallHandler.type = AndroidModelCallHandler
+    val handler: AndroidModelCallHandler = new AndroidModelCallHandler
 
     def ep(sigStr: String): MyTest = {
       this
