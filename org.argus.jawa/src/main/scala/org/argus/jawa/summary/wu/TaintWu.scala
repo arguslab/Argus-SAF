@@ -198,7 +198,8 @@ class TaintWu[T <: Global](
               case None =>
                 VarSlot(cs.lhsOpt.map(lhs => lhs.name).getOrElse("hack"))
             }
-            ptaresult.pointsToSet(node.getContext, ns)
+            ptaresult.getRelatedInstances(node.getContext, ns)
+//            ptaresult.pointsToSet(node.getContext, ns)
           case _ =>
             isetEmpty
         }

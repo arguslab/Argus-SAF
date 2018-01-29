@@ -101,6 +101,15 @@ class TaintWuTest extends FlatSpec with Matchers {
     """.stripMargin.trim
   )
 
+  "/jawa/taint/TaintTest.jawa" ep "LTaintTest;.caller5:()V" produce (
+    """Taint path:
+      |api_source: LTest;.source:()LTaintData;
+      |	-> api_sink: LTest;.sink:(Ljava/lang/Object;)V 0
+      |Call@(TaintTest.field_source,L37)
+      |	-> Call@(TaintTest.caller5,L45) param: 0
+    """.stripMargin.trim
+    )
+
   class TestFile(file: String) extends MyTest {
     var entrypoint: Signature = _
 
