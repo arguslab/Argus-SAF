@@ -108,6 +108,15 @@ class TaintWuTest extends FlatSpec with Matchers {
       |Call@(TaintTest.field_source,L37)
       |	-> Call@(TaintTest.caller5,L45) param: 0
     """.stripMargin.trim
+  )
+
+  "/jawa/taint/TaintTest.jawa" ep "LTaintTest;.caller6:()V" produce (
+    """Taint path:
+      |api_source: LTest;.source:()LTaintData;
+      |	-> api_sink: LTest;.sink:(Ljava/lang/Object;)V 0
+      |Call@(TaintTest.caller6,L47)
+      |	-> Call@(TaintTest.caller6,L50) param: 0
+    """.stripMargin.trim
     )
 
   class TestFile(file: String) extends MyTest {
