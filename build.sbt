@@ -31,15 +31,15 @@ lazy val publishSnapshot = taskKey[Unit]("Publish Snapshot - Custom Task")
 publishSnapshot := {
   println("Publishing Snapshot ...")
   val extracted = Project.extract((state in jawa).value)
-  Project.runTask(publishSigned in jawa, extracted.append(Seq(
+  Project.runTask(publishSigned in jawa, extracted.appendWithSession(Seq(
     publishTo in jawa := Some("Artifactory Realm" at "http://oss.jfrog.org/artifactory/oss-snapshot-local"),
     credentials in jawa := List(Path.userHome / ".bintray" / ".artifactory").filter(_.exists).map(Credentials(_))
   ), state.value), checkCycles = true)
-  Project.runTask(publishSigned in saf_library, extracted.append(Seq(
+  Project.runTask(publishSigned in saf_library, extracted.appendWithSession(Seq(
     publishTo in saf_library := Some("Artifactory Realm" at "http://oss.jfrog.org/artifactory/oss-snapshot-local"),
     credentials in saf_library := List(Path.userHome / ".bintray" / ".artifactory").filter(_.exists).map(Credentials(_))
   ), state.value), checkCycles = true)
-  Project.runTask(publishSigned in amandroid, extracted.append(Seq(
+  Project.runTask(publishSigned in amandroid, extracted.appendWithSession(Seq(
     publishTo in amandroid := Some("Artifactory Realm" at "http://oss.jfrog.org/artifactory/oss-snapshot-local"),
     credentials in amandroid := List(Path.userHome / ".bintray" / ".artifactory").filter(_.exists).map(Credentials(_))
   ), state.value), checkCycles = true)
@@ -87,7 +87,7 @@ lazy val argus_saf: Project =
   )
   .settings(
     artifact in (Compile, assembly) ~= { art =>
-      art.copy(`classifier` = Some("assembly"))
+      art.withClassifier(Some("assembly"))
     },
     addArtifact(artifact in (Compile, assembly), assembly),
     publishArtifact in (Compile, packageBin) := false,
@@ -98,11 +98,11 @@ lazy val argus_saf: Project =
 lazy val saf_library: Project =
   newProject("saf-library", file("org.argus.saf.library"))
     .settings(
-      assemblyOption in assembly := (assemblyOption in assembly).value.copy(includeScala = false),
+      assemblyOption in assembly := (assemblyOption in assembly).value.copy(`includeScala` = false),
       assemblyJarName in assembly := s"${name.value}-${version.value}.jar",
       mainClass in assembly := None,
       artifact in (Compile, assembly) ~= { art =>
-        art.copy(`classifier` = None)
+        art.withClassifier(None)
       },
       addArtifact(artifact in (Compile, assembly), assembly),
       publishArtifact in (Compile, packageBin) := false
