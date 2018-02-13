@@ -24,7 +24,7 @@ class BytecodeInstructions(
   def genJawa: ResolvedBody = {
     lvr.resolveType(instructions.toList)
     instructions.zipWithIndex.foreach { case (insn, loc) =>
-      val vars = lvr.variables.lift(loc).getOrElse(mlistEmpty)
+      val vars = lvr.variables.getOrElse(loc, mlistEmpty)
       def getVar(idx: Int): String = {
         vars.lift(idx) match {
           case Some(lv) =>
