@@ -123,10 +123,10 @@ class MethodDeclResolver(
       case Some((isThis, t)) =>
         val annos = if(isThis) List(new Annotation("kind", new TokenValue("this"))) else if(t.isObject) List(new Annotation("kind", new TokenValue("object"))) else ilistEmpty
         params += new Parameter(t, name, annos)
-        lvr.localVariables.getOrElseUpdate(index, msetEmpty) += new lvr.VarScope(start, end, t, name)
+        lvr.localVariables.getOrElseUpdate(index, mlistEmpty) += new lvr.VarScope(start, end, t, name)
       case None =>
         val t = JavaKnowledge.formatSignatureToType(desc)
-        lvr.localVariables.getOrElseUpdate(index, msetEmpty) += new lvr.VarScope(start, end, t, name)
+        lvr.localVariables.getOrElseUpdate(index, mlistEmpty) += new lvr.VarScope(start, end, t, name)
     }
     parameterIdx.remove(index)
   }
@@ -252,7 +252,7 @@ class MethodDeclResolver(
         val name = if(isThis) "this" else s"v$index"
         val annos = if(isThis) List(new Annotation("kind", new TokenValue("this"))) else if(t.isObject) List(new Annotation("kind", new TokenValue("object"))) else ilistEmpty
         params += new Parameter(t, name, annos)
-        lvr.localVariables.getOrElseUpdate(index, msetEmpty) += new lvr.VarScope(0, Integer.MAX_VALUE, t, name)
+        lvr.localVariables.getOrElseUpdate(index, mlistEmpty) += new lvr.VarScope(0, Integer.MAX_VALUE, t, name)
       }
     }
     params.foreach { param =>

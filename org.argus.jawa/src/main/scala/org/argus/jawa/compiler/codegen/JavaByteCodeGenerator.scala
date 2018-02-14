@@ -93,11 +93,11 @@ class JavaByteCodeGenerator(javaVersion: Int) {
     if(AccessFlag.isFinal(af)) mod = mod | Opcodes.ACC_SUPER
     cw.visit(javaVersion, mod, getClassName(cid.typ.name), null, superName, interfaceNames.toArray)
     cw.visitSource(null, null)
-    cid.fields foreach {
-      fd => visitField(cw, fd)
+    cid.fields foreach { fd =>
+      visitField(cw, fd)
     }
-    cid.methods foreach {
-      md => visitMethod(cw, md)
+    cid.methods foreach { md =>
+      visitMethod(cw, md)
     }
     cw.visitEnd()
     
@@ -388,7 +388,6 @@ class JavaByteCodeGenerator(javaVersion: Int) {
   }
 
   private def visitAssignmentStatement(mv: MethodVisitor, as: AssignmentStatement): Unit = {
-    val kind: String = as.kind
     val lhs = as.lhs
     val rhs = as.rhs
     
@@ -406,7 +405,7 @@ class JavaByteCodeGenerator(javaVersion: Int) {
       case sfae: StaticFieldAccessExpression =>
         sfae.typ
       case a => // This will never happen
-        throw new JawaByteCodeGenException(lhs.pos, "visitAssignmentStatement problem: " + a + " " + kind)
+        throw new JawaByteCodeGenException(lhs.pos, "visitAssignmentStatement problem: " + a)
     }
     
     rhs match {
@@ -421,7 +420,7 @@ class JavaByteCodeGenerator(javaVersion: Int) {
       case _ =>
     }
     
-    visitRhsExpression(mv, rhs, kind, lhsTyp)
+    visitRhsExpression(mv, rhs, lhsTyp)
     visitLhsExpression(mv, lhs)
   }
   
@@ -437,7 +436,7 @@ class JavaByteCodeGenerator(javaVersion: Int) {
     case _ => throw new JawaByteCodeGenException(lhs.pos, "visitLhsExpression problem: " + lhs)
   }
   
-  private def visitRhsExpression(mv: MethodVisitor, rhs: Expression with RHS, kind: String, lhsTyp: JawaType): Unit = rhs match {
+  private def visitRhsExpression(mv: MethodVisitor, rhs: Expression with RHS, lhsTyp: JawaType): Unit = rhs match {
     case vne: VariableNameExpression =>
       visitVarLoad(mv, vne.name)
       val rhsTyp: JawaType = this.locals(vne.name).typ
@@ -458,7 +457,7 @@ class JavaByteCodeGenerator(javaVersion: Int) {
     case te: TupleExpression =>
       visitTupleExpression(mv, lhsTyp, te)
     case ce: CastExpression =>
-      visitCastExpression(mv, ce, kind)
+      visitCastExpression(mv, ce)
     case ne: NewExpression =>
       visitNewExpression(mv, ne)
     case nae: NewArrayExpression =>
@@ -479,7 +478,7 @@ class JavaByteCodeGenerator(javaVersion: Int) {
       visitConstClassExpression(mv, ce)
     case le: LengthExpression =>
       visitLengthExpression(mv, le)
-    case _ =>  throw new JawaByteCodeGenException(rhs.pos, "visitRhsExpression problem: " + rhs + " " + kind)
+    case _ =>  throw new JawaByteCodeGenException(rhs.pos, "visitRhsExpression problem: " + rhs)
   }
   
   private def handleTypeImplicitConvert(mv: MethodVisitor, lhsTyp: JawaType, rhsTyp: JawaType): Unit = {
@@ -735,7 +734,7 @@ class JavaByteCodeGenerator(javaVersion: Int) {
     nae.varSymbols foreach { vs =>
       visitVarLoad(mv, vs.varName)
     }
-    if(nae.varSymbols.size >= 2) {
+    if(nae.varSymbols.lengthCompare(2) >= 0) {
       mv.visitMultiANewArrayInsn(getClassName(nae.typ.name), nae.dimensions)
     } else {
       nae.baseType match {
@@ -839,56 +838,66 @@ class JavaByteCodeGenerator(javaVersion: Int) {
     mv.visitLdcInsn(str)
   }
   
-  private def visitCastExpression(mv: MethodVisitor, ce: CastExpression, kind: String): Unit = kind match {
-    case "i2l" => 
-      mv.visitVarInsn(Opcodes.ILOAD, this.locals(ce.varName).index)
-      mv.visitInsn(Opcodes.I2L)
-    case "i2f" => 
-      mv.visitVarInsn(Opcodes.ILOAD, this.locals(ce.varName).index)
-      mv.visitInsn(Opcodes.I2F)
-    case "i2d" =>
-      mv.visitVarInsn(Opcodes.ILOAD, this.locals(ce.varName).index)
-      mv.visitInsn(Opcodes.I2D)
-    case "l2i" =>
-      mv.visitVarInsn(Opcodes.LLOAD, this.locals(ce.varName).index)
-      mv.visitInsn(Opcodes.L2I)
-    case "l2f" =>
-      mv.visitVarInsn(Opcodes.LLOAD, this.locals(ce.varName).index)
-      mv.visitInsn(Opcodes.L2F)
-    case "l2d" =>
-      mv.visitVarInsn(Opcodes.LLOAD, this.locals(ce.varName).index)
-      mv.visitInsn(Opcodes.L2D)
-    case "f2i" =>
-      mv.visitVarInsn(Opcodes.FLOAD, this.locals(ce.varName).index)
-      mv.visitInsn(Opcodes.F2I)
-    case "f2l" =>
-      mv.visitVarInsn(Opcodes.FLOAD, this.locals(ce.varName).index)
-      mv.visitInsn(Opcodes.F2L)
-    case "f2d" =>
-      mv.visitVarInsn(Opcodes.FLOAD, this.locals(ce.varName).index)
-      mv.visitInsn(Opcodes.F2D)
-    case "d2i" =>
-      mv.visitVarInsn(Opcodes.DLOAD, this.locals(ce.varName).index)
-      mv.visitInsn(Opcodes.D2I)
-    case "d2l" =>
-      mv.visitVarInsn(Opcodes.DLOAD, this.locals(ce.varName).index)
-      mv.visitInsn(Opcodes.D2L)
-    case "d2f" =>
-      mv.visitVarInsn(Opcodes.DLOAD, this.locals(ce.varName).index)
-      mv.visitInsn(Opcodes.D2F)
-    case "i2b" =>
-      mv.visitVarInsn(Opcodes.ILOAD, this.locals(ce.varName).index)
-      mv.visitInsn(Opcodes.I2B)
-    case "i2c" =>
-      mv.visitVarInsn(Opcodes.ILOAD, this.locals(ce.varName).index)
-      mv.visitInsn(Opcodes.I2C)
-    case "i2s" =>
-      mv.visitVarInsn(Opcodes.ILOAD, this.locals(ce.varName).index)
-      mv.visitInsn(Opcodes.I2S)
-    case "object" => 
-      mv.visitVarInsn(Opcodes.ALOAD, this.locals(ce.varName).index)
-      mv.visitTypeInsn(Opcodes.CHECKCAST, getClassName(ce.typ.typ.name))
-    case _ => throw new JawaByteCodeGenException(ce.pos, "visitCastExpression problem: " + ce + " " + kind)
+  private def visitCastExpression(mv: MethodVisitor, ce: CastExpression): Unit = {
+    this.locals(ce.varName).typ match {
+      case t if t == JavaKnowledge.INT =>
+        mv.visitVarInsn(Opcodes.ILOAD, this.locals(ce.varName).index)
+        ce.typ.typ match {
+          case t2 if t2 == JavaKnowledge.LONG =>
+            mv.visitInsn(Opcodes.I2L)
+          case t2 if t2 == JavaKnowledge.FLOAT =>
+            mv.visitInsn(Opcodes.I2F)
+          case t2 if t2 == JavaKnowledge.DOUBLE =>
+            mv.visitInsn(Opcodes.I2D)
+          case t2 if t2 == JavaKnowledge.BYTE =>
+            mv.visitInsn(Opcodes.I2B)
+          case t2 if t2 == JavaKnowledge.CHAR =>
+            mv.visitInsn(Opcodes.I2C)
+          case t2 if t2 == JavaKnowledge.SHORT =>
+            mv.visitInsn(Opcodes.I2S)
+          case _ =>
+            throw new JawaByteCodeGenException(ce.pos, "visitCastExpression problem: " + ce)
+        }
+      case t if t == JavaKnowledge.LONG =>
+        mv.visitVarInsn(Opcodes.ILOAD, this.locals(ce.varName).index)
+        ce.typ.typ match {
+          case t2 if t2 == JavaKnowledge.INT =>
+            mv.visitInsn(Opcodes.L2I)
+          case t2 if t2 == JavaKnowledge.FLOAT =>
+            mv.visitInsn(Opcodes.L2F)
+          case t2 if t2 == JavaKnowledge.DOUBLE =>
+            mv.visitInsn(Opcodes.L2D)
+          case _ =>
+            throw new JawaByteCodeGenException(ce.pos, "visitCastExpression problem: " + ce)
+        }
+      case t if t == JavaKnowledge.FLOAT =>
+        mv.visitVarInsn(Opcodes.ILOAD, this.locals(ce.varName).index)
+        ce.typ.typ match {
+          case t2 if t2 == JavaKnowledge.INT =>
+            mv.visitInsn(Opcodes.F2I)
+          case t2 if t2 == JavaKnowledge.LONG =>
+            mv.visitInsn(Opcodes.F2L)
+          case t2 if t2 == JavaKnowledge.DOUBLE =>
+            mv.visitInsn(Opcodes.F2D)
+          case _ =>
+            throw new JawaByteCodeGenException(ce.pos, "visitCastExpression problem: " + ce)
+        }
+      case t if t == JavaKnowledge.DOUBLE =>
+        mv.visitVarInsn(Opcodes.ILOAD, this.locals(ce.varName).index)
+        ce.typ.typ match {
+          case t2 if t2 == JavaKnowledge.INT =>
+            mv.visitInsn(Opcodes.D2I)
+          case t2 if t2 == JavaKnowledge.LONG =>
+            mv.visitInsn(Opcodes.D2L)
+          case t2 if t2 == JavaKnowledge.FLOAT =>
+            mv.visitInsn(Opcodes.D2F)
+          case _ =>
+            throw new JawaByteCodeGenException(ce.pos, "visitCastExpression problem: " + ce)
+        }
+      case _ =>
+        mv.visitVarInsn(Opcodes.ALOAD, this.locals(ce.varName).index)
+        mv.visitTypeInsn(Opcodes.CHECKCAST, getClassName(ce.typ.typ.name))
+    }
   }
   
   private def generateIntConst(mv: MethodVisitor, i: Int): Unit = i match {

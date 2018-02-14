@@ -219,12 +219,20 @@ class DeBytecodeTest extends FlatSpec with Matchers {
 
   "/class/parser/stringop/StringWithOther.class" produce_same()
 
+  "/class/parser/comprehensive/DiskFileItem.class" no_exception()
+
   class TestFile(file: String) {
     def produce_same(other_files: String*): Unit = {
       file should "produce same result" in {
         val e = runBytecode(file, other_files)
         val r = run(file, other_files)
         assert(r == e)
+      }
+    }
+
+    def no_exception(): Unit = {
+      file should "successfully decoded" in {
+        decode(file)
       }
     }
   }
@@ -265,6 +273,12 @@ class DeBytecodeTest extends FlatSpec with Matchers {
         throw new RuntimeException(ilv.getMessage)
     }
     result
+  }
+
+  def decode(file: String): Unit = {
+    val classfile = new JavaClassFile(new PlainFile(getClass.getResource(file).getPath))
+    val cu = DeBytecode.process(classfile)
+    println(cu.toCode)
   }
 
   def run(mainFile: String, classFiles: Seq[String]): Any = {

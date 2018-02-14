@@ -18,7 +18,7 @@ import scala.collection.mutable
 
 class LocalVarResolver(sig: Signature) {
 
-  val localVariables: MMap[Int, MSet[VarScope]] = mmapEmpty
+  val localVariables: MMap[Int, MList[VarScope]] = mmapEmpty
   private val usedVariables: MMap[String, JawaType] = mmapEmpty
 
   private def checkAndAddVariable(varType: JawaType, name: Option[String]): String = {
@@ -60,9 +60,15 @@ class LocalVarResolver(sig: Signature) {
 
   private def store(loc: Int, idx: Int, typ: TypeRepresentation): Unit = {
     val expectedName = s"${typ.typ.baseType.name}${if(typ.typ.isArray) s"_arr${typ.typ.dimensions}" else ""}_$idx"
-    val vs = localVariables.getOrElseUpdate(idx, mutable.Set(VarScope(0, Integer.MAX_VALUE, new LocalVariable(typ, expectedName)))).find{ v =>
+    val vs = localVariables.getOrElseUpdate(idx, mutable.ListBuffer(VarScope(0, Integer.MAX_VALUE, new LocalVariable(typ, expectedName)))).find{ v =>
       v.inScope(loc) || v.inScope(loc + 1)
-    }.getOrElse(throw DeBytecodeException(s"Failed to load idx $idx at loc $loc"))
+    } match {
+      case Some(v) => v
+      case None =>
+        val v = VarScope(0, Integer.MAX_VALUE, new LocalVariable(typ, expectedName))
+        localVariables.getOrElseUpdate(idx, mutable.ListBuffer()) += v
+        v
+    }
     val lv = vs.lv
     variables.getOrElseUpdate(loc, mlistEmpty) += lv
   }
@@ -105,13 +111,13 @@ class LocalVarResolver(sig: Signature) {
   }
 
   private def dup(pos: Int): Unit = {
-    require(stackVars.size >= pos, s"Stack size less than dup $pos requirement")
+    require(stackVars.lengthCompare(pos) >= 0, s"Stack size less than dup $pos requirement")
     val (front, back) = stackVars.splitAt(pos)
     stackVars = front ::: stackVars.head :: back
   }
 
   private def swap(): Unit = {
-    require(stackVars.size >= 2, s"Stack size less than 2 for swap")
+    require(stackVars.lengthCompare(2) >= 0, s"Stack size less than 2 for swap")
     stackVars = stackVars.take(2).reverse ::: stackVars.drop(2)
   }
 
@@ -120,7 +126,6 @@ class LocalVarResolver(sig: Signature) {
     val variable :: tail = stackVars
     stackVars = tail
     if(variable.typ.typ.baseType.unknown) {
-      println(expected)
       expected match {
         case Some(typ) =>
           variable.typ.bt.bt = typ.baseType
@@ -537,7 +542,7 @@ class LocalVarResolver(sig: Signature) {
               val lv = pop(loc, Some(JavaKnowledge.DOUBLE))
               store(loc, v, lv.typ)
             case ASTORE =>
-              val typ = localVariables.getOrElse(v, msetEmpty).find{ v =>
+              val typ = localVariables.getOrElse(v, mlistEmpty).find{ v =>
                 v.inScope(loc)
               }.map(vs => vs.lv.typ.typ)
               val lv = pop(loc, typ)
