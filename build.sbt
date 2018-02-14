@@ -30,6 +30,7 @@ val buildInfoSettings = Seq(
 lazy val publishSnapshot = taskKey[Unit]("Publish Snapshot - Custom Task")
 publishSnapshot := {
   println("Publishing Snapshot ...")
+  isSnapshot := true
   val extracted = Project.extract((state in jawa).value)
   Project.runTask(publishSigned in jawa, extracted.appendWithSession(Seq(
     publishTo in jawa := Some("Artifactory Realm" at "http://oss.jfrog.org/artifactory/oss-snapshot-local"),
