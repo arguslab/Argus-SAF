@@ -37,7 +37,11 @@ final case class JawaBaseType(pkg: Option[JawaPackage], name: String, unknown: B
   def packageName: String = 
     if(pkg.isEmpty) ""
     else pkg.get.toPkgString(".")
-  def toUnknown: JawaBaseType = JawaBaseType(pkg, name, unknown = true)
+  def toUnknown: JawaBaseType = if(JavaKnowledge.isJavaPrimitive(typ)) {
+    this
+  } else {
+    JawaBaseType(pkg, name, unknown = true)
+  }
   def removeUnknown(): JawaBaseType = JawaBaseType(pkg, name)
   override def toString: String = typ
 }
