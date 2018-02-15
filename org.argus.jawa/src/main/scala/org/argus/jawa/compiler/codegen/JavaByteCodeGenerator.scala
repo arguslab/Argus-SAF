@@ -859,7 +859,7 @@ class JavaByteCodeGenerator(javaVersion: Int) {
             throw new JawaByteCodeGenException(ce.pos, "visitCastExpression problem: " + ce)
         }
       case t if t == JavaKnowledge.LONG =>
-        mv.visitVarInsn(Opcodes.ILOAD, this.locals(ce.varName).index)
+        mv.visitVarInsn(Opcodes.LLOAD, this.locals(ce.varName).index)
         ce.typ.typ match {
           case t2 if t2 == JavaKnowledge.INT =>
             mv.visitInsn(Opcodes.L2I)
@@ -871,7 +871,7 @@ class JavaByteCodeGenerator(javaVersion: Int) {
             throw new JawaByteCodeGenException(ce.pos, "visitCastExpression problem: " + ce)
         }
       case t if t == JavaKnowledge.FLOAT =>
-        mv.visitVarInsn(Opcodes.ILOAD, this.locals(ce.varName).index)
+        mv.visitVarInsn(Opcodes.FLOAD, this.locals(ce.varName).index)
         ce.typ.typ match {
           case t2 if t2 == JavaKnowledge.INT =>
             mv.visitInsn(Opcodes.F2I)
@@ -883,7 +883,7 @@ class JavaByteCodeGenerator(javaVersion: Int) {
             throw new JawaByteCodeGenException(ce.pos, "visitCastExpression problem: " + ce)
         }
       case t if t == JavaKnowledge.DOUBLE =>
-        mv.visitVarInsn(Opcodes.ILOAD, this.locals(ce.varName).index)
+        mv.visitVarInsn(Opcodes.DLOAD, this.locals(ce.varName).index)
         ce.typ.typ match {
           case t2 if t2 == JavaKnowledge.INT =>
             mv.visitInsn(Opcodes.D2I)
