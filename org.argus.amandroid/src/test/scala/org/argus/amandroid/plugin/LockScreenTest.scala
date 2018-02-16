@@ -1,5 +1,6 @@
 package org.argus.amandroid.plugin
 
+import org.argus.amandroid.plugin.lockScreen.LockScreen
 import org.scalatest.FlatSpec
 
 class LockScreenTest extends FlatSpec{
@@ -8,12 +9,10 @@ class LockScreenTest extends FlatSpec{
     assert(1==isLockScreen())
   }
 
-  private def isLockScreen()={
-    val a=1
-    a
+  private def isLockScreen():Int={
+    val lockScreen=new LockScreen()
+    var b:Int=lockScreen.testFunction()
+    b
   }
-
-
-
 }
 
