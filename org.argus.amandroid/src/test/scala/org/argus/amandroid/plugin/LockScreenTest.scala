@@ -11,7 +11,7 @@ class LockScreenTest extends FlatSpec{
 
   private def isLockScreen():Int={
     val lockScreen=new LockScreen()
-    var b:Int=lockScreen.testFunction()
+    var b:Int=lockScreen.checkLockScreen()
     b
   }
 }
