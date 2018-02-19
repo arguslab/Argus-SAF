@@ -6,12 +6,12 @@ import org.scalatest.FlatSpec
 class LockScreenTest extends FlatSpec{
 
   "LockScreen" should "1 misuse" in {
-    assert(1==isLockScreen())
+    assert(isLockScreen())
   }
 
-  private def isLockScreen():Int={
+  private def isLockScreen():Boolean={
     val lockScreen=new LockScreen()
-    var b:Int=lockScreen.checkLockScreen()
+    var b:Boolean=lockScreen.checkLockScreen()
     b
   }
 }

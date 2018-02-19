@@ -5,19 +5,19 @@ import org.argus.jawa.core.{Global, JawaType}
 
 class LockScreen(mainActivity:JawaType) {
 
-  def checkLockScreen(global:Global,idfgOpt: Option[InterProceduralDataFlowGraph]): String ={
-
-    val clazz=global.getClassOrResolve(mainActivity)
-    if (!clazz.isSystemLibraryClass && clazz.isConcrete){
-      clazz.getDeclaredMethods for each {method =>
-        val code=method.getBody.toCode
-        if (code.contains("Hello World")){
-          return 'YES'
+  def checkLockScreen(global: Global, idfgOpt: Option[InterProceduralDataFlowGraph]): Boolean = {
+    var flag: Boolean = 0
+    val clazz = global.getClassOrResolve(mainActivity)
+    if (!clazz.isSystemLibraryClass && clazz.isConcrete) {
+      clazz.getDeclaredMethods
+      for each { method =>
+        val code = method.getBody.toCode
+        if (code.contains("Hello World")) {
+          flag = 1
         }
-        else return 'NO'
-
       }
-    }
 
+    }
   }
+  flag
 }
