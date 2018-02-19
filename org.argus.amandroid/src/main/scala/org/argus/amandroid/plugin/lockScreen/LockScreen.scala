@@ -3,13 +3,17 @@ package org.argus.amandroid.plugin.lockScreen
 import org.argus.jawa.alir.dfa.InterProceduralDataFlowGraph
 import org.argus.jawa.core.{Global, JawaType}
 
-class LockScreen(mainActivity:JawaType) {
+class LockScreen() {
 
   def checkLockScreen(global: Global, idfgOpt: Option[InterProceduralDataFlowGraph]): Boolean = {
-    var isFlag:Boolean=false
+    var isFlag: Boolean = false
+    global.getApplicationClassCodes foreach { case (typ, f) =>
+      if (f.code.contains("lockscreen")) {
+        isFlag = true
+      }
+    }
     isFlag
   }
-
 }
 
 /* Steps
