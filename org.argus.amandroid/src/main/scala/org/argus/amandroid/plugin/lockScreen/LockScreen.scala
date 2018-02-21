@@ -9,7 +9,14 @@ class LockScreen() {
     var isFlag: Boolean = false
     global.getApplicationClassCodes foreach { case (typ, f) =>
       if (f.code.contains("addView:(Landroid/view/View;Landroid/view/ViewGroup$LayoutParams;)")) {
-        isFlag = true
+        global.getClazz(typ) match {
+          case Some(c)=>
+            c.getDeclaredMethods.foreach{m=>
+              isFlag=true
+
+              // Here check each of the methods in the Class.
+            }
+        }
       }
     }
     isFlag
