@@ -8,7 +8,7 @@ class LockScreen() {
   def checkLockScreen(global: Global, idfgOpt: Option[InterProceduralDataFlowGraph]): Boolean = {
     var isFlag: Boolean = false
     global.getApplicationClassCodes foreach { case (typ, f) =>
-      if (f.code.contains("lockscreen")) {
+      if (f.code.contains("addView:(Landroid/view/View;Landroid/view/ViewGroup$LayoutParams;)")) {
         isFlag = true
       }
     }
