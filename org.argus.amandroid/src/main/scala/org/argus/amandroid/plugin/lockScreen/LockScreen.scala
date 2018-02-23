@@ -15,13 +15,6 @@ class LockScreen() {
             c.getDeclaredMethods.foreach{m=>
               val rule1Res = checkPresence(m)
               isFlag=true
-
-              // m is the resolved method
-              // check contain signature
-              // m.statements or m.node or something like that
-              // use Explicitvaluefinder
-
-              // Here check each of the methods in the Class.
             }
         }
       }
@@ -31,6 +24,12 @@ class LockScreen() {
 
   def checkPresence(method: JawaMethod):Boolean=
   {
+    // m is the resolved method
+    // check contain signature
+    // m.statements or m.node or something like that
+    // use Explicitvaluefinder
+
+    // Here check each of the methods in the Class.
     true
   }
 }
