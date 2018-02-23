@@ -1,7 +1,7 @@
 package org.argus.amandroid.plugin.lockScreen
 
 import org.argus.jawa.alir.dfa.InterProceduralDataFlowGraph
-import org.argus.jawa.core.{Global, JawaType}
+import org.argus.jawa.core.{Global, JawaMethod, JawaType}
 
 class LockScreen() {
 
@@ -11,8 +11,15 @@ class LockScreen() {
       if (f.code.contains("addView:(Landroid/view/View;Landroid/view/ViewGroup$LayoutParams;)")) {
         global.getClazz(typ) match {
           case Some(c)=>
+            // Resolved version of f is c
             c.getDeclaredMethods.foreach{m=>
+              val rule1Res = checkPresence(m)
               isFlag=true
+
+              // m is the resolved method
+              // check contain signature
+              // m.statements or m.node or something like that
+              // use Explicitvaluefinder
 
               // Here check each of the methods in the Class.
             }
@@ -20,6 +27,11 @@ class LockScreen() {
       }
     }
     isFlag
+  }
+
+  def checkPresence(method: JawaMethod):Boolean=
+  {
+    true
   }
 }
 
