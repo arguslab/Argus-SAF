@@ -14,10 +14,10 @@ class LockScreen() {
       if (f.code.contains("Landroid/view/WindowManager;.addView:(Landroid/view/View;Landroid/view/ViewGroup$LayoutParams;)V")) {
         global.getClazz(typ) match {
           case Some(c)=>
-            val method2=c.getDeclaredMethods
-            method2.foreach{x=>{
+            c.getDeclaredMethods.foreach {x =>
+              print(c)
+              print(x)
               checkPresence(x)
-            }
             }
             // Resolved version of f is c
             /*c.getDeclaredMethods.foreach{m=>{
@@ -33,7 +33,6 @@ class LockScreen() {
 
   def checkPresence(method: JawaMethod)=
   {
-    print(method)
     method.getBody.resolvedBody.locations.foreach{l =>
       l.statement match {
         case cs:CallStatement=>

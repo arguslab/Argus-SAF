@@ -14,7 +14,7 @@ class LockScreenTest extends FlatSpec{
     val result:Boolean=testLockScreen(getClass.getResource("/apks/lockScreen.apk").getPath)
     assert(result)
   }
-
+/*
   "Crypto" should "be Flagged No" in {
     val result:Boolean=testLockScreen(getClass.getResource("/apks/crypto.apk").getPath)
     assert(!result)
@@ -24,6 +24,7 @@ class LockScreenTest extends FlatSpec{
     val result:Boolean=testLockScreen(getClass.getResource("/apks/bgsuFun.apk").getPath)
     assert(result)
   }
+  */
 
   private def testLockScreen(apkFile:String): Boolean =
   {
