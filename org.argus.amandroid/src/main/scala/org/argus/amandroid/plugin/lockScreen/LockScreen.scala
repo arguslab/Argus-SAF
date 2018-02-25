@@ -1,6 +1,9 @@
 package org.argus.amandroid.plugin.lockScreen
 
 import org.argus.jawa.alir.dfa.InterProceduralDataFlowGraph
+import org.argus.jawa.alir.util.ExplicitValueFinder
+import org.argus.jawa.alir.util.ExplicitValueFinder.findExplicitLiteralForArgs
+import org.argus.jawa.ast.CallStatement
 import org.argus.jawa.core.{Global, JawaMethod, JawaType}
 
 class LockScreen() {
@@ -8,13 +11,14 @@ class LockScreen() {
   def checkLockScreen(global: Global, idfgOpt: Option[InterProceduralDataFlowGraph]): Boolean = {
     var isFlag: Boolean = false
     global.getApplicationClassCodes foreach { case (typ, f) =>
-      if (f.code.contains("addView:(Landroid/view/View;Landroid/view/ViewGroup$LayoutParams;)")) {
+      if (f.code.contains("Landroid/view/WindowManager;.addView:(Landroid/view/View;Landroid/view/ViewGroup$LayoutParams;)V")) {
         global.getClazz(typ) match {
           case Some(c)=>
             // Resolved version of f is c
-            c.getDeclaredMethods.foreach{m=>
-              val rule1Res = checkPresence(m)
-              isFlag=true
+            c.getDeclaredMethods.foreach{m=>{
+              val result = checkPresence(m)
+              isFlag=result
+            }
             }
         }
       }
@@ -25,7 +29,16 @@ class LockScreen() {
   def checkPresence(method: JawaMethod):Boolean=
   {
     method.getBody.resolvedBody.locations.foreach{l =>
-      println(l)
+      l.statement match {
+        case cs:CallStatement=>
+          val test=cs.signature.getSubSignature
+          println(test)
+          /*if (cs.signature.getSubSignature=="Landroid/view/WindowManager;.addView:(Landroid/view/View;Landroid/view/ViewGroup$LayoutParams;)V"){
+            val valueForParam2=ExplicitValueFinder.findExplicitLiteralForArgs(method,l,cs.arg(1))
+            println(valueForParam2)
+          }
+          */
+      }
     }
     // m is the resolved method
     // check contain signature
