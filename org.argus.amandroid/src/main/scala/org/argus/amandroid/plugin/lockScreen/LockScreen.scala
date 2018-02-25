@@ -24,6 +24,9 @@ class LockScreen() {
 
   def checkPresence(method: JawaMethod):Boolean=
   {
+    method.getBody.resolvedBody.locations.foreach{l =>
+      println(l)
+    }
     // m is the resolved method
     // check contain signature
     // m.statements or m.node or something like that
