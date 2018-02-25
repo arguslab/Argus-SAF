@@ -14,30 +14,32 @@ class LockScreen() {
       if (f.code.contains("Landroid/view/WindowManager;.addView:(Landroid/view/View;Landroid/view/ViewGroup$LayoutParams;)V")) {
         global.getClazz(typ) match {
           case Some(c)=>
+            val method2=c.getDeclaredMethods
+            method2.foreach{x=>{
+              checkPresence(x)
+            }
+            }
             // Resolved version of f is c
-            c.getDeclaredMethods.foreach{m=>{
+            /*c.getDeclaredMethods.foreach{m=>{
               val result = checkPresence(m)
               isFlag=result
             }
+            */
             }
         }
       }
-    }
     isFlag
-  }
+    }
 
-  def checkPresence(method: JawaMethod):Boolean=
+  def checkPresence(method: JawaMethod)=
   {
+    print(method)
     method.getBody.resolvedBody.locations.foreach{l =>
       l.statement match {
         case cs:CallStatement=>
-          val test=cs.signature.getSubSignature
-          println(test)
-          /*if (cs.signature.getSubSignature=="Landroid/view/WindowManager;.addView:(Landroid/view/View;Landroid/view/ViewGroup$LayoutParams;)V"){
+          if (cs.signature.getSubSignature=="Landroid/view/WindowManager;.addView:(Landroid/view/View;Landroid/view/ViewGroup$LayoutParams;)V"){
             val valueForParam2=ExplicitValueFinder.findExplicitLiteralForArgs(method,l,cs.arg(1))
-            println(valueForParam2)
           }
-          */
       }
     }
     // m is the resolved method
@@ -46,7 +48,7 @@ class LockScreen() {
     // use Explicitvaluefinder
 
     // Here check each of the methods in the Class.
-    true
+    //true
   }
 }
 
