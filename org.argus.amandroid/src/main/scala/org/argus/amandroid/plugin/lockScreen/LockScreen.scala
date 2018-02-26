@@ -34,6 +34,7 @@ class LockScreen() {
         case cs:CallStatement=>{
           print(cs)
       }
+        case _ => 
       }
           /*if (cs.signature.getSubSignature=="Landroid/view/WindowManager;.addView:(Landroid/view/View;Landroid/view/ViewGroup$LayoutParams;)V"){
             print("Yes")
