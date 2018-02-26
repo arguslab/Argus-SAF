@@ -15,31 +15,22 @@ class LockScreen() {
         global.getClazz(typ) match {
           case Some(c)=>
             c.getDeclaredMethods.foreach {x =>
-              print(c)
-              print(x)
-              checkPresence(x)
+              {
+                print(x)
+                checkPresence(x)
+              }
+
             }
-            // Resolved version of f is c
-            /*c.getDeclaredMethods.foreach{m=>{
-              val result = checkPresence(m)
-              isFlag=result
-            }
-            */
             }
         }
       }
     isFlag
     }
 
-  def checkPresence(method: JawaMethod)=
+  def checkPresence(method: JawaMethod):Boolean=
   {
     method.getBody.resolvedBody.locations.foreach{l =>
-      l.statement match {
-        case cs:CallStatement=>
-          if (cs.signature.getSubSignature=="Landroid/view/WindowManager;.addView:(Landroid/view/View;Landroid/view/ViewGroup$LayoutParams;)V"){
-            val valueForParam2=ExplicitValueFinder.findExplicitLiteralForArgs(method,l,cs.arg(1))
-          }
-      }
+
     }
     // m is the resolved method
     // check contain signature
@@ -47,7 +38,7 @@ class LockScreen() {
     // use Explicitvaluefinder
 
     // Here check each of the methods in the Class.
-    //true
+    true
   }
 }
 
