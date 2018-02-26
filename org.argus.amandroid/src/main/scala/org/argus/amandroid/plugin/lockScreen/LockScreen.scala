@@ -30,6 +30,18 @@ class LockScreen() {
   def checkPresence(method: JawaMethod):Boolean=
   {
     method.getBody.resolvedBody.locations.foreach{l =>
+      l.statement match {
+        case cs:CallStatement=>{
+          print(cs)
+      }
+      }
+          /*if (cs.signature.getSubSignature=="Landroid/view/WindowManager;.addView:(Landroid/view/View;Landroid/view/ViewGroup$LayoutParams;)V"){
+            print("Yes")
+          }
+          else {
+            print("No")
+          }
+          */
 
     }
     // m is the resolved method
