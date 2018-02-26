@@ -16,7 +16,6 @@ class LockScreen() {
           case Some(c)=>
             c.getDeclaredMethods.foreach {x =>
               {
-                print(x)
                 checkPresence(x)
               }
 
@@ -32,17 +31,11 @@ class LockScreen() {
     method.getBody.resolvedBody.locations.foreach{l =>
       l.statement match {
         case cs:CallStatement=>{
-          print(cs)
-      }
+          print(cs.signature.getSubSignature)
+          }
         case _ => 
       }
-          /*if (cs.signature.getSubSignature=="Landroid/view/WindowManager;.addView:(Landroid/view/View;Landroid/view/ViewGroup$LayoutParams;)V"){
-            print("Yes")
-          }
-          else {
-            print("No")
-          }
-          */
+
 
     }
     // m is the resolved method
