@@ -2,7 +2,7 @@ package org.argus.amandroid.plugin.lockScreen
 
 import org.argus.jawa.alir.dfa.InterProceduralDataFlowGraph
 import org.argus.jawa.alir.util.ExplicitValueFinder
-import org.argus.jawa.ast.CallStatement
+import org.argus.jawa.ast.{AssignmentStatement, CallStatement}
 import org.argus.jawa.core.{Global, JawaMethod, JawaType}
 
 class LockScreen() {
@@ -29,12 +29,19 @@ class LockScreen() {
     method.getBody.resolvedBody.locations.foreach{line =>
       line.statement match {
         case cs:CallStatement=>{
-          if (cs.signature.getSubSignature == "addView:(Landroid/view/View;Landroid/view/ViewGroup$LayoutParams;)V"){
+          if (cs.signature== "Landroid/view/WindowManager$LayoutParams;.<init>:(IIIII)V"){
             val valuesForParam1 = ExplicitValueFinder.findExplicitLiteralForArgs(method,line, cs.arg(0))
             val valuesForParam2=ExplicitValueFinder.findExplicitLiteralForArgs(method,line,cs.arg(1))
+            val valuesForParam3 = ExplicitValueFinder.findExplicitLiteralForArgs(method,line, cs.arg(2))
+            val valuesForParam4=ExplicitValueFinder.findExplicitLiteralForArgs(method,line,cs.arg(3))
             print("The values of parameters are:")
             print(valuesForParam1)
+            print("   ")
             print(valuesForParam2)
+            print("   ")
+            print(valuesForParam3)
+            print("   ")
+            print(valuesForParam4)
           }
           }
         case _ => 
