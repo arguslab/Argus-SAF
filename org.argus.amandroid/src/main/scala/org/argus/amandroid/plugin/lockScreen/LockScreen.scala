@@ -26,12 +26,13 @@ class LockScreen() {
 
   def checkPresence(method: JawaMethod):Boolean=
   {
-    method.getBody.resolvedBody.locations.foreach{l =>
-      l.statement match {
+    method.getBody.resolvedBody.locations.foreach{line =>
+      line.statement match {
         case cs:CallStatement=>{
           if (cs.signature.getSubSignature == "addView:(Landroid/view/View;Landroid/view/ViewGroup$LayoutParams;)V"){
-            val valuesForParam1 = ExplicitValueFinder.findExplicitLiteralForArgs(method,l, cs.arg(0))
-            val valuesForParam2=ExplicitValueFinder.findExplicitLiteralForArgs(method,l,cs.arg(1))
+            val valuesForParam1 = ExplicitValueFinder.findExplicitLiteralForArgs(method,line, cs.arg(0))
+            val valuesForParam2=ExplicitValueFinder.findExplicitLiteralForArgs(method,line,cs.arg(1))
+            print("The parameters are:")
             print(valuesForParam1)
             print(valuesForParam2)
           }
