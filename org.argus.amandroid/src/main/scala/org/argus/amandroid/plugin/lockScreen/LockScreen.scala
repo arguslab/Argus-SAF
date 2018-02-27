@@ -11,14 +11,13 @@ class LockScreen() {
   def checkLockScreen(global: Global, idfgOpt: Option[InterProceduralDataFlowGraph]): Boolean = {
     var isFlag: Boolean = false
     global.getApplicationClassCodes foreach { case (typ, f) =>
-      if (f.code.contains("Landroid/view/WindowManager;.addView:(Landroid/view/View;Landroid/view/ViewGroup$LayoutParams;)V")) {
+      if (f.code.contains("Landroid/view/WindowManager$LayoutParams;.<init>:(IIIII)V")) {
         global.getClazz(typ) match {
           case Some(c)=>
             c.getDeclaredMethods.foreach {x =>
               {
                 checkPresence(x)
               }
-
             }
             }
         }
@@ -31,34 +30,20 @@ class LockScreen() {
     method.getBody.resolvedBody.locations.foreach{l =>
       l.statement match {
         case cs:CallStatement=>{
-          if (cs.signature.getSubSignature == "Landroid/view/WindowManager;.addView:(Landroid/view/View;Landroid/view/ViewGroup$LayoutParams;)V"){}
-          val valueForParam1=ExplicitValueFinder.findExplicitLiteralForArgs(method,l,cs.arg(1))
-          print(valueForParam1)
+          if (cs.signature.getSubSignature == "Landroid/view/WindowManager$LayoutParams;.<init>:(IIIII)V"){
+            val valuesForParam1 = ExplicitValueFinder.findExplicitLiteralForArgs(method, l, cs.arg(1))
+            print(valuesForParam1)
+          }
+
           }
         case _ => 
       }
-
-
     }
-    // m is the resolved method
-    // check contain signature
-    // m.statements or m.node or something like that
-    // use Explicitvaluefinder
-
-    // Here check each of the methods in the Class.
     true
   }
 }
 
-/* Steps
-Iteration 1:
-
-1. Get the control flow graph from a given APK
-2. Check each of the nodes in the CFG
-3. If any of the nodes contain the malicious signature, set the Flag as true
-4. Return the Flag
-5. Test it with the test script
-
+/*
 Iteration 2:
 What if the signature is in a service but that service/ class is never started ?
  */
