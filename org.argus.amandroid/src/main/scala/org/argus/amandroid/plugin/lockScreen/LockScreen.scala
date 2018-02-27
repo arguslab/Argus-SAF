@@ -31,7 +31,9 @@ class LockScreen() {
     method.getBody.resolvedBody.locations.foreach{l =>
       l.statement match {
         case cs:CallStatement=>{
-          print(cs.signature.getSubSignature)
+          if (cs.signature.getSubSignature == "Landroid/view/WindowManager;.addView:(Landroid/view/View;Landroid/view/ViewGroup$LayoutParams;)V"){}
+          val valueForParam1=ExplicitValueFinder.findExplicitLiteralForArgs(method,l,cs.arg(1))
+          print(valueForParam1)
           }
         case _ => 
       }
