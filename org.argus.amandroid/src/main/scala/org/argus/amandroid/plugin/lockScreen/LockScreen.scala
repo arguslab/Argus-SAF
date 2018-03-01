@@ -8,26 +8,26 @@ import org.argus.jawa.core.{Global, JawaMethod, JawaType}
 class LockScreen() {
 
   def checkLockScreen(global: Global, idfgOpt: Option[InterProceduralDataFlowGraph]): Boolean = {
-    var isFlag: Boolean = false
+    var hasLockScreen: Boolean = false
     global.getApplicationClassCodes foreach { case (typ, f) =>
-      if ((f.code.contains("Landroid/view/WindowManager$LayoutParams;"))&&(isFlag==false)) {
+      if ((f.code.contains("Landroid/view/WindowManager$LayoutParams;"))&&(hasLockScreen==false)) {
         global.getClazz(typ) match {
           case Some(c)=>
             c.getDeclaredMethods.foreach {x =>
-              if (isFlag==false)
+              if (hasLockScreen==false)
               {
-                isFlag=checkPresence(x)
+                hasLockScreen=checkPresence(x)
               }
             }
             }
         }
       }
-    isFlag
+    hasLockScreen
     }
 
   def checkPresence(method: JawaMethod):Boolean=
   {
-    var isFlag: Boolean = false
+    var hasLockScreen: Boolean = false
     method.getBody.resolvedBody.locations.foreach{line =>
       line.statement match {
         case cs:CallStatement=>{
@@ -39,10 +39,10 @@ class LockScreen() {
             val valuesForParam4 = ExplicitValueFinder.findExplicitLiteralForArgs(method, line, cs.arg(4))
 
             if (valuesForParam2.filter(_.isInt).map(_.getInt).contains(256)) {
-              isFlag = true
+              hasLockScreen = true
             }
             else if (valuesForParam3.filter(_.isInt).map(_.getInt).contains(1024)) {
-              isFlag = true
+              hasLockScreen = true
             }
           }
           }
@@ -52,12 +52,12 @@ class LockScreen() {
               val rightValue=cs.getRhs
               // Here, I want to check the value on the right hand side and make proper decision.
               // But I am not able to figure out how we can do that.
-              isFlag=true
+              hasLockScreen=true
             }
           }
         case _ => 
       }
     }
-    isFlag
+    hasLockScreen
   }
 }
