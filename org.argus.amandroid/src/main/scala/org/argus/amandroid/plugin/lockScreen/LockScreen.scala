@@ -14,6 +14,7 @@ class LockScreen() {
         global.getClazz(typ) match {
           case Some(c)=>
             c.getDeclaredMethods.foreach {x =>
+              if (isFlag==false)
               {
                 isFlag=checkPresence(x)
               }
@@ -47,9 +48,10 @@ class LockScreen() {
           }
         case cs:AssignmentStatement=>
           {
-            if (cs.toCode.contains("Landroid/view/WindowManager$LayoutParams.type")){
-              val str=cs.getRhs.toString
-              // Check the value on Right hand side and make the decision. `
+            if (cs.toCode.contains("android.view.WindowManager$LayoutParams.type")){
+              val rightValue=cs.getRhs
+              // Here, I want to check the value on the right hand side and make proper decision.
+              // But I am not able to figure out how we can do that.
               isFlag=true
             }
           }
