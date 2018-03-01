@@ -47,8 +47,9 @@ class LockScreen() {
           }
         case cs:AssignmentStatement=>
           {
-            if (cs.toCode.contains("android")){
+            if (cs.toCode.contains("Landroid/view/WindowManager$LayoutParams.type")){
               val str=cs.getRhs.toString
+              // Check the value on Right hand side and make the decision. `
               isFlag=true
             }
           }
