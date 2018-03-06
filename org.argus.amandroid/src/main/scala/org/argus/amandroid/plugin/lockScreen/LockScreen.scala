@@ -50,16 +50,16 @@ class LockScreen() {
           }
         case cs:AssignmentStatement=>
           {
-            print(cs.getLhs.toString)
-            print("Hello")
               if (cs.getLhs.toString.contains("android.view.WindowManager$LayoutParams.type"))
                 {
                 cs.getRhs match {
-                  case ne: Expression => {
-                    val varName = ne.toString
+                  case ne: VariableNameExpression => {
+                    val varName = ne.name
                     val rhsValue=ExplicitValueFinder.findExplicitLiteralForArgs(method, line, varName)
-                    print(rhsValue)
-                    hasLockScreen=true
+                    if (rhsValue.toString().contains("2010I"))
+                    {
+                      hasLockScreen=true
+                    }
                   }
                 }
                 }
