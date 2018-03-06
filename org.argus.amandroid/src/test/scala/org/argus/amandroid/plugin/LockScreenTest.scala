@@ -10,7 +10,7 @@ import org.scalatest.FlatSpec
 class LockScreenTest extends FlatSpec{
   private final val DEBUG=false
 
-  /*"LockScreen" should "be Flagged True" in {
+  "LockScreen" should "be Flagged True" in {
     val result:Boolean=testLockScreen(getClass.getResource("/apks/lockScreen.apk").getPath)
     assert(result)
   }
@@ -19,7 +19,6 @@ class LockScreenTest extends FlatSpec{
     val result:Boolean=testLockScreen(getClass.getResource("/apks/crypto.apk").getPath)
     assert(!result)
   }
-  */
 
   "bgsuFun" should "be Flagged Yes" in {
     val result:Boolean=testLockScreen(getClass.getResource("/apks/bgsuFun.apk").getPath)

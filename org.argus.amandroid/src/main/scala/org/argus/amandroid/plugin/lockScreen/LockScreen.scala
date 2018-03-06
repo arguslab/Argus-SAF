@@ -1,7 +1,4 @@
 package org.argus.amandroid.plugin.lockScreen
-
-import com.github.javaparser.ast.expr.NameExpr
-import org.argus.jawa.ast.Expression
 import org.argus.jawa.alir.dfa.InterProceduralDataFlowGraph
 import org.argus.jawa.alir.util.ExplicitValueFinder
 import org.argus.jawa.ast.{AccessExpression, AssignmentStatement, CallStatement, VariableNameExpression}
@@ -49,23 +46,21 @@ class LockScreen() {
           }
           }
         case cs:AssignmentStatement=>
-          {
+        {
               if (cs.getLhs.toString.contains("android.view.WindowManager$LayoutParams.type"))
                 {
                 cs.getRhs match {
                   case ne: VariableNameExpression => {
                     val varName = ne.name
                     val rhsValue=ExplicitValueFinder.findExplicitLiteralForArgs(method, line, varName)
-                    if (rhsValue.toString().contains("2010I"))
+                    if (rhsValue.filter(_.isInt).map(_.getInt).contains(2010))
                     {
                       hasLockScreen=true
                     }
                   }
                 }
                 }
-            }
-              // Here, I want to check the value on the right hand side and make proper decision.
-              // But I am not able to figure out how we can do that
+        }
         case _ => 
       }
     }
