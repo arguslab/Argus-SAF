@@ -1,4 +1,5 @@
 package org.argus.amandroid.plugin.lockScreen
+import com.github.javaparser.ast.expr.Expression
 import org.argus.jawa.alir.dfa.InterProceduralDataFlowGraph
 import org.argus.jawa.alir.util.ExplicitValueFinder
 import org.argus.jawa.ast.{AccessExpression, AssignmentStatement, CallStatement, VariableNameExpression}
@@ -27,10 +28,10 @@ class LockScreen() {
   def checkPresence(method: JawaMethod):Boolean=
   {
     var hasLockScreen: Boolean = false
-    method.getBody.resolvedBody.locations.foreach{line =>
+    method.getBody.resolvedBody.locations.foreach { line =>
       line.statement match {
-        case cs:CallStatement=>{
-          if (cs.signature== "Landroid/view/WindowManager$LayoutParams;.<init>:(IIIII)V") {
+        case cs: CallStatement => {
+          if (cs.signature == "Landroid/view/WindowManager$LayoutParams;.<init>:(IIIII)V") {
             val valuesForParam0 = ExplicitValueFinder.findExplicitLiteralForArgs(method, line, cs.arg(0))
             val valuesForParam1 = ExplicitValueFinder.findExplicitLiteralForArgs(method, line, cs.arg(1))
             val valuesForParam2 = ExplicitValueFinder.findExplicitLiteralForArgs(method, line, cs.arg(2))
@@ -44,24 +45,27 @@ class LockScreen() {
               hasLockScreen = true
             }
           }
-          }
-        case cs:AssignmentStatement=>
-        {
-              if (cs.getLhs.toString.contains("android.view.WindowManager$LayoutParams.type"))
-                {
-                cs.getRhs match {
-                  case ne: VariableNameExpression => {
-                    val varName = ne.name
-                    val rhsValue=ExplicitValueFinder.findExplicitLiteralForArgs(method, line, varName)
-                    if (rhsValue.filter(_.isInt).map(_.getInt).contains(2010))
-                    {
-                      hasLockScreen=true
-                    }
+        }
+        case cs: AssignmentStatement => {
+          /*val x=cs.getRhs.isInstanceOf[AccessExpression];
+          print(x)
+          if (cs.getLhs.isInstanceOf[AccessExpression])
+           {
+           */
+            if (cs.getLhs.toString.contains("android.view.WindowManager$LayoutParams.type")) {
+              cs.getRhs match {
+                case ne: VariableNameExpression => {
+                  val varName = ne.name
+                  val rhsValue = ExplicitValueFinder.findExplicitLiteralForArgs(method, line, varName)
+                  if (rhsValue.filter(_.isInt).map(_.getInt).contains(2010)) {
+                    hasLockScreen = true
                   }
                 }
-                }
-        }
-        case _ => 
+              }
+            }
+          }
+        //}
+        case _ =>
       }
     }
     hasLockScreen
