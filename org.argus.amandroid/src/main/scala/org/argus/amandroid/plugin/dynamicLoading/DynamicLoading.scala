@@ -4,26 +4,30 @@ import org.argus.jawa.alir.dfa.InterProceduralDataFlowGraph
 import org.argus.jawa.core.Global
 
 class DynamicLoading {
-
-  def checkDynamicLoading(global: Global, idfgOpt: Option[InterProceduralDataFlowGraph]): Boolean = {
-    var hasDynamicLoading: Boolean = false
-    global.getApplicationClassCodes foreach { case (typ, f) =>
-      if ((f.code.contains("Landroid/view/WindowManager$LayoutParams;")) && (hasLockScreen == false)) {
-        global.getClazz(typ) match {
-          case Some(c) =>
-            c.getDeclaredMethods.foreach { x =>
-              if (hasDynamicLoading == false) {
-                hasDynamicLoading = checkPresence()
+  def checkDynamicLoading(global:Global,idfgOpt:Option[InterProceduralDataFlowGraph]): Boolean={
+    var hasDynamicLoading:Boolean=false
+    global.getApplicationClassCodes foreach {case (typ,f)=>
+    if ((f.code.contains("Ldalvik/system/DexClassLoader")&&hasDynamicLoading==false))
+    {
+      global.getClazz(typ) match {
+        case Some(c)=>
+          c.getDeclaredMethods.foreach {x=>
+            if (hasDynamicLoading==false)
+              {
+                hasDynamicLoading=checkPresence()
               }
-            }
-        }
+          }
       }
-      hasDynamicLoading
     }
+
+    }
+    hasDynamicLoading
+  }
+
+
 
     def checkPresence(): Boolean = {
       true
     }
-
   }
-}
+

@@ -47,12 +47,7 @@ class LockScreen() {
           }
         }
         case cs: AssignmentStatement => {
-          /*val x=cs.getRhs.isInstanceOf[AccessExpression];
-          print(x)
-          if (cs.getLhs.isInstanceOf[AccessExpression])
-           {
-           */
-            if (cs.getLhs.contains("android.view.WindowManager$LayoutParams.type")) {
+            if (cs.getLhs.toString().contains("android.view.WindowManager$LayoutParams.type")) {
               cs.getRhs match {
                 case ne: VariableNameExpression => {
                   val varName = ne.name
@@ -64,7 +59,6 @@ class LockScreen() {
               }
             }
           }
-        //}
         case _ =>
       }
     }
