@@ -1,7 +1,8 @@
 package org.argus.amandroid.plugin.dynamicLoading
 
 import org.argus.jawa.alir.dfa.InterProceduralDataFlowGraph
-import org.argus.jawa.ast.CallStatement
+import org.argus.jawa.alir.util.ExplicitValueFinder
+import org.argus.jawa.ast.{AssignmentStatement, CallStatement}
 import org.argus.jawa.core.{Global, JawaMethod}
 
 class DynamicLoading {
@@ -25,17 +26,20 @@ class DynamicLoading {
 
   def checkPresence(method: JawaMethod): Boolean = {
     var hasDynamiLoading: Boolean = false
-    print(method.toString)
     method.getBody.resolvedBody.locations.foreach { line =>
       line.statement match {
         case cs: CallStatement => {
-          print(cs.signature)
           print(" ")
-          if (cs.signature == "Ldalvik/system/DexClassLoader;.<init>:(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/ClassLoader;)V")
+          if (cs.signature== "Ldalvik/system/DexClassLoader;.<init>:(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/ClassLoader;)V")
           {
-            hasDynamiLoading = true
+            val valuesForParam0=ExplicitValueFinder.findExplicitLiteralForArgs(method,line,cs.arg(0))
+            val valuesForParam1=ExplicitValueFinder.findExplicitLiteralForArgs(method,line,cs.arg(1))
+            val valuesForParam2=ExplicitValueFinder.findExplicitLiteralForArgs(method,line,cs.arg(2))
+            val valuesForParam3=ExplicitValueFinder.findExplicitLiteralForArgs(method,line,cs.args(3))
+            print(valuesForParam3)
           }
         }
+        case _ =>
       }
     }
     hasDynamiLoading
