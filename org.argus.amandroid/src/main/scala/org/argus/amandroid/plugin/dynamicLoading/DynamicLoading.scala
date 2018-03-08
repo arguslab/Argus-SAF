@@ -42,3 +42,10 @@ class DynamicLoading {
   }
 }
 
+/* Load from network / phone or No
+Check whether from Asset, Phone or Network
+AMD
+To-DO : Get the Contagio-Mini dump application
+
+ */
+
