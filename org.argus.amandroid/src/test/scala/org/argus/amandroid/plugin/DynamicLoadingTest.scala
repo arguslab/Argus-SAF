@@ -11,8 +11,16 @@ import org.scalatest.FlatSpec
 class DynamicLoadingTest extends FlatSpec{
   private final val DEBUG=false
 
-  "App" should "be flagged yes" in {
+  "Bankbot" should "be flagged yes" in {
     val result:Boolean=testDynamicLoading(getClass.getResource("/apks/bankbot.apk").getPath)
+  }
+
+  "dynamicLoader" should "be flagged yes" in {
+    val result:Boolean=testDynamicLoading(getClass.getResource("/apks/bankbot.apk").getPath)
+  }
+
+  "Hijack" should "be flagged yes" in {
+    val result:Boolean=testDynamicLoading(getClass.getResource("/apks/Hijack.apk").getPath)
   }
 
   private def testDynamicLoading(apkFile:String):Boolean=

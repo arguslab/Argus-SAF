@@ -19,17 +19,15 @@ class DynamicLoading {
             }
         }
       }
-
     }
     hasDynamicLoading
   }
 
   def checkPresence(method: JawaMethod): Boolean = {
-    var hasDynamiLoading: Boolean = false
+    var hasDynamicLoading: Boolean = false
     method.getBody.resolvedBody.locations.foreach { line =>
       line.statement match {
         case cs: CallStatement => {
-          print(" ")
           if (cs.signature== "Ldalvik/system/DexClassLoader;.<init>:(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/ClassLoader;)V")
           {
             val valuesForParam0=ExplicitValueFinder.findExplicitLiteralForArgs(method,line,cs.arg(0))
@@ -37,12 +35,13 @@ class DynamicLoading {
             val valuesForParam2=ExplicitValueFinder.findExplicitLiteralForArgs(method,line,cs.arg(2))
             val valuesForParam3=ExplicitValueFinder.findExplicitLiteralForArgs(method,line,cs.args(3))
             print(valuesForParam3)
+            hasDynamicLoading=true
           }
         }
         case _ =>
       }
     }
-    hasDynamiLoading
+    hasDynamicLoading
   }
 }
 
