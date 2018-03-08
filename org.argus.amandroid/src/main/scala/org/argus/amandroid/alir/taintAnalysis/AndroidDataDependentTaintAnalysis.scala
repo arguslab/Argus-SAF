@@ -38,11 +38,11 @@ object AndroidDataDependentTaintAnalysis {
       val rpath = path.reverse
       rpath.headOption match {
         case Some(head) =>
-          list += TaintNode(head.target.getICFGNode, head.target.getPosition)
+          list += TaintNode(head.target.getICFGNode, head.target.getPosition.map(new SSPosition(_)))
         case None =>
       }
       rpath.foreach { edge =>
-        list += TaintNode(edge.source.getICFGNode, edge.source.getPosition)
+        list += TaintNode(edge.source.getICFGNode, edge.source.getPosition.map(new SSPosition(_)))
       }
       list.toList
     }
@@ -52,12 +52,12 @@ object AndroidDataDependentTaintAnalysis {
       this.typs foreach (typ => sb.append(typ + " "))
       sb.append("\n")
       sb.append(srcN.descriptor + "\n\t-> " + sinN.descriptor + "\n")
-      if(path.size > 1) {
+      if(path.lengthCompare(1) > 0) {
         path.tail.reverse.foreach{ edge =>
           sb.append(edge.target + "\n\t-> ")
         }
         sb.append(path.head.source + "\n")
-      } else if(path.size == 1) {
+      } else if(path.lengthCompare(1) == 0) {
         sb.append(path.head.target + "\n\t-> ")
         sb.append(path.head.source + "\n")
       }
@@ -81,7 +81,7 @@ object AndroidDataDependentTaintAnalysis {
       var tps: ISet[TaintPath] = isetEmpty
       sinkNodes.foreach { sinN =>
         sourceNodes.foreach { srcN =>
-          val path = iddi.getDependentPath(iddi.getIddg.getNode(sinN.node.node, sinN.node.pos), iddi.getIddg.getNode(srcN.node.node, srcN.node.pos))
+          val path = iddi.getDependentPath(iddi.getIddg.getNode(sinN.node.node, sinN.node.pos.map(p => p.pos)), iddi.getIddg.getNode(srcN.node.node, srcN.node.pos.map(p => p.pos)))
           if(path.nonEmpty) {
             val tp = Tp(path)
             tp.srcN = srcN
@@ -133,7 +133,7 @@ object AndroidDataDependentTaintAnalysis {
     sinkNodes foreach { sinkNode =>
       sinkNode.node.node match {
         case icfgNode: ICFGCallNode =>
-          iddg.getNode(icfgNode, sinkNode.node.pos) match {
+          iddg.getNode(icfgNode, sinkNode.node.pos.map(p => p.pos)) match {
             case iddgNode: IDDGCallArgNode =>
               extendIDDGForSinkApis(iddg, iddgNode, ptaresult)
             case _ =>
@@ -150,7 +150,7 @@ object AndroidDataDependentTaintAnalysis {
           yard.getApk(cn.getContext.application) match {
             case Some(apk) =>
               if(InterComponentCommunicationModel.isIccOperation(cn.getCalleeSig)) {
-                flag = ssm.isIntentSink(apk, cn, sn.node.pos, ptaresult)
+                flag = ssm.isIntentSink(apk, cn, sn.node.pos.map(p => p.pos), ptaresult)
               }
             case _ =>
           }

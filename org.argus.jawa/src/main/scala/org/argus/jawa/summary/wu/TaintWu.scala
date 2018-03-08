@@ -16,7 +16,7 @@ import org.argus.jawa.alir.dfa.InterProceduralDataFlowGraph
 import org.argus.jawa.alir.pta._
 import org.argus.jawa.alir.pta.model.ModelCallHandler
 import org.argus.jawa.alir.pta.rfa.SimHeap
-import org.argus.jawa.alir.taintAnalysis.{SourceAndSinkManager, TaintNode}
+import org.argus.jawa.alir.taintAnalysis.{SSPosition, SourceAndSinkManager, TaintNode}
 import org.argus.jawa.ast.{CallStatement, ReturnStatement}
 import org.argus.jawa.core.{Global, JawaMethod, Signature}
 import org.argus.jawa.core.util._
@@ -125,17 +125,17 @@ class TaintWu[T <: Global](
                       sinkInss ++= inss
                       val pos = hb match {
                         case _: SuThis =>
-                          Some(0)
+                          Some(new SSPosition(0))
                         case a: SuArg =>
                           if(cs.isStatic) {
-                            Some(a.num)
+                            Some(new SSPosition(a.num))
                           } else {
-                            Some(a.num + 1)
+                            Some(new SSPosition(a.num + 1))
                           }
                         case _: SuGlobal =>
                           None
                         case _: SuRet =>
-                          Some(-1)
+                          Some(new SSPosition(-1))
                       }
                       inss foreach { ins => ts.sinkDependence(ins) = TaintNode(in, pos) :: ts.sinkDependence.getOrElse(oldIns, ilistEmpty)}
                     case _ =>
@@ -158,48 +158,51 @@ class TaintWu[T <: Global](
       val (srcs, sinks) = ssm.getSourceAndSinkNode(global, node, pos, ptaresult)
       ts.sourceNodes ++= srcs
       ts.sinkNodes ++= sinks
-      val inss = getTaintCandidateInstances(node, pos)
-      srcs foreach { src =>
-        inss foreach { ins => ts.taintedInstance(ins) = List(src.node) }
-      }
-      sinks foreach { sink =>
-        inss foreach { ins => ts.sinkDependence(ins) = List(sink.node) }
-      }
       if(srcs.nonEmpty) {
-        srcInss ++= inss
+        srcs foreach { src =>
+          val inss = getTaintCandidateInstances(node, src.node.pos)
+          inss foreach { ins => ts.taintedInstance(ins) = List(src.node) }
+          srcInss ++= inss
+        }
       }
       if(sinks.nonEmpty) {
-        sinkInss ++= inss
+        sinks foreach { sink =>
+          val inss = getTaintCandidateInstances(node, sink.node.pos)
+          inss foreach { ins => ts.sinkDependence(ins) = List(sink.node)}
+          sinkInss ++= inss
+        }
       }
     }
     super.processNode(node, rules)
   }
 
-  private def getTaintCandidateInstances(node: Node, pos: Option[Int]): ISet[Instance] = {
+  private def getTaintCandidateInstances(node: Node, pos: Option[SSPosition]): ISet[Instance] = {
     node match {
       case ln: ICFGLocNode =>
         val l = method.getBody.resolvedBody.location(ln.locIndex)
         l.statement match {
           case cs: CallStatement =>
-            val ns: NameSlot = pos match {
+            pos match {
               case Some(i) =>
-                if(i == -1) {
-                  VarSlot(cs.lhsOpt.map(lhs => lhs.name).getOrElse("hack"))
+                if(i.pos == -1) {
+                  val ns: NameSlot = VarSlot(cs.lhsOpt.map(lhs => lhs.name).getOrElse("hack"))
+                  val fInss = ptaresult.getFieldInstances(node.getContext, ns, i.fields)
+                  ptaresult.getRelatedInstances(node.getContext, fInss)
                 } else {
                   val varName = if(cs.isStatic) {
-                    cs.arg(i)
-                  } else if(i == 0) {
+                    cs.arg(i.pos)
+                  } else if(i.pos == 0) {
                     cs.recvOpt.get
                   } else {
-                    cs.arg(i - 1)
+                    cs.arg(i.pos - 1)
                   }
-                  VarSlot(varName)
+                  val ns: NameSlot = VarSlot(varName)
+                  val fInss = ptaresult.getFieldInstancesAfterCall(node.getContext, ns, i.fields)
+                  ptaresult.getRelatedInstancesAfterCall(node.getContext, fInss)
                 }
               case None =>
-                VarSlot(cs.lhsOpt.map(lhs => lhs.name).getOrElse("hack"))
+                ptaresult.getRelatedInstances(node.getContext, VarSlot(cs.lhsOpt.map(lhs => lhs.name).getOrElse("hack")))
             }
-            ptaresult.getRelatedInstances(node.getContext, ns)
-//            ptaresult.pointsToSet(node.getContext, ns)
           case _ =>
             isetEmpty
         }
@@ -207,7 +210,7 @@ class TaintWu[T <: Global](
         pos match {
           case Some(i) =>
             val args: IList[String] = (method.thisOpt ++ method.getParamNames).toList
-            val ns: NameSlot = VarSlot(args.lift(i).getOrElse("hack"))
+            val ns: NameSlot = VarSlot(args.lift(i.pos).getOrElse("hack"))
             ptaresult.pointsToSet(node.getContext, ns)
           case None => isetEmpty
         }

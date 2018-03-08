@@ -15,7 +15,7 @@ import org.argus.jawa.alir.pta.PTAScopeManager
 import org.argus.jawa.alir.pta.model.ModelCallHandler
 import org.argus.jawa.alir.pta.rfa.SimHeap
 import org.argus.jawa.alir.reachability.SignatureBasedCallGraph
-import org.argus.jawa.alir.taintAnalysis.SourceAndSinkManager
+import org.argus.jawa.alir.taintAnalysis.{SSPosition, SourceAndSinkManager}
 import org.argus.jawa.core._
 import org.argus.jawa.core.util._
 import org.argus.jawa.summary.store.TaintStore
@@ -29,8 +29,9 @@ class TaintWuTest extends FlatSpec with Matchers {
 
   class TestSSM extends SourceAndSinkManager[Global] {
     override def sasFilePath: String = ""
-    addSource(new Signature("LTest;.source:()LTaintData;"), Set("Test"))
-    addSink(new Signature("LTest;.sink:(Ljava/lang/Object;)V"), Set(0), Set("Test"))
+    addSource(new Signature("LTest;.source:()LTaintData;"), isetEmpty, Set("Test"))
+    addSource(new Signature("LTest;.source:(LData;)V"), Set(new SSPosition("0.str")), Set("Test"))
+    addSink(new Signature("LTest;.sink:(Ljava/lang/Object;)V"), Set(new SSPosition(0)), Set("Test"))
   }
 
   trait MyTest {
@@ -119,6 +120,20 @@ class TaintWuTest extends FlatSpec with Matchers {
     """.stripMargin.trim
     )
 
+  "/jawa/taint/TaintTest.jawa" ep "LTaintTest;.caller7:()V" produce (
+    """Taint path:
+      |api_source: LTest;.source:(LData;)V 0.str
+      |	-> api_sink: LTest;.sink:(Ljava/lang/Object;)V 0
+      |Call@(TaintTest.caller7,L3) param: 0.str
+      |	-> Call@(TaintTest.caller7,L5) param: 0
+    """.stripMargin.trim
+    )
+
+  "/jawa/taint/TaintTest.jawa" ep "LTaintTest;.caller8:()V" produce (
+    """
+    """.stripMargin.trim
+    )
+
   class TestFile(file: String) extends MyTest {
     var entrypoint: Signature = _
 
@@ -136,7 +151,9 @@ class TaintWuTest extends FlatSpec with Matchers {
         val global = new Global("test", reporter)
         global.setJavaLib(getClass.getResource("/libs/android.jar").getPath)
         global.load(FileUtil.toUri(getClass.getResource(file).getPath))
+
         val sm: SummaryManager = new JawaSummaryProvider(global).getSummaryManager
+        sm.registerExternalFile(FileUtil.toUri(getClass.getResource("/jawa/taint/TaintAPI.safsu").getPath), "TaintAPI.safsu", fileAndSubsigMatch = false)
         val cg = SignatureBasedCallGraph(global, Set(entrypoint), None)
         val analysis = new BottomUpSummaryGenerator[Global](global, sm, handler,
           TaintSummary(_, _),

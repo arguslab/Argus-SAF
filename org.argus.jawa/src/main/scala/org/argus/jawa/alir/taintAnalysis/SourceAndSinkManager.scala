@@ -43,31 +43,25 @@ trait SourceAndSinkManager[T <: Global] {
   /**
    * it's a map from source API sig to it's category
    */
-  protected val sources: MMap[Signature, ISet[String]] = mmapEmpty
+  protected val sources: MMap[Signature, (ISet[SSPosition], ISet[String])] = mmapEmpty
   /**
    * it's a map from sink API sig to it's category
    */
-  protected val sinks: MMap[Signature, (ISet[Int], ISet[String])] = mmapEmpty
+  protected val sinks: MMap[Signature, (ISet[SSPosition], ISet[String])] = mmapEmpty
 
   def parse(): Unit = parseFile(sasFilePath)
 
   def parseFile(sasFile: String): Unit = SSParser.parse(sasFile) match {
     case (srcs, sins) =>
-      srcs.foreach{
-        case (sig, tags) =>
-          this.sources += (sig -> tags)
-      }
-      sins.foreach{
-        case (sig, (poss, tags)) =>
-          this.sinks += (sig -> (poss, tags))
-      }
+      this.sources ++= srcs
+      this.sinks ++= sins
   }
   
-  def addSource(source: Signature, tags: ISet[String]): Unit = {
-    this.sources += (source -> tags)
+  def addSource(source: Signature, positions: ISet[SSPosition], tags: ISet[String]): Unit = {
+    this.sources += (source -> (positions, tags))
   }
 
-  def addSink(sink: Signature, positions: ISet[Int], tags: ISet[String]): Unit = {
+  def addSink(sink: Signature, positions: ISet[SSPosition], tags: ISet[String]): Unit = {
     this.sinks += (sink -> (positions, tags))
   }
   
@@ -85,24 +79,43 @@ trait SourceAndSinkManager[T <: Global] {
                 case Some(caller) =>
                   val jumpLoc = caller.getBody.resolvedBody.locations(invNode.locIndex)
                   if(pos.isEmpty && this.isUISource(global, calleeSig, invNode.getOwner, jumpLoc)) {
-                    val tn = TaintSource(TaintNode(invNode, pos), TypeTaintDescriptor(calleeSig.signature, None, SourceAndSinkCategory.API_SOURCE))
-                    sources += tn
-                  } else if (pos.isEmpty && this.isSourceMethod(global, calleeSig)) {
-                    val tn = TaintSource(TaintNode(invNode, pos), TypeTaintDescriptor(calleeSig.signature, None, SourceAndSinkCategory.API_SOURCE))
-                    sources += tn
+                    sources += TaintSource(TaintNode(invNode, None), TypeTaintDescriptor(calleeSig.signature, None, SourceAndSinkCategory.API_SOURCE))
                   }
                 case None =>
+              }
+              if(this.isSourceMethod(global, calleeSig)) {
+                val poss: ISet[SSPosition] = this.sources.filter(sink => matches(global, calleeSig, sink._1)).map(_._2._1).fold(isetEmpty)(iunion)
+                if(poss.isEmpty) {
+                  if(pos.isEmpty) {
+                    sources += TaintSource(TaintNode(invNode, None), TypeTaintDescriptor(calleeSig.signature, None, SourceAndSinkCategory.API_SOURCE))
+                  }
+                } else {
+                  pos match {
+                    case Some(position) =>
+                      poss.foreach { p =>
+                        if(p.pos == position) {
+                          sources += TaintSource(TaintNode(invNode, Some(p)), TypeTaintDescriptor(calleeSig.signature, Some(p), SourceAndSinkCategory.API_SOURCE))
+                        }
+                      }
+                    case None =>
+                  }
+                }
               }
             case _ =>
           }
           invNode match {
             case _: ICFGCallNode if this.isSinkMethod(global, calleeSig) =>
-              val poss = this.sinks.filter(sink => matches(global, calleeSig, sink._1)).map(_._2._1).fold(isetEmpty)(iunion)
+              val poss: ISet[SSPosition] = this.sinks.filter(sink => matches(global, calleeSig, sink._1)).map(_._2._1).fold(isetEmpty)(iunion)
               pos match {
                 case Some(position) =>
-                  if (poss.isEmpty || poss.contains(position)) {
-                    val tn = TaintSink(TaintNode(invNode, pos), TypeTaintDescriptor(calleeSig.signature, Some(position), SourceAndSinkCategory.API_SINK))
-                    sinks += tn
+                  if(poss.isEmpty) {
+                    sinks += TaintSink(TaintNode(invNode, Some(new SSPosition(s"$position"))), TypeTaintDescriptor(calleeSig.signature, Some(new SSPosition(position)), SourceAndSinkCategory.API_SINK))
+                  } else {
+                    poss.foreach { p =>
+                      if(p.pos == position) {
+                        sinks += TaintSink(TaintNode(invNode, Some(p)), TypeTaintDescriptor(calleeSig.signature, Some(p), SourceAndSinkCategory.API_SINK))
+                      }
+                    }
                   }
                 case None =>
               }
@@ -111,22 +124,20 @@ trait SourceAndSinkManager[T <: Global] {
         }
       case entNode: ICFGEntryNode =>
         if(this.isEntryPointSource(global, entNode.getOwner)){
-          val tn = TaintSource(TaintNode(entNode, pos), TypeTaintDescriptor(entNode.getOwner.signature, None, SourceAndSinkCategory.ENTRYPOINT_SOURCE))
-          sources += tn
+          sources += TaintSource(TaintNode(entNode, pos.map(new SSPosition(_))), TypeTaintDescriptor(entNode.getOwner.signature, None, SourceAndSinkCategory.ENTRYPOINT_SOURCE))
         }
         if(pos.isDefined && pos.get > 0 && this.isCallbackSource(global, entNode.getOwner, pos.get - 1)){
-          val tn = TaintSource(TaintNode(entNode, pos), TypeTaintDescriptor(entNode.getOwner.signature, None, SourceAndSinkCategory.CALLBACK_SOURCE))
-          sources += tn
+          sources += TaintSource(TaintNode(entNode, pos.map(new SSPosition(_))), TypeTaintDescriptor(entNode.getOwner.signature, None, SourceAndSinkCategory.CALLBACK_SOURCE))
         }
       case normalNode: ICFGNormalNode =>
         val owner = global.getMethod(normalNode.getOwner).get
         val loc = owner.getBody.resolvedBody.locations(normalNode.locIndex)
         if(this.isStmtSource(global, loc)){
-          val tn = TaintSource(TaintNode(normalNode, pos), TypeTaintDescriptor(normalNode.getOwner.signature, None, SourceAndSinkCategory.STMT_SOURCE))
+          val tn = TaintSource(TaintNode(normalNode, pos.map(new SSPosition(_))), TypeTaintDescriptor(normalNode.getOwner.signature, None, SourceAndSinkCategory.STMT_SOURCE))
           sources += tn
         }
         if(this.isStmtSink(global, loc)){
-          val tn = TaintSink(TaintNode(normalNode, pos), TypeTaintDescriptor(normalNode.getOwner.signature, None, SourceAndSinkCategory.STMT_SINK))
+          val tn = TaintSink(TaintNode(normalNode, pos.map(new SSPosition(_))), TypeTaintDescriptor(normalNode.getOwner.signature, None, SourceAndSinkCategory.STMT_SINK))
           sinks += tn
         }
       case _ =>
@@ -158,6 +169,15 @@ trait SourceAndSinkManager[T <: Global] {
   def isEntryPointSource(global: T, sig: Signature): Boolean = false
 }
 
+class SSPosition(str: String) {
+  def this(i: Int) = this(s"$i")
+  private val parts = str.split("\\.").toList
+  def pos: Int = parts.head.toInt
+  def fields: IList[String] = parts.tail
+
+  override def toString: FileResourceUri = str
+}
+
 /**
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
  * @author <a href="mailto:sroy@k-state.edu">Sankardas Roy</a>
@@ -167,10 +187,10 @@ object SSParser{
   final val DEBUG = false
   //                           1            2                   3            4
   private val regex = "([^\\s]+)\\s+([^\\s]+)?\\s*->\\s+([^\\s]+)\\s*([^\\s]+)?\\s*"
-  def parse(filePath: String): (IMap[Signature, ISet[String]], IMap[Signature, (ISet[Int], ISet[String])]) = {
+  def parse(filePath: String): (IMap[Signature, (ISet[SSPosition], ISet[String])], IMap[Signature, (ISet[SSPosition], ISet[String])]) = {
     val rdr: BufferedReader = new BufferedReader(new FileReader(filePath))
-    val sources: MMap[Signature, ISet[String]] = mmapEmpty
-    val sinks: MMap[Signature, (ISet[Int], ISet[String])] = mmapEmpty
+    val sources: MMap[Signature, (ISet[SSPosition], ISet[String])] = mmapEmpty
+    val sinks: MMap[Signature, (ISet[SSPosition], ISet[String])] = mmapEmpty
     val p: Pattern = Pattern.compile(regex)
     var line = rdr.readLine()
     while(line != null){
@@ -179,8 +199,8 @@ object SSParser{
         if(m.find()){
           val (tag, apiSig, positions, tainttags) = parseLine(m)
           tag match{
-            case "_SOURCE_" => sources += (apiSig -> tainttags)
-            case "_SINK_" => sinks += (apiSig -> (positions, tainttags))
+            case "_SOURCE_" => sources += (apiSig -> (positions.map(p => new SSPosition(p)), tainttags))
+            case "_SINK_" => sinks += (apiSig -> (positions.map(p => new SSPosition(p)), tainttags))
             case "_NONE_" =>
             case _ => throw new RuntimeException("Not expected tag: " + tag)
           }
@@ -198,16 +218,16 @@ object SSParser{
     (sources.toMap, sinks.toMap)
   }
   
-  def parseLine(m: Matcher): (String, Signature, ISet[Int], ISet[String]) = {
+  def parseLine(m: Matcher): (String, Signature, ISet[String], ISet[String]) = {
     require(m.group(1) != null && m.group(3) != null)
     val apiSig = new Signature(m.group(1))
     val taintTag = m.group(2)
     val taintTags: ISet[String] = if(taintTag == null) isetEmpty else taintTag.split("\\|").toSet
     val tag = m.group(3)
     val rawpos = m.group(4)
-    val positions: MSet[Int] = msetEmpty
+    val positions: MSet[String] = msetEmpty
     if(rawpos != null) {
-      positions ++= rawpos.split("\\|").map(_.toInt)
+      positions ++= rawpos.split("\\|")
     }
     (tag, apiSig, positions.toSet, taintTags)
   }

@@ -26,7 +26,7 @@ trait TaintDescriptor {
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
  * @author <a href="mailto:sroy@k-state.edu">Sankardas Roy</a>
  */
-case class TypeTaintDescriptor(desc: String, position: Option[Int], typ: String) extends TaintDescriptor {
+case class TypeTaintDescriptor(desc: String, position: Option[SSPosition], typ: String) extends TaintDescriptor {
   override def toString: String = s"$typ: $desc ${if(position.isDefined) position.get.toString else ""}".trim
 }
 
@@ -34,14 +34,14 @@ case class TypeTaintDescriptor(desc: String, position: Option[Int], typ: String)
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
  * @author <a href="mailto:sroy@k-state.edu">Sankardas Roy</a>
  */
-case class TagTaintDescriptor(desc: String, positions: ISet[Int], typ: String, tags: ISet[String]) extends TaintDescriptor {
+case class TagTaintDescriptor(desc: String, positions: ISet[SSPosition], typ: String, tags: ISet[String]) extends TaintDescriptor {
   override def toString: String = s"$typ: $desc ${positions.mkString("|")} ${tags.mkString("|")}".trim
 }
 
 /**
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
  */
-case class TaintNode(node: ICFGNode, pos: Option[Int]) {
+case class TaintNode(node: ICFGNode, pos: Option[SSPosition]) {
   override def toString: FileResourceUri = {
     s"$node ${if(pos.isDefined) "param: " + pos.get else "" }".trim
   }

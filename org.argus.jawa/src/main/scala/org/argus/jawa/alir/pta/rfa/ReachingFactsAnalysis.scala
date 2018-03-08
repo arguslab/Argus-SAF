@@ -227,7 +227,7 @@ class ReachingFactsAnalysis(
         case j: Jump =>
           j match {
             case cs: CallStatement =>
-              ReachingFactsAnalysisHelper.updatePTAResultCallJump(cs, node.getContext, s, ptaresult)
+              ReachingFactsAnalysisHelper.updatePTAResultCallJump(cs, node.getContext, s, ptaresult, afterCall = false)
             case _: GotoStatement =>
             case is: IfStatement =>
               ReachingFactsAnalysisHelper.updatePTAResultExp(is.cond, node.getContext, s, ptaresult)
@@ -246,6 +246,11 @@ class ReachingFactsAnalysis(
     }
 
     override def postProcess(node: ICFGNode, statement: Statement, s: ISet[RFAFact]): Unit = {
+      statement match {
+        case cs: CallStatement =>
+          ReachingFactsAnalysisHelper.updatePTAResultCallJump(cs, node.getContext, s, ptaresult, afterCall = true)
+        case _ =>
+      }
       statement match {
         case a: Assignment =>
           a.getLhs match {

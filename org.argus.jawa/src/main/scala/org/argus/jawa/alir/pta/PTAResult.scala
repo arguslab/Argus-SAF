@@ -81,10 +81,26 @@ class PTAResult {
     }.toMap
   }
 
+  def getFieldInstances(context: Context, s: PTASlot, fields: IList[String]): ISet[Instance] = {
+    var bValue = pointsToSet(context, s)
+    fields.foreach { f =>
+      bValue = bValue.map { ins =>
+        val fSlot = FieldSlot(ins, f)
+        pointsToSet(context, fSlot)
+      }.fold(isetEmpty)(iunion)
+    }
+    bValue
+  }
+
   def getRelatedInstances(context: Context, s: PTASlot): ISet[Instance] = {
     val bValue = pointsToSet(context, s)
     val rhValue = getRelatedHeapInstances(context, bValue)
     bValue ++ rhValue
+  }
+
+  def getRelatedInstances(context: Context, inss: ISet[Instance]): ISet[Instance] = {
+    val rhValue = getRelatedHeapInstances(context, inss)
+    inss ++ rhValue
   }
 
   def getRelatedHeapInstances(context: Context, insts: ISet[Instance]): ISet[Instance] = {
@@ -134,5 +150,55 @@ class PTAResult {
             println("  " + s + "---" + inss.mkString(", "))
         }
     }
+  }
+
+  private val afterCallMap: MMap[Context, MMap[PTASlot, MSet[Instance]]] = mmapEmpty
+  def addInstanceAfterCall(context: Context, s: PTASlot, i: Instance): Unit = afterCallMap.getOrElseUpdate(context, mmapEmpty).getOrElseUpdate(s, msetEmpty) += i
+  def addInstancesAfterCall(context: Context, s: PTASlot, is: ISet[Instance]): Unit = afterCallMap.getOrElseUpdate(context, mmapEmpty).getOrElseUpdate(s, msetEmpty) ++= is
+  def pointsToSetAfterCall(context: Context, s: PTASlot): ISet[Instance] = afterCallMap.getOrElse(context, mmapEmpty).getOrElse(s, msetEmpty).toSet
+
+  def getPTSMapAfterCall(context: Context): PTSMap = {
+    afterCallMap.getOrElseUpdate(context, mmapEmpty).map{
+      case (str, s) =>
+        (str, s.toSet)
+    }.toMap
+  }
+
+  def getFieldInstancesAfterCall(context: Context, s: PTASlot, fields: IList[String]): ISet[Instance] = {
+    var bValue = pointsToSetAfterCall(context, s)
+    fields.foreach { f =>
+      bValue = bValue.map { ins =>
+        val fSlot = FieldSlot(ins, f)
+        pointsToSetAfterCall(context, fSlot)
+      }.fold(isetEmpty)(iunion)
+    }
+    bValue
+  }
+
+  def getRelatedInstancesAfterCall(context: Context, s: PTASlot): ISet[Instance] = {
+    val bValue = pointsToSetAfterCall(context, s)
+    val rhValue = getRelatedHeapInstancesAfterCall(context, bValue)
+    bValue ++ rhValue
+  }
+
+  def getRelatedInstancesAfterCall(context: Context, inss: ISet[Instance]): ISet[Instance] = {
+    val rhValue = getRelatedHeapInstancesAfterCall(context, inss)
+    inss ++ rhValue
+  }
+
+  def getRelatedHeapInstancesAfterCall(context: Context, inss: ISet[Instance]): ISet[Instance] = {
+    val processed: MSet[Instance] = msetEmpty
+    var result: ISet[Instance] = isetEmpty
+    val worklistAlgorithm = new WorklistAlgorithm[Instance] {
+      override def processElement(ins: Instance): Unit = {
+        processed += ins
+        val hMap = getPTSMapAfterCall(context).filter{case (s, _) => s.isInstanceOf[HeapSlot] && s.asInstanceOf[HeapSlot].matchWithInstance(ins)}
+        val hInss = hMap.flatMap(_._2).toSet
+        result ++= hInss
+        worklist ++= hInss.diff(processed)
+      }
+    }
+    worklistAlgorithm.run(worklistAlgorithm.worklist ++= inss)
+    result
   }
 }

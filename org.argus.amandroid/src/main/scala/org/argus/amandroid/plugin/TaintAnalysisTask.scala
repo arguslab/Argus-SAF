@@ -68,5 +68,4 @@ case class TaintAnalysisTask(module: TaintAnalysisModules.Value, fileUris: ISet[
     }
     tar
   }
-  
 }

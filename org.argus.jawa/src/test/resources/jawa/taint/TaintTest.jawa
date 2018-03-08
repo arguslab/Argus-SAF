@@ -101,9 +101,36 @@ procedure `void` `caller5`(`TaintTest` `this` @kind this) @signature `LTaintTest
 }
 procedure `void` `caller6`(`TaintTest` `this` @kind this) @signature `LTaintTest;.caller6:()V` @AccessFlag PUBLIC {
 
+    `TaintData` TaintData_temp;
+    `TaintData` TaintData_v0;
+
   #L47.  call TaintData_temp:= `source`() @signature `LTest;.source:()LTaintData;` @kind static;
   #L48.  TaintData_v0:= TaintData_temp @kind object;
   #L49.  `this`.`TaintTest.myObj` @type ^`java.lang.Object` := TaintData_v0 @kind object;
   #L50.  call `sink`(`this`) @signature `LTest;.sink:(Ljava/lang/Object;)V` @kind static;
   #L51.  return @kind void;
+}
+procedure `void` `caller7`(`TaintTest` `this` @kind this) @signature `LTaintTest;.caller7:()V` @AccessFlag PUBLIC {
+
+    `Data` Data_v0;
+    `java.lang.String` String_v1;
+
+  #L1.  Data_v0:= new `Data`;
+  #L2.  call `<init>`(Data_v0) @signature `LData;.<init>:()V` @kind direct;
+  #L3.  call `source`(Data_v0) @signature `LTest;.source:(LData;)V` @kind static;
+  #L4.  String_v1:= Data_v0.`Data.str` @type ^`java.lang.String` @kind object;
+  #L5.  call `sink`(String_v1) @signature `LTest;.sink:(Ljava/lang/Object;)V` @kind static;
+  #L6.  return @kind void;
+}
+procedure `void` `caller8`(`TaintTest` `this` @kind this) @signature `LTaintTest;.caller8:()V` @AccessFlag PUBLIC {
+
+    `Data` Data_v0;
+    `java.lang.String` String_v1;
+
+  #L1.  Data_v0:= new `Data`;
+  #L2.  call `<init>`(Data_v0) @signature `LData;.<init>:()V` @kind direct;
+  #L3.  call `source`(Data_v0) @signature `LTest;.source:(LData;)V` @kind static;
+  #L4.  String_v1:= Data_v0.`Data.str2` @type ^`java.lang.String` @kind object;
+  #L5.  call `sink`(String_v1) @signature `LTest;.sink:(Ljava/lang/Object;)V` @kind static;
+  #L6.  return @kind void;
 }

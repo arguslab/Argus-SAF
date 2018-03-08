@@ -1,0 +1,9 @@
+record `Data` @kind class @AccessFlag PUBLIC {
+  `java.lang.String` `Data.str` @AccessFlag PUBLIC;
+  `java.lang.String` `Data.str2` @AccessFlag PUBLIC;
+}
+procedure `void` `<init>`(`Data` `this` @kind this) @signature `LData;.<init>:()V` @AccessFlag PUBLIC_CONSTRUCTOR {
+
+  #L1.  call `<init>`(`this`) @signature `Ljava/lang/Object;.<init>:()V` @kind direct;
+  #L2.  return @kind void;
+}

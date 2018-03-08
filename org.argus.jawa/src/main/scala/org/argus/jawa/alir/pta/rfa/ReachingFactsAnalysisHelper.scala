@@ -270,8 +270,8 @@ object ReachingFactsAnalysisHelper {
     updatePTAResultExp(rhs, currentContext, s, ptaresult)
   }
 
-  def updatePTAResultCallJump(cs: CallStatement, callerContext: Context, s: ISet[RFAFact], ptaresult: PTAResult)(implicit factory: SimHeap): Unit = {
-    (cs.recvOpt ++ cs.args).foreach(updatePTAResultCallArg(_, callerContext, s, ptaresult))
+  def updatePTAResultCallJump(cs: CallStatement, callerContext: Context, s: ISet[RFAFact], ptaresult: PTAResult, afterCall: Boolean)(implicit factory: SimHeap): Unit = {
+    (cs.recvOpt ++ cs.args).foreach(updatePTAResultCallArg(_, callerContext, s, ptaresult, afterCall))
   }
 
   def updatePTAResultExp(exp: Expression, currentContext: Context, s: ISet[RFAFact], ptaresult: PTAResult)(implicit factory: SimHeap): Unit = {
@@ -308,9 +308,15 @@ object ReachingFactsAnalysisHelper {
     }
   }
 
-  private def updatePTAResultCallArg(arg: String, currentContext: Context, s: ISet[RFAFact], ptaresult: PTAResult)(implicit factory: SimHeap): Unit = {
+  private def updatePTAResultCallArg(arg: String, currentContext: Context, s: ISet[RFAFact], ptaresult: PTAResult, afterCall: Boolean)(implicit factory: SimHeap): Unit = {
     val slot = VarSlot(arg)
-    getRelatedFactsForArg(slot, s).foreach(f => ptaresult.addInstance(currentContext, f.s, f.v))
+    getRelatedFactsForArg(slot, s).foreach { f =>
+      if(afterCall) {
+        ptaresult.addInstanceAfterCall(currentContext, f.s, f.v)
+      } else {
+        ptaresult.addInstance(currentContext, f.s, f.v)
+      }
+    }
   }
   
   private def getHeapUnknownFactsExp(exp: Expression, currentContext: Context, ptaresult: PTAResult)(implicit factory: SimHeap): ISet[RFAFact] = {
