@@ -37,11 +37,10 @@ class LockScreen() {
             val valuesForParam2 = ExplicitValueFinder.findExplicitLiteralForArgs(method, line, cs.arg(2))
             val valuesForParam3 = ExplicitValueFinder.findExplicitLiteralForArgs(method, line, cs.arg(3))
             val valuesForParam4 = ExplicitValueFinder.findExplicitLiteralForArgs(method, line, cs.arg(4))
+            val set=valuesForParam3.filter(_.isInt).map(_.getInt)
 
-            if (valuesForParam2.filter(_.isInt).map(_.getInt).contains(256)) {
-              hasLockScreen = true
-            }
-            else if (valuesForParam3.filter(_.isInt).map(_.getInt).contains(1024)) {
+            // Check FLAG_FULLSCREEN.
+            if (set.contains(1024)|set.contains(2010)) {
               hasLockScreen = true
             }
           }
@@ -52,7 +51,9 @@ class LockScreen() {
                 case ne: VariableNameExpression => {
                   val varName = ne.name
                   val rhsValue = ExplicitValueFinder.findExplicitLiteralForArgs(method, line, varName)
-                  if (rhsValue.filter(_.isInt).map(_.getInt).contains(2010)) {
+                  val set=rhsValue.filter(_.isInt).map(_.getInt)
+                  if (set.contains(2010)||set.contains(1024))
+                  {
                     hasLockScreen = true
                   }
                 }
