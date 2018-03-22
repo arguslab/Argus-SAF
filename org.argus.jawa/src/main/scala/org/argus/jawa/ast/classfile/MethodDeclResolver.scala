@@ -72,7 +72,7 @@ class MethodDeclResolver(
   // Variable management
   // -------------------------------------------------------------------------
 
-  private val params: MList[Parameter] = mlistEmpty
+  private val params: MMap[Int, Parameter] = mmapEmpty
 
   private val parameterIdx: MMap[Int, (Boolean, JawaType)] = mmapEmpty
   private var num: Int = 0
@@ -122,7 +122,7 @@ class MethodDeclResolver(
     parameterIdx.get(index) match {
       case Some((isThis, t)) =>
         val annos = if(isThis) List(new Annotation("kind", new TokenValue("this"))) else if(t.isObject) List(new Annotation("kind", new TokenValue("object"))) else ilistEmpty
-        params += new Parameter(t, name, annos)
+        params(index) = new Parameter(t, name, annos)
         lvr.localVariables.getOrElseUpdate(index, mlistEmpty) += new lvr.VarScope(start, end, t, name)
       case None =>
         val t = JavaKnowledge.formatSignatureToType(desc)
@@ -247,19 +247,20 @@ class MethodDeclResolver(
   }
 
   override def visitEnd(): Unit = {
-    if(params.isEmpty && parameterIdx.nonEmpty) {
+    if(parameterIdx.nonEmpty) {
       parameterIdx.toList.sortBy{case (i, _) => i}.foreach { case (index, (isThis, t)) =>
         val name = if(isThis) "this" else s"v$index"
         val annos = if(isThis) List(new Annotation("kind", new TokenValue("this"))) else if(t.isObject) List(new Annotation("kind", new TokenValue("object"))) else ilistEmpty
-        params += new Parameter(t, name, annos)
+        params(index) = new Parameter(t, name, annos)
         lvr.localVariables.getOrElseUpdate(index, mlistEmpty) += new lvr.VarScope(0, Integer.MAX_VALUE, t, name)
       }
     }
-    params.foreach { param =>
+    val paramList = params.toList.sortBy{case (i, _) => i}.map { case (_, param) =>
       bytecodes.usedVars += param.name
+      param
     }
     val body: Body = UnresolvedBodyBytecode(bytecodes)(NoPosition)
-    val md = MethodDeclaration(returnType, methodSymbol, params.toList, annotations, body)(NoPosition)
+    val md = MethodDeclaration(returnType, methodSymbol, paramList, annotations, body)(NoPosition)
     methods += md
   }
 }
