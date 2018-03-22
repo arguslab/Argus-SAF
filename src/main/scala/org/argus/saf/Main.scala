@@ -163,7 +163,7 @@ object Main extends App {
 
   case class ArgNotEnoughException(msg: String) extends Exception(msg)
 
-  private def cmdDecompile(cli: CommandLine) = {
+  private def cmdDecompile(cli: CommandLine): Unit = {
     var debug = false
     var outputPath: String = "."
     var forceDelete: Boolean = false
@@ -206,7 +206,7 @@ object Main extends App {
     Decompiler(debug, sourcePath, outputPath, forceDelete, srcLevel, libLevel)
   }
 
-  private def cmdTaintAnalysis(cli: CommandLine) = {
+  private def cmdTaintAnalysis(cli: CommandLine): Unit = {
     var debug = false
     var outputPath: String = "."
     var forceDelete: Boolean = false
@@ -241,7 +241,7 @@ object Main extends App {
     TaintAnalysis(module, debug, sourcePath, outputPath, forceDelete)
   }
 
-  private def cmdApiMisuse(cli: CommandLine) = {
+  private def cmdApiMisuse(cli: CommandLine): Unit = {
     var debug = false
     var outputPath: String = "."
     var forceDelete: Boolean = false

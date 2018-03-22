@@ -121,16 +121,15 @@ class ModelCallHandler(val scopeManager: ScopeManager) {
 
     callModelMap.get(calleeProc.getSignature) match {
       case Some(model) =>
-        var (facts, byPassFlag) = model.doModelCall(sm, s, calleeProc, retOpt, recvOpt, args, currentContext)
+        val (facts, byPassFlag) = model.doModelCall(sm, s, calleeProc, retOpt, recvOpt, args, currentContext)
         if(!byPassFlag) {
           val (newF, delF) = ReachingFactsAnalysisHelper.getUnknownObject(calleeProc, s, retOpt, recvOpt, args, currentContext)
-          facts ++= newF
-          facts --= delF
+          return facts -- delF ++ newF
         }
         return facts
       case None =>
         val (newF, delF) = ReachingFactsAnalysisHelper.getUnknownObject(calleeProc, s, retOpt, recvOpt, args, currentContext)
-        return s ++ newF -- delF
+        return s -- delF ++ newF
     }
     throw new RuntimeException("given callee is not a model call: " + calleeProc)
   }

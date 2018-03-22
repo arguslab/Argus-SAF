@@ -32,7 +32,7 @@ java.util.HashMap:key:java.lang.Object?;
 ;
 
 `Ljava/util/Map;.get:(Ljava/lang/Object;)Ljava/lang/Object;`:
-  ret = this.entries(arg:0)
+  ret = this.entries()
 ;
 
 `Ljava/util/Map;.keySet:()Ljava/util/Set;`:
@@ -43,7 +43,7 @@ java.util.HashMap:key:java.lang.Object?;
 `Ljava/util/Map;.put:(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;`:
   ret = this.entries()
   this.entries.key += arg:0
-  this.entries(arg:0) = arg:1
+  this.entries(arg:0) += arg:1
 ;
 
 `Ljava/util/Map;.putAll:(Ljava/util/Map;)V`:
