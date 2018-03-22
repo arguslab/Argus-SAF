@@ -1,8 +1,7 @@
 package org.argus.amandroid.plugin.lockScreen
-import com.github.javaparser.ast.expr.Expression
 import org.argus.jawa.alir.dfa.InterProceduralDataFlowGraph
 import org.argus.jawa.alir.util.ExplicitValueFinder
-import org.argus.jawa.ast.{AccessExpression, AssignmentStatement, CallStatement, VariableNameExpression}
+import org.argus.jawa.ast._
 import org.argus.jawa.core.{Global, JawaMethod, JawaType}
 
 class LockScreen() {
@@ -46,20 +45,28 @@ class LockScreen() {
           }
         }
         case cs: AssignmentStatement => {
-            if (cs.getLhs.toString().contains("android.view.WindowManager$LayoutParams.type")) {
-              cs.getRhs match {
-                case ne: VariableNameExpression => {
-                  val varName = ne.name
-                  val rhsValue = ExplicitValueFinder.findExplicitLiteralForArgs(method, line, varName)
-                  val set=rhsValue.filter(_.isInt).map(_.getInt)
-                  if (set.contains(2010)||set.contains(1024))
-                  {
-                    hasLockScreen = true
+          cs.getLhs match {
+            case ae:Some[AccessExpression] => {
+              if (ae.toString.contains("android.view.WindowManager$LayoutParams.type")) {
+                print(ae)
+                cs.getRhs match {
+                  case ne: VariableNameExpression => {
+                    val varName = ne.name
+                    val rhsValue = ExplicitValueFinder.findExplicitLiteralForArgs(method, line, varName)
+                    val set = rhsValue.filter(_.isInt).map(_.getInt)
+                    if (set.contains(2010) || set.contains(1024)) {
+                      hasLockScreen = true
+                    }
                   }
+                  case _=>
                 }
+
               }
             }
+            case _ =>
           }
+
+           }
         case _ =>
       }
     }
