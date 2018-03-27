@@ -80,7 +80,7 @@ class HeapSummaryGeneratorTest extends FlatSpec with Matchers {
   "/jawa/summary/SingleFunction.jawa" ep "Lcom/hugo/test/SingleFunction;.put:(Ljava/util/Map;)Ljava/lang/String;" produce (
     """`Lcom/hugo/test/SingleFunction;.put:(Ljava/util/Map;)Ljava/lang/String;`:
       |  arg:0.entries.key += "key"@L1
-      |  arg:0.entries(arg:0.entries.key) = "value"@L2
+      |  arg:0.entries(arg:0.entries.key) += "value"@L2
       |  ret = arg:0.entries.key
       |;
     """.stripMargin
