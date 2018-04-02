@@ -46,6 +46,13 @@ trait WorkUnit[T <: Global] {
   def generateSummary(suGen: (Signature, IList[SummaryRule]) => Summary): Summary
 
   /**
+    * Need process flag
+    * @param handler model call handler
+    * @return process flag
+    */
+  def needProcess(handler: ModelCallHandler): Boolean = true
+
+  /**
     * Implement this function to do pre-analysis tasks
     */
   def initFn(): Unit = {}
@@ -61,6 +68,8 @@ abstract class DataFlowWu[T <: Global] (
     val method: JawaMethod,
     val sm: SummaryManager,
     handler: ModelCallHandler)(implicit heap: SimHeap) extends WorkUnit[T] {
+
+  override def needProcess(handler: ModelCallHandler): Boolean = !handler.isModelCall(method)
 
   var resolve_static_init: Boolean = false
 

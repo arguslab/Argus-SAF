@@ -35,7 +35,7 @@ class BottomUpSummaryGenerator[T <: Global](
   }
 
   private def processWU: WorkUnit[T] => Unit = { wu =>
-    if (!handler.isModelCall(wu.method)) {
+    if (wu.needProcess(handler)) {
       try {
         wu.initFn()
         if (wu.needHeapSummary) {
