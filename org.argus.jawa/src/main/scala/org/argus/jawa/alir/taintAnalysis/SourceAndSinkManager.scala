@@ -13,6 +13,7 @@ package org.argus.jawa.alir.taintAnalysis
 import org.argus.jawa.core.util._
 import java.io.BufferedReader
 import java.io.FileReader
+import java.util.Scanner
 import java.util.regex.Pattern
 import java.util.regex.Matcher
 
@@ -51,7 +52,13 @@ trait SourceAndSinkManager[T <: Global] {
 
   def parse(): Unit = parseFile(sasFilePath)
 
-  def parseFile(sasFile: String): Unit = SSParser.parse(sasFile) match {
+  def parseFile(sasFile: String): Unit = SSParser.parseFile(sasFile) match {
+    case (srcs, sins) =>
+      this.sources ++= srcs
+      this.sinks ++= sins
+  }
+
+  def parseCode(code: String): Unit = SSParser.parseCode(code) match {
     case (srcs, sins) =>
       this.sources ++= srcs
       this.sinks ++= sins
@@ -187,7 +194,7 @@ object SSParser{
   final val DEBUG = false
   //                           1            2                   3            4
   private val regex = "([^\\s]+)\\s+([^\\s]+)?\\s*->\\s+([^\\s]+)\\s*([^\\s]+)?\\s*"
-  def parse(filePath: String): (IMap[Signature, (ISet[SSPosition], ISet[String])], IMap[Signature, (ISet[SSPosition], ISet[String])]) = {
+  def parseFile(filePath: String): (IMap[Signature, (ISet[SSPosition], ISet[String])], IMap[Signature, (ISet[SSPosition], ISet[String])]) = {
     val rdr: BufferedReader = new BufferedReader(new FileReader(filePath))
     val sources: MMap[Signature, (ISet[SSPosition], ISet[String])] = mmapEmpty
     val sinks: MMap[Signature, (ISet[SSPosition], ISet[String])] = mmapEmpty
@@ -215,6 +222,35 @@ object SSParser{
       line = rdr.readLine()
     }
     rdr.close()
+    (sources.toMap, sinks.toMap)
+  }
+
+  def parseCode(code: String): (IMap[Signature, (ISet[SSPosition], ISet[String])], IMap[Signature, (ISet[SSPosition], ISet[String])]) = {
+    val sc: Scanner = new Scanner(code)
+    val sources: MMap[Signature, (ISet[SSPosition], ISet[String])] = mmapEmpty
+    val sinks: MMap[Signature, (ISet[SSPosition], ISet[String])] = mmapEmpty
+    val p: Pattern = Pattern.compile(regex)
+    while(sc.hasNextLine){
+      val line = sc.nextLine()
+      try{
+        val m = p.matcher(line)
+        if(m.find()){
+          val (tag, apiSig, positions, tainttags) = parseLine(m)
+          tag match{
+            case "_SOURCE_" => sources += (apiSig -> (positions.map(p => new SSPosition(p)), tainttags))
+            case "_SINK_" => sinks += (apiSig -> (positions.map(p => new SSPosition(p)), tainttags))
+            case "_NONE_" =>
+            case _ => throw new RuntimeException("Not expected tag: " + tag)
+          }
+        } else {
+          throw new RuntimeException("Did not match the regex: " + line)
+        }
+      } catch {
+        case ex: Exception =>
+          if(DEBUG) ex.printStackTrace()
+          System.err.println(TITLE + " exception occurs: " + ex.getMessage)
+      }
+    }
     (sources.toMap, sinks.toMap)
   }
   
