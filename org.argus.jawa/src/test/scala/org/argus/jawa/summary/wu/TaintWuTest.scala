@@ -30,8 +30,8 @@ class TaintWuTest extends FlatSpec with Matchers {
   class TestSSM extends SourceAndSinkManager[Global] {
     override def sasFilePath: String = ""
     addSource(new Signature("LTest;.source:()LTaintData;"), isetEmpty, Set("Test"))
-    addSource(new Signature("LTest;.source:(LData;)V"), Set(new SSPosition("0.str")), Set("Test"))
-    addSink(new Signature("LTest;.sink:(Ljava/lang/Object;)V"), Set(new SSPosition(0)), Set("Test"))
+    addSource(new Signature("LTest;.source:(LData;)V"), Set(new SSPosition("1.str")), Set("Test"))
+    addSink(new Signature("LTest;.sink:(Ljava/lang/Object;)V"), Set(new SSPosition(1)), Set("Test"))
   }
 
   trait MyTest {
@@ -46,9 +46,9 @@ class TaintWuTest extends FlatSpec with Matchers {
   "/jawa/taint/TaintTest.jawa" ep "LTaintTest;.singleFunc:()V" produce (
     """Taint path:
       |api_source: LTest;.source:()LTaintData;
-      |	-> api_sink: LTest;.sink:(Ljava/lang/Object;)V 0
+      |	-> api_sink: LTest;.sink:(Ljava/lang/Object;)V 1
       |Call@(TaintTest.singleFunc,L3)
-      |	-> Call@(TaintTest.singleFunc,L5) param: 0
+      |	-> Call@(TaintTest.singleFunc,L5) param: 1
       |
     """.stripMargin.trim
   )
@@ -61,10 +61,10 @@ class TaintWuTest extends FlatSpec with Matchers {
   "/jawa/taint/TaintTest.jawa" ep "LTaintTest;.caller:()V" produce (
     """Taint path:
       |api_source: LTest;.source:()LTaintData;
-      |	-> api_sink: LTest;.sink:(Ljava/lang/Object;)V 0
+      |	-> api_sink: LTest;.sink:(Ljava/lang/Object;)V 1
       |Call@(TaintTest.caller,L12)
       |	-> Call@(TaintTest.caller,L15) param: 1
-      |	-> Call@(TaintTest.direct_sink,L17) param: 0
+      |	-> Call@(TaintTest.direct_sink,L17) param: 1
       |
     """.stripMargin.trim
   )
@@ -72,10 +72,10 @@ class TaintWuTest extends FlatSpec with Matchers {
   "/jawa/taint/TaintTest.jawa" ep "LTaintTest;.caller2:()V" produce (
     """Taint path:
       |api_source: LTest;.source:()LTaintData;
-      |	-> api_sink: LTest;.sink:(Ljava/lang/Object;)V 0
+      |	-> api_sink: LTest;.sink:(Ljava/lang/Object;)V 1
       |Call@(TaintTest.caller2,L19)
       |	-> Call@(TaintTest.caller2,L23) param: 0
-      |	-> Call@(TaintTest.field_sink,L26) param: 0
+      |	-> Call@(TaintTest.field_sink,L26) param: 1
       |
     """.stripMargin.trim
   )
@@ -83,10 +83,10 @@ class TaintWuTest extends FlatSpec with Matchers {
   "/jawa/taint/TaintTest.jawa" ep "LTaintTest;.caller3:()V" produce (
     """Taint path:
       |api_source: LTest;.source:()LTaintData;
-      |	-> api_sink: LTest;.sink:(Ljava/lang/Object;)V 0
+      |	-> api_sink: LTest;.sink:(Ljava/lang/Object;)V 1
       |Call@(TaintTest.direct_source,L34)
       |	-> Call@(TaintTest.caller3,L32) param: 0
-      |	-> Call@(TaintTest.field_sink,L26) param: 0
+      |	-> Call@(TaintTest.field_sink,L26) param: 1
       |
     """.stripMargin.trim
   )
@@ -94,10 +94,10 @@ class TaintWuTest extends FlatSpec with Matchers {
   "/jawa/taint/TaintTest.jawa" ep "LTaintTest;.caller4:()V" produce (
     """Taint path:
       |api_source: LTest;.source:()LTaintData;
-      |	-> api_sink: LTest;.sink:(Ljava/lang/Object;)V 0
+      |	-> api_sink: LTest;.sink:(Ljava/lang/Object;)V 1
       |Call@(TaintTest.field_source,L37)
       |	-> Call@(TaintTest.caller4,L42) param: 0
-      |	-> Call@(TaintTest.field_sink,L26) param: 0
+      |	-> Call@(TaintTest.field_sink,L26) param: 1
       |
     """.stripMargin.trim
   )
@@ -105,27 +105,27 @@ class TaintWuTest extends FlatSpec with Matchers {
   "/jawa/taint/TaintTest.jawa" ep "LTaintTest;.caller5:()V" produce (
     """Taint path:
       |api_source: LTest;.source:()LTaintData;
-      |	-> api_sink: LTest;.sink:(Ljava/lang/Object;)V 0
+      |	-> api_sink: LTest;.sink:(Ljava/lang/Object;)V 1
       |Call@(TaintTest.field_source,L37)
-      |	-> Call@(TaintTest.caller5,L45) param: 0
+      |	-> Call@(TaintTest.caller5,L45) param: 1
     """.stripMargin.trim
   )
 
   "/jawa/taint/TaintTest.jawa" ep "LTaintTest;.caller6:()V" produce (
     """Taint path:
       |api_source: LTest;.source:()LTaintData;
-      |	-> api_sink: LTest;.sink:(Ljava/lang/Object;)V 0
+      |	-> api_sink: LTest;.sink:(Ljava/lang/Object;)V 1
       |Call@(TaintTest.caller6,L47)
-      |	-> Call@(TaintTest.caller6,L50) param: 0
+      |	-> Call@(TaintTest.caller6,L50) param: 1
     """.stripMargin.trim
     )
 
   "/jawa/taint/TaintTest.jawa" ep "LTaintTest;.caller7:()V" produce (
     """Taint path:
-      |api_source: LTest;.source:(LData;)V 0.str
-      |	-> api_sink: LTest;.sink:(Ljava/lang/Object;)V 0
-      |Call@(TaintTest.caller7,L3) param: 0.str
-      |	-> Call@(TaintTest.caller7,L5) param: 0
+      |api_source: LTest;.source:(LData;)V 1.str
+      |	-> api_sink: LTest;.sink:(Ljava/lang/Object;)V 1
+      |Call@(TaintTest.caller7,L3) param: 1.str
+      |	-> Call@(TaintTest.caller7,L5) param: 1
     """.stripMargin.trim
     )
 

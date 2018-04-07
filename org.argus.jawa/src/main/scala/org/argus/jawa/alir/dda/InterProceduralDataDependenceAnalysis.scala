@@ -369,8 +369,8 @@ object InterProceduralDataDependenceAnalysis {
                 var index = 0
                 owner.thisOpt foreach{ t =>
                   if(t == varName) indexs += index
-                  index += 1
                 }
+                index += 1
                 val paramNames = owner.getParamNames
                 for(i <- paramNames.indices){
                   val paramName = paramNames(i)

@@ -101,8 +101,9 @@ class TaintWu[T <: Global](
             if(cs.lhsOpt.isDefined) {
               res += Some(-1)
             }
+            val inc = if(cs.isStatic) 1 else 0
             for(i <- cs.rhs.varSymbols.indices) {
-              res += Some(i)
+              res += Some(i + inc)
             }
             if(in.getCalleeSet.exists{ c =>
               val calleep = global.getMethodOrResolve(c.callee).get
@@ -127,11 +128,7 @@ class TaintWu[T <: Global](
                         case _: SuThis =>
                           Some(new SSPosition(0))
                         case a: SuArg =>
-                          if(cs.isStatic) {
-                            Some(new SSPosition(a.num))
-                          } else {
-                            Some(new SSPosition(a.num + 1))
-                          }
+                          Some(new SSPosition(a.num + 1))
                         case _: SuGlobal =>
                           None
                         case _: SuRet =>
@@ -146,9 +143,13 @@ class TaintWu[T <: Global](
           case _ => poss += None
         }
       case _: ICFGEntryNode =>
-        val size = (method.thisOpt ++ method.getParamNames).size
         val res: MSet[Option[Int]] = msetEmpty
-        for(i <- 0 until size) {
+        method.thisOpt match {
+          case Some(_) =>
+            res += Some(0)
+          case None =>
+        }
+        for(i <- 1 to method.getParamNames.size) {
           res += Some(i)
         }
         poss ++= res.toSet
@@ -190,7 +191,7 @@ class TaintWu[T <: Global](
                   ptaresult.getRelatedInstances(node.getContext, fInss)
                 } else {
                   val varName = if(cs.isStatic) {
-                    cs.arg(i.pos)
+                    cs.arg(i.pos - 1)
                   } else if(i.pos == 0) {
                     cs.recvOpt.get
                   } else {

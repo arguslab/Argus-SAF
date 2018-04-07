@@ -10,6 +10,8 @@
 
 package org.argus.jawa.alir.util
 
+import java.io.PrintWriter
+
 import org.argus.jawa.alir.JawaAlirInfoProvider
 import org.argus.jawa.alir.cfg.{CFGNode, IntraProceduralControlFlowGraph}
 import org.argus.jawa.alir.rda.{DefDesc, LocDefDesc, ReachingDefinitionAnalysis, Slot}

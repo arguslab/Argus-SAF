@@ -204,7 +204,7 @@ object ComponentSummaryTable {
                 case ic_callee: IntentCallee =>
                   reporter.println(component + " --icc--> " + icc_callee.asInstanceOf[IntentCallee].component)
                   val caller_position: Int = 1
-                  val callee_position: Int = 0
+                  val callee_position: Int = 1
                   val callerDDGNode = mddg.getIDDGCallArgNode(callernode.asInstanceOf[ICFGCallNode], caller_position)
                   val calleeDDGNode = mddg.getIDDGEntryParamNode(calleeNode.asInstanceOf[ICFGEntryNode], callee_position)
                   mddg.addEdge(calleeDDGNode, callerDDGNode)
