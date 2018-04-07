@@ -91,7 +91,7 @@ trait SourceAndSinkManager[T <: Global] {
                 case None =>
               }
               if(this.isSourceMethod(global, calleeSig)) {
-                val poss: ISet[SSPosition] = this.sources.filter(sink => matches(global, calleeSig, sink._1)).map(_._2._1).fold(isetEmpty)(iunion)
+                val poss: ISet[SSPosition] = this.sources.filter(source => matches(global, calleeSig, source._1)).map(_._2._1).fold(isetEmpty)(iunion)
                 if(poss.isEmpty) {
                   if(pos.isEmpty) {
                     sources += TaintSource(TaintNode(invNode, None), TypeTaintDescriptor(calleeSig.signature, None, SourceAndSinkCategory.API_SOURCE))

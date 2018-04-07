@@ -29,35 +29,29 @@ class InterProceduralDataDependenceGraph[Node <: IDDGNode] extends DataDependenc
 	  icfg.nodes.foreach {
 			case en: ICFGEntryNode =>
 				val owner = global.getMethod(en.getOwner).get
-				var position = 0
 				owner.thisOpt match {
 					case Some(t) =>
-						val n = addIDDGEntryParamNode(en, position)
+						val n = addIDDGEntryParamNode(en, 0)
 						n.asInstanceOf[IDDGEntryParamNode].paramName = t
 					case None =>
 				}
-				position += 1
 				val pnames = owner.getParamNames
 				for (i <- pnames.indices) {
-					val n = addIDDGEntryParamNode(en, position)
+					val n = addIDDGEntryParamNode(en, i + 1)
 					n.asInstanceOf[IDDGEntryParamNode].paramName = pnames(i)
-					position += 1
 				}
 			case en: ICFGExitNode =>
 				val owner = global.getMethod(en.getOwner).get
-				var position = 0
 				owner.thisOpt match {
 					case Some(t) =>
-						val n = addIDDGExitParamNode(en, position)
+						val n = addIDDGExitParamNode(en, 0)
 						n.asInstanceOf[IDDGExitParamNode].paramName = t
 					case None =>
 				}
-				position += 1
 				val pnames = owner.getParamNames
 				for (i <- pnames.indices) {
-					val n = addIDDGExitParamNode(en, position)
+					val n = addIDDGExitParamNode(en, i + 1)
 					n.asInstanceOf[IDDGExitParamNode].paramName = pnames(i)
-					position += 1
 				}
 			case cn: ICFGCenterNode =>
 				addIDDGCenterNode(cn)

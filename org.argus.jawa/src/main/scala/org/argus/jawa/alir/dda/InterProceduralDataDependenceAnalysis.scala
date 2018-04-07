@@ -99,8 +99,9 @@ object InterProceduralDataDependenceAnalysis {
                   val argInss = idEntNs.map { n =>
                     ptaresult.getRelatedInstances(n.getContext, VarSlot(n.argName))
                   }
+                  val inc = if(cn.getCallType == "static") 1 else 0
                   val poss = retInss.flatMap { ins =>
-                    argInss.filter(_.contains(ins)) map argInss.indexOf
+                    argInss.filter(_.contains(ins)) map (ins => argInss.indexOf(ins) + inc)
                   }
                   if (poss.isEmpty) targetNodes ++= idEntNs
                   else {
@@ -366,16 +367,13 @@ object InterProceduralDataDependenceAnalysis {
               if(dd.isDefinedInitially && !varName.startsWith("@@")){
                 val indexs: MSet[Int] = msetEmpty
                 val owner = global.getMethod(node.getOwner).get
-                var index = 0
                 owner.thisOpt foreach{ t =>
-                  if(t == varName) indexs += index
+                  if(t == varName) indexs += 0
                 }
-                index += 1
                 val paramNames = owner.getParamNames
                 for(i <- paramNames.indices){
                   val paramName = paramNames(i)
-                  if(paramName == varName) indexs += index
-                  index += 1
+                  if(paramName == varName) indexs += i + 1
                 }
                 result ++= indexs.map(i => iddg.findDefSite(tarContext, i))
               }
