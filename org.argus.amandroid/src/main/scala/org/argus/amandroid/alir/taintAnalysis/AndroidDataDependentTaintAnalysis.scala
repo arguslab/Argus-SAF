@@ -52,15 +52,10 @@ object AndroidDataDependentTaintAnalysis {
       this.typs foreach (typ => sb.append(typ + " "))
       sb.append("\n")
       sb.append(srcN.descriptor + "\n\t-> " + sinN.descriptor + "\n")
-      if(path.lengthCompare(1) > 0) {
-        path.tail.reverse.foreach{ edge =>
-          sb.append(edge.target + "\n\t-> ")
-        }
-        sb.append(path.head.source + "\n")
-      } else if(path.lengthCompare(1) == 0) {
-        sb.append(path.head.target + "\n\t-> ")
-        sb.append(path.head.source + "\n")
+      path.reverse.foreach{ edge =>
+        sb.append(edge.target + "\n\t-> ")
       }
+      sb.append(path.head.source + "\n")
       sb.toString().intern
     }
   }
@@ -168,17 +163,14 @@ object AndroidDataDependentTaintAnalysis {
   }
   
   private def extendIDDGForSinkApis(iddg: DataDependenceBaseGraph[InterProceduralDataDependenceAnalysis.Node], callArgNode: IDDGCallArgNode, ptaresult: PTAResult): Unit = {
-    val calleeSet = callArgNode.getCalleeSet
-    calleeSet.foreach { _ =>
-      val argSlot = VarSlot(callArgNode.argName)
-      val argValue = ptaresult.pointsToSet(callArgNode.getContext, argSlot)
-      val argRelatedValue = ptaresult.getRelatedHeapInstances(callArgNode.getContext, argValue)
-      argRelatedValue.foreach{ ins =>
-        if(ins.defSite != callArgNode.getContext) {
-          iddg.findDefSite(ins.defSite) match {
-            case Some(t) => iddg.addEdge(callArgNode, t)
-            case None =>
-          }
+    val argSlot = VarSlot(callArgNode.argName)
+    val argValue = ptaresult.pointsToSet(callArgNode.getContext, argSlot)
+    val argRelatedValue = ptaresult.getRelatedHeapInstances(callArgNode.getContext, argValue)
+    argRelatedValue.foreach{ ins =>
+      if(ins.defSite != callArgNode.getContext) {
+        iddg.findDefSite(ins.defSite) match {
+          case Some(t) => iddg.addEdge(callArgNode, t)
+          case None =>
         }
       }
     }

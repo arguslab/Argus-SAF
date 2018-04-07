@@ -162,7 +162,7 @@ trait DataDependenceBaseGraph[Node <: IDDGNode]
 
   def getIDDGCallArgNodes(icfgN: ICFGCallNode): IList[Node] = {
     val result: MList[Node] = mlistEmpty
-    var position = 0
+    var position = if(icfgN.getCallType == "static") 1 else 0
     while(iddgCallArgNodeExists(icfgN, position)){
       result += pool(newIDDGCallArgNode(icfgN, position))
       position += 1
