@@ -122,9 +122,9 @@ class SummaryParserTest extends FlatSpec with Matchers {
     val sf = parse(
       """`Lcom/my/Class;.do:(LO1;LO2;)LO3;`:
         |  `my.Class.Glo` = my.Class@L100
-        |  arg:1 = my.Class@~
-        |  arg:0 = my.Class$InnerClass@~
-        |  arg:1.f1 = "str"@L1
+        |  arg:2 = my.Class@~
+        |  arg:1 = my.Class$InnerClass@~
+        |  arg:2.f1 = "str"@L1
         |;
       """.stripMargin)
     val s = sf.summaries.get(new Signature("Lcom/my/Class;.do:(LO1;LO2;)LO3;"))

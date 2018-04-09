@@ -128,7 +128,7 @@ class TaintWu[T <: Global](
                         case _: SuThis =>
                           Some(new SSPosition(0))
                         case a: SuArg =>
-                          Some(new SSPosition(a.num + 1))
+                          Some(new SSPosition(a.num))
                         case _: SuGlobal =>
                           None
                         case _: SuRet =>

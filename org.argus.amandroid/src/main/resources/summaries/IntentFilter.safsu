@@ -15,13 +15,13 @@ android.content.IntentFilter:mCategories:java.lang.String;
 ;
 
 `Landroid/content/IntentFilter;.<init>:(Ljava/lang/String;)V`:
-  this.mActions = arg:0
+  this.mActions = arg:1
   this.mData = android.net.Uri@~
 ;
 
 `Landroid/content/IntentFilter;.<init>:(Ljava/lang/String;Ljava/lang/String;)V`:
-  this.mActions = arg:0
-  this.mType = arg:1
+  this.mActions = arg:1
+  this.mType = arg:2
   this.mData = android.net.Uri@~
 ;
 
@@ -31,28 +31,28 @@ android.content.IntentFilter:mCategories:java.lang.String;
 ;
 
 `Landroid/content/IntentFilter;.addAction:(Ljava/lang/String;)V`:
-  this.mActions += arg:0
+  this.mActions += arg:1
 ;
 
 `Landroid/content/IntentFilter;.addCategory:(Ljava/lang/String;)V`:
-  this.mCategories += arg:0
+  this.mCategories += arg:1
 ;
 
 `Landroid/content/IntentFilter;.addDataAuthority:(Ljava/lang/String;Ljava/lang/String;)V`:
-  this.mData.host = arg:0
-  this.mData.port = arg:1
+  this.mData.host = arg:1
+  this.mData.port = arg:2
 ;
 
 `Landroid/content/IntentFilter;.addDataPath:(Ljava/lang/String;I)V`:
-  this.mData.path = arg:0
+  this.mData.path = arg:1
 ;
 
 `Landroid/content/IntentFilter;.addDataScheme:(Ljava/lang/String;)V`:
-  this.mData.scheme = arg:0
+  this.mData.scheme = arg:1
 ;
 
 `Landroid/content/IntentFilter;.addDataType:(Ljava/lang/String;)V`:
-  this.mType = arg:0
+  this.mType = arg:1
 ;
 
 `Landroid/content/IntentFilter;.authoritiesIterator:()Ljava/util/Iterator;`:
@@ -85,8 +85,8 @@ android.content.IntentFilter:mCategories:java.lang.String;
 
 `Landroid/content/IntentFilter;.create:(Ljava/lang/String;Ljava/lang/String;)Landroid/content/IntentFilter;`:
   ret = android.content.IntentFilter@~
-  ret.mActions = arg:0
-  ret.mType = arg:1
+  ret.mActions = arg:1
+  ret.mType = arg:2
   ret.mData = android.net.Uri@~
 ;
 

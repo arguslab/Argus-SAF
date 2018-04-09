@@ -28,7 +28,7 @@ class BottomUpSummaryGenerator[T <: Global](
     suGen: (Signature, IList[SummaryRule]) => Summary,
     progressBar: ProgressBar)(implicit heap: SimHeap) {
 
-  var debug: Boolean = false
+  var debug: Boolean = true
 
   def build(orderedWUs: IList[WorkUnit[T]]): Unit = {
     ProgressBarUtil.withProgressBar("Summary based data flow analysis...", progressBar)(orderedWUs, processWU)

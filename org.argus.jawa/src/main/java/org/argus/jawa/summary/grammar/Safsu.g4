@@ -89,7 +89,7 @@ instance
   ;
 
 classOf
-  : 'classOf' rhs '@' location // classOf arg:0
+  : 'classOf' rhs '@' location // classOf arg:1
   ;
 
 type

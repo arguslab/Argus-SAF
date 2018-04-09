@@ -1,7 +1,7 @@
 java.util.Set:items:java.lang.Object?;
 
 `Ljava/util/Set;.add:(Ljava/lang/Object;)Z`:
-  this.items += arg:0
+  this.items += arg:1
 ;
 `Ljava/util/Set;.clear:()V`:
   ~this
@@ -17,7 +17,7 @@ java.util.Set:items:java.lang.Object?;
   ret = java.util.Iterator?@~
 ;
 `Ljava/util/Set;.remove:(Ljava/lang/Object;)Z`:
-  this.items -= arg:0
+  this.items -= arg:1
 ;
 `Ljava/util/Set;.size:()I`:
 ;

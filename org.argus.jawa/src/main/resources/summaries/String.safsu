@@ -6,7 +6,7 @@
   this = java.lang.String@~
 ;
 `Ljava/lang/String;.<init>:(Ljava/lang/String;)V`:
-  this = arg:0
+  this = arg:1
 ;
 `Ljava/lang/String;.<init>:(Ljava/lang/String;C)V`:
   this = java.lang.String@~
@@ -21,10 +21,10 @@
   this = java.lang.String@~
 ;
 `Ljava/lang/String;.<init>:(Ljava/lang/StringBuffer;)V`:
-  this = arg:0.value
+  this = arg:1.value
 ;
 `Ljava/lang/String;.<init>:(Ljava/lang/StringBuilder;)V`:
-  this = arg:0.value
+  this = arg:1.value
 ;
 `Ljava/lang/String;.<init>:([B)V`:
   this = java.lang.String@~
@@ -149,7 +149,7 @@
 `Ljava/lang/String;.equalsIgnoreCase:(Ljava/lang/String;)Z`:
 ;
 `Ljava/lang/String;.getBytes:(II[BI)V`:
-  arg:2 = byte[]@~
+  arg:3 = byte[]@~
 ;
 `Ljava/lang/String;.getBytes:()[B`:
   ret = byte[]@~
@@ -161,7 +161,7 @@
   ret = byte[]@~
 ;
 `Ljava/lang/String;.getChars:(II[CI)V`:
-  arg:2 = char[]@~
+  arg:3 = char[]@~
 ;
 `Ljava/lang/String;.hashCode:()I`:
 ;

@@ -125,7 +125,7 @@ object HeapSummaryProcessor {
         val retSlot = VarSlot(retOpt.getOrElse("hack"))
         slots = handleHeap(global, sig, retSlot, sr.heapOpt, retOpt, recvOpt, args, input, context, extraFacts, isLhs = false)
       case sa: SuArg =>
-        val argSlot = VarSlot(args(sa.num))
+        val argSlot = VarSlot(args(sa.num - 1))
         slots = handleHeap(global, sig, argSlot, sa.heapOpt, retOpt, recvOpt, args, input, context, extraFacts, isLhs = false)
       case sg: SuGlobal =>
         val gSlot = StaticFieldSlot(sg.fqn)
@@ -185,7 +185,7 @@ object HeapSummaryProcessor {
         val thisSlot = VarSlot(recvOpt.getOrElse("hack"))
         slots = handleHeap(global, sig, thisSlot, st.heapOpt, retOpt, recvOpt, args, input, context, extraFacts, isLhs = true)
       case sa: SuArg =>
-        val argSlot = VarSlot(args(sa.num))
+        val argSlot = VarSlot(args(sa.num - 1))
         slots = handleHeap(global, sig, argSlot, sa.heapOpt, retOpt, recvOpt, args, input, context, extraFacts, isLhs = true)
       case sg: SuGlobal =>
         val gSlot = StaticFieldSlot(sg.fqn)

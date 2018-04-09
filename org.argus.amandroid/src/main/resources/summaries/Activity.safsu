@@ -3,7 +3,7 @@
 ;
 
 `Landroid/app/Activity;.setIntent:(Landroid/content/Intent;)V`:
-  this.mIntent = arg:0
+  this.mIntent = arg:1
 ;
 
 `Landroid/app/Activity;.getApplication:()Landroid/app/Application;`:

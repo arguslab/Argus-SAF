@@ -14,11 +14,11 @@ android.net.Uri:uri:java.lang.String;
 ;
 
 `Landroid/net/Uri;.decode:(Ljava/lang/String;)Ljava/lang/String;`:
-  ret = arg:0
+  ret = arg:1
 ;
 
 `Landroid/net/Uri;.encode:(Ljava/lang/String;)Ljava/lang/String;`:
-  ret = arg:0
+  ret = arg:1
 ;
 
 `Landroid/net/Uri;.encode:(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;`:
@@ -150,7 +150,7 @@ android.net.Uri:uri:java.lang.String;
 
 `Landroid/net/Uri;.parse:(Ljava/lang/String;)Landroid/net/Uri;`:
   ret = android.net.Uri@~
-  ret.uri = arg:0
+  ret.uri = arg:1
 ;
 
 `Landroid/net/Uri;.toSafeString:()Ljava/lang/String;`:

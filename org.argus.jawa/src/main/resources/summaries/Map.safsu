@@ -14,7 +14,7 @@ java.util.HashMap:key:java.lang.Object?;
 ;
 
 `Ljava/util/HashMap;.<init>:(Ljava/util/Map;)V`:
-  this.entries += arg:0.entries
+  this.entries += arg:1.entries
 ;
 
 `Ljava/util/Map;.clear:()V`:
@@ -42,18 +42,18 @@ java.util.HashMap:key:java.lang.Object?;
 
 `Ljava/util/Map;.put:(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;`:
   ret = this.entries()
-  this.entries.key += arg:0
-  this.entries(arg:0) += arg:1
+  this.entries.key += arg:1
+  this.entries(arg:1) += arg:2
 ;
 
 `Ljava/util/Map;.putAll:(Ljava/util/Map;)V`:
-  this.entries += arg:0.entries
+  this.entries += arg:1.entries
 ;
 
 `Ljava/util/Map;.remove:(Ljava/lang/Object;)Ljava/lang/Object;`:
-  ret = this.entries(arg:0)
-  this.entries.key -= arg:0
-  ~this.entries(arg:0)
+  ret = this.entries(arg:1)
+  this.entries.key -= arg:1
+  ~this.entries(arg:1)
 ;
 
 `Ljava/util/Map;.values:()Ljava/util/Collection;`:

@@ -1,11 +1,11 @@
 java.lang.Class:name:java.lang.String;
 
 `Ljava/lang/Class;.asSubclass:(Ljava/lang/Class;)Ljava/lang/Class;`: //public
-  ret = arg:0
+  ret = arg:1
 ;
 
 `Ljava/lang/Class;.cast:(Ljava/lang/Object;)Ljava/lang/Object;`: //public
-  ret = arg:0
+  ret = arg:1
 ;
 
 `Ljava/lang/Class;.desiredAssertionStatus:()Z`: //public native
@@ -13,12 +13,12 @@ java.lang.Class:name:java.lang.String;
 
 `Ljava/lang/Class;.forName:(Ljava/lang/String;)Ljava/lang/Class;`: //public static
   ret = java.lang.Class@~
-  ret.name = arg:0
+  ret.name = arg:1
 ;
 
 `Ljava/lang/Class;.forName:(Ljava/lang/String;ZLjava/lang/ClassLoader;)Ljava/lang/Class;`:  //public static
   ret = java.lang.Class@~
-  ret.name = arg:0
+  ret.name = arg:1
 ;
 
 `Ljava/lang/Class;.getAnnotation:(Ljava/lang/Class;)Ljava/lang/annotation/Annotation;`:  //public

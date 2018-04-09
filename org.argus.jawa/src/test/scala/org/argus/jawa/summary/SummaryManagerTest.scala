@@ -167,9 +167,9 @@ class SummaryManagerTest extends FlatSpec with Matchers {
     val code =
       """
         |`Lmy/Class;.foo:(Lmy/Class2;Ljava/lang/String;)V`:
-        |  this.f1 += arg:0.f1
-        |  arg:0.f2 = "String"@L10
-        |  this.f2 = arg:1
+        |  this.f1 += arg:1.f1
+        |  arg:1.f2 = "String"@L10
+        |  this.f2 = arg:2
         |;
       """.stripMargin
     implicit val factory: SimHeap = new SimHeap

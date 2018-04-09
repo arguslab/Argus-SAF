@@ -4,18 +4,18 @@ java.util.List:items:java.lang.Object?;
 ;
 
 `Ljava/util/List;.add:(ILjava/lang/Object;)V`:
-  this.items += arg:1
+  this.items += arg:2
 ;
 
 `Ljava/util/List;.equals:(Ljava/lang/Object;)Z`:
 ;
 
 `Ljava/util/List;.add:(Ljava/lang/Object;)Z`:
-  this.items += arg:0
+  this.items += arg:1
 ;
 
 `Ljava/util/List;.addAll:(ILjava/util/Collection;)Z`:
-  this.items += arg:1.items
+  this.items += arg:2.items
 ;
 
 `Ljava/util/List;.hashCode:()I`:
@@ -32,16 +32,16 @@ java.util.List:items:java.lang.Object?;
 ;
 
 `Ljava/util/List;.remove:(Ljava/lang/Object;)Z`:
-  this.items -= arg:0
+  this.items -= arg:1
 ;
 
 `Ljava/util/List;.set:(ILjava/lang/Object;)Ljava/lang/Object;`:
   ret = this.items
-  this.items += arg:1
+  this.items += arg:2
 ;
 
 `Ljava/util/List;.retainAll:(Ljava/util/Collection;)Z`:
-  this.items -= arg:0.items
+  this.items -= arg:1.items
 ;
 
 `Ljava/util/List;.iterator:()Ljava/util/Iterator;`:
@@ -85,7 +85,7 @@ java.util.List:items:java.lang.Object?;
 ;
 
 `Ljava/util/List;.removeAll:(Ljava/util/Collection;)Z`:
-  this.items -= arg:0.items
+  this.items -= arg:1.items
 ;
 
 `Ljava/util/List;.remove:(I)Ljava/lang/Object;`:
@@ -93,5 +93,5 @@ java.util.List:items:java.lang.Object?;
 ;
 
 `Ljava/util/List;.addAll:(Ljava/util/Collection;)Z`:
-  this.items += arg:0.items
+  this.items += arg:1.items
 ;

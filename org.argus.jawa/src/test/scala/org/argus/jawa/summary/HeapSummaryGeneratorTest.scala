@@ -36,21 +36,21 @@ class HeapSummaryGeneratorTest extends FlatSpec with Matchers {
 
   "/jawa/summary/SingleFunction.jawa" ep "Lcom/hugo/test/SingleFunction;.clearArg:(Ljava/util/Set;)V" produce (
     """`Lcom/hugo/test/SingleFunction;.clearArg:(Ljava/util/Set;)V`:
-      |  ~arg:0
+      |  ~arg:1
       |;
     """.stripMargin
   )
 
   "/jawa/summary/SingleFunction.jawa" ep "Lcom/hugo/test/SingleFunction;.clearField:(Lcom/hugo/test/SingleFunction;)V" produce (
     """`Lcom/hugo/test/SingleFunction;.clearField:(Lcom/hugo/test/SingleFunction;)V`:
-      |  ~arg:0.myset
+      |  ~arg:1.myset
       |;
     """.stripMargin
   )
 
   "/jawa/summary/SingleFunction.jawa" ep "Lcom/hugo/test/SingleFunction;.clearArray:(Lcom/hugo/test/SingleFunction;)V" produce (
     """`Lcom/hugo/test/SingleFunction;.clearArray:(Lcom/hugo/test/SingleFunction;)V`:
-      |  ~arg:0.myarray[].myset
+      |  ~arg:1.myarray[].myset
       |;
     """.stripMargin
   )
@@ -71,17 +71,17 @@ class HeapSummaryGeneratorTest extends FlatSpec with Matchers {
 
   "/jawa/summary/SingleFunction.jawa" ep "Lcom/hugo/test/SingleFunction;.add:(Ljava/util/Set;)Ljava/lang/String;" produce (
     """`Lcom/hugo/test/SingleFunction;.add:(Ljava/util/Set;)Ljava/lang/String;`:
-      |  arg:0.items += "Hello World!"@L1
-      |  ret = arg:0.items
+      |  arg:1.items += "Hello World!"@L1
+      |  ret = arg:1.items
       |;
     """.stripMargin
   )
 
   "/jawa/summary/SingleFunction.jawa" ep "Lcom/hugo/test/SingleFunction;.put:(Ljava/util/Map;)Ljava/lang/String;" produce (
     """`Lcom/hugo/test/SingleFunction;.put:(Ljava/util/Map;)Ljava/lang/String;`:
-      |  arg:0.entries.key += "key"@L1
-      |  arg:0.entries(arg:0.entries.key) += "value"@L2
-      |  ret = arg:0.entries.key
+      |  arg:1.entries.key += "key"@L1
+      |  arg:1.entries(arg:1.entries.key) += "value"@L2
+      |  ret = arg:1.entries.key
       |;
     """.stripMargin
   )
@@ -98,9 +98,9 @@ class HeapSummaryGeneratorTest extends FlatSpec with Matchers {
     """`Lcom/hugo/test/SingleFunction;.complex:(Lcom/hugo/test/SingleFunction;)Ljava/lang/String;`:
       |  this.myarray[] += "Hello World!"@L1
       |  this.str += "v1!"@L5
-      |  arg:0.myset += java.util.HashSet@L7
-      |  arg:0.myset.items += this.myarray[]
-      |  this.myself = arg:0
+      |  arg:1.myset += java.util.HashSet@L7
+      |  arg:1.myset.items += this.myarray[]
+      |  this.myself = arg:1
       |  ret = this.str
       |;
     """.stripMargin

@@ -101,7 +101,7 @@ abstract class DataFlowWu[T <: Global] (
           case _ => true
         }
         val ins = Instance.getInstance(typ, entryContext, unknown)
-        heapMap(ins) = SuArg(i, None)
+        heapMap(ins) = SuArg(i + 1, None)
       }
     }
   }
@@ -146,7 +146,7 @@ abstract class DataFlowWu[T <: Global] (
           }
           val ins = Instance.getInstance(typ, entryContext, unknown)
           result += new RFAFact(VarSlot(name), ins)
-          heapMap(ins) = SuArg(i, None)
+          heapMap(ins) = SuArg(i + 1, None)
         }
       }
       result.toSet
@@ -332,7 +332,7 @@ abstract class DataFlowWu[T <: Global] (
       case _: SuThis =>
         VarSlot(recvOpt.getOrElse("hack"))
       case a: SuArg =>
-        VarSlot(args(a.num))
+        VarSlot(args(a.num - 1))
       case g: SuGlobal =>
         StaticFieldSlot(g.fqn)
       case _: SuRet =>
@@ -485,7 +485,7 @@ abstract class PointsToWu[T <: Global] (
       case _: SuThis =>
         VarSlot(recvOpt.getOrElse("hack"))
       case a: SuArg =>
-        VarSlot(args(a.num))
+        VarSlot(args(a.num - 1))
       case g: SuGlobal =>
         StaticFieldSlot(g.fqn)
       case _: SuRet =>

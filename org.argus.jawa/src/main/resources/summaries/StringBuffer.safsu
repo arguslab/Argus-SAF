@@ -9,11 +9,11 @@ java.lang.StringBuffer:value:java.lang.String;
 ;
 
 `Ljava/lang/StringBuffer;.<init>:(Ljava/lang/CharSequence;)V`:
-   this.value = arg:0
+   this.value = arg:1
 ;
 
 `Ljava/lang/StringBuffer;.<init>:(Ljava/lang/String;)V`:
-  this.value = arg:0
+  this.value = arg:1
 ;
 
 `Ljava/lang/StringBuffer;.append:(C)Ljava/lang/Appendable;`:
@@ -130,7 +130,7 @@ java.lang.StringBuffer:value:java.lang.String;
 ;
 
 `Ljava/lang/StringBuffer;.getChars:(II[CI)V`:
-  arg:2 = char[]@~
+  arg:3 = char[]@~
 ;
 
 `Ljava/lang/StringBuffer;.indexOf:(Ljava/lang/String;)I`:

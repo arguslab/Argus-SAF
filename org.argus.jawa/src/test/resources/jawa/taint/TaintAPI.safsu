@@ -2,7 +2,7 @@
   ret = TaintData@~
 ;
 `LTest;.source:(LData;)V`:
-  arg:0.str = java.lang.String@~
+  arg:1.str = java.lang.String@~
 ;
 `LTest;.sink:(Ljava/lang/Object;)V`:
 ;

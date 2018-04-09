@@ -7,33 +7,33 @@ java.lang.Thread:name:java.lang.String;
 ;
 
 `Ljava/lang/Thread;.<init>:(Ljava/lang/Runnable;)V`:
-  this.runnable = arg:0
+  this.runnable = arg:1
   this.name = java.lang.String@~
 ;
 
 `Ljava/lang/Thread;.<init>:(Ljava/lang/Runnable;Ljava/lang/String;)V`:
-  this.runnable = arg:0
-  this.name = arg:1
+  this.runnable = arg:1
+  this.name = arg:2
 ;
 
 `Ljava/lang/Thread;.<init>:(Ljava/lang/String;)V`:
   this.runnable = this
-  this.name = arg:0
+  this.name = arg:1
 ;
 
 `Ljava/lang/Thread;.<init>:(Ljava/lang/ThreadGroup;Ljava/lang/Runnable;Ljava/lang/String;)V`:
-  this.runnable = arg:1
-  this.name = arg:2
+  this.runnable = arg:2
+  this.name = arg:3
 ;
 
 `Ljava/lang/Thread;.<init>:(Ljava/lang/ThreadGroup;Ljava/lang/Runnable;Ljava/lang/String;J)V`:
-  this.runnable = arg:1
-  this.name = arg:2
+  this.runnable = arg:2
+  this.name = arg:3
 ;
 
 `Ljava/lang/Thread;.<init>:(Ljava/lang/ThreadGroup;Ljava/lang/String;)V`:
   this.runnable = this
-  this.name = arg:1
+  this.name = arg:2
 ;
 
 `Ljava/lang/Thread;.activeCount:()I`:
@@ -139,25 +139,25 @@ java.lang.Thread:name:java.lang.String;
 ;
 
 `Ljava/lang/Thread;.setContextClassLoader:(Ljava/lang/ClassLoader;)V`:
-  this.loader = arg:0
+  this.loader = arg:1
 ;
 
 `Ljava/lang/Thread;.setDaemon:(Z)V`:
 ;
 
 `Ljava/lang/Thread;.setDefaultUncaughtExceptionHandler:(Ljava/lang/Thread$UncaughtExceptionHandler;)V`:
-  this.handler += arg:0
+  this.handler += arg:1
 ;
 
 `Ljava/lang/Thread;.setName:(Ljava/lang/String;)V`:
-  this.name = arg:0
+  this.name = arg:1
 ;
 
 `Ljava/lang/Thread;.setPriority:(I)V`:
 ;
 
 `Ljava/lang/Thread;.setUncaughtExceptionHandler:(Ljava/lang/Thread$UncaughtExceptionHandler;)V`:
-  this.handler += arg:0
+  this.handler += arg:1
 ;
 
 `Ljava/lang/Thread;.sleep:(J)V`:

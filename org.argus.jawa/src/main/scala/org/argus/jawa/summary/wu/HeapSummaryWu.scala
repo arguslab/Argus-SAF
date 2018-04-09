@@ -226,7 +226,7 @@ class HeapSummaryWu(
       case _: SuThis =>
         newBaseOpt = processVarSlot(VarSlot(recvOpt.getOrElse("hack")), hb, recvOpt, args, context)
       case sa: SuArg =>
-        newBaseOpt = processVarSlot(VarSlot(args(sa.num)), hb, recvOpt, args, context)
+        newBaseOpt = processVarSlot(VarSlot(args(sa.num - 1)), hb, recvOpt, args, context)
       case g: SuGlobal =>
         newBaseOpt = Some(g)
       case _: SuRet =>

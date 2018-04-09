@@ -4,18 +4,18 @@ android.content.ComponentName:mClass:java.lang.String;
 ;
 
 `Landroid/content/ComponentName;.<init>:(Landroid/content/Context;Ljava/lang/Class;)V`:
-  this.mClass = arg:1.name
+  this.mClass = arg:2.name
 ;
 
 `Landroid/content/ComponentName;.<init>:(Landroid/content/Context;Ljava/lang/String;)V`:
-  this.mClass = arg:1
+  this.mClass = arg:2
 ;
 
 `Landroid/content/ComponentName;.<init>:(Landroid/os/Parcel;)V`:
 ;
 
 `Landroid/content/ComponentName;.<init>:(Ljava/lang/String;Ljava/lang/String;)V`:
-  this.mClass = arg:1
+  this.mClass = arg:2
 ;
 
 `Landroid/content/ComponentName;.clone:()Landroid/content/ComponentName;`:
