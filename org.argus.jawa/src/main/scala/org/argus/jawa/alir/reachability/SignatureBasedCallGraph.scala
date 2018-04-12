@@ -12,6 +12,7 @@ package org.argus.jawa.alir.reachability
 
 import java.util.concurrent.TimeoutException
 
+import hu.ssh.progressbar.console.ConsoleProgressBar
 import org.argus.jawa.alir.cg.CallGraph
 import org.argus.jawa.alir.interprocedural.CallHandler
 import org.argus.jawa.alir.pta.PTAScopeManager
@@ -38,10 +39,10 @@ object SignatureBasedCallGraph {
       global: Global, 
       entryPoints: ISet[Signature],
       timer: Option[MyTimeout]): CallGraph = {
-    global.reporter.println(s"Building SignatureBasedCallGraph with ${entryPoints.size} entry points...")
     val cg = new CallGraph
     val processed: MSet[String] = msetEmpty
-    entryPoints.foreach{ ep =>
+
+    def handleEntryPoint: Signature => Unit = { ep =>
       if(timer.isDefined) timer.get.refresh()
       try {
         val epmopt = global.getMethodOrResolve(ep)
@@ -57,6 +58,9 @@ object SignatureBasedCallGraph {
           global.reporter.error(TITLE, ep + ": " + te.getMessage)
       }
     }
+    val progressBar = ConsoleProgressBar.on(System.out).withFormat("[:bar] :percent% :elapsed Left: :remain")
+    ProgressBarUtil.withProgressBar("Building Signature Based Call Graph...", progressBar)(entryPoints, handleEntryPoint)
+
     global.reporter.println(s"SignatureBasedCallGraph done with call size ${cg.getCallMap.size}.")
     cg
   }
