@@ -226,8 +226,13 @@ class ModelCallResolver(
           if(handler.isModelCall(calleep)) {
             returnFacts = handler.doModelCall(sm, s, calleep, cs.lhsOpt.map(lhs => lhs.name), cs.recvOpt, cs.args, callerContext)
           } else {
-            val (newF, delF) = ReachingFactsAnalysisHelper.getUnknownObject(calleep, s, cs.lhsOpt.map(lhs => lhs.name), cs.recvOpt, cs.args, callerContext)
-            returnFacts = returnFacts -- delF ++ newF
+            callee match {
+              case _: IndirectCallee =>
+                // TODO: handle indirect callee here
+              case _ =>
+                val (newF, delF) = ReachingFactsAnalysisHelper.getUnknownObject(calleep, s, cs.lhsOpt.map(lhs => lhs.name), cs.recvOpt, cs.args, callerContext)
+                returnFacts = returnFacts -- delF ++ newF
+            }
           }
       }
     }
