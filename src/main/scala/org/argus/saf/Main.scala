@@ -69,6 +69,7 @@ object Main extends App {
     apiMisuseOptions.addOption(apimoduleOption)
 
     allOptions.addOption(versionOption)
+    allOptions.addOption(guessPackageOption)
     allOptions.addOption(debugDecOption)
     allOptions.addOption(outputOption)
     allOptions.addOption(forceDeleteOption)
