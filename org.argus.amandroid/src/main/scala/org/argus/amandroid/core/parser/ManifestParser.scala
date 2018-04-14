@@ -266,7 +266,7 @@ class ManifestParser{
 
   def getPermissions: ISet[String] = this.permissions.toSet
 
-  def getPackageName: ResourceUri = this.packageName
+  def getPackageName: String = this.packageName
 
   def getIntentDB: IntentFilterDataBase = this.intentFdb
 }

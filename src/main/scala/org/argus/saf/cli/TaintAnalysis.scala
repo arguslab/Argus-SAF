@@ -25,7 +25,7 @@ import org.argus.jawa.core.util._
  */ 
 object TaintAnalysis{
 //  private final val TITLE = "TaintAnalysis"
-  def apply(module: TaintAnalysisModules.Value, debug: Boolean, sourcePath: String, outputPath: String, forceDelete: Boolean): Unit = {
+  def apply(module: TaintAnalysisModules.Value, debug: Boolean, sourcePath: String, outputPath: String, forceDelete: Boolean, guessPackage: Boolean): Unit = {
     val apkFileUris: MSet[FileResourceUri] = msetEmpty
     val fileOrDir = new File(sourcePath)
     fileOrDir match {
@@ -36,10 +36,10 @@ object TaintAnalysis{
           apkFileUris += FileUtil.toUri(file)
         else println(file + " is not decompilable.")
     }
-    taintAnalyze(module, apkFileUris.toSet, outputPath, debug, forceDelete)
+    taintAnalyze(module, apkFileUris.toSet, outputPath, debug, forceDelete, guessPackage)
   }
   
-  def taintAnalyze(module: TaintAnalysisModules.Value, apkFileUris: ISet[FileResourceUri], outputPath: String, debug: Boolean, forceDelete: Boolean): Unit = {
+  def taintAnalyze(module: TaintAnalysisModules.Value, apkFileUris: ISet[FileResourceUri], outputPath: String, debug: Boolean, forceDelete: Boolean, guessPackage: Boolean): Unit = {
     println("Total apks: " + apkFileUris.size)
     val outputUri = FileUtil.toUri(outputPath)
     try{
@@ -51,7 +51,7 @@ object TaintAnalysis{
           val reporter =
             if(debug) new FileReporter(getOutputDirUri(outputUri, fileUri), MsgLevel.INFO)
             else new PrintReporter(MsgLevel.ERROR)
-          TaintAnalysisTask(module, Set((fileUri, outputUri)), forceDelete, reporter).run
+          TaintAnalysisTask(module, Set((fileUri, outputUri)), forceDelete, reporter, guessPackage).run
           println("Done!")
           if(debug) println("Debug info write into " + reporter.asInstanceOf[FileReporter].f)
         } catch {

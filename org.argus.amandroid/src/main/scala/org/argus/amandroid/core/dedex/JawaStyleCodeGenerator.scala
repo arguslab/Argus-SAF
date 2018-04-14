@@ -395,24 +395,24 @@ class JawaStyleCodeGenerator(ddFile: DexBackedDexFile, filter: (JawaType => Deco
     val end: Long = instructions.last.instructionStart + instructions.last.getCodeUnits * 2L
 
     val tryBlocks = dexMethod.getImplementation.getTryBlocks
-    val (exceptionTypeMap, labels) = processTryCatchBlock(catchesTemplate, tryBlocks.asScala.toList, start, template)
+    val exceptionTypeMap = processTryCatchBlock(catchesTemplate, tryBlocks.asScala.toList, start, template)
 
     val codes: util.ArrayList[String] = new util.ArrayList[String]
     val instructionParser = DexInstructionToJawaParser(dexMethod, this, exceptionTypeMap, template)
 
     instructions.foreach { inst =>
-      labels.get(inst.instructionStart) match {
-        case Some(label) =>
-          label.foreach(l => codes.add("#%s.  ".format(l)))
-        case None =>
-      }
+//      labels.get(inst.instructionStart) match {
+//        case Some(label) =>
+//          label.foreach(l => codes.add("#%s.  ".format(l)))
+//        case None =>
+//      }
       codes.add(instructionParser.parse(inst, start, end))
     }
-    labels.get(end) match {
-      case Some(label) =>
-        label.foreach(l => codes.add("#%s.  ".format(l)))
-      case None =>
-    }
+//    labels.get(end) match {
+//      case Some(label) =>
+//        label.foreach(l => codes.add("#%s.  ".format(l)))
+//      case None =>
+//    }
     bodyTemplate.add("codeFragments", codes)
     (bodyTemplate, catchesTemplate)
   }
@@ -430,18 +430,15 @@ class JawaStyleCodeGenerator(ddFile: DexBackedDexFile, filter: (JawaType => Deco
       catchesTemplate: ST,
       tryBlocks: IList[DexBackedTryBlock],
       base: Long,
-      template: STGroupString): (IMap[Long, JawaType], IMap[Long, IList[String]]) = {
+      template: STGroupString): IMap[Long, JawaType] = {
     val typeMap: MMap[Long, JawaType] = mmapEmpty
-    val labels: MMap[Long, MList[String]] = mmapEmpty
     val catches: util.ArrayList[ST] = new util.ArrayList[ST]
     var i = 0
     for(tryBlock <- tryBlocks) {
       val start: Long = base + tryBlock.getStartCodeAddress * 2L
       val end: Long = start + tryBlock.getCodeUnitCount * 2L
-      val startLabel: String = "Try_start" + i
-      val endLabel: String = "Try_end" + i
-      labels.getOrElseUpdate(start, mlistEmpty) += startLabel
-      labels.getOrElseUpdate(end, mlistEmpty) += endLabel
+      val startLabel: String = "L%06x".format(start)
+      val endLabel: String =  "L%06x".format(end)
       for(handler <- tryBlock.getExceptionHandlers.asScala) {
         val catchTemplate: ST = template.getInstanceOf("Catch")
         val exceptionType: JawaType = handler match {
@@ -457,7 +454,7 @@ class JawaStyleCodeGenerator(ddFile: DexBackedDexFile, filter: (JawaType => Deco
       i += 1
     }
     catchesTemplate.add("catches", catches)
-    (typeMap.toMap, labels.map{ case (k, v) => (k, v.toList)}.toMap)
+    typeMap.toMap
   }
 
   private def getAccessString(name: String): String = {

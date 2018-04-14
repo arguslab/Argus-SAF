@@ -140,6 +140,14 @@ trait JawaClasspathManager extends JavaKnowledge { self: Global =>
       }
     }
   }
+
+  def applyWhiteListPackages(prefixes: ISet[String]): Unit = {
+    val needMoveClassCodes = applicationClassCodes.filter { case (typ, _) =>
+      !prefixes.exists(typ.jawaName.startsWith)
+    }
+    applicationClassCodes --= needMoveClassCodes.keys
+    userLibraryClassCodes ++= needMoveClassCodes
+  }
   
   /**
     * map from class name to jawa code of library. E.g. class type java.lang.Object to its file
@@ -165,7 +173,7 @@ trait JawaClasspathManager extends JavaKnowledge { self: Global =>
   }
   
   protected class GlobalPlatform extends {
-    val global: this.type = this
+    val global: Global = this
     val javaLib: String = javaLibrary
   } with JavaPlatform
 

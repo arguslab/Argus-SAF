@@ -10,16 +10,11 @@
 
 package org.argus.jawa.core
 
-import java.io.{BufferedReader, FileReader}
+import java.io.{BufferedReader, FileReader, StringReader}
 
 import org.argus.jawa.core.util._
 
 trait LibraryAPISummary {
-  /**
-    * check given API name is present in library
-    */
-  def isLibraryAPI(apiName: String): Boolean
-
   def isLibraryClass: JawaType => Boolean
 }
 
@@ -27,6 +22,7 @@ trait LibraryAPISummary {
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
  */
 class DefaultLibraryAPISummary(filePath: String) extends LibraryAPISummary {
+
 
   private val libraryPackages: MSet[String] = msetEmpty
   private val libraryPackagePrefixes: MSet[String] = msetEmpty
@@ -49,25 +45,46 @@ class DefaultLibraryAPISummary(filePath: String) extends LibraryAPISummary {
     rdr.close()
   }
 
-  /**
-    * check given API name is present in library
-    */
-  def isLibraryAPI(apiName: String): Boolean = {
-    libraryPackages.contains(apiName) ||
-    libraryPackagePrefixes.exists(apiName.startsWith)
-  }
-
   def isLibraryClass: JawaType => Boolean = { typ =>
     libraryPackages.contains(typ.getPackageName) ||
     libraryPackagePrefixes.exists(typ.getPackageName.startsWith)
   }
 }
 
-object NoLibraryAPISummary extends LibraryAPISummary {
-  /**
-    * check given API name is present in library
-    */
-  override def isLibraryAPI(apiName: String): Boolean = false
+/**
+  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
+  */
+class NoneLibraryAPISummary extends LibraryAPISummary {
+  private val appPackages: MSet[String] = msetEmpty
+  private val appPackagePrefixes: MSet[String] = msetEmpty
+  private def doLoad(rdr: BufferedReader): Unit = {
+    var line = Option(rdr.readLine())
+    while(line.isDefined){
+      line match {
+        case Some(str) =>
+          if(str.endsWith(".*"))
+            appPackagePrefixes += str.substring(0, str.length - 2)
+          else appPackages += str
+        case None =>
+      }
+      line = Option(rdr.readLine())
+    }
+  }
+  def load(filePath: String): Unit = {
+    val rdr: BufferedReader = new BufferedReader(new FileReader(filePath))
+    doLoad(rdr)
+    rdr.close()
+  }
+  def loadFromString(str: String): Unit = {
+    val rdr: BufferedReader = new BufferedReader(new StringReader(str))
+    doLoad(rdr)
+    rdr.close()
+  }
+  override def isLibraryClass: JawaType => Boolean = { typ =>
+    !appPackages.contains(typ.getPackageName) && !appPackagePrefixes.exists(typ.getPackageName.startsWith)
+  }
+}
 
+object NoLibraryAPISummary extends LibraryAPISummary {
   override def isLibraryClass: JawaType => Boolean = _ => false
 }

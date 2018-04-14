@@ -80,7 +80,7 @@ object CallHandler {
   }
 
   /**
-   * check and get virtual callee procedure from Center. Input: equals:(Ljava/lang/Object;)Z
+   * check and get virtual callee procedure from GLobal. Input: equals:(Ljava/lang/Object;)Z
    */
   def getVirtualCalleeMethod(global: Global, fromType: JawaType, pSubSig: String): Option[JawaMethod] = {
     val typ =
@@ -91,7 +91,7 @@ object CallHandler {
   }
   
   /**
-   * check and get virtual callee procedure from Center. Input: equals:(Ljava/lang/Object;)Z
+   * check and get virtual callee procedure from Global. Input: equals:(Ljava/lang/Object;)Z
    */
   def getUnknownVirtualCalleeMethods(global: Global, baseType: JawaType, pSubSig: String): ISet[JawaMethod] = {
     val typ =
@@ -105,7 +105,7 @@ object CallHandler {
   }
 
   /**
-   * check and get super callee procedure from Center. Input: Ljava/lang/Object;.equals:(Ljava/lang/Object;)Z
+   * check and get super callee procedure from GLobal. Input: Ljava/lang/Object;.equals:(Ljava/lang/Object;)Z
    */
   def getSuperCalleeMethod(global: Global, pSig: Signature): Option[JawaMethod] = {
     val fromType = pSig.getClassType
@@ -115,7 +115,7 @@ object CallHandler {
   }
 
   /**
-   * check and get static callee procedure from Center. Input: Ljava/lang/Object;.equals:(Ljava/lang/Object;)Z
+   * check and get static callee procedure from GLobal. Input: Ljava/lang/Object;.equals:(Ljava/lang/Object;)Z
    */
   def getStaticCalleeMethod(global: Global, procSig: Signature): Option[JawaMethod] = {
     val recType = procSig.getClassType
@@ -135,7 +135,7 @@ object CallHandler {
   }
 
   /**
-   * check and get direct callee procedure from Center. Input: Ljava/lang/Object;.equals:(Ljava/lang/Object;)Z
+   * check and get direct callee procedure from GLobal. Input: Ljava/lang/Object;.equals:(Ljava/lang/Object;)Z
    */
   def getDirectCalleeMethod(global: Global, procSig: Signature): Option[JawaMethod] = {
     val pSubSig = procSig.getSubSignature

@@ -33,14 +33,14 @@ class ApkYard(val reporter: Reporter) {
   /**
     * Load an apk or directly read decompiled apk dir.
     */
-  def loadApk(apkUri: FileResourceUri, settings: DecompilerSettings, collectInfo: Boolean, resolveCallBack: Boolean): ApkGlobal = {
+  def loadApk(apkUri: FileResourceUri, settings: DecompilerSettings, collectInfo: Boolean, resolveCallBack: Boolean, guessAppPackages: Boolean = false): ApkGlobal = {
     if(apkUri.endsWith(".apk")) {
       ApkDecompiler.decompile(apkUri, settings)
     }
     val apk = new ApkGlobal(ApkModel(apkUri, settings.strategy.layout), reporter)
     apk.load()
     if(collectInfo) {
-      AppInfoCollector.collectInfo(apk, resolveCallBack)
+      AppInfoCollector.collectInfo(apk, resolveCallBack, guessAppPackages)
     }
     addApk(apk)
     apk

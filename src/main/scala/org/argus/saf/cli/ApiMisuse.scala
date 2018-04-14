@@ -33,7 +33,7 @@ object ApiMisuse {
   
 //  private final val TITLE = "CryptoMisuse"
   
-  def apply(module: ApiMisuseModules.Value, debug: Boolean, sourcePath: String, outputPath: String, forceDelete: Boolean) {
+  def apply(module: ApiMisuseModules.Value, debug: Boolean, sourcePath: String, outputPath: String, forceDelete: Boolean, guessPackage: Boolean) {
     val apkFileUris: MSet[FileResourceUri] = msetEmpty
     val fileOrDir = new File(sourcePath)
     fileOrDir match {
@@ -45,10 +45,10 @@ object ApiMisuse {
         else println(file + " is not decompilable.")
     }
 
-    apiMisuse(apkFileUris.toSet, outputPath, module, debug, forceDelete)
+    apiMisuse(apkFileUris.toSet, outputPath, module, debug, forceDelete, guessPackage)
   }
   
-  def apiMisuse(apkFileUris: Set[FileResourceUri], outputPath: String, module: ApiMisuseModules.Value, debug: Boolean, forceDelete: Boolean): Unit = {
+  def apiMisuse(apkFileUris: Set[FileResourceUri], outputPath: String, module: ApiMisuseModules.Value, debug: Boolean, forceDelete: Boolean, guessPackage: Boolean): Unit = {
     Context.init_context_length(AndroidGlobalConfig.settings.k_context)
 
     println("Total apks: " + apkFileUris.size)
@@ -82,7 +82,7 @@ object ApiMisuse {
             case ApiMisuseModules.SSLTLS_MISUSE => (new SSLTLSMisuse, false)
           }
           if(buildIDFG) {
-            AppInfoCollector.collectInfo(apk, resolveCallBack = true)
+            AppInfoCollector.collectInfo(apk, resolveCallBack = true, guessPackage)
             apk.model.getComponents foreach { comp =>
               val clazz = apk.getClassOrResolve(comp)
               val spark = new InterProceduralSuperSpark(apk)

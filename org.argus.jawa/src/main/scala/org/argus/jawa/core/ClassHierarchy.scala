@@ -321,12 +321,11 @@ class ClassHierarchy(reporter: Reporter) extends JavaKnowledge {
       classes ++= getAllSubClassesOfIncluding(r)
     }
 
-    classes.filter { r => !r.isAbstract }.foreach{
-      rec =>
-        findMethodThroughHierarchy(rec, pSubSig) match {
-          case Some(p) => if(!p.isAbstract) results += p
-          case None =>
-        }
+    classes.filter { r => !r.isAbstract }.foreach{ rec =>
+      findMethodThroughHierarchy(rec, pSubSig) match {
+        case Some(p) => if(!p.isAbstract) results += p
+        case None =>
+      }
     }
     if(results.isEmpty){
       if(r.isInterface || r.isAbstract){
@@ -345,7 +344,7 @@ class ClassHierarchy(reporter: Reporter) extends JavaKnowledge {
           results += unknownMethod
         }
       } else {
-        reporter.warning(TITLE, "Could not resolve abstract dispath for:\nclass:" + r + " method:" + pSubSig)
+        reporter.warning(TITLE, "Could not resolve abstract dispatch for:\nclass:" + r + " method:" + pSubSig)
       }
     }
     results.toSet

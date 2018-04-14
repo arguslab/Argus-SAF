@@ -35,6 +35,7 @@ object Main extends App {
     val versionOption: Option = Option.builder().longOpt("version").desc("Prints the version then exits.").build()
 
     val debugDecOption: Option = Option.builder("d").longOpt("debug").desc("Output debug information.").build()
+    val guessPackageOption: Option = Option.builder("g").longOpt("guess").desc("Guess application package prefixes.").build()
     val outputOption: Option = Option.builder("o").longOpt("output").desc("Set output directory. [Default: .]").hasArg(true).argName("dir").build()
     val forceDeleteOption: Option = Option.builder("f").longOpt("force").desc("Force delete previous decompile result. [Default: false]").build()
     val srclevelOption: Option = Option.builder("sl").longOpt("src-level").desc("Application code decompile level. [Default: TYPED, Choices: (NO, SIGNATURE, UNTYPED, TYPED)]").hasArg(true).argName("level").build()
@@ -50,6 +51,7 @@ object Main extends App {
       .hasArg(true).argName("name").build()
 
     generalOptionGroup.addOption(debugDecOption)
+    generalOptionGroup.addOption(guessPackageOption)
     generalOptionGroup.addOption(outputOption)
     generalOptionGroup.addOption(iniPathOption)
     generalOptionGroup.addOption(forceDeleteOption)
@@ -208,11 +210,15 @@ object Main extends App {
 
   private def cmdTaintAnalysis(cli: CommandLine): Unit = {
     var debug = false
+    var guessPackage = false
     var outputPath: String = "."
     var forceDelete: Boolean = false
     var module: TaintAnalysisModules.Value = TaintAnalysisModules.DATA_LEAKAGE
     if(cli.hasOption("d") || cli.hasOption("debug")) {
       debug = true
+    }
+    if(cli.hasOption("g") || cli.hasOption("guess")) {
+      guessPackage = true
     }
     if(cli.hasOption("o") || cli.hasOption("output")) {
       outputPath = cli.getOptionValue("o")
@@ -238,16 +244,20 @@ object Main extends App {
         usage(Mode.TAINT)
         System.exit(0)
     }
-    TaintAnalysis(module, debug, sourcePath, outputPath, forceDelete)
+    TaintAnalysis(module, debug, sourcePath, outputPath, forceDelete, guessPackage)
   }
 
   private def cmdApiMisuse(cli: CommandLine): Unit = {
     var debug = false
+    var guessPackage = false
     var outputPath: String = "."
     var forceDelete: Boolean = false
     var module: ApiMisuseModules.Value = ApiMisuseModules.CRYPTO_MISUSE
     if(cli.hasOption("d") || cli.hasOption("debug")) {
       debug = true
+    }
+    if(cli.hasOption("g") || cli.hasOption("guess")) {
+      guessPackage = true
     }
     if(cli.hasOption("o") || cli.hasOption("output")) {
       outputPath = cli.getOptionValue("o")
@@ -271,6 +281,6 @@ object Main extends App {
         usage(Mode.APICHECK)
         System.exit(0)
     }
-    ApiMisuse(module, debug, sourcePath, outputPath, forceDelete)
+    ApiMisuse(module, debug, sourcePath, outputPath, forceDelete, guessPackage)
   }
 }

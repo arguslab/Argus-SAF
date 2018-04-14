@@ -17,6 +17,7 @@ import java.io.FileInputStream
 import org.argus.amandroid.core.{AndroidConstants, ApkGlobal}
 import org.argus.amandroid.core.parser._
 import org.argus.amandroid.core.codegen.{AndroidEntryPointConstants, AndroidEnvironmentGenerator, AndroidSubstituteClassMap, AsyncTaskEnvGenerator}
+import org.argus.amandroid.core.util.GuessAppPackages
 import org.argus.jawa.core._
 import org.argus.jawa.core.util.FileUtil
 
@@ -206,11 +207,14 @@ object AppInfoCollector {
     result.toMap
   }
 
-  def collectInfo(apk: ApkGlobal, resolveCallBack: Boolean): Unit = {
+  def collectInfo(apk: ApkGlobal, resolveCallBack: Boolean, guessAppPackages: Boolean = false): Unit = {
     apk.reporter.println(s"Collecting information from ${apk.model.getAppName}...")
     val certs = AppInfoCollector.readCertificates(apk.nameUri)
     val manifestUri = FileUtil.appendFileName(apk.model.layout.outputSrcUri, "AndroidManifest.xml")
     val mfp = AppInfoCollector.analyzeManifest(apk.reporter, manifestUri)
+    if(guessAppPackages) {
+      apk.applyWhiteListPackages(GuessAppPackages.guess(mfp))
+    }
     val afp = AppInfoCollector.analyzeARSC(apk.reporter, apk.nameUri)
     val lfp = AppInfoCollector.analyzeLayouts(apk, apk.model.layout.outputSrcUri, mfp, afp)
     apk.model.addCertificates(certs)

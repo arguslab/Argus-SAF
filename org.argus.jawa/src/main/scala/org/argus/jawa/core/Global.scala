@@ -29,5 +29,4 @@ class Global(val projectName: String, val reporter: Reporter) extends JawaClassL
     this.classCache.invalidateAll()
     this.methodCache.invalidateAll()
   }
-  
 }

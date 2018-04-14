@@ -43,7 +43,7 @@ class ApiMisuseTest extends FlatSpec with Matchers {
     val checker = module match {
       case ApiMisuseModules.CRYPTO_MISUSE => new CryptographicMisuse
       case ApiMisuseModules.HIDE_ICON =>
-        val man = AppInfoCollector.analyzeManifest(reporter, FileUtil.appendFileName(apk.model.layout.outputSrcUri, "AndroidManifest.xml"))
+        val man = AppInfoCollector.analyzeManifest(reporter, FileUtil.appendFileName(apk.model.layout.outputSrcUri, "Manifest1.xml"))
         val mainComp = man.getIntentDB.getIntentFmap.find{ case (_, fs) =>
           fs.exists{ f =>
             f.getActions.contains("android.intent.action.MAIN") && f.getCategorys.contains("android.intent.category.LAUNCHER")

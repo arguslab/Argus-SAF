@@ -29,7 +29,7 @@ import org.argus.jawa.core.util._
 import scala.concurrent.duration._
 import scala.language.postfixOps
 
-case class TaintAnalysisTask(module: TaintAnalysisModules.Value, fileUris: ISet[(FileResourceUri, FileResourceUri)], forceDelete: Boolean, reporter: Reporter) {
+case class TaintAnalysisTask(module: TaintAnalysisModules.Value, fileUris: ISet[(FileResourceUri, FileResourceUri)], forceDelete: Boolean, reporter: Reporter, guessPackage: Boolean) {
   import TaintAnalysisModules._
 //  private final val TITLE = "TaintAnalysisTask"
   def run: Option[TaintAnalysisResult] = {
@@ -38,7 +38,7 @@ case class TaintAnalysisTask(module: TaintAnalysisModules.Value, fileUris: ISet[
       val layout = DecompileLayout(outputUri)
       val strategy = DecompileStrategy(layout)
       val settings = DecompilerSettings(debugMode = false, forceDelete = forceDelete, strategy, reporter)
-      yard.loadApk(apkUri, settings, collectInfo = true, resolveCallBack = true)
+      yard.loadApk(apkUri, settings, collectInfo = true, resolveCallBack = true, guessPackage)
     }
     val ssm = module match {
       case INTENT_INJECTION =>
