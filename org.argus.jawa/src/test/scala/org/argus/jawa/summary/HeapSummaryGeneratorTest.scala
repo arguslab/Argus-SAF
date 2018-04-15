@@ -18,7 +18,6 @@ import org.argus.jawa.alir.reachability.SignatureBasedCallGraph
 import org.argus.jawa.core._
 import org.argus.jawa.core.util._
 import org.argus.jawa.summary.susaf.rule.HeapSummary
-import org.argus.jawa.summary.util.TopologicalSortUtil
 import org.argus.jawa.summary.wu.{HeapSummaryWu, WorkUnit}
 import org.scalatest.{FlatSpec, Matchers}
 
@@ -28,7 +27,7 @@ import scala.language.implicitConversions
   * Created by fgwei on 6/30/17.
   */
 class HeapSummaryGeneratorTest extends FlatSpec with Matchers {
-  final val DEBUG = false
+  final val DEBUG = true
 
   implicit def file(file: String): TestFile = {
     new TestFile(file)
@@ -38,35 +37,35 @@ class HeapSummaryGeneratorTest extends FlatSpec with Matchers {
     """`Lcom/hugo/test/SingleFunction;.clearArg:(Ljava/util/Set;)V`:
       |  ~arg:1
       |;
-    """.stripMargin
+    """.stripMargin.trim.intern()
   )
 
   "/jawa/summary/SingleFunction.jawa" ep "Lcom/hugo/test/SingleFunction;.clearField:(Lcom/hugo/test/SingleFunction;)V" produce (
     """`Lcom/hugo/test/SingleFunction;.clearField:(Lcom/hugo/test/SingleFunction;)V`:
       |  ~arg:1.myset
       |;
-    """.stripMargin
+    """.stripMargin.trim.intern()
   )
 
   "/jawa/summary/SingleFunction.jawa" ep "Lcom/hugo/test/SingleFunction;.clearArray:(Lcom/hugo/test/SingleFunction;)V" produce (
     """`Lcom/hugo/test/SingleFunction;.clearArray:(Lcom/hugo/test/SingleFunction;)V`:
       |  ~arg:1.myarray[].myset
       |;
-    """.stripMargin
+    """.stripMargin.trim.intern()
   )
 
   "/jawa/summary/SingleFunction.jawa" ep "Lcom/hugo/test/SingleFunction;.clearGlobal:()V" produce (
     """`Lcom/hugo/test/SingleFunction;.clearGlobal:()V`:
       |  ~`com.hugo.test.SingleFunction.myglobal`.myset
       |;
-    """.stripMargin
+    """.stripMargin.trim.intern()
   )
 
   "/jawa/summary/SingleFunction.jawa" ep "Lcom/hugo/test/SingleFunction;.clearHeaps:()V" produce (
     """`Lcom/hugo/test/SingleFunction;.clearHeaps:()V`:
       |  ~`com.hugo.test.SingleFunction.myglobal`.myarray[].myself.myself.myself.myset
       |;
-    """.stripMargin
+    """.stripMargin.trim.intern()
   )
 
   "/jawa/summary/SingleFunction.jawa" ep "Lcom/hugo/test/SingleFunction;.add:(Ljava/util/Set;)Ljava/lang/String;" produce (
@@ -74,7 +73,7 @@ class HeapSummaryGeneratorTest extends FlatSpec with Matchers {
       |  arg:1.items += "Hello World!"@L1
       |  ret = arg:1.items
       |;
-    """.stripMargin
+    """.stripMargin.trim.intern()
   )
 
   "/jawa/summary/SingleFunction.jawa" ep "Lcom/hugo/test/SingleFunction;.put:(Ljava/util/Map;)Ljava/lang/String;" produce (
@@ -83,7 +82,7 @@ class HeapSummaryGeneratorTest extends FlatSpec with Matchers {
       |  arg:1.entries(arg:1.entries.key) += "value"@L2
       |  ret = arg:1.entries.key
       |;
-    """.stripMargin
+    """.stripMargin.trim.intern()
   )
 
   "/jawa/summary/SingleFunction.jawa" ep "Lcom/hugo/test/SingleFunction;.assign:()Ljava/lang/String;" produce (
@@ -91,7 +90,7 @@ class HeapSummaryGeneratorTest extends FlatSpec with Matchers {
       |  this.str += "Hello World!"@L1
       |  ret = this.str
       |;
-    """.stripMargin
+    """.stripMargin.trim.intern()
   )
 
   "/jawa/summary/SingleFunction.jawa" ep "Lcom/hugo/test/SingleFunction;.complex:(Lcom/hugo/test/SingleFunction;)Ljava/lang/String;" produce (
@@ -103,8 +102,16 @@ class HeapSummaryGeneratorTest extends FlatSpec with Matchers {
       |  this.myself = arg:1
       |  ret = this.str
       |;
-    """.stripMargin
+    """.stripMargin.trim.intern()
   )
+
+  "/jawa/summary/MultiFunction.jawa" ep "Lcom/hugo/test/MultiFunction;.testGlobalMap:()V" produce (
+    """`Lcom/hugo/test/MultiFunction;.testGlobalMap:()V`:
+      |  `com.hugo.test.MultiFunction.map`.entries.key += "key"@L1
+      |  `com.hugo.test.MultiFunction.map`.entries(`com.hugo.test.MultiFunction.map`.entries.key) += "value"@L2
+      |;
+    """.stripMargin.trim.intern()
+    )
 
   class TestFile(file: String) {
     var entrypoint: Signature = _
@@ -128,15 +135,12 @@ class HeapSummaryGeneratorTest extends FlatSpec with Matchers {
         val analysis = new BottomUpSummaryGenerator[Global](global, sm, handler,
           HeapSummary(_, _),
           ConsoleProgressBar.on(System.out).withFormat("[:bar] :percent% :elapsed Left: :remain"))
-        val orderedWUs: IList[WorkUnit[Global]] = TopologicalSortUtil.sort(cg.getCallMap).map { sig =>
+        val orderedWUs: IList[WorkUnit[Global]] = cg.topologicalSort(true).map { sig =>
           val method = global.getMethodOrResolve(sig).getOrElse(throw new RuntimeException("Method does not exist: " + sig))
           new HeapSummaryWu(global, method, sm, handler)
-        }.reverse
+        }
         analysis.build(orderedWUs)
-        val sm2: SummaryManager = new SummaryManager(global)
-        sm2.register("test", rule, fileAndSubsigMatch = false)
-
-        assert(sm.getSummary[HeapSummary](entrypoint).get.rules == sm2.getSummary[HeapSummary](entrypoint).get.rules)
+        assert(sm.getSummary[HeapSummary](entrypoint).get.toString == rule)
       }
     }
   }

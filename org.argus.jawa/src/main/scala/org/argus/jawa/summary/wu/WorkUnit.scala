@@ -85,11 +85,11 @@ abstract class DataFlowWu[T <: Global] (
     idfgOpt = Some(idfg)
     ptaresult = idfg.ptaresult
     icfg = idfg.icfg
-    val entryContext = initContext.copy
-    entryContext.setContext(method.getSignature, method.getSignature.methodName)
     method.thisOpt match {
       case Some(_) =>
-        val ins = Instance.getInstance(method.getDeclaringClass.typ, entryContext, toUnknown = false)
+        val thisContext = initContext.copy
+        thisContext.setContext(method.getSignature, "this")
+        val ins = Instance.getInstance(method.getDeclaringClass.typ, thisContext, toUnknown = false)
         heapMap(ins) = SuThis(None)
       case None =>
     }
@@ -100,7 +100,9 @@ abstract class DataFlowWu[T <: Global] (
           case "java.lang.String" => false
           case _ => true
         }
-        val ins = Instance.getInstance(typ, entryContext, unknown)
+        val argContext = initContext.copy
+        argContext.setContext(method.getSignature, s"arg${i + 1}")
+        val ins = Instance.getInstance(typ, argContext, unknown)
         heapMap(ins) = SuArg(i + 1, None)
       }
     }
@@ -126,15 +128,14 @@ abstract class DataFlowWu[T <: Global] (
 
   def generateIDFG_RFA: InterProceduralDataFlowGraph = {
     val analysis = new ReachingFactsAnalysis(global, icfg, ptaresult, handler, sm, new ClassLoadManager, resolve_static_init, Some(new MyTimeout(1 minutes)))
-    val entryContext = initContext.copy
-    entryContext.setContext(method.getSignature, method.getSignature.methodName)
     val initialFacts: ISet[RFAFact] = {
       val result = msetEmpty[RFAFact]
       method.thisOpt match {
         case Some(t) =>
-          val ins = Instance.getInstance(method.getDeclaringClass.typ, entryContext, toUnknown = false)
+          val thisContext = initContext.copy
+          thisContext.setContext(method.getSignature, "this")
+          val ins = Instance.getInstance(method.getDeclaringClass.typ, thisContext, toUnknown = false)
           result += new RFAFact(VarSlot(t), ins)
-          heapMap(ins) = SuThis(None)
         case None =>
       }
       method.params.indices.foreach { i =>
@@ -144,15 +145,15 @@ abstract class DataFlowWu[T <: Global] (
             case "java.lang.String" => false
             case _ => true
           }
-          val ins = Instance.getInstance(typ, entryContext, unknown)
+          val argContext = initContext.copy
+          argContext.setContext(method.getSignature, s"arg${i + 1}")
+          val ins = Instance.getInstance(typ, argContext, unknown)
           result += new RFAFact(VarSlot(name), ins)
-          heapMap(ins) = SuArg(i + 1, None)
         }
       }
       result.toSet
     }
-    val idfg = analysis.process(method, initialFacts, initContext, new ModelCallResolver(global, ptaresult, icfg, sm, handler))
-    idfg
+    analysis.process(method, initialFacts, initContext, new ModelCallResolver(global, ptaresult, icfg, sm, handler))
   }
 
   def parseIDFG(idfg: InterProceduralDataFlowGraph): IList[SummaryRule] = {

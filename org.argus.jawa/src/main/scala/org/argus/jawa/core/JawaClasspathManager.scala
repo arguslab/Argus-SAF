@@ -147,6 +147,7 @@ trait JawaClasspathManager extends JavaKnowledge { self: Global =>
     }
     applicationClassCodes --= needMoveClassCodes.keys
     userLibraryClassCodes ++= needMoveClassCodes
+    reporter.println(s"Applied package white list. Moved: ${needMoveClassCodes.size} classes to user library.")
   }
   
   /**

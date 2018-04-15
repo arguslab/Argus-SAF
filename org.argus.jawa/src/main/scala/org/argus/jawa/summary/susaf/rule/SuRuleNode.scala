@@ -26,12 +26,21 @@ case class HeapSummaryFile(defaultTypes: Map[JawaType, Map[String, JawaType]], s
 /**
   * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
   */
-case class HeapSummary(sig: Signature, rules: Seq[SummaryRule]) extends Summary with SuRuleNode
+case class HeapSummary(sig: Signature, rules: Seq[SummaryRule]) extends Summary with SuRuleNode {
+  override def toString: String = {
+    s"""`${sig.signature}`:
+      |  ${rules.mkString("\n  ")}
+      |;
+    """.stripMargin.trim.intern()
+  }
+}
 
 /**
   * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
   */
-case class ClearRule(v: HeapBase) extends SummaryRule with SuRuleNode
+case class ClearRule(v: HeapBase) extends SummaryRule with SuRuleNode {
+  override def toString: String = s"~$v".intern()
+}
 
 object Ops extends Enumeration {
   val `+=`, `-=`, `=` = Value
@@ -40,7 +49,9 @@ object Ops extends Enumeration {
 /**
   * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
   */
-case class BinaryRule(lhs: RuleLhs, ops: Ops.Value, rhs: RuleRhs) extends SummaryRule with SuRuleNode
+case class BinaryRule(lhs: RuleLhs, ops: Ops.Value, rhs: RuleRhs) extends SummaryRule with SuRuleNode {
+  override def toString: String = s"$lhs ${ops match {case Ops.`+=` => "+=" case Ops.`-=` => "-=" case Ops.`=` => "="}} $rhs"
+}
 
 /**
   * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
@@ -71,6 +82,8 @@ case class SuThis(heapOpt: Option[SuHeap]) extends HeapBase {
     }
     SuThis(Some(SuHeap(heap)))
   }
+
+  override def toString: String = s"this${heapOpt match {case Some(heap) => heap case None => ""}}"
 }
 
 /**
@@ -84,6 +97,8 @@ case class SuArg(num: Int, heapOpt: Option[SuHeap]) extends HeapBase {
     }
     SuArg(num, Some(SuHeap(heap)))
   }
+
+  override def toString: String = s"arg:$num${heapOpt match {case Some(heap) => heap case None => ""}}"
 }
 
 /**
@@ -97,14 +112,20 @@ case class SuGlobal(fqn: String, heapOpt: Option[SuHeap]) extends HeapBase {
     }
     SuGlobal(fqn, Some(SuHeap(heap)))
   }
+
+  override def toString: String = s"`$fqn`${heapOpt match {case Some(heap) => heap case None => ""}}"
 }
 
-case class SuClassOf(rhs: RuleRhs, loc: SuLocation) extends RuleRhs
+case class SuClassOf(rhs: RuleRhs, loc: SuLocation) extends RuleRhs {
+  override def toString: String = s"classOf $rhs$loc"
+}
 
 /**
   * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
   */
-case class SuHeap(indices: Seq[HeapAccess]) extends SuRuleNode
+case class SuHeap(indices: Seq[HeapAccess]) extends SuRuleNode {
+  override def toString: String = indices.mkString("")
+}
 
 /**
   * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
@@ -114,17 +135,23 @@ trait HeapAccess extends SuRuleNode
 /**
   * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
   */
-case class SuFieldAccess(fieldName: String) extends HeapAccess
+case class SuFieldAccess(fieldName: String) extends HeapAccess {
+  override def toString: String = s".$fieldName"
+}
 
 /**
   * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
   */
-case class SuArrayAccess() extends HeapAccess
+case class SuArrayAccess() extends HeapAccess {
+  override def toString: String = "[]"
+}
 
 /**
   * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
   */
-case class SuMapAccess(rhsOpt: Option[RuleRhs]) extends HeapAccess
+case class SuMapAccess(rhsOpt: Option[RuleRhs]) extends HeapAccess {
+  override def toString: String = s"(${rhsOpt match {case Some(rhs) => rhs.toString case None => ""}})"
+}
 
 /**
   * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
@@ -137,12 +164,16 @@ case class SuRet(heapOpt: Option[SuHeap]) extends HeapBase {
     }
     SuRet(Some(SuHeap(heap)))
   }
+
+  override def toString: String = s"ret${heapOpt match {case Some(heap) => heap case None => ""}}"
 }
 
 /**
   * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
   */
-case class SuInstance(typ: SuType, loc: SuLocation) extends RuleRhs
+case class SuInstance(typ: SuType, loc: SuLocation) extends RuleRhs {
+  override def toString: String = s"$typ$loc"
+}
 
 /**
   * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
@@ -154,13 +185,17 @@ trait SuType extends SuRuleNode {
 /**
   * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
   */
-case class SuJavaType(typ: JawaType) extends SuType
+case class SuJavaType(typ: JawaType) extends SuType {
+  override def toString: String = typ.jawaName
+}
 
 /**
   * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
   */
 case class SuString(str: String) extends SuType {
   def typ: JawaType = new JawaType("java.lang.String")
+
+  override def toString: String = "\"" + str + "\""
 }
 
 /**
@@ -171,9 +206,13 @@ trait SuLocation extends SuRuleNode
 /**
   * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
   */
-case class SuVirtualLocation() extends SuLocation
+case class SuVirtualLocation() extends SuLocation {
+  override def toString: String = "@~"
+}
 
 /**
   * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
   */
-case class SuConcreteLocation(loc: String) extends SuLocation
+case class SuConcreteLocation(loc: String) extends SuLocation {
+  override def toString: String = s"@$loc"
+}

@@ -228,7 +228,17 @@ class HeapSummaryWu(
       case sa: SuArg =>
         newBaseOpt = processVarSlot(VarSlot(args(sa.num - 1)), hb, recvOpt, args, context)
       case g: SuGlobal =>
-        newBaseOpt = Some(g)
+        val newg: SuGlobal = g.heapOpt match {
+          case Some(suHeap) =>
+            val heapAccesses: Seq[HeapAccess] = suHeap.indices.map {
+              case sm: SuMapAccess if sm.rhsOpt.isDefined =>
+                SuMapAccess(handleRhs(sm.rhsOpt.get, recvOpt, args, context))
+              case a => a
+            }
+            SuGlobal(g.fqn, Some(SuHeap(heapAccesses)))
+          case None => g
+        }
+        newBaseOpt = Some(newg)
       case _: SuRet =>
         newBaseOpt = None
     }
