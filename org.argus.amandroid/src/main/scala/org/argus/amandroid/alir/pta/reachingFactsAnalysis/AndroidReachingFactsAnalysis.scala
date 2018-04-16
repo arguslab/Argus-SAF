@@ -105,18 +105,18 @@ class AndroidReachingFactsAnalysis(
         if(icfg.hasEdge(icfgCallnode, icfgReturnnode)) {
           icfg.deleteEdge(icfgCallnode, icfgReturnnode)
         }
-        cs.lhsOpt match {
-          case Some(lhs) =>
-            val slotsWithMark = ReachingFactsAnalysisHelper.processLHS(lhs, callerContext, ptaresult).toSet
-            for (rdf <- s) {
-              //if it is a strong definition, we can kill the existing definition
-              if (slotsWithMark.contains(rdf.s, true)) {
-                killSet += rdf
-              }
-            }
-          case None =>
-        }
       } else pureNormalFlagMap(callerNode) = pureNormalFlag
+      cs.lhsOpt match {
+        case Some(lhs) =>
+          val slotsWithMark = ReachingFactsAnalysisHelper.processLHS(lhs, callerContext, ptaresult).toSet
+          for (rdf <- s) {
+            //if it is a strong definition, we can kill the existing definition
+            if (slotsWithMark.contains(rdf.s, true)) {
+              killSet += rdf
+            }
+          }
+        case None =>
+      }
       returnFacts = returnFacts -- killSet ++ genSet
       (calleeFactsMap, returnFacts)
     }

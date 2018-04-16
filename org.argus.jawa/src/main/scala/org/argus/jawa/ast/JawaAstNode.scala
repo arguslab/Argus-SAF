@@ -68,6 +68,8 @@ sealed trait JawaAstNode extends CaseClassReflector with JavaKnowledge {
 
   def toCode: String
 
+  override def toString: FileResourceUri = s"$toCode@$pos"
+
   def pos: Position
 }
 

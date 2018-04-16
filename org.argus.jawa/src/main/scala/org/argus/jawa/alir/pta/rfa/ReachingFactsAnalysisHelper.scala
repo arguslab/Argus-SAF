@@ -136,12 +136,14 @@ object ReachingFactsAnalysisHelper {
         if(!calleeMethod.isStatic && i == 0) calleeMethod.getDeclaringClass.typ
         else if(!calleeMethod.isStatic) calleeMethod.getSignature.getParameterTypes(i - 1)
         else calleeMethod.getSignature.getParameterTypes(i)
-      val influencedFields = Set(Constants.ALL_FIELD_FQN(typ))
-      argValues.foreach { ins =>
-        for(f <- influencedFields) {
-          val fs = FieldSlot(ins, f.fieldName)
-          val uins = PTAInstance(JavaKnowledge.OBJECT.toUnknown, currentContext)
-          genFacts += new RFAFact(fs, uins)
+      if(typ.isObject && !typ.isArray) {
+        val influencedFields = Set(Constants.ALL_FIELD_FQN(typ))
+        argValues.foreach { ins =>
+          for (f <- influencedFields) {
+            val fs = FieldSlot(ins, f.fieldName)
+            val uins = PTAInstance(JavaKnowledge.OBJECT.toUnknown, currentContext)
+            genFacts += new RFAFact(fs, uins)
+          }
         }
       }
     }
