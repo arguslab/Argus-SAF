@@ -31,9 +31,9 @@ class Java2Jawa(val global: Global, val sourceFile: JavaSourceFile) {
       if(nodeRange.isPresent) {
         val startIn = sourceFile.lineToOffset(nodeRange.get().begin.line - 1) + nodeRange.get().begin.column - 1
         val endIn = sourceFile.lineToOffset(nodeRange.get().end.line - 1) + nodeRange.get().end.column - 1
-        new RangePosition(sourceFile, startIn, endIn - startIn + 1, nodeRange.get().begin.line - 1, nodeRange.get().begin.column - 1)
+        new RangePosition(sourceFile, startIn, endIn - startIn + 1)
       } else {
-        new RangePosition(sourceFile, 0, 0, 0, 0)
+        new RangePosition(sourceFile, 0, 0)
       }
     }
   }

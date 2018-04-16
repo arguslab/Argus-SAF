@@ -28,11 +28,9 @@ class JawaLexer(aplexer: Antlr4PilarLexer, file: SourceFile, reporter: Reporter)
   import org.argus.jawa.compiler.Antlr4PilarLexer._
   protected def fetchPilarToken(): Unit = {
     val aptoken: AntlrToken = aplexer.nextToken()
-    val tokenLine = aptoken.getLine
-    val tokenColumn = aptoken.getCharPositionInLine
     val tokenOffset = aptoken.getStartIndex
     val rawText = aptoken.getText
-    val pos: RangePosition = new RangePosition(sourceFile, tokenOffset, rawText.length(), tokenLine, tokenColumn)
+    val pos: RangePosition = new RangePosition(sourceFile, tokenOffset, rawText.length())
     
     val tokenType =
       aptoken.getType match {

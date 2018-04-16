@@ -61,33 +61,25 @@ object Position {
     col
   }
 
-  def offset(source: SourceFile, point: Int): Position                            = validate(new OffsetPosition(source, point))
+  def offset(source: SourceFile, point: Int): Position                   = validate(new OffsetPosition(source, point))
   def range(source: SourceFile, start: Int, length: Int): Position       = validate(new RangePosition(source, start, length))
-  def offset(source: SourceFile, point: Int, line: Int, column: Int): Position                            = validate(new OffsetPosition(source, point, line, column))
-  def range(source: SourceFile, start: Int, length: Int, line: Int, column: Int): Position       = validate(new RangePosition(source, start, length, line, column))
 }
 
-class OffsetPosition(sourceIn: SourceFile, pointIn: Int, lineIn: Int, columnIn: Int) extends DefinedPosition {
-  def this(sourceIn: SourceFile, pointIn: Int) = {
-    this(sourceIn, pointIn, Position.calculateLine(sourceIn, pointIn), Position.calculateColumn(sourceIn, pointIn))
-  }
+class OffsetPosition(sourceIn: SourceFile, pointIn: Int) extends DefinedPosition {
   override def isRange = false
   override def source: SourceFile = sourceIn
   override def point: Int = pointIn
   override def start: Int = point
   override def end: Int = point
-  override def line: Int = lineIn
-  override def column: Int = columnIn
+  override def line: Int = Position.calculateLine(sourceIn, pointIn)
+  override def column: Int = Position.calculateColumn(sourceIn, pointIn)
 }
-class RangePosition(sourceIn: SourceFile, startIn: Int, length: Int, lineIn: Int, columnIn: Int) extends OffsetPosition(sourceIn, startIn, lineIn, columnIn) {
-  def this(sourceIn: SourceFile, startIn: Int, length: Int) = {
-    this(sourceIn, startIn, length, Position.calculateLine(sourceIn, startIn), Position.calculateColumn(sourceIn, startIn))
-  }
+class RangePosition(sourceIn: SourceFile, startIn: Int, length: Int) extends OffsetPosition(sourceIn, startIn) {
   override def isRange = true
   override def start: Int = startIn
   override def end: Int = startIn + length - 1
 
-  override def toString: String = s"Position($sourceIn line: $lineIn column: $columnIn)"
+  override def toString: String = s"Position($sourceIn line: $line column: $column)"
 }
 
 case object NoPosition extends UndefinedPosition
