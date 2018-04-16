@@ -77,13 +77,12 @@ object BuildICFGFromExistingPTAResult {
                     case None =>
                   }
                 case "virtual" | _ =>
-                  inss.map {
-                    case ins@un if un.isUnknown =>
-                      val p = CallHandler.getUnknownVirtualCalleeMethods(global, un.typ, calleesig.getSubSignature)
-                      calleeSet ++= p.map(callee => InstanceCallee(callee.getSignature, ins))
-                    case ins =>
-                      val p = CallHandler.getVirtualCalleeMethod(global, ins.typ, calleesig.getSubSignature)
-                      calleeSet ++= p.map(callee => InstanceCallee(callee.getSignature, ins))
+                  inss.map { ins =>
+                    val p = CallHandler.getVirtualCalleeMethod(global, ins.typ, calleesig) match {
+                      case Left(mopt) => mopt.toSet
+                      case Right(methods) => methods
+                    }
+                    calleeSet ++= p.map(callee => InstanceCallee(callee.getSignature, ins))
                   }
               }
           }

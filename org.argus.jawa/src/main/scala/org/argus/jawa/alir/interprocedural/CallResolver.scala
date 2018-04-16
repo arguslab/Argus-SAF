@@ -235,16 +235,16 @@ class ModelCallResolver(
       val calleep = global.getMethodOrResolve(calleeSig).get
       sm.getSummary[HeapSummary](calleeSig) match {
         case Some(summary) =>
-          returnFacts = HeapSummaryProcessor.process(global, summary, cs.lhsOpt.map(lhs => lhs.name), cs.recvOpt, cs.args, s, callerContext)
+          returnFacts = HeapSummaryProcessor.process(global, summary, cs.lhsOpt.map(lhs => lhs.name), cs.recvOpt, cs.args, returnFacts, callerContext)
         case None => // might be due to randomly broken loop
           if(handler.isModelCall(calleep)) {
-            returnFacts = handler.doModelCall(sm, s, calleep, cs.lhsOpt.map(lhs => lhs.name), cs.recvOpt, cs.args, callerContext)
+            returnFacts = handler.doModelCall(sm, returnFacts, calleep, cs.lhsOpt.map(lhs => lhs.name), cs.recvOpt, cs.args, callerContext)
           } else {
             callee match {
               case _: IndirectCallee =>
                 // TODO: handle indirect callee here
               case _ =>
-                val (newF, delF) = ReachingFactsAnalysisHelper.getUnknownObject(calleep, s, cs.lhsOpt.map(lhs => lhs.name), cs.recvOpt, cs.args, callerContext)
+                val (newF, delF) = ReachingFactsAnalysisHelper.getUnknownObject(calleep, returnFacts, cs.lhsOpt.map(lhs => lhs.name), cs.recvOpt, cs.args, callerContext)
                 returnFacts = returnFacts -- delF ++ newF
             }
           }

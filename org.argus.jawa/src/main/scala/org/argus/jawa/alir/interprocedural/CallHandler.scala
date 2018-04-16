@@ -60,10 +60,15 @@ object CallHandler {
                 if (ins.isUnknown) {
                   handleUnknown(ins.typ)
                 } else {
-                  CallHandler.getVirtualCalleeMethod(global, ins.typ, subSig).map(m => InstanceCallee(m.getSignature, ins)) match {
-                    case Some(c) => calleeSet += c
-                    case None =>
-                      handleUnknown(ins.typ.toUnknown)
+                  CallHandler.getVirtualCalleeMethod(global, ins.typ, sig) match {
+                    case Left(mopt) =>
+                      mopt.map(m => InstanceCallee(m.getSignature, ins)) match {
+                        case Some(c) => calleeSet += c
+                        case None =>
+                          handleUnknown(ins.typ.toUnknown)
+                      }
+                    case Right(methods) =>
+                      calleeSet ++= methods.map(m => UnknownCallee(m.getSignature))
                   }
                 }
               }
@@ -82,26 +87,32 @@ object CallHandler {
   /**
    * check and get virtual callee procedure from GLobal. Input: equals:(Ljava/lang/Object;)Z
    */
-  def getVirtualCalleeMethod(global: Global, fromType: JawaType, pSubSig: String): Option[JawaMethod] = {
-    val typ =
-      if(fromType.isArray) JavaKnowledge.OBJECT  // any array in java is an Object, so primitive type array is an object, object's method can be called
-      else fromType
-    val from = global.getClassOrResolve(typ)
-    global.getClassHierarchy.resolveConcreteDispatch(from, pSubSig)
-  }
-  
-  /**
-   * check and get virtual callee procedure from Global. Input: equals:(Ljava/lang/Object;)Z
-   */
-  def getUnknownVirtualCalleeMethods(global: Global, baseType: JawaType, pSubSig: String): ISet[JawaMethod] = {
-    val typ =
-      if(baseType.isArray) JavaKnowledge.OBJECT  // any array in java is an Object, so primitive type array is an object, object's method can be called
-      else baseType.removeUnknown()
-    val baseRec = global.getClassOrResolve(typ)
-    val methods = global.getClassHierarchy.resolveAbstractDispatch(baseRec, pSubSig)
-    val m = methods.filter(m => m.isConcrete && !m.isStatic)
-    if(m.isEmpty) methods.filter(m => !m.isStatic)
-    else m
+  def getVirtualCalleeMethod(global: Global, fromType: JawaType, sig: Signature): Either[Option[JawaMethod], ISet[JawaMethod]] = {
+    if(fromType.isPrimitive) { // Some obfuscation could set primitive type to object or some bug might happen
+      global.reporter.error("getVirtualCalleeMethod", s"Invoke virtual method $sig with primitive type $fromType")
+      Right(resolveSignatureBasedCall(global, sig, "virtual"))
+    } else {
+      if(fromType.isArray) {
+        val typ = JavaKnowledge.OBJECT
+        val from = global.getClassOrResolve(typ)
+        from.getDeclaredMethod(sig.getSubSignature) match {
+          case res @ Some(_) => Left(res)
+          case None => // some bug might happen
+            global.reporter.error("getVirtualCalleeMethod", s"Invoke virtual method $sig with array type $fromType")
+            Right(resolveSignatureBasedCall(global, sig, "virtual"))
+        }
+      } else if(fromType.baseType.unknown) {
+        val typ = fromType.removeUnknown()
+        val baseRec = global.getClassOrResolve(typ)
+        val methods = global.getClassHierarchy.resolveAbstractDispatch(baseRec, sig.getSubSignature)
+        val m = methods.filter(m => m.isConcrete && !m.isStatic)
+        Right(if(m.isEmpty) methods.filter(m => !m.isStatic) else m)
+      } else {
+        val typ = fromType
+        val from = global.getClassOrResolve(typ)
+        Left(global.getClassHierarchy.resolveConcreteDispatch(from, sig.getSubSignature))
+      }
+    }
   }
 
   /**
@@ -164,7 +175,10 @@ object CallHandler {
       case "static" =>
         callees ++= CallHandler.getStaticCalleeMethod(global, sig)
       case "virtual" | "interface" | _ =>
-        callees ++= CallHandler.getUnknownVirtualCalleeMethods(global, sig.getClassType, sig.getSubSignature)
+        CallHandler.getVirtualCalleeMethod(global, sig.getClassType.toUnknown, sig) match {
+          case Left(m) => callees ++= m
+          case Right(m) => callees ++= m
+        }
     }
     callees.toSet
   }
