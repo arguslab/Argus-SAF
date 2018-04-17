@@ -14,7 +14,7 @@ import java.util.concurrent.TimeoutException
 
 import hu.ssh.progressbar.console.ConsoleProgressBar
 import org.argus.jawa.alir.cg.CallGraph
-import org.argus.jawa.alir.interprocedural.CallHandler
+import org.argus.jawa.alir.interprocedural.{CallHandler, IndirectCallResolver}
 import org.argus.jawa.alir.pta.PTAScopeManager
 import org.argus.jawa.ast.CallStatement
 import org.argus.jawa.core._
@@ -75,7 +75,14 @@ object SignatureBasedCallGraph {
           m.getBody.resolvedBody.locations foreach { l =>
             l.statement match {
               case cs: CallStatement =>
-                CallHandler.resolveSignatureBasedCall(global, cs.signature, cs.kind) foreach { callee =>
+                val callee: MSet[JawaMethod] = msetEmpty
+                IndirectCallResolver.getCallResolver(global, cs.signature.classTyp, cs.signature.getSubSignature) match {
+                  case Some(res) =>
+                    callee ++= res.guessCallTarget(global, cs.signature)
+                  case None =>
+                    callee ++= CallHandler.resolveSignatureBasedCall(global, cs.signature, cs.kind)
+                }
+                callee foreach { callee =>
                   cg.addCall(m.getSignature, callee.getSignature)
                   if (!processed.contains(callee.getSignature.signature) && !PTAScopeManager.shouldBypass(callee.getDeclaringClass) && callee.isConcrete) {
                     worklist +:= callee

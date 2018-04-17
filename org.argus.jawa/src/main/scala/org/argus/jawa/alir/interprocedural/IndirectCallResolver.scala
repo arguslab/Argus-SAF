@@ -18,6 +18,7 @@ import org.argus.jawa.core.util.{ISet, _}
 
 trait IndirectCall {
   def isIndirectCall(global: Global, typ: JawaType, subSig: String): Boolean
+  def guessCallTarget(global: Global, signature: Signature): ISet[JawaMethod]
   def getCallTarget(global: Global, inss: ISet[Instance], callerContext: Context, args: IList[String], pTAResult: PTAResult): (ISet[(JawaMethod, Instance)], (ISet[RFAFact], IList[String], IList[String], SimHeap) => ISet[RFAFact])
 }
 
@@ -29,6 +30,11 @@ class RunnableStartRun extends IndirectCall {
     val clazz = global.getClassOrResolve(typ)
     val runnable = global.getClassOrResolve(start.getClassType)
     runnable.isAssignableFrom(clazz) && subSig == start.getSubSignature
+  }
+
+  def guessCallTarget(global: Global, signature: Signature): ISet[JawaMethod] = {
+    val newsig = Signature(signature.getClassType, run.methodName, run.proto)
+    CallHandler.resolveSignatureBasedCall(global, newsig, "virtual")
   }
 
   override def getCallTarget(global: Global, inss: ISet[Instance], callerContext: Context, args: IList[String], pTAResult: PTAResult): (ISet[(JawaMethod, Instance)], (ISet[RFAFact], IList[String], IList[String], SimHeap) => ISet[RFAFact]) = {
@@ -81,6 +87,8 @@ class ExecutorExecuteRun extends IndirectCall {
     executor.isAssignableFrom(clazz) && subSig == start.getSubSignature
   }
 
+  def guessCallTarget(global: Global, signature: Signature): ISet[JawaMethod] = isetEmpty
+
   override def getCallTarget(global: Global, inss: ISet[Instance], callerContext: Context, args: IList[String], pTAResult: PTAResult): (ISet[(JawaMethod, Instance)], (ISet[RFAFact], IList[String], IList[String], SimHeap) => ISet[RFAFact]) = {
     val varSlot = VarSlot(args(1))
     val runnableInss = pTAResult.pointsToSet(callerContext, varSlot)
@@ -120,6 +128,11 @@ class HandlerMessage extends IndirectCall {
     val clazz = global.getClassOrResolve(typ)
     val handler = global.getClassOrResolve(dispatchMessage.getClassType)
     handler.isAssignableFrom(clazz) && subSig == dispatchMessage.getSubSignature
+  }
+
+  def guessCallTarget(global: Global, signature: Signature): ISet[JawaMethod] = {
+    val newsig = Signature(signature.getClassType, handleMessage.methodName, handleMessage.proto)
+    CallHandler.resolveSignatureBasedCall(global, newsig, "virtual")
   }
 
   override def getCallTarget(global: Global, inss: ISet[Instance], callerContext: Context, args: IList[String], pTAResult: PTAResult): (ISet[(JawaMethod, Instance)], (ISet[RFAFact], IList[String], IList[String], SimHeap) => ISet[RFAFact]) = {
@@ -162,6 +175,11 @@ class AsyncTask extends IndirectCall {
     val clazz = global.getClassOrResolve(typ)
     val asyncTask = global.getClassOrResolve(execute.getClassType)
     asyncTask.isAssignableFrom(clazz) && subSig == execute.getSubSignature
+  }
+
+  def guessCallTarget(global: Global, signature: Signature): ISet[JawaMethod] = {
+    val newsig = Signature(signature.getClassType, run.methodName, run.proto)
+    CallHandler.resolveSignatureBasedCall(global, newsig, "virtual")
   }
 
   override def getCallTarget(global: Global, inss: ISet[Instance], callerContext: Context, args: IList[String], pTAResult: PTAResult): (ISet[(JawaMethod, Instance)], (ISet[RFAFact], IList[String], IList[String], SimHeap) => ISet[RFAFact]) = {
