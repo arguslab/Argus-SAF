@@ -32,7 +32,7 @@ trait AlirGraphImpl[N <: AlirNode] extends AlirGraph[N] {
   }
   protected val graph = new DirectedPseudograph(factory)
 
-  val pl: MMap[AlirNode, N] = cmapEmpty
+  protected val pl: MMap[AlirNode, N] = cmapEmpty
 
   def pool: MMap[AlirNode, N] = pl
 
@@ -81,9 +81,14 @@ trait AlirGraphImpl[N <: AlirNode] extends AlirGraph[N] {
   }
 
   def addNode(node : N) : N = {
-    require(pool(node) eq node)
-    graph.addVertex(node)
-    node
+    val n = pool.get(node) match {
+      case Some(no) => no
+      case None =>
+        this.pl += node -> node
+        node
+    }
+    graph.addVertex(n)
+    n
   }
 
   def getNode(n : N) : N =
