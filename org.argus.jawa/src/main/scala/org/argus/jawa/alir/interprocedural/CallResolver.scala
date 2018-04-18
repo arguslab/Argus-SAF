@@ -237,16 +237,16 @@ class ModelCallResolver(
         case Some(summary) =>
           returnFacts = HeapSummaryProcessor.process(global, summary, cs.lhsOpt.map(lhs => lhs.name), cs.recvOpt, cs.args, returnFacts, callerContext)
         case None => // might be due to randomly broken loop
-          if(handler.isModelCall(calleep)) {
-            returnFacts = handler.doModelCall(sm, returnFacts, calleep, cs.lhsOpt.map(lhs => lhs.name), cs.recvOpt, cs.args, callerContext)
-          } else {
-            callee match {
-              case _: IndirectCallee =>
-                // TODO: handle indirect callee here
-              case _ =>
+          callee match {
+            case _: IndirectCallee =>
+              // TODO: handle indirect callee here
+            case _ =>
+              if(handler.isModelCall(calleep)) {
+                returnFacts = handler.doModelCall(sm, returnFacts, calleep, cs.lhsOpt.map(lhs => lhs.name), cs.recvOpt, cs.args, callerContext)
+              } else {
                 val (newF, delF) = ReachingFactsAnalysisHelper.getUnknownObject(calleep, returnFacts, cs.lhsOpt.map(lhs => lhs.name), cs.recvOpt, cs.args, callerContext)
                 returnFacts = returnFacts -- delF ++ newF
-            }
+              }
           }
       }
     }
