@@ -61,7 +61,7 @@ object SignatureBasedCallGraph {
     val progressBar = ConsoleProgressBar.on(System.out).withFormat("[:bar] :percent% :elapsed Left: :remain")
     ProgressBarUtil.withProgressBar("Building Signature Based Call Graph...", progressBar)(entryPoints, handleEntryPoint)
 
-    global.reporter.println(s"SignatureBasedCallGraph done with call size ${cg.getCallMap.size}.")
+    global.reporter.println(s"$TITLE done with call size ${cg.getCallMap.size}.")
     cg
   }
   
