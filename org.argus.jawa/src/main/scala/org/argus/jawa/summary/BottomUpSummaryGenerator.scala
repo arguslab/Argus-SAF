@@ -31,7 +31,7 @@ class BottomUpSummaryGenerator[T <: Global](
   var debug: Boolean = false
 
   def build(orderedWUs: IList[WorkUnit[T]]): Unit = {
-    TimeUtil.timed("BottomUpSummaryGenerator Running Time", global.reporter) {
+    TimeUtil.timed(s"BottomUpSummaryGenerator with ${orderedWUs.size} methods. Running Time", global.reporter) {
       ProgressBarUtil.withProgressBar("Summary based data flow analysis...", progressBar)(orderedWUs, processWU)
     }
   }
