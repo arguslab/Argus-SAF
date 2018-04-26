@@ -11,7 +11,7 @@
 package org.argus.jawa.alir.interprocedural
 
 import org.argus.jawa.alir.Context
-import org.argus.jawa.alir.pta.rfa.{RFAFact, SimHeap}
+import org.argus.jawa.alir.pta.rfa.RFAFact
 import org.argus.jawa.alir.pta.{FieldSlot, Instance, PTAResult, VarSlot}
 import org.argus.jawa.core._
 import org.argus.jawa.core.util.{ISet, _}
@@ -19,7 +19,7 @@ import org.argus.jawa.core.util.{ISet, _}
 trait IndirectCall {
   def isIndirectCall(global: Global, typ: JawaType, subSig: String): Boolean
   def guessCallTarget(global: Global, signature: Signature): ISet[JawaMethod]
-  def getCallTarget(global: Global, inss: ISet[Instance], callerContext: Context, args: IList[String], pTAResult: PTAResult): (ISet[(JawaMethod, Instance)], (ISet[RFAFact], IList[String], IList[String], SimHeap) => ISet[RFAFact])
+  def getCallTarget(global: Global, inss: ISet[Instance], callerContext: Context, args: IList[String], pTAResult: PTAResult): (ISet[(JawaMethod, Instance)], (ISet[RFAFact], IList[String], IList[String]) => ISet[RFAFact])
 }
 
 class RunnableStartRun extends IndirectCall {
@@ -37,7 +37,7 @@ class RunnableStartRun extends IndirectCall {
     CallHandler.resolveSignatureBasedCall(global, newsig, "virtual")
   }
 
-  override def getCallTarget(global: Global, inss: ISet[Instance], callerContext: Context, args: IList[String], pTAResult: PTAResult): (ISet[(JawaMethod, Instance)], (ISet[RFAFact], IList[String], IList[String], SimHeap) => ISet[RFAFact]) = {
+  override def getCallTarget(global: Global, inss: ISet[Instance], callerContext: Context, args: IList[String], pTAResult: PTAResult): (ISet[(JawaMethod, Instance)], (ISet[RFAFact], IList[String], IList[String]) => ISet[RFAFact]) = {
     val callees: MSet[(JawaMethod, Instance)] = msetEmpty
     inss.foreach { ins =>
       val fieldSlot = FieldSlot(ins, Constants.THREAD_RUNNABLE)
@@ -56,7 +56,7 @@ class RunnableStartRun extends IndirectCall {
     (callees.toSet, mapFactsToCallee)
   }
 
-  def mapFactsToCallee: (ISet[RFAFact], IList[String], IList[String], SimHeap) => ISet[RFAFact] = (factsToCallee, args, params, factory) => {
+  def mapFactsToCallee: (ISet[RFAFact], IList[String], IList[String]) => ISet[RFAFact] = (factsToCallee, args, params) => {
     val varFacts = factsToCallee.filter(f=>f.s.isInstanceOf[VarSlot])
     val result = msetEmpty[RFAFact]
     val killFacts = msetEmpty[RFAFact]
@@ -67,7 +67,7 @@ class RunnableStartRun extends IndirectCall {
         val runnableSlot = FieldSlot(varFact.v, Constants.THREAD_RUNNABLE)
         factsToCallee.foreach { fact =>
           if(fact.s == runnableSlot) {
-            result += new RFAFact(paramSlot, fact.v)(factory)
+            result += RFAFact(paramSlot, fact.v)
             killFacts += fact
           }
         }
@@ -89,7 +89,7 @@ class ExecutorExecuteRun extends IndirectCall {
 
   def guessCallTarget(global: Global, signature: Signature): ISet[JawaMethod] = isetEmpty
 
-  override def getCallTarget(global: Global, inss: ISet[Instance], callerContext: Context, args: IList[String], pTAResult: PTAResult): (ISet[(JawaMethod, Instance)], (ISet[RFAFact], IList[String], IList[String], SimHeap) => ISet[RFAFact]) = {
+  override def getCallTarget(global: Global, inss: ISet[Instance], callerContext: Context, args: IList[String], pTAResult: PTAResult): (ISet[(JawaMethod, Instance)], (ISet[RFAFact], IList[String], IList[String]) => ISet[RFAFact]) = {
     val varSlot = VarSlot(args(1))
     val runnableInss = pTAResult.pointsToSet(callerContext, varSlot)
     val callees: MSet[(JawaMethod, Instance)] = msetEmpty
@@ -106,14 +106,14 @@ class ExecutorExecuteRun extends IndirectCall {
     (callees.toSet, mapFactsToCallee)
   }
 
-  def mapFactsToCallee: (ISet[RFAFact], IList[String], IList[String], SimHeap) => ISet[RFAFact] = (factsToCallee, args, params, factory) => {
+  def mapFactsToCallee: (ISet[RFAFact], IList[String], IList[String]) => ISet[RFAFact] = (factsToCallee, args, params) => {
     val varFacts = factsToCallee.filter(f=>f.s.isInstanceOf[VarSlot])
     val result = msetEmpty[RFAFact]
     val argSlot = VarSlot(args(1))
     val paramSlot = VarSlot(params.head)
     varFacts.foreach { varFact =>
       if(varFact.s.getId == argSlot.getId) {
-        result += new RFAFact(paramSlot, varFact.v)(factory)
+        result += RFAFact(paramSlot, varFact.v)
       }
     }
     factsToCallee -- varFacts ++ result
@@ -135,7 +135,7 @@ class HandlerMessage extends IndirectCall {
     CallHandler.resolveSignatureBasedCall(global, newsig, "virtual")
   }
 
-  override def getCallTarget(global: Global, inss: ISet[Instance], callerContext: Context, args: IList[String], pTAResult: PTAResult): (ISet[(JawaMethod, Instance)], (ISet[RFAFact], IList[String], IList[String], SimHeap) => ISet[RFAFact]) = {
+  override def getCallTarget(global: Global, inss: ISet[Instance], callerContext: Context, args: IList[String], pTAResult: PTAResult): (ISet[(JawaMethod, Instance)], (ISet[RFAFact], IList[String], IList[String]) => ISet[RFAFact]) = {
     val callees: MSet[(JawaMethod, Instance)] = msetEmpty
     inss.foreach { ins =>
       val clazz = global.getClassOrResolve(ins.typ)
@@ -150,7 +150,7 @@ class HandlerMessage extends IndirectCall {
     (callees.toSet, mapFactsToCallee)
   }
 
-  def mapFactsToCallee: (ISet[RFAFact], IList[String], IList[String], SimHeap) => ISet[RFAFact] = (factsToCallee, args, params, factory) => {
+  def mapFactsToCallee: (ISet[RFAFact], IList[String], IList[String]) => ISet[RFAFact] = (factsToCallee, args, params) => {
     val varFacts = factsToCallee.filter(f=>f.s.isInstanceOf[VarSlot])
     val argSlots = args.map(VarSlot)
     val paramSlots = params.map(VarSlot)
@@ -160,7 +160,7 @@ class HandlerMessage extends IndirectCall {
       val argSlot = argSlots(i)
       val paramSlot = paramSlots(i)
       varFacts.foreach{ fact =>
-        if(fact.s.getId == argSlot.getId) result += new RFAFact(paramSlot, fact.v)(factory)
+        if(fact.s.getId == argSlot.getId) result += RFAFact(paramSlot, fact.v)
       }
     }
     factsToCallee -- varFacts ++ result
@@ -182,7 +182,7 @@ class AsyncTask extends IndirectCall {
     CallHandler.resolveSignatureBasedCall(global, newsig, "virtual")
   }
 
-  override def getCallTarget(global: Global, inss: ISet[Instance], callerContext: Context, args: IList[String], pTAResult: PTAResult): (ISet[(JawaMethod, Instance)], (ISet[RFAFact], IList[String], IList[String], SimHeap) => ISet[RFAFact]) = {
+  override def getCallTarget(global: Global, inss: ISet[Instance], callerContext: Context, args: IList[String], pTAResult: PTAResult): (ISet[(JawaMethod, Instance)], (ISet[RFAFact], IList[String], IList[String]) => ISet[RFAFact]) = {
     val callees: MSet[(JawaMethod, Instance)] = msetEmpty
     inss.foreach { ins =>
       val clazz = global.getClassOrResolve(ins.typ)
@@ -197,7 +197,7 @@ class AsyncTask extends IndirectCall {
     (callees.toSet, mapFactsToCallee)
   }
 
-  def mapFactsToCallee: (ISet[RFAFact], IList[String], IList[String], SimHeap) => ISet[RFAFact] = (factsToCallee, args, params, factory) => {
+  def mapFactsToCallee: (ISet[RFAFact], IList[String], IList[String]) => ISet[RFAFact] = (factsToCallee, args, params) => {
     val varFacts = factsToCallee.filter(f=>f.s.isInstanceOf[VarSlot])
     val argSlots = args.map(VarSlot)
     val paramSlots = params.map(VarSlot)
@@ -206,7 +206,7 @@ class AsyncTask extends IndirectCall {
       val argSlot = argSlots(i)
       val paramSlot = paramSlots(i)
       varFacts.foreach{ fact =>
-        if(fact.s.getId == argSlot.getId) result += new RFAFact(paramSlot, fact.v)(factory)
+        if(fact.s.getId == argSlot.getId) result += RFAFact(paramSlot, fact.v)
       }
     }
     factsToCallee -- varFacts ++ result

@@ -36,7 +36,7 @@ class ReachingFactsAnalysis(
     sm: SummaryManager,
     clm: ClassLoadManager,
     resolve_static_init: Boolean,
-    timeout: Option[MyTimeout])(implicit heap: SimHeap) {
+    timeout: Option[MyTimeout]) {
 
   type Node = ICFGNode
 
@@ -52,7 +52,7 @@ class ReachingFactsAnalysis(
     val initial: ISet[RFAFact] = isetEmpty
     val ip = new Ip(icfg)
     icfg.collectCfgToBaseGraph(entryPointProc, initContext, isFirst = true, callr.needReturnNode())
-    val iota: ISet[RFAFact] = initialFacts + new RFAFact(StaticFieldSlot("Analysis.RFAiota"), PTAInstance(JavaKnowledge.OBJECT.toUnknown, initContext.copy))
+    val iota: ISet[RFAFact] = initialFacts + RFAFact(StaticFieldSlot("Analysis.RFAiota"), PTAInstance(JavaKnowledge.OBJECT.toUnknown, initContext.copy))
     try {
       mdf = MonotoneDataFlowAnalysisFramework[ICFGNode, RFAFact, Context](icfg,
         forward = true, lub = true, ip, gen, kill, Some(callr), iota, initial)
@@ -96,7 +96,7 @@ class ReachingFactsAnalysis(
         val (values, extraFacts) = ReachingFactsAnalysisHelper.processRHS(rhs, currentNode.getContext, ptaresult)
         slots.foreach {
           case (slot, _) =>
-            result ++= values.map{v => new RFAFact(slot, v)}
+            result ++= values.map{v => RFAFact(slot, v)}
         }
         result ++= extraFacts
       }
@@ -113,7 +113,7 @@ class ReachingFactsAnalysis(
         case ta: ThrowStatement =>
           val slot = VarSlot(ta.varSymbol.varName)
           val value = s.filter(_.s == slot).map(_.v)
-          result ++= value.map(new RFAFact(VarSlot(ExceptionCenter.EXCEPTION_VAR_NAME), _))
+          result ++= value.map(RFAFact(VarSlot(ExceptionCenter.EXCEPTION_VAR_NAME), _))
         case _ =>
       }
       result

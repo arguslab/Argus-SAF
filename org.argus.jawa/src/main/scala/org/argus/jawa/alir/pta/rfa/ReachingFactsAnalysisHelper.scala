@@ -22,33 +22,33 @@ import org.argus.jawa.core.util._
  */ 
 object ReachingFactsAnalysisHelper {
   final val TITLE = "ReachingFactsAnalysisHelper"
-  def getFactMap(s: ISet[RFAFact])(implicit factory: SimHeap): Map[PTASlot, Set[Int]] = {
+  def getFactMap(s: ISet[RFAFact]): Map[PTASlot, Set[Instance]] = {
     s.groupBy(_.slot).mapValues(_.map(_.ins))
   }
 
-  def getHeapFacts(s: ISet[RFAFact])(implicit factory: SimHeap): ISet[RFAFact] = {
+  def getHeapFacts(s: ISet[RFAFact]): ISet[RFAFact] = {
     s.filter(_.s.isInstanceOf[HeapSlot])
   }
 
-  def getRelatedFactsForArg(slot: VarSlot, s: ISet[RFAFact])(implicit factory: SimHeap): ISet[RFAFact] = {
+  def getRelatedFactsForArg(slot: VarSlot, s: ISet[RFAFact]): ISet[RFAFact] = {
     val bFacts = s.filter(fact=> slot.getId == fact.s.getId).map(fact => RFAFact(slot, fact.ins))
     val rhFacts = getRelatedHeapFactsFrom(bFacts, s)
     bFacts ++ rhFacts
   }
 
-  def getRelatedHeapFactsFrom(fromFacts: ISet[RFAFact], s: ISet[RFAFact])(implicit factory: SimHeap): ISet[RFAFact] = {
+  def getRelatedHeapFactsFrom(fromFacts: ISet[RFAFact], s: ISet[RFAFact]): ISet[RFAFact] = {
     val insts = fromFacts.map(f => f.ins)
     getRelatedHeapFacts(insts, s) ++ fromFacts.filter(f => f.slot.isInstanceOf[MapSlot])
   }
   
-  def getRelatedHeapFacts(insts: ISet[Int], s: ISet[RFAFact])(implicit factory: SimHeap): ISet[RFAFact] = {
+  def getRelatedHeapFacts(insts: ISet[Instance], s: ISet[RFAFact]): ISet[RFAFact] = {
     val hs = getHeapFacts(s)
-    var processed: ISet[Int] = isetEmpty
+    var processed: ISet[Instance] = isetEmpty
     var result: ISet[RFAFact] = isetEmpty
-    val worklist = new WorklistAlgorithm[Int] {
-      override def processElement(ins: Int): Unit = {
+    val worklist = new WorklistAlgorithm[Instance] {
+      override def processElement(ins: Instance): Unit = {
         processed += ins
-        val facts = hs.filter(_.s.asInstanceOf[HeapSlot].matchWithInstance(factory.getInstance(ins)))
+        val facts = hs.filter(_.s.asInstanceOf[HeapSlot].matchWithInstance(ins))
         result ++= facts
         worklist = facts.map { case RFAFact(_, v) => v }.diff(processed) ++: worklist
       }
@@ -57,12 +57,12 @@ object ReachingFactsAnalysisHelper {
     result
   }
 
-  def cleanHeap(facts: ISet[RFAFact])(implicit factory: SimHeap): ISet[RFAFact] = {
+  def cleanHeap(facts: ISet[RFAFact]): ISet[RFAFact] = {
     val root: ISet[RFAFact] = facts.filter { fact => fact.slot.isInstanceOf[NameSlot]}
     root ++ ReachingFactsAnalysisHelper.getRelatedHeapFactsFrom(root, facts)
   }
 
-  def getGlobalFacts(s: ISet[RFAFact])(implicit factory: SimHeap): ISet[RFAFact] = {
+  def getGlobalFacts(s: ISet[RFAFact]): ISet[RFAFact] = {
     var result: ISet[RFAFact] = isetEmpty
     for (fact <- s){
       fact.s match{
@@ -85,7 +85,7 @@ object ReachingFactsAnalysisHelper {
     }
   }
 
-  def getUnknownObject(calleeMethod: JawaMethod, s: PTAResult, args: Seq[String], retVar: String, currentContext: Context)(implicit factory: SimHeap): (ISet[RFAFact], ISet[RFAFact]) = {
+  def getUnknownObject(calleeMethod: JawaMethod, s: PTAResult, args: Seq[String], retVar: String, currentContext: Context): (ISet[RFAFact], ISet[RFAFact]) = {
     var genFacts: ISet[RFAFact] = isetEmpty
     val killFacts: ISet[RFAFact] = isetEmpty
     val argSlots = args.map(arg=>VarSlot(arg))
@@ -101,7 +101,7 @@ object ReachingFactsAnalysisHelper {
         for(f <- influencedFields) {
           val fs = FieldSlot(ins, f.fieldName)
           val uins = PTAInstance(JavaKnowledge.OBJECT.toUnknown, currentContext)
-          genFacts += new RFAFact(fs, uins)
+          genFacts += RFAFact(fs, uins)
         }
       }
     }
@@ -113,7 +113,7 @@ object ReachingFactsAnalysisHelper {
         val value =
           if(retTyp.jawaName == "java.lang.String") PTAPointStringInstance(currentContext)
           else PTAInstance(ot.toUnknown, currentContext)
-        genFacts += new RFAFact(slot, value)
+        genFacts += RFAFact(slot, value)
       case _ =>
     }
     (genFacts, killFacts)
@@ -125,7 +125,7 @@ object ReachingFactsAnalysisHelper {
       retOpt: Option[String],
       recvOpt: Option[String],
       args: Seq[String],
-      currentContext: Context)(implicit factory: SimHeap): (ISet[RFAFact], ISet[RFAFact]) = {
+      currentContext: Context): (ISet[RFAFact], ISet[RFAFact]) = {
     var genFacts: ISet[RFAFact] = isetEmpty
     val killFacts: ISet[RFAFact] = isetEmpty
     val argSlots = (recvOpt ++ args).toList.map(arg=>VarSlot(arg))
@@ -142,7 +142,7 @@ object ReachingFactsAnalysisHelper {
           for (f <- influencedFields) {
             val fs = FieldSlot(ins, f.fieldName)
             val uins = PTAInstance(JavaKnowledge.OBJECT.toUnknown, currentContext)
-            genFacts += new RFAFact(fs, uins)
+            genFacts += RFAFact(fs, uins)
           }
         }
       }
@@ -156,7 +156,7 @@ object ReachingFactsAnalysisHelper {
             val value =
               if(retTyp.jawaName == "java.lang.String") PTAPointStringInstance(currentContext)
               else PTAInstance(ot.toUnknown, currentContext)
-            genFacts += new RFAFact(slot, value)
+            genFacts += RFAFact(slot, value)
           case _ =>
         }
       case None =>
@@ -164,16 +164,16 @@ object ReachingFactsAnalysisHelper {
     (genFacts, killFacts)
   }
 
-  def getUnknownObjectForClinit(calleeMethod: JawaMethod, currentContext: Context)(implicit factory: SimHeap): ISet[RFAFact] = {
+  def getUnknownObjectForClinit(calleeMethod: JawaMethod, currentContext: Context): ISet[RFAFact] = {
     var result: ISet[RFAFact] = isetEmpty
     val record = calleeMethod.getDeclaringClass
     record.getDeclaredStaticObjectTypeFields.foreach{ field =>
-      result += new RFAFact(StaticFieldSlot(field.FQN.fqn), PTAInstance(field.getType.toUnknown, currentContext))
+      result += RFAFact(StaticFieldSlot(field.FQN.fqn), PTAInstance(field.getType.toUnknown, currentContext))
     }
     result
   }
 
-  def getExceptionFacts(a: Assignment, s: ISet[RFAFact], currentContext: Context)(implicit factory: SimHeap): ISet[RFAFact] = {
+  def getExceptionFacts(a: Assignment, s: ISet[RFAFact], currentContext: Context): ISet[RFAFact] = {
     var result: ISet[RFAFact] = isetEmpty
     a match{
       case _: AssignmentStatement =>
@@ -181,7 +181,7 @@ object ReachingFactsAnalysisHelper {
         thrownExcNames.foreach{ excName =>
           if(excName != ExceptionCenter.THROWABLE) {
             val ins = PTAInstance(excName, currentContext.copy)
-            result += new RFAFact(VarSlot(ExceptionCenter.EXCEPTION_VAR_NAME), ins)
+            result += RFAFact(VarSlot(ExceptionCenter.EXCEPTION_VAR_NAME), ins)
           }
         }
       case _ =>
@@ -189,14 +189,14 @@ object ReachingFactsAnalysisHelper {
     result
   }
 
-  def updatePTAResultVar(varName: String, currentContxt: Context, s: ISet[RFAFact], ptaresult: PTAResult)(implicit factory: SimHeap): Unit = {
+  def updatePTAResultVar(varName: String, currentContxt: Context, s: ISet[RFAFact], ptaresult: PTAResult): Unit = {
     val slot = VarSlot(varName)
     s.filter { fact =>
       fact.s == slot
     }.foreach(f => ptaresult.addInstance(currentContxt, slot, f.v))
   }
 
-  def updatePTAResultLHS(lhs: Expression with LHS, currentContext: Context, s: ISet[RFAFact], ptaresult: PTAResult)(implicit factory: SimHeap): Unit = {
+  def updatePTAResultLHS(lhs: Expression with LHS, currentContext: Context, s: ISet[RFAFact], ptaresult: PTAResult): Unit = {
     lhs match {
       case ae: AccessExpression =>
         val baseSlot = VarSlot(ae.base)
@@ -214,7 +214,7 @@ object ReachingFactsAnalysisHelper {
     }
   }
 
-  private def resolvePTAResultAccessExp(ae: AccessExpression, typ: JawaType, currentContext: Context, s: ISet[RFAFact], ptaresult: PTAResult)(implicit factory: SimHeap): Unit = {
+  private def resolvePTAResultAccessExp(ae: AccessExpression, typ: JawaType, currentContext: Context, s: ISet[RFAFact], ptaresult: PTAResult): Unit = {
     val baseSlot = VarSlot(ae.base)
     val baseValue = s.filter { fact => fact.s.getId == baseSlot.getId }.map{ f =>
       ptaresult.addInstance(currentContext, baseSlot, f.v)
@@ -237,7 +237,7 @@ object ReachingFactsAnalysisHelper {
     }
   }
 
-  private def resolvePTAResultIndexingExp(ie: IndexingExpression, currentContext: Context, s: ISet[RFAFact], ptaresult: PTAResult)(implicit factory: SimHeap): Unit = {
+  private def resolvePTAResultIndexingExp(ie: IndexingExpression, currentContext: Context, s: ISet[RFAFact], ptaresult: PTAResult): Unit = {
     val baseSlot = VarSlot(ie.base)
     val baseValue: ISet[Instance] = s.filter { fact => fact.s.getId == baseSlot.getId }.map{ f =>
       ptaresult.addInstance(currentContext, baseSlot, f.v)
@@ -268,15 +268,15 @@ object ReachingFactsAnalysisHelper {
     }
   }
 
-  def updatePTAResultRHS(rhs: Expression with RHS, currentContext: Context, s: ISet[RFAFact], ptaresult: PTAResult)(implicit factory: SimHeap): Unit = {
+  def updatePTAResultRHS(rhs: Expression with RHS, currentContext: Context, s: ISet[RFAFact], ptaresult: PTAResult): Unit = {
     updatePTAResultExp(rhs, currentContext, s, ptaresult)
   }
 
-  def updatePTAResultCallJump(cs: CallStatement, callerContext: Context, s: ISet[RFAFact], ptaresult: PTAResult, afterCall: Boolean)(implicit factory: SimHeap): Unit = {
+  def updatePTAResultCallJump(cs: CallStatement, callerContext: Context, s: ISet[RFAFact], ptaresult: PTAResult, afterCall: Boolean): Unit = {
     (cs.recvOpt ++ cs.args).foreach(updatePTAResultCallArg(_, callerContext, s, ptaresult, afterCall))
   }
 
-  def updatePTAResultExp(exp: Expression, currentContext: Context, s: ISet[RFAFact], ptaresult: PTAResult)(implicit factory: SimHeap): Unit = {
+  def updatePTAResultExp(exp: Expression, currentContext: Context, s: ISet[RFAFact], ptaresult: PTAResult): Unit = {
     exp match{
       case be: BinaryExpression =>
         val slotlhs = VarSlot(be.left.varName)
@@ -310,7 +310,7 @@ object ReachingFactsAnalysisHelper {
     }
   }
 
-  private def updatePTAResultCallArg(arg: String, currentContext: Context, s: ISet[RFAFact], ptaresult: PTAResult, afterCall: Boolean)(implicit factory: SimHeap): Unit = {
+  private def updatePTAResultCallArg(arg: String, currentContext: Context, s: ISet[RFAFact], ptaresult: PTAResult, afterCall: Boolean): Unit = {
     val slot = VarSlot(arg)
     getRelatedFactsForArg(slot, s).foreach { f =>
       if(afterCall) {
@@ -321,7 +321,7 @@ object ReachingFactsAnalysisHelper {
     }
   }
   
-  private def getHeapUnknownFactsExp(exp: Expression, currentContext: Context, ptaresult: PTAResult)(implicit factory: SimHeap): ISet[RFAFact] = {
+  private def getHeapUnknownFactsExp(exp: Expression, currentContext: Context, ptaresult: PTAResult): ISet[RFAFact] = {
     var result: ISet[RFAFact] = isetEmpty
     exp match {
       case sfae: StaticFieldAccessExpression =>
@@ -332,7 +332,7 @@ object ReachingFactsAnalysisHelper {
           val newUnknown =
             if(typ.jawaName == "java.lang.String") PTAPointStringInstance(currentContext)
             else PTAInstance(typ.toUnknown, currentContext)
-          result += new RFAFact(slot, newUnknown)
+          result += RFAFact(slot, newUnknown)
           ptaresult.addInstance(currentContext, slot, newUnknown)
         }
       case ae: AccessExpression =>
@@ -346,7 +346,7 @@ object ReachingFactsAnalysisHelper {
             val newUnknown =
               if(typ.jawaName == "java.lang.String") PTAPointStringInstance(currentContext)
               else PTAInstance(typ.toUnknown, currentContext)
-            result += new RFAFact(fieldSlot, newUnknown)
+            result += RFAFact(fieldSlot, newUnknown)
             ptaresult.addInstance(currentContext, fieldSlot, newUnknown)
           }
         }
@@ -363,7 +363,7 @@ object ReachingFactsAnalysisHelper {
             val newUnknown =
               if(newType.jawaName == "java.lang.String") PTAPointStringInstance(currentContext)
               else PTAInstance(newType.toUnknown, currentContext)
-            result += new RFAFact(arraySlot, newUnknown)
+            result += RFAFact(arraySlot, newUnknown)
             ptaresult.addInstance(currentContext, arraySlot, newUnknown)
           }
         }
@@ -372,7 +372,7 @@ object ReachingFactsAnalysisHelper {
     result
   }
   
-  def getHeapUnknownFacts(rhs: Expression with RHS, currentContext: Context, ptaresult: PTAResult)(implicit factory: SimHeap): ISet[RFAFact] = {
+  def getHeapUnknownFacts(rhs: Expression with RHS, currentContext: Context, ptaresult: PTAResult): ISet[RFAFact] = {
     getHeapUnknownFactsExp(rhs, currentContext, ptaresult)
   }
 
@@ -408,7 +408,7 @@ object ReachingFactsAnalysisHelper {
   def processRHS(
       rhs: Expression with RHS,
       currentContext: Context,
-      ptaResult: PTAResult)(implicit heap: SimHeap): (ISet[Instance], ISet[RFAFact]) = {
+      ptaResult: PTAResult): (ISet[Instance], ISet[RFAFact]) = {
     var result: ISet[Instance] = isetEmpty
     var extraFacts: ISet[RFAFact] = isetEmpty
     rhs match{
@@ -424,7 +424,7 @@ object ReachingFactsAnalysisHelper {
         val classInstance = PTAInstance(JavaKnowledge.CLASS, currentContext)
         val fs = FieldSlot(classInstance, "name")
         val ins = PTAConcreteStringInstance(ce.typExp.typ.name, currentContext)
-        extraFacts += new RFAFact(fs, ins)
+        extraFacts += RFAFact(fs, ins)
         ptaResult.addInstance(currentContext, fs, ins)
         result += classInstance
       case _: NullExpression =>

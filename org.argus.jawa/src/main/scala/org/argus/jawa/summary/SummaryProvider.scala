@@ -10,7 +10,6 @@
 
 package org.argus.jawa.summary
 
-import org.argus.jawa.alir.pta.rfa.SimHeap
 import org.argus.jawa.core.Global
 
 /**
@@ -20,7 +19,7 @@ trait SummaryProvider {
   def getSummaryManager: SummaryManager
 }
 
-class JawaSummaryProvider(global: Global)(implicit heap: SimHeap) extends SummaryProvider {
+class JawaSummaryProvider(global: Global) extends SummaryProvider {
   val sm = new SummaryManager(global)
   sm.registerFile("summaries/Object.safsu", "Object.safsu", fileAndSubsigMatch = true)
   sm.registerFile("summaries/Class.safsu", "Class.safsu", fileAndSubsigMatch = true)

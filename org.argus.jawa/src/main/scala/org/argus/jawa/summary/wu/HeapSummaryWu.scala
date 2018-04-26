@@ -14,7 +14,6 @@ import org.argus.jawa.alir.Context
 import org.argus.jawa.alir.cfg.{ICFGInvokeNode, ICFGLocNode, ICFGNode}
 import org.argus.jawa.alir.pta._
 import org.argus.jawa.alir.pta.model.{ModelCall, ModelCallHandler}
-import org.argus.jawa.alir.pta.rfa.SimHeap
 import org.argus.jawa.ast._
 import org.argus.jawa.core._
 import org.argus.jawa.core.util._
@@ -28,7 +27,7 @@ class HeapSummaryWu(
     global: Global,
     method: JawaMethod,
     sm: SummaryManager,
-    handler: ModelCallHandler)(implicit heap: SimHeap) extends DataFlowWu[Global](global, method, sm, handler) {
+    handler: ModelCallHandler) extends DataFlowWu[Global](global, method, sm, handler) {
 
   override def processNode(node: ICFGNode, rules: MList[SummaryRule]): Unit = {
     node match {

@@ -12,7 +12,6 @@ package org.argus.jawa.summary
 
 import com.google.common.base.Charsets
 import com.google.common.io.Resources
-import org.argus.jawa.alir.pta.rfa.SimHeap
 import org.argus.jawa.core._
 import org.argus.jawa.core.util._
 import org.argus.jawa.summary.susaf.HeapSummaryProcessor
@@ -24,7 +23,7 @@ import scala.reflect.{ClassTag, classTag}
 /**
   * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
   */
-class SummaryManager(global: Global)(implicit heap: SimHeap) {
+class SummaryManager(global: Global) {
 
   //  Map from signature to Summary
   private val summaries: MMap[Signature, MSet[Summary]] = mmapEmpty

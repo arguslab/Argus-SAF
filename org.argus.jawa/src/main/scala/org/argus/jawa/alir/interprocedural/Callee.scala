@@ -10,8 +10,8 @@
 
 package org.argus.jawa.alir.interprocedural
 
+import org.argus.jawa.alir.pta.rfa.RFAFact
 import org.argus.jawa.alir.pta.{Instance, VarSlot}
-import org.argus.jawa.alir.pta.rfa.{RFAFact, SimHeap}
 import org.argus.jawa.core.Signature
 import org.argus.jawa.core.util._
 
@@ -24,11 +24,11 @@ trait Callee {
 }
 
 trait RFACallee extends Callee {
-  def mapFactsToCallee: (ISet[RFAFact], IList[String], IList[String], SimHeap) => ISet[RFAFact]
+  def mapFactsToCallee: (ISet[RFAFact], IList[String], IList[String]) => ISet[RFAFact]
 }
 
 abstract class DirectCallee extends RFACallee {
-  def mapFactsToCallee: (ISet[RFAFact], IList[String], IList[String], SimHeap) => ISet[RFAFact] = (factsToCallee, args, params, factory) => {
+  def mapFactsToCallee: (ISet[RFAFact], IList[String], IList[String]) => ISet[RFAFact] = (factsToCallee, args, params) => {
     val varFacts = factsToCallee.filter(f=>f.s.isInstanceOf[VarSlot])
     val argSlots = args.map(VarSlot)
     val paramSlots = params.map(VarSlot)
@@ -38,7 +38,7 @@ abstract class DirectCallee extends RFACallee {
       val argSlot = argSlots(i)
       val paramSlot = paramSlots(i)
       varFacts.foreach{ fact =>
-        if(fact.s.getId == argSlot.getId) result += new RFAFact(paramSlot, fact.v)(factory)
+        if(fact.s.getId == argSlot.getId) result += RFAFact(paramSlot, fact.v)
       }
     }
     factsToCallee -- varFacts ++ result
@@ -68,4 +68,4 @@ final case class StaticCallee(callee: Signature) extends DirectCallee
 /**
   * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
   */
-final case class IndirectInstanceCallee(callee: Signature, ins: Instance, mapFactsToCallee: (ISet[RFAFact], IList[String], IList[String], SimHeap) => ISet[RFAFact]) extends IndirectCallee
+final case class IndirectInstanceCallee(callee: Signature, ins: Instance, mapFactsToCallee: (ISet[RFAFact], IList[String], IList[String]) => ISet[RFAFact]) extends IndirectCallee

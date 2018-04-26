@@ -13,7 +13,6 @@ package org.argus.amandroid.summary.wu
 import org.argus.amandroid.alir.pta.model.InterComponentCommunicationModel
 import org.argus.jawa.alir.Context
 import org.argus.jawa.alir.pta.model.ModelCallHandler
-import org.argus.jawa.alir.pta.rfa.SimHeap
 import org.argus.jawa.alir.pta.{PTASlot, VarSlot}
 import org.argus.jawa.ast.CallStatement
 import org.argus.jawa.core.util._
@@ -27,7 +26,7 @@ class IntentWu(
     sm: SummaryManager,
     handler: ModelCallHandler,
     store: PTStore,
-    key: String)(implicit heap: SimHeap) extends PointsToWu[Global](global, method, sm, handler, store, key) {
+    key: String) extends PointsToWu[Global](global, method, sm, handler, store, key) {
 
   override def initFn(): Unit = {
     method.getBody.resolvedBody.locations foreach { loc =>

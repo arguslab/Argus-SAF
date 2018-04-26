@@ -12,7 +12,7 @@ package org.argus.jawa.summary.susaf
 
 import org.argus.jawa.alir.Context
 import org.argus.jawa.alir.pta._
-import org.argus.jawa.alir.pta.rfa.{RFAFact, ReachingFactsAnalysisHelper, SimHeap}
+import org.argus.jawa.alir.pta.rfa.{RFAFact, ReachingFactsAnalysisHelper}
 import org.argus.jawa.core._
 import org.argus.jawa.core.util._
 import org.argus.jawa.summary.SummaryManager
@@ -37,7 +37,7 @@ object HeapSummaryProcessor {
       recvOpt: Option[String],
       args: IList[String],
       input: ISet[RFAFact],
-      context: Context)(implicit heap: SimHeap): ISet[RFAFact] = {
+      context: Context): ISet[RFAFact] = {
     sm.getSummary[HeapSummary](sig) match {
       case Some(hs) =>
         process(global, hs, retOpt, recvOpt, args, input, context)
@@ -53,7 +53,7 @@ object HeapSummaryProcessor {
       recvOpt: Option[String],
       args: IList[String],
       input: ISet[RFAFact],
-      context: Context)(implicit heap: SimHeap): ISet[RFAFact] = {
+      context: Context): ISet[RFAFact] = {
     var output: ISet[RFAFact] = input
     var kill: Boolean = false
     val extraFacts: MSet[RFAFact] = msetEmpty
@@ -90,7 +90,7 @@ object HeapSummaryProcessor {
       args: IList[String],
       input: ISet[RFAFact],
       context: Context,
-      extraFacts: MSet[RFAFact])(implicit heap: SimHeap): ISet[RFAFact] = {
+      extraFacts: MSet[RFAFact]): ISet[RFAFact] = {
     val slots = processLhs(global, sig, br.lhs, retOpt, recvOpt, args, input, context, extraFacts)
     val isReturn = retOpt match {
       case Some(ret) => slots.exists(s => s.getId == ret)
@@ -99,7 +99,7 @@ object HeapSummaryProcessor {
     val inss = processRhs(global, sig, br.rhs, retOpt, recvOpt, args, input, context, extraFacts, isReturn)
     slots.flatMap { slot =>
       inss.map { ins =>
-        new RFAFact(slot, ins)
+        RFAFact(slot, ins)
       }
     }
   }
@@ -114,7 +114,7 @@ object HeapSummaryProcessor {
       input: ISet[RFAFact],
       context: Context,
       extraFacts: MSet[RFAFact],
-      isReturn: Boolean)(implicit heap: SimHeap): ISet[Instance] = {
+      isReturn: Boolean): ISet[Instance] = {
     var inss: ISet[Instance] = isetEmpty
     var slots: ISet[PTASlot] = isetEmpty
     rhs match {
@@ -160,7 +160,7 @@ object HeapSummaryProcessor {
       slots.foreach {
         case hs: HeapSlot =>
           extraFacts ++= createHeapInstance(global, hs, context).map {i =>
-            new RFAFact(hs, i)
+            RFAFact(hs, i)
           }
           inss ++= extraFacts.filter(i => slots.contains(i.slot)).map(i => i.v)
         case _ =>
@@ -178,7 +178,7 @@ object HeapSummaryProcessor {
       args: IList[String],
       input: ISet[RFAFact],
       context: Context,
-      extraFacts: MSet[RFAFact])(implicit heap: SimHeap): ISet[PTASlot] = {
+      extraFacts: MSet[RFAFact]): ISet[PTASlot] = {
     var slots: ISet[PTASlot] = isetEmpty
     lhs match {
       case st: SuThis =>
@@ -208,7 +208,7 @@ object HeapSummaryProcessor {
       input: ISet[RFAFact],
       context: Context,
       extraFacts: MSet[RFAFact],
-      isLhs: Boolean)(implicit heap: SimHeap): ISet[PTASlot] = {
+      isLhs: Boolean): ISet[PTASlot] = {
     var slots: ISet[PTASlot] = isetEmpty
     heapOpt match {
       case Some(heapAccess) =>
@@ -219,7 +219,7 @@ object HeapSummaryProcessor {
             currentSlots.foreach {
               case hs: HeapSlot =>
                 extraFacts ++= createHeapInstance(global, hs, context).map {i =>
-                  new RFAFact(hs, i)
+                  RFAFact(hs, i)
                 }
               case _ => // should not be here
             }
@@ -246,8 +246,8 @@ object HeapSummaryProcessor {
                     if(instances.isEmpty) { // try to find the key, if does not find, insert the key back to continue the flow.
                       rhsInss.foreach { i =>
                         inss.foreach{ ins =>
-                          extraFacts += new RFAFact(FieldSlot(ins, "key"), i)
-                          extraFacts += new RFAFact(MapSlot(ins, i), PTAInstance(JavaKnowledge.OBJECT.toUnknown, context))
+                          extraFacts += RFAFact(FieldSlot(ins, "key"), i)
+                          extraFacts += RFAFact(MapSlot(ins, i), PTAInstance(JavaKnowledge.OBJECT.toUnknown, context))
                         }
                       }
                       instances = rhsInss

@@ -11,7 +11,7 @@
 package org.argus.jawa.alir.pta.model
 
 import org.argus.jawa.alir.Context
-import org.argus.jawa.alir.pta.rfa.{RFAFact, ReachingFactsAnalysisHelper, SimHeap}
+import org.argus.jawa.alir.pta.rfa.{RFAFact, ReachingFactsAnalysisHelper}
 import org.argus.jawa.core._
 import org.argus.jawa.core.util._
 import org.argus.jawa.summary.SummaryManager
@@ -27,7 +27,7 @@ trait ModelCall {
       retOpt: Option[String],
       recvOpt: Option[String],
       args: IList[String],
-      currentContext: Context)(implicit factory: SimHeap): (ISet[RFAFact], Boolean) = {
+      currentContext: Context): (ISet[RFAFact], Boolean) = {
     if(safsuFile == null) return (s, false)
     val summaries = sm.getSummariesByFile(safsuFile)
     summaries.get(p.getSubSignature) match {
@@ -117,7 +117,7 @@ class ModelCallHandler(val scopeManager: ScopeManager) {
       retOpt: Option[String],
       recvOpt: Option[String],
       args: IList[String],
-      currentContext: Context)(implicit factory: SimHeap): ISet[RFAFact] = {
+      currentContext: Context): ISet[RFAFact] = {
 
     callModelMap.get(calleeProc.getSignature) match {
       case Some(model) =>

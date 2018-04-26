@@ -15,7 +15,6 @@ import org.argus.jawa.alir.dda.InterProceduralReachingDefinitionAnalysis.Node
 import org.argus.jawa.alir.dfa.InterProceduralDataFlowGraph
 import org.argus.jawa.alir.pta._
 import org.argus.jawa.alir.pta.model.ModelCallHandler
-import org.argus.jawa.alir.pta.rfa.SimHeap
 import org.argus.jawa.alir.taintAnalysis.{SSPosition, SourceAndSinkManager, TaintNode}
 import org.argus.jawa.ast.{CallStatement, ReturnStatement}
 import org.argus.jawa.core.{Global, JawaMethod, Signature}
@@ -30,7 +29,7 @@ class TaintWu[T <: Global](
     sm: SummaryManager,
     handler: ModelCallHandler,
     ssm: SourceAndSinkManager[T],
-    ts: TaintStore)(implicit heap: SimHeap) extends DataFlowWu[T](global, method, sm, handler) {
+    ts: TaintStore) extends DataFlowWu[T](global, method, sm, handler) {
 
   val srcInss: MSet[Instance] = msetEmpty
   val sinkInss: MSet[Instance] = msetEmpty

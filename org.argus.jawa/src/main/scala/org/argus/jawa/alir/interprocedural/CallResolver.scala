@@ -14,7 +14,7 @@ import org.argus.jawa.alir.{AlirNode, Context}
 import org.argus.jawa.alir.cfg.{ICFGCallNode, ICFGNode, ICFGReturnNode, InterProceduralControlFlowGraph}
 import org.argus.jawa.alir.pta.{Instance, PTAResult, VarSlot}
 import org.argus.jawa.alir.pta.model.ModelCallHandler
-import org.argus.jawa.alir.pta.rfa.{RFAFact, ReachingFactsAnalysisHelper, SimHeap}
+import org.argus.jawa.alir.pta.rfa.{RFAFact, ReachingFactsAnalysisHelper}
 import org.argus.jawa.ast.{CallStatement, Location, ReturnStatement}
 import org.argus.jawa.core.{Global, JawaMethod, Signature}
 import org.argus.jawa.core.util._
@@ -40,7 +40,7 @@ class MethodCallResolver(
     ptaresult: PTAResult,
     icfg: InterProceduralControlFlowGraph[ICFGNode],
     sm: SummaryManager,
-    handler: ModelCallHandler)(implicit heap: SimHeap) extends CallResolver[ICFGNode, RFAFact] {
+    handler: ModelCallHandler) extends CallResolver[ICFGNode, RFAFact] {
   val pureNormalFlagMap: MMap[ICFGNode, Boolean] = mmapEmpty
   val returnMap: MMap[Signature, VarSlot] = mmapEmpty
 
@@ -77,7 +77,7 @@ class MethodCallResolver(
           }
           val factsForCallee = getFactsForCallee(s, cs, calleep, callerContext)
           killSet ++= factsForCallee
-          calleeFactsMap += (icfg.entryNode(calleeSig, callerContext) -> callee.mapFactsToCallee(factsForCallee, args, (calleep.thisOpt ++ calleep.getParamNames).toList, heap))
+          calleeFactsMap += (icfg.entryNode(calleeSig, callerContext) -> callee.mapFactsToCallee(factsForCallee, args, (calleep.thisOpt ++ calleep.getParamNames).toList))
         }
       }
     }
@@ -109,9 +109,8 @@ class MethodCallResolver(
       val arg = args(i)
       val slot = VarSlot(arg)
       val value = ptaresult.pointsToSet(callerContext, slot)
-      calleeFacts ++= value.map { r => new RFAFact(VarSlot(slot.varName), r) }
-      val instnums = value.map(heap.getInstanceNum)
-      calleeFacts ++= ReachingFactsAnalysisHelper.getRelatedHeapFacts(instnums, s)
+      calleeFacts ++= value.map { r => RFAFact(VarSlot(slot.varName), r) }
+      calleeFacts ++= ReachingFactsAnalysisHelper.getRelatedHeapFacts(value, s)
     }
     calleeFacts.toSet
   }
@@ -161,9 +160,8 @@ class MethodCallResolver(
               if (paramSlots.isDefinedAt(i) && paramSlots(i) == s)
                 values += v
           }
-          result ++= values.map(v => new RFAFact(argSlot, v))
-          val insnums = values.map(heap.getInstanceNum)
-          result ++= ReachingFactsAnalysisHelper.getRelatedHeapFacts(insnums, calleeS)
+          result ++= values.map(v => RFAFact(argSlot, v))
+          result ++= ReachingFactsAnalysisHelper.getRelatedHeapFacts(values, calleeS)
         }
         // kill the strong update for caller return node
         cs.lhsOpt match {
@@ -188,9 +186,8 @@ class MethodCallResolver(
                 }
             }
           }
-          result ++= values.map(v => new RFAFact(lhsSlot, v))
-          val insnums = values.map(heap.getInstanceNum)
-          result ++= ReachingFactsAnalysisHelper.getRelatedHeapFacts(insnums, calleeS)
+          result ++= values.map(v => RFAFact(lhsSlot, v))
+          result ++= ReachingFactsAnalysisHelper.getRelatedHeapFacts(values, calleeS)
         }
       case _: ICFGNode =>
     }
@@ -205,7 +202,7 @@ class ModelCallResolver(
     ptaresult: PTAResult,
     icfg: InterProceduralControlFlowGraph[ICFGNode],
     sm: SummaryManager,
-    handler: ModelCallHandler)(implicit heap: SimHeap) extends CallResolver[ICFGNode, RFAFact] {
+    handler: ModelCallHandler) extends CallResolver[ICFGNode, RFAFact] {
   /**
     * It returns the facts for each callee entry node and caller return node
     */

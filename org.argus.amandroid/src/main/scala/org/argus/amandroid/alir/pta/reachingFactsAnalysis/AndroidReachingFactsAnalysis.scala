@@ -17,7 +17,7 @@ import org.argus.jawa.alir.cfg._
 import org.argus.jawa.alir.dfa._
 import org.argus.jawa.alir.interprocedural.{CallHandler, Callee, MethodCallResolver}
 import org.argus.jawa.alir.pta._
-import org.argus.jawa.alir.pta.rfa.{RFAFact, ReachingFactsAnalysis, ReachingFactsAnalysisHelper, SimHeap}
+import org.argus.jawa.alir.pta.rfa.{RFAFact, ReachingFactsAnalysis, ReachingFactsAnalysisHelper}
 import org.argus.jawa.ast.CallStatement
 import org.argus.jawa.core._
 import org.argus.jawa.core.util._
@@ -35,7 +35,7 @@ class AndroidReachingFactsAnalysis(
     sm: SummaryManager,
     clm: ClassLoadManager,
     resolve_static_init: Boolean,
-    timeout: Option[MyTimeout])(implicit heap: SimHeap) extends ReachingFactsAnalysis(apk, icfg, ptaresult, handler, sm, clm, resolve_static_init, timeout) {
+    timeout: Option[MyTimeout]) extends ReachingFactsAnalysis(apk, icfg, ptaresult, handler, sm, clm, resolve_static_init, timeout) {
 
   private val registerReceiverNodes: MSet[ICFGCallNode] = msetEmpty
 
@@ -97,7 +97,7 @@ class AndroidReachingFactsAnalysis(
             }
             val factsForCallee = getFactsForCallee(s, cs, calleep, callerContext)
             killSet ++= factsForCallee
-            calleeFactsMap += (icfg.entryNode(calleeSig, callerContext) -> callee.mapFactsToCallee(factsForCallee, args, (calleep.thisOpt ++ calleep.getParamNames).toList, heap))
+            calleeFactsMap += (icfg.entryNode(calleeSig, callerContext) -> callee.mapFactsToCallee(factsForCallee, args, (calleep.thisOpt ++ calleep.getParamNames).toList))
           }
         }
       }
@@ -129,9 +129,8 @@ class AndroidReachingFactsAnalysis(
         val arg = args(i)
         val slot = VarSlot(arg)
         val value = ptaresult.pointsToSet(callerContext, slot)
-        calleeFacts ++= value.map { r => new RFAFact(VarSlot(slot.varName), r) }
-        val instnums = value.map(heap.getInstanceNum)
-        calleeFacts ++= ReachingFactsAnalysisHelper.getRelatedHeapFacts(instnums, s)
+        calleeFacts ++= value.map { r => RFAFact(VarSlot(slot.varName), r) }
+        calleeFacts ++= ReachingFactsAnalysisHelper.getRelatedHeapFacts(value, s)
       }
       calleeFacts.toSet
     }

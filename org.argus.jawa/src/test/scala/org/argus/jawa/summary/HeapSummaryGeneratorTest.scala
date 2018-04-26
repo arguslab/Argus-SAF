@@ -13,7 +13,6 @@ package org.argus.jawa.summary
 import hu.ssh.progressbar.console.ConsoleProgressBar
 import org.argus.jawa.alir.pta.PTAScopeManager
 import org.argus.jawa.alir.pta.model.ModelCallHandler
-import org.argus.jawa.alir.pta.rfa.SimHeap
 import org.argus.jawa.alir.reachability.SignatureBasedCallGraph
 import org.argus.jawa.core._
 import org.argus.jawa.core.util._
@@ -125,7 +124,6 @@ class HeapSummaryGeneratorTest extends FlatSpec with Matchers {
 
     def produce(rule: String): Unit = {
       file should s"produce expected summary for $entrypoint" in {
-        implicit val heap: SimHeap = new SimHeap
         val reporter = if(DEBUG) new PrintReporter(MsgLevel.INFO) else new PrintReporter(MsgLevel.NO)
         val global = new Global("Test", reporter)
         global.setJavaLib(getClass.getResource("/libs/android.jar").getPath)
