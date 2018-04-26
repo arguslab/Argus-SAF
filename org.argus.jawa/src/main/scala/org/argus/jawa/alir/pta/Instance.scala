@@ -35,6 +35,9 @@ abstract class Instance{
   def isUnknown: Boolean = false
   def ===(ins: Instance): Boolean = this == ins
   def clone(newDefSite: Context): Instance
+  override def hashCode(): Int = {
+    (typ, defSite).hashCode()
+  }
 }
 
 /**

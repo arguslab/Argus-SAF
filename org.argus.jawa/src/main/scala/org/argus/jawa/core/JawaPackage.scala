@@ -31,4 +31,8 @@ case class JawaPackage(name: String, parent: Option[JawaPackage]) extends JavaKn
   def toPkgString(sep: String): String = {
     getPkgNameList.mkString(sep)
   }
+
+  override def hashCode(): Int = {
+    toPkgString(".").hashCode
+  }
 }

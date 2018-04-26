@@ -44,6 +44,9 @@ final case class JawaBaseType(pkg: Option[JawaPackage], name: String, unknown: B
   }
   def removeUnknown(): JawaBaseType = JawaBaseType(pkg, name)
   override def toString: String = typ
+  override def hashCode(): Int = {
+    toString.hashCode
+  }
 }
 
 /**
@@ -119,6 +122,9 @@ case class JawaType(baseType: JawaBaseType, dimensions: Int) {
   }
 
   override def toString: String = name
+  override def hashCode(): Int = {
+    toString.hashCode
+  }
 }
 
 case class InvalidTypeException(msg: String) extends RuntimeException(msg)
