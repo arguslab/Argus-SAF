@@ -54,17 +54,26 @@ object HeapSummaryProcessor {
       args: IList[String],
       input: ISet[RFAFact],
       context: Context): ISet[RFAFact] = {
-    var output: ISet[RFAFact] = input
+    var output: ISet[RFAFact] = ReachingFactsAnalysisHelper.aggregate(input)
     var kill: Boolean = false
     val extraFacts: MSet[RFAFact] = msetEmpty
+    var c = 0
+    val total = summary.rules.size
     summary.rules foreach {
       case cr: ClearRule =>
-        val slots = processLhs(global, summary.sig, cr.v, retOpt, recvOpt, args, output, context, extraFacts)
+        output = ReachingFactsAnalysisHelper.aggregate(output)
+        val map = ReachingFactsAnalysisHelper.getFactMap(output)
+        val slots = processLhs(global, summary.sig, cr.v, retOpt, recvOpt, args, map, context, extraFacts)
         val heaps = ReachingFactsAnalysisHelper.getRelatedHeapFactsFrom(output.filter(i => slots.contains(i.slot)), output)
         output --= heaps
         kill = true
       case br: BinaryRule =>
-        val facts = processBinaryRule(global, summary.sig, br, retOpt, recvOpt, args, output, context, extraFacts)
+        c += 1
+        println(s"$c/$total")
+        output = ReachingFactsAnalysisHelper.aggregate(output)
+        println(output.size)
+        val map = ReachingFactsAnalysisHelper.getFactMap(output)
+        val facts = processBinaryRule(global, summary.sig, br, retOpt, recvOpt, args, map, context, extraFacts)
         br.ops match {
           case Ops.`=` =>
             val slots = facts.map(f => f.slot)
@@ -88,7 +97,7 @@ object HeapSummaryProcessor {
       retOpt: Option[String],
       recvOpt: Option[String],
       args: IList[String],
-      input: ISet[RFAFact],
+      input: IMap[PTASlot, ISet[Instance]],
       context: Context,
       extraFacts: MSet[RFAFact]): ISet[RFAFact] = {
     val slots = processLhs(global, sig, br.lhs, retOpt, recvOpt, args, input, context, extraFacts)
@@ -98,9 +107,7 @@ object HeapSummaryProcessor {
     }
     val inss = processRhs(global, sig, br.rhs, retOpt, recvOpt, args, input, context, extraFacts, isReturn)
     slots.flatMap { slot =>
-      inss.map { ins =>
-        RFAFact(slot, ins)
-      }
+      inss.map(RFAFact(slot, _))
     }
   }
 
@@ -111,7 +118,7 @@ object HeapSummaryProcessor {
       retOpt: Option[String],
       recvOpt: Option[String],
       args: IList[String],
-      input: ISet[RFAFact],
+      input: IMap[PTASlot, ISet[Instance]],
       context: Context,
       extraFacts: MSet[RFAFact],
       isReturn: Boolean): ISet[Instance] = {
@@ -155,7 +162,7 @@ object HeapSummaryProcessor {
         }
         inss += ins
     }
-    inss ++= input.filter(i => slots.contains(i.slot)).map(i => i.v)
+    inss ++= slots.flatMap(input.getOrElse(_, isetEmpty))
     if(inss.isEmpty) {
       slots.foreach {
         case hs: HeapSlot =>
@@ -176,7 +183,7 @@ object HeapSummaryProcessor {
       retOpt: Option[String],
       recvOpt: Option[String],
       args: IList[String],
-      input: ISet[RFAFact],
+      input: IMap[PTASlot, ISet[Instance]],
       context: Context,
       extraFacts: MSet[RFAFact]): ISet[PTASlot] = {
     var slots: ISet[PTASlot] = isetEmpty
@@ -205,7 +212,7 @@ object HeapSummaryProcessor {
       retOpt: Option[String],
       recvOpt: Option[String],
       args: IList[String],
-      input: ISet[RFAFact],
+      input: IMap[PTASlot, ISet[Instance]],
       context: Context,
       extraFacts: MSet[RFAFact],
       isLhs: Boolean): ISet[PTASlot] = {
@@ -214,8 +221,8 @@ object HeapSummaryProcessor {
       case Some(heapAccess) =>
         var currentSlots: ISet[PTASlot] = Set(slot)
         heapAccess.indices.foreach { heapAccess =>
-          var facts = input.filter(i => currentSlots.contains(i.slot))
-          if(facts.isEmpty) {
+          var inss = currentSlots.flatMap(input.getOrElse(_, isetEmpty))
+          if(inss.isEmpty) {
             currentSlots.foreach {
               case hs: HeapSlot =>
                 extraFacts ++= createHeapInstance(global, hs, context).map {i =>
@@ -223,26 +230,26 @@ object HeapSummaryProcessor {
                 }
               case _ => // should not be here
             }
-            facts ++= extraFacts
+            inss ++= extraFacts.map(_.ins)
           }
           heapAccess match {
             case fa: SuFieldAccess =>
-              currentSlots = facts.map(fact => FieldSlot(fact.v, fa.fieldName))
+              currentSlots = inss.map(FieldSlot(_, fa.fieldName))
             case _: SuArrayAccess =>
-              currentSlots = facts.map(fact => ArraySlot(fact.v))
+              currentSlots = inss.map(ArraySlot)
             case ma: SuMapAccess =>
-              val inss: ISet[Instance] = facts.map(f => f.v)
               val keys: ISet[Instance] = ma.rhsOpt match {
                 case Some(rhs) =>
                   val rhsInss = processRhs(global, sig, rhs, retOpt, recvOpt, args, input, context, extraFacts, isReturn = false)
                   if (isLhs) rhsInss
                   else {
                     val rhsTyps = rhsInss.map(i => i.typ)
-                    var instances =
-                      input.filter(i =>
-                        i.slot.isInstanceOf[MapSlot] &&
-                          rhsTyps.contains(i.slot.asInstanceOf[MapSlot].key.typ)
-                      ).map(i => i.slot.asInstanceOf[MapSlot].key)
+                    val instances: MSet[Instance] = msetEmpty
+                    input foreach {
+                      case (k: MapSlot, _) if rhsTyps.contains(k.key.typ) =>
+                        instances += k.key
+                      case _ =>
+                    }
                     if(instances.isEmpty) { // try to find the key, if does not find, insert the key back to continue the flow.
                       rhsInss.foreach { i =>
                         inss.foreach{ ins =>
@@ -250,14 +257,18 @@ object HeapSummaryProcessor {
                           extraFacts += RFAFact(MapSlot(ins, i), PTAInstance(JavaKnowledge.OBJECT.toUnknown, context))
                         }
                       }
-                      instances = rhsInss
+                      instances ++= rhsInss
                     }
-                    instances
+                    instances.toSet
                   }
                 case None =>
-                  input.filter(i =>
-                    i.slot.isInstanceOf[MapSlot] &&
-                      inss.contains(i.slot.asInstanceOf[MapSlot].ins)).map(i => i.slot.asInstanceOf[MapSlot].key)
+                  val instances: MSet[Instance] = msetEmpty
+                  input foreach {
+                    case (k: MapSlot, _) if inss.contains(k.ins) =>
+                      instances += k.key
+                    case _ =>
+                  }
+                  instances.toSet
               }
               currentSlots = inss.flatMap { ins =>
                 keys.map { key =>

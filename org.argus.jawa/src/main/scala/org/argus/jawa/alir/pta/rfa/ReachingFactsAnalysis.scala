@@ -123,7 +123,7 @@ class ReachingFactsAnalysis(
   class Kill extends MonotonicFunction[ICFGNode, RFAFact] {
 
     private def handleAssignmentStatement(s: ISet[RFAFact], a: AssignmentStatement, currentNode: ICFGNode): ISet[RFAFact] = {
-      var result = s
+      var result = ReachingFactsAnalysisHelper.aggregate(s)
       val lhsOpt = a.getLhs
       lhsOpt match {
         case Some(lhs) =>

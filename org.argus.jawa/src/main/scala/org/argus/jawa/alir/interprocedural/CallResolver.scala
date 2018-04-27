@@ -55,7 +55,7 @@ class MethodCallResolver(
     val icfgReturnnode = icfg.getICFGReturnNode(callerContext)
     icfgReturnnode.asInstanceOf[ICFGReturnNode].setCalleeSet(calleeSet.map(_.asInstanceOf[Callee]))
     var calleeFactsMap: IMap[ICFGNode, ISet[RFAFact]] = imapEmpty
-    var returnFacts: ISet[RFAFact] = s
+    var returnFacts: ISet[RFAFact] = ReachingFactsAnalysisHelper.aggregate(s)
     val genSet: MSet[RFAFact] = msetEmpty
     val killSet: MSet[RFAFact] = msetEmpty
     var pureNormalFlag = pureNormalFlagMap.getOrElseUpdate(callerNode, true)
@@ -67,7 +67,7 @@ class MethodCallResolver(
       val calleep = global.getMethodOrResolve(calleeSig).get
       if (handler.isModelCall(calleep)) {
         pureNormalFlag = false
-        returnFacts = handler.doModelCall(sm, s, calleep, cs.lhsOpt.map(lhs => lhs.name), cs.recvOpt, cs.args, callerContext)
+        returnFacts = handler.doModelCall(sm, returnFacts, calleep, cs.lhsOpt.map(lhs => lhs.name), cs.recvOpt, cs.args, callerContext)
       } else {
         // for normal call
         if (calleep.isConcrete) {
@@ -75,7 +75,7 @@ class MethodCallResolver(
             icfg.collectCfgToBaseGraph[String](calleep, callerContext, isFirst = false, needReturnNode())
             icfg.extendGraph(calleeSig, callerContext, needReturnNode = true)
           }
-          val factsForCallee = getFactsForCallee(s, cs, calleep, callerContext)
+          val factsForCallee = getFactsForCallee(returnFacts, cs, calleep, callerContext)
           killSet ++= factsForCallee
           calleeFactsMap += (icfg.entryNode(calleeSig, callerContext) -> callee.mapFactsToCallee(factsForCallee, args, (calleep.thisOpt ++ calleep.getParamNames).toList))
         }
@@ -89,7 +89,7 @@ class MethodCallResolver(
     cs.lhsOpt match {
       case Some(lhs) =>
         val slotsWithMark = ReachingFactsAnalysisHelper.processLHS(lhs, callerContext, ptaresult).toSet
-        for (rdf <- s) {
+        for (rdf <- returnFacts) {
           //if it is a strong definition, we can kill the existing definition
           if (slotsWithMark.contains(rdf.s, true)) {
             killSet += rdf
@@ -225,7 +225,7 @@ class ModelCallResolver(
       case None =>
     }
 
-    var returnFacts: ISet[RFAFact] = s -- killSet
+    var returnFacts: ISet[RFAFact] = ReachingFactsAnalysisHelper.aggregate(s -- killSet)
     calleeSet.foreach { callee =>
       val calleeSig: Signature = callee.callee
       icfg.getCallGraph.addCall(callerNode.getOwner, calleeSig)

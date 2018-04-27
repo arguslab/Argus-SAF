@@ -12,6 +12,7 @@ package org.argus.jawa.alir.pta
 
 import org.argus.jawa.alir.Context
 import org.argus.jawa.core.JawaType
+import org.argus.jawa.core.util._
 
 object Instance {
   def getInstance(typ: JawaType, context: Context, toUnknown: Boolean): Instance = {
@@ -34,10 +35,6 @@ abstract class Instance{
   def isNull: Boolean = false
   def isUnknown: Boolean = false
   def ===(ins: Instance): Boolean = this == ins
-  def clone(newDefSite: Context): Instance
-  override def hashCode(): Int = {
-    (typ, defSite).hashCode()
-  }
 }
 
 /**
@@ -45,13 +42,33 @@ abstract class Instance{
  * @author <a href="mailto:sroy@k-state.edu">Sankardas Roy</a>
  */ 
 final case class PTAInstance(typ: JawaType, defSite: Context) extends Instance {
-  override def clone(newDefSite: Context): Instance = PTAInstance(typ, newDefSite)
   override def isUnknown: Boolean = typ.baseType.unknown
   override def toString: String = {
     val sb = new StringBuilder
     sb.append(this.typ + "@")
     sb.append(this.defSite.getCurrentLocUri)
     sb.toString.intern()
+  }
+}
+
+final case class InstanceAggregate(typ: JawaType) extends Instance {
+  private val instances: MSet[Instance] = msetEmpty
+  def addInstance(ins: Instance): Unit = {
+    require(ins.typ == typ)
+    this.instances += ins
+  }
+  def addInstances(inss: ISet[Instance]): Unit = {
+    this.instances ++= inss
+  }
+  def getInstances: ISet[Instance] = this.instances.toSet
+
+  override def defSite: Context = this.instances.headOption match { case Some(h) => h.defSite case None => new Context("hack")}
+  override def toString: String = {
+    val sb = new StringBuilder
+    this.instances.foreach { ins =>
+      sb.append(ins.toString + "\n")
+    }
+    sb.toString().trim.intern()
   }
 }
 
@@ -71,7 +88,6 @@ abstract class PTAAbstractStringInstance(defSite: Context) extends Instance{
  * @author <a href="mailto:sroy@k-state.edu">Sankardas Roy</a>
  */ 
 final case class PTAPointStringInstance(defSite: Context) extends PTAAbstractStringInstance(defSite){
-  override def clone(newDefSite: Context): Instance = PTAPointStringInstance(newDefSite)
   override def ===(ins: Instance): Boolean = {
     ins match {
       case _: PTAPointStringInstance => true
@@ -87,7 +103,6 @@ final case class PTAPointStringInstance(defSite: Context) extends PTAAbstractStr
  * @author <a href="mailto:sroy@k-state.edu">Sankardas Roy</a>
  */ 
 final case class PTAConcreteStringInstance(string: String, defSite: Context) extends PTAAbstractStringInstance(defSite){
-  override def clone(newDefSite: Context): Instance = PTAConcreteStringInstance(string, newDefSite)
   override def ===(ins: Instance): Boolean = {
     ins match {
       case instance: PTAConcreteStringInstance => instance.string.equals(string)

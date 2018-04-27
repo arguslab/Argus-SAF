@@ -22,7 +22,7 @@ import org.argus.jawa.core.util._
  */ 
 object ReachingFactsAnalysisHelper {
   final val TITLE = "ReachingFactsAnalysisHelper"
-  def getFactMap(s: ISet[RFAFact]): Map[PTASlot, Set[Instance]] = {
+  def getFactMap(s: ISet[RFAFact]): IMap[PTASlot, ISet[Instance]] = {
     s.groupBy(_.slot).mapValues(_.map(_.ins))
   }
 
@@ -73,6 +73,26 @@ object ReachingFactsAnalysisHelper {
       }
     }
     result
+  }
+
+  def aggregate(facts: ISet[RFAFact]): ISet[RFAFact] = {
+    val kill: MSet[RFAFact] = msetEmpty
+    val gen: MSet[RFAFact] = msetEmpty
+    getFactMap(facts).foreach { case (slot, inss) =>
+      val sametype: MMap[JawaType, MSet[Instance]] = mmapEmpty
+      inss.foreach { ins =>
+        sametype.getOrElseUpdate(ins.typ, msetEmpty) += ins
+      }
+      sametype.foreach { case (typ, iss) =>
+        if(iss.size > 10) {
+          kill ++= iss.map(RFAFact(slot, _))
+          val ia = InstanceAggregate(typ)
+          ia.addInstances(iss.toSet)
+          gen += RFAFact(slot, ia)
+        }
+      }
+    }
+    facts -- kill ++ gen
   }
 
   def getInstanceFromType(typ: JawaType, currentContext: Context): Option[Instance] = {

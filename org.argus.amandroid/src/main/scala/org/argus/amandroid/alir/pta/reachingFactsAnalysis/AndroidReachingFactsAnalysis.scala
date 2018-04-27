@@ -66,7 +66,7 @@ class AndroidReachingFactsAnalysis(
       val icfgReturnnode = icfg.getICFGReturnNode(callerContext)
       icfgReturnnode.asInstanceOf[ICFGReturnNode].setCalleeSet(calleeSet.map(_.asInstanceOf[Callee]))
       var calleeFactsMap: IMap[ICFGNode, ISet[RFAFact]] = imapEmpty
-      var returnFacts: ISet[RFAFact] = s
+      var returnFacts: ISet[RFAFact] = ReachingFactsAnalysisHelper.aggregate(s)
       val genSet: MSet[RFAFact] = msetEmpty
       val killSet: MSet[RFAFact] = msetEmpty
       var pureNormalFlag = pureNormalFlagMap.getOrElseUpdate(callerNode, true)

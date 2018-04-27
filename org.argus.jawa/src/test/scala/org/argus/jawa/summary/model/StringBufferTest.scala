@@ -20,40 +20,40 @@ import org.argus.jawa.core.JawaType
 class StringBufferTest extends SuTestBase("StringBuffer.safsu") {
 
   val thisInstance = PTAInstance(new JawaType("java.lang.StringBuffer"), defContext)
-  val thisFact = new RFAFact(VarSlot("v0"), thisInstance)
+  val thisFact = RFAFact(VarSlot("v0"), thisInstance)
   val thisValueInstance = PTAConcreteStringInstance("StringBuffer", defContext)
-  val thisValueFact = new RFAFact(FieldSlot(thisInstance, "value"), thisValueInstance)
+  val thisValueFact = RFAFact(FieldSlot(thisInstance, "value"), thisValueInstance)
 
   "Ljava/lang/StringBuffer;.<init>:()V" with_input (
     thisFact,
   ) produce (
     thisFact,
-    new RFAFact(FieldSlot(thisInstance, "value"), PTAPointStringInstance(currentContext))
+    RFAFact(FieldSlot(thisInstance, "value"), PTAPointStringInstance(currentContext))
   )
 
   "Ljava/lang/StringBuffer;.<init>:(I)V" with_input (
     thisFact,
   ) produce (
     thisFact,
-    new RFAFact(FieldSlot(thisInstance, "value"), PTAPointStringInstance(currentContext))
+    RFAFact(FieldSlot(thisInstance, "value"), PTAPointStringInstance(currentContext))
   )
 
   "Ljava/lang/StringBuffer;.<init>:(Ljava/lang/CharSequence;)V" with_input (
     thisFact,
-    new RFAFact(VarSlot("v1"), PTAConcreteStringInstance("NewString", defContext2))
+    RFAFact(VarSlot("v1"), PTAConcreteStringInstance("NewString", defContext2))
   ) produce (
     thisFact,
-    new RFAFact(VarSlot("v1"), PTAConcreteStringInstance("NewString", defContext2)),
-    new RFAFact(FieldSlot(thisInstance, "value"), PTAConcreteStringInstance("NewString", defContext2))
+    RFAFact(VarSlot("v1"), PTAConcreteStringInstance("NewString", defContext2)),
+    RFAFact(FieldSlot(thisInstance, "value"), PTAConcreteStringInstance("NewString", defContext2))
   )
 
   "Ljava/lang/StringBuffer;.<init>:(Ljava/lang/String;)V" with_input (
     thisFact,
-    new RFAFact(VarSlot("v1"), PTAConcreteStringInstance("NewString", defContext2))
+    RFAFact(VarSlot("v1"), PTAConcreteStringInstance("NewString", defContext2))
   ) produce (
     thisFact,
-    new RFAFact(VarSlot("v1"), PTAConcreteStringInstance("NewString", defContext2)),
-    new RFAFact(FieldSlot(thisInstance, "value"), PTAConcreteStringInstance("NewString", defContext2))
+    RFAFact(VarSlot("v1"), PTAConcreteStringInstance("NewString", defContext2)),
+    RFAFact(FieldSlot(thisInstance, "value"), PTAConcreteStringInstance("NewString", defContext2))
   )
 
   "Ljava/lang/StringBuffer;.append:(C)Ljava/lang/Appendable;" with_input (
@@ -62,8 +62,8 @@ class StringBufferTest extends SuTestBase("StringBuffer.safsu") {
   ) produce (
     thisFact,
     thisValueFact,
-    new RFAFact(FieldSlot(thisInstance, "value"), PTAPointStringInstance(currentContext)),
-    new RFAFact(VarSlot("temp"), thisInstance)
+    RFAFact(FieldSlot(thisInstance, "value"), PTAPointStringInstance(currentContext)),
+    RFAFact(VarSlot("temp"), thisInstance)
   )
 
   "Ljava/lang/StringBuffer;.append:(C)Ljava/lang/StringBuffer;" with_input (
@@ -72,8 +72,8 @@ class StringBufferTest extends SuTestBase("StringBuffer.safsu") {
   ) produce (
     thisFact,
     thisValueFact,
-    new RFAFact(FieldSlot(thisInstance, "value"), PTAPointStringInstance(currentContext)),
-    new RFAFact(VarSlot("temp"), thisInstance)
+    RFAFact(FieldSlot(thisInstance, "value"), PTAPointStringInstance(currentContext)),
+    RFAFact(VarSlot("temp"), thisInstance)
   )
 
   "Ljava/lang/StringBuffer;.append:(D)Ljava/lang/StringBuffer;" with_input (
@@ -82,8 +82,8 @@ class StringBufferTest extends SuTestBase("StringBuffer.safsu") {
   ) produce (
     thisFact,
     thisValueFact,
-    new RFAFact(FieldSlot(thisInstance, "value"), PTAPointStringInstance(currentContext)),
-    new RFAFact(VarSlot("temp"), thisInstance)
+    RFAFact(FieldSlot(thisInstance, "value"), PTAPointStringInstance(currentContext)),
+    RFAFact(VarSlot("temp"), thisInstance)
   )
 
   "Ljava/lang/StringBuffer;.append:(F)Ljava/lang/StringBuffer;" with_input (
@@ -92,8 +92,8 @@ class StringBufferTest extends SuTestBase("StringBuffer.safsu") {
   ) produce (
     thisFact,
     thisValueFact,
-    new RFAFact(FieldSlot(thisInstance, "value"), PTAPointStringInstance(currentContext)),
-    new RFAFact(VarSlot("temp"), thisInstance)
+    RFAFact(FieldSlot(thisInstance, "value"), PTAPointStringInstance(currentContext)),
+    RFAFact(VarSlot("temp"), thisInstance)
   )
 
   "Ljava/lang/StringBuffer;.append:(I)Ljava/lang/StringBuffer;" with_input (
@@ -102,8 +102,8 @@ class StringBufferTest extends SuTestBase("StringBuffer.safsu") {
   ) produce (
     thisFact,
     thisValueFact,
-    new RFAFact(FieldSlot(thisInstance, "value"), PTAPointStringInstance(currentContext)),
-    new RFAFact(VarSlot("temp"), thisInstance)
+    RFAFact(FieldSlot(thisInstance, "value"), PTAPointStringInstance(currentContext)),
+    RFAFact(VarSlot("temp"), thisInstance)
   )
 
   "Ljava/lang/StringBuffer;.append:(J)Ljava/lang/StringBuffer;" with_input (
@@ -112,8 +112,8 @@ class StringBufferTest extends SuTestBase("StringBuffer.safsu") {
   ) produce (
     thisFact,
     thisValueFact,
-    new RFAFact(FieldSlot(thisInstance, "value"), PTAPointStringInstance(currentContext)),
-    new RFAFact(VarSlot("temp"), thisInstance)
+    RFAFact(FieldSlot(thisInstance, "value"), PTAPointStringInstance(currentContext)),
+    RFAFact(VarSlot("temp"), thisInstance)
   )
 
   "Ljava/lang/StringBuffer;.append:(Ljava/lang/CharSequence;)Ljava/lang/Appendable;" with_input (
@@ -122,8 +122,8 @@ class StringBufferTest extends SuTestBase("StringBuffer.safsu") {
   ) produce (
     thisFact,
     thisValueFact,
-    new RFAFact(FieldSlot(thisInstance, "value"), PTAPointStringInstance(currentContext)),
-    new RFAFact(VarSlot("temp"), thisInstance)
+    RFAFact(FieldSlot(thisInstance, "value"), PTAPointStringInstance(currentContext)),
+    RFAFact(VarSlot("temp"), thisInstance)
   )
 
   "Ljava/lang/StringBuffer;.append:(Ljava/lang/CharSequence;)Ljava/lang/StringBuffer;" with_input (
@@ -132,8 +132,8 @@ class StringBufferTest extends SuTestBase("StringBuffer.safsu") {
   ) produce (
     thisFact,
     thisValueFact,
-    new RFAFact(FieldSlot(thisInstance, "value"), PTAPointStringInstance(currentContext)),
-    new RFAFact(VarSlot("temp"), thisInstance)
+    RFAFact(FieldSlot(thisInstance, "value"), PTAPointStringInstance(currentContext)),
+    RFAFact(VarSlot("temp"), thisInstance)
   )
 
   "Ljava/lang/StringBuffer;.append:(Ljava/lang/CharSequence;II)Ljava/lang/Appendable;" with_input (
@@ -142,8 +142,8 @@ class StringBufferTest extends SuTestBase("StringBuffer.safsu") {
   ) produce (
     thisFact,
     thisValueFact,
-    new RFAFact(FieldSlot(thisInstance, "value"), PTAPointStringInstance(currentContext)),
-    new RFAFact(VarSlot("temp"), thisInstance)
+    RFAFact(FieldSlot(thisInstance, "value"), PTAPointStringInstance(currentContext)),
+    RFAFact(VarSlot("temp"), thisInstance)
   )
 
   "Ljava/lang/StringBuffer;.append:(Ljava/lang/CharSequence;II)Ljava/lang/StringBuffer;" with_input (
@@ -152,8 +152,8 @@ class StringBufferTest extends SuTestBase("StringBuffer.safsu") {
   ) produce (
     thisFact,
     thisValueFact,
-    new RFAFact(FieldSlot(thisInstance, "value"), PTAPointStringInstance(currentContext)),
-    new RFAFact(VarSlot("temp"), thisInstance)
+    RFAFact(FieldSlot(thisInstance, "value"), PTAPointStringInstance(currentContext)),
+    RFAFact(VarSlot("temp"), thisInstance)
   )
 
   "Ljava/lang/StringBuffer;.append:(Ljava/lang/Object;)Ljava/lang/StringBuffer;" with_input (
@@ -162,8 +162,8 @@ class StringBufferTest extends SuTestBase("StringBuffer.safsu") {
   ) produce (
     thisFact,
     thisValueFact,
-    new RFAFact(FieldSlot(thisInstance, "value"), PTAPointStringInstance(currentContext)),
-    new RFAFact(VarSlot("temp"), thisInstance)
+    RFAFact(FieldSlot(thisInstance, "value"), PTAPointStringInstance(currentContext)),
+    RFAFact(VarSlot("temp"), thisInstance)
   )
 
   "Ljava/lang/StringBuffer;.append:(Ljava/lang/String;)Ljava/lang/StringBuffer;" with_input (
@@ -172,8 +172,8 @@ class StringBufferTest extends SuTestBase("StringBuffer.safsu") {
   ) produce (
     thisFact,
     thisValueFact,
-    new RFAFact(FieldSlot(thisInstance, "value"), PTAPointStringInstance(currentContext)),
-    new RFAFact(VarSlot("temp"), thisInstance)
+    RFAFact(FieldSlot(thisInstance, "value"), PTAPointStringInstance(currentContext)),
+    RFAFact(VarSlot("temp"), thisInstance)
   )
 
   "Ljava/lang/StringBuffer;.append:(Ljava/lang/StringBuffer;)Ljava/lang/StringBuffer;" with_input (
@@ -182,8 +182,8 @@ class StringBufferTest extends SuTestBase("StringBuffer.safsu") {
   ) produce (
     thisFact,
     thisValueFact,
-    new RFAFact(FieldSlot(thisInstance, "value"), PTAPointStringInstance(currentContext)),
-    new RFAFact(VarSlot("temp"), thisInstance)
+    RFAFact(FieldSlot(thisInstance, "value"), PTAPointStringInstance(currentContext)),
+    RFAFact(VarSlot("temp"), thisInstance)
   )
 
   "Ljava/lang/StringBuffer;.append:(Z)Ljava/lang/StringBuffer;" with_input (
@@ -192,8 +192,8 @@ class StringBufferTest extends SuTestBase("StringBuffer.safsu") {
   ) produce (
     thisFact,
     thisValueFact,
-    new RFAFact(FieldSlot(thisInstance, "value"), PTAPointStringInstance(currentContext)),
-    new RFAFact(VarSlot("temp"), thisInstance)
+    RFAFact(FieldSlot(thisInstance, "value"), PTAPointStringInstance(currentContext)),
+    RFAFact(VarSlot("temp"), thisInstance)
   )
 
   "Ljava/lang/StringBuffer;.append:([C)Ljava/lang/StringBuffer;" with_input (
@@ -202,8 +202,8 @@ class StringBufferTest extends SuTestBase("StringBuffer.safsu") {
   ) produce (
     thisFact,
     thisValueFact,
-    new RFAFact(FieldSlot(thisInstance, "value"), PTAPointStringInstance(currentContext)),
-    new RFAFact(VarSlot("temp"), thisInstance)
+    RFAFact(FieldSlot(thisInstance, "value"), PTAPointStringInstance(currentContext)),
+    RFAFact(VarSlot("temp"), thisInstance)
   )
 
   "Ljava/lang/StringBuffer;.append:([CII)Ljava/lang/StringBuffer;" with_input (
@@ -212,8 +212,8 @@ class StringBufferTest extends SuTestBase("StringBuffer.safsu") {
   ) produce (
     thisFact,
     thisValueFact,
-    new RFAFact(FieldSlot(thisInstance, "value"), PTAPointStringInstance(currentContext)),
-    new RFAFact(VarSlot("temp"), thisInstance)
+    RFAFact(FieldSlot(thisInstance, "value"), PTAPointStringInstance(currentContext)),
+    RFAFact(VarSlot("temp"), thisInstance)
   )
 
   "Ljava/lang/StringBuffer;.appendCodePoint:(I)Ljava/lang/StringBuffer;" with_input (
@@ -222,8 +222,8 @@ class StringBufferTest extends SuTestBase("StringBuffer.safsu") {
   ) produce (
     thisFact,
     thisValueFact,
-    new RFAFact(FieldSlot(thisInstance, "value"), PTAPointStringInstance(currentContext)),
-    new RFAFact(VarSlot("temp"), thisInstance)
+    RFAFact(FieldSlot(thisInstance, "value"), PTAPointStringInstance(currentContext)),
+    RFAFact(VarSlot("temp"), thisInstance)
   )
 
   "Ljava/lang/StringBuffer;.capacity:()I" with_input () produce ()
@@ -241,8 +241,8 @@ class StringBufferTest extends SuTestBase("StringBuffer.safsu") {
     thisValueFact
   ) produce (
     thisFact,
-    new RFAFact(FieldSlot(thisInstance, "value"), PTAPointStringInstance(currentContext)),
-    new RFAFact(VarSlot("temp"), thisInstance)
+    RFAFact(FieldSlot(thisInstance, "value"), PTAPointStringInstance(currentContext)),
+    RFAFact(VarSlot("temp"), thisInstance)
   )
 
   "Ljava/lang/StringBuffer;.deleteCharAt:(I)Ljava/lang/StringBuffer;" with_input (
@@ -250,8 +250,8 @@ class StringBufferTest extends SuTestBase("StringBuffer.safsu") {
     thisValueFact
   ) produce (
     thisFact,
-    new RFAFact(FieldSlot(thisInstance, "value"), PTAPointStringInstance(currentContext)),
-    new RFAFact(VarSlot("temp"), thisInstance)
+    RFAFact(FieldSlot(thisInstance, "value"), PTAPointStringInstance(currentContext)),
+    RFAFact(VarSlot("temp"), thisInstance)
   )
 
   "Ljava/lang/StringBuffer;.ensureCapacity:(I)V" with_input () produce ()
@@ -262,7 +262,7 @@ class StringBufferTest extends SuTestBase("StringBuffer.safsu") {
   ) produce (
     thisFact,
     thisValueFact,
-    new RFAFact(VarSlot("v3"), PTAInstance(new JawaType("char", 1), currentContext))
+    RFAFact(VarSlot("v3"), PTAInstance(new JawaType("char", 1), currentContext))
   )
 
   "Ljava/lang/StringBuffer;.indexOf:(Ljava/lang/String;)I" with_input () produce ()
@@ -274,8 +274,8 @@ class StringBufferTest extends SuTestBase("StringBuffer.safsu") {
     thisValueFact
   ) produce (
     thisFact,
-    new RFAFact(FieldSlot(thisInstance, "value"), PTAPointStringInstance(currentContext)),
-    new RFAFact(VarSlot("temp"), thisInstance)
+    RFAFact(FieldSlot(thisInstance, "value"), PTAPointStringInstance(currentContext)),
+    RFAFact(VarSlot("temp"), thisInstance)
   )
 
   "Ljava/lang/StringBuffer;.insert:(ID)Ljava/lang/StringBuffer;" with_input (
@@ -283,8 +283,8 @@ class StringBufferTest extends SuTestBase("StringBuffer.safsu") {
     thisValueFact
   ) produce (
     thisFact,
-    new RFAFact(FieldSlot(thisInstance, "value"), PTAPointStringInstance(currentContext)),
-    new RFAFact(VarSlot("temp"), thisInstance)
+    RFAFact(FieldSlot(thisInstance, "value"), PTAPointStringInstance(currentContext)),
+    RFAFact(VarSlot("temp"), thisInstance)
   )
 
   "Ljava/lang/StringBuffer;.insert:(IF)Ljava/lang/StringBuffer;" with_input (
@@ -292,8 +292,8 @@ class StringBufferTest extends SuTestBase("StringBuffer.safsu") {
     thisValueFact
   ) produce (
     thisFact,
-    new RFAFact(FieldSlot(thisInstance, "value"), PTAPointStringInstance(currentContext)),
-    new RFAFact(VarSlot("temp"), thisInstance)
+    RFAFact(FieldSlot(thisInstance, "value"), PTAPointStringInstance(currentContext)),
+    RFAFact(VarSlot("temp"), thisInstance)
   )
 
   "Ljava/lang/StringBuffer;.insert:(II)Ljava/lang/StringBuffer;" with_input (
@@ -301,8 +301,8 @@ class StringBufferTest extends SuTestBase("StringBuffer.safsu") {
     thisValueFact
   ) produce (
     thisFact,
-    new RFAFact(FieldSlot(thisInstance, "value"), PTAPointStringInstance(currentContext)),
-    new RFAFact(VarSlot("temp"), thisInstance)
+    RFAFact(FieldSlot(thisInstance, "value"), PTAPointStringInstance(currentContext)),
+    RFAFact(VarSlot("temp"), thisInstance)
   )
 
   "Ljava/lang/StringBuffer;.insert:(IJ)Ljava/lang/StringBuffer;" with_input (
@@ -310,8 +310,8 @@ class StringBufferTest extends SuTestBase("StringBuffer.safsu") {
     thisValueFact
   ) produce (
     thisFact,
-    new RFAFact(FieldSlot(thisInstance, "value"), PTAPointStringInstance(currentContext)),
-    new RFAFact(VarSlot("temp"), thisInstance)
+    RFAFact(FieldSlot(thisInstance, "value"), PTAPointStringInstance(currentContext)),
+    RFAFact(VarSlot("temp"), thisInstance)
   )
 
   "Ljava/lang/StringBuffer;.insert:(ILjava/lang/CharSequence;)Ljava/lang/StringBuffer;" with_input (
@@ -319,8 +319,8 @@ class StringBufferTest extends SuTestBase("StringBuffer.safsu") {
     thisValueFact
   ) produce (
     thisFact,
-    new RFAFact(FieldSlot(thisInstance, "value"), PTAPointStringInstance(currentContext)),
-    new RFAFact(VarSlot("temp"), thisInstance)
+    RFAFact(FieldSlot(thisInstance, "value"), PTAPointStringInstance(currentContext)),
+    RFAFact(VarSlot("temp"), thisInstance)
   )
 
   "Ljava/lang/StringBuffer;.insert:(ILjava/lang/CharSequence;II)Ljava/lang/StringBuffer;" with_input (
@@ -328,8 +328,8 @@ class StringBufferTest extends SuTestBase("StringBuffer.safsu") {
     thisValueFact
   ) produce (
     thisFact,
-    new RFAFact(FieldSlot(thisInstance, "value"), PTAPointStringInstance(currentContext)),
-    new RFAFact(VarSlot("temp"), thisInstance)
+    RFAFact(FieldSlot(thisInstance, "value"), PTAPointStringInstance(currentContext)),
+    RFAFact(VarSlot("temp"), thisInstance)
   )
 
   "Ljava/lang/StringBuffer;.insert:(ILjava/lang/Object;)Ljava/lang/StringBuffer;" with_input (
@@ -337,8 +337,8 @@ class StringBufferTest extends SuTestBase("StringBuffer.safsu") {
     thisValueFact
   ) produce (
     thisFact,
-    new RFAFact(FieldSlot(thisInstance, "value"), PTAPointStringInstance(currentContext)),
-    new RFAFact(VarSlot("temp"), thisInstance)
+    RFAFact(FieldSlot(thisInstance, "value"), PTAPointStringInstance(currentContext)),
+    RFAFact(VarSlot("temp"), thisInstance)
   )
 
   "Ljava/lang/StringBuffer;.insert:(ILjava/lang/String;)Ljava/lang/StringBuffer;" with_input (
@@ -346,8 +346,8 @@ class StringBufferTest extends SuTestBase("StringBuffer.safsu") {
     thisValueFact
   ) produce (
     thisFact,
-    new RFAFact(FieldSlot(thisInstance, "value"), PTAPointStringInstance(currentContext)),
-    new RFAFact(VarSlot("temp"), thisInstance)
+    RFAFact(FieldSlot(thisInstance, "value"), PTAPointStringInstance(currentContext)),
+    RFAFact(VarSlot("temp"), thisInstance)
   )
 
   "Ljava/lang/StringBuffer;.insert:(IZ)Ljava/lang/StringBuffer;" with_input (
@@ -355,8 +355,8 @@ class StringBufferTest extends SuTestBase("StringBuffer.safsu") {
     thisValueFact
   ) produce (
     thisFact,
-    new RFAFact(FieldSlot(thisInstance, "value"), PTAPointStringInstance(currentContext)),
-    new RFAFact(VarSlot("temp"), thisInstance)
+    RFAFact(FieldSlot(thisInstance, "value"), PTAPointStringInstance(currentContext)),
+    RFAFact(VarSlot("temp"), thisInstance)
   )
 
   "Ljava/lang/StringBuffer;.insert:(I[C)Ljava/lang/StringBuffer;" with_input (
@@ -364,8 +364,8 @@ class StringBufferTest extends SuTestBase("StringBuffer.safsu") {
     thisValueFact
   ) produce (
     thisFact,
-    new RFAFact(FieldSlot(thisInstance, "value"), PTAPointStringInstance(currentContext)),
-    new RFAFact(VarSlot("temp"), thisInstance)
+    RFAFact(FieldSlot(thisInstance, "value"), PTAPointStringInstance(currentContext)),
+    RFAFact(VarSlot("temp"), thisInstance)
   )
 
   "Ljava/lang/StringBuffer;.insert:(I[CII)Ljava/lang/StringBuffer;" with_input (
@@ -373,8 +373,8 @@ class StringBufferTest extends SuTestBase("StringBuffer.safsu") {
     thisValueFact
   ) produce (
     thisFact,
-    new RFAFact(FieldSlot(thisInstance, "value"), PTAPointStringInstance(currentContext)),
-    new RFAFact(VarSlot("temp"), thisInstance)
+    RFAFact(FieldSlot(thisInstance, "value"), PTAPointStringInstance(currentContext)),
+    RFAFact(VarSlot("temp"), thisInstance)
   )
 
   "Ljava/lang/StringBuffer;.lastIndexOf:(Ljava/lang/String;)I" with_input () produce ()
@@ -390,8 +390,8 @@ class StringBufferTest extends SuTestBase("StringBuffer.safsu") {
     thisValueFact
   ) produce (
     thisFact,
-    new RFAFact(FieldSlot(thisInstance, "value"), PTAPointStringInstance(currentContext)),
-    new RFAFact(VarSlot("temp"), thisInstance)
+    RFAFact(FieldSlot(thisInstance, "value"), PTAPointStringInstance(currentContext)),
+    RFAFact(VarSlot("temp"), thisInstance)
   )
 
   "Ljava/lang/StringBuffer;.reverse:()Ljava/lang/StringBuffer;" with_input (
@@ -399,8 +399,8 @@ class StringBufferTest extends SuTestBase("StringBuffer.safsu") {
     thisValueFact
   ) produce (
     thisFact,
-    new RFAFact(FieldSlot(thisInstance, "value"), PTAPointStringInstance(currentContext)),
-    new RFAFact(VarSlot("temp"), thisInstance)
+    RFAFact(FieldSlot(thisInstance, "value"), PTAPointStringInstance(currentContext)),
+    RFAFact(VarSlot("temp"), thisInstance)
   )
 
   "Ljava/lang/StringBuffer;.setCharAt:(IC)V" with_input (
@@ -408,7 +408,7 @@ class StringBufferTest extends SuTestBase("StringBuffer.safsu") {
     thisValueFact
   ) produce (
     thisFact,
-    new RFAFact(FieldSlot(thisInstance, "value"), PTAPointStringInstance(currentContext))
+    RFAFact(FieldSlot(thisInstance, "value"), PTAPointStringInstance(currentContext))
   )
 
   "Ljava/lang/StringBuffer;.setLength:(I)V" with_input (
@@ -416,7 +416,7 @@ class StringBufferTest extends SuTestBase("StringBuffer.safsu") {
     thisValueFact
   ) produce (
     thisFact,
-    new RFAFact(FieldSlot(thisInstance, "value"), PTAPointStringInstance(currentContext))
+    RFAFact(FieldSlot(thisInstance, "value"), PTAPointStringInstance(currentContext))
   )
 
   "Ljava/lang/StringBuffer;.subSequence:(II)Ljava/lang/CharSequence;" with_input (
@@ -425,7 +425,7 @@ class StringBufferTest extends SuTestBase("StringBuffer.safsu") {
   ) produce (
     thisFact,
     thisValueFact,
-    new RFAFact(VarSlot("temp"), PTAPointStringInstance(currentContext))
+    RFAFact(VarSlot("temp"), PTAPointStringInstance(currentContext))
   )
 
   "Ljava/lang/StringBuffer;.substring:(I)Ljava/lang/String;" with_input (
@@ -434,7 +434,7 @@ class StringBufferTest extends SuTestBase("StringBuffer.safsu") {
   ) produce (
     thisFact,
     thisValueFact,
-    new RFAFact(VarSlot("temp"), PTAPointStringInstance(currentContext))
+    RFAFact(VarSlot("temp"), PTAPointStringInstance(currentContext))
   )
 
   "Ljava/lang/StringBuffer;.substring:(II)Ljava/lang/String;" with_input (
@@ -443,7 +443,7 @@ class StringBufferTest extends SuTestBase("StringBuffer.safsu") {
   ) produce (
     thisFact,
     thisValueFact,
-    new RFAFact(VarSlot("temp"), PTAPointStringInstance(currentContext))
+    RFAFact(VarSlot("temp"), PTAPointStringInstance(currentContext))
   )
 
   "Ljava/lang/StringBuffer;.toString:()Ljava/lang/String;" with_input (
@@ -452,7 +452,7 @@ class StringBufferTest extends SuTestBase("StringBuffer.safsu") {
   ) produce (
     thisFact,
     thisValueFact,
-    new RFAFact(VarSlot("temp"), thisValueInstance)
+    RFAFact(VarSlot("temp"), thisValueInstance)
   )
 
   "Ljava/lang/StringBuffer;.trimToSize:()V" with_input () produce ()

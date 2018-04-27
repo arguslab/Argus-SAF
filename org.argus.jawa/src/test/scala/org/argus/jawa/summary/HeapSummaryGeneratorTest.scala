@@ -18,6 +18,7 @@ import org.argus.jawa.core._
 import org.argus.jawa.core.util._
 import org.argus.jawa.summary.susaf.rule.HeapSummary
 import org.argus.jawa.summary.wu.{HeapSummaryWu, WorkUnit}
+import org.scalatest.tagobjects.Slow
 import org.scalatest.{FlatSpec, Matchers}
 
 import scala.language.implicitConversions
@@ -26,7 +27,7 @@ import scala.language.implicitConversions
   * Created by fgwei on 6/30/17.
   */
 class HeapSummaryGeneratorTest extends FlatSpec with Matchers {
-  final val DEBUG = true
+  final val DEBUG = false
 
   implicit def file(file: String): TestFile = {
     new TestFile(file)
@@ -112,6 +113,8 @@ class HeapSummaryGeneratorTest extends FlatSpec with Matchers {
     """.stripMargin.trim.intern()
     )
 
+  "/jawa/summary/MCnToSpell.jawa" ep "Lcom/i4joy/core/MCnToSpell;.init:()V" run()
+
   class TestFile(file: String) {
     var entrypoint: Signature = _
 
@@ -120,6 +123,25 @@ class HeapSummaryGeneratorTest extends FlatSpec with Matchers {
     def ep(sigStr: String): TestFile = {
       entrypoint = new Signature(sigStr)
       this
+    }
+
+    def run(): Unit = {
+      file should s"finish for $entrypoint" taggedAs Slow in {
+        val reporter = if(DEBUG) new PrintReporter(MsgLevel.INFO) else new PrintReporter(MsgLevel.NO)
+        val global = new Global("Test", reporter)
+        global.setJavaLib(getClass.getResource("/libs/android.jar").getPath)
+        global.load(FileUtil.toUri(getClass.getResource(file).getPath))
+        val sm: SummaryManager = new JawaSummaryProvider(global).getSummaryManager
+        val cg = SignatureBasedCallGraph(global, Set(entrypoint), None)
+        val analysis = new BottomUpSummaryGenerator[Global](global, sm, handler,
+          HeapSummary(_, _),
+          ConsoleProgressBar.on(System.out).withFormat("[:bar] :percent% :elapsed Left: :remain"))
+        val orderedWUs: IList[WorkUnit[Global]] = cg.topologicalSort(true).map { sig =>
+          val method = global.getMethodOrResolve(sig).getOrElse(throw new RuntimeException("Method does not exist: " + sig))
+          new HeapSummaryWu(global, method, sm, handler)
+        }
+        analysis.build(orderedWUs)
+      }
     }
 
     def produce(rule: String): Unit = {

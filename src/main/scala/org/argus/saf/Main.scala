@@ -38,7 +38,7 @@ object Main extends App {
     val guessPackageOption: Option = Option.builder("g").longOpt("guess").desc("Guess application package prefixes.").build()
     val outputOption: Option = Option.builder("o").longOpt("output").desc("Set output directory. [Default: .]").hasArg(true).argName("dir").build()
     val forceDeleteOption: Option = Option.builder("f").longOpt("force").desc("Force delete previous decompile result. [Default: false]").build()
-    val srclevelOption: Option = Option.builder("sl").longOpt("src-level").desc("Application code decompile level. [Default: TYPED, Choices: (NO, SIGNATURE, UNTYPED, TYPED)]").hasArg(true).argName("level").build()
+    val srclevelOption: Option = Option.builder("sl").longOpt("src-level").desc("Application code decompile level. [Default: UNTYPED, Choices: (NO, SIGNATURE, UNTYPED, TYPED)]").hasArg(true).argName("level").build()
     val liblevelOption: Option = Option.builder("ll").longOpt("lib-level").desc("Third party library decompile level. [Default: SIGNATURE, Choices: (NO, SIGNATURE, UNTYPED, TYPED)]").hasArg(true).argName("level").build()
     val iniPathOption: Option = Option.builder("i").longOpt("ini").desc("Set .ini configuration file path.").hasArg(true).argName("path").build()
 
@@ -170,7 +170,7 @@ object Main extends App {
     var debug = false
     var outputPath: String = "."
     var forceDelete: Boolean = false
-    var srcLevel: DecompileLevel.Value = DecompileLevel.TYPED
+    var srcLevel: DecompileLevel.Value = DecompileLevel.UNTYPED
     var libLevel: DecompileLevel.Value = DecompileLevel.SIGNATURE
     if(cli.hasOption("d") || cli.hasOption("debug")) {
       debug = true
