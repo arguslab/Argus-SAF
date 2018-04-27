@@ -60,6 +60,15 @@ final case class InstanceAggregate(typ: JawaType) extends Instance {
   def addInstances(inss: ISet[Instance]): Unit = {
     this.instances ++= inss
   }
+  def addInstanceAggregate(aggre: InstanceAggregate): Unit = {
+    require(aggre.typ == typ)
+    if(aggre != this) {
+      this.instances ++= aggre.getInstances
+    }
+  }
+  def addInstanceAggregates(aggres: ISet[InstanceAggregate]): Unit = {
+    aggres.foreach(addInstanceAggregate)
+  }
   def getInstances: ISet[Instance] = this.instances.toSet
 
   override def defSite: Context = this.instances.headOption match { case Some(h) => h.defSite case None => new Context("hack")}

@@ -79,16 +79,25 @@ object ReachingFactsAnalysisHelper {
     val kill: MSet[RFAFact] = msetEmpty
     val gen: MSet[RFAFact] = msetEmpty
     getFactMap(facts).foreach { case (slot, inss) =>
-      val sametype: MMap[JawaType, MSet[Instance]] = mmapEmpty
+      val sametype: MMap[JawaType, (MSet[Instance], MSet[InstanceAggregate])] = mmapEmpty
       inss.foreach { ins =>
-        sametype.getOrElseUpdate(ins.typ, msetEmpty) += ins
+        val (instances, aggres) = sametype.getOrElseUpdate(ins.typ, (msetEmpty, msetEmpty))
+        ins match {
+          case aggre: InstanceAggregate =>
+            aggres += aggre
+          case _ =>
+            instances += ins
+        }
       }
-      sametype.foreach { case (typ, iss) =>
-        if(iss.size > 10) {
-          kill ++= iss.map(RFAFact(slot, _))
-          val ia = InstanceAggregate(typ)
-          ia.addInstances(iss.toSet)
-          gen += RFAFact(slot, ia)
+      sametype.foreach { case (typ, (instances, aggres)) =>
+        val ia = if(aggres.nonEmpty) aggres.headOption else if(instances.size > 10) Some(InstanceAggregate(typ)) else None
+        ia match {
+          case Some(aggre) =>
+            kill ++= instances.map(RFAFact(slot, _)) ++ aggres.map(RFAFact(slot, _))
+            aggre.addInstances(instances.toSet)
+            aggre.addInstanceAggregates(aggres.toSet)
+            gen += RFAFact(slot, aggre)
+          case None =>
         }
       }
     }
