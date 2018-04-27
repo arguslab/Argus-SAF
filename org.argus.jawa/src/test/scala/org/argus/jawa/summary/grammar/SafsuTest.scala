@@ -38,13 +38,11 @@ class SafsuTest extends FlatSpec with Matchers {
   val `arg`=8
   val `.`=9
   val `[]`=10
-  val `(`=11
-  val `)`=12
-  val `@`=13
-  val `classOf`=14
-  val `$`=15
-  val `?`=16
-  val `ret`=17
+  val `@`=11
+  val `classOf`=12
+  val `$`=13
+  val `?`=14
+  val `ret`=15
 
   "android.content.Context:mBase:android.content.Context;" producesTokens (ID, `.`, ID, `.`, ID, `:`, ID, `:`, ID, `.`, ID, `.`, ID, `;`)
   "`Lcom/my/Class;.do:()V`" producesTokens UID
@@ -67,7 +65,6 @@ class SafsuTest extends FlatSpec with Matchers {
   "arg:1=com.my.Class@~" producesTokens (`arg`, `:`, Digits, `=`, ID, `.`, ID, `.`, ID, `@`, `~`)
   """arg:1="string"@L1""" producesTokens (`arg`, `:`, Digits, `=`, STRING, `@`, ID)
   "`Lcom/my/Class;.do:(LO1;LO2;)V`:arg:1=arg:2;" producesTokens (UID, `:`, `arg`, `:`, Digits, `=`, `arg`, `:`, Digits, `;`)
-  "arg:1(arg:3)=arg:2" producesTokens (`arg`, `:`, Digits, `(`, `arg`, `:`, Digits, `)`, `=`, `arg`, `:`, Digits)
   "arg:1=com.my.Class?@L1005" producesTokens (`arg`, `:`, Digits, `=`, ID, `.`, ID, `.`, ID, `?`, `@`, ID)
   "classOf this" producesTokens (`classOf`, WS, `this`)
   """`Lcom/my/Class;.do:(LO1;LO2;)LO3;`:
@@ -124,7 +121,6 @@ class SafsuTest extends FlatSpec with Matchers {
         |  arg:1[][]-=arg:2[]
         |  ret=arg:1.field.f3
         |  arg:1.f1=arg:2[]
-        |  arg:2[]=arg:1.field(arg:2)
         |  arg:1=`com.my.Class.Glo`.f.f2[]
         |  `com.my.Class.Glo`.f.f2[]=arg:1.field
         |  ~arg:1.f1

@@ -66,8 +66,8 @@ java.lang.Thread:name:java.lang.String;
   ret = java.util.HashMap@~
   ret.entries = java.util.HashMap$Entries@~
   ret.entries.key = java.lang.Thread?@~
-  ret.entries(java.lang.Thread?@~) = java.lang.StackTrackElement[]@~
-  ret.entries(java.lang.Thread?@~)[] = java.lang.StackTrackElement@~
+  ret.entries.value = java.lang.StackTrackElement[]@~
+  ret.entries.value[] = java.lang.StackTrackElement@~
 ;
 
 `Ljava/lang/Thread;.getContextClassLoader:()Ljava/lang/ClassLoader;`:

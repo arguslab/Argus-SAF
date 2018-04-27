@@ -202,11 +202,7 @@ class HeapSummaryWu(
       case Some(base) =>
         val heapAccesses: Seq[HeapAccess] = hb.heapOpt match {
           case Some(suHeap) =>
-            suHeap.indices.map {
-              case sm: SuMapAccess if sm.rhsOpt.isDefined =>
-                SuMapAccess(handleRhs(sm.rhsOpt.get, recvOpt, args, context))
-              case a => a
-            }
+            suHeap.indices
           case None => Seq()
         }
         Some(if(heapAccesses.isEmpty) base else base.make(heapAccesses))
@@ -229,11 +225,7 @@ class HeapSummaryWu(
       case g: SuGlobal =>
         val newg: SuGlobal = g.heapOpt match {
           case Some(suHeap) =>
-            val heapAccesses: Seq[HeapAccess] = suHeap.indices.map {
-              case sm: SuMapAccess if sm.rhsOpt.isDefined =>
-                SuMapAccess(handleRhs(sm.rhsOpt.get, recvOpt, args, context))
-              case a => a
-            }
+            val heapAccesses: Seq[HeapAccess] = suHeap.indices
             SuGlobal(g.fqn, Some(SuHeap(heapAccesses)))
           case None => g
         }

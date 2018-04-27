@@ -21,9 +21,9 @@ import org.argus.jawa.core.JawaType
 class ActivitySuTest extends SuTestBase("Activity.safsu") {
 
   val thisInstance = PTAInstance(new JawaType(AndroidConstants.ACTIVITY), defContext)
-  val thisFact = new RFAFact(VarSlot("v0"), thisInstance)
+  val thisFact = RFAFact(VarSlot("v0"), thisInstance)
   val thisMIntentInstance = PTAInstance(new JawaType(AndroidConstants.INTENT), defContext)
-  val thisMIntentFact = new RFAFact(FieldSlot(thisInstance, "mIntent"), thisMIntentInstance)
+  val thisMIntentFact = RFAFact(FieldSlot(thisInstance, "mIntent"), thisMIntentInstance)
 
   "Landroid/app/Activity;.getIntent:()Landroid/content/Intent;" with_input (
     thisFact,
@@ -31,16 +31,16 @@ class ActivitySuTest extends SuTestBase("Activity.safsu") {
   ) produce (
     thisFact,
     thisMIntentFact,
-    new RFAFact(VarSlot("temp"), thisMIntentInstance)
+    RFAFact(VarSlot("temp"), thisMIntentInstance)
   )
 
   "Landroid/app/Activity;.setIntent:(Landroid/content/Intent;)V" with_input (
     thisFact,
-    new RFAFact(VarSlot("v1"), PTAInstance(new JawaType(AndroidConstants.INTENT), defContext2))
+    RFAFact(VarSlot("v1"), PTAInstance(new JawaType(AndroidConstants.INTENT), defContext2))
   ) produce (
     thisFact,
-    new RFAFact(VarSlot("v1"), PTAInstance(new JawaType(AndroidConstants.INTENT), defContext2)),
-    new RFAFact(FieldSlot(thisInstance, "mIntent"), PTAInstance(new JawaType(AndroidConstants.INTENT), defContext2))
+    RFAFact(VarSlot("v1"), PTAInstance(new JawaType(AndroidConstants.INTENT), defContext2)),
+    RFAFact(FieldSlot(thisInstance, "mIntent"), PTAInstance(new JawaType(AndroidConstants.INTENT), defContext2))
   )
 
   "Landroid/app/Activity;.getApplication:()Landroid/app/Application;" with_input (
@@ -49,6 +49,6 @@ class ActivitySuTest extends SuTestBase("Activity.safsu") {
   ) produce (
     thisFact,
     thisMIntentFact,
-    new RFAFact(VarSlot("temp"), PTAInstance(new JawaType("android.app.Application"), currentContext))
+    RFAFact(VarSlot("temp"), PTAInstance(new JawaType("android.app.Application"), currentContext))
   )
 }

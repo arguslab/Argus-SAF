@@ -79,7 +79,7 @@ class HeapSummaryGeneratorTest extends FlatSpec with Matchers {
   "/jawa/summary/SingleFunction.jawa" ep "Lcom/hugo/test/SingleFunction;.put:(Ljava/util/Map;)Ljava/lang/String;" produce (
     """`Lcom/hugo/test/SingleFunction;.put:(Ljava/util/Map;)Ljava/lang/String;`:
       |  arg:1.entries.key += "key"@L1
-      |  arg:1.entries(arg:1.entries.key) += "value"@L2
+      |  arg:1.entries.value += "value"@L2
       |  ret = arg:1.entries.key
       |;
     """.stripMargin.trim.intern()
@@ -108,7 +108,7 @@ class HeapSummaryGeneratorTest extends FlatSpec with Matchers {
   "/jawa/summary/MultiFunction.jawa" ep "Lcom/hugo/test/MultiFunction;.testGlobalMap:()V" produce (
     """`Lcom/hugo/test/MultiFunction;.testGlobalMap:()V`:
       |  `com.hugo.test.MultiFunction.map`.entries.key += "key"@L1
-      |  `com.hugo.test.MultiFunction.map`.entries(`com.hugo.test.MultiFunction.map`.entries.key) += "value"@L2
+      |  `com.hugo.test.MultiFunction.map`.entries.value += "value"@L2
       |;
     """.stripMargin.trim.intern()
     )

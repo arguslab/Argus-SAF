@@ -365,22 +365,6 @@ abstract class DataFlowWu[T <: Global] (
         inss = inss.flatMap { ins =>
           ptaresult.pointsToSet(context, ArraySlot(ins))
         }
-      case sm: SuMapAccess =>
-        val keyInss: MSet[Instance] = msetEmpty
-        sm.rhsOpt match {
-          case Some(rhs) =>
-            keyInss ++= getRhsInstance(rhs, retOpt, recvOpt, args, context)
-          case None =>
-        }
-        if(keyInss.isEmpty) {
-          inss = ptaresult.getRelatedHeapInstances(context, inss)
-        } else {
-          inss = inss.flatMap { ins =>
-            keyInss.flatMap { key =>
-              ptaresult.pointsToSet(context, MapSlot(ins, key))
-            }
-          }
-        }
     }
     inss
   }

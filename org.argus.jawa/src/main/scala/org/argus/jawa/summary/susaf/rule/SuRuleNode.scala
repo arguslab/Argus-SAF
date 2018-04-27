@@ -149,13 +149,6 @@ case class SuArrayAccess() extends HeapAccess {
 /**
   * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
   */
-case class SuMapAccess(rhsOpt: Option[RuleRhs]) extends HeapAccess {
-  override def toString: String = s"(${rhsOpt match {case Some(rhs) => rhs.toString case None => ""}})"
-}
-
-/**
-  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
-  */
 case class SuRet(heapOpt: Option[SuHeap]) extends HeapBase {
   def make(heapAccesses: Seq[HeapAccess]): HeapBase = {
     val heap: Seq[HeapAccess] = heapOpt match {

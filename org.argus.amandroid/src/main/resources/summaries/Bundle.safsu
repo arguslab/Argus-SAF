@@ -1,5 +1,6 @@
 android.os.Bundle:entries:android.os.Bundle$Entries;
-android.os.Bundle:key:java.lang.Object?;
+android.os.Bundle$Entries:key:java.lang.Object?;
+android.os.Bundle$Entries:value:java.lang.Object?;
 
 `Landroid/os/Bundle;.<clinit>:()V`:
 ;
@@ -39,11 +40,11 @@ android.os.Bundle:key:java.lang.Object?;
   ret = android.os.Bundle@~
   ret.entries = android.os.Bundle$Entries@~
   ret.entries.key = arg:1
-  ret.entries(arg:1) = arg:2
+  ret.entries.value = arg:2
 ;
 
 `Landroid/os/Bundle;.get:(Ljava/lang/String;)Ljava/lang/Object;`:
-  ret = this.entries(arg:1)
+  ret = this.entries.value
 ;
 
 `Landroid/os/Bundle;.getBoolean:(Ljava/lang/String;)Z`:
@@ -53,11 +54,11 @@ android.os.Bundle:key:java.lang.Object?;
 ;
 
 `Landroid/os/Bundle;.getBooleanArray:(Ljava/lang/String;)[Z`:
-  ret = this.entries(arg:1)
+  ret = this.entries.value
 ;
 
 `Landroid/os/Bundle;.getBundle:(Ljava/lang/String;)Landroid/os/Bundle;`:
-  ret = this.entries(arg:1)
+  ret = this.entries.value
 ;
 
 `Landroid/os/Bundle;.getByte:(Ljava/lang/String;)B`:
@@ -67,7 +68,7 @@ android.os.Bundle:key:java.lang.Object?;
 ;
 
 `Landroid/os/Bundle;.getByteArray:(Ljava/lang/String;)[B`:
-  ret = this.entries(arg:1)
+  ret = this.entries.value
 ;
 
 `Landroid/os/Bundle;.getChar:(Ljava/lang/String;)C`:
@@ -77,24 +78,24 @@ android.os.Bundle:key:java.lang.Object?;
 ;
 
 `Landroid/os/Bundle;.getCharArray:(Ljava/lang/String;)[C`:
-  ret = this.entries(arg:1)
+  ret = this.entries.value
 ;
 
 `Landroid/os/Bundle;.getCharSequence:(Ljava/lang/String;)Ljava/lang/CharSequence;`:
-  ret = this.entries(arg:1)
+  ret = this.entries.value
 ;
 
 `Landroid/os/Bundle;.getCharSequence:(Ljava/lang/String;Ljava/lang/CharSequence;)Ljava/lang/CharSequence;`:
-  ret = this.entries(arg:1)
+  ret = this.entries.value
   ret += arg:2
 ;
 
 `Landroid/os/Bundle;.getCharSequenceArray:(Ljava/lang/String;)[Ljava/lang/CharSequence;`:
-  ret = this.entries(arg:1)
+  ret = this.entries.value
 ;
 
 `Landroid/os/Bundle;.getCharSequenceArrayList:(Ljava/lang/String;)Ljava/util/ArrayList;`:
-  ret = this.entries(arg:1)
+  ret = this.entries.value
 ;
 
 `Landroid/os/Bundle;.getClassLoader:()Ljava/lang/ClassLoader;`:
@@ -108,7 +109,7 @@ android.os.Bundle:key:java.lang.Object?;
 ;
 
 `Landroid/os/Bundle;.getDoubleArray:(Ljava/lang/String;)[D`:
-  ret = this.entries(arg:1)
+  ret = this.entries.value
 ;
 
 `Landroid/os/Bundle;.getFloat:(Ljava/lang/String;)F`:
@@ -118,11 +119,11 @@ android.os.Bundle:key:java.lang.Object?;
 ;
 
 `Landroid/os/Bundle;.getFloatArray:(Ljava/lang/String;)[F`:
-  ret = this.entries(arg:1)
+  ret = this.entries.value
 ;
 
 `Landroid/os/Bundle;.getIBinder:(Ljava/lang/String;)Landroid/os/IBinder;`:
-  ret = this.entries(arg:1)
+  ret = this.entries.value
 ;
 
 `Landroid/os/Bundle;.getInt:(Ljava/lang/String;)I`:
@@ -132,11 +133,11 @@ android.os.Bundle:key:java.lang.Object?;
 ;
 
 `Landroid/os/Bundle;.getIntArray:(Ljava/lang/String;)[I`:
-  ret = this.entries(arg:1)
+  ret = this.entries.value
 ;
 
 `Landroid/os/Bundle;.getIntegerArrayList:(Ljava/lang/String;)Ljava/util/ArrayList;`:
-  ret = this.entries(arg:1)
+  ret = this.entries.value
 ;
 
 `Landroid/os/Bundle;.getLong:(Ljava/lang/String;)J`:
@@ -146,23 +147,23 @@ android.os.Bundle:key:java.lang.Object?;
 ;
 
 `Landroid/os/Bundle;.getLongArray:(Ljava/lang/String;)[J`:
-  ret = this.entries(arg:1)
+  ret = this.entries.value
 ;
 
 `Landroid/os/Bundle;.getParcelable:(Ljava/lang/String;)Landroid/os/Parcelable;`:
-  ret = this.entries(arg:1)
+  ret = this.entries.value
 ;
 
 `Landroid/os/Bundle;.getParcelableArray:(Ljava/lang/String;)[Landroid/os/Parcelable;`:
-  ret = this.entries(arg:1)
+  ret = this.entries.value
 ;
 
 `Landroid/os/Bundle;.getParcelableArrayList:(Ljava/lang/String;)Ljava/util/ArrayList;`:
-  ret = this.entries(arg:1)
+  ret = this.entries.value
 ;
 
 `Landroid/os/Bundle;.getSerializable:(Ljava/lang/String;)Ljava/io/Serializable;`:
-  ret = this.entries(arg:1)
+  ret = this.entries.value
 ;
 
 `Landroid/os/Bundle;.getShort:(Ljava/lang/String;)S`:
@@ -172,28 +173,28 @@ android.os.Bundle:key:java.lang.Object?;
 ;
 
 `Landroid/os/Bundle;.getShortArray:(Ljava/lang/String;)[S`:
-  ret = this.entries(arg:1)
+  ret = this.entries.value
 ;
 
 `Landroid/os/Bundle;.getSparseParcelableArray:(Ljava/lang/String;)Landroid/util/SparseArray;`:
-  ret = this.entries(arg:1)
+  ret = this.entries.value
 ;
 
 `Landroid/os/Bundle;.getString:(Ljava/lang/String;)Ljava/lang/String;`:
-  ret = this.entries(arg:1)
+  ret = this.entries.value
 ;
 
 `Landroid/os/Bundle;.getString:(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;`:
-  ret = this.entries(arg:1)
+  ret = this.entries.value
   ret += arg:2
 ;
 
 `Landroid/os/Bundle;.getStringArray:(Ljava/lang/String;)[Ljava/lang/String;`:
-  ret = this.entries(arg:1)
+  ret = this.entries.value
 ;
 
 `Landroid/os/Bundle;.getStringArrayList:(Ljava/lang/String;)Ljava/util/ArrayList;`:
-  ret = this.entries(arg:1)
+  ret = this.entries.value
 ;
 
 `Landroid/os/Bundle;.hasFileDescriptors:()Z`:
@@ -219,12 +220,12 @@ android.os.Bundle:key:java.lang.Object?;
 
 `Landroid/os/Bundle;.putBooleanArray:(Ljava/lang/String;[Z)V`:
   this.entries.key += arg:1
-  this.entries(arg:1) = arg:2
+  this.entries.value = arg:2
 ;
 
 `Landroid/os/Bundle;.putBundle:(Ljava/lang/String;Landroid/os/Bundle;)V`:
   this.entries.key += arg:1
-  this.entries(arg:1) = arg:2
+  this.entries.value = arg:2
 ;
 
 `Landroid/os/Bundle;.putByte:(Ljava/lang/String;B)V`:
@@ -232,7 +233,7 @@ android.os.Bundle:key:java.lang.Object?;
 
 `Landroid/os/Bundle;.putByteArray:(Ljava/lang/String;[B)V`:
   this.entries.key += arg:1
-  this.entries(arg:1) = arg:2
+  this.entries.value = arg:2
 ;
 
 `Landroid/os/Bundle;.putChar:(Ljava/lang/String;C)V`:
@@ -240,22 +241,22 @@ android.os.Bundle:key:java.lang.Object?;
 
 `Landroid/os/Bundle;.putCharArray:(Ljava/lang/String;[C)V`:
   this.entries.key += arg:1
-  this.entries(arg:1) = arg:2
+  this.entries.value = arg:2
 ;
 
 `Landroid/os/Bundle;.putCharSequence:(Ljava/lang/String;Ljava/lang/CharSequence;)V`:
   this.entries.key += arg:1
-  this.entries(arg:1) = arg:2
+  this.entries.value = arg:2
 ;
 
 `Landroid/os/Bundle;.putCharSequenceArray:(Ljava/lang/String;[Ljava/lang/CharSequence;)V`:
   this.entries.key += arg:1
-  this.entries(arg:1) = arg:2
+  this.entries.value = arg:2
 ;
 
 `Landroid/os/Bundle;.putCharSequenceArrayList:(Ljava/lang/String;Ljava/util/ArrayList;)V`:
   this.entries.key += arg:1
-  this.entries(arg:1) = arg:2
+  this.entries.value = arg:2
 ;
 
 `Landroid/os/Bundle;.putDouble:(Ljava/lang/String;D)V`:
@@ -263,7 +264,7 @@ android.os.Bundle:key:java.lang.Object?;
 
 `Landroid/os/Bundle;.putDoubleArray:(Ljava/lang/String;[D)V`:
   this.entries.key += arg:1
-  this.entries(arg:1) = arg:2
+  this.entries.value = arg:2
 ;
 
 `Landroid/os/Bundle;.putFloat:(Ljava/lang/String;F)V`:
@@ -271,12 +272,12 @@ android.os.Bundle:key:java.lang.Object?;
 
 `Landroid/os/Bundle;.putFloatArray:(Ljava/lang/String;[F)V`:
   this.entries.key += arg:1
-  this.entries(arg:1) = arg:2
+  this.entries.value = arg:2
 ;
 
 `Landroid/os/Bundle;.putIBinder:(Ljava/lang/String;Landroid/os/IBinder;)V`:
   this.entries.key += arg:1
-  this.entries(arg:1) = arg:2
+  this.entries.value = arg:2
 ;
 
 `Landroid/os/Bundle;.putInt:(Ljava/lang/String;I)V`:
@@ -284,12 +285,12 @@ android.os.Bundle:key:java.lang.Object?;
 
 `Landroid/os/Bundle;.putIntArray:(Ljava/lang/String;[I)V`:
   this.entries.key += arg:1
-  this.entries(arg:1) = arg:2
+  this.entries.value = arg:2
 ;
 
 `Landroid/os/Bundle;.putIntegerArrayList:(Ljava/lang/String;Ljava/util/ArrayList;)V`:
   this.entries.key += arg:1
-  this.entries(arg:1) = arg:2
+  this.entries.value = arg:2
 ;
 
 `Landroid/os/Bundle;.putLong:(Ljava/lang/String;J)V`:
@@ -297,27 +298,27 @@ android.os.Bundle:key:java.lang.Object?;
 
 `Landroid/os/Bundle;.putLongArray:(Ljava/lang/String;[J)V`:
   this.entries.key += arg:1
-  this.entries(arg:1) = arg:2
+  this.entries.value = arg:2
 ;
 
 `Landroid/os/Bundle;.putParcelable:(Ljava/lang/String;Landroid/os/Parcelable;)V`:
   this.entries.key += arg:1
-  this.entries(arg:1) = arg:2
+  this.entries.value = arg:2
 ;
 
 `Landroid/os/Bundle;.putParcelableArray:(Ljava/lang/String;[Landroid/os/Parcelable;)V`:
   this.entries.key += arg:1
-  this.entries(arg:1) = arg:2
+  this.entries.value = arg:2
 ;
 
 `Landroid/os/Bundle;.putParcelableArrayList:(Ljava/lang/String;Ljava/util/ArrayList;)V`:
   this.entries.key += arg:1
-  this.entries(arg:1) = arg:2
+  this.entries.value = arg:2
 ;
 
 `Landroid/os/Bundle;.putSerializable:(Ljava/lang/String;Ljava/io/Serializable;)V`:
   this.entries.key += arg:1
-  this.entries(arg:1) = arg:2
+  this.entries.value = arg:2
 ;
 
 `Landroid/os/Bundle;.putShort:(Ljava/lang/String;S)V`:
@@ -325,35 +326,33 @@ android.os.Bundle:key:java.lang.Object?;
 
 `Landroid/os/Bundle;.putShortArray:(Ljava/lang/String;[S)V`:
   this.entries.key += arg:1
-  this.entries(arg:1) = arg:2
+  this.entries.value = arg:2
 ;
 
 `Landroid/os/Bundle;.putSparseParcelableArray:(Ljava/lang/String;Landroid/util/SparseArray;)V`:
   this.entries.key += arg:1
-  this.entries(arg:1) = arg:2
+  this.entries.value = arg:2
 ;
 
 `Landroid/os/Bundle;.putString:(Ljava/lang/String;Ljava/lang/String;)V`:
   this.entries.key += arg:1
-  this.entries(arg:1) = arg:2
+  this.entries.value = arg:2
 ;
 
 `Landroid/os/Bundle;.putStringArray:(Ljava/lang/String;[Ljava/lang/String;)V`:
   this.entries.key += arg:1
-  this.entries(arg:1) = arg:2
+  this.entries.value = arg:2
 ;
 
 `Landroid/os/Bundle;.putStringArrayList:(Ljava/lang/String;Ljava/util/ArrayList;)V`:
   this.entries.key += arg:1
-  this.entries(arg:1) = arg:2
+  this.entries.value = arg:2
 ;
 
 `Landroid/os/Bundle;.readFromParcel:(Landroid/os/Parcel;)V`:
 ;
 
 `Landroid/os/Bundle;.remove:(Ljava/lang/String;)V`:
-  this.entries.key -= arg:1
-  ~this.entries(arg:1)
 ;
 
 `Landroid/os/Bundle;.setAllowFds:(Z)Z`:

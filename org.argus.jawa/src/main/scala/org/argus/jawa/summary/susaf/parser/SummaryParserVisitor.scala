@@ -88,9 +88,6 @@ class SummaryParserVisitor()
   override def visitArrayAccess(ctx: ArrayAccessContext): SuRuleNode =
     SuArrayAccess()
 
-  override def visitMapAccess(ctx: MapAccessContext): SuRuleNode =
-    SuMapAccess(getOptChild[RuleRhs](ctx.rhs))
-
   override def visitRet(ctx: RetContext): SuRuleNode =
     SuRet(getOptChild[SuHeap](ctx.heap))
 

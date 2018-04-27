@@ -35,11 +35,11 @@ class SummaryParserTest extends FlatSpec with Matchers {
         |  arg:1[][]=arg:2[]
         |  ret=arg:1.field.f3
         |  arg:1.f1=arg:2[]
-        |  arg:2[]=arg:1.field(arg:2)
+        |  arg:2[]=arg:1.field
         |  arg:1=`com.my.Class.Glo`.f.f2[]
         |  `com.my.Class.Glo`.f.f2[]=arg:1.field
         |  ~arg:1.f1
-        |  this.f1[]=arg:1()
+        |  this.f1[]=arg:1
         |  ret.f1=Class$InnerClass?[][]@~
         |  ret.f2="String"@L1
         |  `com.my.Class.Glo`.f2=classOf this @~
@@ -159,9 +159,7 @@ class SummaryParserTest extends FlatSpec with Matchers {
         |  arg:1[][]=arg:2[]
         |  ret=arg:1.field.f3
         |  arg:1.f1=arg:2[]
-        |  arg:2[]=arg:1.field(arg:1)
         |  arg:1=`com.my.Class.Glo`.f.f2[]
-        |  `com.my.Class.Glo`.f.f2[]=arg:1.field()
         |  ~arg:1.f1
         |  this.f1[] = arg:1
         |;
@@ -170,13 +168,9 @@ class SummaryParserTest extends FlatSpec with Matchers {
     assert(s.isDefined
       && s.get.rules(3).asInstanceOf[BinaryRule].rhs.asInstanceOf[SuArg].heapOpt.get.indices(5).asInstanceOf[SuFieldAccess].fieldName == "f6")
     assert(s.isDefined
-      && s.get.rules(14).asInstanceOf[ClearRule].v.asInstanceOf[SuArg].heapOpt.get.indices.head.asInstanceOf[SuFieldAccess].fieldName == "f1")
+      && s.get.rules(12).asInstanceOf[ClearRule].v.asInstanceOf[SuArg].heapOpt.get.indices.head.asInstanceOf[SuFieldAccess].fieldName == "f1")
     assert(s.isDefined
-      && s.get.rules(15).asInstanceOf[BinaryRule].lhs.asInstanceOf[SuThis].heapOpt.get.indices(1).isInstanceOf[SuArrayAccess])
-    assert(s.isDefined
-      && s.get.rules(11).asInstanceOf[BinaryRule].rhs.asInstanceOf[SuArg].heapOpt.get.indices(1).isInstanceOf[SuMapAccess])
-    assert(s.isDefined
-      && s.get.rules(13).asInstanceOf[BinaryRule].rhs.asInstanceOf[SuArg].heapOpt.get.indices(1).asInstanceOf[SuMapAccess].rhsOpt.isEmpty)
+      && s.get.rules(13).asInstanceOf[BinaryRule].lhs.asInstanceOf[SuThis].heapOpt.get.indices(1).isInstanceOf[SuArrayAccess])
   }
 
   "SummaryParser" should "get ops" in {

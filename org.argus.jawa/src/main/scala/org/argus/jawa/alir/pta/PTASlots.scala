@@ -65,14 +65,6 @@ final case class ArraySlot(ins: Instance) extends HeapSlot(ins){
 }
 
 /**
-  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
-  * @author <a href="mailto:sroy@k-state.edu">Sankardas Roy</a>
-  */
-final case class MapSlot(ins: Instance, key: Instance) extends HeapSlot(ins){
-  override def toString: String = ins.toString + "(" + key.toString + ")"
-}
-
-/**
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
  * @author <a href="mailto:sroy@k-state.edu">Sankardas Roy</a>
  */ 

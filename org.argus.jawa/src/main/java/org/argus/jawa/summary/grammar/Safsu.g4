@@ -69,7 +69,6 @@ heap
 heapAccess
   : fieldAccess
   | arrayAccess
-  | mapAccess
   ;
 
 fieldAccess
@@ -78,10 +77,6 @@ fieldAccess
 
 arrayAccess
   : '[]'
-  ;
-
-mapAccess
-  : '(' rhs? ')'          // "()" means all values
   ;
 
 instance

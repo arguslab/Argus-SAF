@@ -57,8 +57,6 @@ object HeapSummaryProcessor {
     var output: ISet[RFAFact] = ReachingFactsAnalysisHelper.aggregate(input)
     var kill: Boolean = false
     val extraFacts: MSet[RFAFact] = msetEmpty
-    var c = 0
-    val total = summary.rules.size
     summary.rules foreach {
       case cr: ClearRule =>
         output = ReachingFactsAnalysisHelper.aggregate(output)
@@ -68,10 +66,7 @@ object HeapSummaryProcessor {
         output --= heaps
         kill = true
       case br: BinaryRule =>
-        c += 1
-        println(s"$c/$total")
         output = ReachingFactsAnalysisHelper.aggregate(output)
-        println(output.size)
         val map = ReachingFactsAnalysisHelper.getFactMap(output)
         val facts = processBinaryRule(global, summary.sig, br, retOpt, recvOpt, args, map, context, extraFacts)
         br.ops match {
@@ -237,44 +232,6 @@ object HeapSummaryProcessor {
               currentSlots = inss.map(FieldSlot(_, fa.fieldName))
             case _: SuArrayAccess =>
               currentSlots = inss.map(ArraySlot)
-            case ma: SuMapAccess =>
-              val keys: ISet[Instance] = ma.rhsOpt match {
-                case Some(rhs) =>
-                  val rhsInss = processRhs(global, sig, rhs, retOpt, recvOpt, args, input, context, extraFacts, isReturn = false)
-                  if (isLhs) rhsInss
-                  else {
-                    val rhsTyps = rhsInss.map(i => i.typ)
-                    val instances: MSet[Instance] = msetEmpty
-                    input foreach {
-                      case (k: MapSlot, _) if rhsTyps.contains(k.key.typ) =>
-                        instances += k.key
-                      case _ =>
-                    }
-                    if(instances.isEmpty) { // try to find the key, if does not find, insert the key back to continue the flow.
-                      rhsInss.foreach { i =>
-                        inss.foreach{ ins =>
-                          extraFacts += RFAFact(FieldSlot(ins, "key"), i)
-                          extraFacts += RFAFact(MapSlot(ins, i), PTAInstance(JavaKnowledge.OBJECT.toUnknown, context))
-                        }
-                      }
-                      instances ++= rhsInss
-                    }
-                    instances.toSet
-                  }
-                case None =>
-                  val instances: MSet[Instance] = msetEmpty
-                  input foreach {
-                    case (k: MapSlot, _) if inss.contains(k.ins) =>
-                      instances += k.key
-                    case _ =>
-                  }
-                  instances.toSet
-              }
-              currentSlots = inss.flatMap { ins =>
-                keys.map { key =>
-                  MapSlot(ins, key)
-                }
-              }
           }
         }
         slots ++= currentSlots
@@ -295,8 +252,6 @@ object HeapSummaryProcessor {
         require(as.instance.typ.dimensions > 0, "Array type dimensions should larger than 0.")
         val typ = JawaType(as.instance.typ.baseType, as.instance.typ.dimensions - 1)
         Some(Instance.getInstance(typ, context, toUnknown = true))
-      case _: MapSlot =>
-        Some(Instance.getInstance(JavaKnowledge.OBJECT, context, toUnknown = true))
       case _ => None // should not be here
     }
   }

@@ -220,18 +220,6 @@ public class SafsuBaseListener implements SafsuListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterMapAccess(SafsuParser.MapAccessContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitMapAccess(SafsuParser.MapAccessContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
 	@Override public void enterInstance(SafsuParser.InstanceContext ctx) { }
 	/**
 	 * {@inheritDoc}
