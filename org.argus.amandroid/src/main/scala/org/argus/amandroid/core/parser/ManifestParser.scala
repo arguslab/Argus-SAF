@@ -28,7 +28,7 @@ import org.argus.jawa.core.JawaType
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
  * @author <a href="mailto:sroy@k-state.edu">Sankardas Roy</a>
  */ 
-final case class ComponentInfo(compType: JawaType, typ: ComponentType.Value, exported: Boolean, enabled: Boolean, permission: ISet[String])
+final case class ComponentInfo(compType: JawaType, typ: ComponentType.Value, exported: Boolean, enabled: Boolean, permission: ISet[String], meta_datas: IMap[String, String])
 
 object ComponentType extends Enumeration {
   val ACTIVITY, SERVICE, RECEIVER, PROVIDER = Value
@@ -51,6 +51,7 @@ class ManifestParser{
   private val componentPermission: MMap[JawaType, String] = mmapEmpty
   private val componentExported: MMap[JawaType, String] = mmapEmpty
   private val componentEnabled: MMap[JawaType, String] = mmapEmpty
+  private val componentMetaData: MMap[JawaType, IMap[String, String]] = mmapEmpty
   private var currentIntentFilter: IntentFilter = _
 
   private def buildIntentDB(intentFilter: IntentFilter): Unit = {
@@ -80,9 +81,8 @@ class ManifestParser{
       val permissions = rootElement.getElementsByTagName("uses-permission")
       for (i <- 0 until permissions.getLength) {
         val permission = permissions.item(i).asInstanceOf[Element]
-        headerNames.foreach {
-          header =>
-            this.permissions += permission.getAttribute(header + "name")
+        headerNames.foreach { header =>
+          this.permissions += permission.getAttribute(header + "name")
         }
       }
 
@@ -172,7 +172,8 @@ class ManifestParser{
           }
           val permission = this.componentPermission.getOrElse(compType, this.applicationPermission)
           val compermission: ISet[String] = if(permission != null && !permission.isEmpty) Set(permission) else Set()
-          this.componentInfos += ComponentInfo(compType, typ, exported, enabled, compermission)
+          val metamap: IMap[String, String] = this.componentMetaData.getOrElse(compType, imapEmpty)
+          this.componentInfos += ComponentInfo(compType, typ, exported, enabled, compermission, metamap)
       }
     } catch {
       case ex: IOException =>
@@ -214,6 +215,17 @@ class ManifestParser{
     val enabled = ManifestParser.getAttribute(comp, "enabled", ret_null = false, this.headerNames.toSet)
     if(!enabled.isEmpty){
       this.componentEnabled += (classType -> enabled)
+    }
+    val metadatas = comp.getElementsByTagName("meta-data")
+    val metamap: MMap[String, String] = mmapEmpty
+    for (i <- 0 until metadatas.getLength) {
+      val metadata = metadatas.item(i).asInstanceOf[Element]
+      val key = ManifestParser.getAttribute(metadata, "name", ret_null = false, this.headerNames.toSet)
+      val value = ManifestParser.getAttribute(metadata, "value", ret_null = false, this.headerNames.toSet)
+      metamap(key) = value
+    }
+    if(this.currentComponent != null) {
+      this.componentMetaData += (this.currentComponent -> metamap.toMap)
     }
     val intentfs = comp.getElementsByTagName("intent-filter")
     for (i <- 0 until intentfs.getLength) {
@@ -476,10 +488,9 @@ object ManifestParser {
   
   def getAttribute(comp: Element, name: String, ret_null: Boolean, headerNames: ISet[String]): String = {
     var res: String = if(ret_null) null else ""
-    headerNames.foreach {
-      header =>
-        val x = comp.getAttribute(header + name)
-        if(!x.isEmpty) res = x
+    headerNames.foreach { header =>
+      val x = comp.getAttribute(header + name)
+      if(!x.isEmpty) res = x
     }
     res
   }
