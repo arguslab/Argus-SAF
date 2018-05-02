@@ -14,8 +14,10 @@ import java.io.PrintWriter
 
 import org.argus.amandroid.alir.componentSummary.{ApkYard, ComponentBasedAnalysis}
 import org.argus.amandroid.alir.dataRecorder.DataCollector
+import org.argus.amandroid.alir.pta.model.AndroidModelCallHandler
+import org.argus.amandroid.alir.pta.summaryBasedAnalysis.AndroidSummaryProvider
 import org.argus.amandroid.alir.taintAnalysis.DataLeakageAndroidSourceAndSinkManager
-import org.argus.amandroid.core.AndroidGlobalConfig
+import org.argus.amandroid.core.{AndroidGlobalConfig, ApkGlobal}
 import org.argus.amandroid.core.decompile.{DecompileLayout, DecompileStrategy, DecompilerSettings}
 import org.argus.amandroid.plugin.communication.CommunicationSourceAndSinkManager
 import org.argus.amandroid.plugin.dataInjection.IntentInjectionSourceAndSinkManager
@@ -25,11 +27,17 @@ import org.argus.jawa.alir.taintAnalysis.TaintAnalysisResult
 import org.argus.jawa.core.Reporter
 import org.argus.jawa.core.util.FileUtil
 import org.argus.jawa.core.util._
+import org.argus.jawa.summary.store.TaintStore
+import org.argus.jawa.summary.taint.BottomUpTaintAnalysis
 
 import scala.concurrent.duration._
 import scala.language.postfixOps
 
-case class TaintAnalysisTask(module: TaintAnalysisModules.Value, fileUris: ISet[(FileResourceUri, FileResourceUri)], forceDelete: Boolean, reporter: Reporter, guessPackage: Boolean) {
+object TaintAnalysisApproach extends Enumeration {
+  val COMPONENT_BASED, BOTTOM_UP = Value
+}
+
+case class TaintAnalysisTask(module: TaintAnalysisModules.Value, fileUris: ISet[(FileResourceUri, FileResourceUri)], forceDelete: Boolean, reporter: Reporter, guessPackage: Boolean, approach: TaintAnalysisApproach.Value) {
   import TaintAnalysisModules._
 //  private final val TITLE = "TaintAnalysisTask"
   def run: Option[TaintAnalysisResult] = {
@@ -52,11 +60,37 @@ case class TaintAnalysisTask(module: TaintAnalysisModules.Value, fileUris: ISet[
       case COMMUNICATION_LEAKAGE =>
         new CommunicationSourceAndSinkManager(AndroidGlobalConfig.settings.sas_file)
     }
-    ComponentBasedAnalysis.prepare(apks)(AndroidGlobalConfig.settings.timeout minutes)
-    val cba = new ComponentBasedAnalysis(yard)
-    cba.phase1(apks)
-    val iddResult = cba.phase2(apks)
-    val tar = cba.phase3(iddResult, ssm)
+    approach match {
+      case TaintAnalysisApproach.BOTTOM_UP =>
+        var tar: Option[TaintStore] = None
+        apks.foreach { apk =>
+          val ta = new BottomUpTaintAnalysis[ApkGlobal](apk, new AndroidSummaryProvider(apk), new AndroidModelCallHandler, ssm, reporter)
+          val eps = apk.model.getEnvMap.map(_._2._1).toSet
+          val taintMap = ta.process(eps)
+          taintMap.foreach { case (_, t) =>
+            tar match {
+              case Some(ts) =>
+                ts.merge(t)
+              case None =>
+                tar = Some(t)
+                apk.addTaintAnalysisResult(t)
+            }
+          }
+        }
+        writeResult(apks)
+        tar
+      case TaintAnalysisApproach.COMPONENT_BASED =>
+        ComponentBasedAnalysis.prepare(apks)(AndroidGlobalConfig.settings.timeout minutes)
+        val cba = new ComponentBasedAnalysis(yard)
+        cba.phase1(apks)
+        val iddResult = cba.phase2(apks)
+        val tar = cba.phase3(iddResult, ssm)
+        writeResult(apks)
+        tar
+    }
+  }
+
+  private def writeResult(apks: ISet[ApkGlobal]): Unit = {
     apks.foreach { apk =>
       val appData = DataCollector.collect(apk)
       val outputDirUri = FileUtil.appendFileName(apk.model.layout.outputSrcUri, "result")
@@ -66,6 +100,5 @@ case class TaintAnalysisTask(module: TaintAnalysisModules.Value, fileUris: ISet[
       out.print(appData.toString)
       out.close()
     }
-    tar
   }
 }

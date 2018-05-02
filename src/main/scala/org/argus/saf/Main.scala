@@ -13,7 +13,7 @@ package org.argus.saf
 import org.apache.commons.cli._
 import org.argus.amandroid.core.AndroidGlobalConfig
 import org.argus.amandroid.core.decompile.DecompileLevel
-import org.argus.amandroid.plugin.{ApiMisuseModules, TaintAnalysisModules}
+import org.argus.amandroid.plugin.{ApiMisuseModules, TaintAnalysisApproach, TaintAnalysisModules}
 import org.argus.saf.cli._
 
 /**
@@ -36,6 +36,7 @@ object Main extends App {
 
     val debugDecOption: Option = Option.builder("d").longOpt("debug").desc("Output debug information.").build()
     val guessPackageOption: Option = Option.builder("g").longOpt("guess").desc("Guess application package prefixes.").build()
+    val bottomupOption: Option = Option.builder("bu").longOpt("bottom-up").desc("Use bottom up analysis approach.").build()
     val outputOption: Option = Option.builder("o").longOpt("output").desc("Set output directory. [Default: .]").hasArg(true).argName("dir").build()
     val forceDeleteOption: Option = Option.builder("f").longOpt("force").desc("Force delete previous decompile result. [Default: false]").build()
     val srclevelOption: Option = Option.builder("sl").longOpt("src-level").desc("Application code decompile level. [Default: UNTYPED, Choices: (NO, SIGNATURE, UNTYPED, TYPED)]").hasArg(true).argName("level").build()
@@ -64,12 +65,14 @@ object Main extends App {
 
     taintOptions.addOptionGroup(generalOptionGroup)
     taintOptions.addOption(taintmoduleOption)
+    taintOptions.addOption(bottomupOption)
 
     apiMisuseOptions.addOptionGroup(generalOptionGroup)
     apiMisuseOptions.addOption(apimoduleOption)
 
     allOptions.addOption(versionOption)
     allOptions.addOption(guessPackageOption)
+    allOptions.addOption(bottomupOption)
     allOptions.addOption(debugDecOption)
     allOptions.addOption(outputOption)
     allOptions.addOption(forceDeleteOption)
@@ -215,6 +218,7 @@ object Main extends App {
     var outputPath: String = "."
     var forceDelete: Boolean = false
     var module: TaintAnalysisModules.Value = TaintAnalysisModules.DATA_LEAKAGE
+    var approach: TaintAnalysisApproach.Value = TaintAnalysisApproach.COMPONENT_BASED
     if(cli.hasOption("d") || cli.hasOption("debug")) {
       debug = true
     }
@@ -236,6 +240,9 @@ object Main extends App {
         case "COMMUNICATION_LEAKAGE" => TaintAnalysisModules.COMMUNICATION_LEAKAGE
       }
     }
+    if(cli.hasOption("bu") || cli.hasOption("bottom-up")) {
+      approach = TaintAnalysisApproach.BOTTOM_UP
+    }
     var sourcePath: String = null
 
     try {
@@ -245,7 +252,7 @@ object Main extends App {
         usage(Mode.TAINT)
         System.exit(0)
     }
-    TaintAnalysis(module, debug, sourcePath, outputPath, forceDelete, guessPackage)
+    TaintAnalysis(module, debug, sourcePath, outputPath, forceDelete, guessPackage, approach)
   }
 
   private def cmdApiMisuse(cli: CommandLine): Unit = {
