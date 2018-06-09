@@ -15,7 +15,7 @@ before_install:
       exit
     fi
 script:
-- sbt clean compile "test-only -- -l org.scalatest.tags.Slow"
+- sbt clean compile "testOnly -- -l org.scalatest.tags.Slow"
 sudo: false
 cache:
   directories:

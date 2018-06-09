@@ -119,8 +119,8 @@ trait JavaKnowledge {
   /**
    * input ("java.lang.String", 1) output Type
    */
-  protected def getType(typ: String, dimentions: Int): JawaType = {
-    new JawaType(typ, dimentions)
+  protected def getType(typ: String, dimensions: Int): JawaType = {
+    new JawaType(typ, dimensions)
   }
   
   /**

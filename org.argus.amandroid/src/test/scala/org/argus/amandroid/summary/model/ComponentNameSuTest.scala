@@ -21,41 +21,41 @@ import org.argus.jawa.core.{JavaKnowledge, JawaType}
 class ComponentNameSuTest extends SuTestBase("ComponentName.safsu") {
 
   val thisInstance = PTAInstance(new JawaType(AndroidConstants.COMPONENT_NAME), defContext)
-  val thisFact = new RFAFact(VarSlot("v0"), thisInstance)
+  val thisFact = RFAFact(VarSlot("v0"), thisInstance)
   val thisMClassInstance = PTAConcreteStringInstance("my.Class", defContext)
-  val thisMClassFact = new RFAFact(FieldSlot(thisInstance, "mClass"), thisMClassInstance)
+  val thisMClassFact = RFAFact(FieldSlot(thisInstance, "mClass"), thisMClassInstance)
 
   "Landroid/content/ComponentName;.<clinit>:()V" with_input () produce ()
 
   "Landroid/content/ComponentName;.<init>:(Landroid/content/Context;Ljava/lang/Class;)V" with_input (
     thisFact,
-    new RFAFact(VarSlot("v2"), PTAInstance(JavaKnowledge.CLASS, defContext2)),
-    new RFAFact(FieldSlot(PTAInstance(JavaKnowledge.CLASS, defContext2), "name"), PTAConcreteStringInstance("my.Class", defContext2))
+    RFAFact(VarSlot("v2"), PTAInstance(JavaKnowledge.CLASS, defContext2)),
+    RFAFact(FieldSlot(PTAInstance(JavaKnowledge.CLASS, defContext2), "name"), PTAConcreteStringInstance("my.Class", defContext2))
   ) produce (
     thisFact,
-    new RFAFact(VarSlot("v2"), PTAInstance(JavaKnowledge.CLASS, defContext2)),
-    new RFAFact(FieldSlot(PTAInstance(JavaKnowledge.CLASS, defContext2), "name"), PTAConcreteStringInstance("my.Class", defContext2)),
-    new RFAFact(FieldSlot(thisInstance, "mClass"), PTAConcreteStringInstance("my.Class", defContext2))
+    RFAFact(VarSlot("v2"), PTAInstance(JavaKnowledge.CLASS, defContext2)),
+    RFAFact(FieldSlot(PTAInstance(JavaKnowledge.CLASS, defContext2), "name"), PTAConcreteStringInstance("my.Class", defContext2)),
+    RFAFact(FieldSlot(thisInstance, "mClass"), PTAConcreteStringInstance("my.Class", defContext2))
   )
 
   "Landroid/content/ComponentName;.<init>:(Landroid/content/Context;Ljava/lang/String;)V" with_input (
     thisFact,
-    new RFAFact(VarSlot("v2"), PTAConcreteStringInstance("my.Class", defContext2)),
+    RFAFact(VarSlot("v2"), PTAConcreteStringInstance("my.Class", defContext2)),
   ) produce (
     thisFact,
-    new RFAFact(VarSlot("v2"), PTAConcreteStringInstance("my.Class", defContext2)),
-    new RFAFact(FieldSlot(thisInstance, "mClass"), PTAConcreteStringInstance("my.Class", defContext2))
+    RFAFact(VarSlot("v2"), PTAConcreteStringInstance("my.Class", defContext2)),
+    RFAFact(FieldSlot(thisInstance, "mClass"), PTAConcreteStringInstance("my.Class", defContext2))
   )
 
   "Landroid/content/ComponentName;.<init>:(Landroid/os/Parcel;)V" with_input () produce ()
 
   "Landroid/content/ComponentName;.<init>:(Ljava/lang/String;Ljava/lang/String;)V" with_input (
     thisFact,
-    new RFAFact(VarSlot("v2"), PTAConcreteStringInstance("my.Class", defContext2)),
+    RFAFact(VarSlot("v2"), PTAConcreteStringInstance("my.Class", defContext2)),
   ) produce (
     thisFact,
-    new RFAFact(VarSlot("v2"), PTAConcreteStringInstance("my.Class", defContext2)),
-    new RFAFact(FieldSlot(thisInstance, "mClass"), PTAConcreteStringInstance("my.Class", defContext2))
+    RFAFact(VarSlot("v2"), PTAConcreteStringInstance("my.Class", defContext2)),
+    RFAFact(FieldSlot(thisInstance, "mClass"), PTAConcreteStringInstance("my.Class", defContext2))
   )
 
   "Landroid/content/ComponentName;.clone:()Landroid/content/ComponentName;" with_input (
@@ -64,7 +64,7 @@ class ComponentNameSuTest extends SuTestBase("ComponentName.safsu") {
   ) produce (
     thisFact,
     thisMClassFact,
-    new RFAFact(VarSlot("temp"), thisInstance)
+    RFAFact(VarSlot("temp"), thisInstance)
   )
 
   "Landroid/content/ComponentName;.clone:()Ljava/lang/Object;" with_input (
@@ -73,7 +73,7 @@ class ComponentNameSuTest extends SuTestBase("ComponentName.safsu") {
   ) produce (
     thisFact,
     thisMClassFact,
-    new RFAFact(VarSlot("temp"), thisInstance)
+    RFAFact(VarSlot("temp"), thisInstance)
   )
 
   "Landroid/content/ComponentName;.compareTo:(Landroid/content/ComponentName;)I" with_input () produce ()
@@ -90,7 +90,7 @@ class ComponentNameSuTest extends SuTestBase("ComponentName.safsu") {
   ) produce (
     thisFact,
     thisMClassFact,
-    new RFAFact(VarSlot("temp"), thisMClassInstance)
+    RFAFact(VarSlot("temp"), thisMClassInstance)
   )
 
   "Landroid/content/ComponentName;.flattenToString:()Ljava/lang/String;" with_input (
@@ -99,7 +99,7 @@ class ComponentNameSuTest extends SuTestBase("ComponentName.safsu") {
   ) produce (
     thisFact,
     thisMClassFact,
-    new RFAFact(VarSlot("temp"), thisMClassInstance)
+    RFAFact(VarSlot("temp"), thisMClassInstance)
   )
 
   "Landroid/content/ComponentName;.getClassName:()Ljava/lang/String;" with_input (
@@ -108,7 +108,7 @@ class ComponentNameSuTest extends SuTestBase("ComponentName.safsu") {
   ) produce (
     thisFact,
     thisMClassFact,
-    new RFAFact(VarSlot("temp"), thisMClassInstance)
+    RFAFact(VarSlot("temp"), thisMClassInstance)
   )
 
   "Landroid/content/ComponentName;.getPackageName:()Ljava/lang/String;" with_input (
@@ -117,7 +117,7 @@ class ComponentNameSuTest extends SuTestBase("ComponentName.safsu") {
   ) produce (
     thisFact,
     thisMClassFact,
-    new RFAFact(VarSlot("temp"), PTAPointStringInstance(currentContext))
+    RFAFact(VarSlot("temp"), PTAPointStringInstance(currentContext))
   )
 
   "Landroid/content/ComponentName;.getShortClassName:()Ljava/lang/String;" with_input (
@@ -126,7 +126,7 @@ class ComponentNameSuTest extends SuTestBase("ComponentName.safsu") {
   ) produce (
     thisFact,
     thisMClassFact,
-    new RFAFact(VarSlot("temp"), thisMClassInstance)
+    RFAFact(VarSlot("temp"), thisMClassInstance)
   )
 
   "Landroid/content/ComponentName;.hashCode:()I" with_input () produce ()
@@ -137,8 +137,8 @@ class ComponentNameSuTest extends SuTestBase("ComponentName.safsu") {
   ) produce (
     thisFact,
     thisMClassFact,
-    new RFAFact(VarSlot("temp"), PTAInstance(new JawaType(AndroidConstants.COMPONENT_NAME), currentContext)),
-    new RFAFact(FieldSlot(PTAInstance(new JawaType(AndroidConstants.COMPONENT_NAME), currentContext), "mClass"), PTAPointStringInstance(currentContext))
+    RFAFact(VarSlot("temp"), PTAInstance(new JawaType(AndroidConstants.COMPONENT_NAME), currentContext)),
+    RFAFact(FieldSlot(PTAInstance(new JawaType(AndroidConstants.COMPONENT_NAME), currentContext), "mClass"), PTAPointStringInstance(currentContext))
   )
 
   "Landroid/content/ComponentName;.toShortString:()Ljava/lang/String;" with_input (
@@ -147,7 +147,7 @@ class ComponentNameSuTest extends SuTestBase("ComponentName.safsu") {
   ) produce (
     thisFact,
     thisMClassFact,
-    new RFAFact(VarSlot("temp"), thisMClassInstance)
+    RFAFact(VarSlot("temp"), thisMClassInstance)
   )
 
   "Landroid/content/ComponentName;.toString:()Ljava/lang/String;" with_input (
@@ -156,7 +156,7 @@ class ComponentNameSuTest extends SuTestBase("ComponentName.safsu") {
   ) produce (
     thisFact,
     thisMClassFact,
-    new RFAFact(VarSlot("temp"), thisMClassInstance)
+    RFAFact(VarSlot("temp"), thisMClassInstance)
   )
 
   "Landroid/content/ComponentName;.unflattenFromString:(Ljava/lang/String;)Landroid/content/ComponentName;" with_input (
@@ -165,8 +165,8 @@ class ComponentNameSuTest extends SuTestBase("ComponentName.safsu") {
   ) produce (
     thisFact,
     thisMClassFact,
-    new RFAFact(VarSlot("temp"), PTAInstance(new JawaType(AndroidConstants.COMPONENT_NAME), currentContext)),
-    new RFAFact(FieldSlot(PTAInstance(new JawaType(AndroidConstants.COMPONENT_NAME), currentContext), "mClass"), PTAPointStringInstance(currentContext))
+    RFAFact(VarSlot("temp"), PTAInstance(new JawaType(AndroidConstants.COMPONENT_NAME), currentContext)),
+    RFAFact(FieldSlot(PTAInstance(new JawaType(AndroidConstants.COMPONENT_NAME), currentContext), "mClass"), PTAPointStringInstance(currentContext))
   )
 
   "Landroid/content/ComponentName;.writeToParcel:(Landroid/content/ComponentName;Landroid/os/Parcel;)V" with_input () produce ()

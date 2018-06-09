@@ -18,20 +18,19 @@ import org.json4s.native.JsonMethods._
 object PTASlotKeySerializer extends CustomKeySerializer[PTASlot](format => (
     {
       case str: String =>
-        implicit val formats = format + InstanceSerializer + SignatureSerializer + JawaTypeSerializer + FieldFQNSerializer
+        implicit val formats: Formats = format + InstanceSerializer + SignatureSerializer + JawaTypeSerializer + FieldFQNSerializer
         val jv = parse(str)
         jv match {
           case JObject(List(JField("VarSlot", v))) => Extraction.extract[VarSlot](v)
           case JObject(List(JField("StaticFieldSlot", v))) => Extraction.extract[StaticFieldSlot](v)
           case JObject(List(JField("FieldSlot", v))) => Extraction.extract[FieldSlot](v)
           case JObject(List(JField("ArraySlot", v))) => Extraction.extract[ArraySlot](v)
-          case JObject(List(JField("MapSlot", v))) => Extraction.extract[MapSlot](v)
           case JObject(List(JField("InstanceSlot", v))) => Extraction.extract[InstanceSlot](v)
           case JObject(List(JField("InvokeSlot", v))) => Extraction.extract[InvokeSlot](v)
         }
     }, {
       case slot: PTASlot =>
-        implicit val formats = format + InstanceSerializer + SignatureSerializer + JawaTypeSerializer + FieldFQNSerializer
+        implicit val formats: Formats = format + InstanceSerializer + SignatureSerializer + JawaTypeSerializer + FieldFQNSerializer
         slot match {
           case s: VarSlot =>
             compact(render("VarSlot" -> Extraction.decompose(s)))
@@ -41,8 +40,6 @@ object PTASlotKeySerializer extends CustomKeySerializer[PTASlot](format => (
             compact(render("FieldSlot" -> ("ins" -> Extraction.decompose(s.ins)) ~ ("fieldName" -> Extraction.decompose(s.fieldName))))
           case s: ArraySlot =>
             compact(render("ArraySlot" -> ("ins" -> Extraction.decompose(s.ins))))
-          case s: MapSlot =>
-            compact(render("MapSlot" -> ("ins" -> Extraction.decompose(s.ins)) ~ ("key" -> Extraction.decompose(s.key))))
           case s: InstanceSlot =>
             compact(render("InstanceSlot" -> ("ins" -> Extraction.decompose(s.ins))))
           case s: InvokeSlot =>

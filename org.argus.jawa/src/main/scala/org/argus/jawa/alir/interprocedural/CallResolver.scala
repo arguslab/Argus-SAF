@@ -14,7 +14,7 @@ import org.argus.jawa.alir.{AlirNode, Context}
 import org.argus.jawa.alir.cfg.{ICFGCallNode, ICFGNode, ICFGReturnNode, InterProceduralControlFlowGraph}
 import org.argus.jawa.alir.pta.{Instance, PTAResult, VarSlot}
 import org.argus.jawa.alir.pta.model.ModelCallHandler
-import org.argus.jawa.alir.pta.rfa.{RFAFact, ReachingFactsAnalysisHelper, SimHeap}
+import org.argus.jawa.alir.pta.rfa.{RFAFact, ReachingFactsAnalysisHelper}
 import org.argus.jawa.ast.{CallStatement, Location, ReturnStatement}
 import org.argus.jawa.core.{Global, JawaMethod, Signature}
 import org.argus.jawa.core.util._
@@ -40,7 +40,7 @@ class MethodCallResolver(
     ptaresult: PTAResult,
     icfg: InterProceduralControlFlowGraph[ICFGNode],
     sm: SummaryManager,
-    handler: ModelCallHandler)(implicit heap: SimHeap) extends CallResolver[ICFGNode, RFAFact] {
+    handler: ModelCallHandler) extends CallResolver[ICFGNode, RFAFact] {
   val pureNormalFlagMap: MMap[ICFGNode, Boolean] = mmapEmpty
   val returnMap: MMap[Signature, VarSlot] = mmapEmpty
 
@@ -55,7 +55,7 @@ class MethodCallResolver(
     val icfgReturnnode = icfg.getICFGReturnNode(callerContext)
     icfgReturnnode.asInstanceOf[ICFGReturnNode].setCalleeSet(calleeSet.map(_.asInstanceOf[Callee]))
     var calleeFactsMap: IMap[ICFGNode, ISet[RFAFact]] = imapEmpty
-    var returnFacts: ISet[RFAFact] = s
+    var returnFacts: ISet[RFAFact] = ReachingFactsAnalysisHelper.aggregate(s)
     val genSet: MSet[RFAFact] = msetEmpty
     val killSet: MSet[RFAFact] = msetEmpty
     var pureNormalFlag = pureNormalFlagMap.getOrElseUpdate(callerNode, true)
@@ -67,7 +67,7 @@ class MethodCallResolver(
       val calleep = global.getMethodOrResolve(calleeSig).get
       if (handler.isModelCall(calleep)) {
         pureNormalFlag = false
-        returnFacts = handler.doModelCall(sm, s, calleep, cs.lhsOpt.map(lhs => lhs.name), cs.recvOpt, cs.args, callerContext)
+        returnFacts = handler.doModelCall(sm, returnFacts, calleep, cs.lhsOpt.map(lhs => lhs.name), cs.recvOpt, cs.args, callerContext)
       } else {
         // for normal call
         if (calleep.isConcrete) {
@@ -75,9 +75,9 @@ class MethodCallResolver(
             icfg.collectCfgToBaseGraph[String](calleep, callerContext, isFirst = false, needReturnNode())
             icfg.extendGraph(calleeSig, callerContext, needReturnNode = true)
           }
-          val factsForCallee = getFactsForCallee(s, cs, calleep, callerContext)
+          val factsForCallee = getFactsForCallee(returnFacts, cs, calleep, callerContext)
           killSet ++= factsForCallee
-          calleeFactsMap += (icfg.entryNode(calleeSig, callerContext) -> callee.mapFactsToCallee(factsForCallee, args, (calleep.thisOpt ++ calleep.getParamNames).toList, heap))
+          calleeFactsMap += (icfg.entryNode(calleeSig, callerContext) -> callee.mapFactsToCallee(factsForCallee, args, (calleep.thisOpt ++ calleep.getParamNames).toList))
         }
       }
     }
@@ -89,7 +89,7 @@ class MethodCallResolver(
     cs.lhsOpt match {
       case Some(lhs) =>
         val slotsWithMark = ReachingFactsAnalysisHelper.processLHS(lhs, callerContext, ptaresult).toSet
-        for (rdf <- s) {
+        for (rdf <- returnFacts) {
           //if it is a strong definition, we can kill the existing definition
           if (slotsWithMark.contains(rdf.s, true)) {
             killSet += rdf
@@ -109,9 +109,8 @@ class MethodCallResolver(
       val arg = args(i)
       val slot = VarSlot(arg)
       val value = ptaresult.pointsToSet(callerContext, slot)
-      calleeFacts ++= value.map { r => new RFAFact(VarSlot(slot.varName), r) }
-      val instnums = value.map(heap.getInstanceNum)
-      calleeFacts ++= ReachingFactsAnalysisHelper.getRelatedHeapFacts(instnums, s)
+      calleeFacts ++= value.map { r => RFAFact(VarSlot(slot.varName), r) }
+      calleeFacts ++= ReachingFactsAnalysisHelper.getRelatedHeapFacts(value, s)
     }
     calleeFacts.toSet
   }
@@ -161,9 +160,8 @@ class MethodCallResolver(
               if (paramSlots.isDefinedAt(i) && paramSlots(i) == s)
                 values += v
           }
-          result ++= values.map(v => new RFAFact(argSlot, v))
-          val insnums = values.map(heap.getInstanceNum)
-          result ++= ReachingFactsAnalysisHelper.getRelatedHeapFacts(insnums, calleeS)
+          result ++= values.map(v => RFAFact(argSlot, v))
+          result ++= ReachingFactsAnalysisHelper.getRelatedHeapFacts(values, calleeS)
         }
         // kill the strong update for caller return node
         cs.lhsOpt match {
@@ -188,9 +186,8 @@ class MethodCallResolver(
                 }
             }
           }
-          result ++= values.map(v => new RFAFact(lhsSlot, v))
-          val insnums = values.map(heap.getInstanceNum)
-          result ++= ReachingFactsAnalysisHelper.getRelatedHeapFacts(insnums, calleeS)
+          result ++= values.map(v => RFAFact(lhsSlot, v))
+          result ++= ReachingFactsAnalysisHelper.getRelatedHeapFacts(values, calleeS)
         }
       case _: ICFGNode =>
     }
@@ -205,7 +202,7 @@ class ModelCallResolver(
     ptaresult: PTAResult,
     icfg: InterProceduralControlFlowGraph[ICFGNode],
     sm: SummaryManager,
-    handler: ModelCallHandler)(implicit heap: SimHeap) extends CallResolver[ICFGNode, RFAFact] {
+    handler: ModelCallHandler) extends CallResolver[ICFGNode, RFAFact] {
   /**
     * It returns the facts for each callee entry node and caller return node
     */
@@ -228,7 +225,7 @@ class ModelCallResolver(
       case None =>
     }
 
-    var returnFacts: ISet[RFAFact] = s -- killSet
+    var returnFacts: ISet[RFAFact] = ReachingFactsAnalysisHelper.aggregate(s -- killSet)
     calleeSet.foreach { callee =>
       val calleeSig: Signature = callee.callee
       icfg.getCallGraph.addCall(callerNode.getOwner, calleeSig)
@@ -237,16 +234,16 @@ class ModelCallResolver(
         case Some(summary) =>
           returnFacts = HeapSummaryProcessor.process(global, summary, cs.lhsOpt.map(lhs => lhs.name), cs.recvOpt, cs.args, returnFacts, callerContext)
         case None => // might be due to randomly broken loop
-          if(handler.isModelCall(calleep)) {
-            returnFacts = handler.doModelCall(sm, returnFacts, calleep, cs.lhsOpt.map(lhs => lhs.name), cs.recvOpt, cs.args, callerContext)
-          } else {
-            callee match {
-              case _: IndirectCallee =>
-                // TODO: handle indirect callee here
-              case _ =>
+          callee match {
+            case _: IndirectCallee =>
+              // TODO: handle indirect callee here
+            case _ =>
+              if(handler.isModelCall(calleep)) {
+                returnFacts = handler.doModelCall(sm, returnFacts, calleep, cs.lhsOpt.map(lhs => lhs.name), cs.recvOpt, cs.args, callerContext)
+              } else {
                 val (newF, delF) = ReachingFactsAnalysisHelper.getUnknownObject(calleep, returnFacts, cs.lhsOpt.map(lhs => lhs.name), cs.recvOpt, cs.args, callerContext)
                 returnFacts = returnFacts -- delF ++ newF
-            }
+              }
           }
       }
     }

@@ -19,13 +19,13 @@ import org.argus.jawa.core.JavaKnowledge
   */
 class ObjectSuTest extends SuTestBase("Object.safsu") {
   val thisInstance = PTAInstance(JavaKnowledge.OBJECT, defContext)
-  val thisFact = new RFAFact(VarSlot("v0"), thisInstance)
+  val thisFact = RFAFact(VarSlot("v0"), thisInstance)
 
   "Ljava/lang/Object;.<init>:()V" with_input thisFact produce thisFact
 
   "Ljava/lang/Object;.clone:()Ljava/lang/Object;" with_input thisFact produce (
     thisFact,
-    new RFAFact(VarSlot("temp"), thisInstance)
+    RFAFact(VarSlot("temp"), thisInstance)
   )
 
   "Ljava/lang/Object;.equals:(Ljava/lang/Object;)B" with_input thisFact produce thisFact
@@ -34,8 +34,8 @@ class ObjectSuTest extends SuTestBase("Object.safsu") {
 
   "Ljava/lang/Object;.getClass:()Ljava/lang/Class;"with_input thisFact produce (
     thisFact,
-    new RFAFact(VarSlot("temp"), PTAInstance(JavaKnowledge.CLASS, currentContext)),
-    new RFAFact(FieldSlot(PTAInstance(JavaKnowledge.CLASS, currentContext), "name"), PTAConcreteStringInstance("java.lang.Object", currentContext))
+    RFAFact(VarSlot("temp"), PTAInstance(JavaKnowledge.CLASS, currentContext)),
+    RFAFact(FieldSlot(PTAInstance(JavaKnowledge.CLASS, currentContext), "name"), PTAConcreteStringInstance("java.lang.Object", currentContext))
   )
 
   "Ljava/lang/Object;.hashCode:()I" with_input thisFact produce thisFact
@@ -46,7 +46,7 @@ class ObjectSuTest extends SuTestBase("Object.safsu") {
 
   "Ljava/lang/Object;.toString:()Ljava/lang/String;" with_input thisFact produce (
     thisFact,
-    new RFAFact(VarSlot("temp"), PTAPointStringInstance(currentContext))
+    RFAFact(VarSlot("temp"), PTAPointStringInstance(currentContext))
   )
 
   "Ljava/lang/Object;.wait:()V" with_input thisFact produce thisFact

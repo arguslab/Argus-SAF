@@ -178,16 +178,6 @@ public interface SafsuListener extends ParseTreeListener {
 	 */
 	void exitArrayAccess(SafsuParser.ArrayAccessContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link SafsuParser#mapAccess}.
-	 * @param ctx the parse tree
-	 */
-	void enterMapAccess(SafsuParser.MapAccessContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link SafsuParser#mapAccess}.
-	 * @param ctx the parse tree
-	 */
-	void exitMapAccess(SafsuParser.MapAccessContext ctx);
-	/**
 	 * Enter a parse tree produced by {@link SafsuParser#instance}.
 	 * @param ctx the parse tree
 	 */

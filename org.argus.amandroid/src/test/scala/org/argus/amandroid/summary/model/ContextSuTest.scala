@@ -21,11 +21,11 @@ import org.argus.jawa.core.{JavaKnowledge, JawaType}
 class ContextSuTest extends SuTestBase("Context.safsu") {
 
   val thisInstance = PTAInstance(new JawaType(AndroidConstants.ACTIVITY), defContext)
-  val thisFact = new RFAFact(VarSlot("v0"), thisInstance)
+  val thisFact = RFAFact(VarSlot("v0"), thisInstance)
   val thisBaseInstance = PTAInstance(new JawaType(AndroidConstants.CONTEXT).toUnknown, defContext)
-  val thisBaseFact = new RFAFact(FieldSlot(thisInstance, "mBase"), thisBaseInstance)
+  val thisBaseFact = RFAFact(FieldSlot(thisInstance, "mBase"), thisBaseInstance)
   val thisMIntentInstance = PTAInstance(new JawaType(AndroidConstants.INTENT), defContext)
-  val thisMIntentFact = new RFAFact(FieldSlot(thisInstance, "mIntent"), thisMIntentInstance)
+  val thisMIntentFact = RFAFact(FieldSlot(thisInstance, "mIntent"), thisMIntentInstance)
 
   "Landroid/content/Context;.getSystemService:(Ljava/lang/String;)Ljava/lang/Object;" with_input (
     thisFact,
@@ -33,7 +33,7 @@ class ContextSuTest extends SuTestBase("Context.safsu") {
   ) produce (
     thisFact,
     thisBaseFact,
-    new RFAFact(VarSlot("temp"), PTAInstance(JavaKnowledge.OBJECT.toUnknown, currentContext))
+    RFAFact(VarSlot("temp"), PTAInstance(JavaKnowledge.OBJECT.toUnknown, currentContext))
   )
 
   "Landroid/content/Context;.getBaseContext:()Landroid/content/Context;" with_input (
@@ -42,7 +42,7 @@ class ContextSuTest extends SuTestBase("Context.safsu") {
   ) produce (
     thisFact,
     thisBaseFact,
-    new RFAFact(VarSlot("temp"), thisBaseInstance)
+    RFAFact(VarSlot("temp"), thisBaseInstance)
   )
 
   "Landroid/content/Context;.getApplicationContext:()Landroid/content/Context;" with_input (
@@ -51,7 +51,7 @@ class ContextSuTest extends SuTestBase("Context.safsu") {
   ) produce (
     thisFact,
     thisBaseFact,
-    new RFAFact(VarSlot("temp"), thisBaseInstance)
+    RFAFact(VarSlot("temp"), thisBaseInstance)
   )
 
   "Landroid/content/ContextWrapper;.registerReceiver:(Landroid/content/BroadcastReceiver;Landroid/content/IntentFilter;)Landroid/content/Intent;" with_input (
@@ -62,7 +62,7 @@ class ContextSuTest extends SuTestBase("Context.safsu") {
     thisFact,
     thisBaseFact,
     thisMIntentFact,
-    new RFAFact(VarSlot("temp"), thisMIntentInstance)
+    RFAFact(VarSlot("temp"), thisMIntentInstance)
   )
 
   "Landroid/content/ContextWrapper;.registerReceiver:(Landroid/content/BroadcastReceiver;Landroid/content/IntentFilter;Ljava/lang/String;Landroid/os/Handler;)Landroid/content/Intent;" with_input (
@@ -73,6 +73,6 @@ class ContextSuTest extends SuTestBase("Context.safsu") {
     thisFact,
     thisBaseFact,
     thisMIntentFact,
-    new RFAFact(VarSlot("temp"), thisMIntentInstance)
+    RFAFact(VarSlot("temp"), thisMIntentInstance)
   )
 }

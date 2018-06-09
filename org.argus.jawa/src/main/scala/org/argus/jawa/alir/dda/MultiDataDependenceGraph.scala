@@ -35,7 +35,6 @@ class MultiDataDependenceGraph[Node <: IDDGNode] extends DataDependenceBaseGraph
     this.synchronized{
       loadedSet += iddg.entryNode.asInstanceOf[IDDGEntryNode]
       icfg.merge(iddg.icfg)
-      this.pl ++= iddg.pool
       iddg.nodes.foreach(addNode)
       iddg.edges.foreach(addEdge)
     }

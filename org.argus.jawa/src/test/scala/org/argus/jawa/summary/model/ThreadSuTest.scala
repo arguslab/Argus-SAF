@@ -20,86 +20,86 @@ import org.argus.jawa.core.{JavaKnowledge, JawaType}
 class ThreadSuTest extends SuTestBase("Thread.safsu") {
 
   val thisInstance = PTAInstance(JavaKnowledge.THREAD, defContext)
-  val thisFact = new RFAFact(VarSlot("v0"), thisInstance)
+  val thisFact = RFAFact(VarSlot("v0"), thisInstance)
   val thisRunnableInstance = PTAInstance(new JawaType("java.lang.Runnable").toUnknown, defContext)
-  val thisRunnableFact = new RFAFact(FieldSlot(thisInstance, "runnable"), thisRunnableInstance)
+  val thisRunnableFact = RFAFact(FieldSlot(thisInstance, "runnable"), thisRunnableInstance)
   val thisNameInstance = PTAConcreteStringInstance("myThread", defContext)
-  val thisNameFact = new RFAFact(FieldSlot(thisInstance, "name"), thisNameInstance)
+  val thisNameFact = RFAFact(FieldSlot(thisInstance, "name"), thisNameInstance)
   val thisHandlerInstance = PTAInstance(new JawaType("java.lang.Thread$UncaughtExceptionHandler"), defContext)
-  val thisHandlerFact = new RFAFact(FieldSlot(thisInstance, "handler"), thisHandlerInstance)
+  val thisHandlerFact = RFAFact(FieldSlot(thisInstance, "handler"), thisHandlerInstance)
 
   "Ljava/lang/Thread;.<init>:()V" with_input (
     thisFact,
   ) produce (
     thisFact,
-    new RFAFact(FieldSlot(thisInstance, "runnable"), thisInstance),
-    new RFAFact(FieldSlot(thisInstance, "name"), PTAPointStringInstance(currentContext))
+    RFAFact(FieldSlot(thisInstance, "runnable"), thisInstance),
+    RFAFact(FieldSlot(thisInstance, "name"), PTAPointStringInstance(currentContext))
   )
 
   "Ljava/lang/Thread;.<init>:(Ljava/lang/Runnable;)V" with_input (
     thisFact,
-    new RFAFact(VarSlot("v1"), PTAInstance(new JawaType("java.lang.Runnable").toUnknown, defContext2))
+    RFAFact(VarSlot("v1"), PTAInstance(new JawaType("java.lang.Runnable").toUnknown, defContext2))
   ) produce (
     thisFact,
-    new RFAFact(VarSlot("v1"), PTAInstance(new JawaType("java.lang.Runnable").toUnknown, defContext2)),
-    new RFAFact(FieldSlot(thisInstance, "runnable"), PTAInstance(new JawaType("java.lang.Runnable").toUnknown, defContext2)),
-    new RFAFact(FieldSlot(thisInstance, "name"), PTAPointStringInstance(currentContext))
+    RFAFact(VarSlot("v1"), PTAInstance(new JawaType("java.lang.Runnable").toUnknown, defContext2)),
+    RFAFact(FieldSlot(thisInstance, "runnable"), PTAInstance(new JawaType("java.lang.Runnable").toUnknown, defContext2)),
+    RFAFact(FieldSlot(thisInstance, "name"), PTAPointStringInstance(currentContext))
   )
 
   "Ljava/lang/Thread;.<init>:(Ljava/lang/Runnable;Ljava/lang/String;)V" with_input (
     thisFact,
-    new RFAFact(VarSlot("v1"), PTAInstance(new JawaType("java.lang.Runnable").toUnknown, defContext2)),
-    new RFAFact(VarSlot("v2"), PTAConcreteStringInstance("HelloThread", defContext3))
+    RFAFact(VarSlot("v1"), PTAInstance(new JawaType("java.lang.Runnable").toUnknown, defContext2)),
+    RFAFact(VarSlot("v2"), PTAConcreteStringInstance("HelloThread", defContext3))
   ) produce (
     thisFact,
-    new RFAFact(VarSlot("v1"), PTAInstance(new JawaType("java.lang.Runnable").toUnknown, defContext2)),
-    new RFAFact(VarSlot("v2"), PTAConcreteStringInstance("HelloThread", defContext3)),
-    new RFAFact(FieldSlot(thisInstance, "runnable"), PTAInstance(new JawaType("java.lang.Runnable").toUnknown, defContext2)),
-    new RFAFact(FieldSlot(thisInstance, "name"), PTAConcreteStringInstance("HelloThread", defContext3))
+    RFAFact(VarSlot("v1"), PTAInstance(new JawaType("java.lang.Runnable").toUnknown, defContext2)),
+    RFAFact(VarSlot("v2"), PTAConcreteStringInstance("HelloThread", defContext3)),
+    RFAFact(FieldSlot(thisInstance, "runnable"), PTAInstance(new JawaType("java.lang.Runnable").toUnknown, defContext2)),
+    RFAFact(FieldSlot(thisInstance, "name"), PTAConcreteStringInstance("HelloThread", defContext3))
   )
 
   "Ljava/lang/Thread;.<init>:(Ljava/lang/String;)V" with_input (
     thisFact,
-    new RFAFact(VarSlot("v1"), PTAConcreteStringInstance("HelloThread", defContext2))
+    RFAFact(VarSlot("v1"), PTAConcreteStringInstance("HelloThread", defContext2))
   ) produce (
     thisFact,
-    new RFAFact(VarSlot("v1"), PTAConcreteStringInstance("HelloThread", defContext2)),
-    new RFAFact(FieldSlot(thisInstance, "runnable"), thisInstance),
-    new RFAFact(FieldSlot(thisInstance, "name"), PTAConcreteStringInstance("HelloThread", defContext2))
+    RFAFact(VarSlot("v1"), PTAConcreteStringInstance("HelloThread", defContext2)),
+    RFAFact(FieldSlot(thisInstance, "runnable"), thisInstance),
+    RFAFact(FieldSlot(thisInstance, "name"), PTAConcreteStringInstance("HelloThread", defContext2))
   )
 
   "Ljava/lang/Thread;.<init>:(Ljava/lang/ThreadGroup;Ljava/lang/Runnable;Ljava/lang/String;)V" with_input (
     thisFact,
-    new RFAFact(VarSlot("v2"), PTAInstance(new JawaType("java.lang.Runnable").toUnknown, defContext2)),
-    new RFAFact(VarSlot("v3"), PTAConcreteStringInstance("HelloThread", defContext3))
+    RFAFact(VarSlot("v2"), PTAInstance(new JawaType("java.lang.Runnable").toUnknown, defContext2)),
+    RFAFact(VarSlot("v3"), PTAConcreteStringInstance("HelloThread", defContext3))
   ) produce (
     thisFact,
-    new RFAFact(VarSlot("v2"), PTAInstance(new JawaType("java.lang.Runnable").toUnknown, defContext2)),
-    new RFAFact(VarSlot("v3"), PTAConcreteStringInstance("HelloThread", defContext3)),
-    new RFAFact(FieldSlot(thisInstance, "runnable"), PTAInstance(new JawaType("java.lang.Runnable").toUnknown, defContext2)),
-    new RFAFact(FieldSlot(thisInstance, "name"), PTAConcreteStringInstance("HelloThread", defContext3))
+    RFAFact(VarSlot("v2"), PTAInstance(new JawaType("java.lang.Runnable").toUnknown, defContext2)),
+    RFAFact(VarSlot("v3"), PTAConcreteStringInstance("HelloThread", defContext3)),
+    RFAFact(FieldSlot(thisInstance, "runnable"), PTAInstance(new JawaType("java.lang.Runnable").toUnknown, defContext2)),
+    RFAFact(FieldSlot(thisInstance, "name"), PTAConcreteStringInstance("HelloThread", defContext3))
   )
 
   "Ljava/lang/Thread;.<init>:(Ljava/lang/ThreadGroup;Ljava/lang/Runnable;Ljava/lang/String;J)V" with_input (
     thisFact,
-    new RFAFact(VarSlot("v2"), PTAInstance(new JawaType("java.lang.Runnable").toUnknown, defContext2)),
-    new RFAFact(VarSlot("v3"), PTAConcreteStringInstance("HelloThread", defContext3))
+    RFAFact(VarSlot("v2"), PTAInstance(new JawaType("java.lang.Runnable").toUnknown, defContext2)),
+    RFAFact(VarSlot("v3"), PTAConcreteStringInstance("HelloThread", defContext3))
   ) produce (
     thisFact,
-    new RFAFact(VarSlot("v2"), PTAInstance(new JawaType("java.lang.Runnable").toUnknown, defContext2)),
-    new RFAFact(VarSlot("v3"), PTAConcreteStringInstance("HelloThread", defContext3)),
-    new RFAFact(FieldSlot(thisInstance, "runnable"), PTAInstance(new JawaType("java.lang.Runnable").toUnknown, defContext2)),
-    new RFAFact(FieldSlot(thisInstance, "name"), PTAConcreteStringInstance("HelloThread", defContext3))
+    RFAFact(VarSlot("v2"), PTAInstance(new JawaType("java.lang.Runnable").toUnknown, defContext2)),
+    RFAFact(VarSlot("v3"), PTAConcreteStringInstance("HelloThread", defContext3)),
+    RFAFact(FieldSlot(thisInstance, "runnable"), PTAInstance(new JawaType("java.lang.Runnable").toUnknown, defContext2)),
+    RFAFact(FieldSlot(thisInstance, "name"), PTAConcreteStringInstance("HelloThread", defContext3))
   )
 
   "Ljava/lang/Thread;.<init>:(Ljava/lang/ThreadGroup;Ljava/lang/String;)V" with_input (
     thisFact,
-    new RFAFact(VarSlot("v2"), PTAConcreteStringInstance("HelloThread", defContext2))
+    RFAFact(VarSlot("v2"), PTAConcreteStringInstance("HelloThread", defContext2))
   ) produce (
     thisFact,
-    new RFAFact(VarSlot("v2"), PTAConcreteStringInstance("HelloThread", defContext2)),
-    new RFAFact(FieldSlot(thisInstance, "runnable"), thisInstance),
-    new RFAFact(FieldSlot(thisInstance, "name"), PTAConcreteStringInstance("HelloThread", defContext2))
+    RFAFact(VarSlot("v2"), PTAConcreteStringInstance("HelloThread", defContext2)),
+    RFAFact(FieldSlot(thisInstance, "runnable"), thisInstance),
+    RFAFact(FieldSlot(thisInstance, "name"), PTAConcreteStringInstance("HelloThread", defContext2))
   )
 
   "Ljava/lang/Thread;.activeCount:()I" with_input () produce ()
@@ -114,12 +114,12 @@ class ThreadSuTest extends SuTestBase("Thread.safsu") {
     thisFact,
     thisRunnableFact,
     thisNameFact,
-    new RFAFact(VarSlot("temp"), thisInstance)
+    RFAFact(VarSlot("temp"), thisInstance)
   )
 
   "Ljava/lang/Thread;.countStackFrames:()I" with_input () produce ()
 
-  "Ljava/lang/Thread;.currentThread:()Ljava/lang/Thread;" with_input () produce new RFAFact(VarSlot("temp"), PTAInstance(JavaKnowledge.THREAD.toUnknown, currentContext))
+  "Ljava/lang/Thread;.currentThread:()Ljava/lang/Thread;" with_input () produce RFAFact(VarSlot("temp"), PTAInstance(JavaKnowledge.THREAD.toUnknown, currentContext))
 
   "Ljava/lang/Thread;.destroy:()V" with_input () produce ()
 
@@ -135,11 +135,11 @@ class ThreadSuTest extends SuTestBase("Thread.safsu") {
     thisFact,
     thisRunnableFact,
     thisNameFact,
-    new RFAFact(VarSlot("temp"), PTAInstance(new JawaType("java.util.HashMap"), currentContext)),
-    new RFAFact(FieldSlot(PTAInstance(new JawaType("java.util.HashMap"), currentContext), "entries"), PTAInstance(new JawaType("java.util.HashMap$Entries"), currentContext)),
-    new RFAFact(FieldSlot(PTAInstance(new JawaType("java.util.HashMap$Entries"), currentContext), "key"), PTAInstance(JavaKnowledge.THREAD.toUnknown, currentContext)),
-    new RFAFact(MapSlot(PTAInstance(new JawaType("java.util.HashMap$Entries"), currentContext), PTAInstance(JavaKnowledge.THREAD.toUnknown, currentContext)), PTAInstance(new JawaType("java.lang.StackTrackElement", 1), currentContext)),
-    new RFAFact(ArraySlot(PTAInstance(new JawaType("java.lang.StackTrackElement", 1), currentContext)), PTAInstance(new JawaType("java.lang.StackTrackElement"), currentContext))
+    RFAFact(VarSlot("temp"), PTAInstance(new JawaType("java.util.HashMap"), currentContext)),
+    RFAFact(FieldSlot(PTAInstance(new JawaType("java.util.HashMap"), currentContext), "entries"), PTAInstance(new JawaType("java.util.HashMap$Entries"), currentContext)),
+    RFAFact(FieldSlot(PTAInstance(new JawaType("java.util.HashMap$Entries"), currentContext), "key"), PTAInstance(JavaKnowledge.THREAD.toUnknown, currentContext)),
+    RFAFact(FieldSlot(PTAInstance(new JawaType("java.util.HashMap$Entries"), currentContext), "value"), PTAInstance(new JawaType("java.lang.StackTrackElement", 1), currentContext)),
+    RFAFact(ArraySlot(PTAInstance(new JawaType("java.lang.StackTrackElement", 1), currentContext)), PTAInstance(new JawaType("java.lang.StackTrackElement"), currentContext))
   )
 
   "Ljava/lang/Thread;.getContextClassLoader:()Ljava/lang/ClassLoader;" with_input (
@@ -150,7 +150,7 @@ class ThreadSuTest extends SuTestBase("Thread.safsu") {
     thisFact,
     thisRunnableFact,
     thisNameFact,
-    new RFAFact(VarSlot("temp"), PTAInstance(new JawaType("java.lang.ClassLoader").toUnknown, currentContext))
+    RFAFact(VarSlot("temp"), PTAInstance(new JawaType("java.lang.ClassLoader").toUnknown, currentContext))
   )
 
   "Ljava/lang/Thread;.getDefaultUncaughtExceptionHandler:()Ljava/lang/Thread$UncaughtExceptionHandler;" with_input (
@@ -163,7 +163,7 @@ class ThreadSuTest extends SuTestBase("Thread.safsu") {
     thisRunnableFact,
     thisNameFact,
     thisHandlerFact,
-    new RFAFact(VarSlot("temp"), thisHandlerInstance)
+    RFAFact(VarSlot("temp"), thisHandlerInstance)
   )
 
   "Ljava/lang/Thread;.getId:()J" with_input () produce ()
@@ -176,7 +176,7 @@ class ThreadSuTest extends SuTestBase("Thread.safsu") {
     thisFact,
     thisRunnableFact,
     thisNameFact,
-    new RFAFact(VarSlot("temp"), thisNameInstance)
+    RFAFact(VarSlot("temp"), thisNameInstance)
   )
 
   "Ljava/lang/Thread;.getPriority:()I" with_input () produce ()
@@ -189,8 +189,8 @@ class ThreadSuTest extends SuTestBase("Thread.safsu") {
     thisFact,
     thisRunnableFact,
     thisNameFact,
-    new RFAFact(VarSlot("temp"), PTAInstance(new JawaType("java.lang.StackTraceElement", 1), currentContext)),
-    new RFAFact(ArraySlot(PTAInstance(new JawaType("java.lang.StackTraceElement", 1), currentContext)), PTAInstance(new JawaType("java.lang.StackTraceElement"), currentContext))
+    RFAFact(VarSlot("temp"), PTAInstance(new JawaType("java.lang.StackTraceElement", 1), currentContext)),
+    RFAFact(ArraySlot(PTAInstance(new JawaType("java.lang.StackTraceElement", 1), currentContext)), PTAInstance(new JawaType("java.lang.StackTraceElement"), currentContext))
   )
 
   "Ljava/lang/Thread;.getState:()Ljava/lang/Thread$State;" with_input (
@@ -201,7 +201,7 @@ class ThreadSuTest extends SuTestBase("Thread.safsu") {
     thisFact,
     thisRunnableFact,
     thisNameFact,
-    new RFAFact(VarSlot("temp"), PTAInstance(new JawaType("java.lang.Thread$State"), currentContext))
+    RFAFact(VarSlot("temp"), PTAInstance(new JawaType("java.lang.Thread$State"), currentContext))
   )
 
   "Ljava/lang/Thread;.getThreadGroup:()Ljava/lang/ThreadGroup;" with_input (
@@ -212,7 +212,7 @@ class ThreadSuTest extends SuTestBase("Thread.safsu") {
     thisFact,
     thisRunnableFact,
     thisNameFact,
-    new RFAFact(VarSlot("temp"), PTAInstance(new JawaType("java.lang.ThreadGroup"), currentContext))
+    RFAFact(VarSlot("temp"), PTAInstance(new JawaType("java.lang.ThreadGroup"), currentContext))
   )
 
   "Ljava/lang/Thread;.getUncaughtExceptionHandler:()Ljava/lang/Thread$UncaughtExceptionHandler;" with_input (
@@ -225,7 +225,7 @@ class ThreadSuTest extends SuTestBase("Thread.safsu") {
     thisRunnableFact,
     thisNameFact,
     thisHandlerFact,
-    new RFAFact(VarSlot("temp"), thisHandlerInstance)
+    RFAFact(VarSlot("temp"), thisHandlerInstance)
   )
 
   "Ljava/lang/Thread;.holdsLock:(Ljava/lang/Object;)Z" with_input () produce ()
@@ -254,13 +254,13 @@ class ThreadSuTest extends SuTestBase("Thread.safsu") {
     thisFact,
     thisRunnableFact,
     thisNameFact,
-    new RFAFact(VarSlot("v1"), PTAInstance(new JawaType("java.lang.ClassLoader").toUnknown, defContext2))
+    RFAFact(VarSlot("v1"), PTAInstance(new JawaType("java.lang.ClassLoader").toUnknown, defContext2))
   ) produce (
     thisFact,
     thisRunnableFact,
     thisNameFact,
-    new RFAFact(VarSlot("v1"), PTAInstance(new JawaType("java.lang.ClassLoader").toUnknown, defContext2)),
-    new RFAFact(FieldSlot(thisInstance, "loader"), PTAInstance(new JawaType("java.lang.ClassLoader").toUnknown, defContext2))
+    RFAFact(VarSlot("v1"), PTAInstance(new JawaType("java.lang.ClassLoader").toUnknown, defContext2)),
+    RFAFact(FieldSlot(thisInstance, "loader"), PTAInstance(new JawaType("java.lang.ClassLoader").toUnknown, defContext2))
   )
 
   "Ljava/lang/Thread;.setDaemon:(Z)V" with_input () produce ()
@@ -270,26 +270,26 @@ class ThreadSuTest extends SuTestBase("Thread.safsu") {
     thisRunnableFact,
     thisNameFact,
     thisHandlerFact,
-    new RFAFact(VarSlot("v1"), PTAInstance(new JawaType("java.lang.Thread$UncaughtExceptionHandler"), defContext2))
+    RFAFact(VarSlot("v1"), PTAInstance(new JawaType("java.lang.Thread$UncaughtExceptionHandler"), defContext2))
   ) produce (
     thisFact,
     thisRunnableFact,
     thisNameFact,
     thisHandlerFact,
-    new RFAFact(VarSlot("v1"), PTAInstance(new JawaType("java.lang.Thread$UncaughtExceptionHandler"), defContext2)),
-    new RFAFact(FieldSlot(thisInstance, "handler"), PTAInstance(new JawaType("java.lang.Thread$UncaughtExceptionHandler"), defContext2))
+    RFAFact(VarSlot("v1"), PTAInstance(new JawaType("java.lang.Thread$UncaughtExceptionHandler"), defContext2)),
+    RFAFact(FieldSlot(thisInstance, "handler"), PTAInstance(new JawaType("java.lang.Thread$UncaughtExceptionHandler"), defContext2))
   )
 
   "Ljava/lang/Thread;.setName:(Ljava/lang/String;)V" with_input (
     thisFact,
     thisRunnableFact,
     thisNameFact,
-    new RFAFact(VarSlot("v1"), PTAConcreteStringInstance("newThread", defContext2))
+    RFAFact(VarSlot("v1"), PTAConcreteStringInstance("newThread", defContext2))
   ) produce (
     thisFact,
     thisRunnableFact,
-    new RFAFact(VarSlot("v1"), PTAConcreteStringInstance("newThread", defContext2)),
-    new RFAFact(FieldSlot(thisInstance, "name"), PTAConcreteStringInstance("newThread", defContext2))
+    RFAFact(VarSlot("v1"), PTAConcreteStringInstance("newThread", defContext2)),
+    RFAFact(FieldSlot(thisInstance, "name"), PTAConcreteStringInstance("newThread", defContext2))
   )
 
   "Ljava/lang/Thread;.setPriority:(I)V" with_input () produce ()
@@ -299,14 +299,14 @@ class ThreadSuTest extends SuTestBase("Thread.safsu") {
     thisRunnableFact,
     thisNameFact,
     thisHandlerFact,
-    new RFAFact(VarSlot("v1"), PTAInstance(new JawaType("java.lang.Thread$UncaughtExceptionHandler"), defContext2))
+    RFAFact(VarSlot("v1"), PTAInstance(new JawaType("java.lang.Thread$UncaughtExceptionHandler"), defContext2))
   ) produce (
     thisFact,
     thisRunnableFact,
     thisNameFact,
     thisHandlerFact,
-    new RFAFact(VarSlot("v1"), PTAInstance(new JawaType("java.lang.Thread$UncaughtExceptionHandler"), defContext2)),
-    new RFAFact(FieldSlot(thisInstance, "handler"), PTAInstance(new JawaType("java.lang.Thread$UncaughtExceptionHandler"), defContext2))
+    RFAFact(VarSlot("v1"), PTAInstance(new JawaType("java.lang.Thread$UncaughtExceptionHandler"), defContext2)),
+    RFAFact(FieldSlot(thisInstance, "handler"), PTAInstance(new JawaType("java.lang.Thread$UncaughtExceptionHandler"), defContext2))
   )
 
   "Ljava/lang/Thread;.sleep:(J)V" with_input () produce ()
@@ -329,7 +329,7 @@ class ThreadSuTest extends SuTestBase("Thread.safsu") {
     thisFact,
     thisRunnableFact,
     thisNameFact,
-    new RFAFact(VarSlot("temp"), thisNameInstance)
+    RFAFact(VarSlot("temp"), thisNameInstance)
   )
 
   "Ljava/lang/Thread;.yield:()V" with_input () produce ()

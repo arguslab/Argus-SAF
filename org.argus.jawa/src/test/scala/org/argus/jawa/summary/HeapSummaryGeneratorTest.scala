@@ -13,12 +13,12 @@ package org.argus.jawa.summary
 import hu.ssh.progressbar.console.ConsoleProgressBar
 import org.argus.jawa.alir.pta.PTAScopeManager
 import org.argus.jawa.alir.pta.model.ModelCallHandler
-import org.argus.jawa.alir.pta.rfa.SimHeap
 import org.argus.jawa.alir.reachability.SignatureBasedCallGraph
 import org.argus.jawa.core._
 import org.argus.jawa.core.util._
 import org.argus.jawa.summary.susaf.rule.HeapSummary
 import org.argus.jawa.summary.wu.{HeapSummaryWu, WorkUnit}
+import org.scalatest.tagobjects.Slow
 import org.scalatest.{FlatSpec, Matchers}
 
 import scala.language.implicitConversions
@@ -27,7 +27,7 @@ import scala.language.implicitConversions
   * Created by fgwei on 6/30/17.
   */
 class HeapSummaryGeneratorTest extends FlatSpec with Matchers {
-  final val DEBUG = true
+  final val DEBUG = false
 
   implicit def file(file: String): TestFile = {
     new TestFile(file)
@@ -79,7 +79,7 @@ class HeapSummaryGeneratorTest extends FlatSpec with Matchers {
   "/jawa/summary/SingleFunction.jawa" ep "Lcom/hugo/test/SingleFunction;.put:(Ljava/util/Map;)Ljava/lang/String;" produce (
     """`Lcom/hugo/test/SingleFunction;.put:(Ljava/util/Map;)Ljava/lang/String;`:
       |  arg:1.entries.key += "key"@L1
-      |  arg:1.entries(arg:1.entries.key) += "value"@L2
+      |  arg:1.entries.value += "value"@L2
       |  ret = arg:1.entries.key
       |;
     """.stripMargin.trim.intern()
@@ -108,10 +108,12 @@ class HeapSummaryGeneratorTest extends FlatSpec with Matchers {
   "/jawa/summary/MultiFunction.jawa" ep "Lcom/hugo/test/MultiFunction;.testGlobalMap:()V" produce (
     """`Lcom/hugo/test/MultiFunction;.testGlobalMap:()V`:
       |  `com.hugo.test.MultiFunction.map`.entries.key += "key"@L1
-      |  `com.hugo.test.MultiFunction.map`.entries(`com.hugo.test.MultiFunction.map`.entries.key) += "value"@L2
+      |  `com.hugo.test.MultiFunction.map`.entries.value += "value"@L2
       |;
     """.stripMargin.trim.intern()
     )
+
+  "/jawa/summary/MCnToSpell.jawa" ep "Lcom/i4joy/core/MCnToSpell;.init:()V" run()
 
   class TestFile(file: String) {
     var entrypoint: Signature = _
@@ -123,9 +125,27 @@ class HeapSummaryGeneratorTest extends FlatSpec with Matchers {
       this
     }
 
+    def run(): Unit = {
+      file should s"finish for $entrypoint" taggedAs Slow in {
+        val reporter = if(DEBUG) new PrintReporter(MsgLevel.INFO) else new PrintReporter(MsgLevel.NO)
+        val global = new Global("Test", reporter)
+        global.setJavaLib(getClass.getResource("/libs/android.jar").getPath)
+        global.load(FileUtil.toUri(getClass.getResource(file).getPath))
+        val sm: SummaryManager = new JawaSummaryProvider(global).getSummaryManager
+        val cg = SignatureBasedCallGraph(global, Set(entrypoint), None)
+        val analysis = new BottomUpSummaryGenerator[Global](global, sm, handler,
+          HeapSummary(_, _),
+          ConsoleProgressBar.on(System.out).withFormat("[:bar] :percent% :elapsed Left: :remain"))
+        val orderedWUs: IList[WorkUnit[Global]] = cg.topologicalSort(true).map { sig =>
+          val method = global.getMethodOrResolve(sig).getOrElse(throw new RuntimeException("Method does not exist: " + sig))
+          new HeapSummaryWu(global, method, sm, handler)
+        }
+        analysis.build(orderedWUs)
+      }
+    }
+
     def produce(rule: String): Unit = {
       file should s"produce expected summary for $entrypoint" in {
-        implicit val heap: SimHeap = new SimHeap
         val reporter = if(DEBUG) new PrintReporter(MsgLevel.INFO) else new PrintReporter(MsgLevel.NO)
         val global = new Global("Test", reporter)
         global.setJavaLib(getClass.getResource("/libs/android.jar").getPath)

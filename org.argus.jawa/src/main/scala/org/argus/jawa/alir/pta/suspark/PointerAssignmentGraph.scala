@@ -179,7 +179,6 @@ class PointerAssignmentGraph[Node <: PtaNode]
    * combine two pags into one.
    */ 
   def combinePags(pag2: PointerAssignmentGraph[Node]): Unit = {
-    pl ++= pag2.pool
     pag2.nodes.foreach(addNode)
     pag2.edges.foreach(addEdge)
     this.processed ++= pag2.getProcessed

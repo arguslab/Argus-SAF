@@ -244,14 +244,14 @@ class AndroidEnvironmentGenerator(global: Global) extends MethodGenerator(global
     createIfStmt(onBindFragment, onRebindFragment)
     // lifecycle 2 end.
     
-    // 3 | 5. onDestory:
-    val onDestoryFragment = new CodeFragmentGenerator
-    onDestoryFragment.addLabel()
-    codeFragments.add(onDestoryFragment)
-    searchAndBuildMethodCall(AndroidEntryPointConstants.SERVICE_ONDESTROY, clazz, entryPoints, constructionStack, onDestoryFragment)
+    // 3 | 5. onDestroy:
+    val onDestroyFragment = new CodeFragmentGenerator
+    onDestroyFragment.addLabel()
+    codeFragments.add(onDestroyFragment)
+    searchAndBuildMethodCall(AndroidEntryPointConstants.SERVICE_ONDESTROY, clazz, entryPoints, constructionStack, onDestroyFragment)
     // either begin or end or next class:
-    createIfStmt(onCreateFragment, onDestoryFragment)
-    createIfStmt(endClassFragment, onDestoryFragment)
+    createIfStmt(onCreateFragment, onDestroyFragment)
+    createIfStmt(endClassFragment, onDestroyFragment)
   }
 
   private def activityLifeCycleGenerator(entryPoints: MList[Signature], clazz: JawaClass, endClassFragment: CodeFragmentGenerator, classLocalVar: String, codefg: CodeFragmentGenerator) = {
@@ -293,7 +293,7 @@ class AndroidEnvironmentGenerator(global: Global) extends MethodGenerator(global
     searchAndBuildMethodCall(AndroidEntryPointConstants.ACTIVITY_ONPAUSE, clazz, entryPoints, constructionStack, onPauseFragment)
     searchAndBuildMethodCall(AndroidEntryPointConstants.ACTIVITY_ONCREATEDESCRIPTION, clazz, entryPoints, constructionStack, onPauseFragment)
     searchAndBuildMethodCall(AndroidEntryPointConstants.ACTIVITY_ONSAVEINSTANCESTATE, clazz, entryPoints, constructionStack, onPauseFragment)
-    // goto onDestory, onRestart or onCreate:
+    // goto onDestroy, onRestart or onCreate:
     val onStopFragment = new CodeFragmentGenerator
     createIfStmt(onStopFragment, onPauseFragment)
     createIfStmt(onResumeFragment, onPauseFragment)
@@ -303,10 +303,10 @@ class AndroidEnvironmentGenerator(global: Global) extends MethodGenerator(global
     onStopFragment.addLabel()
     codeFragments.add(onStopFragment)
     searchAndBuildMethodCall(AndroidEntryPointConstants.ACTIVITY_ONSTOP, clazz, entryPoints, constructionStack, onStopFragment)
-    //goto onDestory, onRestart or onCreate:
-    val onDestoryFragment = new CodeFragmentGenerator
+    //goto onDestroy, onRestart or onCreate:
+    val onDestroyFragment = new CodeFragmentGenerator
     val onRestartFragment = new CodeFragmentGenerator
-    createIfStmt(onDestoryFragment, onStopFragment)
+    createIfStmt(onDestroyFragment, onStopFragment)
     createIfStmt(onRestartFragment, onStopFragment)
     createIfStmt(onCreateFragment, onStopFragment)
     
@@ -318,12 +318,12 @@ class AndroidEnvironmentGenerator(global: Global) extends MethodGenerator(global
       createGotoStmt(onStartFragment, onRestartFragment)
     }
     
-    // 7. onDestory:
-    onDestoryFragment.addLabel()
-    codeFragments.add(onDestoryFragment)
-    searchAndBuildMethodCall(AndroidEntryPointConstants.ACTIVITY_ONDESTROY, clazz, entryPoints, constructionStack, onDestoryFragment)
+    // 7. onDestroy:
+    onDestroyFragment.addLabel()
+    codeFragments.add(onDestroyFragment)
+    searchAndBuildMethodCall(AndroidEntryPointConstants.ACTIVITY_ONDESTROY, clazz, entryPoints, constructionStack, onDestroyFragment)
     
-    createIfStmt(endClassFragment, onDestoryFragment)
+    createIfStmt(endClassFragment, onDestroyFragment)
   }
 
   private def generateAllCallbacks(entryPoints: MList[Signature], clazz: JawaClass, classLocalVar: String): CodeFragmentGenerator = {

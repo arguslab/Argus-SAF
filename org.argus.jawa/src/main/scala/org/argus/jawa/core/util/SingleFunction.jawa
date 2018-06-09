@@ -1,0 +1,114 @@
+record `com.hugo.test.SingleFunction` @kind class @AccessFlag PUBLIC {
+    `java.util.Set` `com.hugo.test.SingleFunction.myset` @AccessFlag PUBLIC;
+    `com.hugo.test.SingleFunction` `com.hugo.test.SingleFunction.myself` @AccessFlag PUBLIC;
+    `com.hugo.test.SingleFunction`[] `com.hugo.test.SingleFunction.myarray` @AccessFlag PUBLIC;
+    `java.lang.String` `com.hugo.test.SingleFunction.str` @AccessFlag PUBLIC;
+}
+
+global `com.hugo.test.SingleFunction` `@@com.hugo.test.SingleFunction.myglobal` @AccessFlag PUBLIC_STATIC;
+
+procedure `void` `clearArg`(`java.util.Set` `set` @kind object) @signature `Lcom/hugo/test/SingleFunction;.clearArg:(Ljava/util/Set;)V` @AccessFlag PUBLIC_STATIC {
+
+  #L1.  call `clear`(`set`) @signature `Ljava/util/Set;.clear:()V` @kind virtual;
+  #L2.  return @kind void;
+}
+
+procedure `void` `clearField`(`com.hugo.test.SingleFunction` `sf` @kind object) @signature `Lcom/hugo/test/SingleFunction;.clearField:(Lcom/hugo/test/SingleFunction;)V` @AccessFlag PUBLIC_STATIC {
+    `java.util.Set` set_v0;
+
+  #L1.  set_v0:= `sf`.`com.hugo.test.SingleFunction.myset` @type ^`java.util.Set` @kind object;
+  #L2.  call `clear`(set_v0) @signature `Ljava/util/Set;.clear:()V` @kind virtual;
+  #L3.  return @kind void;
+}
+
+procedure `void` `clearArray`(`com.hugo.test.SingleFunction` `sf` @kind object) @signature `Lcom/hugo/test/SingleFunction;.clearArray:(Lcom/hugo/test/SingleFunction;)V` @AccessFlag PUBLIC_STATIC {
+    `com.hugo.test.SingleFunction`[] sf_v0_arr;
+    `com.hugo.test.SingleFunction` sf_v0;
+    `java.util.Set` set_v0;
+    `int` int_v1;
+
+  #L1.  sf_v0_arr:= `sf`.`com.hugo.test.SingleFunction.myarray` @type ^`com.hugo.test.SingleFunction`[] @kind object;
+  #L2.  int_v1:= 1I;
+  #L3.  sf_v0:=sf_v0_arr[int_v1] @kind object;
+  #L4.  set_v0:= sf_v0.`com.hugo.test.SingleFunction.myset` @type ^`java.util.Set` @kind object;
+  #L5.  call `clear`(set_v0) @signature `Ljava/util/Set;.clear:()V` @kind virtual;
+  #L6.  return @kind void;
+}
+
+procedure `void` `clearGlobal`() @signature `Lcom/hugo/test/SingleFunction;.clearGlobal:()V` @AccessFlag PUBLIC_STATIC {
+    `com.hugo.test.SingleFunction` sf_v0;
+    `java.util.Set` set_v0;
+
+  #L1.  sf_v0:= `@@com.hugo.test.SingleFunction.myglobal` @type ^`com.hugo.test.SingleFunction` @kind object;
+  #L2.  set_v0:= sf_v0.`com.hugo.test.SingleFunction.myset` @type ^`java.util.Set` @kind object;
+  #L3.  call `clear`(set_v0) @signature `Ljava/util/Set;.clear:()V` @kind virtual;
+  #L4.  return @kind void;
+}
+
+procedure `void` `clearHeaps`() @signature `Lcom/hugo/test/SingleFunction;.clearHeaps:()V` @AccessFlag PUBLIC_STATIC {
+    `com.hugo.test.SingleFunction`[] sf_v0_arr;
+    `com.hugo.test.SingleFunction` sf_v0;
+    `java.util.Set` set_v0;
+    `int` int_v1;
+
+  #L1.  sf_v0:= `@@com.hugo.test.SingleFunction.myglobal` @type ^`com.hugo.test.SingleFunction` @kind object;
+  #L2.  sf_v0_arr:= sf_v0.`com.hugo.test.SingleFunction.myarray` @type ^`com.hugo.test.SingleFunction`[] @kind object;
+  #L3.  int_v1:= 1I;
+  #L4.  sf_v0:=sf_v0_arr[int_v1] @kind object;
+  #L5.  sf_v0:= sf_v0.`com.hugo.test.SingleFunction.myself` @type ^`com.hugo.test.SingleFunction` @kind object;
+  #L6.  sf_v0:= sf_v0.`com.hugo.test.SingleFunction.myself` @type ^`com.hugo.test.SingleFunction` @kind object;
+  #L7.  sf_v0:= sf_v0.`com.hugo.test.SingleFunction.myself` @type ^`com.hugo.test.SingleFunction` @kind object;
+  #L8.  set_v0:= sf_v0.`com.hugo.test.SingleFunction.myset` @type ^`java.util.Set` @kind object;
+  #L9.  call `clear`(set_v0) @signature `Ljava/util/Set;.clear:()V` @kind virtual;
+  #L10. return @kind void;
+}
+
+procedure `java.lang.String` `add`(`java.util.Set` `set` @kind object) @signature `Lcom/hugo/test/SingleFunction;.add:(Ljava/util/Set;)Ljava/lang/String;` @AccessFlag PUBLIC_STATIC {
+    `boolean` temp;
+    `java.lang.String` String_v0;
+
+  #L1.  String_v0:= "Hello World!" @kind object;
+  #L2.  call temp:= `add`(`set`, String_v0) @signature `Ljava/util/Set;.add:(Ljava/lang/Object;)Z` @kind virtual;
+  #L3.  return String_v0 @kind object;
+}
+
+procedure `java.lang.String` `put`(`java.util.Map` `map` @kind object) @signature `Lcom/hugo/test/SingleFunction;.put:(Ljava/util/Map;)Ljava/lang/String;` @AccessFlag PUBLIC_STATIC {
+    `java.lang.Object` temp;
+    `java.lang.String` String_v0;
+    `java.lang.String` String_v1;
+
+  #L1.  String_v0:= "key" @kind object;
+  #L2.  String_v1:= "value" @kind object;
+  #L3.  call temp:= `put`(`map`, String_v0, String_v1) @signature `Ljava/util/Map;.put:(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;` @kind virtual;
+  #L4.  return String_v0 @kind object;
+}
+
+procedure `java.lang.String` `assign`(`com.hugo.test.SingleFunction` `this` @kind this) @signature `Lcom/hugo/test/SingleFunction;.assign:()Ljava/lang/String;` @AccessFlag PUBLIC {
+    `java.lang.String` String_v0;
+    `java.lang.String` String_v1;
+
+  #L1.  String_v0:= "Hello World!" @kind object;
+  #L2.  `this`.`com.hugo.test.SingleFunction.str` @type ^`java.lang.String` := String_v0 @kind object;
+  #L3.  String_v1:= `this`.`com.hugo.test.SingleFunction.str` @type ^`java.lang.String` @kind object;
+  #L4.  return String_v1 @kind object;
+}
+
+procedure `java.lang.String` `complex`(`com.hugo.test.SingleFunction` `this` @kind this, `com.hugo.test.SingleFunction` SingleFunction_v0 @kind object) @signature `Lcom/hugo/test/SingleFunction;.complex:(Lcom/hugo/test/SingleFunction;)Ljava/lang/String;` @AccessFlag PUBLIC {
+    `java.lang.String` String_v0;
+    `java.lang.String` String_v1;
+    `int` int_v0;
+    `java.lang.String`[] String_arr_v0;
+    `java.util.HashSet` hashset_v2;
+
+  #L1.  String_v0:= "Hello World!" @kind object;
+  #L2.  int_v0:= 0I;
+  #L3.  String_arr_v0:= `this`.`com.hugo.test.SingleFunction.myarray` @type ^`java.lang.String`[] @kind object;
+  #L4.  String_arr_v0[int_v0]:= String_v0 @kind object;
+  #L5.  String_v1:= "v1!" @kind object;
+  #L6.  `this`.`com.hugo.test.SingleFunction.str` @type ^`java.lang.String` := String_v1 @kind object;
+  #L7.  hashset_v2:= new `java.util.HashSet`;
+  #L8.  SingleFunction_v0.`com.hugo.test.SingleFunction.myset` @type^`java.util.Set` := hashset_v2 @kind object;
+  #L9.  call `add`(hashset_v2, String_v0) @signature `Ljava/util/Set;.add:(Ljava/lang/Object;)Z` @kind virtual;
+  #L10.  `this`.`com.hugo.test.SingleFunction.myself` @type ^`com.hugo.test.SingleFunction` := SingleFunction_v0 @kind object;
+  #L11.  return String_v1 @kind object;
+}

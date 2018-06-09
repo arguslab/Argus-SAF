@@ -11,9 +11,9 @@
 package org.argus.jawa.summary.model
 
 import org.argus.jawa.alir.Context
-import org.argus.jawa.alir.pta.rfa.{RFAFact, SimHeap}
-import org.argus.jawa.core.{DefaultReporter, Global, Signature}
+import org.argus.jawa.alir.pta.rfa.RFAFact
 import org.argus.jawa.core.util.{IList, ISet, isetEmpty}
+import org.argus.jawa.core.{DefaultReporter, Global, Signature}
 import org.argus.jawa.summary.SummaryManager
 import org.argus.jawa.summary.susaf.HeapSummaryProcessor
 import org.scalatest.{FlatSpec, Matchers}
@@ -24,7 +24,6 @@ import scala.language.implicitConversions
   * Created by fgwei on 6/16/17.
   */
 abstract class SuTestBase(fileName: String) extends FlatSpec with Matchers {
-  implicit val heap: SimHeap = new SimHeap
   val reporter = new DefaultReporter
   val global = new Global("Test", reporter)
   global.setJavaLib(getClass.getResource("/libs/android.jar").getPath)

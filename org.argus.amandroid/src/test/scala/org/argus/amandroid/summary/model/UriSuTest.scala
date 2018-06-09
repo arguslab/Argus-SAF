@@ -21,9 +21,9 @@ import org.argus.jawa.core.JawaType
 class UriSuTest extends SuTestBase("Uri.safsu") {
 
   val thisInstance = PTAInstance(new JawaType(AndroidConstants.URI), defContext)
-  val thisFact = new RFAFact(VarSlot("v0"), thisInstance)
+  val thisFact = RFAFact(VarSlot("v0"), thisInstance)
   val thisUriInstance = PTAConcreteStringInstance("content://org.arguslab", defContext)
-  val thisUriFact = new RFAFact(FieldSlot(thisInstance, "uri"), thisUriInstance)
+  val thisUriFact = RFAFact(FieldSlot(thisInstance, "uri"), thisUriInstance)
 
   "Landroid/net/Uri;.<clinit>:()V" with_input () produce ()
 
@@ -33,7 +33,7 @@ class UriSuTest extends SuTestBase("Uri.safsu") {
   ) produce (
     thisFact,
     thisUriFact,
-    new RFAFact(VarSlot("temp"), PTAInstance(new JawaType("android.net.Uri$Builder"), currentContext))
+    RFAFact(VarSlot("temp"), PTAInstance(new JawaType("android.net.Uri$Builder"), currentContext))
   )
 
   "Landroid/net/Uri;.compareTo:(Landroid/net/Uri;)I" with_input () produce ()
@@ -41,33 +41,33 @@ class UriSuTest extends SuTestBase("Uri.safsu") {
   "Landroid/net/Uri;.compareTo:(Ljava/lang/Object;)I" with_input () produce ()
 
   "Landroid/net/Uri;.decode:(Ljava/lang/String;)Ljava/lang/String;" with_input (
-    new RFAFact(VarSlot("v1"), PTAConcreteStringInstance("content://org.hugo", defContext2)),
+    RFAFact(VarSlot("v1"), PTAConcreteStringInstance("content://org.hugo", defContext2)),
   ) produce (
-    new RFAFact(VarSlot("v1"), PTAConcreteStringInstance("content://org.hugo", defContext2)),
-    new RFAFact(VarSlot("temp"), PTAConcreteStringInstance("content://org.hugo", defContext2))
+    RFAFact(VarSlot("v1"), PTAConcreteStringInstance("content://org.hugo", defContext2)),
+    RFAFact(VarSlot("temp"), PTAConcreteStringInstance("content://org.hugo", defContext2))
   )
 
   "Landroid/net/Uri;.encode:(Ljava/lang/String;)Ljava/lang/String;" with_input (
-    new RFAFact(VarSlot("v1"), PTAConcreteStringInstance("content://org.hugo", defContext2)),
+    RFAFact(VarSlot("v1"), PTAConcreteStringInstance("content://org.hugo", defContext2)),
   ) produce (
-    new RFAFact(VarSlot("v1"), PTAConcreteStringInstance("content://org.hugo", defContext2)),
-    new RFAFact(VarSlot("temp"), PTAConcreteStringInstance("content://org.hugo", defContext2))
+    RFAFact(VarSlot("v1"), PTAConcreteStringInstance("content://org.hugo", defContext2)),
+    RFAFact(VarSlot("temp"), PTAConcreteStringInstance("content://org.hugo", defContext2))
   )
 
   "Landroid/net/Uri;.encode:(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;" with_input () produce (
-    new RFAFact(VarSlot("temp"), PTAPointStringInstance(currentContext)),
+    RFAFact(VarSlot("temp"), PTAPointStringInstance(currentContext)),
   )
 
   "Landroid/net/Uri;.equals:(Ljava/lang/Object;)Z" with_input () produce ()
 
   "Landroid/net/Uri;.fromFile:(Ljava/io/File;)Landroid/net/Uri;" with_input () produce (
-    new RFAFact(VarSlot("temp"), PTAInstance(new JawaType(AndroidConstants.URI), currentContext)),
-    new RFAFact(FieldSlot(PTAInstance(new JawaType(AndroidConstants.URI), currentContext), "uri"), PTAPointStringInstance(currentContext))
+    RFAFact(VarSlot("temp"), PTAInstance(new JawaType(AndroidConstants.URI), currentContext)),
+    RFAFact(FieldSlot(PTAInstance(new JawaType(AndroidConstants.URI), currentContext), "uri"), PTAPointStringInstance(currentContext))
   )
 
   "Landroid/net/Uri;.fromParts:(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Landroid/net/Uri;" with_input () produce (
-    new RFAFact(VarSlot("temp"), PTAInstance(new JawaType(AndroidConstants.URI), currentContext)),
-    new RFAFact(FieldSlot(PTAInstance(new JawaType(AndroidConstants.URI), currentContext), "uri"), PTAPointStringInstance(currentContext))
+    RFAFact(VarSlot("temp"), PTAInstance(new JawaType(AndroidConstants.URI), currentContext)),
+    RFAFact(FieldSlot(PTAInstance(new JawaType(AndroidConstants.URI), currentContext), "uri"), PTAPointStringInstance(currentContext))
   )
 
   "Landroid/net/Uri;.getAuthority:()Ljava/lang/String;" with_input (
@@ -76,7 +76,7 @@ class UriSuTest extends SuTestBase("Uri.safsu") {
   ) produce (
     thisFact,
     thisUriFact,
-    new RFAFact(VarSlot("temp"), PTAPointStringInstance(currentContext))
+    RFAFact(VarSlot("temp"), PTAPointStringInstance(currentContext))
   )
 
   "Landroid/net/Uri;.getBooleanQueryParameter:(Ljava/lang/String;Z)Z" with_input () produce ()
@@ -87,7 +87,7 @@ class UriSuTest extends SuTestBase("Uri.safsu") {
   ) produce (
     thisFact,
     thisUriFact,
-    new RFAFact(VarSlot("temp"), thisInstance),
+    RFAFact(VarSlot("temp"), thisInstance),
   )
 
   "Landroid/net/Uri;.getEncodedAuthority:()Ljava/lang/String;" with_input (
@@ -96,7 +96,7 @@ class UriSuTest extends SuTestBase("Uri.safsu") {
   ) produce (
     thisFact,
     thisUriFact,
-    new RFAFact(VarSlot("temp"), PTAPointStringInstance(currentContext))
+    RFAFact(VarSlot("temp"), PTAPointStringInstance(currentContext))
   )
 
   "Landroid/net/Uri;.getEncodedFragment:()Ljava/lang/String;" with_input (
@@ -105,7 +105,7 @@ class UriSuTest extends SuTestBase("Uri.safsu") {
   ) produce (
     thisFact,
     thisUriFact,
-    new RFAFact(VarSlot("temp"), PTAPointStringInstance(currentContext))
+    RFAFact(VarSlot("temp"), PTAPointStringInstance(currentContext))
   )
 
   "Landroid/net/Uri;.getEncodedPath:()Ljava/lang/String;" with_input (
@@ -114,7 +114,7 @@ class UriSuTest extends SuTestBase("Uri.safsu") {
   ) produce (
     thisFact,
     thisUriFact,
-    new RFAFact(VarSlot("temp"), PTAPointStringInstance(currentContext))
+    RFAFact(VarSlot("temp"), PTAPointStringInstance(currentContext))
   )
 
   "Landroid/net/Uri;.getEncodedQuery:()Ljava/lang/String;" with_input (
@@ -123,7 +123,7 @@ class UriSuTest extends SuTestBase("Uri.safsu") {
   ) produce (
     thisFact,
     thisUriFact,
-    new RFAFact(VarSlot("temp"), PTAPointStringInstance(currentContext))
+    RFAFact(VarSlot("temp"), PTAPointStringInstance(currentContext))
   )
 
   "Landroid/net/Uri;.getEncodedSchemeSpecificPart:()Ljava/lang/String;" with_input (
@@ -132,7 +132,7 @@ class UriSuTest extends SuTestBase("Uri.safsu") {
   ) produce (
     thisFact,
     thisUriFact,
-    new RFAFact(VarSlot("temp"), PTAPointStringInstance(currentContext))
+    RFAFact(VarSlot("temp"), PTAPointStringInstance(currentContext))
   )
 
   "Landroid/net/Uri;.getEncodedUserInfo:()Ljava/lang/String;" with_input (
@@ -141,7 +141,7 @@ class UriSuTest extends SuTestBase("Uri.safsu") {
   ) produce (
     thisFact,
     thisUriFact,
-    new RFAFact(VarSlot("temp"), PTAPointStringInstance(currentContext))
+    RFAFact(VarSlot("temp"), PTAPointStringInstance(currentContext))
   )
 
   "Landroid/net/Uri;.getFragment:()Ljava/lang/String;" with_input (
@@ -150,7 +150,7 @@ class UriSuTest extends SuTestBase("Uri.safsu") {
   ) produce (
     thisFact,
     thisUriFact,
-    new RFAFact(VarSlot("temp"), PTAPointStringInstance(currentContext))
+    RFAFact(VarSlot("temp"), PTAPointStringInstance(currentContext))
   )
 
   "Landroid/net/Uri;.getHost:()Ljava/lang/String;" with_input (
@@ -159,7 +159,7 @@ class UriSuTest extends SuTestBase("Uri.safsu") {
   ) produce (
     thisFact,
     thisUriFact,
-    new RFAFact(VarSlot("temp"), PTAPointStringInstance(currentContext))
+    RFAFact(VarSlot("temp"), PTAPointStringInstance(currentContext))
   )
 
   "Landroid/net/Uri;.getLastPathSegment:()Ljava/lang/String;" with_input (
@@ -168,7 +168,7 @@ class UriSuTest extends SuTestBase("Uri.safsu") {
   ) produce (
     thisFact,
     thisUriFact,
-    new RFAFact(VarSlot("temp"), PTAPointStringInstance(currentContext))
+    RFAFact(VarSlot("temp"), PTAPointStringInstance(currentContext))
   )
 
   "Landroid/net/Uri;.getPath:()Ljava/lang/String;" with_input (
@@ -177,7 +177,7 @@ class UriSuTest extends SuTestBase("Uri.safsu") {
   ) produce (
     thisFact,
     thisUriFact,
-    new RFAFact(VarSlot("temp"), PTAPointStringInstance(currentContext))
+    RFAFact(VarSlot("temp"), PTAPointStringInstance(currentContext))
   )
 
   "Landroid/net/Uri;.getPathSegments:()Ljava/util/List;" with_input (
@@ -186,7 +186,7 @@ class UriSuTest extends SuTestBase("Uri.safsu") {
   ) produce (
     thisFact,
     thisUriFact,
-    new RFAFact(VarSlot("temp"), PTAPointStringInstance(currentContext))
+    RFAFact(VarSlot("temp"), PTAPointStringInstance(currentContext))
   )
 
   "Landroid/net/Uri;.getPort:()I" with_input () produce ()
@@ -197,7 +197,7 @@ class UriSuTest extends SuTestBase("Uri.safsu") {
   ) produce (
     thisFact,
     thisUriFact,
-    new RFAFact(VarSlot("temp"), PTAPointStringInstance(currentContext))
+    RFAFact(VarSlot("temp"), PTAPointStringInstance(currentContext))
   )
 
   "Landroid/net/Uri;.getQueryParameter:(Ljava/lang/String;)Ljava/lang/String;" with_input (
@@ -206,7 +206,7 @@ class UriSuTest extends SuTestBase("Uri.safsu") {
   ) produce (
     thisFact,
     thisUriFact,
-    new RFAFact(VarSlot("temp"), PTAPointStringInstance(currentContext))
+    RFAFact(VarSlot("temp"), PTAPointStringInstance(currentContext))
   )
 
   "Landroid/net/Uri;.getQueryParameterNames:()Ljava/util/Set;" with_input (
@@ -215,8 +215,8 @@ class UriSuTest extends SuTestBase("Uri.safsu") {
   ) produce (
     thisFact,
     thisUriFact,
-    new RFAFact(VarSlot("temp"), PTAInstance(new JawaType("java.util.HashSet"), currentContext)),
-    new RFAFact(FieldSlot(PTAInstance(new JawaType("java.util.HashSet"), currentContext), "items"), PTAPointStringInstance(currentContext))
+    RFAFact(VarSlot("temp"), PTAInstance(new JawaType("java.util.HashSet"), currentContext)),
+    RFAFact(FieldSlot(PTAInstance(new JawaType("java.util.HashSet"), currentContext), "items"), PTAPointStringInstance(currentContext))
   )
 
   "Landroid/net/Uri;.getQueryParameters:(Ljava/lang/String;)Ljava/util/List;" with_input (
@@ -225,8 +225,8 @@ class UriSuTest extends SuTestBase("Uri.safsu") {
   ) produce (
     thisFact,
     thisUriFact,
-    new RFAFact(VarSlot("temp"), PTAInstance(new JawaType("java.util.ArrayList"), currentContext)),
-    new RFAFact(FieldSlot(PTAInstance(new JawaType("java.util.ArrayList"), currentContext), "items"), PTAPointStringInstance(currentContext))
+    RFAFact(VarSlot("temp"), PTAInstance(new JawaType("java.util.ArrayList"), currentContext)),
+    RFAFact(FieldSlot(PTAInstance(new JawaType("java.util.ArrayList"), currentContext), "items"), PTAPointStringInstance(currentContext))
   )
 
   "Landroid/net/Uri;.getScheme:()Ljava/lang/String;" with_input (
@@ -235,7 +235,7 @@ class UriSuTest extends SuTestBase("Uri.safsu") {
   ) produce (
     thisFact,
     thisUriFact,
-    new RFAFact(VarSlot("temp"), PTAPointStringInstance(currentContext))
+    RFAFact(VarSlot("temp"), PTAPointStringInstance(currentContext))
   )
 
   "Landroid/net/Uri;.getSchemeSpecificPart:()Ljava/lang/String;" with_input (
@@ -244,7 +244,7 @@ class UriSuTest extends SuTestBase("Uri.safsu") {
   ) produce (
     thisFact,
     thisUriFact,
-    new RFAFact(VarSlot("temp"), PTAPointStringInstance(currentContext))
+    RFAFact(VarSlot("temp"), PTAPointStringInstance(currentContext))
   )
 
   "Landroid/net/Uri;.getUserInfo:()Ljava/lang/String;" with_input (
@@ -253,7 +253,7 @@ class UriSuTest extends SuTestBase("Uri.safsu") {
   ) produce (
     thisFact,
     thisUriFact,
-    new RFAFact(VarSlot("temp"), PTAPointStringInstance(currentContext))
+    RFAFact(VarSlot("temp"), PTAPointStringInstance(currentContext))
   )
 
   "Landroid/net/Uri;.hashCode:()I" with_input () produce ()
@@ -274,15 +274,15 @@ class UriSuTest extends SuTestBase("Uri.safsu") {
   ) produce (
     thisFact,
     thisUriFact,
-    new RFAFact(VarSlot("temp"), thisInstance)
+    RFAFact(VarSlot("temp"), thisInstance)
   )
 
   "Landroid/net/Uri;.parse:(Ljava/lang/String;)Landroid/net/Uri;" with_input (
-    new RFAFact(VarSlot("v1"), PTAConcreteStringInstance("content://org.hugo", defContext)),
+    RFAFact(VarSlot("v1"), PTAConcreteStringInstance("content://org.hugo", defContext)),
   ) produce (
-    new RFAFact(VarSlot("v1"), PTAConcreteStringInstance("content://org.hugo", defContext)),
-    new RFAFact(VarSlot("temp"), PTAInstance(new JawaType(AndroidConstants.URI), currentContext)),
-    new RFAFact(FieldSlot(PTAInstance(new JawaType(AndroidConstants.URI), currentContext), "uri"), PTAConcreteStringInstance("content://org.hugo", defContext))
+    RFAFact(VarSlot("v1"), PTAConcreteStringInstance("content://org.hugo", defContext)),
+    RFAFact(VarSlot("temp"), PTAInstance(new JawaType(AndroidConstants.URI), currentContext)),
+    RFAFact(FieldSlot(PTAInstance(new JawaType(AndroidConstants.URI), currentContext), "uri"), PTAConcreteStringInstance("content://org.hugo", defContext))
   )
 
   "Landroid/net/Uri;.toSafeString:()Ljava/lang/String;" with_input (
@@ -291,7 +291,7 @@ class UriSuTest extends SuTestBase("Uri.safsu") {
   ) produce (
     thisFact,
     thisUriFact,
-    new RFAFact(VarSlot("temp"), thisUriInstance)
+    RFAFact(VarSlot("temp"), thisUriInstance)
   )
 
   "Landroid/net/Uri;.toString:()Ljava/lang/String;" with_input (
@@ -300,12 +300,12 @@ class UriSuTest extends SuTestBase("Uri.safsu") {
   ) produce (
     thisFact,
     thisUriFact,
-    new RFAFact(VarSlot("temp"), thisUriInstance)
+    RFAFact(VarSlot("temp"), thisUriInstance)
   )
 
   "Landroid/net/Uri;.withAppendedPath:(Landroid/net/Uri;Ljava/lang/String;)Landroid/net/Uri;" with_input () produce (
-    new RFAFact(VarSlot("temp"), PTAInstance(new JawaType(AndroidConstants.URI), currentContext)),
-    new RFAFact(FieldSlot(PTAInstance(new JawaType(AndroidConstants.URI), currentContext), "uri"), PTAPointStringInstance(currentContext))
+    RFAFact(VarSlot("temp"), PTAInstance(new JawaType(AndroidConstants.URI), currentContext)),
+    RFAFact(FieldSlot(PTAInstance(new JawaType(AndroidConstants.URI), currentContext), "uri"), PTAPointStringInstance(currentContext))
   )
 
   "Landroid/net/Uri;.writeToParcel:(Landroid/os/Parcel;Landroid/net/Uri;)V" with_input () produce ()

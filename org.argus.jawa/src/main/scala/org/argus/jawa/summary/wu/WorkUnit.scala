@@ -16,7 +16,7 @@ import org.argus.jawa.alir.dfa.InterProceduralDataFlowGraph
 import org.argus.jawa.alir.interprocedural.ModelCallResolver
 import org.argus.jawa.alir.pta._
 import org.argus.jawa.alir.pta.model.ModelCallHandler
-import org.argus.jawa.alir.pta.rfa.{RFAFact, ReachingFactsAnalysis, ReachingFactsAnalysisHelper, SimHeap}
+import org.argus.jawa.alir.pta.rfa.{RFAFact, ReachingFactsAnalysis, ReachingFactsAnalysisHelper}
 import org.argus.jawa.ast._
 import org.argus.jawa.core._
 import org.argus.jawa.core.util.Property.Key
@@ -67,7 +67,7 @@ abstract class DataFlowWu[T <: Global] (
     val global: T,
     val method: JawaMethod,
     val sm: SummaryManager,
-    handler: ModelCallHandler)(implicit heap: SimHeap) extends WorkUnit[T] {
+    handler: ModelCallHandler) extends WorkUnit[T] {
 
   override def needProcess(handler: ModelCallHandler): Boolean = !handler.isModelCall(method)
 
@@ -135,7 +135,7 @@ abstract class DataFlowWu[T <: Global] (
           val thisContext = initContext.copy
           thisContext.setContext(method.getSignature, "this")
           val ins = Instance.getInstance(method.getDeclaringClass.typ, thisContext, toUnknown = false)
-          result += new RFAFact(VarSlot(t), ins)
+          result += RFAFact(VarSlot(t), ins)
         case None =>
       }
       method.params.indices.foreach { i =>
@@ -148,7 +148,7 @@ abstract class DataFlowWu[T <: Global] (
           val argContext = initContext.copy
           argContext.setContext(method.getSignature, s"arg${i + 1}")
           val ins = Instance.getInstance(typ, argContext, unknown)
-          result += new RFAFact(VarSlot(name), ins)
+          result += RFAFact(VarSlot(name), ins)
         }
       }
       result.toSet
@@ -365,22 +365,6 @@ abstract class DataFlowWu[T <: Global] (
         inss = inss.flatMap { ins =>
           ptaresult.pointsToSet(context, ArraySlot(ins))
         }
-      case sm: SuMapAccess =>
-        val keyInss: MSet[Instance] = msetEmpty
-        sm.rhsOpt match {
-          case Some(rhs) =>
-            keyInss ++= getRhsInstance(rhs, retOpt, recvOpt, args, context)
-          case None =>
-        }
-        if(keyInss.isEmpty) {
-          inss = ptaresult.getRelatedHeapInstances(context, inss)
-        } else {
-          inss = inss.flatMap { ins =>
-            keyInss.flatMap { key =>
-              ptaresult.pointsToSet(context, MapSlot(ins, key))
-            }
-          }
-        }
     }
     inss
   }
@@ -405,7 +389,7 @@ abstract class PointsToWu[T <: Global] (
     sm: SummaryManager,
     handler: ModelCallHandler,
     store: PTStore,
-    key: String)(implicit heap: SimHeap) extends DataFlowWu[T](global, method, sm, handler) {
+    key: String) extends DataFlowWu[T](global, method, sm, handler) {
 
   protected val pointsToResolve: MMap[Context, ISet[(PTASlot, Boolean)]] = mmapEmpty
 

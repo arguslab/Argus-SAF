@@ -41,6 +41,15 @@ class TaintStore extends TaintAnalysisResult {
     paths.toSet
   }
 
+  def merge(ts: TaintStore): TaintStore = {
+    sourceNodes ++= ts.sourceNodes
+    sinkNodes ++= ts.sinkNodes
+    taintedInstance ++= ts.taintedInstance
+    sinkDependence ++= ts.sinkDependence
+    paths ++= ts.getTaintedPaths
+    this
+  }
+
   override def toString: String = {
     val sb = new StringBuilder
     val paths = getTaintedPaths

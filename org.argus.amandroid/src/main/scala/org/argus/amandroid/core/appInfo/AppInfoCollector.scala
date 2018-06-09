@@ -169,7 +169,7 @@ object AppInfoCollector {
         apk.reporter.echo(TITLE, "Found " + apk.model.getCallbackMethods.size + " callback methods")
         val clCounter = generateEnvironment(apk, comRec, AndroidConstants.COMP_ENV)
         apk.model.setCodeLineCounter(clCounter)
-        apk.model.addComponentInfo(ComponentInfo(comRec.getType, ComponentType.RECEIVER, exported = true, enabled = true, permission))
+        apk.model.addComponentInfo(ComponentInfo(comRec.getType, ComponentType.RECEIVER, exported = true, enabled = true, permission, imapEmpty))
         apk.model.addDynamicRegisteredReceiver(comRec.getType)
         apk.model.updateIntentFilterDB(iDB)
         apk.reporter.echo(TITLE, "~~~~~~~~~~~~~~~~~~~~~~~~~Done~~~~~~~~~~~~~~~~~~~~~~~~~~")

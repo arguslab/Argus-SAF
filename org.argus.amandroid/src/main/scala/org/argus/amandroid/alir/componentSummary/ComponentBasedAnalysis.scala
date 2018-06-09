@@ -22,7 +22,6 @@ import org.argus.jawa.alir.Context
 import org.argus.jawa.alir.cfg.{ICFGNode, InterProceduralControlFlowGraph}
 import org.argus.jawa.alir.dda._
 import org.argus.jawa.alir.pta.PTAResult
-import org.argus.jawa.alir.pta.rfa.SimHeap
 import org.argus.jawa.alir.taintAnalysis.TaintAnalysisResult
 import org.argus.jawa.core.util.{MyTimeout, WorklistAlgorithm}
 import org.argus.jawa.core.{ClassLoadManager, JawaType}
@@ -37,7 +36,6 @@ object ComponentBasedAnalysis {
   private final val TITLE = "ComponentBasedAnalysis"
   private final val DEBUG = true
   def prepare(apks: ISet[ApkGlobal])(implicit timeout: FiniteDuration): Unit = {
-    AndroidReachingFactsAnalysisConfig.resolve_icc = false // We don't want to resolve ICC at this phase
     apks.foreach { apk =>
       println("Prepare IDFGs for: " + apk.model.getAppName)
       var components = apk.model.getComponents
@@ -48,7 +46,6 @@ object ComponentBasedAnalysis {
             apk.model.getEnvMap.get(component) match {
               case Some((esig, _)) =>
                 val ep = apk.getMethod(esig).get
-                implicit val heap: SimHeap = new SimHeap
                 val initialfacts = AndroidReachingFactsAnalysisConfig.getInitialFactsForMainEnvironment(ep)
                 val icfg = new InterProceduralControlFlowGraph[ICFGNode]
                 val ptaresult = new PTAResult

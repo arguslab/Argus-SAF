@@ -106,18 +106,18 @@ android.content.Intent:mCategories:java.lang.String;
 ;
 
 `Landroid/content/Intent;.getBooleanArrayExtra:(Ljava/lang/String;)[Z`:
-  ret = this.mExtras.entries(arg:1)
+  ret = this.mExtras.entries.value
 ;
 
 `Landroid/content/Intent;.getBooleanExtra:(Ljava/lang/String;Z)Z`:
 ;
 
 `Landroid/content/Intent;.getBundleExtra:(Ljava/lang/String;)Landroid/os/Bundle;`:
-  ret = this.mExtras.entries(arg:1)
+  ret = this.mExtras.entries.value
 ;
 
 `Landroid/content/Intent;.getByteArrayExtra:(Ljava/lang/String;)[B`:
-  ret = this.mExtras.entries(arg:1)
+  ret = this.mExtras.entries.value
 ;
 
 `Landroid/content/Intent;.getByteExtra:(Ljava/lang/String;B)B`:
@@ -129,22 +129,22 @@ android.content.Intent:mCategories:java.lang.String;
 ;
 
 `Landroid/content/Intent;.getCharArrayExtra:(Ljava/lang/String;)[C`:
-  ret = this.mExtras.entries(arg:1)
+  ret = this.mExtras.entries.value
 ;
 
 `Landroid/content/Intent;.getCharExtra:(Ljava/lang/String;C)C`:
 ;
 
 `Landroid/content/Intent;.getCharSequenceArrayExtra:(Ljava/lang/String;)[Ljava/lang/CharSequence;`:
-  ret = this.mExtras.entries(arg:1)
+  ret = this.mExtras.entries.value
 ;
 
 `Landroid/content/Intent;.getCharSequenceArrayListExtra:(Ljava/lang/String;)Ljava/util/ArrayList;`:
-  ret = this.mExtras.entries(arg:1)
+  ret = this.mExtras.entries.value
 ;
 
 `Landroid/content/Intent;.getCharSequenceExtra:(Ljava/lang/String;)Ljava/lang/CharSequence;`:
-  ret = this.mExtras.entries(arg:1)
+  ret = this.mExtras.entries.value
 ;
 
 `Landroid/content/Intent;.getClipData:()Landroid/content/ClipData;`:
@@ -164,18 +164,18 @@ android.content.Intent:mCategories:java.lang.String;
 ;
 
 `Landroid/content/Intent;.getDoubleArrayExtra:(Ljava/lang/String;)[D`:
-  ret = this.mExtras.entries(arg:1)
+  ret = this.mExtras.entries.value
 ;
 
 `Landroid/content/Intent;.getDoubleExtra:(Ljava/lang/String;D)D`:
 ;
 
 `Landroid/content/Intent;.getExtra:(Ljava/lang/String;)Ljava/lang/Object;`:
-  ret = this.mExtras.entries(arg:1)
+  ret = this.mExtras.entries.value
 ;
 
 `Landroid/content/Intent;.getExtra:(Ljava/lang/String;Ljava/lang/Object;)Ljava/lang/Object;`:
-  ret = this.mExtras.entries(arg:1)
+  ret = this.mExtras.entries.value
   ret += arg:2
 ;
 
@@ -187,37 +187,37 @@ android.content.Intent:mCategories:java.lang.String;
 ;
 
 `Landroid/content/Intent;.getFloatArrayExtra:(Ljava/lang/String;)[F`:
-  ret = this.mExtras.entries(arg:1)
+  ret = this.mExtras.entries.value
 ;
 
 `Landroid/content/Intent;.getFloatExtra:(Ljava/lang/String;F)F`:
 ;
 
 `Landroid/content/Intent;.getIBinderExtra:(Ljava/lang/String;)Landroid/os/IBinder;`:
-  ret = this.mExtras.entries(arg:1)
+  ret = this.mExtras.entries.value
 ;
 
 `Landroid/content/Intent;.getIntArrayExtra:(Ljava/lang/String;)[I`:
-  ret = this.mExtras.entries(arg:1)
+  ret = this.mExtras.entries.value
 ;
 
 `Landroid/content/Intent;.getIntExtra:(Ljava/lang/String;I)I`:
 ;
 
 `Landroid/content/Intent;.getIntegerArrayListExtra:(Ljava/lang/String;)Ljava/util/ArrayList;`:
-  ret = this.mExtras.entries(arg:1)
+  ret = this.mExtras.entries.value
 ;
 
 `Landroid/content/Intent;.getIntent:(Ljava/lang/String;)Landroid/content/Intent;`:
-  ret = this.mExtras.entries(arg:1)
+  ret = this.mExtras.entries.value
 ;
 
 `Landroid/content/Intent;.getIntentOld:(Ljava/lang/String;)Landroid/content/Intent;`:
-  ret = this.mExtras.entries(arg:1)
+  ret = this.mExtras.entries.value
 ;
 
 `Landroid/content/Intent;.getLongArrayExtra:(Ljava/lang/String;)[J`:
-  ret = this.mExtras.entries(arg:1)
+  ret = this.mExtras.entries.value
 ;
 
 `Landroid/content/Intent;.getLongExtra:(Ljava/lang/String;J)J`:
@@ -228,15 +228,15 @@ android.content.Intent:mCategories:java.lang.String;
 ;
 
 `Landroid/content/Intent;.getParcelableArrayExtra:(Ljava/lang/String;)[Landroid/os/Parcelable;`:
-  ret = this.mExtras.entries(arg:1)
+  ret = this.mExtras.entries.value
 ;
 
 `Landroid/content/Intent;.getParcelableArrayListExtra:(Ljava/lang/String;)Ljava/util/ArrayList;`:
-  ret = this.mExtras.entries(arg:1)
+  ret = this.mExtras.entries.value
 ;
 
 `Landroid/content/Intent;.getParcelableExtra:(Ljava/lang/String;)Landroid/os/Parcelable;`:
-  ret = this.mExtras.entries(arg:1)
+  ret = this.mExtras.entries.value
 ;
 
 `Landroid/content/Intent;.getScheme:()Ljava/lang/String;`:
@@ -248,11 +248,11 @@ android.content.Intent:mCategories:java.lang.String;
 ;
 
 `Landroid/content/Intent;.getSerializableExtra:(Ljava/lang/String;)Ljava/io/Serializable;`:
-  ret = this.mExtras.entries(arg:1)
+  ret = this.mExtras.entries.value
 ;
 
 `Landroid/content/Intent;.getShortArrayExtra:(Ljava/lang/String;)[S`:
-  ret = this.mExtras.entries(arg:1)
+  ret = this.mExtras.entries.value
 ;
 
 `Landroid/content/Intent;.getShortExtra:(Ljava/lang/String;S)S`:
@@ -263,15 +263,15 @@ android.content.Intent:mCategories:java.lang.String;
 ;
 
 `Landroid/content/Intent;.getStringArrayExtra:(Ljava/lang/String;)[Ljava/lang/String;`:
-  ret = this.mExtras.entries(arg:1)
+  ret = this.mExtras.entries.value
 ;
 
 `Landroid/content/Intent;.getStringArrayListExtra:(Ljava/lang/String;)Ljava/util/ArrayList;`:
-  ret = this.mExtras.entries(arg:1)
+  ret = this.mExtras.entries.value
 ;
 
 `Landroid/content/Intent;.getStringExtra:(Ljava/lang/String;)Ljava/lang/String;`:
-  ret = this.mExtras.entries(arg:1)
+  ret = this.mExtras.entries.value
 ;
 
 `Landroid/content/Intent;.getType:()Ljava/lang/String;`:
@@ -334,68 +334,74 @@ android.content.Intent:mCategories:java.lang.String;
 ;
 
 `Landroid/content/Intent;.putCharSequenceArrayListExtra:(Ljava/lang/String;Ljava/util/ArrayList;)Landroid/content/Intent;`:
-  this.mExtras.entries.key = arg:1
-  this.mExtras.entries(arg:1) = arg:2
+  this.mExtras.entries.key += arg:1
+  this.mExtras.entries.value += arg:2
   ret = this
 ;
 
 `Landroid/content/Intent;.putExtra:(Ljava/lang/String;B)Landroid/content/Intent;`:
+  this.mExtras.entries.key += arg:1
   ret = this
 ;
 
 `Landroid/content/Intent;.putExtra:(Ljava/lang/String;C)Landroid/content/Intent;`:
+  this.mExtras.entries.key += arg:1
   ret = this
 ;
 
 `Landroid/content/Intent;.putExtra:(Ljava/lang/String;D)Landroid/content/Intent;`:
+  this.mExtras.entries.key += arg:1
   ret = this
 ;
 
 `Landroid/content/Intent;.putExtra:(Ljava/lang/String;F)Landroid/content/Intent;`:
+  this.mExtras.entries.key += arg:1
   ret = this
 ;
 
 `Landroid/content/Intent;.putExtra:(Ljava/lang/String;I)Landroid/content/Intent;`:
+  this.mExtras.entries.key += arg:1
   ret = this
 ;
 
 `Landroid/content/Intent;.putExtra:(Ljava/lang/String;J)Landroid/content/Intent;`:
+  this.mExtras.entries.key += arg:1
   ret = this
 ;
 
 `Landroid/content/Intent;.putExtra:(Ljava/lang/String;Landroid/os/Bundle;)Landroid/content/Intent;`:
-  this.mExtras.entries.key = arg:1
-  this.mExtras.entries(arg:1) = arg:2
+  this.mExtras.entries.key += arg:1
+  this.mExtras.entries.value += arg:2
   ret = this
 ;
 
 `Landroid/content/Intent;.putExtra:(Ljava/lang/String;Landroid/os/IBinder;)Landroid/content/Intent;`:
-  this.mExtras.entries.key = arg:1
-  this.mExtras.entries(arg:1) = arg:2
+  this.mExtras.entries.key += arg:1
+  this.mExtras.entries.value += arg:2
   ret = this
 ;
 
 `Landroid/content/Intent;.putExtra:(Ljava/lang/String;Landroid/os/Parcelable;)Landroid/content/Intent;`:
-  this.mExtras.entries.key = arg:1
-  this.mExtras.entries(arg:1) = arg:2
+  this.mExtras.entries.key += arg:1
+  this.mExtras.entries.value += arg:2
   ret = this
 ;
 
 `Landroid/content/Intent;.putExtra:(Ljava/lang/String;Ljava/io/Serializable;)Landroid/content/Intent;`:
-  this.mExtras.entries.key = arg:1
-  this.mExtras.entries(arg:1) = arg:2
+  this.mExtras.entries.key += arg:1
+  this.mExtras.entries.value += arg:2
   ret = this
 ;
 
 `Landroid/content/Intent;.putExtra:(Ljava/lang/String;Ljava/lang/CharSequence;)Landroid/content/Intent;`:
-  this.mExtras.entries.key = arg:1
-  this.mExtras.entries(arg:1) = arg:2
+  this.mExtras.entries.key += arg:1
+  this.mExtras.entries.value += arg:2
   ret = this
 ;
 
 `Landroid/content/Intent;.putExtra:(Ljava/lang/String;Ljava/lang/String;)Landroid/content/Intent;`:
-  this.mExtras.entries.key = arg:1
-  this.mExtras.entries(arg:1) = arg:2
+  this.mExtras.entries.key += arg:1
+  this.mExtras.entries.value += arg:2
   ret = this
 ;
 
@@ -408,68 +414,68 @@ android.content.Intent:mCategories:java.lang.String;
 ;
 
 `Landroid/content/Intent;.putExtra:(Ljava/lang/String;[B)Landroid/content/Intent;`:
-  this.mExtras.entries.key = arg:1
-  this.mExtras.entries(arg:1) = arg:2
+  this.mExtras.entries.key += arg:1
+  this.mExtras.entries.value += arg:2
   ret = this
 ;
 
 `Landroid/content/Intent;.putExtra:(Ljava/lang/String;[C)Landroid/content/Intent;`:
-  this.mExtras.entries.key = arg:1
-  this.mExtras.entries(arg:1) = arg:2
+  this.mExtras.entries.key += arg:1
+  this.mExtras.entries.value += arg:2
   ret = this
 ;
 
 `Landroid/content/Intent;.putExtra:(Ljava/lang/String;[D)Landroid/content/Intent;`:
-  this.mExtras.entries.key = arg:1
-  this.mExtras.entries(arg:1) = arg:2
+  this.mExtras.entries.key += arg:1
+  this.mExtras.entries.value += arg:2
   ret = this
 ;
 
 `Landroid/content/Intent;.putExtra:(Ljava/lang/String;[F)Landroid/content/Intent;`:
-  this.mExtras.entries.key = arg:1
-  this.mExtras.entries(arg:1) = arg:2
+  this.mExtras.entries.key += arg:1
+  this.mExtras.entries.value += arg:2
   ret = this
 ;
 
 `Landroid/content/Intent;.putExtra:(Ljava/lang/String;[I)Landroid/content/Intent;`:
-  this.mExtras.entries.key = arg:1
-  this.mExtras.entries(arg:1) = arg:2
+  this.mExtras.entries.key += arg:1
+  this.mExtras.entries.value += arg:2
   ret = this
 ;
 
 `Landroid/content/Intent;.putExtra:(Ljava/lang/String;[J)Landroid/content/Intent;`:
-  this.mExtras.entries.key = arg:1
-  this.mExtras.entries(arg:1) = arg:2
+  this.mExtras.entries.key += arg:1
+  this.mExtras.entries.value += arg:2
   ret = this
 ;
 
 `Landroid/content/Intent;.putExtra:(Ljava/lang/String;[Landroid/os/Parcelable;)Landroid/content/Intent;`:
-  this.mExtras.entries.key = arg:1
-  this.mExtras.entries(arg:1) = arg:2
+  this.mExtras.entries.key += arg:1
+  this.mExtras.entries.value += arg:2
   ret = this
 ;
 
 `Landroid/content/Intent;.putExtra:(Ljava/lang/String;[Ljava/lang/CharSequence;)Landroid/content/Intent;`:
-  this.mExtras.entries.key = arg:1
-  this.mExtras.entries(arg:1) = arg:2
+  this.mExtras.entries.key += arg:1
+  this.mExtras.entries.value += arg:2
   ret = this
 ;
 
 `Landroid/content/Intent;.putExtra:(Ljava/lang/String;[Ljava/lang/String;)Landroid/content/Intent;`:
-  this.mExtras.entries.key = arg:1
-  this.mExtras.entries(arg:1) = arg:2
+  this.mExtras.entries.key += arg:1
+  this.mExtras.entries.value += arg:2
   ret = this
 ;
 
 `Landroid/content/Intent;.putExtra:(Ljava/lang/String;[S)Landroid/content/Intent;`:
-  this.mExtras.entries.key = arg:1
-  this.mExtras.entries(arg:1) = arg:2
+  this.mExtras.entries.key += arg:1
+  this.mExtras.entries.value += arg:2
   ret = this
 ;
 
 `Landroid/content/Intent;.putExtra:(Ljava/lang/String;[Z)Landroid/content/Intent;`:
-  this.mExtras.entries.key = arg:1
-  this.mExtras.entries(arg:1) = arg:2
+  this.mExtras.entries.key += arg:1
+  this.mExtras.entries.value += arg:2
   ret = this
 ;
 
@@ -484,20 +490,20 @@ android.content.Intent:mCategories:java.lang.String;
 ;
 
 `Landroid/content/Intent;.putIntegerArrayListExtra:(Ljava/lang/String;Ljava/util/ArrayList;)Landroid/content/Intent;`:
-  this.mExtras.entries.key = arg:1
-  this.mExtras.entries(arg:1) = arg:2
+  this.mExtras.entries.key += arg:1
+  this.mExtras.entries.value += arg:2
   ret = this
 ;
 
 `Landroid/content/Intent;.putParcelableArrayListExtra:(Ljava/lang/String;Ljava/util/ArrayList;)Landroid/content/Intent;`:
-  this.mExtras.entries.key = arg:1
-  this.mExtras.entries(arg:1) = arg:2
+  this.mExtras.entries.key += arg:1
+  this.mExtras.entries.value += arg:2
   ret = this
 ;
 
 `Landroid/content/Intent;.putStringArrayListExtra:(Ljava/lang/String;Ljava/util/ArrayList;)Landroid/content/Intent;`:
-  this.mExtras.entries.key = arg:1
-  this.mExtras.entries(arg:1) = arg:2
+  this.mExtras.entries.key += arg:1
+  this.mExtras.entries.value += arg:2
   ret = this
 ;
 
@@ -517,8 +523,6 @@ android.content.Intent:mCategories:java.lang.String;
 ;
 
 `Landroid/content/Intent;.removeExtra:(Ljava/lang/String;)V`:
-  this.mExtras.entries.key -= arg:1
-  ~this.mExtras.entries(arg:1)
 ;
 
 `Landroid/content/Intent;.replaceExtras:(Landroid/content/Intent;)Landroid/content/Intent;`:

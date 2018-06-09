@@ -12,7 +12,6 @@ package org.argus.jawa.summary
 
 import hu.ssh.progressbar.ProgressBar
 import org.argus.jawa.alir.pta.model.ModelCallHandler
-import org.argus.jawa.alir.pta.rfa.SimHeap
 import org.argus.jawa.core.{Global, JawaMethod, Signature}
 import org.argus.jawa.core.util._
 import org.argus.jawa.summary.susaf.rule.HeapSummary
@@ -26,12 +25,12 @@ class BottomUpSummaryGenerator[T <: Global](
     sm: SummaryManager,
     handler: ModelCallHandler,
     suGen: (Signature, IList[SummaryRule]) => Summary,
-    progressBar: ProgressBar)(implicit heap: SimHeap) {
+    progressBar: ProgressBar) {
 
   var debug: Boolean = false
 
   def build(orderedWUs: IList[WorkUnit[T]]): Unit = {
-    TimeUtil.timed("BottomUpSummaryGenerator Running Time", global.reporter) {
+    TimeUtil.timed(s"BottomUpSummaryGenerator with ${orderedWUs.size} methods. Running Time", global.reporter) {
       ProgressBarUtil.withProgressBar("Summary based data flow analysis...", progressBar)(orderedWUs, processWU)
     }
   }

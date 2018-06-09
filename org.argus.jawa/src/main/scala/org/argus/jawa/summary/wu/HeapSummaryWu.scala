@@ -14,7 +14,6 @@ import org.argus.jawa.alir.Context
 import org.argus.jawa.alir.cfg.{ICFGInvokeNode, ICFGLocNode, ICFGNode}
 import org.argus.jawa.alir.pta._
 import org.argus.jawa.alir.pta.model.{ModelCall, ModelCallHandler}
-import org.argus.jawa.alir.pta.rfa.SimHeap
 import org.argus.jawa.ast._
 import org.argus.jawa.core._
 import org.argus.jawa.core.util._
@@ -28,7 +27,7 @@ class HeapSummaryWu(
     global: Global,
     method: JawaMethod,
     sm: SummaryManager,
-    handler: ModelCallHandler)(implicit heap: SimHeap) extends DataFlowWu[Global](global, method, sm, handler) {
+    handler: ModelCallHandler) extends DataFlowWu[Global](global, method, sm, handler) {
 
   override def processNode(node: ICFGNode, rules: MList[SummaryRule]): Unit = {
     node match {
@@ -203,11 +202,7 @@ class HeapSummaryWu(
       case Some(base) =>
         val heapAccesses: Seq[HeapAccess] = hb.heapOpt match {
           case Some(suHeap) =>
-            suHeap.indices.map {
-              case sm: SuMapAccess if sm.rhsOpt.isDefined =>
-                SuMapAccess(handleRhs(sm.rhsOpt.get, recvOpt, args, context))
-              case a => a
-            }
+            suHeap.indices
           case None => Seq()
         }
         Some(if(heapAccesses.isEmpty) base else base.make(heapAccesses))
@@ -230,11 +225,7 @@ class HeapSummaryWu(
       case g: SuGlobal =>
         val newg: SuGlobal = g.heapOpt match {
           case Some(suHeap) =>
-            val heapAccesses: Seq[HeapAccess] = suHeap.indices.map {
-              case sm: SuMapAccess if sm.rhsOpt.isDefined =>
-                SuMapAccess(handleRhs(sm.rhsOpt.get, recvOpt, args, context))
-              case a => a
-            }
+            val heapAccesses: Seq[HeapAccess] = suHeap.indices
             SuGlobal(g.fqn, Some(SuHeap(heapAccesses)))
           case None => g
         }

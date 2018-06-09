@@ -13,7 +13,6 @@ package org.argus.jawa.summary.wu
 import hu.ssh.progressbar.console.ConsoleProgressBar
 import org.argus.jawa.alir.pta.PTAScopeManager
 import org.argus.jawa.alir.pta.model.ModelCallHandler
-import org.argus.jawa.alir.pta.rfa.SimHeap
 import org.argus.jawa.alir.reachability.SignatureBasedCallGraph
 import org.argus.jawa.alir.taintAnalysis.{SSPosition, SourceAndSinkManager}
 import org.argus.jawa.core._
@@ -146,7 +145,6 @@ class TaintWuTest extends FlatSpec with Matchers {
 
     def produce(tp: String): Unit = {
       file should s"produce expected summary for $entrypoint" in {
-        implicit val heap: SimHeap = new SimHeap
         val reporter = if(DEBUG) new PrintReporter(MsgLevel.INFO) else new PrintReporter(MsgLevel.NO)
         val global = new Global("test", reporter)
         global.setJavaLib(getClass.getResource("/libs/android.jar").getPath)

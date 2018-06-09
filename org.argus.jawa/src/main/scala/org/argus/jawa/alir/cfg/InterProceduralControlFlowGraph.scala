@@ -112,7 +112,6 @@ class InterProceduralControlFlowGraph[Node <: ICFGNode] extends ControlFlowGraph
   def isCall(l: Location): Boolean = l.statement.isInstanceOf[CallStatement]
    
   def merge(icfg: InterProceduralControlFlowGraph[Node]): Any = {
-    this.pl ++= icfg.pool
     icfg.nodes.foreach(addNode)
     icfg.edges.foreach(addEdge)
     icfg.getCallGraph.getCallMap.foreach{

@@ -22,7 +22,6 @@ import org.argus.jawa.alir.Context
 import org.argus.jawa.alir.cfg.{ICFGNode, InterProceduralControlFlowGraph}
 import org.argus.jawa.alir.dfa.InterProceduralDataFlowGraph
 import org.argus.jawa.alir.pta.PTAResult
-import org.argus.jawa.alir.pta.rfa.SimHeap
 import org.argus.jawa.core.util.MyTimeout
 import org.argus.jawa.core.{ClassLoadManager, MsgLevel, PrintReporter, Signature}
 import org.argus.jawa.core.util._
@@ -92,7 +91,6 @@ class PointsToAnalysisActor extends Actor with ActorLogging {
   private def rfa(ep: Signature, apk: ApkGlobal, timeout: Duration): InterProceduralDataFlowGraph = {
     log.info("Start rfa for " + ep)
     val m = apk.resolveMethodCode(ep, apk.model.getEnvMap(ep.classTyp)._2)
-    implicit val heap: SimHeap = new SimHeap
     val initialfacts = AndroidReachingFactsAnalysisConfig.getInitialFactsForMainEnvironment(m)
     val icfg = new InterProceduralControlFlowGraph[ICFGNode]
     val ptaresult = new PTAResult

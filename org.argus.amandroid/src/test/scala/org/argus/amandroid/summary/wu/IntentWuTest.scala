@@ -19,7 +19,6 @@ import org.argus.amandroid.core.decompile.{ConverterUtil, DecompileLayout, Decom
 import org.argus.amandroid.core.model.Intent
 import org.argus.jawa.alir.Context
 import org.argus.jawa.alir.pta.PTASlot
-import org.argus.jawa.alir.pta.rfa.SimHeap
 import org.argus.jawa.alir.reachability.SignatureBasedCallGraph
 import org.argus.jawa.core.util._
 import org.argus.jawa.core._
@@ -88,7 +87,6 @@ class IntentWuTest extends FlatSpec with Matchers {
 
     def produce(intentStr: String): Unit = {
       file should s"produce expected summary for $entrypoint" in {
-        implicit val heap: SimHeap = new SimHeap
         val reporter = if(DEBUG) new PrintReporter(MsgLevel.INFO) else new PrintReporter(MsgLevel.NO)
         val global = new Global("test", reporter)
         global.setJavaLib(getClass.getResource("/libs/android.jar").getPath)
@@ -230,7 +228,6 @@ class IntentWuTest extends FlatSpec with Matchers {
     def produce(intentStr: String): Unit = {
       file should s"produce expected summary" taggedAs Slow in {
         val apkFile = getClass.getResource(file).getPath
-        implicit val heap: SimHeap = new SimHeap
         val reporter = if(DEBUG) new PrintReporter(MsgLevel.INFO) else new PrintReporter(MsgLevel.NO)
 
         val fileUri = FileUtil.toUri(apkFile)
