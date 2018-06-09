@@ -18,11 +18,12 @@ import org.json4s.native.Serialization
 import org.json4s.native.Serialization.{read, write}
 import org.argus.amandroid.core.model.ApkModel
 import org.argus.amandroid.plugin.ApiMisuseResult
-import org.argus.amandroid.serialization.{ApkModelSerializer, ContextSerializer, PTAResultSerializer, SignatureKeySerializer}
+import org.argus.amandroid.serialization.ApkModelSerializer
 import org.argus.jawa.alir.pta.PTAResult
 import org.argus.jawa.alir.taintAnalysis.TaintAnalysisResult
 import org.argus.jawa.core.Signature
 import org.argus.jawa.core.util.FileUtil
+import org.argus.jawa.serialization.{ContextSerializer, PTAResultSerializer, SignatureKeySerializer}
 
 object Staging {
   

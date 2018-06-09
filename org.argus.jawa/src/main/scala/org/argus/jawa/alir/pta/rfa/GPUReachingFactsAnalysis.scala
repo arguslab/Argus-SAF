@@ -28,7 +28,11 @@ class GPUReachingFactsAnalysis(
     sm: SummaryManager,
     clm: ClassLoadManager,
     resolve_static_init: Boolean,
-    timeout: Option[MyTimeout])(implicit heap: SimHeap) extends ReachingFactsAnalysis(global, icfg, ptaresult, handler, sm, clm, resolve_static_init, timeout) {
+    timeout: Option[MyTimeout]) extends ReachingFactsAnalysis(global, icfg, ptaresult, handler, sm, clm, resolve_static_init, timeout) {
+
+  def preProcess() {
+
+  }
 
   override def process (
       entryPointProc: JawaMethod,

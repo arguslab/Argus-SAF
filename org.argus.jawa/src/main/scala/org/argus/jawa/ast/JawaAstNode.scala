@@ -68,6 +68,8 @@ sealed trait JawaAstNode extends CaseClassReflector with JavaKnowledge {
 
   def toCode: String
 
+  def toStructure: String
+
   override def toString: FileResourceUri = s"$toCode@$pos"
 
   def pos: Position
@@ -78,6 +80,7 @@ sealed trait ParsableAstNode extends JawaAstNode
 case class CompilationUnit(topDecls: IList[ClassOrInterfaceDeclaration])(implicit val pos: Position) extends ParsableAstNode {
   def localTypResolved: Boolean = topDecls.forall(_.methods.forall(_.resolvedBody.locals.forall(_.typOpt.isDefined)))
   def toCode: String = topDecls.map{td => td.toCode}.mkString("\n")
+  def toStructure: String = topDecls.map(td => td.toStructure).mkString("")
 }
 
 sealed trait Declaration extends JawaAstNode {
@@ -124,6 +127,7 @@ case class TypeDefSymbol(id: Token)(implicit val pos: Position) extends DefSymbo
   def this(name: String) = this(name, NoPosition)
   def typ: JawaType = getTypeFromJawaName(id.text)
   def toCode: String = id.rawText
+  def toStructure: String = s"TypeDefSymbol(${id.text})"
 }
 
 case class TypeSymbol(id: Token)(implicit val pos: Position) extends RefSymbol with ClassSym {
@@ -131,6 +135,7 @@ case class TypeSymbol(id: Token)(implicit val pos: Position) extends RefSymbol w
   def this(name: String) = this(name, NoPosition)
   def typ: JawaType = getTypeFromJawaName(id.text)
   def toCode: String = id.rawText
+  def toStructure: String = s"TypeSymbol(${id.text})"
 }
 
 case class MethodDefSymbol(id: Token)(implicit val pos: Position) extends DefSymbol with MethodSym {
@@ -140,6 +145,7 @@ case class MethodDefSymbol(id: Token)(implicit val pos: Position) extends DefSym
   def baseType: JawaType = signature.getClassType
   def methodName: String = id.text
   def toCode: String = id.rawText
+  def toStructure: String = s"MethodDefSymbol(${id.text})"
 }
 
 case class MethodNameSymbol(id: Token)(implicit val pos: Position) extends RefSymbol with MethodSym {
@@ -149,6 +155,7 @@ case class MethodNameSymbol(id: Token)(implicit val pos: Position) extends RefSy
   def baseType: JawaType = signature.getClassType
   def methodName: String = id.text
   def toCode: String = id.rawText
+  def toStructure: String = s"MethodNameSymbol(${id.text})"
 }
 
 case class FieldDefSymbol(id: Token)(implicit val pos: Position) extends DefSymbol with FieldSym {
@@ -158,6 +165,7 @@ case class FieldDefSymbol(id: Token)(implicit val pos: Position) extends DefSymb
   def baseType: JawaType = getClassTypeFromFieldFQN(FQN)
   def fieldName: String = getFieldNameFromFieldFQN(FQN)
   def toCode: String = id.rawText
+  def toStructure: String = s"FieldDefSymbol(${id.text})"
 }
 
 case class FieldNameSymbol(id: Token)(implicit val pos: Position) extends RefSymbol with FieldSym {
@@ -167,6 +175,7 @@ case class FieldNameSymbol(id: Token)(implicit val pos: Position) extends RefSym
   def baseType: JawaType = getClassTypeFromFieldFQN(FQN)
   def fieldName: String = getFieldNameFromFieldFQN(FQN)
   def toCode: String = id.rawText
+  def toStructure: String = s"FieldNameSymbol(${id.text})"
 }
 
 case class SignatureSymbol(id: Token)(implicit val pos: Position) extends RefSymbol with MethodSym {
@@ -176,6 +185,7 @@ case class SignatureSymbol(id: Token)(implicit val pos: Position) extends RefSym
   def signature: Signature = new Signature(id.text)
   def methodName: String = signature.methodName
   def toCode: String = id.rawText
+  def toStructure: String = s"SignatureSymbol(${id.text})"
 }
 
 case class VarDefSymbol(id: Token)(implicit val pos: Position) extends DefSymbol with VarSym {
@@ -184,6 +194,7 @@ case class VarDefSymbol(id: Token)(implicit val pos: Position) extends DefSymbol
   var owner: MethodDeclaration = _
   def varName: String = id.text
   def toCode: String = id.rawText
+  def toStructure: String = s"VarDefSymbol(${id.text})"
 }
 
 case class VarSymbol(id: Token)(implicit val pos: Position) extends RefSymbol with VarSym {
@@ -192,6 +203,7 @@ case class VarSymbol(id: Token)(implicit val pos: Position) extends RefSymbol wi
   var owner: MethodDeclaration = _
   def varName: String = id.text
   def toCode: String = id.rawText
+  def toStructure: String = s"VarSymbol(${id.text})"
 }
 
 /**
@@ -206,6 +218,7 @@ case class LocationDefSymbol(id: Token)(implicit val pos: Position) extends DefS
     else id.text.substring(1, id.text.length() - 1)
   }
   def toCode: String = id.rawText
+  def toStructure: String = s"LocationDefSymbol(${id.text})"
 }
 
 /**
@@ -217,6 +230,7 @@ case class LocationSymbol(id: Token)(implicit val pos: Position) extends RefSymb
   var owner: MethodDeclaration = _
   def location: String = id.text
   def toCode: String = id.rawText
+  def toStructure: String = s"LocationSymbol(${id.text})"
 }
 
 case class ClassOrInterfaceDeclaration(
@@ -240,6 +254,7 @@ case class ClassOrInterfaceDeclaration(
     val methodPart = if(methods.isEmpty) "" else s"${methods.map(m => m.toCode).mkString("\n")}"
     s"record ${cityp.toCode} ${annotations.map(anno => anno.toCode).mkString(" ")}${extendsAndImplementsClausesOpt match {case Some(eic) => " " + eic.toCode case None => ""}}\n{$instancePart}\n$staticPart$methodPart"
   }
+  def toStructure: String = s"ClassOrInterfaceDeclaration(${cityp.toStructure}${annotations.map(anno => anno.toStructure).mkString("")}${extendsAndImplementsClausesOpt match {case Some(eic) => " " + eic.toStructure case None => ""}}${instanceFields.map(f => f.toStructure).mkString("")}${staticFields.map(sf => sf.toStructure).mkString("")}${methods.map(m => m.toStructure).mkString("")})"
 }
 
 case class Annotation(
@@ -253,6 +268,7 @@ case class Annotation(
   def toCode: String = {
     s"@${annotationID.rawText}${annotationValueOpt match {case Some(av) => " " + av.toCode case None => ""}}"
   }
+  def toStructure: String = s"Annotation(Key(${annotationID.text})${annotationValueOpt match {case Some(av) => av.toStructure case None => ""}})"
 }
 
 sealed trait AnnotationValue extends JawaAstNode {
@@ -265,11 +281,13 @@ case class TypeExpressionValue(typExp: TypeExpression)(implicit val pos: Positio
   def this(str: String) = this(str, 0)
   def value: String = typExp.typ.name
   def toCode: String = typExp.toCode
+  def toStructure: String = s"TypeExpressionValue(${typExp.toStructure})"
 }
 
 case class SymbolValue(sym: JawaSymbol)(implicit val pos: Position) extends AnnotationValue {
   def value: String = sym.id.text
   def toCode: String = sym.toCode
+  def toStructure: String = s"SymbolValue(${sym.toStructure})"
 }
 
 case class TokenValue(token: Token)(implicit val pos: Position) extends AnnotationValue {
@@ -277,11 +295,13 @@ case class TokenValue(token: Token)(implicit val pos: Position) extends Annotati
   def this(str: String) = this(str, NoPosition)
   def value: String = token.text
   def toCode: String = token.rawText
+  def toStructure: String = s"TokenValue(${token.text})"
 }
 
 case class StatementValue(statements: IList[Statement])(implicit val pos: Position) extends AnnotationValue {
   def value: String = statements.map{statement => statement.toCode}.mkString(", ")
   def toCode: String = s"($value)"
+  def toStructure: String = s"StatementValue(${statements.map{statement => statement.toStructure}.mkString("")})"
 }
 
 case class ExtendsAndImplementsClauses(parentTyps: IList[ExtendAndImplement])(implicit val pos: Position) extends JawaAstNode {
@@ -290,6 +310,7 @@ case class ExtendsAndImplementsClauses(parentTyps: IList[ExtendAndImplement])(im
   def superClassOpt: Option[JawaType] = parentTyps.find(t => t.isExtend).map(t => t.typ)
   def interfaces: IList[JawaType] = parentTyps.filter(t => t.isImplement).map(t => t.typ)
   def toCode: String = s"extends ${parentTyps.map(t => t.toCode).mkString(", ")}"
+  def toStructure: String = s"ExtendsAndImplementsClauses(${parentTyps.map{t => t.toStructure}.mkString("")})"
 }
 
 case class ExtendAndImplement(
@@ -299,6 +320,7 @@ case class ExtendAndImplement(
   def isExtend: Boolean = annotations.exists { a => a.key == "kind" && a.value == "class" }
   def isImplement: Boolean = annotations.exists { a => a.key == "kind" && a.value == "interface" }
   def toCode: String = s"${parentTyp.toCode} ${annotations.map(anno => anno.toCode).mkString(" ")}"
+  def toStructure: String = s"ExtendAndImplement(${parentTyp.toStructure}${annotations.map(anno => anno.toStructure).mkString("")})"
 }
 
 sealed trait Field extends JawaAstNode {
@@ -316,6 +338,7 @@ case class InstanceFieldDeclaration(
   def FQN: String = fieldSymbol.FQN
   def isStatic: Boolean = false
   def toCode: String = s"${typ.toCode} ${fieldSymbol.toCode} ${annotations.map(anno => anno.toCode).mkString(" ")}".trim + ";"
+  def toStructure: String = s"InstanceFieldDeclaration(${typ.toStructure}${fieldSymbol.toStructure}${annotations.map(anno => anno.toStructure).mkString("")}})"
 }
 
 case class StaticFieldDeclaration(
@@ -325,6 +348,7 @@ case class StaticFieldDeclaration(
   def FQN: String = fieldSymbol.FQN
   def isStatic: Boolean = true
   def toCode: String = s"global ${typ.toCode} ${fieldSymbol.toCode} ${annotations.map(anno => anno.toCode).mkString(" ")}".trim + ";"
+  def toStructure: String = s"StaticFieldDeclaration(${typ.toStructure}${fieldSymbol.toStructure}${annotations.map(anno => anno.toStructure).mkString("")}})"
 }
 
 case class TypeExpression(typ_ : Type)(implicit val pos: Position) extends JawaAstNode {
@@ -334,6 +358,7 @@ case class TypeExpression(typ_ : Type)(implicit val pos: Position) extends JawaA
   def this(t: JawaType) = this(t.baseTyp, t.dimensions)
   def typ: JawaType = typ_.typ
   def toCode: String = s"^${typ_.toCode}"
+  def toStructure: String = s"TypeExpression(${typ_.toStructure})"
 }
 
 case class Type(base: TypeSymbol, typeFragments: IList[TypeFragment])(implicit val pos: Position) extends JawaAstNode {
@@ -345,10 +370,12 @@ case class Type(base: TypeSymbol, typeFragments: IList[TypeFragment])(implicit v
   def baseType: JawaType =  base.typ
   def typ: JawaType = getType(baseType.baseTyp, dimensions)
   def toCode: String = s"${base.toCode}${typeFragments.map(tf => tf.toCode).mkString("")}"
+  def toStructure: String = s"Type(${base.toStructure}${typeFragments.map(tf => tf.toStructure).mkString("")})"
 }
 
 case class TypeFragment()(implicit val pos: Position) extends JawaAstNode {
   def toCode: String = "[]"
+  def toStructure: String = "TypeFragment()"
 }
 
 case class MethodDeclaration(
@@ -377,6 +404,7 @@ case class MethodDeclaration(
     val annoPart = annotations.map(anno => anno.toCode).mkString(" ")
     s"procedure ${returnType.toCode} ${methodSymbol.toCode}(${params.map(p => p.toCode).mkString(", ")}) $annoPart".trim + "\n" + resolvedBody.toCode
   }
+  def toStructure: String = s"MethodDeclaration(${returnType.toStructure}${methodSymbol.toStructure}${params.map(p => p.toStructure).mkString("")}${annotations.map(anno => anno.toStructure).mkString("")}${resolvedBody.toStructure})"
 }
 
 case class Parameter(
@@ -391,6 +419,7 @@ case class Parameter(
     val annoPart = annotations.map(anno => anno.toCode).mkString(" ")
     s"${typ.toCode} ${paramSymbol.toCode} $annoPart".trim
   }
+  def toStructure: String = s"Parameter(${typ.toStructure}${paramSymbol.toStructure}${annotations.map(anno => anno.toStructure).mkString("")})"
 }
 
 sealed trait Body extends ParsableAstNode
@@ -405,6 +434,7 @@ case class UnresolvedBodyJawa(bodytokens: IList[Token])(implicit val pos: Positi
     case Failure(t) => throw t
   }
   def toCode: String = "{}"
+  def toStructure: String = "UnresolvedBodyJawa()"
 }
 
 //case class UnresolvedBodyJava(bodyBlock: BlockStmt)(implicit val pos: Position, cr: ClassResolver) extends Body with Unresolved {
@@ -419,6 +449,7 @@ case class UnresolvedBodyBytecode(bytecode: BytecodeInstructions)(implicit val p
     bytecode.genJawa
   }
   def toCode: String = "{}"
+  def toStructure: String = s"UnresolvedBodyBytecode()"
 }
 
 case class ResolvedBody(
@@ -438,6 +469,7 @@ case class ResolvedBody(
     val ccPart = if(catchClauses.isEmpty) "" else s"    ${catchClauses.map(cc => cc.toCode).mkString("\n    ")}\n}"
     s"{\n$localPart$locationPart$ccPart}"
   }
+  def toStructure: String = s"ResolvedBody(${locals.map(l => l.toStructure).mkString("")}${locations.map(l => l.toStructure).mkString("")}${catchClauses.map(cc => cc.toStructure).mkString("")})"
 }
 
 case class LocalVarDeclaration(
@@ -450,6 +482,7 @@ case class LocalVarDeclaration(
     case None => JavaKnowledge.OBJECT
   }
   def toCode: String = s"${typOpt match {case Some(t) => t.toCode + " " case None => ""}}${varSymbol.toCode};"
+  def toStructure: String = s"LocalVarDeclaration(${typOpt match {case Some(t) => t.toStructure case None => ""}}${varSymbol.toStructure})"
 }
 
 case class Location(
@@ -462,6 +495,7 @@ case class Location(
   }
   def locationIndex: Int = locationSymbol.locationIndex
   def toCode: String = s"${locationSymbol.toCode}  ${statement.toCode}".trim
+  def toStructure: String = s"Location(${locationSymbol.toStructure}${statement.toStructure})"
 }
 
 /**
@@ -543,6 +577,7 @@ case class CallStatement(
     val annoPart = annotations.map(anno => anno.toCode).mkString(" ")
     s"call $lhsPart$rhsPart $annoPart".trim + ";"
   }
+  def toStructure: String = s"CallStatement(${lhsOpt match {case Some(lhs) => lhs.toStructure case None => ""}}${rhs.toStructure}${annotations.map(anno => anno.toStructure).mkString("")})"
 }
 
 case class CallRhs(
@@ -554,6 +589,7 @@ case class CallRhs(
     case _ => throw new IndexOutOfBoundsException("List size " + varSymbols.size + " but index " + i)
   }
   def toCode: String = s"${methodNameSymbol.toCode}(${varSymbols.map(vs => vs.toCode).mkString(", ")})"
+  def toStructure: String = s"CallRhs(${methodNameSymbol.toStructure}${varSymbols.map{vs => vs.toStructure}.mkString("")})"
 }
 
 case class AssignmentStatement(
@@ -576,11 +612,13 @@ case class AssignmentStatement(
     val annoPart = annotations.map(anno => anno.toCode).mkString(" ")
     s"${lhs.toCode}:= ${rhs.toCode} $annoPart".trim + ";"
   }
+  def toStructure: String = s"AssignmentStatement(${lhs.toStructure}${rhs.toStructure}${annotations.map(anno => anno.toStructure).mkString("")})"
 }
 
 case class ThrowStatement(varSymbol: VarSymbol)(implicit val pos: Position) extends Statement {
   def this(name: String) = this(new VarSymbol(name))(NoPosition)
   def toCode: String = s"throw ${varSymbol.toCode};"
+  def toStructure: String = s"ThrowStatement(${varSymbol.toStructure})"
 }
 
 case class IfStatement(
@@ -588,11 +626,13 @@ case class IfStatement(
     targetLocation: LocationSymbol)(implicit val pos: Position) extends Jump {
   def this(cond: BinaryExpression, label: String) = this(cond, new LocationSymbol(label))(NoPosition)
   def toCode: String = s"if ${cond.toCode} then goto ${targetLocation.toCode};"
+  def toStructure: String = s"IfStatement(${cond.toStructure}${targetLocation.toStructure})"
 }
 
 case class GotoStatement(targetLocation: LocationSymbol)(implicit val pos: Position) extends Jump {
   def this(target: String) = this(new LocationSymbol(target))(NoPosition)
   def toCode: String = s"goto ${targetLocation.toCode};"
+  def toStructure: String = s"GotoStatement(${targetLocation.toStructure})"
 }
 
 case class SwitchStatement(
@@ -602,6 +642,7 @@ case class SwitchStatement(
   def this(cond: String, cases: IList[SwitchCase], default: SwitchDefaultCase) = this(new VarSymbol(cond), cases, Some(default))(NoPosition)
   def this(cond: String, cases: IList[SwitchCase]) = this(new VarSymbol(cond), cases, None)(NoPosition)
   def toCode: String = s"switch ${condition.toCode}\n              ${cases.map(c => c.toCode).mkString("\n              ")}${defaultCaseOpt match {case Some(d) => "\n              " + d.toCode case None => ""}};"
+  def toStructure: String = s"SwitchStatement(${condition.toStructure}${cases.map{c => c.toStructure}.mkString("")}${defaultCaseOpt match {case Some(d) => d.toStructure case None => ""}})"
 }
 
 case class SwitchCase(
@@ -609,11 +650,13 @@ case class SwitchCase(
     targetLocation: LocationSymbol)(implicit val pos: Position) extends JawaAstNode {
   def this(i: Int, target: String) = this(Token(Tokens.INTEGER_LITERAL, NoPosition, s"$i"), new LocationSymbol(target))(NoPosition)
   def toCode: String = s"| ${constant.rawText} => goto ${targetLocation.toCode}"
+  def toStructure: String = s"SwitchCase(Constant(${constant.text})${targetLocation.toStructure})"
 }
 
 case class SwitchDefaultCase(targetLocation: LocationSymbol)(implicit val pos: Position) extends JawaAstNode {
   def this(target: String) = this(new LocationSymbol(target))(NoPosition)
   def toCode: String = s"| else => goto ${targetLocation.toCode}"
+  def toStructure: String = s"SwitchDefaultCase(${targetLocation.toStructure})"
 }
 
 case class ReturnStatement(
@@ -629,6 +672,7 @@ case class ReturnStatement(
     val annoPart = annotations.map(anno => anno.toCode).mkString(" ")
     s"return$varPart $annoPart".trim + ";"
   }
+  def toStructure: String = s"ReturnStatement(${varOpt match {case Some(v) => v.toStructure case None => ""}}${annotations.map{a => a.toStructure}.mkString("")})"
 }
 
 case class MonitorStatement(
@@ -638,11 +682,13 @@ case class MonitorStatement(
   def isEnter: Boolean = monitor.tokenType == MONITOR_ENTER
   def isExit: Boolean = monitor.tokenType == MONITOR_EXIT
   def toCode: String = s"@${monitor.rawText} ${varSymbol.toCode}"
+  def toStructure: String = s"MonitorStatement(Monitor(${monitor.text})${varSymbol.toStructure})"
 }
 
 case class EmptyStatement(annotations: MList[Annotation])(implicit val pos: Position) extends Statement {
   def this() = this(mlistEmpty)(NoPosition)
   def toCode: String = annotations.map(anno => anno.toCode).mkString(" ")
+  def toStructure: String = s"EmptyStatement(${annotations.map(a => a.toStructure).mkString("")})"
 }
 
 sealed trait Expression extends JawaAstNode
@@ -681,6 +727,7 @@ case class VariableNameExpression(varSymbol: VarSymbol)(implicit val pos: Positi
   def this(name: String) = this(name, NoPosition)
   def name: String = varSymbol.varName
   def toCode: String = varSymbol.toCode
+  def toStructure: String = s"VariableNameExpression(${varSymbol.toStructure})"
 }
 
 case class StaticFieldAccessExpression(fieldNameSymbol: FieldNameSymbol, typExp: TypeExpression)(implicit val pos: Position) extends Expression with LHS {
@@ -688,27 +735,32 @@ case class StaticFieldAccessExpression(fieldNameSymbol: FieldNameSymbol, typExp:
   def name: String = fieldNameSymbol.FQN
   def toCode: String = s"${fieldNameSymbol.toCode} @type ${typExp.toCode}"
   def typ: JawaType = typExp.typ
+  def toStructure: String = s"StaticFieldAccessExpression(${fieldNameSymbol.toStructure}${typExp.toStructure})"
 }
 
 case class ExceptionExpression(typExp: TypeExpression)(implicit val pos: Position) extends Expression with RHS {
   def this(t: JawaType) = this(new TypeExpression(t))(NoPosition)
   def typ: JawaType = typExp.typ
   def toCode: String = s"Exception @type ${typExp.toCode}"
+  def toStructure: String = s"ExceptionExpression(${typExp.toStructure})"
 }
 
 case class NullExpression(nul: Token)(implicit val pos: Position) extends Expression with RHS {
   def this() = this(Token(Tokens.NULL, NoPosition, "null"))(NoPosition)
   def toCode: String = nul.rawText
+  def toStructure: String = s"NullExpression(${nul.text})"
 }
 
 case class ConstClassExpression(typExp: TypeExpression)(implicit val pos: Position) extends Expression with RHS {
   def this(t: JawaType) = this(new TypeExpression(t))(NoPosition)
   def toCode: String = s"constclass @type ${typExp.toCode}"
+  def toStructure: String = s"ConstClassExpression(${typExp.toStructure})"
 }
 
 case class LengthExpression(varSymbol: VarSymbol)(implicit val pos: Position) extends Expression with RHS {
   def this(name: String) = this(new VarSymbol(name))(NoPosition)
   def toCode: String = s"length @variable ${varSymbol.toCode}"
+  def toStructure: String = s"LengthExpression(${varSymbol.toStructure})"
 }
 
 case class IndexingExpression(
@@ -718,12 +770,14 @@ case class IndexingExpression(
   def base: String = varSymbol.varName
   def dimensions: Int = indices.size
   def toCode: String = s"${varSymbol.toCode}${indices.map(i => i.toCode).mkString("")}"
+  def toStructure: String = s"IndexingExpression(${varSymbol.toStructure}${indices.map(i => i.toStructure).mkString("")})"
 }
 
 case class IndexingSuffix(index: Either[VarSymbol, LiteralExpression])(implicit val pos: Position) extends JawaAstNode {
   def this(idx: String) = this(Left(new VarSymbol(idx)))(NoPosition)
   def this(idx: Int) = this(Right(new LiteralExpression(idx)))(NoPosition)
   def toCode: String = s"[${index match {case Left(vs) => vs.toCode case Right(le) => le.toCode}}]"
+  def toStructure: String = s"IndexingSuffix(${index match {case Left(v) => v.toStructure case Right(l) => l.toStructure}})"
 }
 
 case class AccessExpression(
@@ -735,11 +789,13 @@ case class AccessExpression(
   def fieldName: String = fieldSym.fieldName
   def toCode: String = s"${varSymbol.toCode}.${fieldSym.toCode} @type ${typExp.toCode}"
   def typ: JawaType = typExp.typ
+  def toStructure: String = s"AccessExpression(${varSymbol.toStructure}${fieldSym.toStructure}${typExp.toStructure})"
 }
 
 case class TupleExpression(constants: IList[LiteralExpression])(implicit val pos: Position) extends Expression with RHS {
   def integers: IList[Int] = constants.map(c => c.getInt)
   def toCode: String = s"(${constants.map(c => c.toCode).mkString(", ")})"
+  def toStructure: String = s"TupleExpression(${constants.map(c => c.toStructure).mkString("")})"
 }
 
 case class CastExpression(
@@ -748,6 +804,7 @@ case class CastExpression(
   def this(t: JawaType, varName: String) = this(new Type(t), new VarSymbol(varName))(NoPosition)
   def varName: String = varSym.varName
   def toCode: String = s"(${typ.toCode}) ${varSym.toCode}"
+  def toStructure: String = s"CastExpression(${typ.toStructure}${varSym.toStructure})"
 }
 
 trait New {
@@ -758,6 +815,7 @@ case class NewExpression(base: Type)(implicit val pos: Position) extends Express
   def this(t: JawaType) = this(new Type(t))(NoPosition)
   def typ: JawaType = base.typ
   def toCode: String = s"new ${base.toCode}"
+  def toStructure: String = s"NewExpression(${base.toStructure})"
 }
 
 case class NewArrayExpression(
@@ -768,6 +826,7 @@ case class NewArrayExpression(
   def baseType: JawaType = base.typ
   def typ: JawaType = getType(baseType.baseTyp, dimensions)
   def toCode: String = s"new ${base.toCode}[${varSymbols.map(vs => vs.toCode).mkString("," )}]"
+  def toStructure: String = s"NewArrayExpression(${base.toStructure}${varSymbols.map{vs => vs.toStructure}.mkString("")})"
 }
 
 case class InstanceOfExpression(
@@ -775,6 +834,7 @@ case class InstanceOfExpression(
     typExp: TypeExpression)(implicit val pos: Position) extends Expression with RHS {
   def this(varName: String, t: JawaType) = this(new VarSymbol(varName), new TypeExpression(t))(NoPosition)
   def toCode: String = s"instanceof @variable ${varSymbol.toCode} @type ${typExp.toCode}"
+  def toStructure: String = s"InstanceOfExpression(${varSymbol.toStructure}${typExp.toStructure})"
 }
 
 case class LiteralExpression(constant: Token)(implicit val pos: Position) extends Expression with RHS {
@@ -824,6 +884,7 @@ case class LiteralExpression(constant: Token)(implicit val pos: Position) extend
   def getDouble: Double = getLiteral.toDouble
   def getString: String = getLiteral
   def toCode: String = constant.rawText
+  def toStructure: String = s"LiteralExpression(${constant.text})"
 }
 
 case class UnaryExpression(
@@ -831,6 +892,7 @@ case class UnaryExpression(
   unary: VarSymbol)(implicit val pos: Position) extends Expression with RHS {
   def this(op: String, name: String) = this(Token(Tokens.OP, NoPosition, op), new VarSymbol(name))(NoPosition)
   def toCode: String = s"${op.rawText}${unary.toCode}"
+  def toStructure: String = s"UnaryExpression(Op(${op.text})${unary.toStructure})"
 }
 
 case class BinaryExpression(
@@ -841,6 +903,7 @@ case class BinaryExpression(
   def this(l: String, op: String, le: LiteralExpression) = this(new VarSymbol(l), Token(Tokens.OP, NoPosition, op), Right(Left(le)))(NoPosition)
   def this(l: String, op: String) = this(new VarSymbol(l), Token(Tokens.OP, NoPosition, op), Right(Right(new NullExpression())))(NoPosition)
   def toCode: String = s"${left.toCode} ${op.rawText} ${right match {case Left(vs) => vs.toCode case Right(ln) => ln match {case Left(le) => le.toCode case Right(ne) => ne.toCode}}}"
+  def toStructure: String = s"BinaryExpression(${left.toStructure}Op(${op.text})${right match {case Left(vs) => vs.toStructure case Right(ln) => ln match {case Left(le) => le.toStructure case Right(ne) => ne.toStructure}}}})"
 }
 
 case class CmpExpression(
@@ -856,6 +919,7 @@ case class CmpExpression(
     }
   }
   def toCode: String = s"${cmp.rawText}(${var1Symbol.toCode}, ${var2Symbol.toCode})"
+  def toStructure: String = s"CmpExpression(Cmp(${cmp.text})${var1Symbol.toStructure}${var2Symbol.toStructure})"
 }
 
 case class CatchClause(
@@ -866,6 +930,7 @@ case class CatchClause(
   def from: String = range.fromLocation.location
   def to: String = range.toLocation.location
   def toCode: String = s"catch ${typ.toCode} ${range.toCode} goto ${targetLocation.toCode};"
+  def toStructure: String = s"CatchClause(${typ.toStructure}${range.toStructure}${targetLocation.toStructure})"
 }
 
 case class CatchRange(
@@ -873,4 +938,5 @@ case class CatchRange(
     toLocation: LocationSymbol)(implicit val pos: Position) extends JawaAstNode {
   def this(from: String, to: String) = this(new LocationSymbol(from), new LocationSymbol(to))(NoPosition)
   def toCode: String = s"@[${fromLocation.toCode}..${toLocation.toCode}]"
+  def toStructure: String = s"CatchRange(${fromLocation.toStructure}${toLocation.toStructure})"
 }

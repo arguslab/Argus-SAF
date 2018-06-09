@@ -60,13 +60,13 @@ object DependencyGroups {
     st4,
     jgrapht_core,
     jgrapht_ext,
-    javaparser
+    javaparser,
+    json4s_native,
+    json4s_ext
   )
 
   val amandroid: Seq[ModuleID] = Seq(
-    ini4j,
-    json4s_native,
-    json4s_ext
+    ini4j
   ) ++ jawa
 
   val argus_saf: Seq[ModuleID] = Seq(

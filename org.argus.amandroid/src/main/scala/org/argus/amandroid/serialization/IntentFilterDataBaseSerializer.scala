@@ -15,18 +15,19 @@ import org.argus.jawa.core.JawaType
 import org.json4s._
 import org.json4s.JsonDSL._
 import org.argus.jawa.core.util._
+import org.argus.jawa.serialization.JawaTypeSerializer
 
 object IntentFilterDataBaseSerializer extends CustomSerializer[IntentFilterDataBase](format => (
     {
       case jv: JValue =>
-        implicit val formats = format + JawaTypeSerializer + IntentFilterSerializer
+        implicit val formats: Formats = format + JawaTypeSerializer + IntentFilterSerializer
         val intentFmap = (jv \ "intentFmap").extract[IMap[JawaType, ISet[IntentFilter]]]
         val ifdb = new IntentFilterDataBase
         ifdb.addIntentFmap(intentFmap)
         ifdb
     }, {
       case ifdb: IntentFilterDataBase =>
-        implicit val formats = format + JawaTypeSerializer + IntentFilterSerializer
+        implicit val formats: Formats = format + JawaTypeSerializer + IntentFilterSerializer
         "intentFmap" -> Extraction.decompose(ifdb.getIntentFmap)
     }
 ))
@@ -34,7 +35,7 @@ object IntentFilterDataBaseSerializer extends CustomSerializer[IntentFilterDataB
 object IntentFilterSerializer extends CustomSerializer[IntentFilter](format => (
     {
       case jv: JValue =>
-        implicit val formats = format + IfDataSerializer
+        implicit val formats: Formats = format + IfDataSerializer
         val holder = (jv \ "holder").extract[JawaType]
         val actions = (jv \ "actions").extract[ISet[String]]
         val categories = (jv \ "categories").extract[ISet[String]]
@@ -47,7 +48,7 @@ object IntentFilterSerializer extends CustomSerializer[IntentFilter](format => (
     },
     {
       case ifilter: IntentFilter =>
-        implicit val formats = format + IfDataSerializer
+        implicit val formats: Formats = format + IfDataSerializer
         ("holder" -> Extraction.decompose(ifilter.getHolder)) ~
         ("actions" -> ifilter.getActions) ~
         ("categories" -> ifilter.getCategorys) ~
@@ -58,7 +59,7 @@ object IntentFilterSerializer extends CustomSerializer[IntentFilter](format => (
 object IfDataSerializer extends CustomSerializer[Data](format => (
     {
       case jv: JValue =>
-        implicit val formats = format
+        implicit val formats: Formats = format
         val schemes = (jv \ "schemes").extract[ISet[String]]
         val authorities = (jv \ "authorities").extract[ISet[Authority]]
         val paths = (jv \ "paths").extract[ISet[String]]
@@ -76,7 +77,7 @@ object IfDataSerializer extends CustomSerializer[Data](format => (
     },
     {
       case d: Data =>
-        implicit val formats = format
+        implicit val formats: Formats = format
         ("schemes" -> d.getSchemes) ~
         ("authorities" -> Extraction.decompose(d.getAuthorities)) ~
         ("paths" -> d.getPaths) ~
