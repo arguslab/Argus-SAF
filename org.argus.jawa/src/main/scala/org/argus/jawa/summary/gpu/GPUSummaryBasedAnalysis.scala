@@ -27,7 +27,7 @@ class GPUSummaryBasedAnalysis {
       val l = body.resolvedBody.location(locUri)
       l.statement.toStructure
     case _ =>
-      null
+      body.signature.signature
   }
 
   def prepareData(global: Global, ep: Signature, w: Writer): Unit = {
