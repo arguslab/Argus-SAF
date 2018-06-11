@@ -28,12 +28,26 @@ class GPUSummaryBasedAnalysisTest extends FlatSpec with Matchers {
     new TestFile(file)
   }
 
-  "/droid-bench/InterComponentCommunication/ActivityCommunication1.apk" produce (
+  "/droid-bench/AndroidSpecific/PrivateDataLeak1.apk" produce (
     """`Lcom/hugo/test/SingleFunction;.clearArg:(Ljava/util/Set;)V`:
       |  ~arg:1
       |;
     """.stripMargin.trim.intern()
     )
+
+  "/droid-bench/AndroidSpecific/PrivateDataLeak2.apk" produce (
+    """`Lcom/hugo/test/SingleFunction;.clearArg:(Ljava/util/Set;)V`:
+      |  ~arg:1
+      |;
+    """.stripMargin.trim.intern()
+    )
+
+//  "/droid-bench/InterComponentCommunication/ActivityCommunication1.apk" produce (
+//    """`Lcom/hugo/test/SingleFunction;.clearArg:(Ljava/util/Set;)V`:
+//      |  ~arg:1
+//      |;
+//    """.stripMargin.trim.intern()
+//    )
 
 //  "/jawa/summary/SingleFunction.jawa" ep "Lcom/hugo/test/SingleFunction;.clearField:(Lcom/hugo/test/SingleFunction;)V" produce (
 //    """`Lcom/hugo/test/SingleFunction;.clearField:(Lcom/hugo/test/SingleFunction;)V`:
