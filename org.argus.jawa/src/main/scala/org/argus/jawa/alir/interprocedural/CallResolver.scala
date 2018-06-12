@@ -64,7 +64,7 @@ class MethodCallResolver(
     calleeSet.foreach {
       case _: IndirectCallee =>
         // TODO: handle indirect callee here
-      case callee: _ =>
+      case callee =>
         val calleeSig: Signature = callee.callee
         icfg.getCallGraph.addCall(callerNode.getOwner, calleeSig)
         val calleep = global.getMethodOrResolve(calleeSig).get
