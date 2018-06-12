@@ -118,7 +118,7 @@ class ModelCallHandler(val scopeManager: ScopeManager) {
       recvOpt: Option[String],
       args: IList[String],
       currentContext: Context): ISet[RFAFact] = {
-
+    
     callModelMap.get(calleeProc.getSignature) match {
       case Some(model) =>
         val (facts, byPassFlag) = model.doModelCall(sm, s, calleeProc, retOpt, recvOpt, args, currentContext)
