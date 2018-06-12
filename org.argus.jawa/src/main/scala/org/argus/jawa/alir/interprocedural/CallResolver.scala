@@ -61,25 +61,28 @@ class MethodCallResolver(
     var pureNormalFlag = pureNormalFlagMap.getOrElseUpdate(callerNode, true)
 
     val args = (cs.recvOpt ++ cs.args).toList
-    calleeSet.foreach { callee =>
-      val calleeSig: Signature = callee.callee
-      icfg.getCallGraph.addCall(callerNode.getOwner, calleeSig)
-      val calleep = global.getMethodOrResolve(calleeSig).get
-      if (handler.isModelCall(calleep)) {
-        pureNormalFlag = false
-        returnFacts = handler.doModelCall(sm, returnFacts, calleep, cs.lhsOpt.map(lhs => lhs.name), cs.recvOpt, cs.args, callerContext)
-      } else {
-        // for normal call
-        if (calleep.isConcrete) {
-          if (!icfg.isProcessed(calleeSig, callerContext)) {
-            icfg.collectCfgToBaseGraph[String](calleep, callerContext, isFirst = false, needReturnNode())
-            icfg.extendGraph(calleeSig, callerContext, needReturnNode = true)
+    calleeSet.foreach {
+      case _: IndirectCallee =>
+        // TODO: handle indirect callee here
+      case callee: _ =>
+        val calleeSig: Signature = callee.callee
+        icfg.getCallGraph.addCall(callerNode.getOwner, calleeSig)
+        val calleep = global.getMethodOrResolve(calleeSig).get
+        if (handler.isModelCall(calleep)) {
+          pureNormalFlag = false
+          returnFacts = handler.doModelCall(sm, returnFacts, calleep, cs.lhsOpt.map(lhs => lhs.name), cs.recvOpt, cs.args, callerContext)
+        } else {
+          // for normal call
+          if (calleep.isConcrete) {
+            if (!icfg.isProcessed(calleeSig, callerContext)) {
+              icfg.collectCfgToBaseGraph[String](calleep, callerContext, isFirst = false, needReturnNode())
+              icfg.extendGraph(calleeSig, callerContext, needReturnNode = true)
+            }
+            val factsForCallee = getFactsForCallee(returnFacts, cs, calleep, callerContext)
+            killSet ++= factsForCallee
+            calleeFactsMap += (icfg.entryNode(calleeSig, callerContext) -> callee.mapFactsToCallee(factsForCallee, args, (calleep.thisOpt ++ calleep.getParamNames).toList))
           }
-          val factsForCallee = getFactsForCallee(returnFacts, cs, calleep, callerContext)
-          killSet ++= factsForCallee
-          calleeFactsMap += (icfg.entryNode(calleeSig, callerContext) -> callee.mapFactsToCallee(factsForCallee, args, (calleep.thisOpt ++ calleep.getParamNames).toList))
         }
-      }
     }
     if (pureNormalFlag) {
       if (icfg.hasEdge(icfgCallnode, icfgReturnnode)) {

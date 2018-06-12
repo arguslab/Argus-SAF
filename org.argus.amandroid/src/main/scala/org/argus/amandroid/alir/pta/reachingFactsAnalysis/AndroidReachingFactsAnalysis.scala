@@ -15,7 +15,7 @@ import org.argus.amandroid.core.ApkGlobal
 import org.argus.jawa.alir.Context
 import org.argus.jawa.alir.cfg._
 import org.argus.jawa.alir.dfa._
-import org.argus.jawa.alir.interprocedural.{CallHandler, Callee, MethodCallResolver}
+import org.argus.jawa.alir.interprocedural.{CallHandler, Callee, IndirectCallee, MethodCallResolver}
 import org.argus.jawa.alir.pta._
 import org.argus.jawa.alir.pta.rfa.{RFAFact, ReachingFactsAnalysis, ReachingFactsAnalysisHelper}
 import org.argus.jawa.ast.CallStatement
@@ -83,9 +83,14 @@ class AndroidReachingFactsAnalysis(
           } else if (handler.isRPCCall(apk, currentComponent.getType, calleeSig)) {
             // don't do anything for the RPC call now.
           } else { // for non-ICC-RPC model call
-            returnFacts = handler.doModelCall(sm, s, calleep, cs.lhsOpt.map(lhs => lhs.name), cs.recvOpt, cs.args, callerContext)
-            if(InterComponentCommunicationModel.isRegisterReceiver(calleeSig)) {
-              registerReceiverNodes += callerNode.asInstanceOf[ICFGCallNode]
+            callee match {
+              case _: IndirectCallee =>
+              // TODO: handle indirect callee here
+              case _ =>
+                returnFacts = handler.doModelCall(sm, s, calleep, cs.lhsOpt.map(lhs => lhs.name), cs.recvOpt, cs.args, callerContext)
+                if (InterComponentCommunicationModel.isRegisterReceiver(calleeSig)) {
+                  registerReceiverNodes += callerNode.asInstanceOf[ICFGCallNode]
+                }
             }
           }
         } else {
