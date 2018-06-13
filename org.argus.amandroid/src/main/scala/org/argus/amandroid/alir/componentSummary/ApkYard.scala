@@ -11,13 +11,12 @@
 package org.argus.amandroid.alir.componentSummary
 
 import org.argus.jawa.core.util._
-
 import org.argus.amandroid.core.ApkGlobal
 import org.argus.amandroid.core.appInfo.AppInfoCollector
 import org.argus.amandroid.core.decompile.{ApkDecompiler, DecompilerSettings}
 import org.argus.amandroid.core.model.ApkModel
 import org.argus.jawa.alir.taintAnalysis.TaintAnalysisResult
-import org.argus.jawa.core.Reporter
+import org.argus.jawa.core.{JawaType, Reporter}
 
 /**
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>

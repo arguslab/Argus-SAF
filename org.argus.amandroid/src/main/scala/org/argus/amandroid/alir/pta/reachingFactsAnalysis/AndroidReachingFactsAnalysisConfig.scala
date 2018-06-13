@@ -22,7 +22,6 @@ import org.argus.jawa.core.{JawaMethod, JawaType}
  * @author <a href="mailto:sroy@k-state.edu">Sankardas Roy</a>
  */ 
 object AndroidReachingFactsAnalysisConfig {
-  final var resolve_icc = false
   final var resolve_static_init: Boolean = AndroidGlobalConfig.settings.static_init
   final var parallel: Boolean = AndroidGlobalConfig.settings.parallel
   Context.init_context_length(AndroidGlobalConfig.settings.k_context)
