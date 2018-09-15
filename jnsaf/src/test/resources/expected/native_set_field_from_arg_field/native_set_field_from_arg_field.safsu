@@ -1,0 +1,4 @@
+`Lorg/arguslab/native_set_field_from_arg_field/MainActivity;.setField:(Lorg/arguslab/native_set_field_from_arg_field/ComplexData;Lorg/arguslab/native_set_field_from_arg_field/ComplexData;)Lorg/arguslab/native_set_field_from_arg_field/Foo;`:
+  arg:1.foo = org.arguslab.native_set_field_from_arg_field.Foo@arg:2.foo
+  ret = org.arguslab.native_set_field_from_arg_field.Foo@arg:1.foo
+;

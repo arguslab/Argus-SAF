@@ -1,0 +1,73 @@
+Landroid/telephony/TelephonyManager;.getDeviceId:()Ljava/lang/String; SENSITIVE_INFO -> _SOURCE_
+Landroid/telephony/TelephonyManager;.getSubscriberId:()Ljava/lang/String; SENSITIVE_INFO -> _SOURCE_
+Landroid/telephony/TelephonyManager;.getSimSerialNumber:()Ljava/lang/String; SENSITIVE_INFO -> _SOURCE_
+Landroid/telephony/TelephonyManager;.getLine1Number:()Ljava/lang/String; SENSITIVE_INFO -> _SOURCE_
+Ljava/lang/ProcessBuilder;.start:()Ljava/lang/Process; -> _SINK_
+Ljava/net/URLConnection;.getOutputStream:()Ljava/io/OutputStream; INTERNET -> _SOURCE_
+Ljava/net/URLConnection;.getInputStream:()Ljava/io/InputStream; INTERNET -> _SOURCE_
+Lorg/apache/http/HttpResponse;.getEntity:()Lorg/apache/http/HttpEntity; INTERNET -> _SOURCE_
+Lorg/apache/http/util/EntityUtils;.toString:(Lorg/apache/http/HttpEntity;)Ljava/lang/String; INTERNET -> _SOURCE_
+Lorg/apache/http/util/EntityUtils;.toString:(Lorg/apache/http/HttpEntity;Ljava/lang/String;)Ljava/lang/String; INTERNET -> _SOURCE_
+Lorg/apache/http/util/EntityUtils;.toByteArray:(Lorg/apache/http/HttpEntity;)[B INTERNET -> _SOURCE_
+Lorg/apache/http/util/EntityUtils;.getContentCharSet:(Lorg/apache/http/HttpEntity;)Ljava/lang/String; INTERNET -> _SOURCE_
+Landroid/app/PendingIntent;.getActivity:(Landroid/content/Context;ILandroid/content/Intent;I)Landroid/app/PendingIntent; INTENT -> _SOURCE_
+Landroid/app/PendingIntent;.getActivity:(Landroid/content/Context;ILandroid/content/Intent;ILandroid/os/Bundle;)Landroid/app/PendingIntent; INTENT -> _SOURCE_
+Landroid/app/PendingIntent;.getBroadcast:(Landroid/content/Context;ILandroid/content/Intent;I)Landroid/app/PendingIntent; INTENT -> _SOURCE_
+Landroid/app/PendingIntent;.getService:(Landroid/content/Context;ILandroid/content/Intent;I)Landroid/app/PendingIntent; INTENT -> _SOURCE_
+Landroid/media/AudioRecord;.read:([SII)I AUDIO -> _SOURCE_
+Landroid/media/AudioRecord;.read:([BII)I AUDIO -> _SOURCE_
+Landroid/media/AudioRecord;.read:(Ljava/nio/ByteBuffer;I)I AUDIO -> _SOURCE_
+Landroid/location/LocationManager;.getLastKnownLocation:(Ljava/lang/String;)Landroid/location/Location; LOCATION -> _SOURCE_
+Landroid/content/pm/PackageManager;.getInstalledApplications:(I)Ljava/util/List; SENSITIVE_INFO -> _SOURCE_
+Landroid/content/pm/PackageManager;.getInstalledPackages:(I)Ljava/util/List; SENSITIVE_INFO -> _SOURCE_
+Landroid/content/pm/PackageManager;.queryIntentActivities:(Landroid/content/Intent;I)Ljava/util/List; SENSITIVE_INFO -> _SOURCE_
+Landroid/content/pm/PackageManager;.queryIntentServices:(Landroid/content/Intent;I)Ljava/util/List; SENSITIVE_INFO -> _SOURCE_
+Landroid/content/pm/PackageManager;.queryBroadcastReceivers:(Landroid/content/Intent;I)Ljava/util/List; SENSITIVE_INFO -> _SOURCE_
+Landroid/content/pm/PackageManager;.queryContentProviders:(Ljava/lang/String;II)Ljava/util/List; SENSITIVE_INFO -> _SOURCE_
+Landroid/os/Handler;.obtainMessage:()Landroid/os/Message; MESSAGE -> _SOURCE_
+Landroid/os/Handler;.obtainMessage:(III)Landroid/os/Message; MESSAGE -> _SOURCE_
+Landroid/os/Handler;.obtainMessage:(IIILjava/lang/Object;)Landroid/os/Message; MESSAGE -> _SOURCE_
+Landroid/os/Handler;.obtainMessage:(I)Landroid/os/Message; MESSAGE -> _SOURCE_
+Landroid/os/Handler;.obtainMessage:(ILjava/lang/Object;)Landroid/os/Message; MESSAGE -> _SOURCE_
+Landroid/util/Log;.d:(Ljava/lang/String;Ljava/lang/String;)I -> _SINK_
+Landroid/util/Log;.d:(Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;)I -> _SINK_
+Landroid/util/Log;.e:(Ljava/lang/String;Ljava/lang/String;)I -> _SINK_
+Landroid/util/Log;.e:(Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;)I -> _SINK_
+Landroid/util/Log;.i:(Ljava/lang/String;Ljava/lang/String;)I -> _SINK_
+Landroid/util/Log;.i:(Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;)I -> _SINK_
+Landroid/util/Log;.v:(Ljava/lang/String;Ljava/lang/String;)I -> _SINK_
+Landroid/util/Log;.v:(Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;)I -> _SINK_
+Landroid/util/Log;.w:(Ljava/lang/String;Ljava/lang/Throwable;)I -> _SINK_
+Landroid/util/Log;.w:(Ljava/lang/String;Ljava/lang/String;)I -> _SINK_
+Landroid/util/Log;.w:(Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;)I -> _SINK_
+Landroid/util/Log;.wtf:(Ljava/lang/String;Ljava/lang/Throwable;)I -> _SINK_
+Landroid/util/Log;.wtf:(Ljava/lang/String;Ljava/lang/String;)I -> _SINK_
+Landroid/util/Log;.wtf:(Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;)I -> _SINK_
+Ljava/io/OutputStream;.write:([B)V -> _SINK_ 1
+Ljava/io/OutputStream;.write:([BII)V -> _SINK_ 1
+Ljava/io/OutputStream;.write:(I)V -> _SINK_ 1
+Ljava/io/FileOutputStream;.write:([B)V -> _SINK_ 1
+Ljava/io/FileOutputStream;.write:([BII)V -> _SINK_ 1
+Ljava/io/FileOutputStream;.write:(I)V -> _SINK_ 1
+Ljava/io/Writer;.write:([C)V -> _SINK_ 1
+Ljava/io/Writer;.write:([CII)V -> _SINK_ 1
+Ljava/io/Writer;.write:(I)V -> _SINK_ 1
+Ljava/io/Writer;.write:(Ljava/lang/String;)V -> _SINK_ 1
+Ljava/io/Writer;.write:(Ljava/lang/String;II)V -> _SINK_ 1
+Ljava/net/URLConnection;.setRequestProperty:(Ljava/lang/String;Ljava/lang/String;)V -> _SINK_ 1|2
+Landroid/media/MediaRecorder;.setVideoSource:(I)V -> _SINK_ 1
+Landroid/media/MediaRecorder;.setPreviewDisplay:(Landroid/view/Surface;)V -> _SINK_ 1
+Landroid/media/MediaRecorder;.start:()V -> _SINK_
+Landroid/telephony/SmsManager;.sendTextMessage:(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Landroid/app/PendingIntent;Landroid/app/PendingIntent;)V -> _SINK_ 3
+Landroid/telephony/SmsManager;.sendDataMessage:(Ljava/lang/String;Ljava/lang/String;S[BLandroid/app/PendingIntent;Landroid/app/PendingIntent;)V -> _SINK_ 4
+Landroid/telephony/SmsManager;.sendMultipartTextMessage:(Ljava/lang/String;Ljava/lang/String;Ljava/util/ArrayList;Ljava/util/ArrayList;Ljava/util/ArrayList;)V -> _SINK_ 3
+Ljava/net/Socket;.connect:(Ljava/net/SocketAddress;)V -> _SINK_ 1
+Landroid/os/Handler;.sendMessage:(Landroid/os/Message;)Z -> _SINK_ 1
+Landroid/content/SharedPreferences$Editor;.putBoolean:(Ljava/lang/String;Z)Landroid/content/SharedPreferences$Editor; -> _SINK_ 1|2
+Landroid/content/SharedPreferences$Editor;.putFloat:(Ljava/lang/String;F)Landroid/content/SharedPreferences$Editor; -> _SINK_ 1|2
+Landroid/content/SharedPreferences$Editor;.putInt:(Ljava/lang/String;I)Landroid/content/SharedPreferences$Editor; -> _SINK_ 1|2
+Landroid/content/SharedPreferences$Editor;.putLong:(Ljava/lang/String;J)Landroid/content/SharedPreferences$Editor; -> _SINK_ 1|2
+Landroid/content/SharedPreferences$Editor;.putString:(Ljava/lang/String;Ljava/lang/String;)Landroid/content/SharedPreferences$Editor; -> _SINK_ 1|2
+Ljava/net/URL;.openConnection:()Ljava/net/URLConnection; -> _SINK_
+Landroid/app/Activity;.setResult:(ILandroid/content/Intent;)V -> _SINK_ 2
+Ljava/net/URLConnection;.getInputStream:()Ljava/io/InputStream; INTERNET -> _SOURCE_

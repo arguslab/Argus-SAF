@@ -1,0 +1,1 @@
+Lorg/arguslab/native_leak_dynamic_register/MainActivity;.send:(Ljava/lang/String;)V -> _SINK_ 1

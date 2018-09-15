@@ -1,0 +1,59 @@
+syntax = "proto3";
+
+package jawa_core;
+option java_package = "org.argus.jawa.core";
+
+message JavaPackage {
+    string name = 1;
+    JavaPackage parent = 2;
+}
+
+message PrimitiveType {
+    enum Primitive {
+        BYTE = 0;
+        SHORT = 1;
+        INT = 2;
+        FLOAT = 3;
+        BOOLEAN = 4;
+        CHAR = 5;
+        LONG = 6;
+        DOUBLE = 7;
+    }
+    Primitive type = 1;
+}
+
+message ClassType {
+    JavaPackage package = 1;
+    string name = 2;
+    bool unknown = 3;
+}
+
+message VoidType {}
+
+message JavaType {
+    oneof base_type {
+        PrimitiveType primitive_type = 1;
+        ClassType class_type = 2;
+    }
+    int32 dimension = 3;
+}
+
+message MethodProto {
+    repeated JavaType param_types = 1;
+    oneof return_type {
+        JavaType return_java_type = 2;
+        VoidType return_void_type = 3;
+    }
+}
+
+message MethodSignature {
+    JavaType owner = 1;
+    string name = 2;
+    MethodProto proto = 3;
+}
+
+message FieldSignature {
+    JavaType owner = 1;
+    string name = 2;
+    JavaType field_type = 3;
+}

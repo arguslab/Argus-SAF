@@ -1,9 +1,9 @@
 import Common._
+import com.typesafe.sbt.pgp.PgpKeys._
 import sbt.Keys._
 import sbtassembly.AssemblyPlugin.autoImport._
 import sbtbuildinfo.BuildInfoPlugin.autoImport._
 import sbtrelease.ReleaseStateTransformations._
-import com.typesafe.sbt.pgp.PgpKeys._
 
 licenses in ThisBuild := ("Eclipse-1.0" -> url("http://www.opensource.org/licenses/eclipse-1.0.php")) :: Nil // this is required! otherwise Bintray will reject the code
 
@@ -19,6 +19,13 @@ libraryDependencies in ThisBuild += "org.scalatest" %% "scalatest" % "3.0.1" % "
 val argusSafSettings = Defaults.coreDefaultSettings ++ Seq(
   libraryDependencies += "org.scala-lang" % "scala-compiler" % ArgusVersions.scalaVersion,
   scalacOptions ++= Seq("-unchecked", "-deprecation", "-feature")
+)
+
+val pbSettings = Seq(
+  PB.protoSources in Compile := Seq(baseDirectory.value / "src" / "main" / "protobuf"),
+  PB.targets in Compile := Seq(
+    scalapb.gen() -> (sourceManaged in Compile).value / "protos",
+  )
 )
 
 val buildInfoSettings = Seq(
@@ -97,7 +104,7 @@ lazy val argus_saf: Project =
   )
 
 lazy val saf_library: Project =
-  newProject("saf-library", file("org.argus.saf.library"))
+  newProject("saf-library", file("saf.library"))
     .settings(
       assemblyOption in assembly := (assemblyOption in assembly).value.copy(`includeScala` = false),
       assemblyJarName in assembly := s"${name.value}-${version.value}.jar",
@@ -111,27 +118,33 @@ lazy val saf_library: Project =
     .settings(publishSettings)
 
 lazy val jawa: Project =
-  newProject("jawa", file("org.argus.jawa"))
+  newProject("jawa", file("jawa"))
   .settings(libraryDependencies ++= DependencyGroups.jawa)
   .settings(publishSettings)
+  .settings(pbSettings)
 
 lazy val amandroid: Project =
-  newProject("amandroid", file("org.argus.amandroid"))
+  newProject("amandroid", file("amandroid"))
   .dependsOn(jawa, saf_library)
   .settings(libraryDependencies ++= DependencyGroups.amandroid)
   .settings(publishSettings)
 
 lazy val amandroid_concurrent: Project =
-  newProject("amandroid-concurrent", file("org.argus.amandroid.concurrent"))
+  newProject("amandroid-concurrent", file("amandroid.concurrent"))
   .dependsOn(amandroid)
   .settings(libraryDependencies ++= DependencyGroups.amandroid_concurrent)
   .settings(doNotPublishSettings)
 
-lazy val webfa: Project =
-  newProject("webfa", file("org.argus.webfa"))
-  .dependsOn(jawa)
-  .settings(libraryDependencies ++= DependencyGroups.webfa)
-  .settings(doNotPublishSettings)
+lazy val jnsaf: Project =
+  newProject("jnsaf", file("jnsaf"))
+    .dependsOn(amandroid)
+    .settings(libraryDependencies ++= DependencyGroups.jnsaf)
+    .settings(libraryDependencies ++= Seq(
+      "io.grpc" % "grpc-netty" % scalapb.compiler.Version.grpcJavaVersion,
+      "com.thesamet.scalapb" %% "scalapb-runtime-grpc" % scalapb.compiler.Version.scalapbVersion
+    ))
+    .settings(publishSettings)
+    .settings(pbSettings)
 
 releaseProcess := Seq(
   checkSnapshotDependencies,

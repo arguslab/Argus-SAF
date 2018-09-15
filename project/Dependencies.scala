@@ -11,7 +11,7 @@
 import sbt._
 
 object ArgusVersions {
-  val scalaVersion = "2.12.4"
+  val scalaVersion = "2.12.6"
   val sbtVersion = "1.1.1"
   val jgraphtVersion = "1.0.1"
   val json4sVersion = "3.5.0"
@@ -36,7 +36,7 @@ object Dependencies {
   val commons_cli: ModuleID = "commons-cli" % "commons-cli" % "1.3.1"
   val commons_lang3: ModuleID = "org.apache.commons" % "commons-lang3" % "3.5"
 
-  val guava: ModuleID = "com.google.guava" % "guava" % "21.0"
+  val guava: ModuleID = "com.google.guava" % "guava" % "20.0"
 
   val json4s_native: ModuleID = "org.json4s" %% "json4s-native" % json4sVersion
   val json4s_ext: ModuleID = "org.json4s" %% "json4s-ext" % json4sVersion
@@ -74,6 +74,8 @@ object DependencyGroups {
   ) ++ amandroid
 
   val amandroid_concurrent: Seq[ModuleID] = Seq(akka_actor) ++ amandroid
+
+  val jnsaf: Seq[ModuleID] = Seq() ++ amandroid
 
   val webfa: Seq[ModuleID] = Seq() ++ jawa
 }

@@ -8,7 +8,7 @@
 !.idea/vcs.xml
 !.idea/uiDesigner.xml
 /classes
-/dist
+dist
 /SDK/*SDK
 /*.bat
 out
@@ -16,3 +16,10 @@ build
 .DS_Store
 *~
 target/
+nativedroid/venv/*
+
+# Python cruft
+*.pyc
+*.pyo
+*.egg-info
+MANIFEST
