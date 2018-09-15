@@ -3,6 +3,7 @@ import hashlib
 import pkg_resources
 import time
 import io
+import os
 
 from nativedroid.protobuf.server_pb2 import *
 from nativedroid.protobuf.server_pb2_grpc import *
@@ -20,8 +21,8 @@ java_ss_file = pkg_resources.resource_filename('nativedroid.data', 'sourceAndSin
 class NativeDroidServer(NativeDroidServerServicer):
 
     def __init__(self):
-        # Map from so_handle to so in memory file
-        self.so_map = {}
+        self._binary_tmp_path = '/tmp/binaries/'
+        self._loadedsos = set()
 
     def GenSummary(self, request, context):
         """
@@ -30,16 +31,13 @@ class NativeDroidServer(NativeDroidServerServicer):
         :param context:
         :return: server_pb2.GenSummaryResponse
         """
-        so_handle = request.so_handle
-        so_file = self.so_map.get(so_handle)
-        if not so_file:
-            raise Exception("Does not find so file for handle: %s" % so_handle)
+        so_path = request.so_handle
         signature = request.method_signature
         jni_method_name = request.jni_func
         method_signature = method_signature_str(signature)
         jni_method_arguments = get_params_from_method_signature(signature, False)
         arguments_str = ",".join(java_type_str(arg, False) for arg in jni_method_arguments)
-        taint_analysis_report, safsu_report, total_instructions = gen_summary('testdata/libleak.so', jni_method_name,
+        taint_analysis_report, safsu_report, total_instructions = gen_summary(so_path, jni_method_name,
                                                                               method_signature, arguments_str,
                                                                               native_ss_file, java_ss_file)
         response = GenSummaryResponse(taint=taint_analysis_report, summary=safsu_report,
@@ -54,13 +52,24 @@ class NativeDroidServer(NativeDroidServerServicer):
         :return: server_pb2.LoadBinaryResponse
         """
         f = io.BytesIO()
-        sha1 = hashlib.sha1()
+        sha256 = hashlib.sha256()
         for chunk in request_iterator:
-            sha1.update(chunk.buffer)
+            sha256.update(chunk.buffer)
             f.write(chunk.buffer)
-        self.so_map[sha1.hexdigest()] = f
+        so_digest = sha256.hexdigest()
+        so_path = '/tmp/binaries/' + so_digest
+
+        if so_path not in self._loadedsos:
+            try:
+                os.makedirs('/tmp/binaries/')
+            except OSError:
+                if not os.path.isdir('/tmp/binaries/'):
+                    raise
+            with open(so_path, 'wb') as out:
+                out.write(f.getvalue())
+            self._loadedsos.add(so_path)
         size = len(f.getvalue())
-        return LoadBinaryResponse(so_handle=sha1.hexdigest(), length=size)
+        return LoadBinaryResponse(so_handle=so_path, length=size)
 
     def HasSymbol(self, request, context):
         """
@@ -69,11 +78,8 @@ class NativeDroidServer(NativeDroidServerServicer):
         :param context:
         :return:
         """
-        so_handle = request.so_handle
-        so_file = self.so_map.get(so_handle)
-        if not so_file:
-            raise Exception("Does not find so file for handle: %s" % so_handle)
-        return HasSymbolResponse(has_symbol=has_symbol(so_file, request.symbol))
+        so_path = request.so_handle
+        return HasSymbolResponse(has_symbol=has_symbol(so_path, request.symbol))
 
 
 def serve():

@@ -38,7 +38,7 @@ class X86Resolver(TaintResolver):
         for idx, argument in enumerate(reversed(arguments_native)):
             argument_name = argument[0]
             argument_type = argument[1]
-            argument_annotation = jobjectAnnotation(source=argument_name, obj_type=argument_type, fields_info=list())
+            argument_annotation = JobjectAnnotation(source=argument_name, obj_type=argument_type, fields_info=list())
             typ = get_type(self._project, argument_type)
             typ_size = get_type_size(self._project, argument_type)
             data = claripy.BVV(typ.ptr, typ_size)
@@ -103,6 +103,5 @@ class X86Resolver(TaintResolver):
             for annotation in mem.annotations:
                 if type(annotation) is Annotation:
                     if TaintResolver._is_taint(annotation, tags):
-                        print "Taint found: ", mem
                         args.append(mem)
         return args

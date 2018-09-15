@@ -33,7 +33,6 @@ def gen_summary(so_file, jni_method_name, jni_method_signature, jni_method_argum
         res = re.split(r";\.|:", jni_method_signature)
         java_method_info = (res[1], res[2])
         jni_method_addr = dynamic_register_methods[java_method_info]
-        # nativedroid_logger.debug('[JNI Method Addr]: %s', hex(jni_method_addr))
     else:
         jni_method_addr = jni_method_symb.rebased_addr
     ssm = SourceAndSinkManager(native_ss_file)
@@ -45,7 +44,6 @@ def gen_summary(so_file, jni_method_name, jni_method_signature, jni_method_argum
     nativedroid_logger.info('[Taint Analysis]\n%s', taint_analysis_report)
     nativedroid_logger.info('[SafSu Analysis]\n%s', safsu_report)
     total_instructions = annotation_based_analysis.count_cfg_instructions()
-    # nativedroid_logger.info('[Total Instructions]\n%d', total_instructions)
     return taint_analysis_report, safsu_report, total_instructions
 
 
@@ -109,8 +107,6 @@ def native_activity_analysis(so_file, custom_entry_func_name, native_ss_file, ja
     jni_native_interface.java_sas_file = java_ss_file
     angr.register_analysis(AnnotationBasedAnalysis, 'AnnotationBasedAnalysis')
     project = angr.Project(so_file, load_options={'auto_load_libs': False, 'main_opts': {'custom_base_addr': 0x0}})
-    # project = angr.Project(so_file, load_options={'auto_load_libs': False, 'main_opts': {'custom_base_addr': 0x0}},
-    #                        exclude_sim_procedures_list=['pthread_create'])
     env_method_model = EnvMethodModel()
     ssm = SourceAndSinkManager(native_ss_file)
 
@@ -142,113 +138,4 @@ def native_activity_analysis(so_file, custom_entry_func_name, native_ss_file, ja
         nativedroid_logger.info('[Total Instructions] %s', total_instructions)
     else:
         total_instructions = 0
-    return str(total_instructions)
-
-
-def native_flow_bench_debug(native_ss_file, java_ss_file):
-    """
-
-    :param native_ss_file:
-    :param java_ss_file:
-    :return:
-    """
-
-    # so_file = '../../../src/test/resources/NativeFlowBench/NativeLibs/native_leak/lib/armeabi/libleak.so'
-    # jni_method_name = 'Java_org_arguslab_native_1leak_MainActivity_send'
-    # jni_method_signature = 'Lorg/arguslab/native_leak/MainActivity;.send:(Ljava/lang/String;)V'
-    # jni_method_arguments = 'org.arguslab.native_leak.MainActivity,java.lang.String'
-    # gen_summary(so_file, jni_method_name, jni_method_signature, jni_method_arguments, native_ss_file, java_ss_file)
-    #
-    # so_file = '../../../src/test/resources/NativeFlowBench/NativeLibs/icc_nativetojava/lib/armeabi/libintent.so'
-    # jni_method_name = 'Java_org_arguslab_icc_1nativetojava_MainActivity_sendIntent'
-    # jni_method_signature = 'Lorg/arguslab/icc_nativetojava/MainActivity;.sendIntent:(Ljava/lang/String;)V'
-    # jni_method_arguments = 'org.arguslab.icc_nativetojava.MainActivity,java.lang.String'
-    # gen_summary(so_file, jni_method_name, jni_method_signature, jni_method_arguments, native_ss_file, java_ss_file)
-    #
-    # so_file = '../../../src/test/resources/NativeFlowBench/NativeLibs/native_method_overloading/lib/armeabi/libmethod_overloading.so'
-    # jni_method_name = 'Java_org_arguslab_native_1method_1overloading_MainActivity_send___3I_3Ljava_lang_String_2Ljava_lang_String_2D'
-    # jni_method_signature = 'Lorg/arguslab/native_method_overloading/MainActivity;.send:([I[Ljava/lang/String;Ljava/lang/String;D)V'
-    # jni_method_arguments = 'org.arguslab.native_method_overloading.MainActivity,int[],java.lang.String[],java.lang.String,double'
-    # gen_summary(so_file, jni_method_name, jni_method_signature, jni_method_arguments, native_ss_file, java_ss_file)
-    #
-    # so_file = '../../../src/test/resources/NativeFlowBench/NativeLibs/native_heap_modify/lib/armeabi/libheap_modify.so'
-    # jni_method_name = 'Java_org_arguslab_native_1heap_1modify_MainActivity_heapModify'
-    # jni_method_signature = 'Lorg/arguslab/native_heap_modify/MainActivity;.heapModify:(Landroid/content/Context;Lorg/arguslab/native_heap_modify/Data;)V'
-    # jni_method_arguments = 'org.arguslab.native_heap_modify.MainActivity,android.content.Context,org.arguslab.native_heap_modify.Data'
-    # gen_summary(so_file, jni_method_name, jni_method_signature, jni_method_arguments, native_ss_file, java_ss_file)
-    #
-    # so_file = '../../../src/test/resources/NativeFlowBench/NativeLibs/native_leak_dynamic_register/lib/armeabi/libleak_dynamic_register.so'
-    # jni_method_name = 'Java_org_arguslab_native_1leak_1dynamic_1register_MainActivity_send'
-    # jni_method_signature = 'Lorg/arguslab/native_leak_dynamic_register/MainActivity;.send:(Ljava/lang/String;)V'
-    # jni_method_arguments = 'org.arguslab.native_leak_dynamic_register.MainActivity,java.lang.String'
-    # gen_summary(so_file, jni_method_name, jni_method_signature, jni_method_arguments, native_ss_file, java_ss_file)
-    #
-    # so_file = '../../../src/test/resources/NativeFlowBench/NativeLibs/native_dynamic_register_multiple/lib/armeabi/libdynamic_register_multiple.so'
-    # jni_method_name = 'Java_org_arguslab_native_1dynamic_1register_1multiple_MainActivity_send'
-    # jni_method_signature = 'Lorg/arguslab/native_dynamic_register_multiple/MainActivity;.send:(Ljava/lang/String;)V'
-    # jni_method_arguments = 'org.arguslab.native_dynamic_register_multiple.MainActivity,java.lang.String'
-    # gen_summary(so_file, jni_method_name, jni_method_signature, jni_method_arguments, native_ss_file, java_ss_file)
-    #
-    # so_file = '../../../src/test/resources/NativeFlowBench/NativeLibs/native_source/lib/armeabi/libsource.so'
-    # jni_method_name = 'Java_org_arguslab_native_1source_MainActivity_getImei'
-    # jni_method_signature = 'Lorg/arguslab/native_source/MainActivity;.getImei:(Landroid/content/Context;)Ljava/lang/String;'
-    # jni_method_arguments = 'org.arguslab.native_source.MainActivity,android.content.Context'
-    # gen_summary(so_file, jni_method_name, jni_method_signature, jni_method_arguments, native_ss_file, java_ss_file)
-    #
-    # so_file = '../../../src/test/resources/NativeFlowBench/NativeLibs/native_complexdata/lib/armeabi/libdata.so'
-    # jni_method_name = 'Java_org_arguslab_native_1complexdata_MainActivity_send'
-    # jni_method_signature = 'Lorg/arguslab/native_complexdata/MainActivity;.send:(Lorg/arguslab/native_complexdata/ComplexData;)V'
-    # jni_method_arguments = 'org.arguslab.native_complexdata.MainActivity,org.arguslab.native_complexdata.ComplexData'
-    # gen_summary(so_file, jni_method_name, jni_method_signature, jni_method_arguments, native_ss_file, java_ss_file)
-    #
-    # so_file = '../../../src/test/resources/NativeFlowBench/NativeLibs/native_set_field_from_arg/lib/armeabi/libset_field_from_arg.so'
-    # jni_method_name = 'Java_org_arguslab_native_1set_1field_1from_1arg_MainActivity_setField'
-    # jni_method_signature = 'Lorg/arguslab/native_set_field_from_arg/MainActivity;.setField:(Lorg/arguslab/native_set_field_from_arg/ComplexData;Lorg/arguslab/native_set_field_from_arg/Foo;)Lorg/arguslab/native_set_field_from_arg/Foo;'
-    # jni_method_arguments = 'org.arguslab.native_set_field_from_arg.MainActivity,org.arguslab.native_set_field_from_arg.ComplexData,org.arguslab.native_set_field_from_arg.Foo'
-    # gen_summary(so_file, jni_method_name, jni_method_signature, jni_method_arguments, native_ss_file, java_ss_file)
-    #
-    # so_file = '../../../src/test/resources/NativeFlowBench/NativeLibs/native_set_field_from_arg_field/lib/armeabi/libset_field_from_arg_field.so'
-    # jni_method_name = 'Java_org_arguslab_native_1set_1field_1from_1arg_1field_MainActivity_setField'
-    # jni_method_signature = 'Lorg/arguslab/native_set_field_from_arg_field/MainActivity;.setField:(Lorg/arguslab/native_set_field_from_arg_field/ComplexData;Lorg/arguslab/native_set_field_from_arg_field/ComplexData;)Lorg/arguslab/native_set_field_from_arg_field/Foo;'
-    # jni_method_arguments = 'org.arguslab.native_set_field_from_arg_field.MainActivity,org.arguslab.native_set_field_from_arg_field.ComplexData,org.arguslab.native_set_field_from_arg_field.ComplexData'
-    # gen_summary(so_file, jni_method_name, jni_method_signature, jni_method_arguments, native_ss_file, java_ss_file)
-    #
-    # so_file = '../../../src/test/resources/NativeFlowBench/NativeLibs/native_set_field_from_native/lib/armeabi/libset_field_from_native.so'
-    # jni_method_name = 'Java_org_arguslab_native_1set_1field_1from_1native_MainActivity_setField'
-    # jni_method_signature = 'Lorg/arguslab/native_set_field_from_native/MainActivity;.setField:(Lorg/arguslab/native_set_field_from_native/ComplexData;)Lorg/arguslab/native_set_field_from_native/Foo;'
-    # jni_method_arguments = 'org.arguslab.native_set_field_from_native.MainActivity,org.arguslab.native_set_field_from_native.ComplexData'
-    # gen_summary(so_file, jni_method_name, jni_method_signature, jni_method_arguments, native_ss_file, java_ss_file)
-    #
-    # so_file = '../../../src/test/resources/NativeFlowBench/NativeLibs/native_leak_array/lib/armeabi/libleak_array.so'
-    # jni_method_name = 'Java_org_arguslab_native_1leak_1array_MainActivity_send'
-    # jni_method_signature = 'Lorg/arguslab/native_leak_array/MainActivity;.send:([Ljava/lang/String;)V'
-    # jni_method_arguments = 'org.arguslab.native_leak_array.MainActivity,java.lang.String[]'
-    # gen_summary(so_file, jni_method_name, jni_method_signature, jni_method_arguments, native_ss_file, java_ss_file)
-    #
-    # native_activity_analysis(
-    #     "../../../src/test/resources/NativeFlowBench/NativeLibs/icc_javatonative/lib/armeabi/libnative-activity.so", None,
-    #     native_ss_file, java_ss_file)
-    #
-    # native_activity_analysis(
-    #     "../../../src/test/resources/NativeFlowBench/NativeLibs/native_pure/lib/armeabi/libnative-activity.so", None,
-    #     native_ss_file, java_ss_file)
-    #
-    # native_activity_analysis(
-    #     "../../../src/test/resources/NativeFlowBench/NativeLibs/native_pure_direct/lib/armeabi/libnative-activity.so", None,
-    #     native_ss_file, java_ss_file)
-    #
-    # native_activity_analysis(
-    #     "../../../src/test/resources/NativeFlowBench/NativeLibs/native_pure_direct_customized/lib/armeabi/libnative-activity.so",
-    #     'NativeActivity_Entry',
-    #     native_ss_file, java_ss_file)
-
-
-# if __name__ == "__main__":
-    # native_ss_file = '../../../files/sourceAndSinks/NativeSourcesAndSinks.txt'
-    # java_ss_file = '../../../files/sourceAndSinks/TaintSourcesAndSinks.txt'
-    # native_flow_bench_debug(native_ss_file, java_ss_file)
-    # so_file = '/home/xwlin/Desktop/Data/statistics_debug/native_array-release/lib/armeabi-v7a/libdata.so'
-    # jni_method_name = 'Java_org_arguslab_native_1complexdata_1stringop_MainActivity_BooleanArray'
-    # jni_method_signature = 'Lorg/arguslab/native_complexdata_stringop/MainActivity;.BooleanArray:()V'
-    # jni_method_arguments = 'org.arguslab.native_complexdata_stringop.MainActivity'
-    # gen_summary(so_file, jni_method_name, jni_method_signature, jni_method_arguments, native_ss_file, java_ss_file)
+    return total_instructions

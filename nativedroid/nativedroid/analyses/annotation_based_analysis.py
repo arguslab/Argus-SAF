@@ -1,22 +1,18 @@
-import logging
-from nativedroid.analyses.resolver.armel_resolver import ArmelResolver
-from nativedroid.analyses.resolver.x86_resolver import X86Resolver
-from nativedroid.analyses.resolver.jni.jni_helper import *
-from nativedroid.analyses.resolver.annotation.data_type_annotation import *
-from nativedroid.analyses.resolver.model.__android_log_print import *
 from cStringIO import StringIO
 
+from nativedroid.analyses.resolver.annotation.data_type_annotation import *
+from nativedroid.analyses.resolver.armel_resolver import ArmelResolver
+from nativedroid.analyses.resolver.jni.jni_helper import *
+from nativedroid.analyses.resolver.model.__android_log_print import *
+from nativedroid.analyses.resolver.x86_resolver import X86Resolver
+
 nativedroid_logger = logging.getLogger('AnnotationBasedAnalysis')
-nativedroid_logger.setLevel(logging.INFO)
 
 annotation_location = {
     'from_reflection_call': '~',
     'from_native': '~',
     'from_class': '~'
 }
-
-
-# logging.getLogger('angr.analyses.cfg.cfg_accurate').setLevel(logging.DEBUG)
 
 
 class AnnotationBasedAnalysis(angr.Analysis):
