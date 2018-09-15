@@ -1,6 +1,4 @@
 from nativedroid.analyses.resolver.annotation import *
-from nativedroid.analyses.resolver.annotation.data_type_annotation import JstringAnnotation
-from nativedroid.analyses.resolver.annotation.dataflow_annotation import taint_position_annotation
 from nativedroid.analyses.resolver.taint_resolver import TaintResolver
 from nativedroid.analyses.resolver.model.android_app_model import *
 
@@ -119,12 +117,12 @@ class ArmelResolver(TaintResolver):
         size = self._project.arch.bits / 8
         for final_state in final_states:
             for r0_annotation in final_state.regs.r0.annotations:
-                if type(r0_annotation) is taint_position_annotation:
+                if type(r0_annotation) is TaintPositionAnnotation:
                     reg_position = r0_annotation.reg_position
                     stack_position = r0_annotation.stack_position
                     reg_arg = input_state.regs.get('r%d' % reg_position)
                     for annotation in reg_arg.annotations:
-                        if type(annotation) is jobjectAnnotation or type(annotation) is JstringAnnotation:
+                        if type(annotation) is JobjectAnnotation or type(annotation) is JstringAnnotation:
                             if annotation.taint_info['is_taint']:
                                 # if TaintResolver._is_taint(annotation.obj_taint_position, tags):
                                 args.append(reg_arg)
@@ -133,7 +131,7 @@ class ArmelResolver(TaintResolver):
                         offset = pos * size
                         stack_arg = input_state.memory.load(input_state.regs.sp + offset, size, endness='Iend_LE')
                         for annotation in stack_arg.annotations:
-                            if type(annotation) is jobjectAnnotation or type(annotation) is JstringAnnotation:
+                            if type(annotation) is JobjectAnnotation or type(annotation) is JstringAnnotation:
                                 if annotation.taint_info['is_taint']:
                                     args.append(stack_arg)
         return args

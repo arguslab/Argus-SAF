@@ -2,6 +2,7 @@ from nativedroid.analyses.resolver.annotation.data_type_annotation import *
 from nativedroid.analyses.resolver.annotation.jclass_annotation import *
 from nativedroid.analyses.resolver.annotation.jfield_id_annotation import *
 from nativedroid.analyses.resolver.annotation.jmethod_id_annotation import *
+from nativedroid.analyses.resolver.annotation.dataflow_annotation import *
 
 
 def construct_annotation(jni_type, obj_source):
