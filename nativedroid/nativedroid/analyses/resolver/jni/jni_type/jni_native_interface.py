@@ -682,7 +682,6 @@ class GetMethodID(angr.SimProcedure):
 
 class CallObjectMethod(angr.SimProcedure):
     def run(self, env, obj, methodID):
-
         nativedroid_logger.info('JNINativeInterface SimProcedure: %s', self)
         num_args = 3
         for annotation in methodID.annotations:
@@ -699,8 +698,6 @@ class CallObjectMethod(angr.SimProcedure):
                 typ_size = get_type_size(self.project, java_return_type)
                 return_value = claripy.BVV(typ.ptr, typ_size)
                 return_annotation = construct_annotation(jni_return_type, 'from_reflection_call')
-                # return_annotation.source = 'from_reflection_call'
-                # return_annotation.obj_type = jni_return_type
                 if method_taint_attribute is not None:
                     return_annotation.taint_info['is_taint'] = True
                     return_annotation.taint_info['taint_type'] = method_taint_attribute[0]

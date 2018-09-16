@@ -17,11 +17,10 @@ class NativeDroidAnalysisTest(unittest.TestCase):
                                                                               jni_method_signature,
                                                                               jni_method_arguments,
                                                                               native_ss_file, java_ss_file)
-        self.assertEqual(taint_analysis_report,
-                         'Lorg/arguslab/native_leak/MainActivity;.send:(Ljava/lang/String;)V -> _SINK_ 1')
-        self.assertEqual(safsu_report,
-                         '`Lorg/arguslab/native_leak/MainActivity;.send:(Ljava/lang/String;)V`:\n'
-                         ';\n')
+        self.assertEqual('Lorg/arguslab/native_leak/MainActivity;.send:(Ljava/lang/String;)V -> _SINK_ 1',
+                         taint_analysis_report)
+        self.assertEqual('`Lorg/arguslab/native_leak/MainActivity;.send:(Ljava/lang/String;)V`:\n;\n',
+                         safsu_report)
 
     def testLibIntent(self):
         so_file = pkg_resources.resource_filename('nativedroid.testdata',
@@ -33,11 +32,9 @@ class NativeDroidAnalysisTest(unittest.TestCase):
                                                                               jni_method_signature,
                                                                               jni_method_arguments,
                                                                               native_ss_file, java_ss_file)
-        self.assertEqual(taint_analysis_report,
-                         'Lorg/arguslab/icc_nativetojava/MainActivity;.sendIntent:(Ljava/lang/String;)V')
-        self.assertEqual(safsu_report,
-                         '`Lorg/arguslab/icc_nativetojava/MainActivity;.sendIntent:(Ljava/lang/String;)V`:\n'
-                         ';\n')
+        self.assertEqual('', taint_analysis_report)
+        self.assertEqual('`Lorg/arguslab/icc_nativetojava/MainActivity;.sendIntent:(Ljava/lang/String;)V`:\n;\n',
+                         safsu_report)
 
     def testLibMethodOverloading(self):
         so_file = pkg_resources.resource_filename('nativedroid.testdata',
@@ -151,7 +148,7 @@ class NativeDroidAnalysisTest(unittest.TestCase):
                                                                               jni_method_arguments,
                                                                               native_ss_file, java_ss_file)
         self.assertEqual('Lorg/arguslab/native_complexdata/MainActivity;'
-                         '.send:(Lorg/arguslab/native_complexdata/ComplexData;)V -> _SINK_ ~',
+                         '.send:(Lorg/arguslab/native_complexdata/ComplexData;)V -> _SINK_ ',
                          taint_analysis_report)
         self.assertEqual('`Lorg/arguslab/native_complexdata/MainActivity;'
                          '.send:(Lorg/arguslab/native_complexdata/ComplexData;)V`:\n'
@@ -174,9 +171,7 @@ class NativeDroidAnalysisTest(unittest.TestCase):
                                                                               jni_method_signature,
                                                                               jni_method_arguments,
                                                                               native_ss_file, java_ss_file)
-        self.assertEqual('Lorg/arguslab/native_set_field_from_arg/MainActivity;'
-                         '.setField:(Lorg/arguslab/native_set_field_from_arg/ComplexData;'
-                         'Lorg/arguslab/native_set_field_from_arg/Foo;)Lorg/arguslab/native_set_field_from_arg/Foo;',
+        self.assertEqual('',
                          taint_analysis_report)
         self.assertEqual('`Lorg/arguslab/native_set_field_from_arg/MainActivity;'
                          '.setField:(Lorg/arguslab/native_set_field_from_arg/ComplexData;'

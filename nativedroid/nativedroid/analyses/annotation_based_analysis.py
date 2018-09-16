@@ -45,7 +45,6 @@ class AnnotationBasedAnalysis(angr.Analysis):
             self._state, self._arguments_summary = self._resolver.prepare_initial_state(jni_method_arguments)
 
         if is_native_pure:
-            # nativedroid_logger.info('Native Activity, keep_state=True')
             self.cfg = self.project.analyses.CFGAccurate(fail_fast=True, starts=[self._jni_method_addr],
                                                          initial_state=self._state, context_sensitivity_level=1,
                                                          keep_state=True, normalize=True)
@@ -53,7 +52,6 @@ class AnnotationBasedAnalysis(angr.Analysis):
             self.cfg = self.project.analyses.CFGAccurate(fail_fast=True, starts=[self._jni_method_addr],
                                                          initial_state=self._state, context_sensitivity_level=1,
                                                          keep_state=True, normalize=True)
-        # plot_cfg(self.cfg, 'CFG', asminst=True, remove_imports=False, remove_path_terminator=False)
 
     def _hook_system_calls(self):
         if '__android_log_print' in self.project.loader.main_object.imports:
@@ -167,18 +165,19 @@ class AnnotationBasedAnalysis(angr.Analysis):
         :return: taint analysis report
         """
         report_file = StringIO()
-        report_file.write(jni_method_signature)
         if sinks:
+            report_file.write(jni_method_signature)
             report_file.write(' -> _SINK_ ')
             for sink_annotation in sinks:
                 if not sink_annotation.field_info['is_field']:
                     if sink_annotation.source.startswith('arg'):
                         sink_location = re.split('arg|_', sink_annotation.source)[1]
                         report_file.write(str(sink_location))
-                    else:
-                        report_file.write(annotation_location[sink_annotation.source])
+                    # else:
+                    #     report_file.write(annotation_location[sink_annotation.source])
 
         elif sources:
+            report_file.write(jni_method_signature)
             report_file.write(' -> _SOURCE_ ')
             for source_annotation in sources:
                 if type(source_annotation) is JobjectAnnotation and source_annotation.source.startswith('arg'):
@@ -196,12 +195,12 @@ class AnnotationBasedAnalysis(angr.Analysis):
                                         taint_field_name = taint_field_name + '.' + info.field_info['field_name']
                     if taint_field_name:
                         report_file.write(source_location.split('arg')[-1] + '.' + taint_field_name)
-                    elif source_annotation.taint_info['taint_type'][1] != '_ARGUMENT_':
-                        report_file.write(annotation_location[source_annotation.source])
-                elif type(source_annotation) is JstringAnnotation and source_annotation.source.startswith('arg'):
-                    if source_annotation.taint_info['is_taint'] and \
-                            source_annotation.taint_info['taint_type'][1] != '_ARGUMENT_':
-                        report_file.write(annotation_location[source_annotation.source])
+                    # elif source_annotation.taint_info['taint_type'][1] != '_ARGUMENT_':
+                    #     report_file.write(annotation_location[source_annotation.source])
+                # elif type(source_annotation) is JstringAnnotation and source_annotation.source.startswith('arg'):
+                #     if source_annotation.taint_info['is_taint'] and \
+                #             source_annotation.taint_info['taint_type'][1] != '_ARGUMENT_':
+                #         report_file.write(annotation_location[source_annotation.source])
 
         return report_file.getvalue()
 
