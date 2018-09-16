@@ -16,6 +16,7 @@ import org.argus.amandroid.core.util.ApkFileUtil
 import org.argus.jawa.core.util._
 import org.argus.jawa.core._
 import org.argus.jawa.summary.store.TaintStore
+import org.argus.jnsaf.client.NativeDroidClient
 import org.argus.jnsaf.taint.JNTaintAnalysis
 
 import scala.language.postfixOps
@@ -40,8 +41,7 @@ object TaintAnalysis {
 
   private def build(apkUri: FileResourceUri, outputUri: FileResourceUri, reporter: Reporter, guessPackage: Boolean): IMap[JawaType, TaintStore] = {
 
-    val bridge: NativeDroidBridge = new NativeDroidBridge(reporter)
-//    bridge.open()
+    val client = new NativeDroidClient("localhost", 50051, reporter)
 
     val yard = new ApkYard(reporter)
     val layout = DecompileLayout(outputUri)
@@ -51,7 +51,7 @@ object TaintAnalysis {
     val apk = yard.loadApk(apkUri, settings, collectInfo = true, resolveCallBack = false, guessPackage)
 
     try {
-      val handler = new NativeMethodHandler(bridge)
+      val handler = new NativeMethodHandler(client)
       val jntaint = new JNTaintAnalysis(apk, handler, reporter)
       jntaint.process
     } catch {

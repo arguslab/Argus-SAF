@@ -87,6 +87,16 @@ object Signature extends JavaKnowledge {
     val proto = sig.substring(sig.indexOf(":") + 1)
     getProtoFromProto(proto)
   }
+
+  def methodProtoToString(proto: MethodProto): String = {
+    val paramstr = proto.paramTypes.map(typ => JavaKnowledge.formatTypeToSignature(JawaType(typ))).mkString("")
+    val returnstr = proto.returnType match {
+      case ReturnJavaType(jt) =>
+        JavaKnowledge.formatTypeToSignature(JawaType(jt))
+      case ReturnVoidType(_) => "V"
+    }
+    s"($paramstr)$returnstr"
+  }
 }
 
 /**
@@ -100,7 +110,7 @@ case class Signature(method_signature: MethodSignature) extends JavaKnowledge {
   def this(classTyp: JawaType, methodName: String, proto: String) =
     this(classTyp, methodName, Signature.getProtoFromProto(proto))
   def this(sig: String) = this(Signature.getClassTyp(sig), Signature.getMethodName(sig), Signature.getProtoFromSig(sig))
-  lazy val signature: String = formatTypeToSignature(classTyp) + "." + methodName + ":" + proto
+  lazy val signature: String = s"${formatTypeToSignature(classTyp)}.$methodName:${Signature.methodProtoToString(proto)}"
 
   val classTyp: JawaType = JawaType(method_signature.getOwner)
   val methodName: String = method_signature.name

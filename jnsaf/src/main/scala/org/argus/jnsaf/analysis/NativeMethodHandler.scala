@@ -17,7 +17,7 @@ import org.argus.jawa.alir.util.ExplicitValueFinder
 import org.argus.jawa.ast.CallStatement
 import org.argus.jawa.core._
 import org.argus.jawa.core.util._
-import org.argus.jnsaf.serialization.DataCommunicator
+import org.argus.jnsaf.client.NativeDroidClient
 
 object NativeMethodHandler {
   def getJNIFunctionName(global: Global, sig: Signature): String = {
@@ -52,8 +52,7 @@ object NativeMethodHandler {
 /**
   * Created by fgwei on 4/27/17.
   */
-
-class NativeMethodHandler(bridge: NativeDroidBridge) {
+class NativeMethodHandler(client: NativeDroidClient) {
 
   import NativeMethodHandler._
 
@@ -67,25 +66,29 @@ class NativeMethodHandler(bridge: NativeDroidBridge) {
   /**
     * Don't do this for large apps as it will try to resolve all the class.
     *
-    * @param global Global
+    * @param apk ApkGlobal
     */
-  def buildNativeMethodMapping(global: Global): Unit = {
-    val haveNativeClasses = global.getApplicationClassCodes.filter{ case (_, sf) => sf.code.contains("NATIVE")}.keySet
+  def buildNativeMethodMapping(apk: ApkGlobal): Unit = {
+    val haveNativeClasses = apk.getApplicationClassCodes.filter{ case (_, sf) => sf.code.contains("NATIVE")}.keySet
     val progressBar = ConsoleProgressBar.on(System.out).withFormat("[:bar] :percent% :elapsed Left: :remain")
-    ProgressBarUtil.withProgressBar("Build native method to so file mapping...", progressBar)(haveNativeClasses, resolveNativeToSoMap(global))
+    ProgressBarUtil.withProgressBar("Build native method to so file mapping...", progressBar)(haveNativeClasses, resolveNativeToSoMap(apk))
   }
 
-  private def resolveNativeToSoMap(global: Global): JawaType => Unit = { typ =>
-    val clazz = global.getClassOrResolve(typ)
+  private def resolveNativeToSoMap(apk: ApkGlobal): JawaType => Unit = { typ =>
+    val clazz = apk.getClassOrResolve(typ)
     if (clazz.isApplicationClass) {
       val nm = clazz.getDeclaredMethods.filter(_.isNative)
       if (nm.nonEmpty) {
-        val soNames = resolveLoadLibrary(global, typ)
+        val soNames = resolveLoadLibrary(apk, typ)
         nm.foreach { n =>
-          val jniFuncName = getJNIFunctionName(global, n.getSignature)
+          val jniFuncName = getJNIFunctionName(apk, n.getSignature)
           soNames.foreach { so =>
-            if(bridge.hasSymbol(so, jniFuncName)) {
-              nativeMethodSoMap(n.getSignature) = so
+            client.getSoFileUri(apk.model.layout.outputSrcUri, so) match {
+              case Some(soUri) =>
+                if(client.hasSymbol(soUri, jniFuncName)) {
+                  nativeMethodSoMap(n.getSignature) = so
+                }
+              case None =>
             }
           }
         }
@@ -121,9 +124,9 @@ class NativeMethodHandler(bridge: NativeDroidBridge) {
     }
     soOpt match {
       case Some(soName) =>
-        bridge.getSoFilePath(apk.model.layout.outputSrcUri, soName) match {
-          case Some(soPath) =>
-            return bridge.genSummary(soPath, getJNIFunctionName(apk, sig), sig, DataCommunicator.serializeParameters(sig))
+        client.getSoFileUri(apk.model.layout.outputSrcUri, soName) match {
+          case Some(soFileUri) =>
+            return client.genSummary(soFileUri, getJNIFunctionName(apk, sig), sig)
           case None =>
         }
       case None =>
@@ -138,17 +141,16 @@ class NativeMethodHandler(bridge: NativeDroidBridge) {
       case None =>
         resolveLoadLibrary(apk, native_ac.compType)
     }
-    var soPaths: IList[String] = soNames.flatMap { soName =>
-      bridge.getSoFilePath(apk.model.layout.outputSrcUri, soName)
+    var soUris: IList[FileResourceUri] = soNames.flatMap { soName =>
+      client.getSoFileUri(apk.model.layout.outputSrcUri, soName)
     }.toList
-    if(soPaths.isEmpty) {
-      soPaths = bridge.getAllSoFilePath(apk.model.layout.outputSrcUri)
+    if(soUris.isEmpty) {
+      soUris = client.getAllSoFilePath(apk.model.layout.outputSrcUri)
     }
     val customEntry: Option[String] = native_ac.meta_datas.get("android.app.func_name")
-    soPaths.foreach { soPath =>
-      if(bridge.hasNativeActivity(soPath, customEntry)) {
-        println(soPath)
-        bridge.analyseNativeActivity(soPath, customEntry)
+    soUris.foreach { soUri =>
+      if(client.hasNativeActivity(soUri, customEntry)) {
+        client.analyseNativeActivity(soUri, customEntry)
         return
       }
     }
@@ -157,21 +159,19 @@ class NativeMethodHandler(bridge: NativeDroidBridge) {
   def statisticsResolve(apk: ApkGlobal, i: Int): Unit = {
     val apkName = apk.projectName
     val nativeInfoMap: MMap[String, MMap[String, MMap[String, (String, String, IList[String])]]] = mmapEmpty
-    val soFiles = nativeInfoMap.getOrElseUpdate(apkName, mmapEmpty)
-    nativeMethodSoMap.foreach { case (sig, soName) =>
-      bridge.getSoFilePath(apk.model.layout.outputSrcUri, soName) match {
-        case Some(soPath) =>
-          val jniFuncName = getJNIFunctionName(apk, sig)
-          val javaFuncName = sig.methodName
-          val jniSig = sig.proto
-          println(soPath + " " + jniFuncName + " " + sig + " " + DataCommunicator.serializeParameters(sig))
-          val funcs = soFiles.getOrElseUpdate(soPath, mmapEmpty)
-//          funcs(jniFuncName) = (javaFuncName, jniSig, sig.getParameterTypes.map(_.jawaName))
-        case None =>
-      }
-    }
+//    val soFiles = nativeInfoMap.getOrElseUpdate(apkName, mmapEmpty)
+//    nativeMethodSoMap.foreach { case (sig, soName) =>
+//      client.getSoFilePath(apk.model.layout.outputSrcUri, soName) match {
+//        case Some(soPath) =>
+//          val jniFuncName = getJNIFunctionName(apk, sig)
+//          println(soPath + " " + jniFuncName + " " + sig + " " + DataCommunicator.serializeParameters(sig))
+//          val funcs = soFiles.getOrElseUpdate(soPath, mmapEmpty)
+//          funcs(jniFuncName) = (jniFuncName, jniSig, sig.getParameterTypes.map(_.jawaName))
+//        case None =>
+//      }
+//    }
     if (nativeInfoMap(apkName).nonEmpty) {
-      DataCommunicator.serializeStatisticDatas(apk.model.layout.outputUri, i, nativeInfoMap)
+//      DataCommunicator.serializeStatisticDatas(apk.model.layout.outputUri, i, nativeInfoMap)
     }
   }
 }

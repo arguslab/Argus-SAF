@@ -10,7 +10,8 @@ import org.argus.amandroid.core.parser.ComponentType
 import org.argus.amandroid.core.util.ApkFileUtil
 import org.argus.jawa.core._
 import org.argus.jawa.core.util._
-import org.argus.jnsaf.analysis.{NativeDroidBridge, NativeMethodHandler}
+import org.argus.jnsaf.analysis.NativeMethodHandler
+import org.argus.jnsaf.client.NativeDroidClient
 import org.ini4j.Wini
 
 /**
@@ -198,8 +199,8 @@ object NativeStatistics {
     val apk = yard.loadApk(apkUri, settings, collectInfo = false, resolveCallBack = false)
     println("Apk Loaded!")
 
-    val bridge: NativeDroidBridge = new NativeDroidBridge(reporter)
-    val handler = new NativeMethodHandler(bridge)
+    val client: NativeDroidClient = new NativeDroidClient("local", 50051, reporter)
+    val handler = new NativeMethodHandler(client)
     handler.buildNativeMethodMapping(apk)
     if(taint) {
 //      bridge.open()
@@ -237,9 +238,8 @@ object NativeStatistics {
       nativeActivity.isAssignableFrom(act)
     }
 
-    val bridge: NativeDroidBridge = new NativeDroidBridge(reporter)
-//    bridge.open()
-    val handler = new NativeMethodHandler(bridge)
+    val client: NativeDroidClient = new NativeDroidClient("local", 50051, reporter)
+    val handler = new NativeMethodHandler(client)
     var counter = 0
     val total = native_acts.size
     println("Total native Activities: " + total)
