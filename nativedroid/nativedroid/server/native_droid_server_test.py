@@ -1,7 +1,6 @@
 import unittest
-import os
-from native_droid_server import *
 
+from native_droid_server import *
 
 CHUNK_SIZE = 1024 * 1024  # 1MB
 
@@ -20,7 +19,7 @@ class NativeDroidServerTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.server = grpc.server(futures.ThreadPoolExecutor(max_workers=1))
-        add_NativeDroidServerServicer_to_server(NativeDroidServer(), cls.server)
+        add_NativeDroidServerServicer_to_server(NativeDroidServer('/tmp/binaries/'), cls.server)
         cls.server.add_insecure_port('[::]:50001')
         cls.server.start()
         logger.info('Server started.')
@@ -36,6 +35,9 @@ class NativeDroidServerTest(unittest.TestCase):
         logger.info('Server stopped.')
         cls.server = None
         cls.stub = None
+        path = cls._lb_response.so_handle
+        if os.path.exists(path):
+            os.remove(path)
         cls._lb_response = None
 
     def testLoadBinary(self):

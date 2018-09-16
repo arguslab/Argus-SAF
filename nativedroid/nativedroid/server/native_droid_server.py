@@ -20,8 +20,8 @@ java_ss_file = pkg_resources.resource_filename('nativedroid.data', 'sourceAndSin
 
 class NativeDroidServer(NativeDroidServerServicer):
 
-    def __init__(self):
-        self._binary_tmp_path = '/tmp/binaries/'
+    def __init__(self, binary_path):
+        self._binary_path = binary_path
         self._loadedsos = set()
 
     def GenSummary(self, request, context):
@@ -57,13 +57,13 @@ class NativeDroidServer(NativeDroidServerServicer):
             sha256.update(chunk.buffer)
             f.write(chunk.buffer)
         so_digest = sha256.hexdigest()
-        so_path = '/tmp/binaries/' + so_digest
+        so_path = self._binary_path + so_digest
 
         if so_path not in self._loadedsos:
             try:
-                os.makedirs('/tmp/binaries/')
+                os.makedirs(self._binary_path)
             except OSError:
-                if not os.path.isdir('/tmp/binaries/'):
+                if not os.path.isdir(self._binary_path):
                     raise
             with open(so_path, 'wb') as out:
                 out.write(f.getvalue())
@@ -84,7 +84,7 @@ class NativeDroidServer(NativeDroidServerServicer):
 
 def serve():
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
-    add_NativeDroidServerServicer_to_server(NativeDroidServer(), server)
+    add_NativeDroidServerServicer_to_server(NativeDroidServer('/tmp/binaries/'), server)
     server.add_insecure_port('[::]:50051')
     server.start()
     logger.info('Server started.')
