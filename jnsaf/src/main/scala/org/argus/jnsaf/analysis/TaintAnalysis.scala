@@ -16,6 +16,7 @@ import org.argus.amandroid.core.util.ApkFileUtil
 import org.argus.jawa.core.util._
 import org.argus.jawa.core._
 import org.argus.jawa.summary.store.TaintStore
+import org.argus.jawa.summary.util.TimeUtil
 import org.argus.jnsaf.client.NativeDroidClient
 import org.argus.jnsaf.taint.JNTaintAnalysis
 

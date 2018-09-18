@@ -10,7 +10,7 @@
 
 package org.argus.amandroid.core.dedex.`type`
 
-import org.argus.jawa.ast.CompilationUnit
+import org.argus.jawa.core.ast.CompilationUnit
 import org.argus.jawa.core.io.AbstractFile
 
 /**
@@ -18,7 +18,7 @@ import org.argus.jawa.core.io.AbstractFile
  */
 trait CompilerAccess {
 
-  val global: org.argus.jawa.compiler.interactive.Global
+  val global: org.argus.jawa.core.compiler.interactive.Global
 
   def compilationUnitOfFile(f: AbstractFile): Option[CompilationUnit]
 }

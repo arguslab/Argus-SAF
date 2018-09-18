@@ -10,7 +10,7 @@
 
 package org.argus.amandroid.summary.wu
 
-import hu.ssh.progressbar.console.ConsoleProgressBar
+import hu.ssh.progressbar.ConsoleProgressBar
 import org.argus.amandroid.alir.componentSummary.ApkYard
 import org.argus.amandroid.alir.pta.model.AndroidModelCallHandler
 import org.argus.amandroid.alir.pta.reachingFactsAnalysis.IntentHelper
@@ -22,6 +22,7 @@ import org.argus.jawa.alir.pta.PTASlot
 import org.argus.jawa.alir.reachability.SignatureBasedCallGraph
 import org.argus.jawa.core.util._
 import org.argus.jawa.core._
+import org.argus.jawa.core.elements.Signature
 import org.argus.jawa.summary.{BottomUpSummaryGenerator, SummaryManager}
 import org.argus.jawa.summary.wu.{PTStore, PTSummary, WorkUnit}
 import org.scalatest.tagobjects.Slow

@@ -12,7 +12,7 @@ package org.argus.jawa.alir.rda
 
 import org.argus.jawa.alir.cfg.{CFGLocationNode, CFGNode, IntraProceduralControlFlowGraph}
 import org.argus.jawa.alir.dfa._
-import org.argus.jawa.ast._
+import org.argus.jawa.core.ast._
 import org.argus.jawa.core.util._
 
 /**

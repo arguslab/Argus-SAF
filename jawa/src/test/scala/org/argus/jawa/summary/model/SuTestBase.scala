@@ -12,8 +12,9 @@ package org.argus.jawa.summary.model
 
 import org.argus.jawa.alir.Context
 import org.argus.jawa.alir.pta.rfa.RFAFact
+import org.argus.jawa.core.elements.Signature
 import org.argus.jawa.core.util.{IList, ISet, isetEmpty}
-import org.argus.jawa.core.{DefaultReporter, Global, Signature}
+import org.argus.jawa.core.{DefaultReporter, Global}
 import org.argus.jawa.summary.SummaryManager
 import org.argus.jawa.summary.susaf.HeapSummaryProcessor
 import org.scalatest.{FlatSpec, Matchers}

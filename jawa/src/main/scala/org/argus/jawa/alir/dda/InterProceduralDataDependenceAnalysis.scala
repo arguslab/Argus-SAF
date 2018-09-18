@@ -16,7 +16,7 @@ import org.argus.jawa.alir.interprocedural.IndirectCallee
 import org.argus.jawa.alir.pta._
 import org.argus.jawa.alir.rda.{DefDesc, LocDefDesc, ParamDefDesc}
 import org.argus.jawa.alir.AlirEdge
-import org.argus.jawa.ast._
+import org.argus.jawa.core.ast._
 import org.argus.jawa.core.Global
 import org.argus.jawa.core.io.NoPosition
 import org.argus.jawa.core.util._

@@ -22,8 +22,9 @@ import org.argus.jawa.alir.Context
 import org.argus.jawa.alir.cfg.{ICFGNode, InterProceduralControlFlowGraph}
 import org.argus.jawa.alir.dfa.InterProceduralDataFlowGraph
 import org.argus.jawa.alir.pta.PTAResult
+import org.argus.jawa.core.elements.Signature
 import org.argus.jawa.core.util.MyTimeout
-import org.argus.jawa.core.{ClassLoadManager, MsgLevel, PrintReporter, Signature}
+import org.argus.jawa.core.{ClassLoadManager, MsgLevel, PrintReporter}
 import org.argus.jawa.core.util._
 
 import scala.concurrent.duration._

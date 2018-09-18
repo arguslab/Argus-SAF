@@ -14,6 +14,7 @@ import java.io.{ByteArrayOutputStream, PrintStream}
 
 import com.google.common.base.{Splitter, Strings}
 import com.google.common.collect.Iterables
+import hu.ssh.progressbar.ConsoleProgressBar
 import org.scalatest.{FlatSpec, Matchers}
 
 /**

@@ -15,7 +15,7 @@ import org.argus.jawa.alir.dfa._
 import org.argus.jawa.alir.interprocedural.CallResolver
 import org.argus.jawa.alir.rda._
 import org.argus.jawa.alir.{Context, JawaAlirInfoProvider}
-import org.argus.jawa.ast.{AssignmentStatement, CallStatement, Statement}
+import org.argus.jawa.core.ast.{AssignmentStatement, CallStatement, Statement}
 import org.argus.jawa.core.Global
 import org.argus.jawa.core.util._
 

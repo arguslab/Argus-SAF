@@ -15,6 +15,7 @@ import org.argus.jawa.alir.cfg.{ICFGCallNode, ICFGInvokeNode, ICFGNode, InterPro
 import org.argus.jawa.alir.dfa.InterProceduralDataFlowGraph
 import org.argus.jawa.alir.interprocedural.{CallHandler, Callee, InstanceCallee, StaticCallee}
 import org.argus.jawa.core._
+import org.argus.jawa.core.elements.Signature
 import org.argus.jawa.core.util._
 
 object BuildICFGFromExistingPTAResult {

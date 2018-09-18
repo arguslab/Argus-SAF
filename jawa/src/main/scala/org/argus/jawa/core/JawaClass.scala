@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017. Fengguo Wei and others.
+ * Copyright (c) 2018. Fengguo Wei and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -10,12 +10,13 @@
 
 package org.argus.jawa.core
 
+import org.argus.jawa.core.elements._
 import org.argus.jawa.core.util._
 
 /**
  * This class is an jawa class representation of a jawa record. A JawaClass corresponds to a class or an interface of the source code. They are usually created by jawa Resolver.
  * You can also construct it manually.
- * 
+ *
  * @param global interactive compiler of this class
  * @param typ object type of this class
  * @param accessFlags the access flags integer representation for this class
@@ -23,17 +24,17 @@ import org.argus.jawa.core.util._
  * @author <a href="mailto:sroy@k-state.edu">Sankardas Roy</a>
  */
 case class JawaClass(global: Global, typ: JawaType, accessFlags: Int) extends JawaElement with JavaKnowledge {
-  
+
   final val TITLE = "JawaClass"
-  
+
   def this(global: Global, typ: JawaType, accessStr: String) = {
     this(global, typ, AccessFlag.getAccessFlags(accessStr))
   }
-  
+
   require(typ.isObject, "JawaClass should be object type, but get: " + typ)
-  
+
   def getType: JawaType = this.typ
-  
+
   /**
    * full name of this class: java.lang.Object or [Ljava.lang.Object;
    */
@@ -50,17 +51,17 @@ case class JawaClass(global: Global, typ: JawaType, accessFlags: Int) extends Ja
    * package name of this class: java.lang
    */
   def getPackage: Option[JawaPackage] = getType.getPackage
-  
+
   /**
    * set of fields which declared in this class. map from field name to JawaField
    */
   protected val fields: MMap[String, JawaField] = mmapEmpty
-  
+
   /**
    * set of methods which belong to this class. map from subsig to JawaMethod
    */
   protected val methods: MMap[String, JawaMethod] = mmapEmpty
-  
+
   /**
    * set of interfaces which this class/interface implements/extends. map from interface name to JawaClass
    */
@@ -70,7 +71,7 @@ case class JawaClass(global: Global, typ: JawaType, accessFlags: Int) extends Ja
    * super class of this class.
    */
   protected var superClass: JawaClass = _
-  
+
   /**
    * return true if it's a child of given record
    */
@@ -82,11 +83,11 @@ case class JawaClass(global: Global, typ: JawaType, accessFlags: Int) extends Ja
     }
     false
   }
-  
+
   def isImplementerOf(typ: JawaType): Boolean = {
     global.getClassHierarchy.getAllImplementersOf(global.getClassOrResolve(typ)).contains(this)
   }
-  
+
   /**
    * if the class is array type return true
    */
@@ -232,7 +233,7 @@ case class JawaClass(global: Global, typ: JawaType, accessFlags: Int) extends Ja
         }
     }
   }
-  
+
   /**
    * get field declared in this class by the given name
    */
@@ -255,11 +256,23 @@ case class JawaClass(global: Global, typ: JawaType, accessFlags: Int) extends Ja
           getSuperClass.getMethod(subSig)
         } else {
           if(isUnknown){
-            val signature = generateSignatureFromOwnerAndMethodSubSignature(this, subSig)
-            Some(generateUnknownJawaMethod(this, signature))
+            val signature = generateSignatureFromOwnerAndMethodSubSignature(getType, subSig)
+            Some(this.generateUnknownJawaMethod(signature))
           } else None
         }
     }
+  }
+
+  def generateUnknownJawaMethod(signature: Signature): JawaMethod = {
+    val name = signature.methodName
+    val thisOpt: Option[String] = Some("unknownThis")
+    val paramTypes: IList[JawaType] = signature.getParameterTypes
+    val params: ISeq[(String, JawaType)] = Array.tabulate(paramTypes.length){ i => ("unknownParam" + i, paramTypes(i)) }.toList
+    val returnType: JawaType = signature.getReturnType
+    val accessFlags = AccessFlag.getAccessFlags("PUBLIC")
+    val method = JawaMethod(this, name, thisOpt, params, returnType, accessFlags)
+    method.setUnknown()
+    method
   }
 
   /**
@@ -287,10 +300,10 @@ case class JawaClass(global: Global, typ: JawaType, accessFlags: Int) extends Ja
   def getDeclaredMethod(subSig: String): Option[JawaMethod] = {
     this.methods.get(subSig) match{
       case Some(p) => Some(p)
-      case None => 
+      case None =>
         if(isUnknown){
-          val signature = generateSignatureFromOwnerAndMethodSubSignature(this, subSig)
-          Some(generateUnknownJawaMethod(this, signature))
+          val signature = generateSignatureFromOwnerAndMethodSubSignature(getType, subSig)
+          Some(this.generateUnknownJawaMethod(signature))
         } else None
     }
   }
@@ -416,7 +429,7 @@ case class JawaClass(global: Global, typ: JawaType, accessFlags: Int) extends Ja
    * add the given method to this class
    */
   def addMethod(ap: JawaMethod): Unit = {
-    if(this.methods.contains(ap.getSubSignature)) 
+    if(this.methods.contains(ap.getSubSignature))
       global.reporter.error(TITLE, "The method " + ap.getSubSignature + " is already declared in class " + getName)
     else this.methods(ap.getSubSignature) = ap
   }
@@ -514,12 +527,12 @@ case class JawaClass(global: Global, typ: JawaType, accessFlags: Int) extends Ja
    * return true if this class is an interface
    */
   def isInterface: Boolean = AccessFlag.isInterface(this.accessFlags)
-  
+
   /**
    * return true if this class is concrete
    */
   def isConcrete: Boolean = !isInterface && !isAbstract && !isUnknown
-  
+
   /**
    * is this class an application class
    */
@@ -529,12 +542,12 @@ case class JawaClass(global: Global, typ: JawaType, accessFlags: Int) extends Ja
    * is this class  a framework class
    */
   def isSystemLibraryClass: Boolean = global.isSystemLibraryClasses(getType)
-  
+
   /**
    * is this class  a user lib class
    */
   def isUserLibraryClass: Boolean = global.isUserLibraryClasses(getType)
-  
+
   /**
    * whether this class is a java library class
    */

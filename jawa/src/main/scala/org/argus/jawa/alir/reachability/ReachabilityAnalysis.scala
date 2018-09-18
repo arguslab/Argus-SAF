@@ -10,7 +10,8 @@
 
 package org.argus.jawa.alir.reachability
 
-import org.argus.jawa.core.{Global, JawaType, Signature}
+import org.argus.jawa.core.elements.Signature
+import org.argus.jawa.core.{Global, JawaType}
 import org.argus.jawa.core.util._
 
 

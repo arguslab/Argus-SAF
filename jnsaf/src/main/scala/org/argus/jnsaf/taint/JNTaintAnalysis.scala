@@ -1,6 +1,6 @@
 package org.argus.jnsaf.taint
 
-import hu.ssh.progressbar.console.ConsoleProgressBar
+import hu.ssh.progressbar.ConsoleProgressBar
 import org.argus.amandroid.alir.pta.model.AndroidModelCallHandler
 import org.argus.amandroid.alir.pta.summaryBasedAnalysis.AndroidSummaryProvider
 import org.argus.amandroid.alir.taintAnalysis.{AndroidSourceAndSinkManager, DataLeakageAndroidSourceAndSinkManager}

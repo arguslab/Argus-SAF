@@ -12,7 +12,7 @@ package org.argus.amandroid.plugin.communication
 
 import org.argus.amandroid.alir.taintAnalysis.AndroidSourceAndSinkManager
 import org.argus.amandroid.core.ApkGlobal
-import org.argus.jawa.ast.{AssignmentStatement, LiteralExpression, Location}
+import org.argus.jawa.core.ast.{AssignmentStatement, LiteralExpression, Location}
 import org.argus.jawa.core.util._
 
 /**

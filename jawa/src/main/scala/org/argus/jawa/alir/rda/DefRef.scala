@@ -10,7 +10,7 @@
 
 package org.argus.jawa.alir.rda
 
-import org.argus.jawa.ast.{Assignment, CallStatement, Jump}
+import org.argus.jawa.core.ast.{Assignment, CallStatement, Jump}
 import org.argus.jawa.core.util._
 
 /**

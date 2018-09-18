@@ -9,12 +9,12 @@ import com.google.common.collect.ImmutableList;
 
 public class HumanTimeFormatter extends Helper {
 	private static final List<DisplayUnit> DISPLAY_UNITS = ImmutableList.of(
-			DisplayUnit.of(TimeUnit.DAYS, "d"),
-			DisplayUnit.of(TimeUnit.HOURS, "h"),
-			DisplayUnit.of(TimeUnit.MINUTES, "m"),
-			DisplayUnit.of(TimeUnit.SECONDS, "s"),
-			DisplayUnit.of(TimeUnit.MILLISECONDS, "ms")
-			);
+	        DisplayUnit.of(TimeUnit.DAYS, "d"),
+            DisplayUnit.of(TimeUnit.HOURS, "h"),
+            DisplayUnit.of(TimeUnit.MINUTES, "m"),
+            DisplayUnit.of(TimeUnit.SECONDS, "s"),
+            DisplayUnit.of(TimeUnit.MILLISECONDS, "ms")
+    );
 
 	public static String formatTime(final long milliseconds) {
 		long diff = milliseconds;

@@ -12,7 +12,7 @@ package org.argus.amandroid.plugin.dataInjection
 
 import org.argus.amandroid.alir.taintAnalysis.{AndroidSourceAndSinkManager, IntentSinkKind}
 import org.argus.amandroid.core.ApkGlobal
-import org.argus.jawa.core.Signature
+import org.argus.jawa.core.elements.Signature
 
 /**
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>

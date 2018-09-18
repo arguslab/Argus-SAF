@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017. Fengguo Wei and others.
+ * Copyright (c) 2018. Fengguo Wei and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -10,9 +10,11 @@
 
 package org.argus.jawa.core
 
+import org.argus.jawa.core.elements._
+
 /**
  * This class is an jawa representation of a jawa field. It should belong to a JawaClass.
- * 
+ *
  * @constructor create a jawa field
  * @param declaringClass The declaring class of this field
  * @param name name of the field. e.g. stackState
@@ -28,16 +30,16 @@ case class JawaField(declaringClass: JawaClass, name: String, typ: JawaType, acc
   def this(declaringClass: JawaClass, name: String, typ: JawaType, accessString: String) = {
       this(declaringClass, name, typ, AccessFlag.getAccessFlags(accessString))
   }
-  
+
   declaringClass.addField(this)
-  
+
   def getDeclaringClass: JawaClass = this.declaringClass
-  
+
   /**
    * Field name like: f
    */
   def getName: String = name
-  
+
   /**
    * full qualified name of the field. e.g. java.lang.Throwable.stackState
    */
@@ -52,7 +54,7 @@ case class JawaField(declaringClass: JawaClass, name: String, typ: JawaType, acc
    * return true if the field is object type
    */
   def isObject: Boolean = typ.isObject
-  
+
   def isConcrete: Boolean = true
 
   override def toString: String = FQN.toString()

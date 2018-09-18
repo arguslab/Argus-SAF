@@ -14,6 +14,7 @@ import java.io.{IOException, StringWriter, Writer}
 
 import org.argus.jawa.core._
 import org.argus.jawa.core.codegen.JawaModelProvider
+import org.argus.jawa.core.elements.{FieldFQN, Signature}
 import org.jf.dexlib2.Opcode
 import org.jf.dexlib2.base.reference.BaseFieldReference
 import org.jf.dexlib2.dexbacked.DexBackedMethod

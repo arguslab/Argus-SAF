@@ -12,7 +12,7 @@ package org.argus.jawa.alir
 
 import java.io.Writer
 
-import org.argus.jawa.core.Signature
+import org.argus.jawa.core.elements.Signature
 import org.argus.jawa.core.util.Property.Key
 import org.argus.jawa.core.util._
 import org.jgrapht._

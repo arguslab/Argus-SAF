@@ -14,13 +14,14 @@ import java.util
 
 import org.argus.amandroid.core.dedex.`type`.LocalTypeResolver.VarType
 import org.argus.jawa.alir.rda.VarSlot
-import org.argus.jawa.ast._
-import org.argus.jawa.compiler.lexer.{Token, Tokens}
-import org.argus.jawa.compiler.parser._
+import org.argus.jawa.core.ast._
+import org.argus.jawa.core.compiler.lexer.{Token, Tokens}
+import org.argus.jawa.core.compiler.parser._
 import org.argus.jawa.core.codegen.JawaModelProvider
+import org.argus.jawa.core.elements.AccessFlag
 import org.argus.jawa.core.io.{NoPosition, Position}
 import org.argus.jawa.core.util._
-import org.argus.jawa.core.{AccessFlag, Global, JawaType}
+import org.argus.jawa.core.{Global, JawaType}
 import org.stringtemplate.v4.{ST, STGroupString}
 
 import scala.collection.JavaConverters._

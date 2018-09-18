@@ -17,8 +17,9 @@ import org.argus.jawa.alir.interprocedural.ModelCallResolver
 import org.argus.jawa.alir.pta._
 import org.argus.jawa.alir.pta.model.ModelCallHandler
 import org.argus.jawa.alir.pta.rfa.{RFAFact, ReachingFactsAnalysis, ReachingFactsAnalysisHelper}
-import org.argus.jawa.ast._
+import org.argus.jawa.core.ast._
 import org.argus.jawa.core._
+import org.argus.jawa.core.elements.Signature
 import org.argus.jawa.core.util.Property.Key
 import org.argus.jawa.core.util._
 import org.argus.jawa.summary.susaf.rule._

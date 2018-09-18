@@ -20,9 +20,10 @@ import org.apache.commons.lang3.StringEscapeUtils
 import org.argus.amandroid.core.AndroidGlobalConfig
 import org.argus.amandroid.core.decompile.DecompileLevel
 import org.argus.amandroid.core.dedex.`type`.GenerateTypedJawa
-import org.argus.jawa.core.AccessFlag.FlagKind
+import org.argus.jawa.core.elements.AccessFlag.FlagKind
 import org.argus.jawa.core._
 import org.argus.jawa.core.codegen.JawaModelProvider
+import org.argus.jawa.core.elements.{AccessFlag, FieldFQN, JawaPackage, Signature}
 import org.jf.dexlib2.dexbacked.instruction.DexBackedInstruction
 import org.jf.dexlib2.dexbacked.{DexBackedCatchAllExceptionHandler, DexBackedClassDef, DexBackedDexFile, DexBackedField, DexBackedMethod, DexBackedTryBlock, DexBackedTypedExceptionHandler}
 import org.stringtemplate.v4.{ST, STGroupString}

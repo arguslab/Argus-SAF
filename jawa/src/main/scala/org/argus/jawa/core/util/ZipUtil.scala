@@ -30,7 +30,7 @@ object ZipUtil {
 
   def getZipEntryInputStream(zipFile: ZipFile)(entry: ZipEntry): InputStream = zipFile.getInputStream(entry)
 
-  def unzipAllFile(entryList: List[ZipEntry], inputGetter: (ZipEntry) => InputStream, targetFolder: File): Boolean = {
+  def unzipAllFile(entryList: List[ZipEntry], inputGetter: ZipEntry => InputStream, targetFolder: File): Boolean = {
 
     entryList match {
       case entry :: entries =>
@@ -55,7 +55,7 @@ object ZipUtil {
 
   def bufferReader(fis: InputStream)(buffer: Array[Byte]): (Int, Array[Byte]) = (fis.read(buffer), buffer)
 
-  def writeToFile(reader: (Array[Byte]) => ((Int, Array[Byte])), fos: OutputStream): Boolean = {
+  def writeToFile(reader: Array[Byte] => (Int, Array[Byte]), fos: OutputStream): Boolean = {
     val (length, data) = reader(buffer)
     if (length >= 0) {
       fos.write(data, 0, length)

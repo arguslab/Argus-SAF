@@ -10,12 +10,13 @@
 
 package org.argus.jawa.core.io
 
-import java.net.{ URI, URL }
-import java.io.{ BufferedInputStream, InputStream, PrintStream }
-import java.io.{ BufferedReader, InputStreamReader, Closeable => JCloseable }
-import scala.io.{ Codec, BufferedSource, Source }
+import java.io.{BufferedInputStream, BufferedReader, InputStream, InputStreamReader, Closeable => JCloseable}
+import java.net.URL
+
+import org.argus.jawa.core.io.Path.fail
+
 import scala.collection.mutable.ArrayBuffer
-import Path.fail
+import scala.io.{BufferedSource, Codec, Source}
 
 /** Traits for objects which can be represented as Streams.
  *
@@ -45,7 +46,7 @@ object Streamable {
     /** This method aspires to be the fastest way to read
      *  a stream of known length into memory.
      */
-    def toByteArray(): Array[Byte] = {
+    def toByteArray: Array[Byte] = {
       // if we don't know the length, fall back on relative inefficiency
       if (length == -1L)
         return (new ArrayBuffer[Byte]() ++= bytes()).toArray
@@ -110,7 +111,7 @@ object Streamable {
     /** Convenience function to import entire file into a String.
      */
     def slurp(): String = slurp(creationCodec)
-    def slurp(codec: Codec) = {
+    def slurp(codec: Codec): String = {
       val src = chars(codec)
       try src.mkString finally src.close()  // Always Be Closing
     }
@@ -122,12 +123,12 @@ object Streamable {
     finally stream.close()
 
   def bytes(is: => InputStream): Array[Byte] =
-    (new Bytes {
-      def inputStream() = is
-    }).toByteArray()
+    new Bytes {
+      def inputStream(): InputStream = is
+    }.toByteArray
 
   def slurp(is: => InputStream)(implicit codec: Codec): String =
-    new Chars { def inputStream() = is } slurp codec
+    new Chars { def inputStream(): InputStream = is } slurp codec
 
   def slurp(url: URL)(implicit codec: Codec): String =
     slurp(url.openStream())

@@ -13,8 +13,9 @@ package org.argus.jawa.alir.cfg
 import org.argus.jawa.alir.cg.CallGraph
 import org.argus.jawa.alir.{AlirLoc, Context, InterProceduralNode, JawaAlirInfoProvider}
 import org.argus.jawa.alir.interprocedural.Callee
-import org.argus.jawa.ast.{CallStatement, Location}
-import org.argus.jawa.core.{Global, JawaMethod, Signature}
+import org.argus.jawa.core.ast.{CallStatement, Location}
+import org.argus.jawa.core.elements.Signature
+import org.argus.jawa.core.{Global, JawaMethod}
 import org.argus.jawa.core.util._
 
 import scala.collection.immutable.BitSet

@@ -12,8 +12,9 @@ package org.argus.jawa.alir.pta.rfa
 
 import org.argus.jawa.alir.pta._
 import org.argus.jawa.alir.Context
-import org.argus.jawa.ast._
+import org.argus.jawa.core.ast._
 import org.argus.jawa.core._
+import JawaMethod
 import org.argus.jawa.core.util._
 
 /**

@@ -14,7 +14,7 @@ import org.argus.amandroid.alir.pta.model.InterComponentCommunicationModel
 import org.argus.jawa.alir.Context
 import org.argus.jawa.alir.pta.model.ModelCallHandler
 import org.argus.jawa.alir.pta.{PTASlot, VarSlot}
-import org.argus.jawa.ast.CallStatement
+import org.argus.jawa.core.ast.CallStatement
 import org.argus.jawa.core.util._
 import org.argus.jawa.core.{Global, JawaMethod}
 import org.argus.jawa.summary.SummaryManager

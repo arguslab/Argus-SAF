@@ -124,7 +124,7 @@ extends AbstractFile {
   override def isVirtual = true
   val lastModified: Long = System.currentTimeMillis
 
-  override def file = null
+  override def file: JFile = null
   override def input: Nothing = sys.error("directories cannot be read")
   override def output: Nothing = sys.error("directories cannot be written")
 

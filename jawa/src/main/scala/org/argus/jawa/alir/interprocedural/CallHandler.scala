@@ -12,8 +12,9 @@ package org.argus.jawa.alir.interprocedural
 
 import org.argus.jawa.alir.Context
 import org.argus.jawa.alir.pta.{Instance, PTAResult, VarSlot}
-import org.argus.jawa.ast.CallStatement
+import org.argus.jawa.core.ast.CallStatement
 import org.argus.jawa.core._
+import org.argus.jawa.core.elements.Signature
 import org.argus.jawa.core.util._
 
 /**
@@ -136,7 +137,7 @@ object CallHandler {
       this.synchronized{
         global.getMethod(procSig) match {
           case None => 
-            Some(global.generateUnknownJawaMethod(from, procSig))
+            Some(from.generateUnknownJawaMethod(procSig))
           case a => a
         }
       }
@@ -156,7 +157,7 @@ object CallHandler {
       this.synchronized{
         global.getMethod(procSig) match {
           case None => 
-            Some(global.generateUnknownJawaMethod(rec, procSig))
+            Some(rec.generateUnknownJawaMethod(procSig))
           case a => a
         }
       }

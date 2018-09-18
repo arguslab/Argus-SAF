@@ -10,7 +10,7 @@
 
 package org.argus.amandroid.serialization
 
-import org.argus.jawa.core.Signature
+import org.argus.jawa.core.elements.Signature
 import org.json4s._
 import org.json4s.JsonDSL._
 

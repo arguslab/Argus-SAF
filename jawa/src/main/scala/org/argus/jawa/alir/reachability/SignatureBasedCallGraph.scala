@@ -12,12 +12,13 @@ package org.argus.jawa.alir.reachability
 
 import java.util.concurrent.TimeoutException
 
-import hu.ssh.progressbar.console.ConsoleProgressBar
+import hu.ssh.progressbar.ConsoleProgressBar
 import org.argus.jawa.alir.cg.CallGraph
 import org.argus.jawa.alir.interprocedural.{CallHandler, IndirectCallResolver}
 import org.argus.jawa.alir.pta.PTAScopeManager
-import org.argus.jawa.ast.CallStatement
+import org.argus.jawa.core.ast.CallStatement
 import org.argus.jawa.core._
+import org.argus.jawa.core.elements.Signature
 import org.argus.jawa.core.util.MyTimeout
 import org.argus.jawa.core.util._
 
@@ -69,7 +70,7 @@ object SignatureBasedCallGraph {
     cg.addCalls(ep.getSignature, isetEmpty)
     val worklistAlgorithm = new WorklistAlgorithm[JawaMethod] {
       override def processElement(m: JawaMethod): Unit = {
-        if(timer.isDefined) timer.get.isTimeoutThrow()
+        if(timer.isDefined) timer.get.timeoutThrow()
         processed += m.getSignature.signature
         try {
           m.getBody.resolvedBody.locations foreach { l =>

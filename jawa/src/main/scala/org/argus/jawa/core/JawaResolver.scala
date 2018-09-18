@@ -10,10 +10,11 @@
 
 package org.argus.jawa.core
 
-import org.argus.jawa.ast.{CompilationUnit, MethodDeclaration}
-import org.argus.jawa.compiler.parser.JawaParser
-import org.argus.jawa.core.frontend.jawafile.JawaAstParser
-import org.argus.jawa.core.frontend.{MyClass, MyMethod}
+import org.argus.jawa.core.ast.{CompilationUnit, MethodDeclaration, MyClass, MyMethod}
+import org.argus.jawa.core.compiler.parser.JawaParser
+import org.argus.jawa.core.elements._
+import org.argus.jawa.core.ast.jawafile.JawaAstParser
+import org.argus.jawa.core.io.Reporter
 import org.argus.jawa.core.util._
 
 import scala.util.{Failure, Success}
@@ -161,3 +162,5 @@ object JawaResolver{
     md match{case Success(m) => m; case Failure(e) => throw e}
   }
 }
+
+case class JawaResolverError(msg: String) extends Exception(msg)

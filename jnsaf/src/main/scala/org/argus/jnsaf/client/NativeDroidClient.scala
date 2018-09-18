@@ -16,8 +16,9 @@ import java.util.concurrent.{CountDownLatch, TimeUnit}
 import com.google.protobuf.ByteString
 import io.grpc.ManagedChannelBuilder
 import io.grpc.stub.StreamObserver
+import org.argus.jawa.core.elements.Signature
 import org.argus.jawa.core.util._
-import org.argus.jawa.core.{MsgLevel, PrintReporter, Reporter, Signature}
+import org.argus.jawa.core.{MsgLevel, PrintReporter, Reporter}
 import org.argus.nativedroid.server.server._
 
 import scala.concurrent.ExecutionContext.Implicits.global

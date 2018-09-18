@@ -21,7 +21,7 @@ import org.argus.amandroid.plugin.ApiMisuseResult
 import org.argus.amandroid.serialization.{ApkModelSerializer, ContextSerializer, PTAResultSerializer, SignatureKeySerializer}
 import org.argus.jawa.alir.pta.PTAResult
 import org.argus.jawa.alir.taintAnalysis.TaintAnalysisResult
-import org.argus.jawa.core.Signature
+import org.argus.jawa.core.elements.Signature
 import org.argus.jawa.core.util.FileUtil
 
 object Staging {

@@ -22,6 +22,7 @@ import org.argus.jawa.alir.dda.InterProceduralDataDependenceInfo
 import org.argus.jawa.alir.dfa.InterProceduralDataFlowGraph
 import org.argus.jawa.alir.taintAnalysis.TaintAnalysisResult
 import org.argus.jawa.core._
+import org.argus.jawa.core.elements.Signature
 
 object ApkGlobal {
   def isValidApk(nameUri: FileResourceUri): Boolean = {

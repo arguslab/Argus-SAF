@@ -15,8 +15,9 @@ import org.argus.jawa.alir.cfg.{ICFGCallNode, ICFGNode, ICFGReturnNode, InterPro
 import org.argus.jawa.alir.pta.{Instance, PTAResult, VarSlot}
 import org.argus.jawa.alir.pta.model.ModelCallHandler
 import org.argus.jawa.alir.pta.rfa.{RFAFact, ReachingFactsAnalysisHelper}
-import org.argus.jawa.ast.{CallStatement, Location, ReturnStatement}
-import org.argus.jawa.core.{Global, JawaMethod, Signature}
+import org.argus.jawa.core.ast.{CallStatement, Location, ReturnStatement}
+import org.argus.jawa.core.elements.Signature
+import org.argus.jawa.core.{Global, JawaMethod}
 import org.argus.jawa.core.util._
 import org.argus.jawa.summary.SummaryManager
 import org.argus.jawa.summary.susaf.HeapSummaryProcessor

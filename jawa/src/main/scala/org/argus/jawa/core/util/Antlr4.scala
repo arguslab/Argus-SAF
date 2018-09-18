@@ -10,15 +10,13 @@
 
 package org.argus.jawa.core.util
 
-import org.argus.jawa.summary.susaf.rule.SuRuleNode
-
 /**
   * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
   */
 object Antlr4 {
   import org.antlr.v4.runtime.tree._
 
-  trait Visitor extends ParseTreeVisitor[SuRuleNode] {
+  trait Visitor[N] extends ParseTreeVisitor[N] {
     def getChildren[T, PT <: ParseTree](trees: Seq[PT]): Seq[T] = {
       var children: Seq[T] = Seq()
       if (trees != null) {

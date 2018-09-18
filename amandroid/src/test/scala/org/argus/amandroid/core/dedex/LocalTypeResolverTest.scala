@@ -14,17 +14,17 @@ import java.lang.reflect.InvocationTargetException
 
 import org.argus.amandroid.core.decompile._
 import org.argus.amandroid.core.dedex.`type`.GenerateTypedJawa
-import org.argus.jawa.compiler.codegen.JavaByteCodeGenerator
-import org.argus.jawa.compiler.lexer.JawaLexer
-import org.argus.jawa.compiler.parser.JawaParser
-import org.argus.jawa.compiler.util.ReadClassFile.CustomClassLoader
+import org.argus.jawa.core.compiler.codegen.JavaByteCodeGenerator
+import org.argus.jawa.core.compiler.lexer.JawaLexer
+import org.argus.jawa.core.compiler.parser.JawaParser
+import org.argus.jawa.core.backend.compiler.util.ReadClassFile.CustomClassLoader
 import org.argus.jawa.core.{Global, JawaType, MsgLevel, NoLibraryAPISummary, NoReporter, PrintReporter}
 import org.argus.jawa.core.util.FileUtil
 import org.scalatest.{FlatSpec, Matchers}
 import java.lang.reflect.Method
 
 import org.argus.amandroid.alir.componentSummary.ApkYard
-import org.argus.jawa.compiler.compile.JawaCompiler
+import org.argus.jawa.core.compiler.compile.JawaCompiler
 
 /**
   * Created by fgwei on 4/24/17.

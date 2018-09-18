@@ -10,7 +10,7 @@
 
 package org.argus.amandroid.core.codegen
 
-import org.argus.jawa.core.Signature
+import org.argus.jawa.core.elements.Signature
 
 
 /**

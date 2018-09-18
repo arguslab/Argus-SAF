@@ -18,8 +18,9 @@ import org.argus.jawa.alir.dfa._
 import org.argus.jawa.alir.interprocedural.{CallHandler, Callee, IndirectCallee, MethodCallResolver}
 import org.argus.jawa.alir.pta._
 import org.argus.jawa.alir.pta.rfa.{RFAFact, ReachingFactsAnalysis, ReachingFactsAnalysisHelper}
-import org.argus.jawa.ast.CallStatement
+import org.argus.jawa.core.ast.CallStatement
 import org.argus.jawa.core._
+import org.argus.jawa.core.elements.Signature
 import org.argus.jawa.core.util._
 import org.argus.jawa.summary.SummaryManager
 

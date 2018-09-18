@@ -12,12 +12,12 @@ package org.argus.jawa.core.io
 
 import java.io.{BufferedReader, StringReader}
 
-import org.argus.jawa.core.Chars._
-import org.argus.jawa.core.frontend.MyClass
-import org.argus.jawa.core.frontend.javafile.JavaSourceFile
-import org.argus.jawa.core.frontend.jawafile.JawaSourceFile
+import Chars._
+import org.argus.jawa.core.ast.MyClass
+import org.argus.jawa.core.ast.javafile.JavaSourceFile
+import org.argus.jawa.core.elements.JawaType
+import org.argus.jawa.core.ast.jawafile.JawaSourceFile
 import org.argus.jawa.core.util._
-import org.argus.jawa.core.{JawaType, Reporter}
 
 import scala.annotation.tailrec
 import scala.collection.mutable.ArrayBuffer

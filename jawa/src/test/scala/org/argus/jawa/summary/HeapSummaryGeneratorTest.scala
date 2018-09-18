@@ -10,11 +10,12 @@
 
 package org.argus.jawa.summary
 
-import hu.ssh.progressbar.console.ConsoleProgressBar
+import hu.ssh.progressbar.ConsoleProgressBar
 import org.argus.jawa.alir.pta.PTAScopeManager
 import org.argus.jawa.alir.pta.model.ModelCallHandler
 import org.argus.jawa.alir.reachability.SignatureBasedCallGraph
 import org.argus.jawa.core._
+import org.argus.jawa.core.elements.Signature
 import org.argus.jawa.core.util._
 import org.argus.jawa.summary.susaf.rule.HeapSummary
 import org.argus.jawa.summary.wu.{HeapSummaryWu, WorkUnit}

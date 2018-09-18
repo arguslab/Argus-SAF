@@ -14,6 +14,7 @@ import org.argus.jawa.alir.Context
 import org.argus.jawa.alir.pta._
 import org.argus.jawa.alir.pta.rfa.{RFAFact, ReachingFactsAnalysisHelper}
 import org.argus.jawa.core._
+import org.argus.jawa.core.elements.Signature
 import org.argus.jawa.core.util._
 import org.argus.jawa.summary.SummaryManager
 import org.argus.jawa.summary.susaf.rule._

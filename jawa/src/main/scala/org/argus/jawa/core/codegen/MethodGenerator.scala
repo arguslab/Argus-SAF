@@ -13,11 +13,10 @@ package org.argus.jawa.core.codegen
 import java.util
 
 import org.stringtemplate.v4.STGroupString
-
 import org.argus.jawa.core.util._
 import org.stringtemplate.v4.ST
-
 import org.argus.jawa.core._
+import org.argus.jawa.core.elements.{JavaKnowledge, JawaType, Signature}
 
 /**
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
@@ -302,7 +301,7 @@ abstract class MethodGenerator(global: Global) {
     if(!this.callbackFunctions.contains(clazz.getType)) return
     var callbackClasses: Map[JawaClass, ISet[JawaMethod]] = Map()
     this.callbackFunctions(clazz.getType).foreach{
-      case (pSig) => 
+      case pSig =>
         val theClass = global.getClassOrResolve(pSig.getClassType)
         val theMethod = findMethod(theClass, pSig.getSubSignature)
         theMethod match {

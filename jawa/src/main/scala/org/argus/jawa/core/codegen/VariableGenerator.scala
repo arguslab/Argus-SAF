@@ -10,7 +10,7 @@
 
 package org.argus.jawa.core.codegen
 
-import org.argus.jawa.core.JawaType
+import org.argus.jawa.core.elements.JawaType
 import org.argus.jawa.core.util._
 
 /**

@@ -13,8 +13,9 @@ package org.argus.jawa.summary
 import org.argus.jawa.alir.Context
 import org.argus.jawa.alir.pta._
 import org.argus.jawa.alir.pta.rfa.RFAFact
+import org.argus.jawa.core.elements.Signature
 import org.argus.jawa.core.util._
-import org.argus.jawa.core.{DefaultReporter, Global, JawaType, Signature}
+import org.argus.jawa.core.{DefaultReporter, Global, JawaType}
 import org.argus.jawa.summary.susaf.HeapSummaryProcessor
 import org.scalatest.{FlatSpec, Matchers}
 

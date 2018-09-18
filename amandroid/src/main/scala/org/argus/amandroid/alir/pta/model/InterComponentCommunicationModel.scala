@@ -16,7 +16,7 @@ import org.argus.amandroid.core.parser.{IntentFilter, IntentFilterDataBase}
 import org.argus.jawa.alir.Context
 import org.argus.jawa.alir.pta.rfa.RFAFact
 import org.argus.jawa.alir.pta.{FieldSlot, PTAConcreteStringInstance, PTAResult, VarSlot}
-import org.argus.jawa.core.Signature
+import org.argus.jawa.core.elements.Signature
 import org.argus.jawa.core.util.{ISet, MSet, isetEmpty, msetEmpty}
 
 

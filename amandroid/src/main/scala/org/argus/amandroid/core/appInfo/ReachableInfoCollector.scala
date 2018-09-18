@@ -14,8 +14,9 @@ import org.argus.amandroid.core.parser.LayoutControl
 import org.argus.amandroid.core.codegen.AndroidEntryPointConstants
 import org.argus.jawa.alir.reachability.ReachabilityAnalysis
 import org.argus.jawa.alir.util.ExplicitValueFinder
-import org.argus.jawa.ast.CallStatement
+import org.argus.jawa.core.ast.CallStatement
 import org.argus.jawa.core._
+import org.argus.jawa.core.elements.Signature
 import org.argus.jawa.core.util._
 
 

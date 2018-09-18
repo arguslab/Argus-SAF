@@ -11,7 +11,7 @@
 package org.argus.amandroid.core.util
 
 import org.argus.amandroid.core.parser.ManifestParser
-import org.argus.jawa.core.JawaPackage
+import org.argus.jawa.core.elements.JawaPackage
 import org.argus.jawa.core.util._
 
 object GuessAppPackages {

@@ -10,7 +10,8 @@
 
 package org.argus.jawa.core
 
-import org.argus.jawa.ast._
+import org.argus.jawa.core.ast._
+import org.argus.jawa.core.elements._
 import org.argus.jawa.core.util._
 
 /**

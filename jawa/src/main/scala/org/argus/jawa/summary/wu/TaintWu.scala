@@ -16,8 +16,9 @@ import org.argus.jawa.alir.dfa.InterProceduralDataFlowGraph
 import org.argus.jawa.alir.pta._
 import org.argus.jawa.alir.pta.model.ModelCallHandler
 import org.argus.jawa.alir.taintAnalysis.{SSPosition, SourceAndSinkManager, TaintNode}
-import org.argus.jawa.ast.{CallStatement, ReturnStatement}
-import org.argus.jawa.core.{Global, JawaMethod, Signature}
+import org.argus.jawa.core.ast.{CallStatement, ReturnStatement}
+import org.argus.jawa.core.elements.Signature
+import org.argus.jawa.core.{Global, JawaMethod}
 import org.argus.jawa.core.util._
 import org.argus.jawa.summary.store.{TSTaintPath, TaintStore}
 import org.argus.jawa.summary.susaf.rule._

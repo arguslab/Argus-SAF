@@ -10,7 +10,7 @@
 
 package org.argus.jawa.alir
 
-import org.argus.jawa.core.Signature
+import org.argus.jawa.core.elements.Signature
 import org.argus.jawa.core.util._
 
 object Context {

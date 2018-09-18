@@ -12,7 +12,8 @@ package org.argus.jawa.summary.susaf.parser
 
 import org.antlr.v4.runtime.tree.ParseTree
 import org.apache.commons.lang3.StringEscapeUtils
-import org.argus.jawa.core.{JawaType, Signature}
+import org.argus.jawa.core.JawaType
+import org.argus.jawa.core.elements.Signature
 import org.argus.jawa.core.util.Antlr4
 import org.argus.jawa.summary.susaf.rule._
 import org.argus.jawa.summary.grammar.SafsuBaseVisitor
@@ -31,7 +32,7 @@ object SummaryParserVisitor {
 
 class SummaryParserVisitor()
   extends SafsuBaseVisitor[SuRuleNode]
-  with Antlr4.Visitor {
+  with Antlr4.Visitor[SuRuleNode] {
 
   override def visitSummaryFile(ctx: SummaryFileContext): SuRuleNode = {
     var defaultTypes: Map[JawaType, Map[String, JawaType]] = Map()

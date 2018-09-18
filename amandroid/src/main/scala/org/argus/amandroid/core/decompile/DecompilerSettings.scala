@@ -12,8 +12,7 @@ package org.argus.amandroid.core.decompile
 
 import java.io.{File, PrintStream}
 
-import hu.ssh.progressbar.ProgressBar
-import hu.ssh.progressbar.console.ConsoleProgressBar
+import hu.ssh.progressbar.{ConsoleProgressBar, ProgressBar}
 import org.argus.amandroid.core.{AndroidConstants, AndroidGlobalConfig}
 import org.argus.amandroid.core.dedex.JawaStyleCodeGeneratorListener
 import org.argus.jawa.core.{DefaultLibraryAPISummary, JawaType, LibraryAPISummary, Reporter}

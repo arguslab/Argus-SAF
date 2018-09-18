@@ -10,6 +10,8 @@
 
 package org.argus.jawa.core
 
+import org.argus.jawa.core.io.Reporter
+
 /**
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
  */

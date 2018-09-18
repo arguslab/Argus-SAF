@@ -12,7 +12,7 @@ package org.argus.jawa.alir.interprocedural
 
 import org.argus.jawa.alir.pta.rfa.RFAFact
 import org.argus.jawa.alir.pta.{Instance, VarSlot}
-import org.argus.jawa.core.Signature
+import org.argus.jawa.core.elements.Signature
 import org.argus.jawa.core.util._
 
 /**

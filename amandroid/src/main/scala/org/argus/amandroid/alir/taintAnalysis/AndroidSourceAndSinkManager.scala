@@ -17,8 +17,8 @@ import org.argus.jawa.alir.cfg._
 import org.argus.jawa.alir.pta.{PTAResult, VarSlot}
 import org.argus.jawa.alir.taintAnalysis._
 import org.argus.jawa.alir.util.ExplicitValueFinder
-import org.argus.jawa.ast.{CallStatement, Location}
-import org.argus.jawa.core.Signature
+import org.argus.jawa.core.ast.{CallStatement, Location}
+import org.argus.jawa.core.elements.Signature
 import org.argus.jawa.core.util._
 
 object IntentSinkKind extends Enumeration {

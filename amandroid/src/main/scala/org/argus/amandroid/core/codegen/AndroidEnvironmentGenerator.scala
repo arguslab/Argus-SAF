@@ -13,6 +13,7 @@ import org.argus.jawa.core.util._
 import org.argus.amandroid.core.parser.{ComponentInfo, ComponentType}
 import org.argus.jawa.core._
 import org.argus.jawa.core.codegen.MethodGenerator
+import org.argus.jawa.core.elements.Signature
 
 /**
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>

@@ -1,5 +1,7 @@
 package hu.ssh.progressbar;
 
+import hu.ssh.progressbar.progress.Progress;
+
 public abstract class AbstractProgressBar implements ProgressBar {
 	protected final long totalSteps;
 

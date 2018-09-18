@@ -12,6 +12,7 @@ package org.argus.jawa.core
 
 import java.io.{BufferedReader, FileReader, StringReader}
 
+import org.argus.jawa.core.elements.JawaType
 import org.argus.jawa.core.util._
 
 trait LibraryAPISummary {

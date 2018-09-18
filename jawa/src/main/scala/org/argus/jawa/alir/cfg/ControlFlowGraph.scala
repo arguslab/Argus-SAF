@@ -11,7 +11,7 @@
 package org.argus.jawa.alir.cfg
 
 import org.argus.jawa.alir._
-import org.argus.jawa.ast._
+import org.argus.jawa.core.ast._
 import org.argus.jawa.core.util._
 import org.jgrapht.ext.ComponentNameProvider
 

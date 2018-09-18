@@ -13,7 +13,7 @@ package org.argus.jawa.alir.dda
 import org.argus.jawa.alir._
 import org.argus.jawa.alir.cfg._
 import org.argus.jawa.alir.interprocedural.Callee
-import org.argus.jawa.core.Signature
+import org.argus.jawa.core.elements.Signature
 import org.argus.jawa.core.util._
 
 /**

@@ -24,8 +24,8 @@ import org.argus.jawa.alir.cfg.ICFGCallNode
 import org.argus.jawa.alir.dfa.InterProceduralDataFlowGraph
 import org.argus.jawa.alir.pta.VarSlot
 import org.argus.jawa.alir.taintAnalysis.TaintAnalysisResult
-import org.argus.jawa.ast.CallStatement
-import org.argus.jawa.core.Signature
+import org.argus.jawa.core.ast.CallStatement
+import org.argus.jawa.core.elements.Signature
 
 /**
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>

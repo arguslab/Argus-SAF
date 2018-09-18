@@ -12,7 +12,7 @@ package org.argus.jawa.summary.model
 
 import org.argus.jawa.alir.pta._
 import org.argus.jawa.alir.pta.rfa.RFAFact
-import org.argus.jawa.core.JavaKnowledge
+import org.argus.jawa.core.elements.JavaKnowledge
 
 /**
   * Created by fgwei on 6/15/17.

@@ -43,7 +43,7 @@ class Jar(file: File) extends Iterable[JarEntry] {
         case entry  =>
           val in = Some(jarFile getInputStream entry)
           try f(in)
-          finally in map (_.close())
+          finally in foreach (_.close())
       }
     try apply() finally jarFile.close()
   }
@@ -98,7 +98,7 @@ class JarWriter(val file: File, val manifest: Manifest) {
     entry.list foreach (p => addEntry(p, prefix))
   }
 
-  private def transfer(in: InputStream, out: OutputStream) = {
+  private def transfer(in: InputStream, out: OutputStream): Unit = {
     val buf = new Array[Byte](10240)
     def loop(): Unit = in.read(buf, 0, buf.length) match {
       case -1 => in.close()

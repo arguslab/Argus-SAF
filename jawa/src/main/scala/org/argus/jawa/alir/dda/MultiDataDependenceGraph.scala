@@ -12,7 +12,7 @@ package org.argus.jawa.alir.dda
 
 import org.argus.jawa.alir.Context
 import org.argus.jawa.alir.cfg.{ICFGEntryNode, ICFGNode, InterProceduralControlFlowGraph}
-import org.argus.jawa.core.Signature
+import org.argus.jawa.core.elements.Signature
 import org.argus.jawa.core.util._
 
 /**

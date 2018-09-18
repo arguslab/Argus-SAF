@@ -10,7 +10,7 @@
 
 package org.argus.amandroid.serialization
 
-import org.argus.jawa.core.{JavaKnowledge, JawaType}
+import org.argus.jawa.core.JawaType
 import org.json4s._
 import org.json4s.JsonDSL._
 

@@ -19,8 +19,9 @@ import org.argus.jawa.alir.cfg._
 import org.argus.jawa.alir.dda.{IDDGNode, MultiDataDependenceGraph}
 import org.argus.jawa.alir.dfa.InterProceduralDataFlowGraph
 import org.argus.jawa.alir.pta.{Instance, VarSlot}
-import org.argus.jawa.ast.{AssignmentStatement, StaticFieldAccessExpression}
+import org.argus.jawa.core.ast.{AssignmentStatement, StaticFieldAccessExpression}
 import org.argus.jawa.core._
+import org.argus.jawa.core.elements.{FieldFQN, Signature}
 import org.argus.jawa.core.util._
 
 trait ComponentSummaryProvider {

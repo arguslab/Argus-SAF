@@ -11,12 +11,13 @@
 package org.argus.jawa.core
 
 import com.google.common.cache.{Cache, CacheBuilder, CacheLoader, LoadingCache}
-import org.argus.jawa.core.backend.JavaPlatform
-import org.argus.jawa.core.backend.classpath._
-import org.argus.jawa.core.frontend.MyClass
-import org.argus.jawa.core.frontend.classfile.JavaClassFile
-import org.argus.jawa.core.frontend.javafile.JavaSourceFile
-import org.argus.jawa.core.frontend.jawafile.JawaSourceFile
+import org.argus.jawa.core.ast.MyClass
+import org.argus.jawa.core.ast.classfile.JavaClassFile
+import org.argus.jawa.core.ast.javafile.JavaSourceFile
+import org.argus.jawa.core.classpath.{JavaPlatform, _}
+import org.argus.jawa.core.compiler.parser.LightWeightJawaParser
+import org.argus.jawa.core.elements.{JavaKnowledge, JawaType}
+import org.argus.jawa.core.ast.jawafile.JawaSourceFile
 import org.argus.jawa.core.io._
 import org.argus.jawa.core.util._
 

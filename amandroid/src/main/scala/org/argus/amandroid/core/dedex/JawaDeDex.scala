@@ -14,7 +14,8 @@ import java.io._
 
 import org.argus.jawa.core.util._
 import org.argus.amandroid.core.decompile.DecompilerSettings
-import org.argus.jawa.core.{JavaKnowledge, JawaPackage, JawaType}
+import org.argus.jawa.core.elements.JawaPackage
+import org.argus.jawa.core.JawaType
 import org.jf.dexlib2.{DexFileFactory, Opcodes}
 import org.jf.dexlib2.dexbacked.{DexBackedDexFile, DexBackedOdexFile, OatFile}
 import org.jf.dexlib2.dexbacked.DexBackedDexFile.NotADexFile

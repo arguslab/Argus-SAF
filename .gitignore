@@ -23,3 +23,5 @@ nativedroid/venv/*
 *.pyo
 *.egg-info
 MANIFEST
+
+bazel-*

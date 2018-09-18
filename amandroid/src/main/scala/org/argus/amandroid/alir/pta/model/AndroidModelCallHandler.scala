@@ -13,7 +13,8 @@ package org.argus.amandroid.alir.pta.model
 import org.argus.amandroid.core.{AndroidConstants, ApkGlobal}
 import org.argus.jawa.alir.pta.PTAScopeManager
 import org.argus.jawa.alir.pta.model.{ModelCall, ModelCallHandler}
-import org.argus.jawa.core.{JawaMethod, JawaType, Signature}
+import org.argus.jawa.core.elements.Signature
+import org.argus.jawa.core.{JawaMethod, JawaType}
 
 /**
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>

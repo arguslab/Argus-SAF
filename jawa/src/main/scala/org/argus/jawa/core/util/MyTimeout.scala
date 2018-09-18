@@ -20,7 +20,7 @@ class MyTimeout(time: FiniteDuration) {
     val currentTime = System.currentTimeMillis()
     (currentTime - startTime) >= time.toMillis
   }
-  def isTimeoutThrow(): Unit = {
+  def timeoutThrow(): Unit = {
     if(isTimeout) throw new TimeoutException("Timeout after " + time.toMinutes + " minutes.")
   }
 }

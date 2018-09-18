@@ -10,6 +10,7 @@
 
 package org.argus.jawa.core
 
+import org.argus.jawa.core.elements.{FieldFQN, JawaType, Signature}
 import org.argus.jawa.core.util.IMap
 
 abstract class Point{

@@ -13,6 +13,7 @@ package org.argus.jawa.summary
 import com.google.common.base.Charsets
 import com.google.common.io.Resources
 import org.argus.jawa.core._
+import org.argus.jawa.core.elements.Signature
 import org.argus.jawa.core.util._
 import org.argus.jawa.summary.susaf.HeapSummaryProcessor
 import org.argus.jawa.summary.susaf.parser.SummaryParser

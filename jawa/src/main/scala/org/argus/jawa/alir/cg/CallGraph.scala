@@ -10,8 +10,8 @@
 
 package org.argus.jawa.alir.cg
 
+import org.argus.jawa.core.elements.Signature
 import org.argus.jawa.core.util.WorklistAlgorithm
-import org.argus.jawa.core.Signature
 import org.argus.jawa.core.util._
 import org.argus.jawa.summary.util.TopologicalSortUtil
 

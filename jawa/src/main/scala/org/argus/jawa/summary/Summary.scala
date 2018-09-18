@@ -10,7 +10,7 @@
 
 package org.argus.jawa.summary
 
-import org.argus.jawa.core.Signature
+import org.argus.jawa.core.elements.Signature
 
 trait Summary {
   def sig: Signature

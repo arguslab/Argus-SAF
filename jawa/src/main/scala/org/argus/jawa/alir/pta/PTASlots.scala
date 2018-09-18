@@ -11,7 +11,7 @@
 package org.argus.jawa.alir.pta
 
 import org.argus.jawa.alir.rda.Slot
-import org.argus.jawa.core.Signature
+import org.argus.jawa.core.elements.Signature
 
 /**
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>

@@ -11,7 +11,7 @@
 package org.argus.amandroid.plugin.lockScreen
 import org.argus.jawa.alir.dfa.InterProceduralDataFlowGraph
 import org.argus.jawa.alir.util.ExplicitValueFinder
-import org.argus.jawa.ast._
+import org.argus.jawa.core.ast._
 import org.argus.jawa.core.{Global, JawaMethod}
 
 class LockScreen() {

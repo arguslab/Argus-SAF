@@ -77,6 +77,8 @@ val publishSettings = Seq(
     </developers>
   )
 
+ThisBuild / bazelScalaRulesVersion := "3cd7fa5bec9b11104468c72934773e5820e1c89e"
+
 lazy val argus_saf: Project =
   newProject("argus-saf", file("."))
   .enablePlugins(BuildInfoPlugin, BintrayPlugin, ScalaUnidocPlugin)
@@ -85,7 +87,7 @@ lazy val argus_saf: Project =
   .settings(argusSafSettings)
   .settings(buildInfoSettings)
   .aggregate(
-    saf_library, jawa, amandroid
+    saf_library, jawa, amandroid, jnsaf
   )
   .settings(publishSettings)
   .settings(
@@ -101,6 +103,10 @@ lazy val argus_saf: Project =
     publishArtifact in (Compile, packageBin) := false,
     publishArtifact in (Compile, packageDoc) := false,
     publishArtifact in (Compile, packageSrc) := false
+  )
+  .settings(
+    bazelWorkspaceGenerate := true,
+    bazelBuildGenerate := false,
   )
 
 lazy val saf_library: Project =

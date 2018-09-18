@@ -19,8 +19,9 @@ import java.util.regex.Matcher
 
 import org.argus.jawa.alir.cfg._
 import org.argus.jawa.alir.pta.PTAResult
-import org.argus.jawa.ast.Location
-import org.argus.jawa.core.{Global, Signature}
+import org.argus.jawa.core.ast.Location
+import org.argus.jawa.core.Global
+import org.argus.jawa.core.elements.Signature
 
 /**
   * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>

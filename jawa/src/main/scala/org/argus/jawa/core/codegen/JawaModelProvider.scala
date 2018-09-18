@@ -12,7 +12,7 @@ package org.argus.jawa.core.codegen
 
 import java.util
 
-import org.argus.jawa.core.JawaType
+import org.argus.jawa.core.elements.JawaType
 import org.stringtemplate.v4.{ST, STGroupString}
 
 object JawaModelProvider {

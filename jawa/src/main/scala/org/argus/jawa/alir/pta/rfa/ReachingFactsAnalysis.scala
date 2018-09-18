@@ -18,9 +18,10 @@ import org.argus.jawa.alir.dfa._
 import org.argus.jawa.alir.interprocedural.CallResolver
 import org.argus.jawa.alir.pta.model.ModelCallHandler
 import org.argus.jawa.alir.pta._
-import org.argus.jawa.ast._
+import org.argus.jawa.core.ast._
 import org.argus.jawa.core.util._
 import org.argus.jawa.core._
+import org.argus.jawa.core.elements.JawaMethod
 import org.argus.jawa.summary.SummaryManager
 
 import scala.collection.immutable.BitSet
@@ -276,7 +277,7 @@ class ReachingFactsAnalysis(
     }
 
     override def onPostVisitNode(node: ICFGNode, succs: CSet[ICFGNode]): Unit = {
-      timeout foreach (_.isTimeoutThrow())
+      timeout foreach (_.timeoutThrow())
     }
   }
 }

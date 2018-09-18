@@ -10,12 +10,13 @@
 
 package org.argus.jawa.summary.taint
 
-import hu.ssh.progressbar.console.ConsoleProgressBar
+import hu.ssh.progressbar.ConsoleProgressBar
 import org.argus.jawa.alir.pta.model.ModelCallHandler
 import org.argus.jawa.alir.reachability.SignatureBasedCallGraph
 import org.argus.jawa.alir.taintAnalysis.SourceAndSinkManager
+import org.argus.jawa.core.elements.Signature
 import org.argus.jawa.core.util._
-import org.argus.jawa.core.{Global, Reporter, Signature}
+import org.argus.jawa.core.{Global, Reporter}
 import org.argus.jawa.summary.store.TaintStore
 import org.argus.jawa.summary.wu.{TaintSummary, TaintWu, WorkUnit}
 import org.argus.jawa.summary.{BottomUpSummaryGenerator, SummaryManager, SummaryProvider}

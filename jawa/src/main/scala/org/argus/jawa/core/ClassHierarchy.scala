@@ -10,6 +10,8 @@
 
 package org.argus.jawa.core
 
+import org.argus.jawa.core.elements.JavaKnowledge
+import org.argus.jawa.core.io.Reporter
 import org.argus.jawa.core.util._
 
 /**
@@ -293,8 +295,8 @@ class ClassHierarchy(reporter: Reporter) extends JavaKnowledge {
         clazz.getMethod(subSig) match{
           case Some(p) => Some(p)
           case None =>
-            val unknownSig = generateSignatureFromOwnerAndMethodSubSignature(clazz, subSig)
-            val unknownMethod = generateUnknownJawaMethod(clazz, unknownSig)
+            val unknownSig = generateSignatureFromOwnerAndMethodSubSignature(clazz.getType, subSig)
+            val unknownMethod = clazz.generateUnknownJawaMethod(unknownSig)
             Some(unknownMethod)
         }
       }
@@ -336,10 +338,10 @@ class ClassHierarchy(reporter: Reporter) extends JavaKnowledge {
         if(results.isEmpty){
           val unknowntyp = r.getType.toUnknown
           val unknownrec = r.global.getClassOrResolve(unknowntyp)
-          val unknownSig = generateSignatureFromOwnerAndMethodSubSignature(unknownrec, pSubSig)
+          val unknownSig = generateSignatureFromOwnerAndMethodSubSignature(unknownrec.getType, pSubSig)
           val unknownMethod = unknownrec.getMethod(pSubSig) match {
             case Some(m) => m
-            case None => generateUnknownJawaMethod(unknownrec, unknownSig)
+            case None => unknownrec.generateUnknownJawaMethod(unknownSig)
           }
           results += unknownMethod
         }

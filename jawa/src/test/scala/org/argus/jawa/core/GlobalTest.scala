@@ -10,6 +10,7 @@
 
 package org.argus.jawa.core
 
+import org.argus.jawa.core.elements.AccessFlag
 import org.scalatest.{FlatSpec, Matchers}
 import org.argus.jawa.core.util.FileUtil
 

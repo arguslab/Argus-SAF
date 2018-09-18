@@ -16,8 +16,9 @@ import org.argus.jawa.alir.dfa.InterProceduralDataFlowGraph
 import org.argus.jawa.alir.interprocedural.{CallHandler, CallResolver, RFACallee}
 import org.argus.jawa.alir.pta.rfa.RFAFact
 import org.argus.jawa.alir.pta.{Instance, PTAInstance, PTAScopeManager}
-import org.argus.jawa.ast.CallStatement
+import org.argus.jawa.core.ast.CallStatement
 import org.argus.jawa.core._
+import org.argus.jawa.core.elements.Signature
 import org.argus.jawa.core.util._
 
 

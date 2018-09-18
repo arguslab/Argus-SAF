@@ -13,6 +13,7 @@ package org.argus.jawa.core
 import org.argus.jawa.core.util._
 import com.google.common.cache.CacheBuilder
 import com.google.common.cache.Cache
+import org.argus.jawa.core.elements._
 import org.argus.jawa.core.io.SourceFile
 
 trait JawaClassLoadManager extends JavaKnowledge with JawaResolver { self: Global =>

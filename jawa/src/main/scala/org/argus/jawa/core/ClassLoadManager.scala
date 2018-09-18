@@ -11,6 +11,7 @@
 package org.argus.jawa.core
 
 import org.argus.jawa.core.util._
+
 import scala.collection.immutable.BitSet
 
 /**

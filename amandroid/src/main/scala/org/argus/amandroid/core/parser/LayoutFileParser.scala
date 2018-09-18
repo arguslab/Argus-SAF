@@ -13,11 +13,10 @@ import java.io.InputStream
 
 import org.argus.jawa.core.util._
 import java.io.IOException
-import javax.xml.parsers.ParserConfigurationException
 
+import javax.xml.parsers.ParserConfigurationException
 import org.xml.sax.SAXException
 import javax.xml.parsers.DocumentBuilderFactory
-
 import org.w3c.dom.{Node, NodeList}
 import brut.androlib.res.data.ResTypeSpec
 import brut.androlib.res.data.ResResSpec

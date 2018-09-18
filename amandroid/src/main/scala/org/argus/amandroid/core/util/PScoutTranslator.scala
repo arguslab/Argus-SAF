@@ -12,7 +12,7 @@ package org.argus.amandroid.core.util
 import org.argus.jawa.core.util._
 import java.util.regex.Pattern
 
-import org.argus.jawa.core.{JavaKnowledge, Signature}
+import org.argus.jawa.core.elements.Signature
 
 /**
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>

@@ -13,8 +13,8 @@ package org.argus.jawa.alir.dfa
 import org.argus.jawa.alir.{AlirLoc, AlirNode}
 import org.argus.jawa.alir.cfg._
 import org.argus.jawa.alir.interprocedural.CallResolver
-import org.argus.jawa.ast._
-import org.argus.jawa.core.Signature
+import org.argus.jawa.core.ast._
+import org.argus.jawa.core.elements.Signature
 import org.argus.jawa.core.util._
 
 /**

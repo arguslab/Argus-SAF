@@ -10,7 +10,8 @@
 
 package org.argus.jawa.summary.susaf.rule
 
-import org.argus.jawa.core.{JawaType, Signature}
+import org.argus.jawa.core.JawaType
+import org.argus.jawa.core.elements.Signature
 import org.argus.jawa.summary.{Summary, SummaryRule}
 
 /**
