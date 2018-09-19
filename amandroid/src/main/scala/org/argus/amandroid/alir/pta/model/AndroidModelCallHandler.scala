@@ -11,10 +11,10 @@
 package org.argus.amandroid.alir.pta.model
 
 import org.argus.amandroid.core.{AndroidConstants, ApkGlobal}
-import org.argus.jawa.alir.pta.PTAScopeManager
-import org.argus.jawa.alir.pta.model.{ModelCall, ModelCallHandler}
-import org.argus.jawa.core.elements.Signature
-import org.argus.jawa.core.{JawaMethod, JawaType}
+import org.argus.jawa.flow.pta.PTAScopeManager
+import org.argus.jawa.flow.pta.model.{ModelCall, ModelCallHandler}
+import org.argus.jawa.core.elements.{JawaType, Signature}
+import org.argus.jawa.core.JawaMethod
 
 /**
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>

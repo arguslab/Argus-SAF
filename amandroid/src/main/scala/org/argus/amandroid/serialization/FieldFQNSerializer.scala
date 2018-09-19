@@ -10,8 +10,7 @@
 
 package org.argus.amandroid.serialization
 
-import org.argus.jawa.core.JawaType
-import org.argus.jawa.core.elements.FieldFQN
+import org.argus.jawa.core.elements.{FieldFQN, JawaType}
 import org.json4s._
 import org.json4s.JsonDSL._
 

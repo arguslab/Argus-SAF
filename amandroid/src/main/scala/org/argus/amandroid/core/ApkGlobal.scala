@@ -18,11 +18,12 @@ import org.argus.amandroid.alir.componentSummary.ComponentSummaryTable
 import org.argus.amandroid.core.codegen.AndroidEntryPointConstants
 import org.argus.amandroid.core.model.ApkModel
 import org.argus.amandroid.core.parser.{ComponentInfo, ComponentType}
-import org.argus.jawa.alir.dda.InterProceduralDataDependenceInfo
-import org.argus.jawa.alir.dfa.InterProceduralDataFlowGraph
-import org.argus.jawa.alir.taintAnalysis.TaintAnalysisResult
+import org.argus.jawa.flow.dda.InterProceduralDataDependenceInfo
+import org.argus.jawa.flow.dfa.InterProceduralDataFlowGraph
+import org.argus.jawa.flow.taintAnalysis.TaintAnalysisResult
 import org.argus.jawa.core._
-import org.argus.jawa.core.elements.Signature
+import org.argus.jawa.core.elements.{JawaType, Signature}
+import org.argus.jawa.core.io.Reporter
 
 object ApkGlobal {
   def isValidApk(nameUri: FileResourceUri): Boolean = {

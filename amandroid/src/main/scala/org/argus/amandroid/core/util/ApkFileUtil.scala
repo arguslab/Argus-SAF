@@ -9,18 +9,11 @@
  */
 package org.argus.amandroid.core.util
 
-import org.argus.jawa.core.util.FileResourceUri
-import org.argus.jawa.core.util.FileUtil
-import org.argus.jawa.core.util.ISeq
-import java.io.IOException
-import java.io.DataInputStream
-import java.io.BufferedInputStream
-import java.io.FileInputStream
+import java.io._
 import java.util.zip.ZipInputStream
-import java.io.FileOutputStream
 
 import org.argus.amandroid.core.ApkGlobal
-import org.argus.jawa.core.util.FileUtil
+import org.argus.jawa.core.util.{FileResourceUri, FileUtil, ISeq}
 
 /**
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>

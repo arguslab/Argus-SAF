@@ -10,9 +10,9 @@
 
 package org.argus.amandroid.core.codegen
 
-import org.argus.jawa.core.{Global, JawaClass, JawaType}
+import org.argus.jawa.core.{Global, JawaClass}
 import org.argus.jawa.core.codegen.MethodGenerator
-import org.argus.jawa.core.elements.Signature
+import org.argus.jawa.core.elements.{JawaType, Signature}
 import org.argus.jawa.core.util._
 
 /**

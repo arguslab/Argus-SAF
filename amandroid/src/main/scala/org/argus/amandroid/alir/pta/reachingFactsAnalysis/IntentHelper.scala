@@ -17,9 +17,9 @@ import java.net.URLEncoder
 import org.argus.amandroid.core.model.Intent
 import org.argus.amandroid.core.{AndroidConstants, ApkGlobal}
 import org.argus.amandroid.core.parser.UriData
-import org.argus.jawa.alir.Context
-import org.argus.jawa.alir.pta.{FieldSlot, Instance, PTAConcreteStringInstance, PTAResult}
-import org.argus.jawa.core.JawaType
+import org.argus.jawa.flow.Context
+import org.argus.jawa.flow.pta.{FieldSlot, Instance, PTAConcreteStringInstance, PTAResult}
+import org.argus.jawa.core.elements.JawaType
 
 /**
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>

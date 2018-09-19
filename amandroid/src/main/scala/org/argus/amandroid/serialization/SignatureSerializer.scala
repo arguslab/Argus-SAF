@@ -17,7 +17,7 @@ import org.json4s.JsonDSL._
 object SignatureSerializer extends CustomSerializer[Signature](format => (
     {
       case jv: JValue =>
-        implicit val formats = DefaultFormats
+        implicit val formats: DefaultFormats.type = DefaultFormats
         val str = (jv \ "sig").extract[String]
         new Signature(str)
     },

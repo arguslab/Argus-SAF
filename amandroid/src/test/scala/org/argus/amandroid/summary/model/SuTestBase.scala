@@ -10,13 +10,13 @@
 
 package org.argus.amandroid.summary.model
 
-import org.argus.jawa.alir.Context
-import org.argus.jawa.alir.pta.rfa.RFAFact
+import org.argus.jawa.flow.Context
+import org.argus.jawa.flow.pta.rfa.RFAFact
 import org.argus.jawa.core.elements.Signature
 import org.argus.jawa.core.util.{IList, ISet, isetEmpty}
 import org.argus.jawa.core.{DefaultReporter, Global}
-import org.argus.jawa.summary.SummaryManager
-import org.argus.jawa.summary.susaf.HeapSummaryProcessor
+import org.argus.jawa.flow.summary.SummaryManager
+import org.argus.jawa.flow.summary.susaf.HeapSummaryProcessor
 import org.scalatest.{FlatSpec, Matchers}
 
 import scala.language.implicitConversions

@@ -13,10 +13,10 @@ package org.argus.amandroid.alir.taintAnalysis
 import org.argus.amandroid.alir.componentSummary.ApkYard
 import org.argus.amandroid.alir.pta.model.InterComponentCommunicationModel
 import org.argus.amandroid.core.security.AndroidProblemCategories
-import org.argus.jawa.alir.cfg.ICFGCallNode
-import org.argus.jawa.alir.dda.{DataDependenceBaseGraph, IDDGCallArgNode, InterProceduralDataDependenceAnalysis, InterProceduralDataDependenceInfo}
-import org.argus.jawa.alir.pta.{PTAResult, VarSlot}
-import org.argus.jawa.alir.taintAnalysis._
+import org.argus.jawa.flow.cfg.ICFGCallNode
+import org.argus.jawa.flow.dda.{DataDependenceBaseGraph, IDDGCallArgNode, InterProceduralDataDependenceAnalysis, InterProceduralDataDependenceInfo}
+import org.argus.jawa.flow.pta.{PTAResult, VarSlot}
+import org.argus.jawa.flow.taintAnalysis._
 import org.argus.jawa.core.util._
 
 /**

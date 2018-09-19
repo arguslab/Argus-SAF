@@ -23,12 +23,12 @@ import org.argus.amandroid.plugin.communication.CommunicationSourceAndSinkManage
 import org.argus.amandroid.plugin.dataInjection.IntentInjectionSourceAndSinkManager
 import org.argus.amandroid.plugin.oauth.OAuthSourceAndSinkManager
 import org.argus.amandroid.plugin.password.PasswordSourceAndSinkManager
-import org.argus.jawa.alir.taintAnalysis.TaintAnalysisResult
-import org.argus.jawa.core.Reporter
+import org.argus.jawa.flow.taintAnalysis.TaintAnalysisResult
+import org.argus.jawa.core.io.Reporter
 import org.argus.jawa.core.util.FileUtil
 import org.argus.jawa.core.util._
-import org.argus.jawa.summary.store.TaintStore
-import org.argus.jawa.summary.taint.BottomUpTaintAnalysis
+import org.argus.jawa.flow.summary.store.TaintStore
+import org.argus.jawa.flow.summary.taint.BottomUpTaintAnalysis
 
 import scala.concurrent.duration._
 import scala.language.postfixOps

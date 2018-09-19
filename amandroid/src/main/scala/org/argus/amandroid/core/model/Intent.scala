@@ -11,7 +11,7 @@
 package org.argus.amandroid.core.model
 
 import org.argus.amandroid.core.parser.UriData
-import org.argus.jawa.core.JawaType
+import org.argus.jawa.core.elements.JawaType
 import org.argus.jawa.core.util._
 
 case class Intent(

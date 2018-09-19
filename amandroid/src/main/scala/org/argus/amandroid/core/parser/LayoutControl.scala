@@ -9,7 +9,7 @@
  */
 package org.argus.amandroid.core.parser
 
-import org.argus.jawa.core.JawaType
+import org.argus.jawa.core.elements.JawaType
 
 
 /**

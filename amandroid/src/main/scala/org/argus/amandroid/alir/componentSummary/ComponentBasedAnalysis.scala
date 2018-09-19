@@ -18,13 +18,14 @@ import org.argus.amandroid.alir.pta.reachingFactsAnalysis.{AndroidReachingFactsA
 import org.argus.amandroid.alir.pta.summaryBasedAnalysis.AndroidSummaryProvider
 import org.argus.amandroid.alir.taintAnalysis.{AndroidDataDependentTaintAnalysis, AndroidSourceAndSinkManager}
 import org.argus.amandroid.core.ApkGlobal
-import org.argus.jawa.alir.Context
-import org.argus.jawa.alir.cfg.{ICFGNode, InterProceduralControlFlowGraph}
-import org.argus.jawa.alir.dda._
-import org.argus.jawa.alir.pta.PTAResult
-import org.argus.jawa.alir.taintAnalysis.TaintAnalysisResult
+import org.argus.jawa.core.elements.JawaType
+import org.argus.jawa.flow.Context
+import org.argus.jawa.flow.cfg.{ICFGNode, InterProceduralControlFlowGraph}
+import org.argus.jawa.flow.dda._
+import org.argus.jawa.flow.pta.PTAResult
+import org.argus.jawa.flow.taintAnalysis.TaintAnalysisResult
 import org.argus.jawa.core.util.{MyTimeout, WorklistAlgorithm}
-import org.argus.jawa.core.{ClassLoadManager, JawaType}
+import org.argus.jawa.core.ClassLoadManager
 
 import scala.compat.Platform.EOL
 import scala.concurrent.duration._

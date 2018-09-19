@@ -1,12 +1,12 @@
 package org.argus.jnsaf.summary.wu
 
 import org.argus.amandroid.core.ApkGlobal
-import org.argus.jawa.alir.taintAnalysis.SourceAndSinkManager
+import org.argus.jawa.flow.taintAnalysis.SourceAndSinkManager
 import org.argus.jawa.core.JawaMethod
 import org.argus.jawa.core.util._
 import org.argus.jawa.core.elements.Signature
-import org.argus.jawa.summary.wu.WorkUnit
-import org.argus.jawa.summary.{Summary, SummaryManager, SummaryRule}
+import org.argus.jawa.flow.summary.wu.WorkUnit
+import org.argus.jawa.flow.summary.{Summary, SummaryManager, SummaryRule}
 import org.argus.jnsaf.analysis.NativeMethodHandler
 
 class NativeTaintWU(

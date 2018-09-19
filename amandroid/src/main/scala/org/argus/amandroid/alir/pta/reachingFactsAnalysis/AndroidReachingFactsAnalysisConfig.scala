@@ -11,11 +11,12 @@
 package org.argus.amandroid.alir.pta.reachingFactsAnalysis
 
 import org.argus.amandroid.core.{AndroidConstants, AndroidGlobalConfig}
-import org.argus.jawa.alir.Context
-import org.argus.jawa.alir.pta._
-import org.argus.jawa.alir.pta.rfa.RFAFact
+import org.argus.jawa.core.elements.JawaType
+import org.argus.jawa.flow.Context
+import org.argus.jawa.flow.pta._
+import org.argus.jawa.flow.pta.rfa.RFAFact
 import org.argus.jawa.core.util.{ISet, isetEmpty}
-import org.argus.jawa.core.{JawaMethod, JawaType}
+import org.argus.jawa.core.JawaMethod
 
 /**
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>

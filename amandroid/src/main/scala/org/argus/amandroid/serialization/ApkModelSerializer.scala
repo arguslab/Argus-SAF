@@ -15,8 +15,7 @@ import org.argus.amandroid.core.model.ApkModel
 import org.argus.amandroid.core.appInfo.ApkCertificate
 import org.argus.amandroid.core.decompile.DecompileLayout
 import org.argus.amandroid.core.parser.{ComponentInfo, ComponentType, IntentFilterDataBase, LayoutControl}
-import org.argus.jawa.core._
-import org.argus.jawa.core.elements.Signature
+import org.argus.jawa.core.elements.{JawaType, Signature}
 import org.json4s.{CustomSerializer, Extraction, Formats, JValue}
 import org.json4s.JsonDSL._
 

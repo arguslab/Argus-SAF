@@ -13,7 +13,7 @@ package org.argus.jnsaf.analysis
 import hu.ssh.progressbar.ConsoleProgressBar
 import org.argus.amandroid.core.ApkGlobal
 import org.argus.amandroid.core.parser.ComponentInfo
-import org.argus.jawa.alir.util.ExplicitValueFinder
+import org.argus.jawa.flow.util.ExplicitValueFinder
 import org.argus.jawa.core.ast.CallStatement
 import org.argus.jawa.core._
 import org.argus.jawa.core.elements.Signature

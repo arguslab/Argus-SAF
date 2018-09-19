@@ -11,8 +11,8 @@
 package org.argus.amandroid.summary.model
 
 import org.argus.amandroid.core.AndroidConstants
-import org.argus.jawa.alir.pta._
-import org.argus.jawa.alir.pta.rfa.RFAFact
+import org.argus.jawa.flow.pta._
+import org.argus.jawa.flow.pta.rfa.RFAFact
 import org.argus.jawa.core.JawaType
 
 /**

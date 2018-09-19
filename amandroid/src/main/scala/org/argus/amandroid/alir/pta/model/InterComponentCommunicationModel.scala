@@ -13,9 +13,9 @@ package org.argus.amandroid.alir.pta.model
 import org.argus.amandroid.core.{AndroidConstants, ApkGlobal}
 import org.argus.amandroid.core.appInfo.AppInfoCollector
 import org.argus.amandroid.core.parser.{IntentFilter, IntentFilterDataBase}
-import org.argus.jawa.alir.Context
-import org.argus.jawa.alir.pta.rfa.RFAFact
-import org.argus.jawa.alir.pta.{FieldSlot, PTAConcreteStringInstance, PTAResult, VarSlot}
+import org.argus.jawa.flow.Context
+import org.argus.jawa.flow.pta.rfa.RFAFact
+import org.argus.jawa.flow.pta.{FieldSlot, PTAConcreteStringInstance, PTAResult, VarSlot}
 import org.argus.jawa.core.elements.Signature
 import org.argus.jawa.core.util.{ISet, MSet, isetEmpty, msetEmpty}
 

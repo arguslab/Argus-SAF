@@ -13,14 +13,13 @@ package org.argus.amandroid.summary
 import hu.ssh.progressbar.ConsoleProgressBar
 import org.argus.amandroid.alir.pta.model.AndroidModelCallHandler
 import org.argus.amandroid.alir.pta.summaryBasedAnalysis.AndroidSummaryProvider
-import org.argus.jawa.alir.reachability.SignatureBasedCallGraph
+import org.argus.jawa.flow.reachability.SignatureBasedCallGraph
 import org.argus.jawa.core._
 import org.argus.jawa.core.elements.Signature
-import org.argus.jawa.core.util.{FileUtil, IList}
-import org.argus.jawa.summary.susaf.rule.HeapSummary
-import org.argus.jawa.summary.util.TopologicalSortUtil
-import org.argus.jawa.summary.wu.{HeapSummaryWu, WorkUnit}
-import org.argus.jawa.summary.{BottomUpSummaryGenerator, SummaryManager}
+import org.argus.jawa.core.util.{FileUtil, IList, TopologicalSortUtil}
+import org.argus.jawa.flow.summary.susaf.rule.HeapSummary
+import org.argus.jawa.flow.summary.wu.{HeapSummaryWu, WorkUnit}
+import org.argus.jawa.flow.summary.{BottomUpSummaryGenerator, SummaryManager}
 import org.scalatest.{FlatSpec, Matchers}
 
 import scala.language.implicitConversions

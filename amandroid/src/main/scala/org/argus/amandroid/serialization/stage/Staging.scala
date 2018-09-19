@@ -19,8 +19,8 @@ import org.json4s.native.Serialization.{read, write}
 import org.argus.amandroid.core.model.ApkModel
 import org.argus.amandroid.plugin.ApiMisuseResult
 import org.argus.amandroid.serialization.{ApkModelSerializer, ContextSerializer, PTAResultSerializer, SignatureKeySerializer}
-import org.argus.jawa.alir.pta.PTAResult
-import org.argus.jawa.alir.taintAnalysis.TaintAnalysisResult
+import org.argus.jawa.flow.pta.PTAResult
+import org.argus.jawa.flow.taintAnalysis.TaintAnalysisResult
 import org.argus.jawa.core.elements.Signature
 import org.argus.jawa.core.util.FileUtil
 

@@ -19,7 +19,8 @@ import org.argus.amandroid.core.parser._
 import org.argus.amandroid.core.codegen.{AndroidEntryPointConstants, AndroidEnvironmentGenerator, AndroidSubstituteClassMap, AsyncTaskEnvGenerator}
 import org.argus.amandroid.core.util.GuessAppPackages
 import org.argus.jawa.core._
-import org.argus.jawa.core.elements.Signature
+import org.argus.jawa.core.elements.{JavaKnowledge, JawaType, Signature}
+import org.argus.jawa.core.io.Reporter
 import org.argus.jawa.core.util.FileUtil
 
 /** 

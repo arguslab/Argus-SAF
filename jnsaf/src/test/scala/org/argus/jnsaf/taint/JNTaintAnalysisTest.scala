@@ -4,7 +4,7 @@ import org.argus.amandroid.alir.componentSummary.ApkYard
 import org.argus.amandroid.core.decompile.{ConverterUtil, DecompileLayout, DecompileStrategy, DecompilerSettings}
 import org.argus.jawa.core.util.{FileUtil, IMap}
 import org.argus.jawa.core.{JawaType, MsgLevel, NoReporter, PrintReporter}
-import org.argus.jawa.summary.store.TaintStore
+import org.argus.jawa.flow.summary.store.TaintStore
 import org.argus.jnsaf.analysis.NativeMethodHandler
 import org.argus.jnsaf.client.NativeDroidClient
 import org.scalatest.{FlatSpec, Matchers}

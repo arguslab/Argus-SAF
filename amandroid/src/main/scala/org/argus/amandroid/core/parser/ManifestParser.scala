@@ -11,10 +11,8 @@ package org.argus.amandroid.core.parser
 
 import org.argus.jawa.core.util._
 import javax.xml.parsers.DocumentBuilderFactory
-
 import org.w3c.dom.Element
 import javax.xml.parsers.ParserConfigurationException
-
 import org.xml.sax.SAXException
 import brut.androlib.res.decoder.AXmlResourceParser
 import java.io.File
@@ -22,7 +20,7 @@ import java.io.InputStream
 import java.io.IOException
 import java.io.FileInputStream
 
-import org.argus.jawa.core.JawaType
+import org.argus.jawa.core.elements.JawaType
 
 /**
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>

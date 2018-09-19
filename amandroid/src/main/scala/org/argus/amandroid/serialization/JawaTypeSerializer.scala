@@ -10,14 +10,14 @@
 
 package org.argus.amandroid.serialization
 
-import org.argus.jawa.core.JawaType
+import org.argus.jawa.core.elements.{JavaKnowledge, JawaType}
 import org.json4s._
 import org.json4s.JsonDSL._
 
 object JawaTypeSerializer extends CustomSerializer[JawaType](format => (
     {
       case jv: JValue =>
-        implicit val formats = format
+        implicit val formats: Formats = format
         val str = (jv \ "typ").extract[String]
         JavaKnowledge.getTypeFromJawaName(str)
     },

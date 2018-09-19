@@ -18,10 +18,10 @@ import org.argus.amandroid.alir.pta.reachingFactsAnalysis.{AndroidReachingFactsA
 import org.argus.amandroid.alir.pta.summaryBasedAnalysis.AndroidSummaryProvider
 import org.argus.amandroid.core.ApkGlobal
 import org.argus.amandroid.serialization.stage.Staging
-import org.argus.jawa.alir.Context
-import org.argus.jawa.alir.cfg.{ICFGNode, InterProceduralControlFlowGraph}
-import org.argus.jawa.alir.dfa.InterProceduralDataFlowGraph
-import org.argus.jawa.alir.pta.PTAResult
+import org.argus.jawa.flow.Context
+import org.argus.jawa.flow.cfg.{ICFGNode, InterProceduralControlFlowGraph}
+import org.argus.jawa.flow.dfa.InterProceduralDataFlowGraph
+import org.argus.jawa.flow.pta.PTAResult
 import org.argus.jawa.core.elements.Signature
 import org.argus.jawa.core.util.MyTimeout
 import org.argus.jawa.core.{ClassLoadManager, MsgLevel, PrintReporter}

@@ -12,7 +12,7 @@ package org.argus.amandroid.plugin.password
 
 import org.argus.amandroid.alir.taintAnalysis.AndroidSourceAndSinkManager
 import org.argus.amandroid.core.{AndroidConstants, ApkGlobal}
-import org.argus.jawa.alir.util.ExplicitValueFinder
+import org.argus.jawa.flow.util.ExplicitValueFinder
 import org.argus.jawa.core.ast.{CallStatement, Location}
 import org.argus.jawa.core._
 import org.argus.jawa.core.elements.Signature

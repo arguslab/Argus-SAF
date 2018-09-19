@@ -11,8 +11,8 @@
 package org.argus.amandroid.plugin.apiMisuse
 
 import org.argus.amandroid.plugin.{ApiMisuseChecker, ApiMisuseResult}
-import org.argus.jawa.alir.dfa.InterProceduralDataFlowGraph
-import org.argus.jawa.alir.util.ExplicitValueFinder
+import org.argus.jawa.flow.dfa.InterProceduralDataFlowGraph
+import org.argus.jawa.flow.util.ExplicitValueFinder
 import org.argus.jawa.core.ast.CallStatement
 import org.argus.jawa.core.{Global, JawaMethod}
 import org.argus.jawa.core.util._

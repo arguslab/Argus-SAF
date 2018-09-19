@@ -17,14 +17,14 @@ import org.argus.amandroid.alir.pta.reachingFactsAnalysis.IntentHelper
 import org.argus.amandroid.alir.pta.summaryBasedAnalysis.AndroidSummaryProvider
 import org.argus.amandroid.core.decompile.{ConverterUtil, DecompileLayout, DecompileStrategy, DecompilerSettings}
 import org.argus.amandroid.core.model.Intent
-import org.argus.jawa.alir.Context
-import org.argus.jawa.alir.pta.PTASlot
-import org.argus.jawa.alir.reachability.SignatureBasedCallGraph
+import org.argus.jawa.flow.Context
+import org.argus.jawa.flow.pta.PTASlot
+import org.argus.jawa.flow.reachability.SignatureBasedCallGraph
 import org.argus.jawa.core.util._
 import org.argus.jawa.core._
 import org.argus.jawa.core.elements.Signature
-import org.argus.jawa.summary.{BottomUpSummaryGenerator, SummaryManager}
-import org.argus.jawa.summary.wu.{PTStore, PTSummary, WorkUnit}
+import org.argus.jawa.flow.summary.{BottomUpSummaryGenerator, SummaryManager}
+import org.argus.jawa.flow.summary.wu.{PTStore, PTSummary, WorkUnit}
 import org.scalatest.tagobjects.Slow
 import org.scalatest.{FlatSpec, Matchers}
 

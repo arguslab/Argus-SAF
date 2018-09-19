@@ -35,18 +35,18 @@ object AndroidXMLParser {
 	 * modified by: Fengguo Wei, Sankardas Roy
 	 */
 	def handleAndroidXMLFiles(apk: File, fileNameFilter: Set[String],
-			handler: AndroidXMLHandler) = {
+			handler: AndroidXMLHandler): Unit = {
 
 		try {
 			var archive: ZipInputStream = null
 			try {
 				archive = new ZipInputStream(new FileInputStream(apk))
 				var entry: ZipEntry = null
-				entry = archive.getNextEntry()
+				entry = archive.getNextEntry
 				while (entry != null) {
-					val entryName = entry.getName()
+					val entryName = entry.getName
 					handler.handleXMLFile(entryName, fileNameFilter, archive)
-					entry = archive.getNextEntry()
+					entry = archive.getNextEntry
 				}
 			}
 			finally {
@@ -57,10 +57,7 @@ object AndroidXMLParser {
 		catch {
 		  case e: Exception =>
 				e.printStackTrace()
-				if (e.isInstanceOf[RuntimeException])
-					throw e.asInstanceOf[RuntimeException]
-				else
-					throw new RuntimeException(e)
+				throw e
 		}
 	}
 }

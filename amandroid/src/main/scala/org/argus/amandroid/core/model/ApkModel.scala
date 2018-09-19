@@ -14,8 +14,7 @@ import org.argus.amandroid.core.AndroidConstants
 import org.argus.amandroid.core.appInfo.ApkCertificate
 import org.argus.amandroid.core.decompile.DecompileLayout
 import org.argus.amandroid.core.parser.{ComponentInfo, ComponentType, IntentFilterDataBase, LayoutControl}
-import org.argus.jawa.core.JawaType
-import org.argus.jawa.core.elements.Signature
+import org.argus.jawa.core.elements.{JawaType, Signature}
 import org.argus.jawa.core.util._
 
 /**

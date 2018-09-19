@@ -20,7 +20,7 @@ http_archive(
     urls = ["https://github.com/marcohu/rules_antlr/archive/0.1.0.tar.gz"],
 )
 load("@rules_antlr//antlr:deps.bzl", "antlr_dependencies")
-antlr_dependencies()
+antlr_dependencies(4)
 # proto_library, cc_proto_library, and java_proto_library rules implicitly
 # depend on @com_google_protobuf for protoc and proto runtimes.
 # This statement defines the @com_google_protobuf repo.

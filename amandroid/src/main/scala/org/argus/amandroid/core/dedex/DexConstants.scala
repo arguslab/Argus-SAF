@@ -10,8 +10,7 @@
 
 package org.argus.amandroid.core.dedex
 
-import org.argus.jawa.core.JawaType
-import org.argus.jawa.core.elements.Signature
+import org.argus.jawa.core.elements.{JawaType, Signature}
 import org.argus.jawa.core.util._
 
 /**

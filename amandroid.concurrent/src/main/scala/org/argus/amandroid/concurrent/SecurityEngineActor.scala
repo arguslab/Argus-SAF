@@ -20,7 +20,7 @@ import org.argus.amandroid.plugin.oauth.OAuthSourceAndSinkManager
 import org.argus.amandroid.plugin.password.PasswordSourceAndSinkManager
 import org.argus.amandroid.plugin.{ApiMisuseChecker, ApiMisuseResult, TaintAnalysisModules}
 import org.argus.amandroid.serialization.stage.Staging
-import org.argus.jawa.alir.pta.BuildICFGFromExistingPTAResult
+import org.argus.jawa.flow.pta.BuildICFGFromExistingPTAResult
 import org.argus.jawa.core.{MsgLevel, PrintReporter}
 import org.argus.jawa.core.util._
 

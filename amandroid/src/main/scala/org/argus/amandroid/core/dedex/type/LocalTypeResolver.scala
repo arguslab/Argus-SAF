@@ -9,14 +9,15 @@
  */
 package org.argus.amandroid.core.dedex.`type`
 
-import org.argus.jawa.alir.JawaAlirInfoProvider
-import org.argus.jawa.alir.cfg.{CFGLocationNode, CFGNode, CFGVirtualNode}
-import org.argus.jawa.alir.dfa._
-import org.argus.jawa.alir.rda._
+import org.argus.jawa.flow.JawaAlirInfoProvider
+import org.argus.jawa.flow.cfg.{CFGLocationNode, CFGNode, CFGVirtualNode}
+import org.argus.jawa.flow.dfa._
+import org.argus.jawa.flow.rda._
 import org.argus.jawa.core.ast._
 import org.argus.jawa.core.compiler.parser._
 import org.argus.jawa.core.io.{NoPosition, Position}
 import org.argus.jawa.core._
+import org.argus.jawa.core.elements.{JavaKnowledge, JawaType}
 import org.argus.jawa.core.util._
 
 /**

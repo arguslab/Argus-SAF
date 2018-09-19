@@ -12,7 +12,7 @@ package org.argus.amandroid.serialization
 
 import org.argus.amandroid.core.decompile.DecompileLayout
 import org.argus.jawa.core.util.{FileResourceUri, ISet}
-import org.json4s.{CustomSerializer, Extraction, JValue}
+import org.json4s.{CustomSerializer, Extraction, Formats, JValue}
 import org.json4s.JsonDSL._
 
 /**
@@ -21,7 +21,7 @@ import org.json4s.JsonDSL._
 object DecompileLayoutSerializer extends CustomSerializer[DecompileLayout](format => (
   {
     case jv: JValue =>
-      implicit val formats = format
+      implicit val formats: Formats = format
       val outputUri  = (jv \ "outputUri").extract[FileResourceUri]
       val createFolder = (jv \ "createFolder").extract[Boolean]
       val srcFolder = (jv \ "srcFolder").extract[String]
@@ -44,7 +44,7 @@ object DecompileLayoutSerializer extends CustomSerializer[DecompileLayout](forma
   },
   {
     case layout: DecompileLayout =>
-      implicit val formats = format
+      implicit val formats: Formats = format
       val outputUri: FileResourceUri = layout.outputSrcUri
       val createFolder: Boolean = layout.createFolder
       val srcFolder: String = layout.srcFolder

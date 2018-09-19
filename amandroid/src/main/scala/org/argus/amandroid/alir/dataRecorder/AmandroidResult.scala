@@ -10,8 +10,8 @@
 
 package org.argus.amandroid.alir.dataRecorder
 
-import org.argus.jawa.alir.dda.InterProceduralDataDependenceInfo
-import org.argus.jawa.alir.dfa.InterProceduralDataFlowGraph
+import org.argus.jawa.flow.dda.InterProceduralDataDependenceInfo
+import org.argus.jawa.flow.dfa.InterProceduralDataFlowGraph
 
 
 /**

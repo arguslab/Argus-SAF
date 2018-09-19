@@ -12,8 +12,8 @@ package org.argus.amandroid.plugin
 
 import org.argus.amandroid.alir.pta.reachingFactsAnalysis.AndroidReachingFactsAnalysisConfig
 import org.argus.amandroid.core.decompile.ConverterUtil
-import org.argus.jawa.alir.Context
-import org.argus.jawa.alir.taintAnalysis.TaintAnalysisResult
+import org.argus.jawa.flow.Context
+import org.argus.jawa.flow.taintAnalysis.TaintAnalysisResult
 import org.argus.jawa.core.util.FileUtil
 import org.argus.jawa.core.{MsgLevel, PrintReporter}
 import org.scalatest.{FlatSpec, Matchers}

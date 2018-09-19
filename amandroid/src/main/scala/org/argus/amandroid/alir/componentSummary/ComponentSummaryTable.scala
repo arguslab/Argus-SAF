@@ -14,14 +14,14 @@ import org.argus.amandroid.alir.pta.reachingFactsAnalysis.IntentHelper
 import org.argus.amandroid.core.model.Intent
 import org.argus.amandroid.core.parser.IntentFilter
 import org.argus.amandroid.core.{AndroidConstants, ApkGlobal}
-import org.argus.jawa.alir.Context
-import org.argus.jawa.alir.cfg._
-import org.argus.jawa.alir.dda.{IDDGNode, MultiDataDependenceGraph}
-import org.argus.jawa.alir.dfa.InterProceduralDataFlowGraph
-import org.argus.jawa.alir.pta.{Instance, VarSlot}
+import org.argus.jawa.flow.Context
+import org.argus.jawa.flow.cfg._
+import org.argus.jawa.flow.dda.{IDDGNode, MultiDataDependenceGraph}
+import org.argus.jawa.flow.dfa.InterProceduralDataFlowGraph
+import org.argus.jawa.flow.pta.{Instance, VarSlot}
 import org.argus.jawa.core.ast.{AssignmentStatement, StaticFieldAccessExpression}
-import org.argus.jawa.core._
-import org.argus.jawa.core.elements.{FieldFQN, Signature}
+import org.argus.jawa.core.elements.{FieldFQN, JawaType, Signature}
+import org.argus.jawa.core.io.Reporter
 import org.argus.jawa.core.util._
 
 trait ComponentSummaryProvider {

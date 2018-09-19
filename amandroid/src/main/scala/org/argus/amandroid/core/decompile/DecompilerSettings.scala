@@ -15,7 +15,9 @@ import java.io.{File, PrintStream}
 import hu.ssh.progressbar.{ConsoleProgressBar, ProgressBar}
 import org.argus.amandroid.core.{AndroidConstants, AndroidGlobalConfig}
 import org.argus.amandroid.core.dedex.JawaStyleCodeGeneratorListener
-import org.argus.jawa.core.{DefaultLibraryAPISummary, JawaType, LibraryAPISummary, Reporter}
+import org.argus.jawa.core.elements.JawaType
+import org.argus.jawa.core.io.Reporter
+import org.argus.jawa.core.{DefaultLibraryAPISummary, LibraryAPISummary}
 import org.argus.jawa.core.util._
 
 object DecompileLevel extends Enumeration {

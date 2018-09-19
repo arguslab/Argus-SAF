@@ -10,7 +10,8 @@
 package org.argus.amandroid.core.parser
 
 import org.apache.commons.lang3.StringEscapeUtils
-import org.argus.jawa.core.{JawaClass, JawaType}
+import org.argus.jawa.core.elements.JawaType
+import org.argus.jawa.core.JawaClass
 import org.argus.jawa.core.util._
 
 /**

@@ -14,8 +14,8 @@ import org.argus.amandroid.core.ApkGlobal
 import org.argus.amandroid.core.appInfo.AppInfoCollector
 import org.argus.amandroid.core.decompile.{ApkDecompiler, DecompilerSettings}
 import org.argus.amandroid.core.model.ApkModel
-import org.argus.jawa.alir.taintAnalysis.TaintAnalysisResult
-import org.argus.jawa.core.Reporter
+import org.argus.jawa.flow.taintAnalysis.TaintAnalysisResult
+import org.argus.jawa.core.io.Reporter
 import org.argus.jawa.core.util._
 
 /**

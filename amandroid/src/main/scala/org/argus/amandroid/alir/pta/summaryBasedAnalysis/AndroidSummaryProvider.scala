@@ -11,7 +11,7 @@
 package org.argus.amandroid.alir.pta.summaryBasedAnalysis
 
 import org.argus.jawa.core.Global
-import org.argus.jawa.summary.JawaSummaryProvider
+import org.argus.jawa.flow.summary.JawaSummaryProvider
 
 /**
   * Created by fgwei on 7/1/17.

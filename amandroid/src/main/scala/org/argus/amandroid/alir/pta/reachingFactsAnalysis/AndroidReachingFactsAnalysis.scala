@@ -12,17 +12,17 @@ package org.argus.amandroid.alir.pta.reachingFactsAnalysis
 
 import org.argus.amandroid.alir.pta.model.{AndroidModelCallHandler, InterComponentCommunicationModel}
 import org.argus.amandroid.core.ApkGlobal
-import org.argus.jawa.alir.Context
-import org.argus.jawa.alir.cfg._
-import org.argus.jawa.alir.dfa._
-import org.argus.jawa.alir.interprocedural.{CallHandler, Callee, IndirectCallee, MethodCallResolver}
-import org.argus.jawa.alir.pta._
-import org.argus.jawa.alir.pta.rfa.{RFAFact, ReachingFactsAnalysis, ReachingFactsAnalysisHelper}
+import org.argus.jawa.flow.Context
+import org.argus.jawa.flow.cfg._
+import org.argus.jawa.flow.dfa._
+import org.argus.jawa.flow.interprocedural.{CallHandler, Callee, IndirectCallee, MethodCallResolver}
+import org.argus.jawa.flow.pta._
+import org.argus.jawa.flow.pta.rfa.{RFAFact, ReachingFactsAnalysis, ReachingFactsAnalysisHelper}
 import org.argus.jawa.core.ast.CallStatement
 import org.argus.jawa.core._
 import org.argus.jawa.core.elements.Signature
 import org.argus.jawa.core.util._
-import org.argus.jawa.summary.SummaryManager
+import org.argus.jawa.flow.summary.SummaryManager
 
 /**
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>

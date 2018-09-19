@@ -22,7 +22,8 @@ import brut.androlib.res.data.ResTypeSpec
 import brut.androlib.res.data.ResResSpec
 import brut.androlib.res.decoder.ARSCDecoder.ARSCData
 import org.argus.amandroid.core.ApkGlobal
-import org.argus.jawa.core.{JawaClass, JawaType}
+import org.argus.jawa.core.elements.JawaType
+import org.argus.jawa.core.JawaClass
 
 /**
  * Parser for analyzing the layout XML files inside an android application

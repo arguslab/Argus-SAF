@@ -10,7 +10,7 @@
 
 package org.argus.amandroid.serialization
 
-import org.argus.jawa.alir.Context
+import org.argus.jawa.flow.Context
 import org.argus.jawa.core.elements.Signature
 import org.json4s._
 import org.json4s.JsonDSL._
@@ -20,7 +20,7 @@ import org.argus.jawa.core.util.{FileResourceUri, IList}
 object ContextSerializer extends CustomSerializer[Context](format => (
     {
       case jv: JValue =>
-        implicit val formats = format + SignatureSerializer
+        implicit val formats: Formats = format + SignatureSerializer
         val application = (jv \ "application").extract[FileResourceUri]
         val callStack = (jv \ "callStack").extract[IList[(Signature, String)]]
         val c = new Context(application)
@@ -29,7 +29,7 @@ object ContextSerializer extends CustomSerializer[Context](format => (
     },
     {
       case c: Context =>
-        implicit val formats = format + SignatureSerializer
+        implicit val formats: Formats = format + SignatureSerializer
         ("application" -> c.application) ~
         ("callStack" -> Extraction.decompose(c.getContext))
     }
@@ -38,14 +38,14 @@ object ContextSerializer extends CustomSerializer[Context](format => (
 object ContextKeySerializer extends CustomKeySerializer[Context](format => (
   {
     case str: String =>
-      implicit val formats = format + ContextSerializer
+      implicit val formats: Formats = format + ContextSerializer
       val jv = parse(str)
       jv match {
         case JObject(List(JField("Context", v))) => Extraction.extract[Context](v)
       }
   }, {
   case c: Context =>
-    implicit val formats = format + ContextSerializer
+    implicit val formats: Formats = format + ContextSerializer
     compact(render("Context" -> Extraction.decompose(c)))
 }
 ))
