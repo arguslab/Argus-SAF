@@ -359,20 +359,23 @@ object ManifestParser {
     var min: Int = 1
     var target: Int = min
     var max: Int = target
-    AndroidXMLParser.handleAndroidXMLFiles(apk, Set("AndroidManifest.xml"), (fileName: String, fileNameFilter: Set[String], stream: InputStream) => {
-      try {
-        if (fileNameFilter.contains(fileName)) {
-          val (mint, targett, maxt) = getSdkVersionFromBinaryManifest(stream)
-          min = mint
-          target = targett
-          max = maxt
+    class MyHandler extends AndroidXMLHandler {
+      override def handleXMLFile(fileName: String, fileNameFilter: Set[String], stream: InputStream): Unit = {
+        try {
+          if (fileNameFilter.contains(fileName)) {
+            val (mint, targett, maxt) = getSdkVersionFromBinaryManifest(stream)
+            min = mint
+            target = targett
+            max = maxt
+          }
+        } catch {
+          case ex: IOException =>
+            System.err.println("Could not read AndroidManifest file: " + ex.getMessage)
+            ex.printStackTrace()
         }
-      } catch {
-        case ex: IOException =>
-          System.err.println("Could not read AndroidManifest file: " + ex.getMessage)
-          ex.printStackTrace()
       }
-    })
+    }
+    AndroidXMLParser.handleAndroidXMLFiles(apk, Set("AndroidManifest.xml"), new MyHandler)
     (min, target, max)
   }
   

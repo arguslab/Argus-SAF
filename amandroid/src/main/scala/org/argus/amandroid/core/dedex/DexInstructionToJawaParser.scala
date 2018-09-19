@@ -1178,7 +1178,7 @@ case class DexInstructionToJawaParser(
             case Some((base, default, v)) =>
               val code: StringBuilder = new StringBuilder
               code.append("switch %s\n".format(v))
-              payload.getSwitchElements.forEach { elem =>
+              payload.getSwitchElements.asScala.foreach { elem =>
                 code.append("                | %d => goto L%06x\n".format(elem.getKey, calculateTarget(base, elem.getOffset)))
               }
               code.append("                | else => goto L%06x;".format(default))
@@ -1191,7 +1191,7 @@ case class DexInstructionToJawaParser(
             case Some((base, default, v)) =>
               val code: StringBuilder = new StringBuilder
               code.append("switch %s\n".format(v))
-              payload.getSwitchElements.forEach { elem =>
+              payload.getSwitchElements.asScala.foreach { elem =>
                 code.append("                | %d => goto L%06x\n".format(elem.getKey, calculateTarget(base, elem.getOffset)))
               }
               code.append("                | else => goto L%06x;".format(default))

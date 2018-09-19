@@ -120,7 +120,7 @@ object ApkCertificateReader {
     val cf = CertificateFactory.getInstance("X509")
     try {
       val c = cf.generateCertificates(is)
-      c.forEach { cert =>
+      c.asScala.foreach { cert =>
         val x509cert = cert.asInstanceOf[X509Certificate]
         val md5fp = getCertFingerPrint("MD5", cert)
         val sha1fp = getCertFingerPrint("SHA1", cert)
