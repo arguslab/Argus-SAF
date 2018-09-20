@@ -48,6 +48,14 @@ load(
   '@io_bazel_rules_scala//scala:scala_maven_import_external.bzl',
   'scala_maven_import_external'
 )
+maven_jar(
+    name = "scala_test_maven",
+    artifact = "org.scalatest:scalatest_2.12:3.0.1",
+)
+bind(
+  name = "scala_test",
+  actual = "@scala_test_maven//jar"
+)
 scala_maven_import_external(
   name = 'com_github_javaparser_javaparser_core',
   artifact = 'com.github.javaparser:javaparser-core:3.4.0',

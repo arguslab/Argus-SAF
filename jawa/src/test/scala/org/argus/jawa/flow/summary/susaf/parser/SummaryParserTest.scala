@@ -10,8 +10,7 @@
 
 package org.argus.jawa.flow.summary.susaf.parser
 
-import org.argus.jawa.core.JawaType
-import org.argus.jawa.core.elements.Signature
+import org.argus.jawa.core.elements.{JawaType, Signature}
 import org.argus.jawa.flow.summary.susaf.rule._
 import org.scalatest.{FlatSpec, Matchers}
 

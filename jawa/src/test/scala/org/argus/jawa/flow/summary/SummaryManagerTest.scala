@@ -13,9 +13,10 @@ package org.argus.jawa.flow.summary
 import org.argus.jawa.flow.Context
 import org.argus.jawa.flow.pta._
 import org.argus.jawa.flow.pta.rfa.RFAFact
-import org.argus.jawa.core.elements.Signature
+import org.argus.jawa.core.elements.{JawaType, Signature}
+import org.argus.jawa.core.io.DefaultReporter
 import org.argus.jawa.core.util._
-import org.argus.jawa.core.{DefaultReporter, Global, JawaType}
+import org.argus.jawa.core.Global
 import org.argus.jawa.flow.summary.susaf.HeapSummaryProcessor
 import org.scalatest.{FlatSpec, Matchers}
 

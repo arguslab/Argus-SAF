@@ -17,6 +17,7 @@ import org.argus.jawa.flow.reachability.SignatureBasedCallGraph
 import org.argus.jawa.flow.taintAnalysis.{SSPosition, SourceAndSinkManager}
 import org.argus.jawa.core._
 import org.argus.jawa.core.elements.Signature
+import org.argus.jawa.core.io.{MsgLevel, PrintReporter}
 import org.argus.jawa.core.util._
 import org.argus.jawa.flow.summary.store.TaintStore
 import org.argus.jawa.flow.summary.{BottomUpSummaryGenerator, JawaSummaryProvider, SummaryManager}
@@ -43,7 +44,7 @@ class TaintWuTest extends FlatSpec with Matchers {
     new TestFile(file)
   }
 
-  "/jawa/taint/TaintTest.jawa" ep "LTaintTest;.singleFunc:()V" produce (
+  "/jawa/taint/TaintTest.jawa" ep "LTaintTest;.singleFunc:()V" produce
     """Taint path:
       |api_source: LTest;.source:()LTaintData;
       |	-> api_sink: LTest;.sink:(Ljava/lang/Object;)V 1
@@ -51,14 +52,12 @@ class TaintWuTest extends FlatSpec with Matchers {
       |	-> Call@(TaintTest.singleFunc,L5) param: 1
       |
     """.stripMargin.trim
-  )
 
-  "/jawa/taint/TaintTest.jawa" ep "LTaintTest;.singleFunc2:()V" produce (
+  "/jawa/taint/TaintTest.jawa" ep "LTaintTest;.singleFunc2:()V" produce
     """
     """.stripMargin.trim
-  )
 
-  "/jawa/taint/TaintTest.jawa" ep "LTaintTest;.caller:()V" produce (
+  "/jawa/taint/TaintTest.jawa" ep "LTaintTest;.caller:()V" produce
     """Taint path:
       |api_source: LTest;.source:()LTaintData;
       |	-> api_sink: LTest;.sink:(Ljava/lang/Object;)V 1
@@ -67,9 +66,8 @@ class TaintWuTest extends FlatSpec with Matchers {
       |	-> Call@(TaintTest.direct_sink,L17) param: 1
       |
     """.stripMargin.trim
-  )
 
-  "/jawa/taint/TaintTest.jawa" ep "LTaintTest;.caller2:()V" produce (
+  "/jawa/taint/TaintTest.jawa" ep "LTaintTest;.caller2:()V" produce
     """Taint path:
       |api_source: LTest;.source:()LTaintData;
       |	-> api_sink: LTest;.sink:(Ljava/lang/Object;)V 1
@@ -78,9 +76,8 @@ class TaintWuTest extends FlatSpec with Matchers {
       |	-> Call@(TaintTest.field_sink,L26) param: 1
       |
     """.stripMargin.trim
-  )
 
-  "/jawa/taint/TaintTest.jawa" ep "LTaintTest;.caller3:()V" produce (
+  "/jawa/taint/TaintTest.jawa" ep "LTaintTest;.caller3:()V" produce
     """Taint path:
       |api_source: LTest;.source:()LTaintData;
       |	-> api_sink: LTest;.sink:(Ljava/lang/Object;)V 1
@@ -89,9 +86,8 @@ class TaintWuTest extends FlatSpec with Matchers {
       |	-> Call@(TaintTest.field_sink,L26) param: 1
       |
     """.stripMargin.trim
-  )
 
-  "/jawa/taint/TaintTest.jawa" ep "LTaintTest;.caller4:()V" produce (
+  "/jawa/taint/TaintTest.jawa" ep "LTaintTest;.caller4:()V" produce
     """Taint path:
       |api_source: LTest;.source:()LTaintData;
       |	-> api_sink: LTest;.sink:(Ljava/lang/Object;)V 1
@@ -100,39 +96,34 @@ class TaintWuTest extends FlatSpec with Matchers {
       |	-> Call@(TaintTest.field_sink,L26) param: 1
       |
     """.stripMargin.trim
-  )
 
-  "/jawa/taint/TaintTest.jawa" ep "LTaintTest;.caller5:()V" produce (
+  "/jawa/taint/TaintTest.jawa" ep "LTaintTest;.caller5:()V" produce
     """Taint path:
       |api_source: LTest;.source:()LTaintData;
       |	-> api_sink: LTest;.sink:(Ljava/lang/Object;)V 1
       |Call@(TaintTest.field_source,L37)
       |	-> Call@(TaintTest.caller5,L45) param: 1
     """.stripMargin.trim
-  )
 
-  "/jawa/taint/TaintTest.jawa" ep "LTaintTest;.caller6:()V" produce (
+  "/jawa/taint/TaintTest.jawa" ep "LTaintTest;.caller6:()V" produce
     """Taint path:
       |api_source: LTest;.source:()LTaintData;
       |	-> api_sink: LTest;.sink:(Ljava/lang/Object;)V 1
       |Call@(TaintTest.caller6,L47)
       |	-> Call@(TaintTest.caller6,L50) param: 1
     """.stripMargin.trim
-    )
 
-  "/jawa/taint/TaintTest.jawa" ep "LTaintTest;.caller7:()V" produce (
+  "/jawa/taint/TaintTest.jawa" ep "LTaintTest;.caller7:()V" produce
     """Taint path:
       |api_source: LTest;.source:(LData;)V 1.str
       |	-> api_sink: LTest;.sink:(Ljava/lang/Object;)V 1
       |Call@(TaintTest.caller7,L3) param: 1.str
       |	-> Call@(TaintTest.caller7,L5) param: 1
     """.stripMargin.trim
-    )
 
-  "/jawa/taint/TaintTest.jawa" ep "LTaintTest;.caller8:()V" produce (
+  "/jawa/taint/TaintTest.jawa" ep "LTaintTest;.caller8:()V" produce
     """
     """.stripMargin.trim
-    )
 
   class TestFile(file: String) extends MyTest {
     var entrypoint: Signature = _

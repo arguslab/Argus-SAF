@@ -12,7 +12,7 @@ package org.argus.jawa.flow.summary.model
 
 import org.argus.jawa.flow.pta._
 import org.argus.jawa.flow.pta.rfa.RFAFact
-import org.argus.jawa.core.JawaType
+import org.argus.jawa.core.elements.{JavaKnowledge, JawaType}
 
 /**
   * Created by fgwei on 6/15/17.
@@ -117,9 +117,7 @@ class ListSuTest extends SuTestBase("List.safsu") {
     RFAFact(VarSlot("temp"), PTAInstance(new JawaType("java.util.ListIterator").toUnknown, currentContext))
   )
 
-  "Ljava/util/List;.get:(I)Ljava/lang/Object;" with_input (
-    thisFact,
-  ) produce (
+  "Ljava/util/List;.get:(I)Ljava/lang/Object;" with_input thisFact produce (
     thisFact,
     RFAFact(FieldSlot(thisInstance, "items"), PTAInstance(JavaKnowledge.OBJECT.toUnknown, currentContext)),
     RFAFact(VarSlot("temp"), PTAInstance(JavaKnowledge.OBJECT.toUnknown, currentContext))

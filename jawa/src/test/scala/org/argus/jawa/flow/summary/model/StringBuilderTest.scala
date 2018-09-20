@@ -12,7 +12,7 @@ package org.argus.jawa.flow.summary.model
 
 import org.argus.jawa.flow.pta._
 import org.argus.jawa.flow.pta.rfa.RFAFact
-import org.argus.jawa.core.JawaType
+import org.argus.jawa.core.elements.JawaType
 
 /**
   * Created by fgwei on 6/22/17.
@@ -24,16 +24,12 @@ class StringBuilderTest extends SuTestBase("StringBuilder.safsu") {
   val thisValueInstance = PTAConcreteStringInstance("StringBuilder", defContext)
   val thisValueFact = RFAFact(FieldSlot(thisInstance, "value"), thisValueInstance)
 
-  "Ljava/lang/StringBuilder;.<init>:()V" with_input (
-    thisFact,
-  ) produce (
+  "Ljava/lang/StringBuilder;.<init>:()V" with_input thisFact produce (
     thisFact,
     RFAFact(FieldSlot(thisInstance, "value"), PTAPointStringInstance(currentContext))
   )
 
-  "Ljava/lang/StringBuilder;.<init>:(I)V" with_input (
-    thisFact,
-  ) produce (
+  "Ljava/lang/StringBuilder;.<init>:(I)V" with_input thisFact produce (
     thisFact,
     RFAFact(FieldSlot(thisInstance, "value"), PTAPointStringInstance(currentContext))
   )

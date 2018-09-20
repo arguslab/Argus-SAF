@@ -11,7 +11,7 @@
 package org.argus.jawa.core.compiler.lexer
 
 import org.argus.jawa.core.compiler.lexer.Tokens._
-import org.argus.jawa.core.DefaultReporter
+import org.argus.jawa.core.io.DefaultReporter
 import org.scalatest.{FlatSpec, Matchers}
 
 import scala.language.implicitConversions

@@ -12,8 +12,7 @@ package org.argus.jawa.core.compiler.parser
 
 import org.argus.jawa.core.ast.CompilationUnit
 import org.argus.jawa.core.compiler.lexer.JawaLexer
-import org.argus.jawa.core.DefaultReporter
-import org.argus.jawa.core.io.SourceFile
+import org.argus.jawa.core.io.{DefaultReporter, SourceFile}
 import org.scalatest._
 
 class JawaParserTest extends FlatSpec with Matchers {

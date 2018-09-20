@@ -14,8 +14,9 @@ import java.io.PrintWriter
 import java.lang.reflect.InvocationTargetException
 
 import org.argus.jawa.core.compiler.codegen.JavaByteCodeGenerator
-import org.argus.jawa.core.backend.compiler.util.ReadClassFile.CustomClassLoader
 import org.argus.jawa.core._
+import org.argus.jawa.core.compiler.util.ReadClassFile.CustomClassLoader
+import org.argus.jawa.core.elements.JawaType
 import org.argus.jawa.core.io.PlainFile
 import org.argus.jawa.core.util._
 import org.scalatest.{FlatSpec, Matchers}
@@ -40,7 +41,7 @@ class DeBytecodeTest extends FlatSpec with Matchers {
 
   "/class/parser/cons/ConstructorWithSuper.class" produce_same()
 
-  "/class/parser/cons/InnerConstructor.class" produce_same ("/class/parser/cons/InnerConstructor$Inner.class")
+  "/class/parser/cons/InnerConstructor.class" produce_same "/class/parser/cons/InnerConstructor$Inner.class"
 
   "/class/parser/expr/arraycreationexpr/ArrayCreationComplex.class" produce_same()
 
@@ -122,7 +123,7 @@ class DeBytecodeTest extends FlatSpec with Matchers {
 
   "/class/parser/expr/methodcallexpr/StaticCall.class" produce_same()
 
-  "/class/parser/expr/objectcreationexpr/AnonymousClass.class" produce_same("/class/parser/expr/objectcreationexpr/AnonymousClass$1.class")
+  "/class/parser/expr/objectcreationexpr/AnonymousClass.class" produce_same "/class/parser/expr/objectcreationexpr/AnonymousClass$1.class"
 
   "/class/parser/expr/objectcreationexpr/AnonymousClassMulti.class" produce_same("/class/parser/expr/objectcreationexpr/AnonymousClassMulti$1.class", "/class/parser/expr/objectcreationexpr/AnonymousClassMulti$2.class")
 
@@ -178,7 +179,7 @@ class DeBytecodeTest extends FlatSpec with Matchers {
 
   "/class/parser/stmt/labeledstmt/LabelContinue.class" produce_same()
 
-  "/class/parser/stmt/localclassdeclarationstmt/LocalClass.class" produce_same("/class/parser/stmt/localclassdeclarationstmt/LocalClass$1Local.class")
+  "/class/parser/stmt/localclassdeclarationstmt/LocalClass.class" produce_same "/class/parser/stmt/localclassdeclarationstmt/LocalClass$1Local.class"
 
   "/class/parser/stmt/localclassdeclarationstmt/LocalClassMulti.class" produce_same("/class/parser/stmt/localclassdeclarationstmt/LocalClassMulti$1Local.class", "/class/parser/stmt/localclassdeclarationstmt/LocalClassMulti$2Local.class", "/class/parser/stmt/localclassdeclarationstmt/LocalClassMulti$1Else.class")
 

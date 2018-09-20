@@ -10,7 +10,7 @@
 
 package org.argus.jawa.core
 
-import org.argus.jawa.core.elements.Signature
+import org.argus.jawa.core.elements.{JavaKnowledge, JawaType, Signature}
 import org.scalatest.{FlatSpec, Matchers}
 
 /**

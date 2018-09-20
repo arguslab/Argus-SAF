@@ -11,7 +11,6 @@
 package org.argus.jawa.flow.util
 
 import org.argus.jawa.core.util._
-import TopologicalSortUtil
 import org.scalatest.{FlatSpec, Matchers}
 
 /**

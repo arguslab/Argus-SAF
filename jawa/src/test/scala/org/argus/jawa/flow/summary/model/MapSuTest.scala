@@ -12,7 +12,7 @@ package org.argus.jawa.flow.summary.model
 
 import org.argus.jawa.flow.pta._
 import org.argus.jawa.flow.pta.rfa.RFAFact
-import org.argus.jawa.core.JawaType
+import org.argus.jawa.core.elements.JawaType
 
 /**
   * Created by fgwei on 6/15/17.
@@ -23,23 +23,17 @@ class MapSuTest extends SuTestBase("Map.safsu") {
   val thisEntriesInstance = PTAInstance(new JawaType("java.util.HashMap$Entries"), defContext)
   val thisEntriesFact = RFAFact(FieldSlot(thisInstance, "entries"), thisEntriesInstance)
 
-  "Ljava/util/HashMap;.<init>:()V" with_input (
-    thisFact,
-  ) produce (
+  "Ljava/util/HashMap;.<init>:()V" with_input thisFact produce (
     thisFact,
     RFAFact(FieldSlot(thisInstance, "entries"), PTAInstance(new JawaType("java.util.HashMap$Entries"), currentContext))
   )
 
-  "Ljava/util/HashMap;.<init>:(IF)V" with_input (
-    thisFact,
-  ) produce (
+  "Ljava/util/HashMap;.<init>:(IF)V" with_input thisFact produce (
     thisFact,
     RFAFact(FieldSlot(thisInstance, "entries"), PTAInstance(new JawaType("java.util.HashMap$Entries"), currentContext))
   )
 
-  "Ljava/util/HashMap;.<init>:(I)V" with_input (
-    thisFact,
-  ) produce (
+  "Ljava/util/HashMap;.<init>:(I)V" with_input thisFact produce (
     thisFact,
     RFAFact(FieldSlot(thisInstance, "entries"), PTAInstance(new JawaType("java.util.HashMap$Entries"), currentContext))
   )

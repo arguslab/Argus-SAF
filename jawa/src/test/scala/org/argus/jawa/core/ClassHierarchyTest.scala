@@ -10,7 +10,8 @@
 
 package org.argus.jawa.core
 
-import org.argus.jawa.core.elements.JawaMethod
+import org.argus.jawa.core.elements.{JavaKnowledge, JawaType}
+import org.argus.jawa.core.io.NoReporter
 import org.scalatest.{FlatSpec, Matchers}
 import org.argus.jawa.core.util.FileUtil
 

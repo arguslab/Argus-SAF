@@ -15,10 +15,10 @@ import java.lang.reflect.InvocationTargetException
 
 import org.argus.jawa.core.compiler.lexer.JawaLexer
 import org.argus.jawa.core.compiler.parser.JawaParser
-import org.argus.jawa.core.backend.compiler.util.ReadClassFile.CustomClassLoader
 import org.argus.jawa.core.ast.jawafile.JawaSourceFile
-import org.argus.jawa.core.{Global, MsgLevel, PrintReporter}
-import org.argus.jawa.core.io.{PlainFile, SourceFile}
+import org.argus.jawa.core.Global
+import org.argus.jawa.core.compiler.util.ReadClassFile.CustomClassLoader
+import org.argus.jawa.core.io.{MsgLevel, PlainFile, PrintReporter, SourceFile}
 import org.scalatest._
 
 class JawaCodegenTest extends FlatSpec with Matchers {

@@ -12,7 +12,7 @@ package org.argus.jawa.flow.summary.model
 
 import org.argus.jawa.flow.pta._
 import org.argus.jawa.flow.pta.rfa.RFAFact
-import org.argus.jawa.core.JawaType
+import org.argus.jawa.core.elements.JawaType
 
 /**
   * Created by fgwei on 6/15/17.
@@ -20,9 +20,8 @@ import org.argus.jawa.core.JawaType
 class StringSuTest extends SuTestBase("String.safsu") {
   "Ljava/lang/String;.<clinit>:()V" with_input () produce ()
 
-  "Ljava/lang/String;.<init>:()V" with_input (
-    RFAFact(VarSlot("v0"), PTAConcreteStringInstance("", defContext)),
-  ) produce RFAFact(VarSlot("v0"), PTAConcreteStringInstance("", defContext))
+  "Ljava/lang/String;.<init>:()V" with_input RFAFact(VarSlot("v0"), PTAConcreteStringInstance("", defContext)) produce
+    RFAFact(VarSlot("v0"), PTAConcreteStringInstance("", defContext))
 
   "Ljava/lang/String;.<init>:(II[C)V" with_input (
     RFAFact(VarSlot("v0"), PTAConcreteStringInstance("", defContext)),
@@ -369,9 +368,8 @@ class StringSuTest extends SuTestBase("String.safsu") {
     RFAFact(VarSlot("temp"), PTAInstance(new JawaType("byte", 1), currentContext))
   )
 
-  "Ljava/lang/String;.getBytes:(Ljava/nio/charset/Charset;)[B" with_input (
-    RFAFact(VarSlot("v0"), PTAInstance(new JawaType("java.nio.charset.Charset"), defContext)),
-  ) produce (
+  "Ljava/lang/String;.getBytes:(Ljava/nio/charset/Charset;)[B" with_input
+    RFAFact(VarSlot("v0"), PTAInstance(new JawaType("java.nio.charset.Charset"), defContext)) produce (
     RFAFact(VarSlot("v0"), PTAInstance(new JawaType("java.nio.charset.Charset"), defContext)),
     RFAFact(VarSlot("temp"), PTAInstance(new JawaType("byte", 1), currentContext))
   )

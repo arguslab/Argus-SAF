@@ -12,7 +12,7 @@ package org.argus.jawa.flow.summary.model
 
 import org.argus.jawa.flow.pta._
 import org.argus.jawa.flow.pta.rfa.RFAFact
-import org.argus.jawa.core.JawaType
+import org.argus.jawa.core.elements.{JavaKnowledge, JawaType}
 
 /**
   * Created by fgwei on 6/21/17.
@@ -33,7 +33,7 @@ class ClassSuTest extends SuTestBase("Class.safsu") {
     thisNameFact,
     RFAFact(VarSlot("v1"), PTAInstance(JavaKnowledge.CLASS, defContext2)),
     RFAFact(FieldSlot(PTAInstance(JavaKnowledge.CLASS, defContext2), "name"), PTAConcreteStringInstance("my.SubClass", defContext2)),
-    RFAFact(VarSlot("temp"), PTAInstance(JavaKnowledge.CLASS, defContext2)),
+    RFAFact(VarSlot("temp"), PTAInstance(JavaKnowledge.CLASS, defContext2))
   )
 
   "Ljava/lang/Class;.cast:(Ljava/lang/Object;)Ljava/lang/Object;" with_input (
@@ -42,7 +42,7 @@ class ClassSuTest extends SuTestBase("Class.safsu") {
   ) produce (
     RFAFact(VarSlot("v1"), PTAInstance(JavaKnowledge.CLASS, defContext2)),
     RFAFact(FieldSlot(PTAInstance(JavaKnowledge.CLASS, defContext2), "name"), PTAConcreteStringInstance("my.SubClass", defContext2)),
-    RFAFact(VarSlot("temp"), PTAInstance(JavaKnowledge.CLASS, defContext2)),
+    RFAFact(VarSlot("temp"), PTAInstance(JavaKnowledge.CLASS, defContext2))
   )
 
   "Ljava/lang/Class;.desiredAssertionStatus:()Z" with_input () produce ()
@@ -493,7 +493,7 @@ class ClassSuTest extends SuTestBase("Class.safsu") {
   ) produce (
     thisFact,
     thisNameFact,
-    RFAFact(VarSlot("temp"), PTAInstance(JavaKnowledge.OBJECT.toUnknown, currentContext)),
+    RFAFact(VarSlot("temp"), PTAInstance(JavaKnowledge.OBJECT.toUnknown, currentContext))
   )
 
   "Ljava/lang/Class;.toString:()Ljava/lang/String;" with_input (

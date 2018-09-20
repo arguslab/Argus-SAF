@@ -16,6 +16,7 @@ import org.argus.jawa.flow.pta.model.ModelCallHandler
 import org.argus.jawa.flow.reachability.SignatureBasedCallGraph
 import org.argus.jawa.core._
 import org.argus.jawa.core.elements.Signature
+import org.argus.jawa.core.io.{MsgLevel, PrintReporter}
 import org.argus.jawa.core.util._
 import org.argus.jawa.flow.summary.susaf.rule.HeapSummary
 import org.argus.jawa.flow.summary.wu.{HeapSummaryWu, WorkUnit}
@@ -34,67 +35,59 @@ class HeapSummaryGeneratorTest extends FlatSpec with Matchers {
     new TestFile(file)
   }
 
-  "/jawa/summary/SingleFunction.jawa" ep "Lcom/hugo/test/SingleFunction;.clearArg:(Ljava/util/Set;)V" produce (
+  "/jawa/summary/SingleFunction.jawa" ep "Lcom/hugo/test/SingleFunction;.clearArg:(Ljava/util/Set;)V" produce
     """`Lcom/hugo/test/SingleFunction;.clearArg:(Ljava/util/Set;)V`:
       |  ~arg:1
       |;
     """.stripMargin.trim.intern()
-  )
 
-  "/jawa/summary/SingleFunction.jawa" ep "Lcom/hugo/test/SingleFunction;.clearField:(Lcom/hugo/test/SingleFunction;)V" produce (
+  "/jawa/summary/SingleFunction.jawa" ep "Lcom/hugo/test/SingleFunction;.clearField:(Lcom/hugo/test/SingleFunction;)V" produce
     """`Lcom/hugo/test/SingleFunction;.clearField:(Lcom/hugo/test/SingleFunction;)V`:
       |  ~arg:1.myset
       |;
     """.stripMargin.trim.intern()
-  )
 
-  "/jawa/summary/SingleFunction.jawa" ep "Lcom/hugo/test/SingleFunction;.clearArray:(Lcom/hugo/test/SingleFunction;)V" produce (
+  "/jawa/summary/SingleFunction.jawa" ep "Lcom/hugo/test/SingleFunction;.clearArray:(Lcom/hugo/test/SingleFunction;)V" produce
     """`Lcom/hugo/test/SingleFunction;.clearArray:(Lcom/hugo/test/SingleFunction;)V`:
       |  ~arg:1.myarray[].myset
       |;
     """.stripMargin.trim.intern()
-  )
 
-  "/jawa/summary/SingleFunction.jawa" ep "Lcom/hugo/test/SingleFunction;.clearGlobal:()V" produce (
+  "/jawa/summary/SingleFunction.jawa" ep "Lcom/hugo/test/SingleFunction;.clearGlobal:()V" produce
     """`Lcom/hugo/test/SingleFunction;.clearGlobal:()V`:
       |  ~`com.hugo.test.SingleFunction.myglobal`.myset
       |;
     """.stripMargin.trim.intern()
-  )
 
-  "/jawa/summary/SingleFunction.jawa" ep "Lcom/hugo/test/SingleFunction;.clearHeaps:()V" produce (
+  "/jawa/summary/SingleFunction.jawa" ep "Lcom/hugo/test/SingleFunction;.clearHeaps:()V" produce
     """`Lcom/hugo/test/SingleFunction;.clearHeaps:()V`:
       |  ~`com.hugo.test.SingleFunction.myglobal`.myarray[].myself.myself.myself.myset
       |;
     """.stripMargin.trim.intern()
-  )
 
-  "/jawa/summary/SingleFunction.jawa" ep "Lcom/hugo/test/SingleFunction;.add:(Ljava/util/Set;)Ljava/lang/String;" produce (
+  "/jawa/summary/SingleFunction.jawa" ep "Lcom/hugo/test/SingleFunction;.add:(Ljava/util/Set;)Ljava/lang/String;" produce
     """`Lcom/hugo/test/SingleFunction;.add:(Ljava/util/Set;)Ljava/lang/String;`:
       |  arg:1.items += "Hello World!"@L1
       |  ret = arg:1.items
       |;
     """.stripMargin.trim.intern()
-  )
 
-  "/jawa/summary/SingleFunction.jawa" ep "Lcom/hugo/test/SingleFunction;.put:(Ljava/util/Map;)Ljava/lang/String;" produce (
+  "/jawa/summary/SingleFunction.jawa" ep "Lcom/hugo/test/SingleFunction;.put:(Ljava/util/Map;)Ljava/lang/String;" produce
     """`Lcom/hugo/test/SingleFunction;.put:(Ljava/util/Map;)Ljava/lang/String;`:
       |  arg:1.entries.key += "key"@L1
       |  arg:1.entries.value += "value"@L2
       |  ret = arg:1.entries.key
       |;
     """.stripMargin.trim.intern()
-  )
 
-  "/jawa/summary/SingleFunction.jawa" ep "Lcom/hugo/test/SingleFunction;.assign:()Ljava/lang/String;" produce (
+  "/jawa/summary/SingleFunction.jawa" ep "Lcom/hugo/test/SingleFunction;.assign:()Ljava/lang/String;" produce
     """`Lcom/hugo/test/SingleFunction;.assign:()Ljava/lang/String;`:
       |  this.str += "Hello World!"@L1
       |  ret = this.str
       |;
     """.stripMargin.trim.intern()
-  )
 
-  "/jawa/summary/SingleFunction.jawa" ep "Lcom/hugo/test/SingleFunction;.complex:(Lcom/hugo/test/SingleFunction;)Ljava/lang/String;" produce (
+  "/jawa/summary/SingleFunction.jawa" ep "Lcom/hugo/test/SingleFunction;.complex:(Lcom/hugo/test/SingleFunction;)Ljava/lang/String;" produce
     """`Lcom/hugo/test/SingleFunction;.complex:(Lcom/hugo/test/SingleFunction;)Ljava/lang/String;`:
       |  this.myarray[] += "Hello World!"@L1
       |  this.str += "v1!"@L5
@@ -104,15 +97,13 @@ class HeapSummaryGeneratorTest extends FlatSpec with Matchers {
       |  ret = this.str
       |;
     """.stripMargin.trim.intern()
-  )
 
-  "/jawa/summary/MultiFunction.jawa" ep "Lcom/hugo/test/MultiFunction;.testGlobalMap:()V" produce (
+  "/jawa/summary/MultiFunction.jawa" ep "Lcom/hugo/test/MultiFunction;.testGlobalMap:()V" produce
     """`Lcom/hugo/test/MultiFunction;.testGlobalMap:()V`:
       |  `com.hugo.test.MultiFunction.map`.entries.key += "key"@L1
       |  `com.hugo.test.MultiFunction.map`.entries.value += "value"@L2
       |;
     """.stripMargin.trim.intern()
-    )
 
   "/jawa/summary/MCnToSpell.jawa" ep "Lcom/i4joy/core/MCnToSpell;.init:()V" run()
 

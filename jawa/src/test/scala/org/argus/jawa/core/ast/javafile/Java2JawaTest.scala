@@ -13,8 +13,10 @@ package org.argus.jawa.core.ast.javafile
 import java.lang.reflect.InvocationTargetException
 
 import org.argus.jawa.core.compiler.codegen.JavaByteCodeGenerator
-import org.argus.jawa.core.backend.compiler.util.ReadClassFile.CustomClassLoader
 import org.argus.jawa.core._
+import org.argus.jawa.core.compiler.util.ReadClassFile.CustomClassLoader
+import org.argus.jawa.core.elements.JawaType
+import org.argus.jawa.core.io.{MsgLevel, PrintReporter}
 import org.argus.jawa.core.util._
 import org.scalatest.{FlatSpec, Matchers}
 

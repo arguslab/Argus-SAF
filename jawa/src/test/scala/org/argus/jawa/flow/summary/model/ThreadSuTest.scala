@@ -12,7 +12,7 @@ package org.argus.jawa.flow.summary.model
 
 import org.argus.jawa.flow.pta._
 import org.argus.jawa.flow.pta.rfa.RFAFact
-import org.argus.jawa.core.JawaType
+import org.argus.jawa.core.elements.{JavaKnowledge, JawaType}
 
 /**
   * Created by fgwei on 6/15/17.
@@ -28,9 +28,7 @@ class ThreadSuTest extends SuTestBase("Thread.safsu") {
   val thisHandlerInstance = PTAInstance(new JawaType("java.lang.Thread$UncaughtExceptionHandler"), defContext)
   val thisHandlerFact = RFAFact(FieldSlot(thisInstance, "handler"), thisHandlerInstance)
 
-  "Ljava/lang/Thread;.<init>:()V" with_input (
-    thisFact,
-  ) produce (
+  "Ljava/lang/Thread;.<init>:()V" with_input thisFact produce (
     thisFact,
     RFAFact(FieldSlot(thisInstance, "runnable"), thisInstance),
     RFAFact(FieldSlot(thisInstance, "name"), PTAPointStringInstance(currentContext))
