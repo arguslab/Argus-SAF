@@ -16,7 +16,7 @@ import org.argus.amandroid.core.parser.ComponentInfo
 import org.argus.jawa.flow.util.ExplicitValueFinder
 import org.argus.jawa.core.ast.CallStatement
 import org.argus.jawa.core._
-import org.argus.jawa.core.elements.Signature
+import org.argus.jawa.core.elements.{JavaKnowledge, JawaType, Signature}
 import org.argus.jawa.core.util._
 import org.argus.jnsaf.client.NativeDroidClient
 

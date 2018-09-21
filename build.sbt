@@ -135,12 +135,6 @@ lazy val amandroid: Project =
   .settings(libraryDependencies ++= DependencyGroups.amandroid)
   .settings(publishSettings)
 
-lazy val amandroid_concurrent: Project =
-  newProject("amandroid-concurrent", file("amandroid.concurrent"))
-  .dependsOn(amandroid)
-  .settings(libraryDependencies ++= DependencyGroups.amandroid_concurrent)
-  .settings(doNotPublishSettings)
-
 lazy val jnsaf: Project =
   newProject("jnsaf", file("jnsaf"))
     .dependsOn(amandroid)

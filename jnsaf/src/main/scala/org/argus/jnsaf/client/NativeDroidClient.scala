@@ -17,8 +17,8 @@ import com.google.protobuf.ByteString
 import io.grpc.ManagedChannelBuilder
 import io.grpc.stub.StreamObserver
 import org.argus.jawa.core.elements.Signature
+import org.argus.jawa.core.io.{MsgLevel, PrintReporter, Reporter}
 import org.argus.jawa.core.util._
-import org.argus.jawa.core.{MsgLevel, PrintReporter, Reporter}
 import org.argus.nativedroid.server.server._
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -27,9 +27,10 @@ import scala.concurrent.Future
 /**
   * gRPC client to communicate with NativeDroid Server.
   */
+//noinspection ScalaDeprecation
 class NativeDroidClient(address: String, port: Int, reporter: Reporter) {
   final val TITLE = "NativeDroidClient"
-  private val channel = ManagedChannelBuilder.forAddress(address, port).usePlaintext().build
+  private val channel = ManagedChannelBuilder.forAddress(address, port).usePlaintext(true).build
   private val client = NativeDroidServerGrpc.stub(channel)
   private val blocking_client = NativeDroidServerGrpc.blockingStub(channel)
 

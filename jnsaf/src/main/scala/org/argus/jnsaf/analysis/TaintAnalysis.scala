@@ -14,9 +14,9 @@ import org.argus.amandroid.alir.componentSummary.ApkYard
 import org.argus.amandroid.core.decompile.{DecompileLayout, DecompileStrategy, DecompilerSettings}
 import org.argus.amandroid.core.util.ApkFileUtil
 import org.argus.jawa.core.util._
-import org.argus.jawa.core._
+import org.argus.jawa.core.elements.JawaType
+import org.argus.jawa.core.io.{FileReporter, MsgLevel, PrintReporter, Reporter}
 import org.argus.jawa.flow.summary.store.TaintStore
-import TimeUtil
 import org.argus.jnsaf.client.NativeDroidClient
 import org.argus.jnsaf.taint.JNTaintAnalysis
 

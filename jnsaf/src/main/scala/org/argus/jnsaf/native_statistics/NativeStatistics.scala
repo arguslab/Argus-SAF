@@ -8,8 +8,8 @@ import org.argus.amandroid.core.appInfo.AppInfoCollector
 import org.argus.amandroid.core.decompile._
 import org.argus.amandroid.core.parser.ComponentType
 import org.argus.amandroid.core.util.ApkFileUtil
-import org.argus.jawa.core._
-import org.argus.jawa.core.elements.{AccessFlag, Signature}
+import org.argus.jawa.core.elements.{AccessFlag, JawaType, Signature}
+import org.argus.jawa.core.io.{FileReporter, MsgLevel, PrintReporter}
 import org.argus.jawa.core.util._
 import org.argus.jnsaf.analysis.NativeMethodHandler
 import org.argus.jnsaf.client.NativeDroidClient

@@ -43,8 +43,6 @@ object Dependencies {
 
   val findbug: ModuleID = "com.google.code.findbugs" % "jsr305" % "3.0.+" % "compile"
 
-  val akka_actor: ModuleID = "com.typesafe.akka" %% "akka-actor" % "2.4.17"
-
   val javaparser: ModuleID = "com.github.javaparser" % "javaparser-core" % "3.4.0"
 }
 
@@ -73,9 +71,5 @@ object DependencyGroups {
     commons_cli
   ) ++ amandroid
 
-  val amandroid_concurrent: Seq[ModuleID] = Seq(akka_actor) ++ amandroid
-
   val jnsaf: Seq[ModuleID] = Seq() ++ amandroid
-
-  val webfa: Seq[ModuleID] = Seq() ++ jawa
 }

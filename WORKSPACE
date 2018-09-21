@@ -740,3 +740,37 @@ bind(
   name = 'jar/org/tinyjee/jgraphx/jgraphx',
   actual = '@org_tinyjee_jgraphx_jgraphx//jar'
 )
+
+git_repository(
+    name = "io_bazel_rules_python",
+    remote = "https://github.com/bazelbuild/rules_python.git",
+    commit = "d6fbb0fb2a5c8e318dd4de5104dc41358cefaa90",
+)
+
+
+http_file(
+    name = "angr_7_8_8_1_whl",
+    sha256 = "11924a0d7a31cb983c712441ca3a96400211371df95e837039d41885db45d06c",
+    url = ('https://files.pythonhosted.org/packages/51/0f/' +
+           '0589e802397c259e1e8a93d03b6206f9da4f1d9ac613deb7865d47b040ee/' +
+           'angr-7.8.8.1-py2-none-manylinux1_x86_64.whl'),
+)
+
+# Only needed for PIP support:
+load("@io_bazel_rules_python//python:pip.bzl", "pip_repositories")
+
+pip_repositories()
+
+load("@io_bazel_rules_python//python:pip.bzl", "pip_import")
+
+# This rule translates the specified requirements.txt into
+# @my_deps//:requirements.bzl, which itself exposes a pip_install method.
+pip_import(
+   name = "nativedroid_deps",
+   requirements = "//nativedroid:requirements.txt",
+)
+
+# Load the pip_install symbol for nativedroid_deps, and create the dependencies'
+# repositories.
+load("@nativedroid_deps//:requirements.bzl", _nativedrpod_install = "pip_install")
+_nativedrpod_install()

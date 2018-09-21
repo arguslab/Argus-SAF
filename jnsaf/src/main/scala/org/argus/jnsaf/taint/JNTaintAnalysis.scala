@@ -5,9 +5,10 @@ import org.argus.amandroid.alir.pta.model.AndroidModelCallHandler
 import org.argus.amandroid.alir.pta.summaryBasedAnalysis.AndroidSummaryProvider
 import org.argus.amandroid.alir.taintAnalysis.{AndroidSourceAndSinkManager, DataLeakageAndroidSourceAndSinkManager}
 import org.argus.amandroid.core.{AndroidGlobalConfig, ApkGlobal}
+import org.argus.jawa.core.elements.JawaType
+import org.argus.jawa.core.io.Reporter
 import org.argus.jawa.flow.reachability.SignatureBasedCallGraph
 import org.argus.jawa.core.util._
-import org.argus.jawa.core.{JawaType, Reporter}
 import org.argus.jawa.flow.summary.store.TaintStore
 import org.argus.jawa.flow.summary.wu.{TaintSummary, TaintWu, WorkUnit}
 import org.argus.jawa.flow.summary.{BottomUpSummaryGenerator, SummaryManager}

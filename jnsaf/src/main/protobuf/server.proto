@@ -3,7 +3,7 @@ syntax = "proto3";
 package nativedroid_server;
 option java_package = "org.argus.nativedroid.server";
 
-import "java_signatures.proto";
+import "jawa/src/main/protobuf/java_signatures.proto";
 
 message GenSummaryRequest {
     string so_handle = 1;
