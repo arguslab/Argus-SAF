@@ -5,6 +5,10 @@ from cle.backends.externs import ExternObject
 from nativedroid.analyses.resolver.jni.java_type import *
 from nativedroid.analyses.resolver.jni.jni_type.jni_native_interface import JNINativeInterface
 
+__author__ = "Xingwei Lin, Fengguo Wei"
+__copyright__ = "Copyright 2018, The Argus-SAF Project"
+__license__ = "EPL v1.0"
+
 java_vm_origin_dict = {
     "DestroyJavaVM": 0,
     "AttachCurrentThread": 0,

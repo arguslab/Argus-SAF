@@ -1,28 +1,42 @@
-from concurrent import futures
 import hashlib
-import pkg_resources
-import time
 import io
 import os
+import time
 
-from nativedroid.protobuf.server_pb2 import *
-from nativedroid.protobuf.server_pb2_grpc import *
+import pkg_resources
+from concurrent import futures
+
 from nativedroid.analyses.nativedroid_analysis import *
 from nativedroid.jawa.utils import *
+from nativedroid.protobuf.server_pb2 import *
+from nativedroid.protobuf.server_pb2_grpc import *
+
+__author__ = "Fengguo Wei"
+__copyright__ = "Copyright 2018, The Argus-SAF Project"
+__license__ = "EPL v1.0"
 
 _ONE_DAY_IN_SECONDS = 60 * 60 * 24
 
 logger = logging.getLogger('nativedroid.server.NativeDroidServer')
 
-native_ss_file = pkg_resources.resource_filename('nativedroid.data', 'sourceAndSinks/NativeSourcesAndSinks.txt')
-java_ss_file = pkg_resources.resource_filename('nativedroid.data', 'sourceAndSinks/TaintSourcesAndSinks.txt')
-
 
 class NativeDroidServer(NativeDroidServerServicer):
 
-    def __init__(self, binary_path):
+    def __init__(self, binary_path, native_ss_file, java_ss_file):
         self._binary_path = binary_path
-        self._loadedsos = set()
+        self._loaded_sos = set()
+        self._native_ss_file = native_ss_file
+        self._java_ss_file = java_ss_file
+
+    @classmethod
+    def from_python_package(cls, binary_path):
+        native_ss_file = pkg_resources.resource_filename('nativedroid.data', 'sourceAndSinks/NativeSourcesAndSinks.txt')
+        java_ss_file = pkg_resources.resource_filename('nativedroid.data', 'sourceAndSinks/TaintSourcesAndSinks.txt')
+        return cls(binary_path, native_ss_file, java_ss_file)
+
+    @classmethod
+    def from_filesystem(cls, binary_path, native_ss_file, java_ss_file):
+        return cls(binary_path, native_ss_file, java_ss_file)
 
     def GenSummary(self, request, context):
         """
@@ -39,7 +53,7 @@ class NativeDroidServer(NativeDroidServerServicer):
         arguments_str = ",".join(java_type_str(arg, False) for arg in jni_method_arguments)
         taint_analysis_report, safsu_report, total_instructions = gen_summary(so_path, jni_method_name,
                                                                               method_signature, arguments_str,
-                                                                              native_ss_file, java_ss_file)
+                                                                              self._native_ss_file, self._java_ss_file)
         response = GenSummaryResponse(taint=taint_analysis_report, summary=safsu_report,
                                       analyzed_instructions=total_instructions)
         return response
@@ -59,7 +73,7 @@ class NativeDroidServer(NativeDroidServerServicer):
         so_digest = sha256.hexdigest()
         so_path = self._binary_path + so_digest
 
-        if so_path not in self._loadedsos:
+        if so_path not in self._loaded_sos:
             try:
                 os.makedirs(self._binary_path)
             except OSError:
@@ -67,7 +81,7 @@ class NativeDroidServer(NativeDroidServerServicer):
                     raise
             with open(so_path, 'wb') as out:
                 out.write(f.getvalue())
-            self._loadedsos.add(so_path)
+            self._loaded_sos.add(so_path)
         size = len(f.getvalue())
         return LoadBinaryResponse(so_handle=so_path, length=size)
 
@@ -82,9 +96,10 @@ class NativeDroidServer(NativeDroidServerServicer):
         return HasSymbolResponse(has_symbol=has_symbol(so_path, request.symbol))
 
 
-def serve():
+def serve(binary_path, native_ss_file, java_ss_file):
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
-    add_NativeDroidServerServicer_to_server(NativeDroidServer('/tmp/binaries/'), server)
+    add_NativeDroidServerServicer_to_server(
+        NativeDroidServer.from_filesystem(binary_path, native_ss_file, java_ss_file), server)
     server.add_insecure_port('[::]:50051')
     server.start()
     logger.info('Server started.')
@@ -97,4 +112,7 @@ def serve():
 
 
 if __name__ == '__main__':
-    serve()
+    if len(sys.argv) != 4:
+        logger.error('usage: python native_droid_server.py binary_path native_ss_file java_ss_file')
+        exit(0)
+    serve(sys.argv[1], sys.argv[2], sys.argv[3])

@@ -2,6 +2,10 @@ from nativedroid.analyses.resolver.taint_resolver import TaintResolver
 from nativedroid.analyses.resolver.model.android_app_model import *
 from nativedroid.analyses.resolver.model.anativeactivity_model import ANativeActivity
 
+__author__ = "Xingwei Lin"
+__copyright__ = "Copyright 2018, The Argus-SAF Project"
+__license__ = "EPL v1.0"
+
 
 class X86Resolver(TaintResolver):
     """

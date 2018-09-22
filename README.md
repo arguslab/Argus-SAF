@@ -14,10 +14,11 @@ project, which have the basic setup for a Argus-SAF enhanced project with demo c
 
 ```
 Argus-SAF/
-+--src/main/scala/org.argus.saf     Main class for argus-saf CLI.
-+--org.argus.jawa                   Core static analysis data structures, "*.class"&"*.jawa" file managing, jawa compiler, class hierarchy, method body resolving, flow analysis, etc.
-+--org.argus.amandroid              Android resource parsers, information collector, decompiler, environment method builder, flow analysis, etc.
-+--org.argus.amandroid.concurrent   Akka actors for Amandroid.
++--src/main/scala/org.argus.saf/Main.scala     Main class for argus-saf CLI.
++--jawa         Core static analysis data structures, "*.class"&"*.jawa" file managing, jawa compiler, class hierarchy, method body resolving, flow analysis, etc.
++--amandroid    Android resource parsers, information collector, decompiler, environment method builder, flow analysis, etc.
++--jnsaf        Java native interface analysis.
++--nativedroid  Annotation based analysis using angr symbolic execution engine.
 ```
 
 ## Obtaining Argus-SAF as library
@@ -44,7 +45,7 @@ libraryDependencies += "com.github.arguslab" %% "amandroid" % VERSION
 
 ## Obtaining Argus-SAF CLI Tool
 
-**Requirement: Java 8**
+**Requirement: Java 10**
 
 1. Click [![Download](https://api.bintray.com/packages/arguslab/maven/argus-saf/images/download.svg)](https://bintray.com/arguslab/maven/argus-saf/_latestVersion)
 2. Download argus-saf_***-version-assembly.jar
@@ -91,6 +92,43 @@ the directory where Scala plugin repository is and then import it as SBT project
   ```
   $ tools/bin/sbt clean compile test
   ```
+
+7. Generate fat jar: go to Argus-SAF repo directory and run
+  ```
+  $ tools/bin/sbt assembly
+  ```
+  
+## Launch JN-SAF for native analysis
+
+1. Install nativedroid:
+  ```
+  $ cd nativedroid
+  $ python setup.py install
+  $ cd ..
+  ```
+
+2. Start nativedroid server:
+  ```
+  $ python nativedroid/server/native_droid_server.py /tmp/binaries nativedroid/data/sourceAndSinks/NativeSourcesAndSinks.txt nativedroid/data/sourceAndSinks/TaintSourcesAndSinks.txt
+  ```
+
+3. Use [NativeDroidClient.scala]() to communicate with the nativedroid server to perform native analysis.
+
+## Compile Protobuf
+
+1. Scala protobuf files:
+  ```
+  $ tools/bin/sbt clean compile
+  ```
+
+2. Python protobuf files:
+  ```
+  $ python -m grpc_tools.protoc -I. --python_out=. --grpc_python_out=. nativedroid/protobuf/server.proto
+  ```
+
+## Bazel build
+
+Bazel integration in progress. Ignore all the BUILD files for now.
 
 ## How to contribute
 

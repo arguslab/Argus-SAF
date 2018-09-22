@@ -1,5 +1,9 @@
 from nativedroid.analyses.resolver.jni.jni_type.jni_invoke_interface import *
-from nativedroid.analyses.resolver.annotation.data_type_annotation import *
+from nativedroid.analyses.resolver.annotation import *
+
+__author__ = "Xingwei Lin, Fengguo Wei"
+__copyright__ = "Copyright 2018, The Argus-SAF Project"
+__license__ = "EPL v1.0"
 
 
 class ANativeActivity(ExternObject):

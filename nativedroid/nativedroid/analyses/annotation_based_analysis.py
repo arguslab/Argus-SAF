@@ -1,10 +1,14 @@
 from cStringIO import StringIO
 
-from nativedroid.analyses.resolver.annotation.data_type_annotation import *
+from nativedroid.analyses.resolver.annotation import *
 from nativedroid.analyses.resolver.armel_resolver import ArmelResolver
 from nativedroid.analyses.resolver.jni.jni_helper import *
 from nativedroid.analyses.resolver.model.__android_log_print import *
 from nativedroid.analyses.resolver.x86_resolver import X86Resolver
+
+__author__ = "Xingwei Lin, Fengguo Wei"
+__copyright__ = "Copyright 2018, The Argus-SAF Project"
+__license__ = "EPL v1.0"
 
 nativedroid_logger = logging.getLogger('AnnotationBasedAnalysis')
 

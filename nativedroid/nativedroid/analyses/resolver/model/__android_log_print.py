@@ -1,9 +1,13 @@
 import angr
 import claripy
 
-from nativedroid.analyses.resolver.annotation.dataflow_annotation.taint_position_annotation import *
+from nativedroid.analyses.resolver.annotation.taint_position_annotation import *
 from nativedroid.analyses.resolver.jni.java_type.reference import *
 import logging
+
+__author__ = "Xingwei Lin, Fengguo Wei"
+__copyright__ = "Copyright 2018, The Argus-SAF Project"
+__license__ = "EPL v1.0"
 
 nativedroid_logger = logging.getLogger('AndroidLogPrint')
 

@@ -7,6 +7,10 @@ from nativedroid.analyses.source_and_sink_manager import SourceAndSinkManager
 from nativedroid.analyses.resolver.model.native_pure_model import EnvMethodModel
 from nativedroid.analyses.resolver.dynamic_register_resolution import dynamic_register_resolve
 
+__author__ = "Xingwei Lin, Fengguo Wei"
+__copyright__ = "Copyright 2018, The Argus-SAF Project"
+__license__ = "EPL v1.0"
+
 nativedroid_logger = logging.getLogger('nativedroid')
 nativedroid_logger.setLevel(logging.INFO)
 

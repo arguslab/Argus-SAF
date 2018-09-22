@@ -5,6 +5,10 @@ from nativedroid.analyses.resolver.model.anativeactivity_model import ANativeAct
 
 import logging
 
+__author__ = "Xingwei Lin"
+__copyright__ = "Copyright 2018, The Argus-SAF Project"
+__license__ = "EPL v1.0"
+
 nativedroid_logger = logging.getLogger('nativedroid')
 nativedroid_logger.setLevel(logging.INFO)
 
@@ -36,7 +40,11 @@ class CallbackHook(angr.SimProcedure):
 
 class EnvMethodModel():
 
-    def get_function_addr_range(self, cfg, func_name):
+    def __init__(self):
+        pass
+
+    @staticmethod
+    def get_function_addr_range(cfg, func_name):
         """
         Get address range of given function.
         :param cfg: CFG object
@@ -52,7 +60,8 @@ class EnvMethodModel():
             nativedroid_logger.error('%s doesn\'t exist' % func_name)
             return 0, 0x8000000
 
-    def count_stash_instructions(self, project, stash):
+    @staticmethod
+    def count_stash_instructions(project, stash):
         """
         Count instructions size from stash.
 
@@ -68,7 +77,8 @@ class EnvMethodModel():
         # print('Total INS: %d' % total_instructions)
         return stash_instructions
 
-    def count_cfg_instructions(self, cfg):
+    @staticmethod
+    def count_cfg_instructions(cfg):
         """
         Count instructions size from CFG.
 
@@ -91,7 +101,8 @@ class EnvMethodModel():
         # print('Total INS: %d' % total_instructions)
         return total_instructions
 
-    def glue_callback_signature(self, project):
+    @staticmethod
+    def glue_callback_signature(project):
         """
         Find two callback functions symbols based on matching signature of the two callback functions.
     
@@ -104,12 +115,12 @@ class EnvMethodModel():
         cmd_callback_signature = None
         for key in demangled_names_keys:
             # signature of handle_input function must end with 'P11android_appP11AInputEvent'
-            if (key.endswith('P11android_appP11AInputEvent')):
+            if key.endswith('P11android_appP11AInputEvent'):
                 input_callback_signature = key
                 # print "input_callback_signature: ", input_callback_signature
 
             # signature of handle_cmd function must end with 'P11android_appi'
-            if (key.endswith('P11android_appi')):
+            if key.endswith('P11android_appi'):
                 cmd_callback_signature = key
                 # print "cmd_callback_signature: ", cmd_callback_signature
 
@@ -219,7 +230,8 @@ class EnvMethodModel():
             stash_instructions = 0
         return nativeActivity_callback_dict, stash_instructions
 
-    def get_call_ALooper_pollAll_ins_addr(self, project, cfg):
+    @staticmethod
+    def get_call_ALooper_pollAll_ins_addr(project, cfg):
         """
         Get the instruction address which call ALooper_pollAll in android_main function.
         But now, only test in arm architecture!!!

@@ -1,3 +1,8 @@
+__author__ = "Xingwei Lin"
+__copyright__ = "Copyright 2018, The Argus-SAF Project"
+__license__ = "EPL v1.0"
+
+
 class TaintResolver(object):
     """
     This class provides the architecture specific taint solutions.

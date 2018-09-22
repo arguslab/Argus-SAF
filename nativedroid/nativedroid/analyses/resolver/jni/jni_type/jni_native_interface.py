@@ -6,6 +6,10 @@ from nativedroid.analyses.resolver.annotation import *
 from nativedroid.analyses.resolver.jni.java_type import *
 from nativedroid.analyses.resolver.jni.jni_helper import *
 
+__author__ = "Xingwei Lin, Fengguo Wei"
+__copyright__ = "Copyright 2018, The Argus-SAF Project"
+__license__ = "EPL v1.0"
+
 nativedroid_logger = logging.getLogger('nativedroid.jni_native_interface')
 
 # Record the mapping info of dynamic register methods

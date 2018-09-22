@@ -1,6 +1,9 @@
-from nativedroid.analyses.resolver.annotation import *
 from nativedroid.analyses.resolver.taint_resolver import TaintResolver
 from nativedroid.analyses.resolver.model.android_app_model import *
+
+__author__ = "Xingwei Lin"
+__copyright__ = "Copyright 2018, The Argus-SAF Project"
+__license__ = "EPL v1.0"
 
 
 class ArmelResolver(TaintResolver):

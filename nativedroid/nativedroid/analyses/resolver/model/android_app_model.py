@@ -1,5 +1,9 @@
 from nativedroid.analyses.resolver.model.anativeactivity_model import *
 
+__author__ = "Xingwei Lin, Fengguo Wei"
+__copyright__ = "Copyright 2018, The Argus-SAF Project"
+__license__ = "EPL v1.0"
+
 
 class AndroidApp(ExternObject):
     activity_offset = 3

@@ -4,6 +4,10 @@ from nativedroid.analyses.resolver.jni.jni_type import jni_native_interface
 from nativedroid.analyses.resolver.jni.jni_type.jni_invoke_interface import JNIInvokeInterface
 import logging
 
+__author__ = "Xingwei Lin"
+__copyright__ = "Copyright 2018, The Argus-SAF Project"
+__license__ = "EPL v1.0"
+
 nativedroid_logger = logging.getLogger('RegisterNativeMethods')
 nativedroid_logger.setLevel(logging.INFO)
 
