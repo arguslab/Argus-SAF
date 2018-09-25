@@ -1,9 +1,8 @@
+import logging
+
 from angrutils import *
-import android_app_model
 
 from nativedroid.analyses.resolver.model.anativeactivity_model import ANativeActivity
-
-import logging
 
 __author__ = "Xingwei Lin"
 __copyright__ = "Copyright 2018, The Argus-SAF Project"
