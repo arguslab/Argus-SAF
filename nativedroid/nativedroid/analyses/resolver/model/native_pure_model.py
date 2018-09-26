@@ -2,6 +2,7 @@ import logging
 
 from angrutils import *
 
+from nativedroid.analyses.resolver.model import android_app_model
 from nativedroid.analyses.resolver.model.anativeactivity_model import ANativeActivity
 
 __author__ = "Xingwei Lin"
