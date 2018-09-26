@@ -15,7 +15,7 @@ import java.io.File
 import org.argus.amandroid.core.decompile._
 import org.argus.amandroid.core.util.ApkFileUtil
 import org.argus.amandroid.core.ApkGlobal
-import org.argus.jawa.core.{DefaultReporter, MsgLevel, PrintReporter}
+import org.argus.jawa.core.io.{DefaultReporter, MsgLevel, PrintReporter}
 import org.argus.saf.cli.util.CliLogger
 import org.argus.jawa.core.util._
 

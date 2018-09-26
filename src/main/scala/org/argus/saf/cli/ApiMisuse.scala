@@ -19,10 +19,10 @@ import org.argus.amandroid.core.util.ApkFileUtil
 import org.argus.amandroid.core.{AndroidGlobalConfig, ApkGlobal}
 import org.argus.amandroid.plugin.apiMisuse.{CryptographicMisuse, HideIcon, SSLTLSMisuse}
 import org.argus.amandroid.plugin.ApiMisuseModules
+import org.argus.jawa.core.io.{FileReporter, MsgLevel, NoReporter}
 import org.argus.jawa.flow.Context
 import org.argus.jawa.flow.pta.suspark.InterProceduralSuperSpark
 import org.argus.jawa.core.util.IgnoreException
-import org.argus.jawa.core.{FileReporter, MsgLevel, NoReporter}
 import org.argus.saf.cli.util.CliLogger
 import org.argus.jawa.core.util._
 

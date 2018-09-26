@@ -16,8 +16,8 @@ import org.argus.saf.cli.util.CliLogger
 import org.argus.amandroid.core.util.ApkFileUtil
 import org.argus.amandroid.core.ApkGlobal
 import org.argus.amandroid.plugin.{TaintAnalysisApproach, TaintAnalysisModules, TaintAnalysisTask}
+import org.argus.jawa.core.io.{FileReporter, MsgLevel, PrintReporter}
 import org.argus.jawa.core.util.IgnoreException
-import org.argus.jawa.core.{FileReporter, MsgLevel, PrintReporter}
 import org.argus.jawa.core.util._
 
 /**
