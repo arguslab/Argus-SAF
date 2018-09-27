@@ -49,6 +49,6 @@ def construct_annotation(jni_type, obj_source):
     elif jni_type == 'double[]':
         return JdoubleArrayAnnotation(obj_source)
     elif '[]' in jni_type:
-        return JobjectArrayAnnotation(obj_source)
+        return JobjectArrayAnnotation(obj_source, jni_type)
     else:
         return JobjectAnnotation(obj_source, jni_type, list())

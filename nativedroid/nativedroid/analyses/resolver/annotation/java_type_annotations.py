@@ -9,8 +9,8 @@ class JavaTypeAnnotation(Annotation):
     def __init__(self, source, obj_type):
         """
 
-        :param source: Source of this short value.
-        :param obj_type:
+        :param source: Source of this Java value.
+        :param obj_type: Type of this Java value.
         """
         self._source = source
         self._obj_type = obj_type
@@ -104,9 +104,9 @@ class PrimitiveTypeAnnotation(JavaTypeAnnotation):
     def __init__(self, source, obj_type, value=None):
         """
 
-        :param source: Source of this short value.
-        :param obj_type:
-        :param value: Value of this short value.
+        :param source: Source of this primitive value.
+        :param obj_type: Type of this primitive value.
+        :param value: Value of this primitive value.
         """
         super(PrimitiveTypeAnnotation, self).__init__(source, obj_type)
         self._value = value
@@ -240,9 +240,9 @@ class ObjectTypeAnnotation(JavaTypeAnnotation):
     def __init__(self, source, obj_type, value=None):
         """
 
-        :param source: Source of this short value.
-        :param obj_type:
-        :param value: Value of this short value.
+        :param source: Source of this object value.
+        :param obj_type: Type of this object value
+        :param value: Value of this object value.
         """
         super(ObjectTypeAnnotation, self).__init__(source, obj_type)
         self._value = value
@@ -278,8 +278,8 @@ class JbooleanArrayAnnotation(ObjectTypeAnnotation):
     def __init__(self, source, value=None):
         """
 
-        :param source: Source of this bool value.
-        :param value: Value of this bool value.
+        :param source: Source of this bool array value.
+        :param value: Value of this bool array value.
         """
         super(JbooleanArrayAnnotation, self).__init__(source, 'boolean[]', value)
 
@@ -292,8 +292,8 @@ class JbyteArrayAnnotation(ObjectTypeAnnotation):
     def __init__(self, source, value=None):
         """
 
-        :param source: Source of this bool value.
-        :param value: Value of this bool value.
+        :param source: Source of this byte array value.
+        :param value: Value of this byte array value.
         """
         super(JbyteArrayAnnotation, self).__init__(source, 'byte[]', value)
 
@@ -306,8 +306,8 @@ class JcharArrayAnnotation(ObjectTypeAnnotation):
     def __init__(self, source, value=None):
         """
 
-        :param source: Source of this bool value.
-        :param value: Value of this bool value.
+        :param source: Source of this char value.
+        :param value: Value of this char value.
         """
         super(JcharArrayAnnotation, self).__init__(source, 'char[]', value)
 
@@ -320,8 +320,8 @@ class JdoubleArrayAnnotation(ObjectTypeAnnotation):
     def __init__(self, source, value=None):
         """
 
-        :param source: Source of this bool value.
-        :param value: Value of this bool value.
+        :param source: Source of this double value.
+        :param value: Value of this double value.
         """
         super(JdoubleArrayAnnotation, self).__init__(source, 'double[]', value)
 
@@ -334,8 +334,8 @@ class JfloatArrayAnnotation(ObjectTypeAnnotation):
     def __init__(self, source, value=None):
         """
 
-        :param source: Source of this bool value.
-        :param value: Value of this bool value.
+        :param source: Source of this float value.
+        :param value: Value of this float value.
         """
         super(JfloatArrayAnnotation, self).__init__(source, 'float[]', value)
 
@@ -348,8 +348,8 @@ class JintArrayAnnotation(ObjectTypeAnnotation):
     def __init__(self, source, value=None):
         """
 
-        :param source: Source of this bool value.
-        :param value: Value of this bool value.
+        :param source: Source of this int value.
+        :param value: Value of this int value.
         """
         super(JintArrayAnnotation, self).__init__(source, 'int[]', value)
 
@@ -362,8 +362,8 @@ class JlongArrayAnnotation(ObjectTypeAnnotation):
     def __init__(self, source, value=None):
         """
 
-        :param source: Source of this bool value.
-        :param value: Value of this bool value.
+        :param source: Source of this long value.
+        :param value: Value of this long value.
         """
         super(JlongArrayAnnotation, self).__init__(source, 'long[]', value)
 
@@ -373,13 +373,14 @@ class JobjectArrayAnnotation(ObjectTypeAnnotation):
     This annotation is used to annotate the flow of the object array related operations.
     """
 
-    def __init__(self, source, value=None):
+    def __init__(self, source, obj_type='java/lang/Object[]', value=None):
         """
 
-        :param source: Source of this bool value.
-        :param value: Value of this bool value.
+        :param source: Source of this object value.
+        :param obj_type: Type of this object array.
+        :param value: Value of this object value.
         """
-        super(JobjectArrayAnnotation, self).__init__(source, 'java/lang/Object[]', value)
+        super(JobjectArrayAnnotation, self).__init__(source, obj_type, value)
 
 
 class JshortArrayAnnotation(ObjectTypeAnnotation):
@@ -390,7 +391,7 @@ class JshortArrayAnnotation(ObjectTypeAnnotation):
     def __init__(self, source, value=None):
         """
 
-        :param source: Source of this bool value.
-        :param value: Value of this bool value.
+        :param source: Source of this short value.
+        :param value: Value of this short value.
         """
         super(JshortArrayAnnotation, self).__init__(source, 'short[]', value)
