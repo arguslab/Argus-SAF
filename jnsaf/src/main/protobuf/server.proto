@@ -45,7 +45,6 @@ message LoadBinaryResponse {
 }
 
 service NativeDroidServer {
-    // This bi-directional stream makes it possible to send and receive Notes between 2 persons
     rpc GenSummary(GenSummaryRequest) returns (GenSummaryResponse);
     rpc HasSymbol(HasSymbolRequest) returns (HasSymbolResponse);
     rpc AnalyseNativeActivity(AnalyseNativeActivityRequest) returns (AnalyseNativeActivityResponse);

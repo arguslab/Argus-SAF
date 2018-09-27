@@ -81,33 +81,33 @@ ThisBuild / bazelScalaRulesVersion := "3cd7fa5bec9b11104468c72934773e5820e1c89e"
 
 lazy val argus_saf: Project =
   newProject("argus-saf", file("."))
-  .enablePlugins(BuildInfoPlugin, BintrayPlugin, ScalaUnidocPlugin)
-  .settings(libraryDependencies ++= DependencyGroups.argus_saf)
-  .dependsOn(amandroid)
-  .settings(argusSafSettings)
-  .settings(buildInfoSettings)
-  .aggregate(
-    saf_library, jawa, amandroid, jnsaf
-  )
-  .settings(publishSettings)
-  .settings(
-    test in assembly := {},
-    assemblyJarName in assembly := s"${name.value}-${version.value}-assembly.jar",
-    mainClass in assembly := Some("org.argus.saf.Main")
-  )
-  .settings(
-    artifact in (Compile, assembly) ~= { art =>
-      art.withClassifier(Some("assembly"))
-    },
-    addArtifact(artifact in (Compile, assembly), assembly),
-    publishArtifact in (Compile, packageBin) := false,
-    publishArtifact in (Compile, packageDoc) := false,
-    publishArtifact in (Compile, packageSrc) := false
-  )
-  .settings(
-    bazelWorkspaceGenerate := true,
-    bazelBuildGenerate := false,
-  )
+    .enablePlugins(BuildInfoPlugin, BintrayPlugin, ScalaUnidocPlugin)
+    .settings(libraryDependencies ++= DependencyGroups.argus_saf)
+    .dependsOn(amandroid)
+    .settings(argusSafSettings)
+    .settings(buildInfoSettings)
+    .aggregate(
+      saf_library, jawa, amandroid, jnsaf
+    )
+    .settings(publishSettings)
+    .settings(
+      test in assembly := {},
+      assemblyJarName in assembly := s"${name.value}-${version.value}-assembly.jar",
+      mainClass in assembly := Some("org.argus.saf.Main")
+    )
+    .settings(
+      artifact in (Compile, assembly) ~= { art =>
+        art.withClassifier(Some("assembly"))
+      },
+      addArtifact(artifact in (Compile, assembly), assembly),
+      publishArtifact in (Compile, packageBin) := false,
+      publishArtifact in (Compile, packageDoc) := false,
+      publishArtifact in (Compile, packageSrc) := false
+    )
+    .settings(
+      bazelWorkspaceGenerate := true,
+      bazelBuildGenerate := false,
+    )
 
 lazy val saf_library: Project =
   newProject("saf-library", file("saf.library"))
@@ -125,15 +125,20 @@ lazy val saf_library: Project =
 
 lazy val jawa: Project =
   newProject("jawa", file("jawa"))
-  .settings(libraryDependencies ++= DependencyGroups.jawa)
-  .settings(publishSettings)
-  .settings(pbSettings)
+    .settings(libraryDependencies ++= DependencyGroups.jawa)
+    .settings(publishSettings)
+    .settings(pbSettings)
 
 lazy val amandroid: Project =
   newProject("amandroid", file("amandroid"))
-  .dependsOn(jawa, saf_library)
-  .settings(libraryDependencies ++= DependencyGroups.amandroid)
-  .settings(publishSettings)
+    .dependsOn(jawa, saf_library)
+    .settings(libraryDependencies ++= DependencyGroups.amandroid)
+    .settings(libraryDependencies ++= Seq(
+      "io.grpc" % "grpc-netty" % scalapb.compiler.Version.grpcJavaVersion,
+      "com.thesamet.scalapb" %% "scalapb-runtime-grpc" % scalapb.compiler.Version.scalapbVersion
+    ))
+    .settings(publishSettings)
+    .settings(pbSettings)
 
 lazy val jnsaf: Project =
   newProject("jnsaf", file("jnsaf"))

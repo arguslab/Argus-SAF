@@ -24,9 +24,7 @@ class GuessAppPackagesTest extends FlatSpec with Matchers {
     "com.unity3d"
   )
 
-  "/manifests/AndroidManifest2.xml" gen_pkg_names (
-    "org.arguslab.icc_implicit_action"
-  )
+  "/manifests/AndroidManifest2.xml" gen_pkg_names "org.arguslab.icc_implicit_action"
 
   class TestManifest(path: String) {
     def gen_pkg_names(expected: String*): Unit = {

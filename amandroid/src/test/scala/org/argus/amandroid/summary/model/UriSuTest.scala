@@ -11,9 +11,9 @@
 package org.argus.amandroid.summary.model
 
 import org.argus.amandroid.core.AndroidConstants
+import org.argus.jawa.core.elements.JawaType
 import org.argus.jawa.flow.pta._
 import org.argus.jawa.flow.pta.rfa.RFAFact
-import org.argus.jawa.core.JawaType
 
 /**
   * Created by fgwei on 6/24/17.
@@ -40,23 +40,17 @@ class UriSuTest extends SuTestBase("Uri.safsu") {
 
   "Landroid/net/Uri;.compareTo:(Ljava/lang/Object;)I" with_input () produce ()
 
-  "Landroid/net/Uri;.decode:(Ljava/lang/String;)Ljava/lang/String;" with_input (
-    RFAFact(VarSlot("v1"), PTAConcreteStringInstance("content://org.hugo", defContext2)),
-  ) produce (
+  "Landroid/net/Uri;.decode:(Ljava/lang/String;)Ljava/lang/String;" with_input RFAFact(VarSlot("v1"), PTAConcreteStringInstance("content://org.hugo", defContext2)) produce (
     RFAFact(VarSlot("v1"), PTAConcreteStringInstance("content://org.hugo", defContext2)),
     RFAFact(VarSlot("temp"), PTAConcreteStringInstance("content://org.hugo", defContext2))
   )
 
-  "Landroid/net/Uri;.encode:(Ljava/lang/String;)Ljava/lang/String;" with_input (
-    RFAFact(VarSlot("v1"), PTAConcreteStringInstance("content://org.hugo", defContext2)),
-  ) produce (
+  "Landroid/net/Uri;.encode:(Ljava/lang/String;)Ljava/lang/String;" with_input RFAFact(VarSlot("v1"), PTAConcreteStringInstance("content://org.hugo", defContext2)) produce (
     RFAFact(VarSlot("v1"), PTAConcreteStringInstance("content://org.hugo", defContext2)),
     RFAFact(VarSlot("temp"), PTAConcreteStringInstance("content://org.hugo", defContext2))
   )
 
-  "Landroid/net/Uri;.encode:(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;" with_input () produce (
-    RFAFact(VarSlot("temp"), PTAPointStringInstance(currentContext)),
-  )
+  "Landroid/net/Uri;.encode:(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;" with_input () produce RFAFact(VarSlot("temp"), PTAPointStringInstance(currentContext))
 
   "Landroid/net/Uri;.equals:(Ljava/lang/Object;)Z" with_input () produce ()
 
@@ -277,9 +271,7 @@ class UriSuTest extends SuTestBase("Uri.safsu") {
     RFAFact(VarSlot("temp"), thisInstance)
   )
 
-  "Landroid/net/Uri;.parse:(Ljava/lang/String;)Landroid/net/Uri;" with_input (
-    RFAFact(VarSlot("v1"), PTAConcreteStringInstance("content://org.hugo", defContext)),
-  ) produce (
+  "Landroid/net/Uri;.parse:(Ljava/lang/String;)Landroid/net/Uri;" with_input RFAFact(VarSlot("v1"), PTAConcreteStringInstance("content://org.hugo", defContext)) produce (
     RFAFact(VarSlot("v1"), PTAConcreteStringInstance("content://org.hugo", defContext)),
     RFAFact(VarSlot("temp"), PTAInstance(new JawaType(AndroidConstants.URI), currentContext)),
     RFAFact(FieldSlot(PTAInstance(new JawaType(AndroidConstants.URI), currentContext), "uri"), PTAConcreteStringInstance("content://org.hugo", defContext))

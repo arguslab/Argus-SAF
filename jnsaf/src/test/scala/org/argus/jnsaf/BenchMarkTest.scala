@@ -3,7 +3,7 @@ package org.argus.jnsaf
 import java.io.File
 
 import org.argus.amandroid.core.decompile.ConverterUtil
-import org.argus.jawa.core.JawaType
+import org.argus.jawa.core.elements.JawaType
 import org.argus.jawa.core.util.{FileUtil, IMap}
 import org.argus.jawa.flow.summary.store.TaintStore
 import org.argus.jnsaf.analysis.TaintAnalysis

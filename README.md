@@ -98,6 +98,18 @@ the directory where Scala plugin repository is and then import it as SBT project
   $ tools/bin/sbt assembly
   ```
   
+## Compile Protobuf
+
+1. Scala protobuf files:
+  ```
+  $ tools/bin/sbt clean compile
+  ```
+
+2. Python protobuf files:
+  ```
+  $ python -m grpc_tools.protoc -I. --python_out=. --grpc_python_out=. nativedroid/protobuf/server.proto
+  ```
+  
 ## Launch JN-SAF for native analysis
 
 1. Install nativedroid:
@@ -114,17 +126,10 @@ the directory where Scala plugin repository is and then import it as SBT project
 
 3. Use [NativeDroidClient.scala]() to communicate with the nativedroid server to perform native analysis.
 
-## Compile Protobuf
+### Troubleshooting:
 
-1. Scala protobuf files:
-  ```
-  $ tools/bin/sbt clean compile
-  ```
-
-2. Python protobuf files:
-  ```
-  $ python -m grpc_tools.protoc -I. --python_out=. --grpc_python_out=. nativedroid/protobuf/server.proto
-  ```
+1. If python code in Intellij shows unresolved imports, you should manually import the nativedroid folder as a python module and set Python SDK.
+Recommend to use a python virtualenv to install nativedroid with it's required python packages.
 
 ## Bazel build
 

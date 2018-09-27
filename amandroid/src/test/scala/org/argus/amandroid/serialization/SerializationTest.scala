@@ -15,7 +15,7 @@ import java.io.{FileReader, FileWriter}
 import org.argus.amandroid.alir.componentSummary.ApkYard
 import org.argus.amandroid.core.decompile.{ConverterUtil, DecompileLayout, DecompileStrategy, DecompilerSettings}
 import org.argus.amandroid.core.model.ApkModel
-import org.argus.jawa.core.DefaultReporter
+import org.argus.jawa.core.io.DefaultReporter
 import org.json4s.{Formats, NoTypeHints}
 import org.json4s.native.Serialization
 import org.json4s.native.Serialization.{read, write}

@@ -12,9 +12,9 @@ package org.argus.amandroid.plugin
 
 import org.argus.amandroid.alir.pta.reachingFactsAnalysis.AndroidReachingFactsAnalysisConfig
 import org.argus.amandroid.core.decompile.ConverterUtil
+import org.argus.jawa.core.io.{MsgLevel, PrintReporter}
 import org.argus.jawa.flow.Context
 import org.argus.jawa.flow.taintAnalysis.TaintAnalysisResult
-import org.argus.jawa.core.{MsgLevel, PrintReporter}
 import org.scalatest.{FlatSpec, Matchers}
 import org.argus.jawa.core.util.FileUtil
 import org.scalatest.tagobjects.Slow

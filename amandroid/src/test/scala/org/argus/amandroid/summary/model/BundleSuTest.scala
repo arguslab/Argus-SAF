@@ -13,7 +13,7 @@ package org.argus.amandroid.summary.model
 import org.argus.amandroid.core.AndroidConstants
 import org.argus.jawa.flow.pta._
 import org.argus.jawa.flow.pta.rfa.RFAFact
-import org.argus.jawa.core.JawaType
+import org.argus.jawa.core.elements.JawaType
 
 /**
   * Created by fgwei on 6/23/17.
@@ -31,16 +31,12 @@ class BundleSuTest extends SuTestBase("Bundle.safsu") {
 
   "Landroid/os/Bundle;.<clinit>:()V" with_input () produce ()
 
-  "Landroid/os/Bundle;.<init>:()V" with_input (
-    thisFact,
-  ) produce (
+  "Landroid/os/Bundle;.<init>:()V" with_input thisFact produce (
     thisFact,
     RFAFact(FieldSlot(thisInstance, "entries"), PTAInstance(new JawaType("android.os.Bundle$Entries"), currentContext))
   )
 
-  "Landroid/os/Bundle;.<init>:(I)V" with_input (
-    thisFact,
-  ) produce (
+  "Landroid/os/Bundle;.<init>:(I)V" with_input thisFact produce (
     thisFact,
     RFAFact(FieldSlot(thisInstance, "entries"), PTAInstance(new JawaType("android.os.Bundle$Entries"), currentContext))
   )
@@ -60,9 +56,7 @@ class BundleSuTest extends SuTestBase("Bundle.safsu") {
     RFAFact(FieldSlot(PTAInstance(new JawaType("android.os.Bundle$Entries"), defContext2), "value"), PTAPointStringInstance(defContext4))
   )
 
-  "Landroid/os/Bundle;.<init>:(Ljava/lang/ClassLoader;)V" with_input (
-    thisFact,
-  ) produce (
+  "Landroid/os/Bundle;.<init>:(Ljava/lang/ClassLoader;)V" with_input thisFact produce (
     thisFact,
     RFAFact(FieldSlot(thisInstance, "entries"), PTAInstance(new JawaType("android.os.Bundle$Entries"), currentContext))
   )

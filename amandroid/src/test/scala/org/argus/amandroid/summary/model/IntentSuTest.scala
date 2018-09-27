@@ -13,7 +13,7 @@ package org.argus.amandroid.summary.model
 import org.argus.amandroid.core.AndroidConstants
 import org.argus.jawa.flow.pta._
 import org.argus.jawa.flow.pta.rfa.RFAFact
-import org.argus.jawa.core.JawaType
+import org.argus.jawa.core.elements.{JavaKnowledge, JawaType}
 
 /**
   * Created by fgwei on 6/24/17.
@@ -39,9 +39,7 @@ class IntentSuTest extends SuTestBase("Intent.safsu") {
 
   "Landroid/content/Intent;.<clinit>:()V" with_input () produce ()
 
-  "Landroid/content/Intent;.<init>:()V" with_input (
-    thisFact,
-  ) produce (
+  "Landroid/content/Intent;.<init>:()V" with_input thisFact produce (
     thisFact,
     RFAFact(FieldSlot(thisInstance, "mExtras"), PTAInstance(new JawaType(AndroidConstants.BUNDLE), currentContext)),
     RFAFact(FieldSlot(PTAInstance(new JawaType(AndroidConstants.BUNDLE), currentContext), "entries"), PTAInstance(new JawaType("android.os.Bundle$Entries"), currentContext))

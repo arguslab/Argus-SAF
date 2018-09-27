@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+package jnsaf_server;
+option java_package = "org.argus.jnsaf.server";
+
+message LoadAPKRequest {
+    bytes buffer = 1;
+}
+
+message LoadAPKResponse {
+    string apk_digest = 1;
+    int32 length = 2;
+}
+
+service JNSaf {
+    rpc loadAPK(stream LoadAPKRequest) returns (LoadAPKResponse) {}
+}

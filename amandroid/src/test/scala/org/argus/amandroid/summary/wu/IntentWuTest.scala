@@ -23,6 +23,7 @@ import org.argus.jawa.flow.reachability.SignatureBasedCallGraph
 import org.argus.jawa.core.util._
 import org.argus.jawa.core._
 import org.argus.jawa.core.elements.Signature
+import org.argus.jawa.core.io.{MsgLevel, PrintReporter}
 import org.argus.jawa.flow.summary.{BottomUpSummaryGenerator, SummaryManager}
 import org.argus.jawa.flow.summary.wu.{PTStore, PTSummary, WorkUnit}
 import org.scalatest.tagobjects.Slow

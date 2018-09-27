@@ -13,8 +13,8 @@ package org.argus.amandroid.plugin
 import org.argus.amandroid.alir.componentSummary.ApkYard
 import org.argus.amandroid.core.decompile.{DecompileLayout, DecompileStrategy, DecompilerSettings}
 import org.argus.amandroid.plugin.lockScreen.LockScreen
+import org.argus.jawa.core.io.{MsgLevel, NoReporter, PrintReporter}
 import org.argus.jawa.core.util.FileUtil
-import org.argus.jawa.core.{MsgLevel, NoReporter, PrintReporter}
 import org.scalatest.FlatSpec
 
 class LockScreenTest extends FlatSpec{

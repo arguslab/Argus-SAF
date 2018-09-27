@@ -14,7 +14,7 @@ import org.argus.amandroid.alir.componentSummary.ApkYard
 import org.argus.amandroid.core.appInfo.AppInfoCollector
 import org.argus.amandroid.core.decompile.{ConverterUtil, DecompileLayout, DecompileStrategy, DecompilerSettings}
 import org.argus.amandroid.plugin.apiMisuse.{CryptographicMisuse, HideIcon, SSLTLSMisuse}
-import org.argus.jawa.core.{MsgLevel, NoReporter, PrintReporter}
+import org.argus.jawa.core.io.{MsgLevel, NoReporter, PrintReporter}
 import org.argus.jawa.core.util.FileUtil
 import org.scalatest.{FlatSpec, Matchers}
 

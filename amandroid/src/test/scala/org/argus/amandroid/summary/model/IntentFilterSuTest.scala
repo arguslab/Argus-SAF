@@ -13,7 +13,7 @@ package org.argus.amandroid.summary.model
 import org.argus.amandroid.core.AndroidConstants
 import org.argus.jawa.flow.pta._
 import org.argus.jawa.flow.pta.rfa.RFAFact
-import org.argus.jawa.core.JawaType
+import org.argus.jawa.core.elements.JawaType
 
 /**
   * Created by fgwei on 6/24/17.
@@ -33,16 +33,12 @@ class IntentFilterSuTest extends SuTestBase("IntentFilter.safsu") {
 
   "Landroid/content/IntentFilter;.<clinit>:()V" with_input () produce ()
 
-  "Landroid/content/IntentFilter;.<init>:()V" with_input (
-    thisFact,
-  ) produce (
+  "Landroid/content/IntentFilter;.<init>:()V" with_input thisFact produce (
     thisFact,
     RFAFact(FieldSlot(thisInstance, "mData"), PTAInstance(new JawaType(AndroidConstants.URI), currentContext))
   )
 
-  "Landroid/content/IntentFilter;.<init>:(Landroid/content/IntentFilter;)V" with_input (
-    thisFact,
-  ) produce (
+  "Landroid/content/IntentFilter;.<init>:(Landroid/content/IntentFilter;)V" with_input thisFact produce (
     thisFact,
     RFAFact(FieldSlot(thisInstance, "mData"), PTAInstance(new JawaType(AndroidConstants.URI), currentContext))
   )

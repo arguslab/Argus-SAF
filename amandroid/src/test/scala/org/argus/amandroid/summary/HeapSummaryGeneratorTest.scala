@@ -16,6 +16,7 @@ import org.argus.amandroid.alir.pta.summaryBasedAnalysis.AndroidSummaryProvider
 import org.argus.jawa.flow.reachability.SignatureBasedCallGraph
 import org.argus.jawa.core._
 import org.argus.jawa.core.elements.Signature
+import org.argus.jawa.core.io.{MsgLevel, PrintReporter}
 import org.argus.jawa.core.util.{FileUtil, IList, TopologicalSortUtil}
 import org.argus.jawa.flow.summary.susaf.rule.HeapSummary
 import org.argus.jawa.flow.summary.wu.{HeapSummaryWu, WorkUnit}
@@ -27,6 +28,7 @@ import scala.language.implicitConversions
 /**
   * Created by fgwei on 8/1/17.
   */
+//noinspection ScalaUnnecessaryParentheses
 class HeapSummaryGeneratorTest extends FlatSpec with Matchers {
   final val DEBUG = false
 

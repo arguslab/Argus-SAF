@@ -11,8 +11,10 @@
 package org.argus.amandroid.core.dedex
 
 import org.argus.amandroid.core.decompile.{DecompileLayout, DecompileStrategy, DecompilerSettings}
-import org.argus.jawa.core.{JawaType, NoLibraryAPISummary, NoReporter}
+import org.argus.jawa.core.NoLibraryAPISummary
 import org.argus.jawa.core.ast.jawafile.JawaAstParser
+import org.argus.jawa.core.elements.JawaType
+import org.argus.jawa.core.io.NoReporter
 import org.scalatest.{FlatSpec, Matchers}
 import org.argus.jawa.core.util.FileUtil
 
@@ -21,7 +23,7 @@ import org.argus.jawa.core.util.FileUtil
   */
 class DedexTest extends FlatSpec with Matchers {
 
-  val recordFilter: (JawaType => Boolean) = { _ =>
+  val recordFilter: JawaType => Boolean = { _ =>
     true
   }
 
