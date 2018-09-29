@@ -59,7 +59,8 @@ class ArmelResolver(TaintResolver):
             argument_name = argument[0]
             argument_type = argument[1]
             typ = get_type(self._project, argument_type.replace('/', '.'))
-            data = claripy.BVV(typ.ptr, self._project.arch.bits)
+            typ_size = get_type_size(self._project, argument_type)
+            data = claripy.BVV(typ.ptr, typ_size)
             argument_annotation = construct_annotation(argument_type, argument_name)
             # argument_annotation = jobjectAnnotation(source=argument_name, obj_type=argument_type, fields_info=list())
             argument_annotation.taint_info['is_taint'] = True
