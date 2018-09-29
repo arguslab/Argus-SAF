@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017. Fengguo Wei and others.
+ * Copyright (c) 2018. Fengguo Wei and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -8,36 +8,32 @@
  * Detailed contributors are listed in the CONTRIBUTOR.md
  */
 
-package org.argus.jawa.flow.reachability
+package org.argus.jawa.flow.cg
 
 import java.util.concurrent.TimeoutException
 
 import hu.ssh.progressbar.ConsoleProgressBar
-import org.argus.jawa.flow.cg.CallGraph
+import org.argus.jawa.core.ast.CallStatement
+import org.argus.jawa.core.elements.Signature
+import org.argus.jawa.core.util._
+import org.argus.jawa.core.{Global, JawaMethod}
 import org.argus.jawa.flow.interprocedural.{CallHandler, IndirectCallResolver}
 import org.argus.jawa.flow.pta.PTAScopeManager
-import org.argus.jawa.core.ast.CallStatement
-import org.argus.jawa.core._
-import org.argus.jawa.core.elements.Signature
-import org.argus.jawa.core.util.MyTimeout
-import org.argus.jawa.core.util._
-
-import scala.language.postfixOps
 import scala.concurrent.duration._
 
 /**
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
- */ 
-object SignatureBasedCallGraph {
-  final val TITLE = "SignatureBasedCallGraph"
-  
+ */
+object CHA {
+  final val TITLE = "CHA"
+
   def apply(
-      global: Global, 
+      global: Global,
       entryPoints: ISet[Signature],
       timer: Option[MyTimeout] = Some(new MyTimeout(1 minutes))): CallGraph = build(global, entryPoints, timer)
-      
+
   def build(
-      global: Global, 
+      global: Global,
       entryPoints: ISet[Signature],
       timer: Option[MyTimeout]): CallGraph = {
     val cg = new CallGraph
@@ -65,7 +61,7 @@ object SignatureBasedCallGraph {
     global.reporter.println(s"$TITLE done with method size ${processed.size}.")
     cg
   }
-  
+
   private def sbcg(global: Global, ep: JawaMethod, cg: CallGraph, processed: MSet[String], timer: Option[MyTimeout]): Unit = {
     cg.addCalls(ep.getSignature, isetEmpty)
     val worklistAlgorithm = new WorklistAlgorithm[JawaMethod] {

@@ -49,7 +49,7 @@ class ReachableInfoCollector(val global: Global, entryPointTypes: ISet[JawaType]
   initAndroidCallbacks
   
   def init(): Unit = {
-    reachableMap = ReachabilityAnalysis.getReachableMethodsBySBCG(global, entryPointTypes)
+    reachableMap = ReachabilityAnalysis.getReachableMethodsByCHA(global, entryPointTypes)
   }
 
   def getSensitiveLayoutContainer(layoutControls: IMap[Int, LayoutControl]): Set[JawaType] = {

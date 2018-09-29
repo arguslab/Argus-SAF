@@ -37,6 +37,9 @@ case class DecompilerSettings(
     progressBar: ProgressBar = ConsoleProgressBar.on(System.out)
       .withFormat("[:bar] :percent% :elapsed ETA: :eta"))
 
+class DefaultDecompilerSettings(outputUri: FileResourceUri, reporter: Reporter) extends
+  DecompilerSettings(false, true, DecompileStrategy(DecompileLayout(outputUri)), reporter)
+
 case class DecompileStrategy(
     layout: DecompileLayout,
     libraryAPISummary: LibraryAPISummary = new DefaultLibraryAPISummary(AndroidGlobalConfig.settings.third_party_lib_file),

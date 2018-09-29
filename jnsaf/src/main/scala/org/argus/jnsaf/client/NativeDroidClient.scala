@@ -17,9 +17,9 @@ import com.google.protobuf.ByteString
 import io.grpc.ManagedChannelBuilder
 import io.grpc.stub.StreamObserver
 import org.argus.jawa.core.elements.Signature
-import org.argus.jawa.core.io.{MsgLevel, PrintReporter, Reporter}
+import org.argus.jawa.core.io.Reporter
 import org.argus.jawa.core.util._
-import org.argus.nativedroid.server.server._
+import org.argus.nativedroid.server.nativedroid_grpc._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -31,8 +31,8 @@ import scala.concurrent.Future
 class NativeDroidClient(address: String, port: Int, reporter: Reporter) {
   final val TITLE = "NativeDroidClient"
   private val channel = ManagedChannelBuilder.forAddress(address, port).usePlaintext(true).build
-  private val client = NativeDroidServerGrpc.stub(channel)
-  private val blocking_client = NativeDroidServerGrpc.blockingStub(channel)
+  private val client = NativeDroidGrpc.stub(channel)
+  private val blocking_client = NativeDroidGrpc.blockingStub(channel)
 
   private val loadedBinaries: MMap[FileResourceUri, String] = mmapEmpty
 
@@ -222,27 +222,6 @@ class NativeDroidClient(address: String, port: Int, reporter: Reporter) {
         reporter.error(TITLE, e.getMessage)
         e.printStackTrace()
         "-1"
-    }
-  }
-
-}
-
-object NativeDroidClient {
-  def main(args: Array[String]): Unit = {
-    val client = new NativeDroidClient("localhost", 50051, new PrintReporter(MsgLevel.INFO))
-    try {
-      val soFileUri = FileUtil.toUri("/Users/fengguow/IdeaProjects/Argus-SAF/nativedroid/nativedroid/testdata/NativeLibs/native_leak/lib/armeabi/libleak.so")
-      val methodName = "Java_org_arguslab_native_1leak_MainActivity_send"
-      val sig = new Signature("Lorg/arguslab/native_leak/MainActivity;.send:(Ljava/lang/String;)V")
-      println(client.genSummary(soFileUri, methodName, sig))
-    } finally {
-      try {
-        Thread.sleep(500)
-      } catch {
-        case e: InterruptedException =>
-          e.printStackTrace()
-      }
-      client.shutdown()
     }
   }
 }

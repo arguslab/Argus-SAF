@@ -19,11 +19,11 @@ import org.argus.amandroid.core.decompile.{ConverterUtil, DecompileLayout, Decom
 import org.argus.amandroid.core.model.Intent
 import org.argus.jawa.flow.Context
 import org.argus.jawa.flow.pta.PTASlot
-import org.argus.jawa.flow.reachability.SignatureBasedCallGraph
 import org.argus.jawa.core.util._
 import org.argus.jawa.core._
 import org.argus.jawa.core.elements.Signature
 import org.argus.jawa.core.io.{MsgLevel, PrintReporter}
+import org.argus.jawa.flow.cg.CHA
 import org.argus.jawa.flow.summary.{BottomUpSummaryGenerator, SummaryManager}
 import org.argus.jawa.flow.summary.wu.{PTStore, PTSummary, WorkUnit}
 import org.scalatest.tagobjects.Slow
@@ -88,7 +88,7 @@ class IntentWuTest extends FlatSpec with Matchers {
         global.setJavaLib(getClass.getResource("/libs/android.jar").getPath)
         global.load(FileUtil.toUri(getClass.getResource(file).getPath))
         val sm: SummaryManager = new AndroidSummaryProvider(global).getSummaryManager
-        val cg = SignatureBasedCallGraph(global, Set(entrypoint), None)
+        val cg = CHA(global, Set(entrypoint), None)
         val analysis = new BottomUpSummaryGenerator[Global](global, sm, handler,
           PTSummary(_, _),
           ConsoleProgressBar.on(System.out).withFormat("[:bar] :percent% :elapsed Left: :remain"))
@@ -225,7 +225,7 @@ class IntentWuTest extends FlatSpec with Matchers {
         val (_, (sig, _)) = apk.model.getEnvMap.find{ case (comp, _) =>
           comp.toString.endsWith(".MainActivity")
         }.get
-        val cg = SignatureBasedCallGraph(apk, Set(sig), None)
+        val cg = CHA(apk, Set(sig), None)
         val orderedWUs: IList[WorkUnit[Global]] = cg.topologicalSort(true).map { sig =>
           val method = apk.getMethodOrResolve(sig).getOrElse(throw new RuntimeException("Method does not exist: " + sig))
           new IntentWu(apk, method, sm, handler, store, "intent")

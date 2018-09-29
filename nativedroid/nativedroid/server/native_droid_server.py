@@ -8,8 +8,8 @@ from concurrent import futures
 
 from nativedroid.analyses.nativedroid_analysis import *
 from nativedroid.jawa.utils import *
-from nativedroid.protobuf.server_pb2 import *
-from nativedroid.protobuf.server_pb2_grpc import *
+from nativedroid.protobuf.nativedroid_grpc_pb2 import *
+from nativedroid.protobuf.nativedroid_grpc_pb2_grpc import *
 
 __author__ = "Fengguo Wei"
 __copyright__ = "Copyright 2018, The Argus-SAF Project"
@@ -20,7 +20,7 @@ _ONE_DAY_IN_SECONDS = 60 * 60 * 24
 logger = logging.getLogger('nativedroid.server.NativeDroidServer')
 
 
-class NativeDroidServer(NativeDroidServerServicer):
+class NativeDroidServer(NativeDroidServicer):
 
     def __init__(self, binary_path, native_ss_file, java_ss_file):
         self._binary_path = binary_path
@@ -98,7 +98,7 @@ class NativeDroidServer(NativeDroidServerServicer):
 
 def serve(binary_path, native_ss_file, java_ss_file):
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
-    add_NativeDroidServerServicer_to_server(
+    add_NativeDroidServicer_to_server(
         NativeDroidServer.from_filesystem(binary_path, native_ss_file, java_ss_file), server)
     server.add_insecure_port('[::]:50051')
     server.start()

@@ -3,7 +3,7 @@ syntax = "proto3";
 package nativedroid_server;
 option java_package = "org.argus.nativedroid.server";
 
-import "java_signatures.proto";
+import "nativedroid/protobuf/java_signatures.proto";
 
 message GenSummaryRequest {
     string so_handle = 1;
@@ -44,7 +44,7 @@ message LoadBinaryResponse {
     int32 length = 2;
 }
 
-service NativeDroidServer {
+service NativeDroid {
     rpc GenSummary(GenSummaryRequest) returns (GenSummaryResponse);
     rpc HasSymbol(HasSymbolRequest) returns (HasSymbolResponse);
     rpc AnalyseNativeActivity(AnalyseNativeActivityRequest) returns (AnalyseNativeActivityResponse);

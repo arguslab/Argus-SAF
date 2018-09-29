@@ -19,12 +19,14 @@ class NativeDroidServerTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.server = grpc.server(futures.ThreadPoolExecutor(max_workers=1))
-        add_NativeDroidServerServicer_to_server(NativeDroidServer('/tmp/binaries/'), cls.server)
+        native_ss_file = pkg_resources.resource_filename('nativedroid.data', 'sourceAndSinks/NativeSourcesAndSinks.txt')
+        java_ss_file = pkg_resources.resource_filename('nativedroid.data', 'sourceAndSinks/TaintSourcesAndSinks.txt')
+        add_NativeDroidServicer_to_server(NativeDroidServer('/tmp/binaries/', native_ss_file, java_ss_file), cls.server)
         cls.server.add_insecure_port('[::]:50001')
         cls.server.start()
         logger.info('Server started.')
         channel = grpc.insecure_channel('localhost:50001')
-        cls.stub = NativeDroidServerStub(channel)
+        cls.stub = NativeDroidStub(channel)
         file_path = 'testdata/libleak.so'
         chunks_generator = get_file_chunks(file_path)
         cls._lb_response = cls.stub.LoadBinary(chunks_generator)

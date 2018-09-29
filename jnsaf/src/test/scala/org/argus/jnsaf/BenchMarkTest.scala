@@ -2,11 +2,13 @@ package org.argus.jnsaf
 
 import java.io.File
 
-import org.argus.amandroid.core.decompile.ConverterUtil
+import org.argus.amandroid.alir.componentSummary.ApkYard
+import org.argus.amandroid.core.decompile.{ConverterUtil, DefaultDecompilerSettings}
 import org.argus.jawa.core.elements.JawaType
+import org.argus.jawa.core.io.{MsgLevel, PrintReporter}
 import org.argus.jawa.core.util.{FileUtil, IMap}
 import org.argus.jawa.flow.summary.store.TaintStore
-import org.argus.jnsaf.analysis.TaintAnalysis
+import org.argus.jnsaf.analysis.JNSafTaintAnalysis
 import org.scalatest.tagobjects.Slow
 import org.scalatest.{FlatSpec, Matchers}
 
@@ -82,7 +84,11 @@ class BenchMarkTest extends FlatSpec with Matchers {
   def taintAnalysis(apkFile: String): IMap[JawaType, TaintStore] = {
     System.getProperties.setProperty("jpy.config", "jpy/jpyconfig.properties")
     val output = new File(apkFile).getParent + File.separator + "output"
-    val res = TaintAnalysis(apkFile, output, debug = true, guessPackage = true)
+    val outputUri = FileUtil.toUri(output)
+    val reporter = new PrintReporter(MsgLevel.INFO)
+    val settings = new DefaultDecompilerSettings(outputUri, reporter)
+    val apk = new ApkYard(reporter).loadApk(FileUtil.toUri(apkFile), settings, collectInfo = true, resolveCallBack = true, guessAppPackages = true)
+    val res = new JNSafTaintAnalysis(reporter).perform(apk)
     if(!DEBUG) {
       ConverterUtil.cleanDir(FileUtil.toUri(output))
     }
