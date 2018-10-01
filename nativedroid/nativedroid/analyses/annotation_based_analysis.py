@@ -4,7 +4,6 @@ from nativedroid.analyses.resolver.annotation import *
 from nativedroid.analyses.resolver.armel_resolver import ArmelResolver
 from nativedroid.analyses.resolver.jni.jni_helper import *
 from nativedroid.analyses.resolver.model.__android_log_print import *
-from nativedroid.analyses.resolver.x86_resolver import X86Resolver
 
 __author__ = "Xingwei Lin, Fengguo Wei"
 __copyright__ = "Copyright 2018, The Argus-SAF Project"
@@ -36,8 +35,6 @@ class AnnotationBasedAnalysis(angr.Analysis):
         """
         if self.project.arch.name is 'ARMEL':
             self._resolver = ArmelResolver(self.project)
-        elif self.project.arch.name is 'X86':
-            self._resolver = X86Resolver(self.project)
         else:
             raise ValueError('Unsupported architecture: %d' % self.project.arch.name)
         self._hook_system_calls()
