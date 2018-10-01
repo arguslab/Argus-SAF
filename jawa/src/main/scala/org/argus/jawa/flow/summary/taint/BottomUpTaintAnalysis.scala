@@ -12,7 +12,6 @@ package org.argus.jawa.flow.summary.taint
 
 import hu.ssh.progressbar.ConsoleProgressBar
 import org.argus.jawa.flow.pta.model.ModelCallHandler
-import org.argus.jawa.flow.reachability.SignatureBasedCallGraph
 import org.argus.jawa.flow.taintAnalysis.SourceAndSinkManager
 import org.argus.jawa.core.elements.Signature
 import org.argus.jawa.core.util._
@@ -21,6 +20,7 @@ import org.argus.jawa.flow.summary.wu.{TaintSummary, TaintWu, WorkUnit}
 import org.argus.jawa.flow.summary.{BottomUpSummaryGenerator, SummaryManager, SummaryProvider}
 import org.argus.jawa.core.Global
 import org.argus.jawa.core.io.Reporter
+import org.argus.jawa.flow.cg.CHA
 
 class BottomUpTaintAnalysis[T <: Global](
     global: T,
@@ -36,7 +36,7 @@ class BottomUpTaintAnalysis[T <: Global](
     eps.foreach { ep =>
       i += 1
       reporter.println(s"Processing $i/${eps.size}: ${ep.signature}")
-      val cg = SignatureBasedCallGraph(global, Set(ep), None)
+      val cg = CHA(global, Set(ep), None)
       val analysis = new BottomUpSummaryGenerator[T](global, sm, handler,
         TaintSummary(_, _),
         ConsoleProgressBar.on(System.out).withFormat("[:bar] :percent% :elapsed Left: :remain"))

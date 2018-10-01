@@ -13,11 +13,11 @@ package org.argus.jawa.flow.summary
 import hu.ssh.progressbar.ConsoleProgressBar
 import org.argus.jawa.flow.pta.PTAScopeManager
 import org.argus.jawa.flow.pta.model.ModelCallHandler
-import org.argus.jawa.flow.reachability.SignatureBasedCallGraph
 import org.argus.jawa.core._
 import org.argus.jawa.core.elements.Signature
 import org.argus.jawa.core.io.{MsgLevel, PrintReporter}
 import org.argus.jawa.core.util._
+import org.argus.jawa.flow.cg.CHA
 import org.argus.jawa.flow.summary.susaf.rule.HeapSummary
 import org.argus.jawa.flow.summary.wu.{HeapSummaryWu, WorkUnit}
 import org.scalatest.tagobjects.Slow
@@ -124,7 +124,7 @@ class HeapSummaryGeneratorTest extends FlatSpec with Matchers {
         global.setJavaLib(getClass.getResource("/libs/android.jar").getPath)
         global.load(FileUtil.toUri(getClass.getResource(file).getPath))
         val sm: SummaryManager = new JawaSummaryProvider(global).getSummaryManager
-        val cg = SignatureBasedCallGraph(global, Set(entrypoint), None)
+        val cg = CHA(global, Set(entrypoint), None)
         val analysis = new BottomUpSummaryGenerator[Global](global, sm, handler,
           HeapSummary(_, _),
           ConsoleProgressBar.on(System.out).withFormat("[:bar] :percent% :elapsed Left: :remain"))
@@ -143,7 +143,7 @@ class HeapSummaryGeneratorTest extends FlatSpec with Matchers {
         global.setJavaLib(getClass.getResource("/libs/android.jar").getPath)
         global.load(FileUtil.toUri(getClass.getResource(file).getPath))
         val sm: SummaryManager = new JawaSummaryProvider(global).getSummaryManager
-        val cg = SignatureBasedCallGraph(global, Set(entrypoint), None)
+        val cg = CHA(global, Set(entrypoint), None)
         val analysis = new BottomUpSummaryGenerator[Global](global, sm, handler,
           HeapSummary(_, _),
           ConsoleProgressBar.on(System.out).withFormat("[:bar] :percent% :elapsed Left: :remain"))

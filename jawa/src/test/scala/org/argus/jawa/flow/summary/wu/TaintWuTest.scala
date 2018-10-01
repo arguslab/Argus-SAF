@@ -13,12 +13,12 @@ package org.argus.jawa.flow.summary.wu
 import hu.ssh.progressbar.ConsoleProgressBar
 import org.argus.jawa.flow.pta.PTAScopeManager
 import org.argus.jawa.flow.pta.model.ModelCallHandler
-import org.argus.jawa.flow.reachability.SignatureBasedCallGraph
 import org.argus.jawa.flow.taintAnalysis.{SSPosition, SourceAndSinkManager}
 import org.argus.jawa.core._
 import org.argus.jawa.core.elements.Signature
 import org.argus.jawa.core.io.{MsgLevel, PrintReporter}
 import org.argus.jawa.core.util._
+import org.argus.jawa.flow.cg.CHA
 import org.argus.jawa.flow.summary.store.TaintStore
 import org.argus.jawa.flow.summary.{BottomUpSummaryGenerator, JawaSummaryProvider, SummaryManager}
 import org.scalatest.{FlatSpec, Matchers}
@@ -144,7 +144,7 @@ class TaintWuTest extends FlatSpec with Matchers {
 
         val sm: SummaryManager = new JawaSummaryProvider(global).getSummaryManager
         sm.registerExternalFile(FileUtil.toUri(getClass.getResource("/jawa/taint/TaintAPI.safsu").getPath), "TaintAPI.safsu", fileAndSubsigMatch = false)
-        val cg = SignatureBasedCallGraph(global, Set(entrypoint), None)
+        val cg = CHA(global, Set(entrypoint), None)
         val analysis = new BottomUpSummaryGenerator[Global](global, sm, handler,
           TaintSummary(_, _),
           ConsoleProgressBar.on(System.out).withFormat("[:bar] :percent% :elapsed Left: :remain"))

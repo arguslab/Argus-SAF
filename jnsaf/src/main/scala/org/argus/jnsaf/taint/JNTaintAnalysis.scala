@@ -7,8 +7,8 @@ import org.argus.amandroid.alir.taintAnalysis.{AndroidSourceAndSinkManager, Data
 import org.argus.amandroid.core.{AndroidGlobalConfig, ApkGlobal}
 import org.argus.jawa.core.elements.JawaType
 import org.argus.jawa.core.io.Reporter
-import org.argus.jawa.flow.reachability.SignatureBasedCallGraph
 import org.argus.jawa.core.util._
+import org.argus.jawa.flow.cg.CHA
 import org.argus.jawa.flow.summary.store.TaintStore
 import org.argus.jawa.flow.summary.wu.{TaintSummary, TaintWu, WorkUnit}
 import org.argus.jawa.flow.summary.{BottomUpSummaryGenerator, SummaryManager}
@@ -33,7 +33,7 @@ class JNTaintAnalysis(apk: ApkGlobal, native_handler: NativeMethodHandler, repor
       reporter.println(s"Processing component $i/${components.size}: ${comp.jawaName}")
       val clazz = apk.getClassOrResolve(comp)
       val eps = clazz.getDeclaredMethods.map(m => m.getSignature)
-      val cg = SignatureBasedCallGraph(apk, eps, None)
+      val cg = CHA(apk, eps, None)
       val analysis = new BottomUpSummaryGenerator[ApkGlobal](apk, sm, handler,
         TaintSummary(_, _),
         ConsoleProgressBar.on(System.out).withFormat("[:bar] :percent% :elapsed Left: :remain"))

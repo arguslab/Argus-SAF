@@ -13,7 +13,7 @@ import org.scalatest.{FlatSpec, Matchers}
 /**
   * Created by fgwei on 1/28/18.
   */
-class JNTaintAnalysisTest extends FlatSpec with Matchers {
+class JNJNSafTaintAnalysisTest extends FlatSpec with Matchers {
   private final val DEBUG = false
 
 //  "icc_javatonative" should "have 2 components" in {

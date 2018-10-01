@@ -10,12 +10,13 @@
 
 package org.argus.jnsaf.server
 
-import java.io.{File, FileInputStream}
+import java.io.File
 
 import com.google.common.hash.Hashing
+import com.google.common.io.Files
 import io.grpc.{Server, ServerBuilder}
 import org.argus.jawa.core.io.{MsgLevel, PrintReporter}
-import org.argus.jawa.core.util.FileUtil
+import org.argus.jawa.core.util.{FileResourceUri, FileUtil}
 import org.argus.jnsaf.client.JNSafClient
 import org.argus.jnsaf.server.JNSafServer.{JNSafService, TITLE}
 import org.argus.jnsaf.server.jnsaf_grpc.JNSafGrpc
@@ -26,6 +27,8 @@ import scala.concurrent.ExecutionContext
 class JNSafServerTest extends FlatSpec with Matchers with BeforeAndAfterAll {
   var server: Server = _
   var client: JNSafClient = _
+  var fileUri: FileResourceUri = _
+  var loadResponse: Option[String] = _
   override def beforeAll(): Unit = {
     val reporter = new PrintReporter(MsgLevel.INFO)
     val apk_path = "/tmp/apks"
@@ -38,6 +41,9 @@ class JNSafServerTest extends FlatSpec with Matchers with BeforeAndAfterAll {
       .start
     println(s"$TITLE server started.")
     client = new JNSafClient("localhost", 55001, reporter)
+    val file_path = getClass.getResource("/apks/icc_explicit1.apk").getPath
+    fileUri = FileUtil.toUri(file_path)
+    loadResponse = client.loadAPK(fileUri)
   }
 
   override def afterAll(): Unit = {
@@ -54,15 +60,15 @@ class JNSafServerTest extends FlatSpec with Matchers with BeforeAndAfterAll {
     dir.delete()
   }
 
-  "loadApk" should "success" in {
-    val file_path = getClass.getResource("/NativeFlowBench/native_leak.apk").getPath
-    val file_uri = FileUtil.toUri(file_path)
-    val res = client.loadAPK(file_uri)
-    assert(res.isDefined)
-    val file = FileUtil.toFile(file_uri)
-    val sha256 = Hashing.sha256()
-    sha256.hashBytes(new FileInputStream(file).readAllBytes())
-    assert(sha256.toString == res.get)
+  "LoadApk" should "success" in {
+    assert(loadResponse.isDefined)
+    val file = FileUtil.toFile(fileUri)
+    val hashCode = Files.hash(file, Hashing.sha256())
+    assert(loadResponse.get == hashCode.toString)
+  }
+
+  "TaintAnalysis" should "success" in {
+    assert(client.taintAnalysis(fileUri))
   }
 
 }

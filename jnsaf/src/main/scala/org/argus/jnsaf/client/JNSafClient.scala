@@ -18,15 +18,17 @@ import io.grpc.ManagedChannelBuilder
 import io.grpc.stub.StreamObserver
 import org.argus.jawa.core.io.Reporter
 import org.argus.jawa.core.util._
-import org.argus.jnsaf.server.jnsaf_grpc.{JNSafGrpc, LoadAPKRequest, LoadAPKResponse}
-import org.argus.nativedroid.server.server._
+import org.argus.jnsaf.server.jnsaf_grpc._
+
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
 //noinspection ScalaDeprecation
 class JNSafClient(address: String, port: Int, reporter: Reporter) {
   final val TITLE = "JNSafClient"
   private val channel = ManagedChannelBuilder.forAddress(address, port).usePlaintext(true).build
   private val client = JNSafGrpc.stub(channel)
-  private val blocking_client = NativeDroidServerGrpc.blockingStub(channel)
+  private val blocking_client = JNSafGrpc.blockingStub(channel)
 
   private val loadedAPKs: MMap[FileResourceUri, String] = mmapEmpty
 
@@ -72,7 +74,7 @@ class JNSafClient(address: String, port: Int, reporter: Reporter) {
           tmp = bInputStream.read(buffer); tmp > 0
         }) {
           size += tmp
-          val byteString = ByteString.copyFrom(buffer)
+          val byteString = ByteString.copyFrom(buffer, 0, tmp)
           val req = LoadAPKRequest(byteString)
           requestObserver.onNext(req)
         }
@@ -95,9 +97,9 @@ class JNSafClient(address: String, port: Int, reporter: Reporter) {
     loadedAPKs.get(fileUri)
   }
 
-  def loadAPK(soFileUri: FileResourceUri): Option[String] = {
+  def loadAPK(apkUri: FileResourceUri): Option[String] = {
     try {
-      startStream(soFileUri)
+      startStream(apkUri)
     } catch {
       case e: Exception =>
         e.printStackTrace()
@@ -105,14 +107,41 @@ class JNSafClient(address: String, port: Int, reporter: Reporter) {
     }
   }
 
-  private def getAPKHandle(soFileUri: FileResourceUri): String = {
-    this.loadedAPKs.get(soFileUri) match {
+  def taintAnalysis(apkUri: String): Boolean = {
+    try {
+      val doneSignal = new CountDownLatch(1)
+      val digest = getAPKDigest(apkUri)
+      val request = TaintAnalysisRequest(digest)
+      val responseFuture: Future[TaintAnalysisResponse] = client.taintAnalysis(request)
+      var responseOpt: Option[TaintAnalysisResponse] = None
+      responseFuture.foreach { response =>
+        responseOpt = Some(response)
+        doneSignal.countDown()
+      }
+      if (!doneSignal.await(5, TimeUnit.MINUTES)) {
+        reporter.error(TITLE, "genSummary can not finish within 5 minutes")
+      }
+      responseOpt match {
+        case Some(response) =>
+          return response.status
+        case None =>
+      }
+    } catch {
+      case e: Throwable =>
+        reporter.error(TITLE, e.getMessage)
+        e.printStackTrace()
+    }
+    false
+  }
+
+  private def getAPKDigest(apkUri: FileResourceUri): String = {
+    this.loadedAPKs.get(apkUri) match {
       case Some(soHandle) => soHandle
       case None =>
-        loadAPK(soFileUri) match {
+        loadAPK(apkUri) match {
           case Some(soHandle) => soHandle
           case None =>
-            throw new RuntimeException(s"Load binary $soFileUri failed.")
+            throw new RuntimeException(s"Load binary $apkUri failed.")
         }
     }
   }

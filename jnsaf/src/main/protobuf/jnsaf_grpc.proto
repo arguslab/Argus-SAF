@@ -12,6 +12,15 @@ message LoadAPKResponse {
     int32 length = 2;
 }
 
+message TaintAnalysisRequest {
+    string apk_digest = 1;
+}
+
+message TaintAnalysisResponse {
+    bool status = 1;
+}
+
 service JNSaf {
-    rpc loadAPK(stream LoadAPKRequest) returns (LoadAPKResponse) {}
+    rpc LoadAPK(stream LoadAPKRequest) returns (LoadAPKResponse) {}
+    rpc TaintAnalysis(TaintAnalysisRequest) returns (TaintAnalysisResponse) {}
 }
