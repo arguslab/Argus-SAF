@@ -98,7 +98,6 @@ class X86Resolver(TaintResolver):
         :return: Tainted args
         :rtype: list
         """
-        # TODO x86 arch suppport.
         args = []
         size = self._project.arch.bits / 8
         for pos in positions:

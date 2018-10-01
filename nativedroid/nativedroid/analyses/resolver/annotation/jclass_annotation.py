@@ -13,7 +13,7 @@ class JclassAnnotation(Annotation):
     def __init__(self, class_type, fields_info):
         """
 
-        :param class_type:
+        :param class_type: The type of this class.
         :param fields_info: The static fields of this class.
         """
         self._class_type = class_type

@@ -173,7 +173,15 @@ class AnnotationBasedAnalysis(angr.Analysis):
             report_file.write(jni_method_signature)
             report_file.write(' -> _SINK_ ')
             for sink_annotation in sinks:
-                if not sink_annotation.field_info['is_field']:
+                if sink_annotation.field_info['is_field'] is True:
+                    pass
+                elif sink_annotation.array_info['is_element'] is True:
+                    if sink_annotation.array_info['subordinate_array'].annotations[0].source.startswith('arg'):
+                        arg_index = \
+                        re.split('arg|_', sink_annotation.array_info['subordinate_array'].annotations[0].source)[1]
+                        sink_location = arg_index + '[' + str(sink_annotation.array_info['element_index']) + ']'
+                        report_file.write(str(sink_location))
+                else:
                     if sink_annotation.source.startswith('arg'):
                         sink_location = re.split('arg|_', sink_annotation.source)[1]
                         report_file.write(str(sink_location))

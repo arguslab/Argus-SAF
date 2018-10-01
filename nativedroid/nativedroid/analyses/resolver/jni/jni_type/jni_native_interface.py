@@ -1744,11 +1744,22 @@ class NewObjectArray(angr.SimProcedure):
 
 
 class GetObjectArrayElement(angr.SimProcedure):
-    def run(self, env, arrary, index):
+    def run(self, env, array, index):
         nativedroid_logger.info('JNINativeInterface SimProcedure: %s', self)
 
         jobject = JObject(self.project)
         return_value = claripy.BVV(jobject.ptr, self.project.arch.bits)
+        element_index = index.ast.args[0]
+        element_type = array.annotations[0].obj_type.split('[]')[0]
+        element_annotation = construct_annotation(element_type, 'from_array')
+        element_annotation.array_info['is_element'] = True
+        element_annotation.array_info['element_index'] = element_index
+        element_annotation.array_info['subordinate_array'] = copy.deepcopy(array)
+        if array.annotations[0].source.startswith('arg'):
+            element_annotation.taint_info['is_taint'] = True
+            element_annotation.taint_info['taint_type'] = ['_SOURCE_', '_ARGUMENT_ELEMENT_']
+            element_annotation.taint_info['taint_info'] = ['SENSITIVE_INFO']
+        return_value = return_value.annotate(element_annotation)
         return return_value
 
     def __repr__(self):

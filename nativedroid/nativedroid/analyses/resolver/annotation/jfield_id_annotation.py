@@ -11,6 +11,12 @@ class JfieldIDAnnotation(Annotation):
     """
 
     def __init__(self, class_name=None, field_name=None, field_signature=None):
+        """
+
+        :param class_name:
+        :param field_name:
+        :param field_signature:
+        """
         self._class_name = class_name
         self._field_name = field_name
         self._field_signature = field_signature
