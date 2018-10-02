@@ -11,32 +11,32 @@
 package org.argus.jawa.flow.summary
 
 import hu.ssh.progressbar.ProgressBar
-import org.argus.jawa.flow.pta.model.ModelCallHandler
 import org.argus.jawa.core.elements.Signature
-import org.argus.jawa.core.{Global, JawaMethod}
 import org.argus.jawa.core.util._
+import org.argus.jawa.core.{Global, JawaMethod}
+import org.argus.jawa.flow.pta.model.ModelCallHandler
 import org.argus.jawa.flow.summary.susaf.rule.HeapSummary
 import org.argus.jawa.flow.summary.wu.{DataFlowWu, HeapSummaryWu, WorkUnit}
 
 /**
   * Created by fgwei on 6/27/17.
   */
-class BottomUpSummaryGenerator[T <: Global](
+class BottomUpSummaryGenerator[T <: Global, S <: SummaryRule](
     global: Global,
     sm: SummaryManager,
     handler: ModelCallHandler,
-    suGen: (Signature, IList[SummaryRule]) => Summary,
+    suGen: (Signature, IList[S]) => Summary[S],
     progressBar: ProgressBar) {
 
   var debug: Boolean = false
 
-  def build(orderedWUs: IList[WorkUnit[T]]): Unit = {
+  def build(orderedWUs: IList[WorkUnit[T, S]]): Unit = {
     TimeUtil.timed(s"BottomUpSummaryGenerator with ${orderedWUs.size} methods. Running Time", global.reporter) {
       ProgressBarUtil.withProgressBar("Summary based data flow analysis...", progressBar)(orderedWUs, processWU)
     }
   }
 
-  private def processWU: WorkUnit[T] => Unit = { wu =>
+  private def processWU: WorkUnit[T, S] => Unit = { wu =>
     if (wu.needProcess(handler)) {
       try {
         wu.initFn()
@@ -44,7 +44,7 @@ class BottomUpSummaryGenerator[T <: Global](
           generateHeapSummary(wu.method) match {
             case Some(w) =>
               wu match {
-                case dfw: DataFlowWu[T] => dfw.setIDFG(w.getIDFG)
+                case dfw: DataFlowWu[T, S] => dfw.setIDFG(w.getIDFG)
                 case _ =>
               }
             case None =>

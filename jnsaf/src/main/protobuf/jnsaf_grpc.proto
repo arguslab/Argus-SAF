@@ -3,6 +3,9 @@ syntax = "proto3";
 package jnsaf_server;
 option java_package = "org.argus.jnsaf.server";
 
+import "java_signatures.proto";
+import "summary.proto";
+
 message LoadAPKRequest {
     bytes buffer = 1;
 }
@@ -20,7 +23,19 @@ message TaintAnalysisResponse {
     bool status = 1;
 }
 
+message GetSummaryRequest {
+    string apk_digest = 1;
+    jawa_core.MethodSignature method_signature = 2;
+    bool gen = 3;
+    int32 depth = 4;
+}
+
+message GetSummaryResponse {
+    jawa_summary.HeapSummary heap_summary = 1;
+}
+
 service JNSaf {
     rpc LoadAPK(stream LoadAPKRequest) returns (LoadAPKResponse) {}
     rpc TaintAnalysis(TaintAnalysisRequest) returns (TaintAnalysisResponse) {}
+    rpc GetSummary(GetSummaryRequest) returns (GetSummaryResponse) {}
 }

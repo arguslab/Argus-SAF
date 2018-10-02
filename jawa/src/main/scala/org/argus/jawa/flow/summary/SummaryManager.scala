@@ -27,12 +27,12 @@ import scala.reflect.{ClassTag, classTag}
 class SummaryManager(global: Global) {
 
   //  Map from signature to Summary
-  private val summaries: MMap[Signature, MSet[Summary]] = mmapEmpty
+  private val summaries: MMap[Signature, MSet[Summary[_]]] = mmapEmpty
   private val heapSummariesMatchFileAndSubsig: MMap[String, IMap[String, HeapSummary]] = mmapEmpty
 
-  def register(signature: Signature, summary: Summary): Unit = summaries.getOrElseUpdate(signature, msetEmpty) += summary
+  def register(signature: Signature, summary: Summary[_]): Unit = summaries.getOrElseUpdate(signature, msetEmpty) += summary
 
-  def register(name: String, suCode: String, fileAndSubsigMatch: Boolean): IMap[Signature, Summary] = {
+  def register(name: String, suCode: String, fileAndSubsigMatch: Boolean): IMap[Signature, Summary[_]] = {
     val su = SummaryParser(suCode)
     su.defaultTypes.foreach { case (baseType, fields) =>
       HeapSummaryProcessor.addDefaultTypes(global, baseType, fields)
@@ -54,9 +54,9 @@ class SummaryManager(global: Global) {
     case None => false
   }
 
-  def getSummaries(sig: Signature): ISet[Summary] = summaries.getOrElse(sig, msetEmpty).toSet
+  def getSummaries(sig: Signature): ISet[Summary[_]] = summaries.getOrElse(sig, msetEmpty).toSet
 
-  def getSummary[T <: Summary : ClassTag](sig: Signature): Option[T] = {
+  def getSummary[T <: Summary[_] : ClassTag](sig: Signature): Option[T] = {
     summaries.get(sig) match {
       case Some(sus) =>
         sus.foreach {
@@ -65,6 +65,15 @@ class SummaryManager(global: Global) {
         }
         None
       case None => None
+    }
+  }
+
+  def getHeapSummaryPb(sig: Signature): Option[summary.HeapSummary] = {
+    getSummary[HeapSummary](sig) match {
+      case Some(su) =>
+        Some(SummaryToProto.toProto(su))
+      case None =>
+        None
     }
   }
 

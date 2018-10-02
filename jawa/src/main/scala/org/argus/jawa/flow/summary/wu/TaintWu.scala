@@ -30,12 +30,12 @@ class TaintWu[T <: Global](
     sm: SummaryManager,
     handler: ModelCallHandler,
     ssm: SourceAndSinkManager[T],
-    ts: TaintStore) extends DataFlowWu[T](global, method, sm, handler) {
+    ts: TaintStore) extends DataFlowWu[T, TaintSummaryRule](global, method, sm, handler) {
 
   val srcInss: MSet[Instance] = msetEmpty
   val sinkInss: MSet[Instance] = msetEmpty
 
-  override def parseIDFG(idfg: InterProceduralDataFlowGraph): IList[SummaryRule] = {
+  override def parseIDFG(idfg: InterProceduralDataFlowGraph): IList[TaintSummaryRule] = {
     var rules = super.parseIDFG(idfg)
     // propagate source and sink
     var sources = srcInss.toSet
@@ -90,7 +90,7 @@ class TaintWu[T <: Global](
     rules
   }
 
-  override def processNode(node: ICFGNode, rules: MList[SummaryRule]): Unit = {
+  override def processNode(node: ICFGNode, rules: MList[TaintSummaryRule]): Unit = {
     val poss: MSet[Option[Int]] = msetEmpty
     node match {
       case in: ICFGInvokeNode =>
@@ -317,9 +317,10 @@ class TaintWu[T <: Global](
   override def toString: String = s"TaintWu($method)"
 }
 
-case class TaintSummary(sig: Signature, rules: Seq[SummaryRule]) extends Summary
-case class SourceSummaryRule(ins: Instance) extends SummaryRule
-case class SinkSummaryRule(hb: HeapBase, ins: Instance) extends SummaryRule
+case class TaintSummary(sig: Signature, rules: Seq[TaintSummaryRule]) extends Summary[TaintSummaryRule]
+trait TaintSummaryRule extends SummaryRule
+case class SourceSummaryRule(ins: Instance) extends TaintSummaryRule
+case class SinkSummaryRule(hb: HeapBase, ins: Instance) extends TaintSummaryRule
 trait TaintHeap
 case class TaintField(name: String) extends TaintHeap
 case class TaintArray() extends TaintHeap

@@ -1,6 +1,7 @@
 package org.argus.jnsaf.taint
 
 import org.argus.amandroid.alir.componentSummary.ApkYard
+import org.argus.amandroid.alir.pta.summaryBasedAnalysis.AndroidSummaryProvider
 import org.argus.amandroid.core.decompile.{ConverterUtil, DecompileLayout, DecompileStrategy, DecompilerSettings}
 import org.argus.jawa.core.elements.JawaType
 import org.argus.jawa.core.io.{MsgLevel, NoReporter, PrintReporter}
@@ -13,7 +14,7 @@ import org.scalatest.{FlatSpec, Matchers}
 /**
   * Created by fgwei on 1/28/18.
   */
-class JNJNSafTaintAnalysisTest extends FlatSpec with Matchers {
+class JNSafTaintAnalysisTest extends FlatSpec with Matchers {
   private final val DEBUG = false
 
 //  "icc_javatonative" should "have 2 components" in {
@@ -125,10 +126,11 @@ class JNJNSafTaintAnalysisTest extends FlatSpec with Matchers {
     val settings = DecompilerSettings(debugMode = false, forceDelete = true, strategy, reporter)
     val apk = yard.loadApk(apkUri, settings, collectInfo = true, resolveCallBack = true)
     val handler = new NativeMethodHandler(new NativeDroidClient("localhost", 50051, reporter))
-    val jntaint = new JNTaintAnalysis(apk, handler, reporter)
+    val provider = new AndroidSummaryProvider(apk)
+    val jntaint = new JNTaintAnalysis(apk, handler, provider, reporter)
     val safsuFileUri = FileUtil.toUri(safsuFile)
     val name = FileUtil.filename(safsuFileUri)
-    jntaint.provider.sm.registerExternalFile(safsuFileUri, name, fileAndSubsigMatch = false)
+    provider.sm.registerExternalFile(safsuFileUri, name, fileAndSubsigMatch = false)
     jntaint.ssm.parseFile(sasFile)
     val res = jntaint.process
     ConverterUtil.cleanDir(outputUri)

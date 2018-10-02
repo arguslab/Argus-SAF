@@ -18,7 +18,7 @@ import org.argus.jawa.core.elements.Signature
 import org.argus.jawa.core.io.{MsgLevel, PrintReporter}
 import org.argus.jawa.core.util.{FileUtil, IList, TopologicalSortUtil}
 import org.argus.jawa.flow.cg.CHA
-import org.argus.jawa.flow.summary.susaf.rule.HeapSummary
+import org.argus.jawa.flow.summary.susaf.rule.{HeapSummary, HeapSummaryRule}
 import org.argus.jawa.flow.summary.wu.{HeapSummaryWu, WorkUnit}
 import org.argus.jawa.flow.summary.{BottomUpSummaryGenerator, SummaryManager}
 import org.scalatest.{FlatSpec, Matchers}
@@ -73,10 +73,10 @@ class HeapSummaryGeneratorTest extends FlatSpec with Matchers {
         global.load(FileUtil.toUri(getClass.getResource(file).getPath))
         val sm: SummaryManager = new AndroidSummaryProvider(global).getSummaryManager
         val cg = CHA(global, Set(entrypoint), None)
-        val analysis = new BottomUpSummaryGenerator[Global](global, sm, handler,
+        val analysis = new BottomUpSummaryGenerator[Global, HeapSummaryRule](global, sm, handler,
           HeapSummary(_, _),
           ConsoleProgressBar.on(System.out).withFormat("[:bar] :percent% :elapsed Left: :remain"))
-        val orderedWUs: IList[WorkUnit[Global]] = TopologicalSortUtil.sort(cg.getCallMap).map { sig =>
+        val orderedWUs: IList[WorkUnit[Global, HeapSummaryRule]] = TopologicalSortUtil.sort(cg.getCallMap).map { sig =>
           val method = global.getMethodOrResolve(sig).getOrElse(throw new RuntimeException("Method does not exist: " + sig))
           new HeapSummaryWu(global, method, sm, handler)
         }.reverse

@@ -26,7 +26,7 @@ case class HeapSummaryFile(defaultTypes: Map[JawaType, Map[String, JawaType]], s
 /**
   * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
   */
-case class HeapSummary(sig: Signature, rules: Seq[SummaryRule]) extends Summary with SuRuleNode {
+case class HeapSummary(sig: Signature, rules: Seq[HeapSummaryRule]) extends Summary[HeapSummaryRule] with SuRuleNode {
   override def toString: String = {
     s"""`${sig.signature}`:
       |  ${rules.mkString("\n  ")}
@@ -35,10 +35,12 @@ case class HeapSummary(sig: Signature, rules: Seq[SummaryRule]) extends Summary 
   }
 }
 
+trait HeapSummaryRule extends SummaryRule
+
 /**
   * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
   */
-case class ClearRule(v: HeapBase) extends SummaryRule with SuRuleNode {
+case class ClearRule(v: HeapBase) extends HeapSummaryRule with SuRuleNode {
   override def toString: String = s"~$v".intern()
 }
 
@@ -49,7 +51,7 @@ object Ops extends Enumeration {
 /**
   * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
   */
-case class BinaryRule(lhs: RuleLhs, ops: Ops.Value, rhs: RuleRhs) extends SummaryRule with SuRuleNode {
+case class BinaryRule(lhs: RuleLhs, ops: Ops.Value, rhs: RuleRhs) extends HeapSummaryRule with SuRuleNode {
   override def toString: String = s"$lhs ${ops match {case Ops.`+=` => "+=" case Ops.`-=` => "-=" case Ops.`=` => "="}} $rhs"
 }
 

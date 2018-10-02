@@ -25,7 +25,7 @@ import org.argus.jawa.core.elements.Signature
 import org.argus.jawa.core.io.{MsgLevel, PrintReporter}
 import org.argus.jawa.flow.cg.CHA
 import org.argus.jawa.flow.summary.{BottomUpSummaryGenerator, SummaryManager}
-import org.argus.jawa.flow.summary.wu.{PTStore, PTSummary, WorkUnit}
+import org.argus.jawa.flow.summary.wu.{PTStore, PTSummary, PTSummaryRule, WorkUnit}
 import org.scalatest.tagobjects.Slow
 import org.scalatest.{FlatSpec, Matchers}
 
@@ -89,11 +89,11 @@ class IntentWuTest extends FlatSpec with Matchers {
         global.load(FileUtil.toUri(getClass.getResource(file).getPath))
         val sm: SummaryManager = new AndroidSummaryProvider(global).getSummaryManager
         val cg = CHA(global, Set(entrypoint), None)
-        val analysis = new BottomUpSummaryGenerator[Global](global, sm, handler,
+        val analysis = new BottomUpSummaryGenerator[Global, PTSummaryRule](global, sm, handler,
           PTSummary(_, _),
           ConsoleProgressBar.on(System.out).withFormat("[:bar] :percent% :elapsed Left: :remain"))
         val store: PTStore = new PTStore
-        val orderedWUs: IList[WorkUnit[Global]] = cg.topologicalSort(true).map { sig =>
+        val orderedWUs: IList[WorkUnit[Global, PTSummaryRule]] = cg.topologicalSort(true).map { sig =>
           val method = global.getMethodOrResolve(sig).getOrElse(throw new RuntimeException("Method does not exist: " + sig))
           new IntentWu(global, method, sm, handler, store, "intent")
         }
@@ -217,7 +217,7 @@ class IntentWuTest extends FlatSpec with Matchers {
         val settings = DecompilerSettings(debugMode = false, forceDelete = true, strategy, reporter)
         val apk = yard.loadApk(fileUri, settings, collectInfo = true, resolveCallBack = true)
         val sm: SummaryManager = new AndroidSummaryProvider(apk).getSummaryManager
-        val analysis = new BottomUpSummaryGenerator[Global](apk, sm, handler,
+        val analysis = new BottomUpSummaryGenerator[Global, PTSummaryRule](apk, sm, handler,
           PTSummary(_, _),
           ConsoleProgressBar.on(System.out).withFormat("[:bar] :percent% :elapsed Left: :remain"))
         val store: PTStore = new PTStore
@@ -226,7 +226,7 @@ class IntentWuTest extends FlatSpec with Matchers {
           comp.toString.endsWith(".MainActivity")
         }.get
         val cg = CHA(apk, Set(sig), None)
-        val orderedWUs: IList[WorkUnit[Global]] = cg.topologicalSort(true).map { sig =>
+        val orderedWUs: IList[WorkUnit[Global, PTSummaryRule]] = cg.topologicalSort(true).map { sig =>
           val method = apk.getMethodOrResolve(sig).getOrElse(throw new RuntimeException("Method does not exist: " + sig))
           new IntentWu(apk, method, sm, handler, store, "intent")
         }

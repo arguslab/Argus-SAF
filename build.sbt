@@ -149,7 +149,10 @@ lazy val jnsaf: Project =
       "com.thesamet.scalapb" %% "scalapb-runtime-grpc" % scalapb.compiler.Version.scalapbVersion
     ))
     .settings(publishSettings)
-    .settings(pbSettings)
+    .settings(pbSettings ++ Seq(
+      // If you want proto files in client to import proto files in common.
+      PB.includePaths in Compile += file("jawa/src/main/protobuf")
+    ))
 
 releaseProcess := Seq(
   checkSnapshotDependencies,

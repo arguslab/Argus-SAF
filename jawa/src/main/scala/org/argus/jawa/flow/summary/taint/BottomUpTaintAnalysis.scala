@@ -16,7 +16,7 @@ import org.argus.jawa.flow.taintAnalysis.SourceAndSinkManager
 import org.argus.jawa.core.elements.Signature
 import org.argus.jawa.core.util._
 import org.argus.jawa.flow.summary.store.TaintStore
-import org.argus.jawa.flow.summary.wu.{TaintSummary, TaintWu, WorkUnit}
+import org.argus.jawa.flow.summary.wu.{TaintSummary, TaintSummaryRule, TaintWu, WorkUnit}
 import org.argus.jawa.flow.summary.{BottomUpSummaryGenerator, SummaryManager, SummaryProvider}
 import org.argus.jawa.core.Global
 import org.argus.jawa.core.io.Reporter
@@ -37,11 +37,11 @@ class BottomUpTaintAnalysis[T <: Global](
       i += 1
       reporter.println(s"Processing $i/${eps.size}: ${ep.signature}")
       val cg = CHA(global, Set(ep), None)
-      val analysis = new BottomUpSummaryGenerator[T](global, sm, handler,
+      val analysis = new BottomUpSummaryGenerator[T, TaintSummaryRule](global, sm, handler,
         TaintSummary(_, _),
         ConsoleProgressBar.on(System.out).withFormat("[:bar] :percent% :elapsed Left: :remain"))
       val store = new TaintStore
-      val orderedWUs: IList[WorkUnit[T]] = cg.topologicalSort(true).map { sig =>
+      val orderedWUs: IList[WorkUnit[T, TaintSummaryRule]] = cg.topologicalSort(true).map { sig =>
         val method = global.getMethodOrResolve(sig).getOrElse(throw new RuntimeException("Method does not exist: " + sig))
         new TaintWu(global, method, sm, handler, ssm, store)
       }

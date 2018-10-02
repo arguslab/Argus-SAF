@@ -15,10 +15,13 @@ import java.io.{BufferedOutputStream, ByteArrayOutputStream, File, FileOutputStr
 import com.google.common.hash.{Hashing, HashingOutputStream}
 import io.grpc.stub.StreamObserver
 import org.argus.amandroid.alir.componentSummary.ApkYard
+import org.argus.amandroid.alir.pta.summaryBasedAnalysis.AndroidSummaryProvider
 import org.argus.amandroid.core.decompile.DefaultDecompilerSettings
+import org.argus.jawa.core.elements.Signature
 import org.argus.jawa.core.io.{MsgLevel, PrintReporter, Reporter}
 import org.argus.jawa.core.util._
-import org.argus.jawa.flow.summary.SummaryManager
+import org.argus.jawa.flow.summary.{SummaryManager, SummaryProvider, SummaryToProto}
+import org.argus.jawa.flow.summary.susaf.rule.HeapSummary
 import org.argus.jnsaf.analysis.NativeMethodHandler
 import org.argus.jnsaf.client.NativeDroidClient
 import org.argus.jnsaf.server.jnsaf_grpc._
@@ -36,7 +39,7 @@ object JNSafServer extends GrpcServer {
     }
     val map: MMap[String, FileResourceUri] = mmapEmpty
     val yard = new ApkYard(reporter)
-    val summaries: MMap[String, SummaryManager] = mmapEmpty
+    val summaries: MMap[String, SummaryProvider] = mmapEmpty
 
     def loadAPK(responseObserver: StreamObserver[LoadAPKResponse]): StreamObserver[LoadAPKRequest] = {
       val byteStream = new ByteArrayOutputStream
@@ -80,10 +83,8 @@ object JNSafServer extends GrpcServer {
                 try {
                   val client = new NativeDroidClient("localhost", 50051, reporter)
                   val handler = new NativeMethodHandler(client)
-                  val jntaint = new JNTaintAnalysis(apk, handler, reporter)
-                  if (!summaries.contains(digest)) {
-                    summaries(digest) = jntaint.provider.getSummaryManager
-                  }
+                  val provider: SummaryProvider = summaries.getOrElseUpdate(digest, new AndroidSummaryProvider(apk))
+                  val jntaint = new JNTaintAnalysis(apk, handler, provider, reporter)
                   jntaint.process
                 } catch {
                   case e: Throwable =>
@@ -96,6 +97,24 @@ object JNSafServer extends GrpcServer {
         case None =>
       }
       Future.successful(TaintAnalysisResponse(status))
+    }
+
+    def getSummary(request: GetSummaryRequest): Future[GetSummaryResponse] = {
+     summaries.get(request.apkDigest) match {
+       case Some(provider) =>
+         val sig = Signature(request.getMethodSignature)
+         provider.getSummaryManager.getSummary[HeapSummary](sig) match {
+           case Some(s) => Future.successful(GetSummaryResponse(heapSummary = Some(SummaryToProto.toProto(s))))
+           case None =>
+             if (request.gen && request.depth > 0) {
+               // TODO: not handled yet.
+               Future.successful(GetSummaryResponse())
+             } else {
+               Future.successful(GetSummaryResponse())
+             }
+         }
+       case None => Future.failed(new RuntimeException(s"Could not load SummaryManager for apk digest: ${request.apkDigest}"))
+     }
     }
   }
 

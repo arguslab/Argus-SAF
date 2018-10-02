@@ -12,11 +12,10 @@ package org.argus.jawa.flow.summary
 
 import org.argus.jawa.core.elements.Signature
 
-trait Summary {
+trait Summary[T <: SummaryRule] {
   def sig: Signature
-  def rules: Seq[SummaryRule]
+  def rules: Seq[T]
 }
 
 trait SummaryRule {
-
 }

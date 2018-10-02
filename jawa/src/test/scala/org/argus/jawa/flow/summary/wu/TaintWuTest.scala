@@ -145,11 +145,11 @@ class TaintWuTest extends FlatSpec with Matchers {
         val sm: SummaryManager = new JawaSummaryProvider(global).getSummaryManager
         sm.registerExternalFile(FileUtil.toUri(getClass.getResource("/jawa/taint/TaintAPI.safsu").getPath), "TaintAPI.safsu", fileAndSubsigMatch = false)
         val cg = CHA(global, Set(entrypoint), None)
-        val analysis = new BottomUpSummaryGenerator[Global](global, sm, handler,
+        val analysis = new BottomUpSummaryGenerator[Global, TaintSummaryRule](global, sm, handler,
           TaintSummary(_, _),
           ConsoleProgressBar.on(System.out).withFormat("[:bar] :percent% :elapsed Left: :remain"))
         val store = new TaintStore
-        val orderedWUs: IList[WorkUnit[Global]] = cg.topologicalSort(true).map { sig =>
+        val orderedWUs: IList[WorkUnit[Global, TaintSummaryRule]] = cg.topologicalSort(true).map { sig =>
           val method = global.getMethodOrResolve(sig).getOrElse(throw new RuntimeException("Method does not exist: " + sig))
           new TaintWu(global, method, sm, handler, new TestSSM, store)
         }

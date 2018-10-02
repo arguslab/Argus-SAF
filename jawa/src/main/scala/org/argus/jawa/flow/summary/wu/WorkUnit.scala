@@ -28,7 +28,7 @@ import org.argus.jawa.flow.summary.{Summary, SummaryManager, SummaryRule}
 import scala.concurrent.duration._
 import scala.language.postfixOps
 
-trait WorkUnit[T <: Global] {
+trait WorkUnit[T <: Global, S <: SummaryRule] {
   val global: T
   val method: JawaMethod
   val sm: SummaryManager
@@ -44,7 +44,7 @@ trait WorkUnit[T <: Global] {
     * @param suGen summary generator.
     * @return generated Summary
     */
-  def generateSummary(suGen: (Signature, IList[SummaryRule]) => Summary): Summary
+  def generateSummary(suGen: (Signature, IList[S]) => Summary[S]): Summary[S]
 
   /**
     * Need process flag
@@ -64,11 +64,11 @@ trait WorkUnit[T <: Global] {
   def finalFn(): Unit = {}
 }
 
-abstract class DataFlowWu[T <: Global] (
+abstract class DataFlowWu[T <: Global, S <: SummaryRule] (
     val global: T,
     val method: JawaMethod,
     val sm: SummaryManager,
-    handler: ModelCallHandler) extends WorkUnit[T] {
+    handler: ModelCallHandler) extends WorkUnit[T, S] {
 
   override def needProcess(handler: ModelCallHandler): Boolean = !handler.isModelCall(method)
 
@@ -122,7 +122,7 @@ abstract class DataFlowWu[T <: Global] (
 
   override def needHeapSummary: Boolean = true
 
-  def generateSummary(suGen: (Signature, IList[SummaryRule]) => Summary): Summary = {
+  def generateSummary(suGen: (Signature, IList[S]) => Summary[S]): Summary[S] = {
     val idfg = getIDFG
     suGen(method.getSignature, parseIDFG(idfg))
   }
@@ -157,10 +157,10 @@ abstract class DataFlowWu[T <: Global] (
     analysis.process(method, initialFacts, initContext, new ModelCallResolver(global, ptaresult, icfg, sm, handler))
   }
 
-  def parseIDFG(idfg: InterProceduralDataFlowGraph): IList[SummaryRule] = {
+  def parseIDFG(idfg: InterProceduralDataFlowGraph): IList[S] = {
     val icfg = idfg.icfg
     val processed: MSet[ICFGNode] = msetEmpty
-    val rules: MList[SummaryRule] = mlistEmpty
+    val rules: MList[S] = mlistEmpty
     val worklistAlgorithm = new WorklistAlgorithm[ICFGNode] {
       override def processElement(e: ICFGNode): Unit = {
         processed += e
@@ -175,7 +175,7 @@ abstract class DataFlowWu[T <: Global] (
   /**
     * Overriding method need to invoke super to update the heap map properly.
     */
-  def processNode(node: ICFGNode, rules: MList[SummaryRule]): Unit = {
+  def processNode(node: ICFGNode, rules: MList[S]): Unit = {
     node match {
       case ln: ICFGLocNode =>
         val context = node.getContext
@@ -373,7 +373,7 @@ abstract class DataFlowWu[T <: Global] (
   override def toString: String = s"DataFlowWu($method)"
 }
 
-case class PTSummary(sig: Signature, rules: Seq[SummaryRule]) extends Summary
+case class PTSummary(sig: Signature, rules: Seq[PTSummaryRule]) extends Summary[PTSummaryRule]
 case class PTSummaryRule(heapBase: HeapBase, point: (Context, PTASlot), trackHeap: Boolean) extends SummaryRule
 
 class PTStore extends PropertyProvider {
@@ -390,11 +390,11 @@ abstract class PointsToWu[T <: Global] (
     sm: SummaryManager,
     handler: ModelCallHandler,
     store: PTStore,
-    key: String) extends DataFlowWu[T](global, method, sm, handler) {
+    key: String) extends DataFlowWu[T, PTSummaryRule](global, method, sm, handler) {
 
   protected val pointsToResolve: MMap[Context, ISet[(PTASlot, Boolean)]] = mmapEmpty
 
-  override def processNode(node: ICFGNode, rules: MList[SummaryRule]): Unit = {
+  override def processNode(node: ICFGNode, rules: MList[PTSummaryRule]): Unit = {
     node match {
       case ln: ICFGLocNode =>
         val context = node.getContext
