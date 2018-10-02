@@ -69,7 +69,6 @@ def get_type_size(project, java_type):
 
     arch_bits = project.arch.bits
     ptr_size = arch_bits / 4
-    # TODO test 'boolean' and 'byte' raise IndexError, need to be fixed.
     if java_type == 'boolean':
         return ptr_size * 1
     elif java_type == 'byte':

@@ -16,6 +16,7 @@ class JavaTypeAnnotation(Annotation):
         self._obj_type = obj_type
         self._field_info = {'is_field': False, 'field_name': None, 'original_subordinate_obj': None,
                             'current_subordinate_obj': None}
+        self._array_info = {'is_element': False, 'element_index': None, 'subordinate_array': None}
         self._taint_info = {'is_taint': False, 'taint_type': None, 'taint_info': None}
         self._icc_info = {'is_icc': False, 'activity_name': None, 'extra': None}
 
@@ -42,6 +43,14 @@ class JavaTypeAnnotation(Annotation):
     @field_info.setter
     def field_info(self, value):
         self._field_info = value
+
+    @property
+    def array_info(self):
+        return self._array_info
+
+    @array_info.setter
+    def array_info(self, value):
+        self._array_info = value
 
     @property
     def taint_info(self):
@@ -162,32 +171,18 @@ class JcharAnnotation(PrimitiveTypeAnnotation):
         super(JcharAnnotation, self).__init__(source, 'char', value)
 
 
-class JdoubleAnnotation(PrimitiveTypeAnnotation):
+class JshortAnnotation(PrimitiveTypeAnnotation):
     """
-    This annotation is used to store jdouble type value information.
-    """
-
-    def __init__(self, source, value=None):
-        """
-
-        :param source: Source of this double value.
-        :param value: Value of this double value.
-        """
-        super(JdoubleAnnotation, self).__init__(source, 'double', value)
-
-
-class JfloatAnnotation(PrimitiveTypeAnnotation):
-    """
-    This annotation is used to store jfloat type value information.
+    This annotation is used to store jshort type value information.
     """
 
     def __init__(self, source, value=None):
         """
 
-        :param source: Source of this float value.
-        :param value: Value of this float value.
+        :param source: Source of this short value.
+        :param value: Value of this short value.
         """
-        super(JfloatAnnotation, self).__init__(source, 'float', value)
+        super(JshortAnnotation, self).__init__(source, 'short', value)
 
 
 class JintAnnotation(PrimitiveTypeAnnotation):
@@ -218,33 +213,46 @@ class JlongAnnotation(PrimitiveTypeAnnotation):
         super(JlongAnnotation, self).__init__(source, 'long', value)
 
 
-class JshortAnnotation(PrimitiveTypeAnnotation):
+class JfloatAnnotation(PrimitiveTypeAnnotation):
     """
-    This annotation is used to store jshort type value information.
+    This annotation is used to store jfloat type value information.
     """
 
     def __init__(self, source, value=None):
         """
 
-        :param source: Source of this short value.
-        :param value: Value of this short value.
+        :param source: Source of this float value.
+        :param value: Value of this float value.
         """
-        super(JshortAnnotation, self).__init__(source, 'short', value)
+        super(JfloatAnnotation, self).__init__(source, 'float', value)
 
 
-class ObjectTypeAnnotation(JavaTypeAnnotation):
+class JdoubleAnnotation(PrimitiveTypeAnnotation):
     """
-    This annotation is used to store object type.
+    This annotation is used to store jdouble type value information.
     """
 
-    def __init__(self, source, obj_type, value=None):
+    def __init__(self, source, value=None):
         """
 
-        :param source: Source of this object value.
-        :param obj_type: Type of this object value
-        :param value: Value of this object value.
+        :param source: Source of this double value.
+        :param value: Value of this double value.
         """
-        super(ObjectTypeAnnotation, self).__init__(source, obj_type)
+        super(JdoubleAnnotation, self).__init__(source, 'double', value)
+
+
+class JstringAnnotation(JavaTypeAnnotation):
+    """
+    This annotation is used to store jstring type value information.
+    """
+
+    def __init__(self, source, value=None):
+        """
+
+        :param source: Source of this string value.
+        :param value: Value of this string value.
+        """
+        super(JstringAnnotation, self).__init__(source, 'java/lang/String')
         self._value = value
 
     @property
@@ -256,142 +264,152 @@ class ObjectTypeAnnotation(JavaTypeAnnotation):
         self._value = value
 
 
-class JstringAnnotation(ObjectTypeAnnotation):
+class JArrayAnnotation(JavaTypeAnnotation):
     """
-    This annotation is used to store jstring type value information.
+    This annotation is used to store array type value information.
     """
 
-    def __init__(self, source, value=None):
+    def __init__(self, source, obj_type, elements=None):
         """
 
-        :param source: Source of this string value.
-        :param value: Value of this string value.
+        :param source: Source of this array value.
+        :param obj_type: Type of this array value
+        :param elements: Elements of this array value.
         """
-        super(JstringAnnotation, self).__init__(source, 'java/lang/String', value)
+        super(JArrayAnnotation, self).__init__(source, obj_type)
+        self._elements = elements
+
+    @property
+    def elements(self):
+        return self._elements
+
+    @elements.setter
+    def elements(self, value):
+        self._elements = value
 
 
-class JbooleanArrayAnnotation(ObjectTypeAnnotation):
+class JbooleanArrayAnnotation(JArrayAnnotation):
     """
     This annotation is used to annotate the flow of the boolean array related operations.
     """
 
-    def __init__(self, source, value=None):
+    def __init__(self, source, elements=None):
         """
 
         :param source: Source of this bool array value.
-        :param value: Value of this bool array value.
+        :param elements: Elements of this bool array value.
         """
-        super(JbooleanArrayAnnotation, self).__init__(source, 'boolean[]', value)
+        super(JbooleanArrayAnnotation, self).__init__(source, 'boolean[]', elements)
 
 
-class JbyteArrayAnnotation(ObjectTypeAnnotation):
+class JbyteArrayAnnotation(JArrayAnnotation):
     """
     This annotation is used to annotate the flow of the byte array related operations.
     """
 
-    def __init__(self, source, value=None):
+    def __init__(self, source, elements=None):
         """
 
         :param source: Source of this byte array value.
-        :param value: Value of this byte array value.
+        :param elements: Elements of this byte array value.
         """
-        super(JbyteArrayAnnotation, self).__init__(source, 'byte[]', value)
+        super(JbyteArrayAnnotation, self).__init__(source, 'byte[]', elements)
 
 
-class JcharArrayAnnotation(ObjectTypeAnnotation):
+class JcharArrayAnnotation(JArrayAnnotation):
     """
     This annotation is used to annotate the flow of the char array related operations.
     """
 
-    def __init__(self, source, value=None):
+    def __init__(self, source, elements=None):
         """
 
-        :param source: Source of this char value.
-        :param value: Value of this char value.
+        :param source: Source of this char array value.
+        :param elements: Elements of this char array value.
         """
-        super(JcharArrayAnnotation, self).__init__(source, 'char[]', value)
+        super(JcharArrayAnnotation, self).__init__(source, 'char[]', elements)
 
 
-class JdoubleArrayAnnotation(ObjectTypeAnnotation):
-    """
-    This annotation is used to annotate the flow of the double array related operations.
-    """
-
-    def __init__(self, source, value=None):
-        """
-
-        :param source: Source of this double value.
-        :param value: Value of this double value.
-        """
-        super(JdoubleArrayAnnotation, self).__init__(source, 'double[]', value)
-
-
-class JfloatArrayAnnotation(ObjectTypeAnnotation):
-    """
-    This annotation is used to annotate the flow of the float array related operations.
-    """
-
-    def __init__(self, source, value=None):
-        """
-
-        :param source: Source of this float value.
-        :param value: Value of this float value.
-        """
-        super(JfloatArrayAnnotation, self).__init__(source, 'float[]', value)
-
-
-class JintArrayAnnotation(ObjectTypeAnnotation):
-    """
-    This annotation is used to annotate the flow of the int array related operations.
-    """
-
-    def __init__(self, source, value=None):
-        """
-
-        :param source: Source of this int value.
-        :param value: Value of this int value.
-        """
-        super(JintArrayAnnotation, self).__init__(source, 'int[]', value)
-
-
-class JlongArrayAnnotation(ObjectTypeAnnotation):
-    """
-    This annotation is used to annotate the flow of the long array related operations.
-    """
-
-    def __init__(self, source, value=None):
-        """
-
-        :param source: Source of this long value.
-        :param value: Value of this long value.
-        """
-        super(JlongArrayAnnotation, self).__init__(source, 'long[]', value)
-
-
-class JobjectArrayAnnotation(ObjectTypeAnnotation):
-    """
-    This annotation is used to annotate the flow of the object array related operations.
-    """
-
-    def __init__(self, source, obj_type='java/lang/Object[]', value=None):
-        """
-
-        :param source: Source of this object value.
-        :param obj_type: Type of this object array.
-        :param value: Value of this object value.
-        """
-        super(JobjectArrayAnnotation, self).__init__(source, obj_type, value)
-
-
-class JshortArrayAnnotation(ObjectTypeAnnotation):
+class JshortArrayAnnotation(JArrayAnnotation):
     """
     This annotation is used to annotate the flow of the short array related operations.
     """
 
-    def __init__(self, source, value=None):
+    def __init__(self, source, elements=None):
         """
 
-        :param source: Source of this short value.
-        :param value: Value of this short value.
+        :param source: Source of this short array value.
+        :param elements: Elements of this short array value.
         """
-        super(JshortArrayAnnotation, self).__init__(source, 'short[]', value)
+        super(JshortArrayAnnotation, self).__init__(source, 'short[]', elements)
+
+
+class JintArrayAnnotation(JArrayAnnotation):
+    """
+    This annotation is used to annotate the flow of the int array related operations.
+    """
+
+    def __init__(self, source, elements=None):
+        """
+
+        :param source: Source of this int array value.
+        :param elements: Elements of this int array value.
+        """
+        super(JintArrayAnnotation, self).__init__(source, 'int[]', elements)
+
+
+class JlongArrayAnnotation(JArrayAnnotation):
+    """
+    This annotation is used to annotate the flow of the long array related operations.
+    """
+
+    def __init__(self, source, elements=None):
+        """
+
+        :param source: Source of this long array value.
+        :param elements: Elements of this long array value.
+        """
+        super(JlongArrayAnnotation, self).__init__(source, 'long[]', elements)
+
+
+class JfloatArrayAnnotation(JArrayAnnotation):
+    """
+    This annotation is used to annotate the flow of the float array related operations.
+    """
+
+    def __init__(self, source, elements=None):
+        """
+
+        :param source: Source of this float array value.
+        :param elements: Elements of this float array value.
+        """
+        super(JfloatArrayAnnotation, self).__init__(source, 'float[]', elements)
+
+
+class JdoubleArrayAnnotation(JArrayAnnotation):
+    """
+    This annotation is used to annotate the flow of the double array related operations.
+    """
+
+    def __init__(self, source, elements=None):
+        """
+
+        :param source: Source of this double array value.
+        :param elements: Elements of this double array value.
+        """
+        super(JdoubleArrayAnnotation, self).__init__(source, 'double[]', elements)
+
+
+class JobjectArrayAnnotation(JArrayAnnotation):
+    """
+    This annotation is used to annotate the flow of the object array related operations.
+    """
+
+    def __init__(self, source, obj_type='java/lang/Object[]', elements=None):
+        """
+
+        :param source: Source of this object array value.
+        :param obj_type: Type of this object array value.
+        :param elements: Elements of this object array value.
+        """
+        super(JobjectArrayAnnotation, self).__init__(source, obj_type, elements)

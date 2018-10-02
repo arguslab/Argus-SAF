@@ -107,7 +107,7 @@ the directory where Scala plugin repository is and then import it as SBT project
 
 2. Python protobuf files:
   ```
-  $ python -m grpc_tools.protoc -I. --python_out=. --grpc_python_out=. nativedroid/protobuf/server.proto
+  $ python -m grpc_tools.protoc -I. --python_out=. --grpc_python_out=. nativedroid/nativedroid/protobuf/server.proto
   ```
   
 ## Launch JN-SAF for native analysis
@@ -121,7 +121,7 @@ the directory where Scala plugin repository is and then import it as SBT project
 
 2. Start nativedroid server:
   ```
-  $ python nativedroid/server/native_droid_server.py /tmp/binaries nativedroid/data/sourceAndSinks/NativeSourcesAndSinks.txt nativedroid/data/sourceAndSinks/TaintSourcesAndSinks.txt
+  $ python nativedroid/nativedroid/server/native_droid_server.py /tmp/binaries nativedroid/nativedroid/data/sourceAndSinks/NativeSourcesAndSinks.txt nativedroid/data/sourceAndSinks/TaintSourcesAndSinks.txt
   ```
 
 3. Use [NativeDroidClient.scala]() to communicate with the nativedroid server to perform native analysis.

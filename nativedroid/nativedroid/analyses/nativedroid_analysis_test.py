@@ -247,7 +247,7 @@ class NativeDroidAnalysisTest(unittest.TestCase):
                                                                               jni_method_signature,
                                                                               jni_method_arguments,
                                                                               native_ss_file, java_ss_file)
-        self.assertEqual('Lorg/arguslab/native_leak_array/MainActivity;.send:([Ljava/lang/String;)V -> _SINK_ 1',
+        self.assertEqual('Lorg/arguslab/native_leak_array/MainActivity;.send:([Ljava/lang/String;)V -> _SINK_ 1[1]',
                          taint_analysis_report)
         self.assertEqual('`Lorg/arguslab/native_leak_array/MainActivity;.send:([Ljava/lang/String;)V`:\n'
                          ';\n',

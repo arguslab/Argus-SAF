@@ -4,7 +4,6 @@ from nativedroid.analyses.resolver.annotation import *
 from nativedroid.analyses.resolver.armel_resolver import ArmelResolver
 from nativedroid.analyses.resolver.jni.jni_helper import *
 from nativedroid.analyses.resolver.model.__android_log_print import *
-from nativedroid.analyses.resolver.x86_resolver import X86Resolver
 
 __author__ = "Xingwei Lin, Fengguo Wei"
 __copyright__ = "Copyright 2018, The Argus-SAF Project"
@@ -36,8 +35,6 @@ class AnnotationBasedAnalysis(angr.Analysis):
         """
         if self.project.arch.name is 'ARMEL':
             self._resolver = ArmelResolver(self.project)
-        elif self.project.arch.name is 'X86':
-            self._resolver = X86Resolver(self.project)
         else:
             raise ValueError('Unsupported architecture: %d' % self.project.arch.name)
         self._hook_system_calls()
@@ -173,7 +170,15 @@ class AnnotationBasedAnalysis(angr.Analysis):
             report_file.write(jni_method_signature)
             report_file.write(' -> _SINK_ ')
             for sink_annotation in sinks:
-                if not sink_annotation.field_info['is_field']:
+                if sink_annotation.field_info['is_field'] is True:
+                    pass
+                elif sink_annotation.array_info['is_element'] is True:
+                    if sink_annotation.array_info['subordinate_array'].annotations[0].source.startswith('arg'):
+                        arg_index = \
+                        re.split('arg|_', sink_annotation.array_info['subordinate_array'].annotations[0].source)[1]
+                        sink_location = arg_index + '[' + str(sink_annotation.array_info['element_index']) + ']'
+                        report_file.write(str(sink_location))
+                else:
                     if sink_annotation.source.startswith('arg'):
                         sink_location = re.split('arg|_', sink_annotation.source)[1]
                         report_file.write(str(sink_location))
