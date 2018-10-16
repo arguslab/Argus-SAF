@@ -3,7 +3,7 @@ from nativedroid.analyses.resolver.model.android_app_model import *
 
 __author__ = "Xingwei Lin"
 __copyright__ = "Copyright 2018, The Argus-SAF Project"
-__license__ = "EPL v1.0"
+__license__ = "Apache v2.0"
 
 
 class ArmelResolver(TaintResolver):
@@ -29,7 +29,8 @@ class ArmelResolver(TaintResolver):
             raise ValueError("Param num is limited to 15 for armel.")
 
         state = self._project.factory.blank_state(mode="fastpath")
-        state.regs.r0 = claripy.BVV(JNINativeInterface(self._project).ptr, self._project.arch.bits)
+        state.regs.r0 = claripy.BVV(JNINativeInterface(self._project, self._jnsaf_client).ptr,
+                                    self._project.arch.bits)
         # state.regs.r1 = claripy.BVV(JObject(self._project).ptr, self._project.arch.bits)
         i = 1
 

@@ -1,3 +1,13 @@
+/*
+ * Copyright (c) 2018. Fengguo Wei and others.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License v2.0
+ * which accompanies this distribution, and is available at
+ * https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Detailed contributors are listed in the CONTRIBUTOR.md
+ */
+
 package org.argus.jnsaf.summary.wu
 
 import org.argus.amandroid.core.ApkGlobal
@@ -14,14 +24,17 @@ class NativeTaintWU(
     val method: JawaMethod,
     val sm: SummaryManager,
     ssm: SourceAndSinkManager[ApkGlobal],
-    handler: NativeMethodHandler) extends WorkUnit[ApkGlobal, TaintSummaryRule] {
+    handler: NativeMethodHandler,
+    depth: Int) extends WorkUnit[ApkGlobal, TaintSummaryRule] {
   override def needHeapSummary: Boolean = false
 
   override def generateSummary(suGen: (Signature, IList[TaintSummaryRule]) => Summary[TaintSummaryRule]): Summary[TaintSummaryRule] = {
     val sig = method.getSignature
-    val res = handler.genSummary(global, sig)
+    val res = handler.genSummary(global, sig, depth)
     ssm.parseCode(res._1)
     sm.register(sig.methodName, res._2, fileAndSubsigMatch = false)
     suGen(sig, ilistEmpty)
   }
+
+  override def toString: String = s"NativeTaintWU($method)"
 }

@@ -1,7 +1,7 @@
 <component name="CopyrightManager">
-  <settings default="epl-v10">
+  <settings default="apache-v20">
     <module2copyright>
-      <element module="All" copyright="epl-v10" />
+      <element module="All" copyright="apache-v20" />
     </module2copyright>
   </settings>
 </component>

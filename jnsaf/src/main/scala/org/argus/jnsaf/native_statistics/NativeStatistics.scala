@@ -1,3 +1,13 @@
+/*
+ * Copyright (c) 2018. Fengguo Wei and others.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License v2.0
+ * which accompanies this distribution, and is available at
+ * https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Detailed contributors are listed in the CONTRIBUTOR.md
+ */
+
 package org.argus.jnsaf.native_statistics
 
 import java.io.FileWriter
@@ -200,7 +210,7 @@ object NativeStatistics {
     val apk = yard.loadApk(apkUri, settings, collectInfo = false, resolveCallBack = false)
     println("Apk Loaded!")
 
-    val client: NativeDroidClient = new NativeDroidClient("local", 50051, reporter)
+    val client: NativeDroidClient = new NativeDroidClient("local", 50051, "", reporter)
     val handler = new NativeMethodHandler(client)
     handler.buildNativeMethodMapping(apk)
     if(taint) {
@@ -211,7 +221,7 @@ object NativeStatistics {
       handler.nativeMethodSoMap foreach { case (sig, _) =>
         counter += 1
         println(s"Processing: $counter/$total")
-        handler.genSummary(apk, sig)
+        handler.genSummary(apk, sig, 0)
       }
     } else {
       handler.statisticsResolve(apk, i)
@@ -239,7 +249,7 @@ object NativeStatistics {
       nativeActivity.isAssignableFrom(act)
     }
 
-    val client: NativeDroidClient = new NativeDroidClient("local", 50051, reporter)
+    val client: NativeDroidClient = new NativeDroidClient("local", 50051, "", reporter)
     val handler = new NativeMethodHandler(client)
     var counter = 0
     val total = native_acts.size

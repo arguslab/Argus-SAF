@@ -1,9 +1,9 @@
 /*
  * Copyright (c) 2018. Fengguo Wei and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Apache License v2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.apache.org/licenses/LICENSE-2.0
  *
  * Detailed contributors are listed in the CONTRIBUTOR.md
  */
@@ -44,16 +44,16 @@ class JNSafClient(address: String, port: Int, reporter: Reporter) {
     val responseObserver = new StreamObserver[LoadAPKResponse]() {
       override def onNext(value: LoadAPKResponse): Unit = {
         loadedAPKs(fileUri) = value.apkDigest
-        reporter.echo(TITLE,"Client LoadBinaryResponse onNext")
+        reporter.echo(TITLE,"Client LoadAPKResponse onNext")
       }
 
       override def onError(t: Throwable): Unit = {
-        reporter.echo(TITLE,"Client LoadBinaryResponse onError")
+        reporter.echo(TITLE,"Client LoadAPKResponse onError")
         doneSignal.countDown()
       }
 
       override def onCompleted(): Unit = {
-        reporter.echo(TITLE,"Client LoadBinaryResponse onCompleted")
+        reporter.echo(TITLE,"Client LoadAPKResponse onCompleted")
         doneSignal.countDown()
       }
     }
@@ -98,6 +98,7 @@ class JNSafClient(address: String, port: Int, reporter: Reporter) {
   }
 
   def loadAPK(apkUri: FileResourceUri): Option[String] = {
+    reporter.echo(TITLE,"Client loadApk")
     try {
       startStream(apkUri)
     } catch {
@@ -107,7 +108,8 @@ class JNSafClient(address: String, port: Int, reporter: Reporter) {
     }
   }
 
-  def taintAnalysis(apkUri: String): Boolean = {
+  def taintAnalysis(apkUri: FileResourceUri): Boolean = {
+    reporter.echo(TITLE,"Client taintAnalysis")
     try {
       val doneSignal = new CountDownLatch(1)
       val digest = getAPKDigest(apkUri)
@@ -136,10 +138,10 @@ class JNSafClient(address: String, port: Int, reporter: Reporter) {
 
   private def getAPKDigest(apkUri: FileResourceUri): String = {
     this.loadedAPKs.get(apkUri) match {
-      case Some(soHandle) => soHandle
+      case Some(soDigest) => soDigest
       case None =>
         loadAPK(apkUri) match {
-          case Some(soHandle) => soHandle
+          case Some(soDigest) => soDigest
           case None =>
             throw new RuntimeException(s"Load binary $apkUri failed.")
         }

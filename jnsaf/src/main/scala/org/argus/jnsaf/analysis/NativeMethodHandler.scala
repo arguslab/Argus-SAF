@@ -1,9 +1,9 @@
 /*
- * Copyright (c) 2017. Fengguo Wei and others.
+ * Copyright (c) 2018. Fengguo Wei and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Apache License v2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.apache.org/licenses/LICENSE-2.0
  *
  * Detailed contributors are listed in the CONTRIBUTOR.md
  */
@@ -116,7 +116,7 @@ class NativeMethodHandler(client: NativeDroidClient) {
     res.toSet
   }
 
-  def genSummary(apk: ApkGlobal, sig: Signature): (String, String) = {
+  def genSummary(apk: ApkGlobal, sig: Signature, depth: Int): (String, String) = {
     val soOpt: Option[String] = nativeMethodSoMap.get(sig) match {
       case a@Some(_) => a
       case None =>
@@ -127,7 +127,7 @@ class NativeMethodHandler(client: NativeDroidClient) {
       case Some(soName) =>
         client.getSoFileUri(apk.model.layout.outputSrcUri, soName) match {
           case Some(soFileUri) =>
-            return client.genSummary(soFileUri, getJNIFunctionName(apk, sig), sig)
+            return client.genSummary(soFileUri, getJNIFunctionName(apk, sig), sig, depth)
           case None =>
         }
       case None =>

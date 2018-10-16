@@ -9,15 +9,17 @@ from nativedroid.analyses.resolver.dynamic_register_resolution import dynamic_re
 
 __author__ = "Xingwei Lin, Fengguo Wei"
 __copyright__ = "Copyright 2018, The Argus-SAF Project"
-__license__ = "EPL v1.0"
+__license__ = "Apache v2.0"
 
 nativedroid_logger = logging.getLogger('nativedroid')
 nativedroid_logger.setLevel(logging.INFO)
 
 
-def gen_summary(so_file, jni_method_name, jni_method_signature, jni_method_arguments, native_ss_file, java_ss_file):
+def gen_summary(jnsaf_client, so_file, jni_method_name, jni_method_signature, jni_method_arguments,
+                native_ss_file, java_ss_file):
     """
     Generate summary and taint tracking report based on annotation-based analysis.
+    :param JNSafClient jnsaf_client: JNSaf client
     :param so_file: Binary path
     :param jni_method_name: JNI method name
     :param jni_method_signature: JNI method signature
@@ -40,8 +42,8 @@ def gen_summary(so_file, jni_method_name, jni_method_signature, jni_method_argum
     else:
         jni_method_addr = jni_method_symb.rebased_addr
     ssm = SourceAndSinkManager(native_ss_file)
-    annotation_based_analysis = project.analyses.AnnotationBasedAnalysis(ssm, jni_method_addr, jni_method_arguments,
-                                                                         False)
+    annotation_based_analysis = project.analyses.AnnotationBasedAnalysis(
+        jnsaf_client, ssm, jni_method_addr, jni_method_arguments, False)
     sources, sinks = annotation_based_analysis.run()
     taint_analysis_report = annotation_based_analysis.gen_taint_analysis_report(sources, sinks, jni_method_signature)
     safsu_report = annotation_based_analysis.gen_saf_summary_report(jni_method_signature)

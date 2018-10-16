@@ -1,9 +1,9 @@
 /*
  * Copyright (c) 2018. Fengguo Wei and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Apache License v2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.apache.org/licenses/LICENSE-2.0
  *
  * Detailed contributors are listed in the CONTRIBUTOR.md
  */
@@ -28,7 +28,7 @@ import scala.concurrent.Future
   * gRPC client to communicate with NativeDroid Server.
   */
 //noinspection ScalaDeprecation
-class NativeDroidClient(address: String, port: Int, reporter: Reporter) {
+class NativeDroidClient(address: String, port: Int, apkDigest: String, reporter: Reporter) {
   final val TITLE = "NativeDroidClient"
   private val channel = ManagedChannelBuilder.forAddress(address, port).usePlaintext(true).build
   private val client = NativeDroidGrpc.stub(channel)
@@ -47,8 +47,8 @@ class NativeDroidClient(address: String, port: Int, reporter: Reporter) {
     val doneSignal = new CountDownLatch(1)
     val responseObserver = new StreamObserver[LoadBinaryResponse]() {
       override def onNext(value: LoadBinaryResponse): Unit = {
-        loadedBinaries(fileUri) = value.soHandle
-        reporter.echo(TITLE,"Client LoadBinaryResponse onNext")
+        loadedBinaries(fileUri) = value.soDigest
+        reporter.echo(TITLE,s"Client loaded binary: $fileUri")
       }
 
       override def onError(t: Throwable): Unit = {
@@ -102,6 +102,7 @@ class NativeDroidClient(address: String, port: Int, reporter: Reporter) {
   }
 
   def loadBinary(soFileUri: FileResourceUri): Option[String] = {
+    reporter.echo(TITLE,"Client loadBinary")
     try {
       startStream(soFileUri)
     } catch {
@@ -111,12 +112,12 @@ class NativeDroidClient(address: String, port: Int, reporter: Reporter) {
     }
   }
 
-  private def getBinaryHandle(soFileUri: FileResourceUri): String = {
+  private def getBinaryDigest(soFileUri: FileResourceUri): String = {
     this.loadedBinaries.get(soFileUri) match {
-      case Some(soHandle) => soHandle
+      case Some(soDigest) => soDigest
       case None =>
         loadBinary(soFileUri) match {
-          case Some(soHandle) => soHandle
+          case Some(soDigest) => soDigest
           case None =>
             throw new RuntimeException(s"Load binary $soFileUri failed.")
         }
@@ -124,9 +125,10 @@ class NativeDroidClient(address: String, port: Int, reporter: Reporter) {
   }
 
   def hasSymbol(soFileUri: FileResourceUri, symbol: String): Boolean = {
+    reporter.echo(TITLE,s"Client hasSymbol: $symbol")
     try {
-      val soHandle = getBinaryHandle(soFileUri)
-      val response = blocking_client.hasSymbol(HasSymbolRequest(soHandle, symbol))
+      val soDigest = getBinaryDigest(soFileUri)
+      val response = blocking_client.hasSymbol(HasSymbolRequest(soDigest, symbol))
       response.hasSymbol
     } catch {
       case e: Throwable =>
@@ -137,6 +139,7 @@ class NativeDroidClient(address: String, port: Int, reporter: Reporter) {
   }
 
   def hasNativeActivity(soFileUri: FileResourceUri, customEntry: Option[String]): Boolean = {
+    reporter.echo(TITLE,"Client hasNativeActivity")
     customEntry match {
       case Some(entry) => hasSymbol(soFileUri, entry)
       case None =>
@@ -175,12 +178,13 @@ class NativeDroidClient(address: String, port: Int, reporter: Reporter) {
     res.toList
   }
 
-  def genSummary(soFileUri: FileResourceUri, methodName: String, sig: Signature): (String, String) = {
+  def genSummary(soFileUri: FileResourceUri, methodName: String, sig: Signature, depth: Int): (String, String) = {
+    reporter.echo(TITLE,s"Client genSummary for $sig")
     if(hasSymbol(soFileUri, methodName)) {
       try {
         val doneSignal = new CountDownLatch(1)
-        val soHandle = getBinaryHandle(soFileUri)
-        val request = GenSummaryRequest(soHandle, methodName, Some(sig.method_signature))
+        val soDigest = getBinaryDigest(soFileUri)
+        val request = GenSummaryRequest(apkDigest, depth, soDigest, methodName, Some(sig.method_signature))
         val responseFuture: Future[GenSummaryResponse] = client.genSummary(request)
         var responseOpt: Option[GenSummaryResponse] = None
         responseFuture.foreach { response =>

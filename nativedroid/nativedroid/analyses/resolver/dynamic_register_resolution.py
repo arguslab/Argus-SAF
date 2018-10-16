@@ -6,7 +6,7 @@ import logging
 
 __author__ = "Xingwei Lin"
 __copyright__ = "Copyright 2018, The Argus-SAF Project"
-__license__ = "EPL v1.0"
+__license__ = "Apache v2.0"
 
 nativedroid_logger = logging.getLogger('RegisterNativeMethods')
 nativedroid_logger.setLevel(logging.INFO)

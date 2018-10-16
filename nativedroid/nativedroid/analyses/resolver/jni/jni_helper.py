@@ -2,7 +2,7 @@ import re
 
 __author__ = "Xingwei Lin, Fengguo Wei"
 __copyright__ = "Copyright 2018, The Argus-SAF Project"
-__license__ = "EPL v1.0"
+__license__ = "Apache v2.0"
 
 jni_types = {
     'boolean': 'jboolean',

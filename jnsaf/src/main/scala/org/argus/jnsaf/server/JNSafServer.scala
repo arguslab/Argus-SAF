@@ -1,9 +1,9 @@
 /*
  * Copyright (c) 2018. Fengguo Wei and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Apache License v2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.apache.org/licenses/LICENSE-2.0
  *
  * Detailed contributors are listed in the CONTRIBUTOR.md
  */
@@ -20,8 +20,9 @@ import org.argus.amandroid.core.decompile.DefaultDecompilerSettings
 import org.argus.jawa.core.elements.Signature
 import org.argus.jawa.core.io.{MsgLevel, PrintReporter, Reporter}
 import org.argus.jawa.core.util._
-import org.argus.jawa.flow.summary.{SummaryManager, SummaryProvider, SummaryToProto}
 import org.argus.jawa.flow.summary.susaf.rule.HeapSummary
+import org.argus.jawa.flow.summary.wu.TaintSummary
+import org.argus.jawa.flow.summary.{SummaryProvider, SummaryToProto, summary}
 import org.argus.jnsaf.analysis.NativeMethodHandler
 import org.argus.jnsaf.client.NativeDroidClient
 import org.argus.jnsaf.server.jnsaf_grpc._
@@ -42,6 +43,7 @@ object JNSafServer extends GrpcServer {
     val summaries: MMap[String, SummaryProvider] = mmapEmpty
 
     def loadAPK(responseObserver: StreamObserver[LoadAPKResponse]): StreamObserver[LoadAPKRequest] = {
+      reporter.echo(TITLE,"Server loadAPK")
       val byteStream = new ByteArrayOutputStream
       val sha256 = new HashingOutputStream(Hashing.sha256(), byteStream)
       new StreamObserver[LoadAPKRequest] {
@@ -72,49 +74,79 @@ object JNSafServer extends GrpcServer {
       }
     }
 
-    def taintAnalysis(request: TaintAnalysisRequest): Future[TaintAnalysisResponse] = {
-      val digest = request.apkDigest
-      var status = false
-      map.get(digest) match {
+    private def performTaint(apkDigest: String, epsOpt: Option[ISet[Signature]], depth: Int): Unit = {
+      map.get(apkDigest) match {
         case Some(uri) =>
           yard.getApk(uri) match {
             case Some(apk) =>
               TimeUtil.timed("TaintAnalysis Running Time", reporter) {
                 try {
-                  val client = new NativeDroidClient("localhost", 50051, reporter)
+                  val client = new NativeDroidClient("localhost", 50051, apkDigest, reporter)
                   val handler = new NativeMethodHandler(client)
-                  val provider: SummaryProvider = summaries.getOrElseUpdate(digest, new AndroidSummaryProvider(apk))
-                  val jntaint = new JNTaintAnalysis(apk, handler, provider, reporter)
-                  jntaint.process
+                  val provider: SummaryProvider = summaries.getOrElseUpdate(apkDigest, new AndroidSummaryProvider(apk))
+                  val jntaint = new JNTaintAnalysis(apk, handler, provider, reporter, depth)
+                  epsOpt match {
+                    case Some(eps) =>
+                      jntaint.process(eps)
+                    case None =>
+                      jntaint.process
+                  }
                 } catch {
                   case e: Throwable =>
                     e.printStackTrace()
                 }
               }
-              status = true
             case None =>
           }
         case None =>
       }
-      Future.successful(TaintAnalysisResponse(status))
+    }
+
+    def taintAnalysis(request: TaintAnalysisRequest): Future[TaintAnalysisResponse] = {
+      reporter.echo(TITLE,"Server taintAnalysis")
+      performTaint(request.apkDigest, None, 3)
+      Future.successful(TaintAnalysisResponse(true))
     }
 
     def getSummary(request: GetSummaryRequest): Future[GetSummaryResponse] = {
-     summaries.get(request.apkDigest) match {
-       case Some(provider) =>
-         val sig = Signature(request.getMethodSignature)
-         provider.getSummaryManager.getSummary[HeapSummary](sig) match {
-           case Some(s) => Future.successful(GetSummaryResponse(heapSummary = Some(SummaryToProto.toProto(s))))
-           case None =>
-             if (request.gen && request.depth > 0) {
-               // TODO: not handled yet.
-               Future.successful(GetSummaryResponse())
-             } else {
-               Future.successful(GetSummaryResponse())
-             }
-         }
-       case None => Future.failed(new RuntimeException(s"Could not load SummaryManager for apk digest: ${request.apkDigest}"))
-     }
+      reporter.echo(TITLE,s"Server getSummary for ${request.signature}")
+      summaries.get(request.apkDigest) match {
+        case Some(provider) =>
+          if (!Signature.isValidSignature(request.signature)) {
+            Future.successful(GetSummaryResponse())
+          }
+          val sig = new Signature(request.signature)
+          var summaries = provider.getSummaryManager.getSummaries(sig)
+          if(summaries.isEmpty && request.gen) {
+            performTaint(request.apkDigest, Some(Set(sig)), request.depth - 1)
+            summaries = provider.getSummaryManager.getSummaries(sig)
+          }
+          var heapSummary: Option[summary.HeapSummary] = None
+          var taintSummary: Option[String] = None
+          summaries.foreach {
+            case heap: HeapSummary =>
+              heapSummary = Some(SummaryToProto.toProto(heap))
+            case taint: TaintSummary =>
+              taintSummary = Some(taint.rules)
+            case _ =>
+          }
+          provider.getSummaryManager.getSummary[HeapSummary](sig) match {
+            case Some(s) => Future.successful(GetSummaryResponse(heapSummary = Some(SummaryToProto.toProto(s))))
+            case None =>
+              if (request.gen && request.depth > 0) {
+                performTaint(request.apkDigest, Some(Set(sig)), request.depth - 1)
+                provider.getSummaryManager.getSummary[HeapSummary](sig) match {
+                  case Some(su) =>
+                    println("su: " + su.toString)
+                    Future.successful(GetSummaryResponse(heapSummary = Some(SummaryToProto.toProto(su))))
+                  case None => Future.successful(GetSummaryResponse())
+                }
+              } else {
+                Future.successful(GetSummaryResponse())
+              }
+          }
+        case None => Future.failed(new RuntimeException(s"Could not load SummaryManager for apk digest: ${request.apkDigest}"))
+      }
     }
   }
 

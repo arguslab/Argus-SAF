@@ -1,6 +1,6 @@
 import unittest
 
-from native_droid_server import *
+from nativedroid_server import *
 
 CHUNK_SIZE = 1024 * 1024  # 1MB
 
@@ -37,7 +37,7 @@ class NativeDroidServerTest(unittest.TestCase):
         logger.info('Server stopped.')
         cls.server = None
         cls.stub = None
-        path = cls._lb_response.so_handle
+        path = cls._lb_response.so_digest
         if os.path.exists(path):
             os.remove(path)
         cls._lb_response = None
@@ -46,7 +46,7 @@ class NativeDroidServerTest(unittest.TestCase):
         self.assertEqual(self._lb_response.length, os.path.getsize('testdata/libleak.so'))
 
     def testHasSymbol(self):
-        response = self.stub.HasSymbol(HasSymbolRequest(so_handle=self._lb_response.so_handle,
+        response = self.stub.HasSymbol(HasSymbolRequest(so_digest=self._lb_response.so_digest,
                                                         symbol='Java_org_arguslab_native_1leak_MainActivity_send'))
         self.assertTrue(response.has_symbol)
 
@@ -62,9 +62,9 @@ class NativeDroidServerTest(unittest.TestCase):
         proto = MethodProto(param_types=[JavaType(class_type=class_type_pb)],
                             return_void_type=VoidType())
         method_signature_pb = MethodSignature(owner=java_type_pb, name='send', proto=proto)
-        request = GenSummaryRequest(so_handle=self._lb_response.so_handle,
+        request = GenSummaryRequest(apk_digest='', so_digest=self._lb_response.so_digest,
                                     jni_func='Java_org_arguslab_native_1leak_MainActivity_send',
-                                    method_signature=method_signature_pb)
+                                    method_signature=method_signature_pb, depth=1)
         response = self.stub.GenSummary(request)
         self.assertEqual('Lorg/arguslab/native_leak/MainActivity;.send:(Ljava/lang/String;)V -> _SINK_ 1',
                          response.taint)

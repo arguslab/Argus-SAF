@@ -1,9 +1,9 @@
 /*
  * Copyright (c) 2018. Fengguo Wei and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Apache License v2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.apache.org/licenses/LICENSE-2.0
  *
  * Detailed contributors are listed in the CONTRIBUTOR.md
  */
@@ -41,7 +41,7 @@ class JNSafServerTest extends FlatSpec with Matchers with BeforeAndAfterAll {
       .start
     println(s"$TITLE server started.")
     client = new JNSafClient("localhost", 55001, reporter)
-    val file_path = getClass.getResource("/apks/icc_explicit1.apk").getPath
+    val file_path = getClass.getResource("/NativeFlowBench/native_multiple_interactions.apk").getPath
     fileUri = FileUtil.toUri(file_path)
     loadResponse = client.loadAPK(fileUri)
   }

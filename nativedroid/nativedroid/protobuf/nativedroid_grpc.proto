@@ -6,9 +6,11 @@ option java_package = "org.argus.nativedroid.server";
 import "nativedroid/protobuf/java_signatures.proto";
 
 message GenSummaryRequest {
-    string so_handle = 1;
-    string jni_func = 2;
-    jawa_core.MethodSignature method_signature = 3;
+    string apk_digest = 1;
+    int32 depth = 2;
+    string so_digest = 3;
+    string jni_func = 4;
+    jawa_core.MethodSignature method_signature = 5;
 }
 
 message GenSummaryResponse {
@@ -18,7 +20,7 @@ message GenSummaryResponse {
 }
 
 message HasSymbolRequest {
-    string so_handle = 1;
+    string so_digest = 1;
     string symbol = 2;
 }
 
@@ -27,7 +29,7 @@ message HasSymbolResponse {
 }
 
 message AnalyseNativeActivityRequest {
-    string so_handle = 1;
+    string so_digest = 1;
     string custom_entry = 2;
 }
 
@@ -40,7 +42,7 @@ message LoadBinaryRequest {
 }
 
 message LoadBinaryResponse {
-    string so_handle = 1;
+    string so_digest = 1;
     int32 length = 2;
 }
 

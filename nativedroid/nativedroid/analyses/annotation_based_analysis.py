@@ -7,7 +7,7 @@ from nativedroid.analyses.resolver.model.__android_log_print import *
 
 __author__ = "Xingwei Lin, Fengguo Wei"
 __copyright__ = "Copyright 2018, The Argus-SAF Project"
-__license__ = "EPL v1.0"
+__license__ = "Apache v2.0"
 
 nativedroid_logger = logging.getLogger('AnnotationBasedAnalysis')
 
@@ -23,10 +23,11 @@ class AnnotationBasedAnalysis(angr.Analysis):
     This class performs taint analysis based upon angr's annotation technique.
     """
 
-    def __init__(self, ssm, jni_method_addr, jni_method_arguments, is_native_pure, native_pure_info=None):
+    def __init__(self, jnsaf_client, ssm, jni_method_addr, jni_method_arguments, is_native_pure, native_pure_info=None):
         """
         init
 
+        :param JNSafClient jnsaf_client: JNSaf client
         :param SourceAndSinkManager ssm:
         :param str jni_method_addr: address of jni method
         :param str jni_method_arguments:
@@ -34,7 +35,7 @@ class AnnotationBasedAnalysis(angr.Analysis):
         :param Object native_pure_info: initial SimState and native pure argument
         """
         if self.project.arch.name is 'ARMEL':
-            self._resolver = ArmelResolver(self.project)
+            self._resolver = ArmelResolver(self.project, jnsaf_client)
         else:
             raise ValueError('Unsupported architecture: %d' % self.project.arch.name)
         self._hook_system_calls()
@@ -175,7 +176,7 @@ class AnnotationBasedAnalysis(angr.Analysis):
                 elif sink_annotation.array_info['is_element'] is True:
                     if sink_annotation.array_info['subordinate_array'].annotations[0].source.startswith('arg'):
                         arg_index = \
-                        re.split('arg|_', sink_annotation.array_info['subordinate_array'].annotations[0].source)[1]
+                            re.split('arg|_', sink_annotation.array_info['subordinate_array'].annotations[0].source)[1]
                         sink_location = arg_index + '[' + str(sink_annotation.array_info['element_index']) + ']'
                         report_file.write(str(sink_location))
                 else:
@@ -250,34 +251,34 @@ class AnnotationBasedAnalysis(angr.Analysis):
             if not node.is_simprocedure:
                 if node.block.vex.jumpkind == 'Ijk_Ret' and node.function_address == self._jni_method_addr:
                     return_nodes.append(node)
-        for return_node in return_nodes:
-            for final_state in return_node.final_states:
-                return_value = final_state.regs.r0
-                for annotation in return_value.annotations:
-                    if type(annotation) is JobjectAnnotation:
-                        if annotation.field_info['is_field']:
-                            ret_type = annotation.obj_type.replace('/', '.')
-                            ret_location = 'arg:' + str(
-                                re.split('arg|_', annotation.field_info['current_subordinate_obj'])[1]
-                            ) + '.' + annotation.field_info['field_name']
-                            ret_safsu = '  ret = ' + ret_type + '@' + ret_location
-                            rets_safsu.append(ret_safsu)
-                        else:
-                            ret_type = get_java_return_type(annotation.obj_type)
+        if not jni_method_signature.endswith(")V"):
+            for return_node in return_nodes:
+                for final_state in return_node.final_states:
+                    return_value = final_state.regs.r0
+                    for annotation in return_value.annotations:
+                        if type(annotation) is JobjectAnnotation:
+                            if annotation.field_info['is_field']:
+                                ret_type = annotation.obj_type.replace('/', '.')
+                                ret_location = 'arg:' + str(
+                                    re.split('arg|_', annotation.field_info['current_subordinate_obj'])[1]
+                                ) + '.' + annotation.field_info['field_name']
+                                ret_safsu = '  ret = ' + ret_type + '@' + ret_location
+                                rets_safsu.append(ret_safsu)
+                            else:
+                                ret_type = get_java_return_type(annotation.obj_type)
+                                ret_location = annotation_location[annotation.source]
+                                ret_safsu = '  ret = ' + ret_type + '@' + ret_location
+                                rets_safsu.append(ret_safsu)
+                        elif type(annotation) is JstringAnnotation:
+                            # ret_type = annotation.primitive_type.split('L')[-1].replace('/', '.')
+                            ret_type = 'java.lang.String'
                             ret_location = annotation_location[annotation.source]
-                            ret_safsu = '  ret = ' + ret_type + '@' + ret_location
+                            ret_value = annotation.value
+                            if ret_value is not None:
+                                ret_safsu = '  ret = ' + ret_type + '@' + ret_location + '(' + ret_value + ')'
+                            else:
+                                ret_safsu = '  ret = ' + ret_type + '@' + ret_location
                             rets_safsu.append(ret_safsu)
-                    elif type(annotation) is JstringAnnotation:
-                        # ret_type = annotation.primitive_type.split('L')[-1].replace('/', '.')
-                        ret_type = 'java.lang.String'
-                        ret_location = annotation_location[annotation.source]
-                        ret_value = annotation.value
-                        if ret_value is not None:
-                            ret_safsu = '  ret = ' + ret_type + '@' + ret_location + '(' + ret_value + ')'
-                        else:
-                            ret_safsu = '  ret = ' + ret_type + '@' + ret_location
-                        rets_safsu.append(ret_safsu)
-
         report_file = StringIO()
         report_file.write('`' + jni_method_signature + '`:' + '\n')
         if args_safsu:

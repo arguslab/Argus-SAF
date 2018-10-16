@@ -1,6 +1,6 @@
 __author__ = "Xingwei Lin"
 __copyright__ = "Copyright 2018, The Argus-SAF Project"
-__license__ = "EPL v1.0"
+__license__ = "Apache v2.0"
 
 
 class TaintResolver(object):
@@ -8,8 +8,9 @@ class TaintResolver(object):
     This class provides the architecture specific taint solutions.
     """
 
-    def __init__(self, project):
+    def __init__(self, project, jnsaf_client):
         self._project = project
+        self._jnsaf_client = jnsaf_client
 
     def prepare_initial_state(self, arguments):
         """

@@ -10,14 +10,22 @@ from nativedroid.analyses.nativedroid_analysis import *
 from nativedroid.jawa.utils import *
 from nativedroid.protobuf.nativedroid_grpc_pb2 import *
 from nativedroid.protobuf.nativedroid_grpc_pb2_grpc import *
+from nativedroid.protobuf.jnsaf_grpc_pb2_grpc import *
 
 __author__ = "Fengguo Wei"
 __copyright__ = "Copyright 2018, The Argus-SAF Project"
-__license__ = "EPL v1.0"
+__license__ = "Apache v2.0"
 
 _ONE_DAY_IN_SECONDS = 60 * 60 * 24
 
 logger = logging.getLogger('nativedroid.server.NativeDroidServer')
+
+
+class JNSafClient(JNSafStub):
+    def __init__(self, channel, apk_digest, depth):
+        super(JNSafClient, self).__init__(channel)
+        self.apk_digest = apk_digest
+        self.depth = depth
 
 
 class NativeDroidServer(NativeDroidServicer):
@@ -27,6 +35,7 @@ class NativeDroidServer(NativeDroidServicer):
         self._loaded_sos = set()
         self._native_ss_file = native_ss_file
         self._java_ss_file = java_ss_file
+        self._call_jnsaf = True  # TODO(fengguow) Add flag for it
 
     @classmethod
     def from_python_package(cls, binary_path):
@@ -45,18 +54,25 @@ class NativeDroidServer(NativeDroidServicer):
         :param context:
         :return: server_pb2.GenSummaryResponse
         """
-        so_path = request.so_handle
+        logger.info('Server GenSummary: %s', request)
+        apk_digest = request.apk_digest
+        depth = request.depth
+        if depth is 0:
+            return GenSummaryResponse()
+        jnsaf_client = None
+        if self._call_jnsaf:
+            jnsaf_client = JNSafClient(grpc.insecure_channel('localhost:55001'), apk_digest, depth - 1)
+        so_path = request.so_digest
         signature = request.method_signature
         jni_method_name = request.jni_func
         method_signature = method_signature_str(signature)
         jni_method_arguments = get_params_from_method_signature(signature, False)
         arguments_str = ",".join(java_type_str(arg, False) for arg in jni_method_arguments)
-        taint_analysis_report, safsu_report, total_instructions = gen_summary(so_path, jni_method_name,
-                                                                              method_signature, arguments_str,
-                                                                              self._native_ss_file, self._java_ss_file)
-        response = GenSummaryResponse(taint=taint_analysis_report, summary=safsu_report,
-                                      analyzed_instructions=total_instructions)
-        return response
+        taint_analysis_report, safsu_report, total_instructions = gen_summary(
+            jnsaf_client, so_path, jni_method_name, method_signature, arguments_str,
+            self._native_ss_file, self._java_ss_file)
+        return GenSummaryResponse(taint=taint_analysis_report, summary=safsu_report,
+                                  analyzed_instructions=total_instructions)
 
     def LoadBinary(self, request_iterator, context):
         """
@@ -83,7 +99,7 @@ class NativeDroidServer(NativeDroidServicer):
                 out.write(f.getvalue())
             self._loaded_sos.add(so_path)
         size = len(f.getvalue())
-        return LoadBinaryResponse(so_handle=so_path, length=size)
+        return LoadBinaryResponse(so_digest=so_path, length=size)
 
     def HasSymbol(self, request, context):
         """
@@ -92,7 +108,8 @@ class NativeDroidServer(NativeDroidServicer):
         :param context:
         :return:
         """
-        so_path = request.so_handle
+        logger.info('Server HasSymbol: %s', request)
+        so_path = request.so_digest
         return HasSymbolResponse(has_symbol=has_symbol(so_path, request.symbol))
 
 
@@ -113,6 +130,6 @@ def serve(binary_path, native_ss_file, java_ss_file):
 
 if __name__ == '__main__':
     if len(sys.argv) != 4:
-        logger.error('usage: python native_droid_server.py binary_path native_ss_file java_ss_file')
+        logger.error('usage: python nativedroid_server.py binary_path native_ss_file java_ss_file')
         exit(0)
     serve(sys.argv[1], sys.argv[2], sys.argv[3])

@@ -1,9 +1,9 @@
 /*
- * Copyright (c) 2017. Fengguo Wei and others.
+ * Copyright (c) 2018. Fengguo Wei and others.
  * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+ * are made available under the terms of the Apache License v2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * https://www.apache.org/licenses/LICENSE-2.0
  *
  * Detailed contributors are listed in the CONTRIBUTOR.md
  */
@@ -41,7 +41,7 @@ object Dependencies {
   val json4s_native: ModuleID = "org.json4s" %% "json4s-native" % json4sVersion
   val json4s_ext: ModuleID = "org.json4s" %% "json4s-ext" % json4sVersion
 
-  val findbug: ModuleID = "com.google.code.findbugs" % "jsr305" % "3.0.+" % "compile"
+  val findbug: ModuleID = "com.google.code.findbugs" % "jsr305" % "3.0.2" % "compile"
 
   val javaparser: ModuleID = "com.github.javaparser" % "javaparser-core" % "3.4.0"
 }

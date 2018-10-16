@@ -1,0 +1,135 @@
+syntax = "proto3";
+
+package jawa_summary;
+option java_package = "org.argus.jawa.flow.summary";
+
+import "nativedroid/protobuf/java_signatures.proto";
+
+message SuFieldAccess {
+    string field_name = 1;
+}
+
+message SuArrayAccess {}
+
+message HeapAccess {
+    oneof heap_access {
+        SuFieldAccess field_access = 1;
+        SuArrayAccess array_access = 2;
+    }
+}
+
+message SuHeap {
+    repeated HeapAccess heap_access = 1;
+}
+
+message SuThis {
+    SuHeap heap = 1;
+}
+
+message SuArg {
+    int64 num = 1;
+    SuHeap heap = 2;
+}
+
+message SuGlobal {
+    string fqn = 1;
+    SuHeap heap = 2;
+}
+
+message SuRet {
+    SuHeap heap = 1;
+}
+
+message HeapBase {
+    oneof heap_base {
+        SuThis this = 1;
+        SuArg arg = 2;
+        SuGlobal global = 3;
+        SuRet ret = 4;
+    }
+}
+
+message SuJavaType {
+    jawa_core.JavaType java_type = 1;
+}
+
+message SuString {
+    string str = 1;
+}
+
+message SuType {
+    oneof su_type {
+        SuJavaType su_java_type = 1;
+        SuString su_string = 2;
+    }
+}
+
+message RuleLhs {
+    oneof rule_lhs {
+        SuThis this = 1;
+        SuArg arg = 2;
+        SuGlobal global = 3;
+        SuRet ret = 4;
+    }
+}
+
+message SuClassOf {
+    RuleRhs rule_rhs = 1;
+    SuLocation su_location = 2;
+}
+
+message SuInstance {
+    SuType su_typ = 1;
+    SuLocation su_location = 2;
+}
+
+message SuVirtualLocation {}
+
+message SuConcreteLocation {
+    string loc = 1;
+}
+
+message SuLocation {
+    oneof su_location {
+        SuVirtualLocation virtual_location = 1;
+        SuConcreteLocation concrete_location = 2;
+    }
+}
+
+message RuleRhs {
+    oneof rule_rhs {
+        SuThis this = 1;
+        SuArg arg = 2;
+        SuGlobal global = 3;
+        SuRet ret = 4;
+        SuClassOf class_of = 5;
+        SuInstance instance = 6;
+    }
+}
+
+message ClearRule {
+    HeapBase heap_base = 1;
+}
+
+message BinaryRule {
+    enum Ops {
+        PLUS_EQ = 0;
+        MINUS_EQ = 1;
+        EQ = 2;
+    }
+    RuleLhs rule_lhs = 1;
+    Ops ops = 2;
+    RuleRhs rule_rhs = 3;
+}
+
+message HeapSummaryRule {
+    oneof heap_summary_rule {
+        ClearRule clear_rule = 1;
+        BinaryRule binary_rule = 2;
+    }
+}
+
+message HeapSummary {
+    jawa_core.MethodSignature method_signature = 1;
+    repeated HeapSummaryRule rules = 2;
+}

@@ -5,10 +5,11 @@ from cle.backends.externs import ExternObject
 from nativedroid.analyses.resolver.annotation import *
 from nativedroid.analyses.resolver.jni.java_type import *
 from nativedroid.analyses.resolver.jni.jni_helper import *
+from nativedroid.protobuf.jnsaf_grpc_pb2 import *
 
 __author__ = "Xingwei Lin, Fengguo Wei"
 __copyright__ = "Copyright 2018, The Argus-SAF Project"
-__license__ = "EPL v1.0"
+__license__ = "Apache v2.0"
 
 nativedroid_logger = logging.getLogger('nativedroid.jni_native_interface')
 
@@ -316,7 +317,20 @@ def icc_handle(class_name, method_name, return_annotation, simproc):
     return return_annotation
 
 
-class GetVersion(angr.SimProcedure):
+class NativeDroidSimProcedure(angr.SimProcedure):
+    def __init__(
+            self, jnsaf_client, project=None, cc=None, symbolic_return=None,
+            returns=None, is_syscall=None, is_stub=False,
+            num_args=None, display_name=None, library_name=None,
+            is_function=None, **kwargs
+    ):
+        super(NativeDroidSimProcedure, self).__init__(project, cc, symbolic_return, returns,
+                                                      is_syscall, is_stub, num_args, display_name,
+                                                      library_name, is_function, **kwargs)
+        self._jnsaf_client = jnsaf_client
+
+
+class GetVersion(NativeDroidSimProcedure):
     def run(self, env):
         nativedroid_logger.info('JNINativeInterface SimProcedure: %s', self)
 
@@ -328,7 +342,7 @@ class GetVersion(angr.SimProcedure):
         return 'GetVersion'
 
 
-class DefineClass(angr.SimProcedure):
+class DefineClass(NativeDroidSimProcedure):
     def run(self, env, name, loader, buf, bufLen):
         nativedroid_logger.info('JNINativeInterface SimProcedure: %s', self)
 
@@ -340,7 +354,7 @@ class DefineClass(angr.SimProcedure):
         return 'DefineClass'
 
 
-class FindClass(angr.SimProcedure):
+class FindClass(NativeDroidSimProcedure):
     def run(self, env, name):
         nativedroid_logger.info('JNINativeInterface SimProcedure: %s', self)
 
@@ -359,7 +373,7 @@ class FindClass(angr.SimProcedure):
         return 'FindClass'
 
 
-class FromReflectedMethod(angr.SimProcedure):
+class FromReflectedMethod(NativeDroidSimProcedure):
     def run(self, env, method):
         nativedroid_logger.info('JNINativeInterface SimProcedure: %s', self)
 
@@ -372,7 +386,7 @@ class FromReflectedMethod(angr.SimProcedure):
         return 'FromReflectedMethod'
 
 
-class FromReflectedField(angr.SimProcedure):
+class FromReflectedField(NativeDroidSimProcedure):
     def run(self, env, field):
         nativedroid_logger.info('JNINativeInterface SimProcedure: %s', self)
 
@@ -385,7 +399,7 @@ class FromReflectedField(angr.SimProcedure):
         return 'FromReflectedField'
 
 
-class ToReflectedMethod(angr.SimProcedure):
+class ToReflectedMethod(NativeDroidSimProcedure):
     def run(self, env, cls, method_id, is_static):
         nativedroid_logger.info('JNINativeInterface SimProcedure: %s', self)
 
@@ -397,7 +411,7 @@ class ToReflectedMethod(angr.SimProcedure):
         return 'ToReflectedMethod'
 
 
-class GetSuperClass(angr.SimProcedure):
+class GetSuperClass(NativeDroidSimProcedure):
     def run(self, env, clazz):
         nativedroid_logger.info('JNINativeInterface SimProcedure: %s', self)
 
@@ -410,7 +424,7 @@ class GetSuperClass(angr.SimProcedure):
         return 'GetSuperClass'
 
 
-class IsAssignableFrom(angr.SimProcedure):
+class IsAssignableFrom(NativeDroidSimProcedure):
     def run(self, env, clazz1, clazz2):
         nativedroid_logger.info('JNINativeInterface SimProcedure: %s', self)
 
@@ -423,7 +437,7 @@ class IsAssignableFrom(angr.SimProcedure):
         return 'IsAssignableFrom'
 
 
-class ToReflectedField(angr.SimProcedure):
+class ToReflectedField(NativeDroidSimProcedure):
     def run(self, env, cls, fieldID, isStatic):
         nativedroid_logger.info('JNINativeInterface SimProcedure: %s', self)
 
@@ -436,7 +450,7 @@ class ToReflectedField(angr.SimProcedure):
         return 'ToReflectedField'
 
 
-class Throw(angr.SimProcedure):
+class Throw(NativeDroidSimProcedure):
     def run(self, env, obj):
         nativedroid_logger.info('JNINativeInterface SimProcedure: %s', self)
 
@@ -448,7 +462,7 @@ class Throw(angr.SimProcedure):
         return 'Throw'
 
 
-class ThrowNew(angr.SimProcedure):
+class ThrowNew(NativeDroidSimProcedure):
     def run(self, env, clazz, message):
         nativedroid_logger.info('JNINativeInterface SimProcedure: %s', self)
 
@@ -460,7 +474,7 @@ class ThrowNew(angr.SimProcedure):
         return 'ThrowNew'
 
 
-class ExceptionOccurred(angr.SimProcedure):
+class ExceptionOccurred(NativeDroidSimProcedure):
     def run(self, env):
         nativedroid_logger.info('JNINativeInterface SimProcedure: %s', self)
 
@@ -472,7 +486,7 @@ class ExceptionOccurred(angr.SimProcedure):
         return 'ExceptionOccurred'
 
 
-class ExceptionDescribe(angr.SimProcedure):
+class ExceptionDescribe(NativeDroidSimProcedure):
     def run(self, env):
         nativedroid_logger.info('JNINativeInterface SimProcedure: %s', self)
 
@@ -480,7 +494,7 @@ class ExceptionDescribe(angr.SimProcedure):
         return 'ExceptionDescribe'
 
 
-class ExceptionClear(angr.SimProcedure):
+class ExceptionClear(NativeDroidSimProcedure):
     def run(self, env):
         nativedroid_logger.info('JNINativeInterface SimProcedure: %s', self)
 
@@ -488,7 +502,7 @@ class ExceptionClear(angr.SimProcedure):
         return 'ExceptionClear'
 
 
-class FatalError(angr.SimProcedure):
+class FatalError(NativeDroidSimProcedure):
     def run(self, env, msg):
         nativedroid_logger.info('JNINativeInterface SimProcedure: %s', self)
 
@@ -496,7 +510,7 @@ class FatalError(angr.SimProcedure):
         return 'FatalError'
 
 
-class PushLocalFrame(angr.SimProcedure):
+class PushLocalFrame(NativeDroidSimProcedure):
     def run(self, env, capacity):
         nativedroid_logger.info('JNINativeInterface SimProcedure: %s', self)
 
@@ -508,7 +522,7 @@ class PushLocalFrame(angr.SimProcedure):
         return 'PushLocalFrame'
 
 
-class PopLocalFrame(angr.SimProcedure):
+class PopLocalFrame(NativeDroidSimProcedure):
     def run(self, env, result):
         nativedroid_logger.info('JNINativeInterface SimProcedure: %s', self)
 
@@ -520,7 +534,7 @@ class PopLocalFrame(angr.SimProcedure):
         return 'PopLocalFrame'
 
 
-class NewGlobalRef(angr.SimProcedure):
+class NewGlobalRef(NativeDroidSimProcedure):
     def run(self, env, obj):
         nativedroid_logger.info('JNINativeInterface SimProcedure: %s', self)
 
@@ -532,7 +546,7 @@ class NewGlobalRef(angr.SimProcedure):
         return 'NewGlobalRef'
 
 
-class DeleteGlobalRef(angr.SimProcedure):
+class DeleteGlobalRef(NativeDroidSimProcedure):
     def run(self, env, globalRef):
         nativedroid_logger.info('JNINativeInterface SimProcedure: %s', self)
 
@@ -540,7 +554,7 @@ class DeleteGlobalRef(angr.SimProcedure):
         return 'DeleteGlobalRef'
 
 
-class DeleteLocalRef(angr.SimProcedure):
+class DeleteLocalRef(NativeDroidSimProcedure):
     def run(self, env, localRef):
         nativedroid_logger.info('JNINativeInterface SimProcedure: %s', self)
 
@@ -548,7 +562,7 @@ class DeleteLocalRef(angr.SimProcedure):
         return 'DeleteLocalRef'
 
 
-class IsSameObject(angr.SimProcedure):
+class IsSameObject(NativeDroidSimProcedure):
     def run(self, env, ref1, ref2):
         nativedroid_logger.info('JNINativeInterface SimProcedure: %s', self)
 
@@ -560,7 +574,7 @@ class IsSameObject(angr.SimProcedure):
         return 'IsSameObject'
 
 
-class NewLocalRef(angr.SimProcedure):
+class NewLocalRef(NativeDroidSimProcedure):
     def run(self, env, ref):
         nativedroid_logger.info('JNINativeInterface SimProcedure: %s', self)
 
@@ -572,7 +586,7 @@ class NewLocalRef(angr.SimProcedure):
         return 'NewLocalRef'
 
 
-class EnsureLocalCapacity(angr.SimProcedure):
+class EnsureLocalCapacity(NativeDroidSimProcedure):
     def run(self, env, capacity):
         nativedroid_logger.info('JNINativeInterface SimProcedure: %s', self)
 
@@ -584,7 +598,7 @@ class EnsureLocalCapacity(angr.SimProcedure):
         return 'EnsureLocalCapacity'
 
 
-class AllocObject(angr.SimProcedure):
+class AllocObject(NativeDroidSimProcedure):
     def run(self, env, clazz):
         nativedroid_logger.info('JNINativeInterface SimProcedure: %s', self)
 
@@ -596,7 +610,7 @@ class AllocObject(angr.SimProcedure):
         return 'AllocObject'
 
 
-class NewObject(angr.SimProcedure):
+class NewObject(NativeDroidSimProcedure):
     def run(self, env, clazz, methodID):
         nativedroid_logger.info('JNINativeInterface SimProcedure: %s', self)
 
@@ -624,7 +638,7 @@ class NewObjectA(NewObject):
         return 'NewObjectA'
 
 
-class GetObjectClass(angr.SimProcedure):
+class GetObjectClass(NativeDroidSimProcedure):
     def run(self, env, obj):
         nativedroid_logger.info('JNINativeInterface SimProcedure: %s', self)
 
@@ -641,7 +655,7 @@ class GetObjectClass(angr.SimProcedure):
         return 'GetObjectClass'
 
 
-class IsInstanceOf(angr.SimProcedure):
+class IsInstanceOf(NativeDroidSimProcedure):
     def run(self, env, obj, clazz):
         nativedroid_logger.info('JNINativeInterface SimProcedure: %s', self)
 
@@ -654,7 +668,7 @@ class IsInstanceOf(angr.SimProcedure):
         return 'IsInstanceOf'
 
 
-class GetMethodID(angr.SimProcedure):
+class GetMethodID(NativeDroidSimProcedure):
     def run(self, env, clazz, name, sig):
         nativedroid_logger.info('JNINativeInterface SimProcedure: %s', self)
         strlen_simproc = angr.SIM_PROCEDURES['libc']['strlen']
@@ -684,7 +698,7 @@ class GetMethodID(angr.SimProcedure):
         return 'GetMethodID'
 
 
-class CallObjectMethod(angr.SimProcedure):
+class CallObjectMethod(NativeDroidSimProcedure):
     def run(self, env, obj, methodID):
         nativedroid_logger.info('JNINativeInterface SimProcedure: %s', self)
         num_args = 3
@@ -694,7 +708,15 @@ class CallObjectMethod(angr.SimProcedure):
                 method_name = annotation.method_name
                 method_signature = annotation.method_signature
                 method_full_signature = get_method_full_signature(class_name, method_name, method_signature)
+                nativedroid_logger.info("Call: %s", method_full_signature)
                 method_taint_attribute = get_method_taint_attribute(method_full_signature)
+                if not method_taint_attribute and self._jnsaf_client:
+                    request = GetSummaryRequest(apk_digest=self._jnsaf_client.apk_digest,
+                                                signature=method_full_signature,
+                                                gen=True,
+                                                depth=self._jnsaf_client.depth)
+                    response = self._jnsaf_client.GetSummary(request)
+                    nativedroid_logger.info(response.heap_summary)
                 num_args += count_arg_nums(method_signature)
                 jni_return_type = get_jni_return_type(method_signature)
                 java_return_type = get_java_return_type(method_signature)
@@ -864,18 +886,18 @@ class CallDoubleMethodA(CallTypeMethod):
 
 
 class CallVoidMethod(CallTypeMethod):
-    def run(self, env, obj, methodID):
-        nativedroid_logger.info('JNINativeInterface SimProcedure: %s', self)
-
-        num_args = 3
-
-        for annotation in methodID.annotations:
-            if type(annotation) is JmethodIDAnnotation:
-                class_name = annotation.class_name
-                method_name = annotation.method_name
-                method_signature = annotation.method_signature
-                num_args += count_arg_nums(method_signature)
-                icc_handle(class_name, method_name, None, self)
+    # def run(self, env, obj, methodID):
+    #     nativedroid_logger.info('JNINativeInterface SimProcedure: %s', self)
+    #
+    #     num_args = 3
+    #
+    #     for annotation in methodID.annotations:
+    #         if type(annotation) is JmethodIDAnnotation:
+    #             class_name = annotation.class_name
+    #             method_name = annotation.method_name
+    #             method_signature = annotation.method_signature
+    #             num_args += count_arg_nums(method_signature)
+    #             icc_handle(class_name, method_name, None, self)
 
     def __repr__(self):
         return 'CallVoidMethod'
@@ -1046,7 +1068,7 @@ class CallNonvirtualVoidMethodA(CallNonvirtualVoidMethod):
         return 'CallNonvirtualVoidMethodA'
 
 
-class GetFieldID(angr.SimProcedure):
+class GetFieldID(NativeDroidSimProcedure):
     def run(self, env, clazz, name, sig):
         nativedroid_logger.info('JNINativeInterface SimProcedure: %s', self)
 
@@ -1076,7 +1098,7 @@ class GetFieldID(angr.SimProcedure):
         return 'GetFieldID'
 
 
-class GetObjectField(angr.SimProcedure):
+class GetObjectField(NativeDroidSimProcedure):
     def run(self, env, obj, fieldID):
         nativedroid_logger.info('JNINativeInterface SimProcedure: %s', self)
 
@@ -1122,7 +1144,7 @@ class GetObjectField(angr.SimProcedure):
         return 'GetObjectField'
 
 
-class GetBooleanField(angr.SimProcedure):
+class GetBooleanField(NativeDroidSimProcedure):
     def run(self, env, obj, fieldID):
         nativedroid_logger.info('JNINativeInterface SimProcedure: %s', self)
 
@@ -1134,7 +1156,7 @@ class GetBooleanField(angr.SimProcedure):
         return 'GetBooleanField'
 
 
-class GetByteField(angr.SimProcedure):
+class GetByteField(NativeDroidSimProcedure):
     def run(self, env, obj, fieldID):
         nativedroid_logger.info('JNINativeInterface SimProcedure: %s', self)
 
@@ -1146,7 +1168,7 @@ class GetByteField(angr.SimProcedure):
         return 'GetByteField'
 
 
-class GetCharField(angr.SimProcedure):
+class GetCharField(NativeDroidSimProcedure):
     def run(self, env, obj, fieldID):
         nativedroid_logger.info('JNINativeInterface SimProcedure: %s', self)
 
@@ -1158,7 +1180,7 @@ class GetCharField(angr.SimProcedure):
         return 'GetCharField'
 
 
-class GetShortField(angr.SimProcedure):
+class GetShortField(NativeDroidSimProcedure):
     def run(self, env, obj, fieldID):
         nativedroid_logger.info('JNINativeInterface SimProcedure: %s', self)
 
@@ -1170,7 +1192,7 @@ class GetShortField(angr.SimProcedure):
         return 'GetShortField'
 
 
-class GetIntField(angr.SimProcedure):
+class GetIntField(NativeDroidSimProcedure):
     def run(self, env, obj, fieldID):
         nativedroid_logger.info('JNINativeInterface SimProcedure: %s', self)
 
@@ -1182,7 +1204,7 @@ class GetIntField(angr.SimProcedure):
         return 'GetIntField'
 
 
-class GetLongField(angr.SimProcedure):
+class GetLongField(NativeDroidSimProcedure):
     def run(self, env, obj, fieldID):
         nativedroid_logger.info('JNINativeInterface SimProcedure: %s', self)
 
@@ -1194,7 +1216,7 @@ class GetLongField(angr.SimProcedure):
         return 'GetLongField'
 
 
-class GetFloatField(angr.SimProcedure):
+class GetFloatField(NativeDroidSimProcedure):
     def run(self, env, obj, fieldID):
         nativedroid_logger.info('JNINativeInterface SimProcedure: %s', self)
 
@@ -1206,7 +1228,7 @@ class GetFloatField(angr.SimProcedure):
         return 'GetFloatField'
 
 
-class GetDoubleField(angr.SimProcedure):
+class GetDoubleField(NativeDroidSimProcedure):
     def run(self, env, obj, fieldID):
         nativedroid_logger.info('JNINativeInterface SimProcedure: %s', self)
 
@@ -1218,7 +1240,7 @@ class GetDoubleField(angr.SimProcedure):
         return 'GetDoubleField'
 
 
-class SetTypeField(angr.SimProcedure):
+class SetTypeField(NativeDroidSimProcedure):
     def run(self, env, obj, fieldID, value):
         nativedroid_logger.info('JNINativeInterface SimProcedure: %s', self)
 
@@ -1226,7 +1248,7 @@ class SetTypeField(angr.SimProcedure):
         return 'Set<Type>Field'
 
 
-class SetObjectField(angr.SimProcedure):
+class SetObjectField(NativeDroidSimProcedure):
     def run(self, env, obj, fieldID, value):
         nativedroid_logger.info('JNINativeInterface SimProcedure: %s', self)
 
@@ -1627,7 +1649,7 @@ class SetStaticDoubleField(SetDoubleField):
         return 'SetStaticDoubleField'
 
 
-class NewString(angr.SimProcedure):
+class NewString(NativeDroidSimProcedure):
     def run(self, env, unicodeChars, length):
         nativedroid_logger.info('JNINativeInterface SimProcedure: %s', self)
 
@@ -1639,7 +1661,7 @@ class NewString(angr.SimProcedure):
         return 'NewString'
 
 
-class GetStringLength(angr.SimProcedure):
+class GetStringLength(NativeDroidSimProcedure):
     def run(self, env, string):
         nativedroid_logger.info('JNINativeInterface SimProcedure: %s', self)
 
@@ -1651,7 +1673,7 @@ class GetStringLength(angr.SimProcedure):
         return 'GetStringLength'
 
 
-class GetStringChars(angr.SimProcedure):
+class GetStringChars(NativeDroidSimProcedure):
     def run(self, env, string, isCopy):
         nativedroid_logger.info('JNINativeInterface SimProcedure: %s', self)
 
@@ -1661,7 +1683,7 @@ class GetStringChars(angr.SimProcedure):
         return 'GetStringChars'
 
 
-class ReleaseStringChars(angr.SimProcedure):
+class ReleaseStringChars(NativeDroidSimProcedure):
     def run(self, env, string, chars):
         nativedroid_logger.info('JNINativeInterface SimProcedure: %s', self)
 
@@ -1669,7 +1691,7 @@ class ReleaseStringChars(angr.SimProcedure):
         return 'ReleaseStringChars'
 
 
-class NewStringUTF(angr.SimProcedure):
+class NewStringUTF(NativeDroidSimProcedure):
     def run(self, env, mybytes):
         nativedroid_logger.info('JNINativeInterface SimProcedure: %s', self)
 
@@ -1689,7 +1711,7 @@ class NewStringUTF(angr.SimProcedure):
         return 'NewStringUTF'
 
 
-class GetStringUTFLength(angr.SimProcedure):
+class GetStringUTFLength(NativeDroidSimProcedure):
     def run(self, env, string):
         nativedroid_logger.info('JNINativeInterface SimProcedure: %s', self)
 
@@ -1701,7 +1723,7 @@ class GetStringUTFLength(angr.SimProcedure):
         return 'GetStringUTFLength'
 
 
-class GetStringUTFChars(angr.SimProcedure):
+class GetStringUTFChars(NativeDroidSimProcedure):
     def run(self, env, string, isCopy):
         nativedroid_logger.info('JNINativeInterface SimProcedure: %s', self)
 
@@ -1711,7 +1733,7 @@ class GetStringUTFChars(angr.SimProcedure):
         return 'GetStringUTFChars'
 
 
-class ReleaseStringUTFChars(angr.SimProcedure):
+class ReleaseStringUTFChars(NativeDroidSimProcedure):
     def run(self, env, string, utf):
         nativedroid_logger.info('JNINativeInterface SimProcedure: %s', self)
 
@@ -1719,7 +1741,7 @@ class ReleaseStringUTFChars(angr.SimProcedure):
         return 'ReleaseStringUTFChars'
 
 
-class GetArrayLength(angr.SimProcedure):
+class GetArrayLength(NativeDroidSimProcedure):
     def run(self, env, array):
         nativedroid_logger.info('JNINativeInterface SimProcedure: %s', self)
 
@@ -1731,7 +1753,7 @@ class GetArrayLength(angr.SimProcedure):
         return 'GetArrayLength'
 
 
-class NewObjectArray(angr.SimProcedure):
+class NewObjectArray(NativeDroidSimProcedure):
     def run(self, env, length, elementClass, initialElement):
         nativedroid_logger.info('JNINativeInterface SimProcedure: %s', self)
 
@@ -1743,7 +1765,7 @@ class NewObjectArray(angr.SimProcedure):
         return 'NewObjectArray'
 
 
-class GetObjectArrayElement(angr.SimProcedure):
+class GetObjectArrayElement(NativeDroidSimProcedure):
     def run(self, env, array, index):
         nativedroid_logger.info('JNINativeInterface SimProcedure: %s', self)
 
@@ -1766,7 +1788,7 @@ class GetObjectArrayElement(angr.SimProcedure):
         return 'GetObjectArrayElement'
 
 
-class SetObjectArrayElement(angr.SimProcedure):
+class SetObjectArrayElement(NativeDroidSimProcedure):
     def run(self, env, array, index, value):
         nativedroid_logger.info('JNINativeInterface SimProcedure: %s', self)
 
@@ -1774,7 +1796,7 @@ class SetObjectArrayElement(angr.SimProcedure):
         return 'SetObjectArrayElement'
 
 
-class NewBooleanArray(angr.SimProcedure):
+class NewBooleanArray(NativeDroidSimProcedure):
     def run(self, env, length):
         nativedroid_logger.info('JNINativeInterface SimProcedure: %s', self)
 
@@ -1786,7 +1808,7 @@ class NewBooleanArray(angr.SimProcedure):
         return 'NewBooleanArray'
 
 
-class NewByteArray(angr.SimProcedure):
+class NewByteArray(NativeDroidSimProcedure):
     def run(self, env, length):
         nativedroid_logger.info('JNINativeInterface SimProcedure: %s', self)
 
@@ -1798,7 +1820,7 @@ class NewByteArray(angr.SimProcedure):
         return 'NewByteArray'
 
 
-class NewCharArray(angr.SimProcedure):
+class NewCharArray(NativeDroidSimProcedure):
     def run(self, env, length):
         nativedroid_logger.info('JNINativeInterface SimProcedure: %s', self)
 
@@ -1810,7 +1832,7 @@ class NewCharArray(angr.SimProcedure):
         return 'NewCharArray'
 
 
-class NewShortArray(angr.SimProcedure):
+class NewShortArray(NativeDroidSimProcedure):
     def run(self, env, length):
         nativedroid_logger.info('JNINativeInterface SimProcedure: %s', self)
 
@@ -1822,7 +1844,7 @@ class NewShortArray(angr.SimProcedure):
         return 'NewShortArray'
 
 
-class NewIntArray(angr.SimProcedure):
+class NewIntArray(NativeDroidSimProcedure):
     def run(self, env, length):
         nativedroid_logger.info('JNINativeInterface SimProcedure: %s', self)
 
@@ -1834,7 +1856,7 @@ class NewIntArray(angr.SimProcedure):
         return 'NewIntArray'
 
 
-class NewLongArray(angr.SimProcedure):
+class NewLongArray(NativeDroidSimProcedure):
     def run(self, env, length):
         nativedroid_logger.info('JNINativeInterface SimProcedure: %s', self)
 
@@ -1846,7 +1868,7 @@ class NewLongArray(angr.SimProcedure):
         return 'NewLongArray'
 
 
-class NewFloatArray(angr.SimProcedure):
+class NewFloatArray(NativeDroidSimProcedure):
     def run(self, env, length):
         nativedroid_logger.info('JNINativeInterface SimProcedure: %s', self)
 
@@ -1858,7 +1880,7 @@ class NewFloatArray(angr.SimProcedure):
         return 'NewFloatArray'
 
 
-class NewDoubleArray(angr.SimProcedure):
+class NewDoubleArray(NativeDroidSimProcedure):
     def run(self, env, length):
         nativedroid_logger.info('JNINativeInterface SimProcedure: %s', self)
 
@@ -1870,7 +1892,7 @@ class NewDoubleArray(angr.SimProcedure):
         return 'NewDoubleArray'
 
 
-class GetBooleanArrayElements(angr.SimProcedure):
+class GetBooleanArrayElements(NativeDroidSimProcedure):
     def run(self, env, array, isCopy):
         nativedroid_logger.info('JNINativeInterface SimProcedure: %s', self)
 
@@ -1882,7 +1904,7 @@ class GetBooleanArrayElements(angr.SimProcedure):
         return 'GetBooleanArrayElements'
 
 
-class GetByteArrayElements(angr.SimProcedure):
+class GetByteArrayElements(NativeDroidSimProcedure):
     def run(self, env, array, isCopy):
         nativedroid_logger.info('JNINativeInterface SimProcedure: %s', self)
 
@@ -1892,7 +1914,7 @@ class GetByteArrayElements(angr.SimProcedure):
         return 'GetByteArrayElements'
 
 
-class GetCharArrayElements(angr.SimProcedure):
+class GetCharArrayElements(NativeDroidSimProcedure):
     def run(self, env, array, isCopy):
         nativedroid_logger.info('JNINativeInterface SimProcedure: %s', self)
 
@@ -1904,7 +1926,7 @@ class GetCharArrayElements(angr.SimProcedure):
         return 'GetCharArrayElements'
 
 
-class GetShortArrayElements(angr.SimProcedure):
+class GetShortArrayElements(NativeDroidSimProcedure):
     def run(self, env, array, isCopy):
         nativedroid_logger.info('JNINativeInterface SimProcedure: %s', self)
 
@@ -1916,7 +1938,7 @@ class GetShortArrayElements(angr.SimProcedure):
         return 'GetShortArrayElements'
 
 
-class GetIntArrayElements(angr.SimProcedure):
+class GetIntArrayElements(NativeDroidSimProcedure):
     def run(self, env, array, isCopy):
         nativedroid_logger.info('JNINativeInterface SimProcedure: %s', self)
 
@@ -1928,7 +1950,7 @@ class GetIntArrayElements(angr.SimProcedure):
         return 'GetIntArrayElements'
 
 
-class GetLongArrayElements(angr.SimProcedure):
+class GetLongArrayElements(NativeDroidSimProcedure):
     def run(self, env, array, isCopy):
         nativedroid_logger.info('JNINativeInterface SimProcedure: %s', self)
 
@@ -1940,7 +1962,7 @@ class GetLongArrayElements(angr.SimProcedure):
         return 'GetLongArrayElements'
 
 
-class GetFloatArrayElements(angr.SimProcedure):
+class GetFloatArrayElements(NativeDroidSimProcedure):
     def run(self, env, array, isCopy):
         nativedroid_logger.info('JNINativeInterface SimProcedure: %s', self)
 
@@ -1952,7 +1974,7 @@ class GetFloatArrayElements(angr.SimProcedure):
         return 'GetFloatArrayElements'
 
 
-class GetDoubleArrayElements(angr.SimProcedure):
+class GetDoubleArrayElements(NativeDroidSimProcedure):
     def run(self, env, array, isCopy):
         nativedroid_logger.info('JNINativeInterface SimProcedure: %s', self)
 
@@ -1964,7 +1986,7 @@ class GetDoubleArrayElements(angr.SimProcedure):
         return 'GetDoubleArrayElements'
 
 
-class ReleaseBooleanArrayElements(angr.SimProcedure):
+class ReleaseBooleanArrayElements(NativeDroidSimProcedure):
     def run(self, env, array, elems, mode):
         nativedroid_logger.info('JNINativeInterface SimProcedure: %s', self)
 
@@ -1972,7 +1994,7 @@ class ReleaseBooleanArrayElements(angr.SimProcedure):
         return 'ReleaseBooleanArrayElements'
 
 
-class ReleaseByteArrayElements(angr.SimProcedure):
+class ReleaseByteArrayElements(NativeDroidSimProcedure):
     def run(self, env, array, elems, mode):
         nativedroid_logger.info('JNINativeInterface SimProcedure: %s', self)
 
@@ -1980,7 +2002,7 @@ class ReleaseByteArrayElements(angr.SimProcedure):
         return 'ReleaseByteArrayElements'
 
 
-class ReleaseCharArrayElements(angr.SimProcedure):
+class ReleaseCharArrayElements(NativeDroidSimProcedure):
     def run(self, env, array, elems, mode):
         nativedroid_logger.info('JNINativeInterface SimProcedure: %s', self)
 
@@ -1988,7 +2010,7 @@ class ReleaseCharArrayElements(angr.SimProcedure):
         return 'ReleaseCharArrayElements'
 
 
-class ReleaseShortArrayElements(angr.SimProcedure):
+class ReleaseShortArrayElements(NativeDroidSimProcedure):
     def run(self, env, array, elems, mode):
         nativedroid_logger.info('JNINativeInterface SimProcedure: %s', self)
 
@@ -1996,7 +2018,7 @@ class ReleaseShortArrayElements(angr.SimProcedure):
         return 'ReleaseShortArrayElements'
 
 
-class ReleaseIntArrayElements(angr.SimProcedure):
+class ReleaseIntArrayElements(NativeDroidSimProcedure):
     def run(self, env, array, elems, mode):
         nativedroid_logger.info('JNINativeInterface SimProcedure: %s', self)
 
@@ -2004,7 +2026,7 @@ class ReleaseIntArrayElements(angr.SimProcedure):
         return 'ReleaseIntArrayElements'
 
 
-class ReleaseLongArrayElements(angr.SimProcedure):
+class ReleaseLongArrayElements(NativeDroidSimProcedure):
     def run(self, env, array, elems, mode):
         nativedroid_logger.info('JNINativeInterface SimProcedure: %s', self)
 
@@ -2012,7 +2034,7 @@ class ReleaseLongArrayElements(angr.SimProcedure):
         return 'ReleaseLongArrayElements'
 
 
-class ReleaseFloatArrayElements(angr.SimProcedure):
+class ReleaseFloatArrayElements(NativeDroidSimProcedure):
     def run(self, env, array, elems, mode):
         nativedroid_logger.info('JNINativeInterface SimProcedure: %s', self)
 
@@ -2020,7 +2042,7 @@ class ReleaseFloatArrayElements(angr.SimProcedure):
         return 'ReleaseFloatArrayElements'
 
 
-class ReleaseDoubleArrayElements(angr.SimProcedure):
+class ReleaseDoubleArrayElements(NativeDroidSimProcedure):
     def run(self, env, array, elems, mode):
         nativedroid_logger.info('JNINativeInterface SimProcedure: %s', self)
 
@@ -2028,7 +2050,7 @@ class ReleaseDoubleArrayElements(angr.SimProcedure):
         return 'ReleaseDoubleArrayElements'
 
 
-class GetBooleanArrayRegion(angr.SimProcedure):
+class GetBooleanArrayRegion(NativeDroidSimProcedure):
     def run(self, env, array, start, length, buf):
         nativedroid_logger.info('JNINativeInterface SimProcedure: %s', self)
 
@@ -2036,7 +2058,7 @@ class GetBooleanArrayRegion(angr.SimProcedure):
         return 'GetBooleanArrayRegion'
 
 
-class GetByteArrayRegion(angr.SimProcedure):
+class GetByteArrayRegion(NativeDroidSimProcedure):
     def run(self, env, array, start, length, buf):
         nativedroid_logger.info('JNINativeInterface SimProcedure: %s', self)
 
@@ -2044,7 +2066,7 @@ class GetByteArrayRegion(angr.SimProcedure):
         return 'GetByteArrayRegion'
 
 
-class GetCharArrayRegion(angr.SimProcedure):
+class GetCharArrayRegion(NativeDroidSimProcedure):
     def run(self, env, array, start, length, buf):
         nativedroid_logger.info('JNINativeInterface SimProcedure: %s', self)
 
@@ -2052,7 +2074,7 @@ class GetCharArrayRegion(angr.SimProcedure):
         return 'GetCharArrayRegion'
 
 
-class GetShortArrayRegion(angr.SimProcedure):
+class GetShortArrayRegion(NativeDroidSimProcedure):
     def run(self, env, array, start, length, buf):
         nativedroid_logger.info('JNINativeInterface SimProcedure: %s', self)
 
@@ -2060,7 +2082,7 @@ class GetShortArrayRegion(angr.SimProcedure):
         return 'GetShortArrayRegion'
 
 
-class GetIntArrayRegion(angr.SimProcedure):
+class GetIntArrayRegion(NativeDroidSimProcedure):
     def run(self, env, array, start, length, buf):
         nativedroid_logger.info('JNINativeInterface SimProcedure: %s', self)
 
@@ -2068,7 +2090,7 @@ class GetIntArrayRegion(angr.SimProcedure):
         return 'GetIntArrayRegion'
 
 
-class GetLongArrayRegion(angr.SimProcedure):
+class GetLongArrayRegion(NativeDroidSimProcedure):
     def run(self, env, array, start, length, buf):
         nativedroid_logger.info('JNINativeInterface SimProcedure: %s', self)
 
@@ -2076,7 +2098,7 @@ class GetLongArrayRegion(angr.SimProcedure):
         return 'GetLongArrayRegion'
 
 
-class GetFloatArrayRegion(angr.SimProcedure):
+class GetFloatArrayRegion(NativeDroidSimProcedure):
     def run(self, env, array, start, length, buf):
         nativedroid_logger.info('JNINativeInterface SimProcedure: %s', self)
 
@@ -2084,7 +2106,7 @@ class GetFloatArrayRegion(angr.SimProcedure):
         return 'GetFloatArrayRegion'
 
 
-class GetDoubleArrayRegion(angr.SimProcedure):
+class GetDoubleArrayRegion(NativeDroidSimProcedure):
     def run(self, env, array, start, length, buf):
         nativedroid_logger.info('JNINativeInterface SimProcedure: %s', self)
 
@@ -2092,7 +2114,7 @@ class GetDoubleArrayRegion(angr.SimProcedure):
         return 'GetDoubleArrayRegion'
 
 
-class SetBooleanArrayRegion(angr.SimProcedure):
+class SetBooleanArrayRegion(NativeDroidSimProcedure):
     def run(self, env, array, start, length, buf):
         nativedroid_logger.info('JNINativeInterface SimProcedure: %s', self)
 
@@ -2100,7 +2122,7 @@ class SetBooleanArrayRegion(angr.SimProcedure):
         return 'SetBooleanArrayRegion'
 
 
-class SetByteArrayRegion(angr.SimProcedure):
+class SetByteArrayRegion(NativeDroidSimProcedure):
     def run(self, env, array, start, length, buf):
         nativedroid_logger.info('JNINativeInterface SimProcedure: %s', self)
 
@@ -2108,7 +2130,7 @@ class SetByteArrayRegion(angr.SimProcedure):
         return 'SetBooleanArrayRegion'
 
 
-class SetCharArrayRegion(angr.SimProcedure):
+class SetCharArrayRegion(NativeDroidSimProcedure):
     def run(self, env, array, start, length, buf):
         nativedroid_logger.info('JNINativeInterface SimProcedure: %s', self)
 
@@ -2116,7 +2138,7 @@ class SetCharArrayRegion(angr.SimProcedure):
         return 'SetCharArrayRegion'
 
 
-class SetShortArrayRegion(angr.SimProcedure):
+class SetShortArrayRegion(NativeDroidSimProcedure):
     def run(self, env, array, start, length, buf):
         nativedroid_logger.info('JNINativeInterface SimProcedure: %s', self)
 
@@ -2124,7 +2146,7 @@ class SetShortArrayRegion(angr.SimProcedure):
         return 'SetShortArrayRegion'
 
 
-class SetIntArrayRegion(angr.SimProcedure):
+class SetIntArrayRegion(NativeDroidSimProcedure):
     def run(self, env, array, start, length, buf):
         nativedroid_logger.info('JNINativeInterface SimProcedure: %s', self)
 
@@ -2132,7 +2154,7 @@ class SetIntArrayRegion(angr.SimProcedure):
         return 'SetIntArrayRegion'
 
 
-class SetLongArrayRegion(angr.SimProcedure):
+class SetLongArrayRegion(NativeDroidSimProcedure):
     def run(self, env, array, start, length, buf):
         nativedroid_logger.info('JNINativeInterface SimProcedure: %s', self)
 
@@ -2140,7 +2162,7 @@ class SetLongArrayRegion(angr.SimProcedure):
         return 'SetLongArrayRegion'
 
 
-class SetFloatArrayRegion(angr.SimProcedure):
+class SetFloatArrayRegion(NativeDroidSimProcedure):
     def run(self, env, array, start, length, buf):
         nativedroid_logger.info('JNINativeInterface SimProcedure: %s', self)
 
@@ -2148,7 +2170,7 @@ class SetFloatArrayRegion(angr.SimProcedure):
         return 'SetFloatArrayRegion'
 
 
-class SetDoubleArrayRegion(angr.SimProcedure):
+class SetDoubleArrayRegion(NativeDroidSimProcedure):
     def run(self, env, array, start, length, buf):
         nativedroid_logger.info('JNINativeInterface SimProcedure: %s', self)
 
@@ -2156,7 +2178,7 @@ class SetDoubleArrayRegion(angr.SimProcedure):
         return 'SetDoubleArrayRegion'
 
 
-class RegisterNatives(angr.SimProcedure):
+class RegisterNatives(NativeDroidSimProcedure):
     def run(self, env, clazz, methods, nMethods):
         nativedroid_logger.info('JNINativeInterface SimProcedure: %s', self)
 
@@ -2176,7 +2198,7 @@ class RegisterNatives(angr.SimProcedure):
         return 'RegisterNatives'
 
 
-class UnregisterNatives(angr.SimProcedure):
+class UnregisterNatives(NativeDroidSimProcedure):
     def run(self, env, clazz):
         nativedroid_logger.info('JNINativeInterface SimProcedure: %s', self)
 
@@ -2188,7 +2210,7 @@ class UnregisterNatives(angr.SimProcedure):
         return 'UnregisterNatives'
 
 
-class MonitorEnter(angr.SimProcedure):
+class MonitorEnter(NativeDroidSimProcedure):
     def run(self, env, obj):
         nativedroid_logger.info('JNINativeInterface SimProcedure: %s', self)
 
@@ -2200,7 +2222,7 @@ class MonitorEnter(angr.SimProcedure):
         return 'MonitorEnter'
 
 
-class MonitorExit(angr.SimProcedure):
+class MonitorExit(NativeDroidSimProcedure):
     def run(self, env, obj):
         nativedroid_logger.info('JNINativeInterface SimProcedure: %s', self)
 
@@ -2212,7 +2234,7 @@ class MonitorExit(angr.SimProcedure):
         return 'MonitorExit'
 
 
-class GetJavaVM(angr.SimProcedure):
+class GetJavaVM(NativeDroidSimProcedure):
     def run(self, env, vm):
         nativedroid_logger.info('JNINativeInterface SimProcedure: %s', self)
 
@@ -2224,7 +2246,7 @@ class GetJavaVM(angr.SimProcedure):
         return 'GetJavaVM'
 
 
-class GetStringRegion(angr.SimProcedure):
+class GetStringRegion(NativeDroidSimProcedure):
     def run(self, env, string, start, length, buf):
         nativedroid_logger.info('JNINativeInterface SimProcedure: %s', self)
 
@@ -2232,7 +2254,7 @@ class GetStringRegion(angr.SimProcedure):
         return 'GetStringRegion'
 
 
-class GetStringUTFRegion(angr.SimProcedure):
+class GetStringUTFRegion(NativeDroidSimProcedure):
     def run(self, env, string, start, length, buf):
         nativedroid_logger.info('JNINativeInterface SimProcedure: %s', self)
 
@@ -2240,7 +2262,7 @@ class GetStringUTFRegion(angr.SimProcedure):
         return 'GetStringUTFRegion'
 
 
-class GetPrimitiveArrayCritical(angr.SimProcedure):
+class GetPrimitiveArrayCritical(NativeDroidSimProcedure):
     def run(self, env, array, isCopy):
         nativedroid_logger.info('JNINativeInterface SimProcedure: %s', self)
 
@@ -2248,7 +2270,7 @@ class GetPrimitiveArrayCritical(angr.SimProcedure):
         return 'GetPrimitiveArrayCritical'
 
 
-class ReleasePrimitiveArrayCritical(angr.SimProcedure):
+class ReleasePrimitiveArrayCritical(NativeDroidSimProcedure):
     def run(self, env, array, carray, mode):
         nativedroid_logger.info('JNINativeInterface SimProcedure: %s', self)
 
@@ -2256,7 +2278,7 @@ class ReleasePrimitiveArrayCritical(angr.SimProcedure):
         return 'ReleasePrimitiveArrayCritical'
 
 
-class GetStringCritical(angr.SimProcedure):
+class GetStringCritical(NativeDroidSimProcedure):
     def run(self, env, string, isCopy):
         nativedroid_logger.info('JNINativeInterface SimProcedure: %s', self)
 
@@ -2268,7 +2290,7 @@ class GetStringCritical(angr.SimProcedure):
         return 'GetStringCritical'
 
 
-class ReleaseStringCritical(angr.SimProcedure):
+class ReleaseStringCritical(NativeDroidSimProcedure):
     def run(self, env, string, carray):
         nativedroid_logger.info('JNINativeInterface SimProcedure: %s', self)
 
@@ -2276,7 +2298,7 @@ class ReleaseStringCritical(angr.SimProcedure):
         return 'ReleaseStringCritical'
 
 
-class NewWeakGlobalRef(angr.SimProcedure):
+class NewWeakGlobalRef(NativeDroidSimProcedure):
     def run(self, env, obj):
         nativedroid_logger.info('JNINativeInterface SimProcedure: %s', self)
 
@@ -2288,7 +2310,7 @@ class NewWeakGlobalRef(angr.SimProcedure):
         return 'NewWeakGlobalRef'
 
 
-class DeleteWeakGlobalRef(angr.SimProcedure):
+class DeleteWeakGlobalRef(NativeDroidSimProcedure):
     def run(self, env, obj):
         nativedroid_logger.info('JNINativeInterface SimProcedure: %s', self)
 
@@ -2296,7 +2318,7 @@ class DeleteWeakGlobalRef(angr.SimProcedure):
         return 'DeleteWeakGlobalRef'
 
 
-class ExceptionCheck(angr.SimProcedure):
+class ExceptionCheck(NativeDroidSimProcedure):
     def run(self, env):
         nativedroid_logger.info('JNINativeInterface SimProcedure: %s', self)
 
@@ -2308,7 +2330,7 @@ class ExceptionCheck(angr.SimProcedure):
         return 'ExceptionCheck'
 
 
-class NewDirectByteBuffer(angr.SimProcedure):
+class NewDirectByteBuffer(NativeDroidSimProcedure):
     def run(self, env, address, capacity):
         nativedroid_logger.info('JNINativeInterface SimProcedure: %s', self)
 
@@ -2320,7 +2342,7 @@ class NewDirectByteBuffer(angr.SimProcedure):
         return 'NewDirectByteBuffer'
 
 
-class GetDirectBufferAddress(angr.SimProcedure):
+class GetDirectBufferAddress(NativeDroidSimProcedure):
     def run(self, env, buf):
         nativedroid_logger.info('JNINativeInterface SimProcedure: %s', self)
 
@@ -2328,7 +2350,7 @@ class GetDirectBufferAddress(angr.SimProcedure):
         return 'GetDirectBufferAddress'
 
 
-class GetDirectBufferCapacity(angr.SimProcedure):
+class GetDirectBufferCapacity(NativeDroidSimProcedure):
     def run(self, env, buf):
         nativedroid_logger.info('JNINativeInterface SimProcedure: %s', self)
 
@@ -2340,7 +2362,7 @@ class GetDirectBufferCapacity(angr.SimProcedure):
         return 'GetDirectBufferCapacity'
 
 
-class GetObjectRefType(angr.SimProcedure):
+class GetObjectRefType(NativeDroidSimProcedure):
     def run(self, env, obj):
         nativedroid_logger.info('JNINativeInterface SimProcedure: %s', self)
 
@@ -3057,12 +3079,13 @@ class JNINativeInterface(ExternObject):
         'GetObjectRefType': GetObjectRefType,
     }
 
-    def __init__(self, project):
+    def __init__(self, project, jnsaf_client):
         super(JNINativeInterface, self).__init__(project.loader)
         self._provides = 'JNIEnv'
         self._project = project
         self._fptr_size = self._project.arch.bits / 8
         self._project.loader.add_object(self)
+        self._jnsaf_client = jnsaf_client
         self._construct()
         # Define JNINativeMethod Struct and then resolved in RegisterNatives SimProcedure.
         angr.sim_type.define_struct('struct JNINativeMethod {const char* name;const char* signature;void* fnPtr;}')
@@ -3083,8 +3106,8 @@ class JNINativeInterface(ExternObject):
                 symb_name = symb.name
                 jni_native_interface_func_name = self.JNINativeInterface_sig[symb_name]
                 if jni_native_interface_func_name in self.JNINativeInterface_name_to_simproc:
-                    self._project.hook(addr, self.JNINativeInterface_name_to_simproc[
-                        jni_native_interface_func_name]())
+                    proc = self.JNINativeInterface_name_to_simproc[jni_native_interface_func_name](self._jnsaf_client)
+                    self._project.hook(addr, proc)
                 else:
                     self._project.hook(addr, angr.SIM_PROCEDURES['stubs']['ReturnUnconstrained']())
 
@@ -3098,7 +3121,8 @@ class JNINativeInterface(ExternObject):
                 addr = self.allocate(self._fptr_size)
                 # if we have a custom simprocedure for that function, hook with that
                 if name in self.JNINativeInterface_name_to_simproc:
-                    self._project.hook(addr, self.JNINativeInterface_name_to_simproc[name]())
+                    proc = self.JNINativeInterface_name_to_simproc[name](self._jnsaf_client)
+                    self._project.hook(addr, proc)
                 # otherwise hook with ReturnUnconstrained
                 else:
                     self._project.hook(addr, angr.SIM_PROCEDURES['stubs']['ReturnUnconstrained']())

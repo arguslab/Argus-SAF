@@ -1,3 +1,13 @@
+/*
+ * Copyright (c) 2018. Fengguo Wei and others.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License v2.0
+ * which accompanies this distribution, and is available at
+ * https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Detailed contributors are listed in the CONTRIBUTOR.md
+ */
+
 package org.argus.jnsaf.taint
 
 import org.argus.amandroid.alir.componentSummary.ApkYard
@@ -125,9 +135,9 @@ class JNSafTaintAnalysisTest extends FlatSpec with Matchers {
     val strategy = DecompileStrategy(layout)
     val settings = DecompilerSettings(debugMode = false, forceDelete = true, strategy, reporter)
     val apk = yard.loadApk(apkUri, settings, collectInfo = true, resolveCallBack = true)
-    val handler = new NativeMethodHandler(new NativeDroidClient("localhost", 50051, reporter))
+    val handler = new NativeMethodHandler(new NativeDroidClient("localhost", 50051, "", reporter))
     val provider = new AndroidSummaryProvider(apk)
-    val jntaint = new JNTaintAnalysis(apk, handler, provider, reporter)
+    val jntaint = new JNTaintAnalysis(apk, handler, provider, reporter, 3)
     val safsuFileUri = FileUtil.toUri(safsuFile)
     val name = FileUtil.filename(safsuFileUri)
     provider.sm.registerExternalFile(safsuFileUri, name, fileAndSubsigMatch = false)

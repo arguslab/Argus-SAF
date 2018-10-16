@@ -2,7 +2,7 @@ from nativedroid.protobuf.java_signatures_pb2 import *
 
 __author__ = "Fengguo Wei"
 __copyright__ = "Copyright 2018, The Argus-SAF Project"
-__license__ = "EPL v1.0"
+__license__ = "Apache v2.0"
 
 
 def java_package_str(java_package_pb, delimiter):

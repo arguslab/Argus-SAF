@@ -7,7 +7,7 @@ from nativedroid.analyses.resolver.jni.jni_type.jni_native_interface import JNIN
 
 __author__ = "Xingwei Lin, Fengguo Wei"
 __copyright__ = "Copyright 2018, The Argus-SAF Project"
-__license__ = "EPL v1.0"
+__license__ = "Apache v2.0"
 
 java_vm_origin_dict = {
     "DestroyJavaVM": 0,
@@ -123,7 +123,7 @@ class JNIInvokeInterface(ExternObject):
         self._JavaVM = self.allocate(self._fptr_size)
         self.memory.write_addr_at(self._JavaVM - self.min_addr, self._JNIInvokeInterface)
 
-        self._JNINativeInterface = JNINativeInterface(self._project)
+        self._JNINativeInterface = JNINativeInterface(self._project, None)
         self._JNIEnv = self._JNINativeInterface.ptr
 
         # iterate through the mapping
