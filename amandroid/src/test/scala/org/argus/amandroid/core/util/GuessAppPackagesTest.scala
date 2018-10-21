@@ -15,6 +15,8 @@ import java.io.{File, FileInputStream}
 import org.argus.amandroid.core.parser.ManifestParser
 import org.scalatest.{FlatSpec, Matchers}
 
+import scala.language.implicitConversions
+
 class GuessAppPackagesTest extends FlatSpec with Matchers {
   implicit def manifest(path: String): TestManifest = new TestManifest(getClass.getResource(path).getPath)
 

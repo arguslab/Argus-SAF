@@ -317,10 +317,39 @@ class TaintWu[T <: Global](
   override def toString: String = s"TaintWu($method)"
 }
 
-case class TaintSummary(sig: Signature, rules: Seq[TaintSummaryRule]) extends Summary[TaintSummaryRule]
+case class TaintSummary(sig: Signature, rules: Seq[TaintSummaryRule]) extends Summary[TaintSummaryRule] {
+  override def toString: FileResourceUri = {
+    val sb = new StringBuilder
+    rules.foreach { rule =>
+      sb.append(sig.signature)
+      sb.append(" -> ")
+      sb.append(rule.toString)
+      sb.append("\n")
+    }
+    sb.toString().trim
+  }
+}
 trait TaintSummaryRule extends SummaryRule
-case class SourceSummaryRule(ins: Instance) extends TaintSummaryRule
-case class SinkSummaryRule(hb: HeapBase, ins: Instance) extends TaintSummaryRule
-trait TaintHeap
-case class TaintField(name: String) extends TaintHeap
-case class TaintArray() extends TaintHeap
+case class SourceSummaryRule(ins: Instance) extends TaintSummaryRule {
+  override def toString: FileResourceUri = "_SOURCE_"
+}
+case class SinkSummaryRule(hb: HeapBase, ins: Instance) extends TaintSummaryRule {
+  override def toString: FileResourceUri = {
+    val sb = new StringBuilder
+    sb.append("_SINK_ ")
+    hb match {
+      case _: SuThis =>
+        sb.append("this")
+      case a: SuArg =>
+        sb.append(a.num)
+      case g: SuGlobal =>
+        sb.append(g.fqn)
+    }
+    hb.heapOpt match {
+      case Some(heap) =>
+        sb.append(heap.toString)
+      case None =>
+    }
+    sb.toString()
+  }
+}

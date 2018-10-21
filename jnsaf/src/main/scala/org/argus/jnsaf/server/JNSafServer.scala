@@ -121,30 +121,17 @@ object JNSafServer extends GrpcServer {
             performTaint(request.apkDigest, Some(Set(sig)), request.depth - 1)
             summaries = provider.getSummaryManager.getSummaries(sig)
           }
+          reporter.echo(TITLE,s"fgwei ${summaries.toString()}")
           var heapSummary: Option[summary.HeapSummary] = None
-          var taintSummary: Option[String] = None
+          var taintResult: Option[String] = None
           summaries.foreach {
             case heap: HeapSummary =>
               heapSummary = Some(SummaryToProto.toProto(heap))
             case taint: TaintSummary =>
-              taintSummary = Some(taint.rules)
+              taintResult = Some(taint.toString)
             case _ =>
           }
-          provider.getSummaryManager.getSummary[HeapSummary](sig) match {
-            case Some(s) => Future.successful(GetSummaryResponse(heapSummary = Some(SummaryToProto.toProto(s))))
-            case None =>
-              if (request.gen && request.depth > 0) {
-                performTaint(request.apkDigest, Some(Set(sig)), request.depth - 1)
-                provider.getSummaryManager.getSummary[HeapSummary](sig) match {
-                  case Some(su) =>
-                    println("su: " + su.toString)
-                    Future.successful(GetSummaryResponse(heapSummary = Some(SummaryToProto.toProto(su))))
-                  case None => Future.successful(GetSummaryResponse())
-                }
-              } else {
-                Future.successful(GetSummaryResponse())
-              }
-          }
+          Future.successful(GetSummaryResponse(heapSummary = heapSummary, taintResult = taintResult.getOrElse("")))
         case None => Future.failed(new RuntimeException(s"Could not load SummaryManager for apk digest: ${request.apkDigest}"))
       }
     }

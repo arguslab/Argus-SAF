@@ -267,8 +267,7 @@ def get_method_taint_attribute(method_full_signature):
                         return ['_SINK_', 'ALL']
                     elif len(res) == 5:
                         return ['_SINK_', res[-2]]
-    else:
-        return None
+    return None
 
 
 def icc_handle(class_name, method_name, return_annotation, simproc):
@@ -708,15 +707,12 @@ class CallObjectMethod(NativeDroidSimProcedure):
                 method_name = annotation.method_name
                 method_signature = annotation.method_signature
                 method_full_signature = get_method_full_signature(class_name, method_name, method_signature)
-                nativedroid_logger.info("Call: %s", method_full_signature)
-                method_taint_attribute = get_method_taint_attribute(method_full_signature)
-                if not method_taint_attribute and self._jnsaf_client:
-                    request = GetSummaryRequest(apk_digest=self._jnsaf_client.apk_digest,
-                                                signature=method_full_signature,
-                                                gen=True,
-                                                depth=self._jnsaf_client.depth)
+                if self._jnsaf_client:
+                    request = GetSummaryRequest(
+                        apk_digest=self._jnsaf_client.apk_digest, signature=method_full_signature, gen=True,
+                        depth=self._jnsaf_client.depth)
                     response = self._jnsaf_client.GetSummary(request)
-                    nativedroid_logger.info(response.heap_summary)
+                    nativedroid_logger.info(response)
                 num_args += count_arg_nums(method_signature)
                 jni_return_type = get_jni_return_type(method_signature)
                 java_return_type = get_java_return_type(method_signature)
@@ -724,6 +720,7 @@ class CallObjectMethod(NativeDroidSimProcedure):
                 typ_size = get_type_size(self.project, java_return_type)
                 return_value = claripy.BVV(typ.ptr, typ_size)
                 return_annotation = construct_annotation(jni_return_type, 'from_reflection_call')
+                method_taint_attribute = get_method_taint_attribute(method_full_signature)
                 if method_taint_attribute is not None:
                     return_annotation.taint_info['is_taint'] = True
                     return_annotation.taint_info['taint_type'] = method_taint_attribute[0]
@@ -886,19 +883,6 @@ class CallDoubleMethodA(CallTypeMethod):
 
 
 class CallVoidMethod(CallTypeMethod):
-    # def run(self, env, obj, methodID):
-    #     nativedroid_logger.info('JNINativeInterface SimProcedure: %s', self)
-    #
-    #     num_args = 3
-    #
-    #     for annotation in methodID.annotations:
-    #         if type(annotation) is JmethodIDAnnotation:
-    #             class_name = annotation.class_name
-    #             method_name = annotation.method_name
-    #             method_signature = annotation.method_signature
-    #             num_args += count_arg_nums(method_signature)
-    #             icc_handle(class_name, method_name, None, self)
-
     def __repr__(self):
         return 'CallVoidMethod'
 
