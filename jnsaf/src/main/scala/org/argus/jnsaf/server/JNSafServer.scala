@@ -20,6 +20,7 @@ import org.argus.amandroid.core.decompile.DefaultDecompilerSettings
 import org.argus.jawa.core.elements.Signature
 import org.argus.jawa.core.io.{MsgLevel, PrintReporter, Reporter}
 import org.argus.jawa.core.util._
+import org.argus.jawa.flow.summary.store.TaintStore
 import org.argus.jawa.flow.summary.susaf.rule.HeapSummary
 import org.argus.jawa.flow.summary.wu.TaintSummary
 import org.argus.jawa.flow.summary.{SummaryProvider, SummaryToProto, summary}
@@ -74,7 +75,8 @@ object JNSafServer extends GrpcServer {
       }
     }
 
-    private def performTaint(apkDigest: String, epsOpt: Option[ISet[Signature]], depth: Int): Unit = {
+    private def performTaint(apkDigest: String, epsOpt: Option[ISet[Signature]], depth: Int): TaintStore = {
+      val store = new TaintStore
       map.get(apkDigest) match {
         case Some(uri) =>
           yard.getApk(uri) match {
@@ -87,9 +89,9 @@ object JNSafServer extends GrpcServer {
                   val jntaint = new JNTaintAnalysis(apk, handler, provider, reporter, depth)
                   epsOpt match {
                     case Some(eps) =>
-                      jntaint.process(eps)
+                      store.merge(jntaint.process(eps))
                     case None =>
-                      jntaint.process
+                      store.merge(jntaint.process)
                   }
                 } catch {
                   case e: Throwable =>
@@ -100,11 +102,13 @@ object JNSafServer extends GrpcServer {
           }
         case None =>
       }
+      store
     }
 
     def taintAnalysis(request: TaintAnalysisRequest): Future[TaintAnalysisResponse] = {
       reporter.echo(TITLE,"Server taintAnalysis")
-      performTaint(request.apkDigest, None, 3)
+      val store = performTaint(request.apkDigest, None, 3)
+      reporter.echo(TITLE, store.toString)
       Future.successful(TaintAnalysisResponse(true))
     }
 
@@ -121,7 +125,6 @@ object JNSafServer extends GrpcServer {
             performTaint(request.apkDigest, Some(Set(sig)), request.depth - 1)
             summaries = provider.getSummaryManager.getSummaries(sig)
           }
-          reporter.echo(TITLE,s"fgwei ${summaries.toString()}")
           var heapSummary: Option[summary.HeapSummary] = None
           var taintResult: Option[String] = None
           summaries.foreach {

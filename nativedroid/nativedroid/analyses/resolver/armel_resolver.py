@@ -29,7 +29,7 @@ class ArmelResolver(TaintResolver):
             raise ValueError("Param num is limited to 15 for armel.")
 
         state = self._project.factory.blank_state(mode="fastpath")
-        state.regs.r0 = claripy.BVV(JNINativeInterface(self._project, self._jnsaf_client).ptr,
+        state.regs.r0 = claripy.BVV(JNINativeInterface(self._project, self._analysis_center).ptr,
                                     self._project.arch.bits)
         # state.regs.r1 = claripy.BVV(JObject(self._project).ptr, self._project.arch.bits)
         i = 1

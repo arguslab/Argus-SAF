@@ -247,28 +247,6 @@ jni_native_interface_origin_usage = {
     'GetObjectRefType': 0
 }
 
-java_sas_file = ''
-
-
-def get_method_taint_attribute(method_full_signature):
-    """
-    From TaintSourcesAndSinks.txt file get the attribute of the method
-    :param str method_full_signature:
-    :return:
-    """
-    if method_full_signature:
-        for line in open(java_sas_file, 'r'):
-            res = re.split(r'[ \n]', line)
-            if method_full_signature == res[0]:
-                if '_SOURCE_' in res:
-                    return [['_SOURCE_', '_API_'], res[1]]
-                elif '_SINK_' in res:
-                    if len(res) == 4:
-                        return ['_SINK_', 'ALL']
-                    elif len(res) == 5:
-                        return ['_SINK_', res[-2]]
-    return None
-
 
 def icc_handle(class_name, method_name, return_annotation, simproc):
     """
@@ -318,7 +296,7 @@ def icc_handle(class_name, method_name, return_annotation, simproc):
 
 class NativeDroidSimProcedure(angr.SimProcedure):
     def __init__(
-            self, jnsaf_client, project=None, cc=None, symbolic_return=None,
+            self, analysis_center, project=None, cc=None, symbolic_return=None,
             returns=None, is_syscall=None, is_stub=False,
             num_args=None, display_name=None, library_name=None,
             is_function=None, **kwargs
@@ -326,7 +304,7 @@ class NativeDroidSimProcedure(angr.SimProcedure):
         super(NativeDroidSimProcedure, self).__init__(project, cc, symbolic_return, returns,
                                                       is_syscall, is_stub, num_args, display_name,
                                                       library_name, is_function, **kwargs)
-        self._jnsaf_client = jnsaf_client
+        self._analysis_center = analysis_center
 
 
 class GetVersion(NativeDroidSimProcedure):
@@ -698,6 +676,19 @@ class GetMethodID(NativeDroidSimProcedure):
 
 
 class CallObjectMethod(NativeDroidSimProcedure):
+
+    @staticmethod
+    def get_method_taint_attribute(ssm, method_full_signature):
+        if method_full_signature:
+            source_tags = ssm.get_source_tags(method_full_signature)
+            if source_tags:
+                return ['_SOURCE_', '|'.join(source_tags)]
+            poss, sink_tags = ssm.get_sink_tags(method_full_signature)
+            if sink_tags:
+                info = 'ALL' if not poss else '|'.join(map(str, poss))
+                return ['_SINK_', info]
+        return None
+
     def run(self, env, obj, methodID):
         nativedroid_logger.info('JNINativeInterface SimProcedure: %s', self)
         num_args = 3
@@ -707,12 +698,15 @@ class CallObjectMethod(NativeDroidSimProcedure):
                 method_name = annotation.method_name
                 method_signature = annotation.method_signature
                 method_full_signature = get_method_full_signature(class_name, method_name, method_signature)
-                if self._jnsaf_client:
+                jnsaf_client = self._analysis_center.get_jnsaf_client()
+                ssm = self._analysis_center.get_source_sink_manager()
+                if jnsaf_client:
                     request = GetSummaryRequest(
-                        apk_digest=self._jnsaf_client.apk_digest, signature=method_full_signature, gen=True,
-                        depth=self._jnsaf_client.depth)
-                    response = self._jnsaf_client.GetSummary(request)
-                    nativedroid_logger.info(response)
+                        apk_digest=jnsaf_client.apk_digest, signature=method_full_signature, gen=True,
+                        depth=jnsaf_client.depth)
+                    response = jnsaf_client.GetSummary(request)
+                    if response.taint_result:
+                        ssm.parse_lines(response.taint_result)
                 num_args += count_arg_nums(method_signature)
                 jni_return_type = get_jni_return_type(method_signature)
                 java_return_type = get_java_return_type(method_signature)
@@ -720,7 +714,7 @@ class CallObjectMethod(NativeDroidSimProcedure):
                 typ_size = get_type_size(self.project, java_return_type)
                 return_value = claripy.BVV(typ.ptr, typ_size)
                 return_annotation = construct_annotation(jni_return_type, 'from_reflection_call')
-                method_taint_attribute = get_method_taint_attribute(method_full_signature)
+                method_taint_attribute = CallObjectMethod.get_method_taint_attribute(ssm, method_full_signature)
                 if method_taint_attribute is not None:
                     return_annotation.taint_info['is_taint'] = True
                     return_annotation.taint_info['taint_type'] = method_taint_attribute[0]
@@ -3063,13 +3057,13 @@ class JNINativeInterface(ExternObject):
         'GetObjectRefType': GetObjectRefType,
     }
 
-    def __init__(self, project, jnsaf_client):
+    def __init__(self, project, analysis_center):
         super(JNINativeInterface, self).__init__(project.loader)
         self._provides = 'JNIEnv'
         self._project = project
         self._fptr_size = self._project.arch.bits / 8
         self._project.loader.add_object(self)
-        self._jnsaf_client = jnsaf_client
+        self._analysis_center = analysis_center
         self._construct()
         # Define JNINativeMethod Struct and then resolved in RegisterNatives SimProcedure.
         angr.sim_type.define_struct('struct JNINativeMethod {const char* name;const char* signature;void* fnPtr;}')
@@ -3090,7 +3084,8 @@ class JNINativeInterface(ExternObject):
                 symb_name = symb.name
                 jni_native_interface_func_name = self.JNINativeInterface_sig[symb_name]
                 if jni_native_interface_func_name in self.JNINativeInterface_name_to_simproc:
-                    proc = self.JNINativeInterface_name_to_simproc[jni_native_interface_func_name](self._jnsaf_client)
+                    proc = self.JNINativeInterface_name_to_simproc[
+                        jni_native_interface_func_name](self._analysis_center)
                     self._project.hook(addr, proc)
                 else:
                     self._project.hook(addr, angr.SIM_PROCEDURES['stubs']['ReturnUnconstrained']())
@@ -3105,7 +3100,7 @@ class JNINativeInterface(ExternObject):
                 addr = self.allocate(self._fptr_size)
                 # if we have a custom simprocedure for that function, hook with that
                 if name in self.JNINativeInterface_name_to_simproc:
-                    proc = self.JNINativeInterface_name_to_simproc[name](self._jnsaf_client)
+                    proc = self.JNINativeInterface_name_to_simproc[name](self._analysis_center)
                     self._project.hook(addr, proc)
                 # otherwise hook with ReturnUnconstrained
                 else:

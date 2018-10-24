@@ -23,23 +23,22 @@ class AnnotationBasedAnalysis(angr.Analysis):
     This class performs taint analysis based upon angr's annotation technique.
     """
 
-    def __init__(self, jnsaf_client, ssm, jni_method_addr, jni_method_arguments, is_native_pure, native_pure_info=None):
+    def __init__(self, analysis_center, jni_method_addr, jni_method_arguments, is_native_pure, native_pure_info=None):
         """
         init
 
-        :param JNSafClient jnsaf_client: JNSaf client
-        :param SourceAndSinkManager ssm:
+        :param AnalysisCenter analysis_center:
         :param str jni_method_addr: address of jni method
         :param str jni_method_arguments:
         :param list is_native_pure: whether it is pure native and android_main type or direct type.
         :param Object native_pure_info: initial SimState and native pure argument
         """
         if self.project.arch.name is 'ARMEL':
-            self._resolver = ArmelResolver(self.project, jnsaf_client)
+            self._resolver = ArmelResolver(self.project, analysis_center)
         else:
             raise ValueError('Unsupported architecture: %d' % self.project.arch.name)
         self._hook_system_calls()
-        self._ssm = ssm
+        self._analysis_center = analysis_center
         self._jni_method_addr = jni_method_addr
         if is_native_pure:
             self._state = self._resolver.prepare_native_pure_state(native_pure_info)
@@ -140,9 +139,10 @@ class AnnotationBasedAnalysis(angr.Analysis):
                             if annotation.taint_info['is_taint'] and annotation.taint_info['taint_type'] == '_SINK_':
                                 sink_annotations.add(annotation)
             fn = self.cfg.project.kb.functions.get(node.addr)
+            ssm = self._analysis_center.get_source_sink_manager()
             if fn is not None:
-                if self._ssm.is_sink(fn):
-                    sink_tag = self._ssm.get_sink_tags(fn)
+                if ssm.is_sink(fn.name):
+                    sink_tag = ssm.get_sink_tags(fn.name)
                     sink_nodes[node] = sink_tag
         for sink, (positions, tags) in sink_nodes.iteritems():
             input_state = sink.input_state

@@ -73,7 +73,7 @@ class TaintWu[T <: Global](
       case _ =>
     }
     srcInss foreach { srcIns =>
-      heapMap.get(srcIns) match {
+      getInitialHeapBase(srcIns) match {
         case Some(_) =>
           rules +:= SourceSummaryRule(srcIns)
         case None =>
@@ -81,7 +81,7 @@ class TaintWu[T <: Global](
     }
     // Update SinkSummaryRule
     sinkInss foreach { sinkIns =>
-      heapMap.get(sinkIns) match {
+      getInitialHeapBase(sinkIns) match {
         case Some(hb) =>
           rules +:= SinkSummaryRule(hb, sinkIns)
         case None =>

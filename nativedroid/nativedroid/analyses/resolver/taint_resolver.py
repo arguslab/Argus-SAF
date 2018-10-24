@@ -8,9 +8,9 @@ class TaintResolver(object):
     This class provides the architecture specific taint solutions.
     """
 
-    def __init__(self, project, jnsaf_client):
+    def __init__(self, project, analysis_center):
         self._project = project
-        self._jnsaf_client = jnsaf_client
+        self._analysis_center = analysis_center
 
     def prepare_initial_state(self, arguments):
         """

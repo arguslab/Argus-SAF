@@ -1,11 +1,12 @@
-import re
-import logging
 import angr
-from nativedroid.analyses.resolver.jni.jni_type import jni_native_interface
+import logging
+import re
+from nativedroid.analyses.analysis_center import AnalysisCenter
 from nativedroid.analyses.annotation_based_analysis import AnnotationBasedAnalysis
-from nativedroid.analyses.source_and_sink_manager import SourceAndSinkManager
-from nativedroid.analyses.resolver.model.native_pure_model import EnvMethodModel
 from nativedroid.analyses.resolver.dynamic_register_resolution import dynamic_register_resolve
+from nativedroid.analyses.resolver.jni.jni_type import jni_native_interface
+from nativedroid.analyses.resolver.model.native_pure_model import EnvMethodModel
+from nativedroid.analyses.source_and_sink_manager import SourceAndSinkManager
 
 __author__ = "Xingwei Lin, Fengguo Wei"
 __copyright__ = "Copyright 2018, The Argus-SAF Project"
@@ -41,9 +42,10 @@ def gen_summary(jnsaf_client, so_file, jni_method_name, jni_method_signature, jn
         jni_method_addr = dynamic_register_methods[java_method_info]
     else:
         jni_method_addr = jni_method_symb.rebased_addr
-    ssm = SourceAndSinkManager(native_ss_file)
+    ssm = SourceAndSinkManager(native_ss_file, java_ss_file)
+    analysis_center = AnalysisCenter(jnsaf_client, ssm)
     annotation_based_analysis = project.analyses.AnnotationBasedAnalysis(
-        jnsaf_client, ssm, jni_method_addr, jni_method_arguments, False)
+        analysis_center, jni_method_addr, jni_method_arguments, False)
     sources, sinks = annotation_based_analysis.run()
     taint_analysis_report = annotation_based_analysis.gen_taint_analysis_report(sources, sinks, jni_method_signature)
     safsu_report = annotation_based_analysis.gen_saf_summary_report(jni_method_signature)
@@ -67,7 +69,6 @@ def clean_nativedroid(project, jni_method, jni_method_signature, jni_method_argu
     :return:
     """
 
-    jni_native_interface.java_sas_file = java_ss_file
     angr.register_analysis(AnnotationBasedAnalysis, 'AnnotationBasedAnalysis')
     jni_method_symb = project.loader.main_object.get_symbol(jni_method)
     if jni_method_symb is None:
@@ -77,7 +78,7 @@ def clean_nativedroid(project, jni_method, jni_method_signature, jni_method_argu
         nativedroid_logger.debug('[JNI Method Addr]: %s', hex(jni_method_addr))
     else:
         jni_method_addr = jni_method_symb.rebased_addr
-    ssm = SourceAndSinkManager(native_ss_file)
+    ssm = SourceAndSinkManager(native_ss_file, java_ss_file)
     annotation_based_analysis = project.analyses.AnnotationBasedAnalysis(ssm, jni_method_addr, jni_method_arguments,
                                                                          False)
     sources, sinks = annotation_based_analysis.run()
@@ -110,11 +111,10 @@ def native_activity_analysis(so_file, custom_entry_func_name, native_ss_file, ja
     :return: total instructions: total execution instructions
     """
 
-    jni_native_interface.java_sas_file = java_ss_file
     angr.register_analysis(AnnotationBasedAnalysis, 'AnnotationBasedAnalysis')
     project = angr.Project(so_file, load_options={'auto_load_libs': False, 'main_opts': {'custom_base_addr': 0x0}})
     env_method_model = EnvMethodModel()
-    ssm = SourceAndSinkManager(native_ss_file)
+    ssm = SourceAndSinkManager(native_ss_file, java_ss_file)
 
     android_main_symbol = project.loader.main_object.get_symbol('android_main')
     if android_main_symbol:
@@ -135,8 +135,7 @@ def native_activity_analysis(so_file, custom_entry_func_name, native_ss_file, ja
 
         nativedroid_logger.info(entry_func_symbol.name)
         annotation_based_analysis = project.analyses.AnnotationBasedAnalysis(ssm, entry_func_symbol.rebased_addr,
-                                                                             list(),
-                                                                             True,
+                                                                             list(), True,
                                                                              (initial_state, native_activity_argument))
         annotation_based_analysis.run()
         analysis_instructions = annotation_based_analysis.count_cfg_instructions()

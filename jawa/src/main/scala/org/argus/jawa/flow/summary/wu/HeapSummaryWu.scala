@@ -64,7 +64,7 @@ class HeapSummaryWu(
             rs.varOpt match {
               case Some(v) =>
                 val inss = ptaresult.pointsToSet(context, VarSlot(v.varName))
-                val bases = inss.flatMap(ins => heapMap.get(ins))
+                val bases = inss.flatMap(ins => getLatestHeapBase(ins))
                 if(bases.nonEmpty) {
                   rules ++= bases.map { base =>
                     BinaryRule(SuRet(None), Ops.`=`, base)
@@ -94,7 +94,7 @@ class HeapSummaryWu(
       case ae: AccessExpression =>
         inss = ptaresult.pointsToSet(context, VarSlot(ae.varSymbol.varName))
         inss.foreach { ins =>
-          heapMap.get(ins) match {
+          getLatestHeapBase(ins) match {
             case Some(hb) =>
               lhsBases += hb.make(Seq(SuFieldAccess(ae.fieldName)))
             case None =>
@@ -103,7 +103,7 @@ class HeapSummaryWu(
       case ie: IndexingExpression =>
         inss = ptaresult.pointsToSet(context, VarSlot(ie.varSymbol.varName))
         inss.foreach { ins =>
-          heapMap.get(ins) match {
+          getLatestHeapBase(ins) match {
             case Some(hb) =>
               lhsBases += hb.make(Seq(SuArrayAccess()))
             case None =>
@@ -112,7 +112,7 @@ class HeapSummaryWu(
       case sfae: StaticFieldAccessExpression =>
         inss = ptaresult.pointsToSet(context, StaticFieldSlot(sfae.name))
         inss.foreach { ins =>
-          heapMap.get(ins) match {
+          getLatestHeapBase(ins) match {
             case Some(hb) =>
               lhsBases += hb
             case None =>
@@ -135,7 +135,7 @@ class HeapSummaryWu(
             inss = ptaresult.pointsToSet(context, VarSlot(ne.name))
           case _ =>
         }
-        val rhsBases: ISet[HeapBase] = inss.flatMap(ins => heapMap.get(ins))
+        val rhsBases: ISet[HeapBase] = inss.flatMap(ins => getLatestHeapBase(ins))
         rhsBases.headOption match {
           case Some(rhsBase) =>
             rules += BinaryRule(lhsBase, Ops.`=`, rhsBase)
@@ -198,7 +198,7 @@ class HeapSummaryWu(
       args: Int => String,
       context: Context): Option[HeapBase] = {
     val inss = ptaresult.pointsToSet(context, slot)
-    val bases = inss.flatMap(ins => heapMap.get(ins))
+    val bases = inss.flatMap(ins => getLatestHeapBase(ins))
     bases.headOption match {
       case Some(base) =>
         val heapAccesses: Seq[HeapAccess] = hb.heapOpt match {
@@ -296,8 +296,8 @@ class HeapSummaryWu(
                   lhs match {
                     case hb: HeapBase =>
                       br.ops match {
-                        case Ops.`+=` => heapMap(ins) = hb
-                        case Ops.`=` => heapMap(ins) = hb
+                        case Ops.`+=` => addHeapBase(ins, hb)
+                        case Ops.`=` => addHeapBase(ins, hb)
                         case Ops.`-=` => heapMap -= ins
                       }
                     case _ =>

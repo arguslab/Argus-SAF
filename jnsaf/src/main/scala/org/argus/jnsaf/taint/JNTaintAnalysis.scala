@@ -14,7 +14,7 @@ import hu.ssh.progressbar.ConsoleProgressBar
 import org.argus.amandroid.alir.pta.model.AndroidModelCallHandler
 import org.argus.amandroid.alir.taintAnalysis.{AndroidSourceAndSinkManager, DataLeakageAndroidSourceAndSinkManager}
 import org.argus.amandroid.core.{AndroidGlobalConfig, ApkGlobal}
-import org.argus.jawa.core.elements.{JawaType, Signature}
+import org.argus.jawa.core.elements.Signature
 import org.argus.jawa.core.io.Reporter
 import org.argus.jawa.core.util._
 import org.argus.jawa.flow.cg.CHA
@@ -35,18 +35,16 @@ class JNTaintAnalysis(apk: ApkGlobal,
   val handler: AndroidModelCallHandler = new AndroidModelCallHandler
   val ssm: AndroidSourceAndSinkManager = new DataLeakageAndroidSourceAndSinkManager(AndroidGlobalConfig.settings.sas_file)
 
-  def process: IMap[JawaType, TaintStore] = {
+  def process: TaintStore = {
     val components = apk.model.getComponentInfos
-    val results: MMap[JawaType, TaintStore] = mmapEmpty
+    val store = new TaintStore
     var i = 0
     components.foreach { comp =>
       i += 1
       reporter.println(s"Processing component $i/${components.size}: ${comp.compType.jawaName}")
-      val eps = apk.getEntryPoints(comp)
-      val store = process(eps)
-      results(comp.compType) = store
+      store.merge(process(apk.getEntryPoints(comp)))
     }
-    results.toMap
+    store
   }
 
   def process(eps: ISet[Signature]): TaintStore = {
@@ -64,7 +62,6 @@ class JNTaintAnalysis(apk: ApkGlobal,
         new TaintWu(apk, method, sm, handler, ssm, store)
       }
     }
-    println("orderedWUs " + orderedWUs)
     analysis.debug = true
     analysis.build(orderedWUs)
     store

@@ -91,7 +91,7 @@ abstract class DataFlowWu[T <: Global, S <: SummaryRule] (
         val thisContext = initContext.copy
         thisContext.setContext(method.getSignature, "this")
         val ins = Instance.getInstance(method.getDeclaringClass.typ, thisContext, toUnknown = false)
-        heapMap(ins) = SuThis(None)
+        addHeapBase(ins, SuThis(None))
       case None =>
     }
     method.params.indices.foreach { i =>
@@ -104,7 +104,7 @@ abstract class DataFlowWu[T <: Global, S <: SummaryRule] (
         val argContext = initContext.copy
         argContext.setContext(method.getSignature, s"arg${i + 1}")
         val ins = Instance.getInstance(typ, argContext, unknown)
-        heapMap(ins) = SuArg(i + 1, None)
+        addHeapBase(ins, SuArg(i + 1, None))
       }
     }
   }
@@ -118,7 +118,19 @@ abstract class DataFlowWu[T <: Global, S <: SummaryRule] (
     }
   }
 
-  val heapMap: MMap[Instance, HeapBase] = mmapEmpty
+  protected val heapMap: MMap[Instance, MList[HeapBase]] = mmapEmpty
+
+  protected def addHeapBase(ins: Instance, heapBase: HeapBase): Unit = {
+    this.heapMap.getOrElseUpdate(ins, mlistEmpty) += heapBase
+  }
+
+  protected def getLatestHeapBase(ins: Instance): Option[HeapBase] = {
+    this.heapMap.getOrElse(ins, mlistEmpty).lastOption
+  }
+
+  protected def getInitialHeapBase(ins: Instance): Option[HeapBase] = {
+    this.heapMap.getOrElse(ins, mlistEmpty).headOption
+  }
 
   override def needHeapSummary: Boolean = true
 
@@ -204,7 +216,8 @@ abstract class DataFlowWu[T <: Global, S <: SummaryRule] (
             if(fins.defSite == context) {
               heapMap.get(ins) match {
                 case Some(sh) =>
-                  heapMap(fins) = sh.make(Seq(SuFieldAccess(ae.fieldName)))
+                  val heap = sh.last
+                  heapMap.getOrElseUpdate(fins, mlistEmpty) += heap.make(Seq(SuFieldAccess(ae.fieldName)))
                 case None =>
               }
             }
@@ -217,9 +230,9 @@ abstract class DataFlowWu[T <: Global, S <: SummaryRule] (
           val ainss = ptaresult.pointsToSet(context, ArraySlot(ins))
           ainss.foreach { ains =>
             if(ains.defSite == context) {
-              heapMap.get(ins) match {
-                case Some(sh) =>
-                  heapMap(ains) = sh.make(Seq(SuArrayAccess()))
+              getLatestHeapBase(ins) match {
+                case Some(hb) =>
+                  addHeapBase(ains, hb.make(Seq(SuArrayAccess())))
                 case None =>
               }
             }
@@ -230,7 +243,7 @@ abstract class DataFlowWu[T <: Global, S <: SummaryRule] (
         val inss = ptaresult.pointsToSet(context, slot)
         inss.foreach { ins =>
           if(ins.defSite == context) {
-            heapMap(ins) = SuGlobal(sfae.name, None)
+            heapMap.getOrElseUpdate(ins, mlistEmpty) += SuGlobal(sfae.name, None)
           }
         }
       case _ =>
@@ -241,9 +254,9 @@ abstract class DataFlowWu[T <: Global, S <: SummaryRule] (
         val inss = ptaresult.pointsToSet(context, slot)
         inss.foreach { ins =>
           kill ++= ptaresult.pointsToSet(context, FieldSlot(ins, ae.fieldName))
-          heapMap.get(ins) match {
-            case Some(sh) =>
-              heapBaseOpt = Some(sh.make(Seq(SuFieldAccess(ae.fieldName))))
+          getLatestHeapBase(ins) match {
+            case Some(hb) =>
+              heapBaseOpt = Some(hb.make(Seq(SuFieldAccess(ae.fieldName))))
               true
             case None =>
               false
@@ -256,7 +269,8 @@ abstract class DataFlowWu[T <: Global, S <: SummaryRule] (
           kill ++= ptaresult.pointsToSet(context, ArraySlot(ins))
           heapMap.get(ins) match {
             case Some(sh) =>
-              heapBaseOpt = Some(sh.make(Seq(SuArrayAccess())))
+              val heap = sh.last
+              heapBaseOpt = Some(heap.make(Seq(SuArrayAccess())))
               true
             case None =>
               false
@@ -267,9 +281,9 @@ abstract class DataFlowWu[T <: Global, S <: SummaryRule] (
         val inss = ptaresult.pointsToSet(context, slot)
         kill ++= inss
         inss.foreach { ins =>
-          heapMap.get(ins) match {
-            case Some(sh) =>
-              heapBaseOpt = Some(sh)
+          getLatestHeapBase(ins) match {
+            case Some(hb) =>
+              heapBaseOpt = Some(hb)
             case None =>
               heapBaseOpt = Some(SuGlobal(sfae.name, None))
           }
@@ -290,7 +304,7 @@ abstract class DataFlowWu[T <: Global, S <: SummaryRule] (
       kill: ISet[Instance]): Unit = {
     heapMap --= kill
     gen.foreach { i =>
-      heapMap(i) = heapBase
+      addHeapBase(i, heapBase)
     }
   }
 
@@ -409,7 +423,7 @@ abstract class PointsToWu[T <: Global] (
           }
           map.foreach { case (s, inss) =>
             inss.foreach { ins =>
-              heapMap.get(ins) match {
+              getLatestHeapBase(ins) match {
                 case Some(hb) =>
                   rules += PTSummaryRule(hb, (context, s), resolveHeap)
                 case None =>
@@ -488,7 +502,7 @@ abstract class PointsToWu[T <: Global] (
       val newHbs: MSet[HeapBase] = msetEmpty
       val newIns: MSet[Instance] = msetEmpty
       inss.foreach { ins =>
-        heapMap.get(ins) match {
+        getLatestHeapBase(ins) match {
           case Some(bhb) =>
             hb.heapOpt match {
               case Some(h) => newHbs += bhb.make(h.indices)
