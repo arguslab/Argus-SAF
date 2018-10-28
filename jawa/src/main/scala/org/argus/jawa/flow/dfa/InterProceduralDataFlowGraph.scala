@@ -17,4 +17,10 @@ import org.argus.jawa.flow.pta.PTAResult
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
  * @author <a href="mailto:sroy@k-state.edu">Sankardas Roy</a>
  */ 
-case class InterProceduralDataFlowGraph(icfg: InterProceduralControlFlowGraph[ICFGNode], ptaresult: PTAResult)
+case class InterProceduralDataFlowGraph(icfg: InterProceduralControlFlowGraph[ICFGNode], ptaresult: PTAResult) {
+  def merge(idfg: InterProceduralDataFlowGraph): InterProceduralDataFlowGraph = {
+    icfg.merge(idfg.icfg)
+    ptaresult.merge(idfg.ptaresult)
+    this
+  }
+}

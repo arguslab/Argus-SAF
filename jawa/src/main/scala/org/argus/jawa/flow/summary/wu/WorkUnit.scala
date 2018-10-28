@@ -86,10 +86,12 @@ abstract class DataFlowWu[T <: Global, S <: SummaryRule] (
     idfgOpt = Some(idfg)
     ptaresult = idfg.ptaresult
     icfg = idfg.icfg
+    var pos = 0
     method.thisOpt match {
       case Some(_) =>
         val thisContext = initContext.copy
-        thisContext.setContext(method.getSignature, "this")
+        thisContext.setContext(method.getSignature, s"Entry.$pos")
+        pos += 1
         val ins = Instance.getInstance(method.getDeclaringClass.typ, thisContext, toUnknown = false)
         addHeapBase(ins, SuThis(None))
       case None =>
@@ -102,7 +104,8 @@ abstract class DataFlowWu[T <: Global, S <: SummaryRule] (
           case _ => true
         }
         val argContext = initContext.copy
-        argContext.setContext(method.getSignature, s"arg${i + 1}")
+        argContext.setContext(method.getSignature, s"Entry.$pos")
+        pos += 1
         val ins = Instance.getInstance(typ, argContext, unknown)
         addHeapBase(ins, SuArg(i + 1, None))
       }
@@ -143,10 +146,12 @@ abstract class DataFlowWu[T <: Global, S <: SummaryRule] (
     val analysis = new ReachingFactsAnalysis(global, icfg, ptaresult, handler, sm, new ClassLoadManager, resolve_static_init, Some(new MyTimeout(1 minutes)))
     val initialFacts: ISet[RFAFact] = {
       val result = msetEmpty[RFAFact]
+      var pos = 0
       method.thisOpt match {
         case Some(t) =>
           val thisContext = initContext.copy
-          thisContext.setContext(method.getSignature, "this")
+          thisContext.setContext(method.getSignature, s"Entry.$pos")
+          pos += 1
           val ins = Instance.getInstance(method.getDeclaringClass.typ, thisContext, toUnknown = false)
           result += RFAFact(VarSlot(t), ins)
         case None =>
@@ -159,7 +164,8 @@ abstract class DataFlowWu[T <: Global, S <: SummaryRule] (
             case _ => true
           }
           val argContext = initContext.copy
-          argContext.setContext(method.getSignature, s"arg${i + 1}")
+          argContext.setContext(method.getSignature, s"Entry.$pos")
+          pos += 1
           val ins = Instance.getInstance(typ, argContext, unknown)
           result += RFAFact(VarSlot(name), ins)
         }

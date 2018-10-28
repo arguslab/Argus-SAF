@@ -10,13 +10,14 @@
 
 package org.argus.jawa.flow.cfg
 
-import org.argus.jawa.flow.cg.CallGraph
-import org.argus.jawa.flow.{AlirLoc, Context, InterProceduralNode, JawaAlirInfoProvider}
-import org.argus.jawa.flow.interprocedural.Callee
 import org.argus.jawa.core.ast.{CallStatement, Location}
 import org.argus.jawa.core.elements.Signature
-import org.argus.jawa.core.{Global, JawaMethod}
 import org.argus.jawa.core.util._
+import org.argus.jawa.core.{Global, JawaMethod}
+import org.argus.jawa.flow.cg.CallGraph
+import org.argus.jawa.flow.interprocedural.{CallHandler, Callee, RFACallee}
+import org.argus.jawa.flow.pta.PTAResult
+import org.argus.jawa.flow.{AlirLoc, Context, InterProceduralNode, JawaAlirInfoProvider}
 
 import scala.collection.immutable.BitSet
 
@@ -38,17 +39,17 @@ class InterProceduralControlFlowGraph[Node <: ICFGNode] extends ControlFlowGraph
     e.getPropertyOrElse[String](EDGE_TYPE, null) == typ
   }
     
-  protected var entryN: ICFGNode = _
+  protected var entryN: Node = _
 
-  protected var exitN: ICFGNode = _
+  protected var exitN: Node = _
   
-  def addEntryNode(en: ICFGEntryNode): Unit = this.entryN = en
-  def addExitNode(en: ICFGExitNode): Unit = this.exitN = en
+  def addEntryNode(en: Node): Unit = this.entryN = en
+  def addExitNode(en: Node): Unit = this.exitN = en
   
-  def entryNode: Node = this.entryN.asInstanceOf[Node]
-  
-  def exitNode: Node = this.exitN.asInstanceOf[Node]
-  
+  def entryNode: Node = this.entryN
+
+  def exitNode: Node = this.exitN
+
   private val cg: CallGraph = new CallGraph
   
   def getCallGraph: CallGraph = this.cg
@@ -121,8 +122,40 @@ class InterProceduralControlFlowGraph[Node <: ICFGNode] extends ControlFlowGraph
     }
     this.processed ++= icfg.processed
   }
+
+  def buildWithExisting(application: FileResourceUri, methods: IList[JawaMethod], ptaresult: PTAResult): Unit = {
+    Context.init_context_length(0)
+    val callMap: MMap[Context, ISet[RFACallee]] = mmapEmpty
+    methods foreach { method =>
+      if (method.isConcrete && method.getDeclaringClass.isApplicationClass) {
+        val context = new Context(application)
+        val nodes = collectCfgToBaseGraph(method, context, isFirst = true, needReturnNode = true)
+        nodes foreach {
+          case call: ICFGCallNode =>
+            val uri = call.getContext.getCurrentLocUri
+            val cs = method.getBody.resolvedBody.location(uri).statement.asInstanceOf[CallStatement]
+            val callees = CallHandler.getCalleeSet(method.declaringClass.global, cs, call.getContext, ptaresult)
+            call.setCalleeSet(callees.map(_.asInstanceOf[Callee]))
+            callMap(call.getContext) = callees.filter { callee =>
+              method.declaringClass.global.getMethod(callee.callee) match {
+                case Some(m) =>
+                  m.isConcrete && m.declaringClass.isApplicationClass
+                case None => false
+              }
+            }
+          case _ =>
+        }
+      }
+    }
+    callMap foreach {
+      case (context, callees) =>
+        callees.foreach { callee =>
+          extendGraph(callee.callee, context, needReturnNode = true)
+        }
+    }
+  }
   
-  def collectCfgToBaseGraph[VirtualLabel](calleeProc: JawaMethod, callerContext: Context, isFirst: Boolean, needReturnNode: Boolean): ISet[Node] = {
+  def collectCfgToBaseGraph(calleeProc: JawaMethod, callerContext: Context, isFirst: Boolean, needReturnNode: Boolean): ISet[Node] = {
     val calleeSig = calleeProc.getSignature
     val body = calleeProc.getBody.resolvedBody
     val cfg = JawaAlirInfoProvider.getCfg(calleeProc)

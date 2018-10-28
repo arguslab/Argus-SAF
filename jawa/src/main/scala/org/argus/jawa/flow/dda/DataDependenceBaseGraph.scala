@@ -28,20 +28,37 @@ trait DataDependenceBaseGraph[Node <: IDDGNode]
   def icfg: InterProceduralControlFlowGraph[ICFGNode]
 
   def findDefSite(defSite: Context, isRet: Boolean = false): Option[Node] = {
-    val icfgN = {
-      if(this.icfg.icfgNormalNodeExists(defSite)) this.icfg.getICFGNormalNode(defSite)
-      else if(isRet && this.icfg.icfgReturnNodeExists(defSite)) this.icfg.getICFGReturnNode(defSite)
-      else if(this.icfg.icfgCallNodeExists(defSite)) this.icfg.getICFGCallNode(defSite)
-      else if(defSite.getLocUri == "L0000") this.icfg.entryNode
-      else throw new RuntimeException("Cannot find node: " + defSite)
+    if(this.icfg.icfgNormalNodeExists(defSite)) {
+      val node = this.icfg.getICFGNormalNode(defSite).asInstanceOf[ICFGNormalNode]
+      if(iddgNormalNodeExists(node)) {
+        return Some(getIDDGNormalNode(node))
+      }
     }
-    icfgN match {
-      case node: ICFGNormalNode if iddgNormalNodeExists(node) => Some(getIDDGNormalNode(node))
-      case icfgN1: ICFGReturnNode if isRet && iddgReturnVarNodeExists(icfgN1) => Some(getIDDGReturnVarNode(icfgN1))
-      case icfgN1: ICFGCallNode if iddgVirtualBodyNodeExists(icfgN1) => Some(getIDDGVirtualBodyNode(icfgN1))
-      case _ => if (icfgN == this.icfg.entryNode) Some(this.entryNode)
-      else None
+    if(isRet && this.icfg.icfgReturnNodeExists(defSite)) {
+      val node = this.icfg.getICFGReturnNode(defSite).asInstanceOf[ICFGReturnNode]
+      if(iddgReturnVarNodeExists(node)) {
+        return Some(getIDDGReturnVarNode(node))
+      }
     }
+    if(this.icfg.icfgCallNodeExists(defSite)) {
+      val node = this.icfg.getICFGCallNode(defSite).asInstanceOf[ICFGCallNode]
+      if(iddgVirtualBodyNodeExists(node)) {
+        return Some(getIDDGVirtualBodyNode(node))
+      }
+    }
+    if(defSite.getLocUri.startsWith("Entry.")) {
+      val context = defSite.copy.removeTopContext()
+      context.setContext(defSite.getMethodSig, "Entry")
+      if(this.icfg.icfgEntryNodeExists(context)) {
+        val node = this.icfg.getICFGEntryNode(context).asInstanceOf[ICFGEntryNode]
+        val pos = defSite.getLocUri.split("\\.")(1).toInt
+        return Some(getIDDGEntryParamNode(node, pos))
+      }
+    }
+    if(defSite.getLocUri == "L0000") {
+      return Some(this.entryNode)
+    }
+    None
   }
 
   def findVirtualBodyDefSite(defSite: Context): Option[Node] = {

@@ -116,7 +116,7 @@ object AndroidDataDependentTaintAnalysis {
     val sourceNodes: MSet[TaintSource] = msetEmpty
     val sinkNodes: MSet[TaintSink] = msetEmpty
     val iddg = iddi.getIddg
-    iddg.nodes.foreach{ node =>
+    iddg.nodes.foreach { node =>
       yard.getApk(node.getContext.application) match {
         case Some(apk) =>
           val (src, sin) = ssm.getSourceAndSinkNode(apk, node.getICFGNode, node.getPosition, ptaresult)

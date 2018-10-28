@@ -98,7 +98,7 @@ class AndroidReachingFactsAnalysis(
           // for normal call
           if (calleep.isConcrete) {
             if (!icfg.isProcessed(calleeSig, callerContext)) {
-              icfg.collectCfgToBaseGraph[String](calleep, callerContext, isFirst = false, needReturnNode())
+              icfg.collectCfgToBaseGraph(calleep, callerContext, isFirst = false, needReturnNode())
               icfg.extendGraph(calleeSig, callerContext, needReturnNode = true)
             }
             val factsForCallee = getFactsForCallee(s, cs, calleep, callerContext)

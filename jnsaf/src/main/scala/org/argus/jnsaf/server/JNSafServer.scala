@@ -20,10 +20,10 @@ import org.argus.amandroid.core.decompile.DefaultDecompilerSettings
 import org.argus.jawa.core.elements.Signature
 import org.argus.jawa.core.io.{MsgLevel, PrintReporter, Reporter}
 import org.argus.jawa.core.util._
-import org.argus.jawa.flow.summary.store.TaintStore
 import org.argus.jawa.flow.summary.susaf.rule.HeapSummary
 import org.argus.jawa.flow.summary.wu.TaintSummary
 import org.argus.jawa.flow.summary.{SummaryProvider, SummaryToProto, summary}
+import org.argus.jawa.flow.taintAnalysis.TaintAnalysisResult
 import org.argus.jnsaf.analysis.NativeMethodHandler
 import org.argus.jnsaf.client.NativeDroidClient
 import org.argus.jnsaf.server.jnsaf_grpc._
@@ -75,8 +75,8 @@ object JNSafServer extends GrpcServer {
       }
     }
 
-    private def performTaint(apkDigest: String, epsOpt: Option[ISet[Signature]], depth: Int): TaintStore = {
-      val store = new TaintStore
+    private def performTaint(apkDigest: String): Option[TaintAnalysisResult] = {
+      var result: Option[TaintAnalysisResult] = None
       map.get(apkDigest) match {
         case Some(uri) =>
           yard.getApk(uri) match {
@@ -86,13 +86,8 @@ object JNSafServer extends GrpcServer {
                   val client = new NativeDroidClient("localhost", 50051, apkDigest, reporter)
                   val handler = new NativeMethodHandler(client)
                   val provider: SummaryProvider = summaries.getOrElseUpdate(apkDigest, new AndroidSummaryProvider(apk))
-                  val jntaint = new JNTaintAnalysis(apk, handler, provider, reporter, depth)
-                  epsOpt match {
-                    case Some(eps) =>
-                      store.merge(jntaint.process(eps))
-                    case None =>
-                      store.merge(jntaint.process)
-                  }
+                  val jntaint = new JNTaintAnalysis(yard, apk, handler, provider, reporter, 3)
+                  result = jntaint.process
                 } catch {
                   case e: Throwable =>
                     e.printStackTrace()
@@ -102,13 +97,33 @@ object JNSafServer extends GrpcServer {
           }
         case None =>
       }
-      store
+      result
+    }
+
+    private def performTaint(apkDigest: String, eps: ISet[Signature], depth: Int): Unit = {
+      map.get(apkDigest) match {
+        case Some(uri) =>
+          yard.getApk(uri) match {
+            case Some(apk) =>
+              try {
+                val client = new NativeDroidClient("localhost", 50051, apkDigest, reporter)
+                val handler = new NativeMethodHandler(client)
+                val provider: SummaryProvider = summaries.getOrElseUpdate(apkDigest, new AndroidSummaryProvider(apk))
+                val jntaint = new JNTaintAnalysis(yard, apk, handler, provider, reporter, depth)
+                jntaint.process(eps)
+              } catch {
+                case e: Throwable =>
+                  e.printStackTrace()
+              }
+            case None =>
+          }
+        case None =>
+      }
     }
 
     def taintAnalysis(request: TaintAnalysisRequest): Future[TaintAnalysisResponse] = {
       reporter.echo(TITLE,"Server taintAnalysis")
-      val store = performTaint(request.apkDigest, None, 3)
-      reporter.echo(TITLE, store.toString)
+      performTaint(request.apkDigest)
       Future.successful(TaintAnalysisResponse(true))
     }
 
@@ -122,7 +137,7 @@ object JNSafServer extends GrpcServer {
           val sig = new Signature(request.signature)
           var summaries = provider.getSummaryManager.getSummaries(sig)
           if(summaries.isEmpty && request.gen) {
-            performTaint(request.apkDigest, Some(Set(sig)), request.depth - 1)
+            performTaint(request.apkDigest, Set(sig), request.depth - 1)
             summaries = provider.getSummaryManager.getSummaries(sig)
           }
           var heapSummary: Option[summary.HeapSummary] = None

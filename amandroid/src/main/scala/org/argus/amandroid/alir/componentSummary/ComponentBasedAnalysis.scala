@@ -10,7 +10,6 @@
 
 package org.argus.amandroid.alir.componentSummary
 
-import org.argus.jawa.core.util._
 import java.util.concurrent.TimeoutException
 
 import org.argus.amandroid.alir.pta.model.AndroidModelCallHandler
@@ -18,14 +17,14 @@ import org.argus.amandroid.alir.pta.reachingFactsAnalysis.{AndroidReachingFactsA
 import org.argus.amandroid.alir.pta.summaryBasedAnalysis.AndroidSummaryProvider
 import org.argus.amandroid.alir.taintAnalysis.{AndroidDataDependentTaintAnalysis, AndroidSourceAndSinkManager}
 import org.argus.amandroid.core.ApkGlobal
+import org.argus.jawa.core.ClassLoadManager
 import org.argus.jawa.core.elements.JawaType
+import org.argus.jawa.core.util.{MyTimeout, WorklistAlgorithm, _}
 import org.argus.jawa.flow.Context
 import org.argus.jawa.flow.cfg.{ICFGNode, InterProceduralControlFlowGraph}
 import org.argus.jawa.flow.dda._
 import org.argus.jawa.flow.pta.PTAResult
 import org.argus.jawa.flow.taintAnalysis.TaintAnalysisResult
-import org.argus.jawa.core.util.{MyTimeout, WorklistAlgorithm}
-import org.argus.jawa.core.ClassLoadManager
 
 import scala.compat.Platform.EOL
 import scala.concurrent.duration._
@@ -122,7 +121,7 @@ class ComponentBasedAnalysis(yard: ApkYard) {
   
   def phase2(apks: ISet[ApkGlobal]): (ISet[ApkGlobal], InterProceduralDataDependenceInfo) = {
     val components: ISet[Component] = apks.flatMap { apk =>
-      (apk.model.getComponents -- problematicComp(apk.nameUri)).map(Component(apk, _))
+      (apk.model.getComponents -- problematicComp.getOrElse(apk.nameUri, isetEmpty)).map(Component(apk, _))
     }
     println(TITLE + ":" + " Phase 2-------" + apks.size + s" apk${if (apks.size > 1) "s" else ""} " + components.size + s" component${if (components.size > 1) "s" else ""}-------")
     val mddg = ComponentSummaryTable.buildMultiDataDependentGraph(components, yard.reporter)
@@ -133,7 +132,7 @@ class ComponentBasedAnalysis(yard: ApkYard) {
   def phase3(iddResult: (ISet[ApkGlobal], InterProceduralDataDependenceInfo), ssm: AndroidSourceAndSinkManager): Option[TaintAnalysisResult] = {
     val apks = iddResult._1
     val components: ISet[Component] = apks.flatMap { apk =>
-      (apk.model.getComponents -- problematicComp(apk.nameUri)).map(Component(apk, _))
+      (apk.model.getComponents -- problematicComp.getOrElse(apk.nameUri, isetEmpty)).map(Component(apk, _))
     }
     println(TITLE + ":" + " Phase 3-------" + apks.size + s" apk${if(apks.size > 1)"s" else ""} " + components.size + s" component${if(components.size > 1)"s" else ""}-------")
     val idfgs = components.flatMap(component => component.apk.getIDFG(component.typ))
@@ -153,7 +152,7 @@ class ComponentBasedAnalysis(yard: ApkYard) {
     } else None
   }
   
-  private def buildComponentSummaryTable(component: Component): ComponentSummaryTable = {
+  def buildComponentSummaryTable(component: Component): ComponentSummaryTable = {
     val idfgOpt = component.apk.getIDFG(component.typ)
     if(idfgOpt.isEmpty) return new ComponentSummaryTable(component)
     val idfg = idfgOpt.get

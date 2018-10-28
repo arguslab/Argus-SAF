@@ -61,7 +61,6 @@ class ReachingFactsAnalysis(
       case te: TimeoutException =>
         global.reporter.warning("ReachingFactsAnalysis", entryPointProc.getSignature + " " + te.getMessage)
     }
-    //    icfg.toDot(new PrintWriter(System.out))
     InterProceduralDataFlowGraph(icfg, ptaresult)
   }
 

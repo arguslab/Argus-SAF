@@ -15,7 +15,7 @@ import org.argus.amandroid.alir.pta.summaryBasedAnalysis.AndroidSummaryProvider
 import org.argus.amandroid.core.decompile.{ConverterUtil, DecompileLayout, DecompileStrategy, DecompilerSettings}
 import org.argus.jawa.core.io.{MsgLevel, NoReporter, PrintReporter}
 import org.argus.jawa.core.util.FileUtil
-import org.argus.jawa.flow.summary.store.TaintStore
+import org.argus.jawa.flow.taintAnalysis.TaintAnalysisResult
 import org.argus.jnsaf.analysis.NativeMethodHandler
 import org.argus.jnsaf.client.NativeDroidClient
 import org.scalatest.{FlatSpec, Matchers}
@@ -37,35 +37,39 @@ class JNSafTaintAnalysisTest extends FlatSpec with Matchers {
 //  }
 //
   "native_complexdata" should "have leak" in {
-    val store = analyze(
+    val result = analyze(
       getClass.getResource("/NativeFlowBench/native_complexdata.apk").getPath,
       getClass.getResource("/expected/native_complexdata/native_complexdata.safsu").getPath,
       getClass.getResource("/expected/native_complexdata/native_complexdata.txt").getPath)
-    assert(store.getTaintedPaths.nonEmpty)
+    assert(result.isDefined)
+    assert(result.get.getTaintedPaths.nonEmpty)
 }
 
   "native_heap_modify" should "have leak" in {
-    val store = analyze(
+    val result = analyze(
       getClass.getResource("/NativeFlowBench/native_heap_modify.apk").getPath,
       getClass.getResource("/expected/native_heap_modify/native_heap_modify.safsu").getPath,
       getClass.getResource("/expected/native_heap_modify/native_heap_modify.txt").getPath)
-    assert(store.getTaintedPaths.nonEmpty)
+    assert(result.isDefined)
+    assert(result.get.getTaintedPaths.nonEmpty)
   }
 
   "native_leak" should "have leak" in {
-    val store = analyze(
+    val result = analyze(
       getClass.getResource("/NativeFlowBench/native_leak.apk").getPath,
       getClass.getResource("/expected/native_leak/native_leak.safsu").getPath,
       getClass.getResource("/expected/native_leak/native_leak.txt").getPath)
-    assert(store.getTaintedPaths.nonEmpty)
+    assert(result.isDefined)
+    assert(result.get.getTaintedPaths.nonEmpty)
   }
 
   "native_noleak" should "have no leak" in {
-    val store = analyze(
+    val result = analyze(
       getClass.getResource("/NativeFlowBench/native_noleak.apk").getPath,
       getClass.getResource("/expected/native_noleak/native_noleak.safsu").getPath,
       getClass.getResource("/expected/native_noleak/native_noleak.txt").getPath)
-    assert(store.getTaintedPaths.nonEmpty)
+    assert(result.isDefined)
+    assert(result.get.getTaintedPaths.nonEmpty)
   }
 //
 //  "native_pure" should "have 1 component" in {
@@ -74,22 +78,24 @@ class JNSafTaintAnalysisTest extends FlatSpec with Matchers {
 //  }
 
   "native_source" should "have leak" in {
-    val store = analyze(
+    val result = analyze(
       getClass.getResource("/NativeFlowBench/native_source.apk").getPath,
       getClass.getResource("/expected/native_source/native_source.safsu").getPath,
       getClass.getResource("/expected/native_source/native_source.txt").getPath)
-    assert(store.getTaintedPaths.nonEmpty)
+    assert(result.isDefined)
+    assert(result.get.getTaintedPaths.nonEmpty)
   }
 
   "native_method_overloading" should "have leak" in {
-    val store = analyze(
+    val result = analyze(
       getClass.getResource("/NativeFlowBench/native_method_overloading.apk").getPath,
       getClass.getResource("/expected/native_method_overloading/native_method_overloading.safsu").getPath,
       getClass.getResource("/expected/native_method_overloading/native_method_overloading.txt").getPath)
-    assert(store.getTaintedPaths.nonEmpty)
+    assert(result.isDefined)
+    assert(result.get.getTaintedPaths.nonEmpty)
   }
 
-  private def analyze(apkFile: String, safsuFile: String, sasFile: String): TaintStore = {
+  private def analyze(apkFile: String, safsuFile: String, sasFile: String): Option[TaintAnalysisResult] = {
     val apkUri = FileUtil.toUri(apkFile)
     val outputUri = FileUtil.appendFileName(FileUtil.toUri(FileUtil.toFile(apkUri).getParent), "output")
     val reporter = if(DEBUG) new PrintReporter(MsgLevel.INFO) else new NoReporter
@@ -100,7 +106,7 @@ class JNSafTaintAnalysisTest extends FlatSpec with Matchers {
     val apk = yard.loadApk(apkUri, settings, collectInfo = true, resolveCallBack = true)
     val handler = new NativeMethodHandler(new NativeDroidClient("localhost", 50051, "", reporter))
     val provider = new AndroidSummaryProvider(apk)
-    val jntaint = new JNTaintAnalysis(apk, handler, provider, reporter, 3)
+    val jntaint = new JNTaintAnalysis(yard, apk, handler, provider, reporter, 3)
     val safsuFileUri = FileUtil.toUri(safsuFile)
     val name = FileUtil.filename(safsuFileUri)
     provider.sm.registerExternalFile(safsuFileUri, name, fileAndSubsigMatch = false)
