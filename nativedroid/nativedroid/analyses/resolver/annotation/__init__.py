@@ -31,7 +31,7 @@ def construct_annotation(jni_type, obj_source):
     elif jni_type == 'double':
         return JdoubleAnnotation(obj_source)
     elif jni_type == 'java/lang/String':
-        return JstringAnnotation(obj_source)
+        return JstringAnnotation(obj_source, 'fake')
     elif jni_type == 'boolean[]':
         return JbooleanArrayAnnotation(obj_source)
     elif jni_type == 'byte[]':

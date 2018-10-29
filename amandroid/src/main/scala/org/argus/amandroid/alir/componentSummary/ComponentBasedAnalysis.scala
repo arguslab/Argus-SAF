@@ -151,6 +151,24 @@ class ComponentBasedAnalysis(yard: ApkYard) {
       }
     } else None
   }
+
+  def intraComponentTaintAnalysis(apks: ISet[ApkGlobal], ssm: AndroidSourceAndSinkManager): IMap[Component, TaintAnalysisResult] = {
+    val components: ISet[Component] = apks.flatMap { apk =>
+      (apk.model.getComponents -- problematicComp.getOrElse(apk.nameUri, isetEmpty)).map(Component(apk, _))
+    }
+    components.map{ component =>
+      val idfg = component.apk.getIDFG(component.typ).get
+      val iddg = component.apk.getIDDG(component.typ).get
+      val iddi = new DefaultInterProceduralDataDependenceInfo(iddg.getIddg)
+      val tar = AndroidDataDependentTaintAnalysis(yard, iddi, idfg.ptaresult, ssm)
+      component.apk.addComponentTaintAnalysisResult(component.typ, tar)
+      component -> tar
+    }.toMap
+  }
+
+  def interComponentTaintAnalysis(taintResults: IMap[Component, TaintAnalysisResult]) = {
+
+  }
   
   def buildComponentSummaryTable(component: Component): ComponentSummaryTable = {
     val idfgOpt = component.apk.getIDFG(component.typ)

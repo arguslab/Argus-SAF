@@ -160,6 +160,12 @@ class ApkGlobal(val model: ApkModel, reporter: Reporter) extends Global(model.na
   def getSummaryTable(key: JawaType): Option[ComponentSummaryTable] = this.synchronized(this.summaryTables.get(key))
   def getSummaryTables: Map[JawaType, ComponentSummaryTable] = this.summaryTables.toMap
 
+  private var componentTaintResult: MMap[JawaType, TaintAnalysisResult] = mmapEmpty
+  def addComponentTaintAnalysisResult(key: JawaType, tar: TaintAnalysisResult): Unit = this.synchronized(this.componentTaintResult += (key -> tar))
+  def hasComponentTaintAnalysisResult(key: JawaType): Boolean = this.componentTaintResult.contains(key)
+  def getComponentTaintAnalysisResult(key: JawaType): Option[TaintAnalysisResult] = this.synchronized(this.componentTaintResult.get(key))
+  def getComponentTaintAnalysisResults: Map[JawaType, TaintAnalysisResult] = this.componentTaintResult.toMap
+
   private var apkTaintResult: Option[Any] = None
 
   def addTaintAnalysisResult(tar: TaintAnalysisResult): Unit = this.synchronized(this.apkTaintResult = Some(tar))

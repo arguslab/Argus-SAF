@@ -241,7 +241,7 @@ class JdoubleAnnotation(PrimitiveTypeAnnotation):
         super(JdoubleAnnotation, self).__init__(source, 'double', value)
 
 
-class JstringAnnotation(JavaTypeAnnotation):
+class JstringAnnotation(JobjectAnnotation):
     """
     This annotation is used to store jstring type value information.
     """
@@ -252,7 +252,7 @@ class JstringAnnotation(JavaTypeAnnotation):
         :param source: Source of this string value.
         :param value: Value of this string value.
         """
-        super(JstringAnnotation, self).__init__(source, 'java/lang/String')
+        super(JstringAnnotation, self).__init__(source, 'java/lang/String', list())
         self._value = value
 
     @property
@@ -264,7 +264,7 @@ class JstringAnnotation(JavaTypeAnnotation):
         self._value = value
 
 
-class JArrayAnnotation(JavaTypeAnnotation):
+class JArrayAnnotation(JobjectAnnotation):
     """
     This annotation is used to store array type value information.
     """
@@ -276,7 +276,7 @@ class JArrayAnnotation(JavaTypeAnnotation):
         :param obj_type: Type of this array value
         :param elements: Elements of this array value.
         """
-        super(JArrayAnnotation, self).__init__(source, obj_type)
+        super(JArrayAnnotation, self).__init__(source, obj_type, list())
         self._elements = elements
 
     @property

@@ -261,7 +261,7 @@ def icc_handle(class_name, method_name, return_annotation, simproc):
     if class_name == 'android/content/Intent':
         if method_name == 'setClassName':
             for annotation in simproc.arg(4).annotations:
-                if type(annotation) is JstringAnnotation:
+                if isinstance(annotation, JstringAnnotation):
                     return_annotation.icc_info['is_icc'] = True
                     return_annotation.icc_info['activity_name'] = annotation.value
         elif method_name == 'putExtra':
@@ -269,15 +269,15 @@ def icc_handle(class_name, method_name, return_annotation, simproc):
             extra_key = None
             extra_value = None
             for annotation in simproc.arg(3).annotations:
-                if type(annotation) is JstringAnnotation:
+                if isinstance(annotation, JstringAnnotation):
                     extra_key = annotation.value
             for annotation in simproc.arg(4).annotations:
-                if type(annotation) is JobjectAnnotation:
+                if isinstance(annotation, JobjectAnnotation):
                     extra_value = copy.deepcopy(annotation)
             return_annotation.icc_info['extra'] = {extra_key: extra_value}
         elif method_name == 'getStringExtra':
             for annotation in simproc.arg(3).annotations:
-                if type(annotation) is JstringAnnotation:
+                if isinstance(annotation, JstringAnnotation):
                     return_annotation.taint_info['is_taint'] = True
                     return_annotation.taint_info['taint_type'] = ['_SOURCE_', '_API_']
                     return_annotation.taint_info['taint_info'] = ['SENSITIVE_INFO']
@@ -287,7 +287,7 @@ def icc_handle(class_name, method_name, return_annotation, simproc):
     elif class_name == 'android/content/Context':
         if method_name == 'startActivity':
             for annotation in simproc.arg(3).annotations:
-                if type(annotation) is JobjectAnnotation:
+                if isinstance(annotation, JobjectAnnotation):
                     activity_name = annotation.icc_info['activity_name']
                     extra = annotation.icc_info['extra']
                     print("Start Activity: %s, extra: %s" % (activity_name, extra))
@@ -595,7 +595,7 @@ class NewObject(NativeDroidSimProcedure):
         return_value = claripy.BVV(jobject.ptr, self.project.arch.bits)
 
         for annotation in clazz.annotations:
-            if type(annotation) is JclassAnnotation:
+            if isinstance(annotation, JclassAnnotation):
                 return_value = return_value.annotate(
                     JobjectAnnotation(source='from_native', obj_type=annotation.class_type, fields_info=list()))
 
@@ -622,7 +622,7 @@ class GetObjectClass(NativeDroidSimProcedure):
         jclass = JClass(self.project)
         return_value = claripy.BVV(jclass.ptr, self.project.arch.bits)
         for annotation in obj.annotations:
-            if type(annotation) is JobjectAnnotation:
+            if isinstance(annotation, JobjectAnnotation):
                 return_value = return_value.annotate(
                     JclassAnnotation(class_type=annotation.obj_type, fields_info=list()))
 
@@ -660,7 +660,7 @@ class GetMethodID(NativeDroidSimProcedure):
 
         class_name = None
         for annotation in clazz.annotations:
-            if type(annotation) is JclassAnnotation:
+            if isinstance(annotation, JclassAnnotation):
                 class_name = annotation.class_type
         nativedroid_logger.info('CLASS: %s', class_name)
         nativedroid_logger.info('METHOD: %s', name_str)
@@ -683,8 +683,9 @@ class CallObjectMethod(NativeDroidSimProcedure):
             source_tags = ssm.get_source_tags(method_full_signature)
             if source_tags:
                 return ['_SOURCE_', '|'.join(source_tags)]
-            poss, sink_tags = ssm.get_sink_tags(method_full_signature)
-            if sink_tags:
+            tags = ssm.get_sink_tags(method_full_signature)
+            if tags:
+                poss = tags.first
                 info = 'ALL' if not poss else '|'.join(map(str, poss))
                 return ['_SINK_', info]
         return None
@@ -693,7 +694,7 @@ class CallObjectMethod(NativeDroidSimProcedure):
         nativedroid_logger.info('JNINativeInterface SimProcedure: %s', self)
         num_args = 3
         for annotation in methodID.annotations:
-            if type(annotation) is JmethodIDAnnotation:
+            if isinstance(annotation, JmethodIDAnnotation):
                 class_name = annotation.class_name
                 method_name = annotation.method_name
                 method_signature = annotation.method_signature
@@ -721,7 +722,7 @@ class CallObjectMethod(NativeDroidSimProcedure):
                     return_annotation.taint_info['taint_info'] = method_taint_attribute[1]
                 else:
                     for anno in obj.annotations:
-                        if type(anno) is JobjectAnnotation:
+                        if isinstance(anno, JobjectAnnotation):
                             if anno.taint_info['is_taint']:
                                 return_annotation.taint_info = anno.taint_info
                             else:
@@ -1052,7 +1053,7 @@ class GetFieldID(NativeDroidSimProcedure):
 
         class_name = None
         for annotation in clazz.annotations:
-            if type(annotation) is JclassAnnotation:
+            if isinstance(annotation, JclassAnnotation):
                 class_name = annotation.class_type
 
         strlen_simproc = angr.SIM_PROCEDURES['libc']['strlen']
@@ -1081,7 +1082,7 @@ class GetObjectField(NativeDroidSimProcedure):
         nativedroid_logger.info('JNINativeInterface SimProcedure: %s', self)
 
         for annotation in fieldID.annotations:
-            if type(annotation) is JfieldIDAnnotation:
+            if isinstance(annotation, JfieldIDAnnotation):
                 field_name = annotation.field_name
                 field_signature = annotation.field_signature
                 jni_return_type = get_jni_return_type(field_signature)
@@ -1090,7 +1091,7 @@ class GetObjectField(NativeDroidSimProcedure):
                 typ_size = get_type_size(self.project, java_return_type)
                 return_value = claripy.BVV(typ.ptr, typ_size)
                 for anno in obj.annotations:
-                    if type(anno) is JobjectAnnotation:
+                    if isinstance(anno, JobjectAnnotation):
                         field_exist = False
                         field_index = 0
                         for index, field_info in enumerate(anno.fields_info):
@@ -1232,16 +1233,15 @@ class SetObjectField(NativeDroidSimProcedure):
 
         field_annotation = None
         for annotation in value.annotations:
-            if type(annotation) is JobjectAnnotation or type(annotation) is JstringAnnotation or type(
-                    annotation) is PrimitiveTypeAnnotation:
+            if isinstance(annotation, JobjectAnnotation) or isinstance(annotation, PrimitiveTypeAnnotation):
                 field_annotation = copy.deepcopy(annotation)
 
         id_annotation = None
         for annotation in fieldID.annotations:
-            if type(annotation) is JfieldIDAnnotation:
+            if isinstance(annotation, JfieldIDAnnotation):
                 id_annotation = annotation
         for annotation in obj.annotations:
-            if type(annotation) is JobjectAnnotation:
+            if isinstance(annotation, JobjectAnnotation):
                 field_exist = False
                 for index, field_info in enumerate(annotation.fields_info):
                     if field_info.field_name == \
@@ -1286,17 +1286,17 @@ class SetIntField(SetTypeField):
 
         field_annotation = None
         for annotation in value.annotations:
-            if type(annotation) is JintAnnotation:
+            if isinstance(annotation, JintAnnotation):
                 field_annotation = annotation
         if field_annotation is None:
             field_annotation = JintAnnotation(source='from_native', value=value.ast.args[0])
 
         id_annotation = None
         for annotation in fieldID.annotations:
-            if type(annotation) is JfieldIDAnnotation:
+            if isinstance(annotation, JfieldIDAnnotation):
                 id_annotation = annotation
         for annotation in obj.annotations:
-            if type(annotation) is JobjectAnnotation:
+            if isinstance(annotation, JobjectAnnotation):
                 field_exist = False
                 for index, field_info in enumerate(annotation.fields_info):
                     if field_info.field_info['field_name'] == \
@@ -1501,7 +1501,7 @@ class GetStaticObjectField(GetObjectField):
         nativedroid_logger.info('JNINativeInterface SimProcedure: %s', self)
 
         for annotation in fieldID.annotations:
-            if type(annotation) is JfieldIDAnnotation:
+            if isinstance(annotation, JfieldIDAnnotation):
                 field_name = annotation.field_name
                 field_signature = annotation.field_signature
                 java_return_type = get_java_return_type(field_signature)
@@ -1509,7 +1509,7 @@ class GetStaticObjectField(GetObjectField):
                 typ_size = get_type_size(self.project, java_return_type)
                 return_value = claripy.BVV(typ.ptr, typ_size)
                 for anno in clazz.annotations:
-                    if type(anno) is JclassAnnotation:
+                    if isinstance(anno, JclassAnnotation):
                         field_exist = False
                         field_index = 0
                         for index, field_info in enumerate(anno.fields_info):
@@ -1680,9 +1680,7 @@ class NewStringUTF(NativeDroidSimProcedure):
 
         jstring = JString(self.project)
         return_value = claripy.BVV(jstring.ptr, self.project.arch.bits)
-        return_value = return_value.annotate(
-            JstringAnnotation(source='from_native', value=string_arg))
-
+        return_value = return_value.annotate(JstringAnnotation(source='from_native', value=string_arg))
         return return_value
 
     def __repr__(self):

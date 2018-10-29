@@ -41,7 +41,7 @@ class JNSafServerTest extends FlatSpec with Matchers with BeforeAndAfterAll {
       .start
     println(s"$TITLE server started.")
     client = new JNSafClient("localhost", 55001, reporter)
-    val file_path = getClass.getResource("/NativeFlowBench/native_multiple_interactions.apk").getPath
+    val file_path = getClass.getResource("/NativeFlowBench/icc_nativetojava.apk").getPath
     fileUri = FileUtil.toUri(file_path)
     loadResponse = client.loadAPK(fileUri)
   }

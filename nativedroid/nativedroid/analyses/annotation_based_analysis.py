@@ -90,7 +90,7 @@ class AnnotationBasedAnalysis(angr.Analysis):
                 node_arg_value = node.input_state.regs.r1
                 field_taint = False
                 for annotation in node_arg_value.annotations:
-                    if type(annotation) is JobjectAnnotation:
+                    if isinstance(annotation, JobjectAnnotation):
                         for field_info in annotation.fields_info:
                             if field_info.taint_info['is_taint'] and \
                                     field_info.taint_info['taint_type'][0] == '_SOURCE_' and \
@@ -98,7 +98,7 @@ class AnnotationBasedAnalysis(angr.Analysis):
                                 sources_annotation.add(annotation)
                                 field_taint = True
                             else:
-                                if type(field_info) is JobjectAnnotation:
+                                if isinstance(field_info, JobjectAnnotation):
                                     for info in field_info.fields_info:
                                         if info.taint_info['is_taint'] and \
                                                 info.taint_info['taint_type'][0] == '_SOURCE_' and \
@@ -109,12 +109,11 @@ class AnnotationBasedAnalysis(angr.Analysis):
                                 annotation.taint_info['taint_type'][0] == '_SOURCE_' and \
                                 annotation.taint_info['taint_type'][1] != '_ARGUMENT_':
                             sources_annotation.add(annotation)
-
             elif node.is_simprocedure and node.name.startswith('Call'):
                 for final_state in node.final_states:
                     node_return_value = final_state.regs.r0
                     for annotation in node_return_value.annotations:
-                        if type(annotation) is JobjectAnnotation or type(annotation) is JstringAnnotation:
+                        if isinstance(annotation, JobjectAnnotation):
                             if annotation.taint_info['is_taint'] is True and \
                                     annotation.taint_info['taint_type'] == ['_SOURCE_', '_API_']:
                                 sources_annotation.add(annotation)
@@ -135,7 +134,7 @@ class AnnotationBasedAnalysis(angr.Analysis):
                 for final_state in node.final_states:
                     node_return_value = final_state.regs.r0
                     for annotation in node_return_value.annotations:
-                        if type(annotation) is JobjectAnnotation or type(annotation) is JstringAnnotation:
+                        if isinstance(annotation, JobjectAnnotation):
                             if annotation.taint_info['is_taint'] and annotation.taint_info['taint_type'] == '_SINK_':
                                 sink_annotations.add(annotation)
             fn = self.cfg.project.kb.functions.get(node.addr)
@@ -190,7 +189,7 @@ class AnnotationBasedAnalysis(angr.Analysis):
             report_file.write(jni_method_signature)
             report_file.write(' -> _SOURCE_ ')
             for source_annotation in sources:
-                if type(source_annotation) is JobjectAnnotation and source_annotation.source.startswith('arg'):
+                if isinstance(source_annotation, JobjectAnnotation) and source_annotation.source.startswith('arg'):
                     source_location = source_annotation.source
                     taint_field_name = None
                     for field_info in source_annotation.fields_info:
@@ -198,19 +197,13 @@ class AnnotationBasedAnalysis(angr.Analysis):
                         if field_info.taint_info['is_taint'] and field_info.taint_info['taint_type'][0] != '_ARGUMENT_':
                             taint_field_name = field_info.field_info['field_name']
                         else:
-                            if type(field_info) is JobjectAnnotation:
+                            if isinstance(field_info, JobjectAnnotation):
                                 for info in field_info.fields_info:
                                     if info.taint_info['is_taint'] and \
                                             info.taint_info['taint_type'][0] != '_ARGUMENT_':
                                         taint_field_name = taint_field_name + '.' + info.field_info['field_name']
                     if taint_field_name:
                         report_file.write(source_location.split('arg')[-1] + '.' + taint_field_name)
-                    # elif source_annotation.taint_info['taint_type'][1] != '_ARGUMENT_':
-                    #     report_file.write(annotation_location[source_annotation.source])
-                # elif type(source_annotation) is JstringAnnotation and source_annotation.source.startswith('arg'):
-                #     if source_annotation.taint_info['is_taint'] and \
-                #             source_annotation.taint_info['taint_type'][1] != '_ARGUMENT_':
-                #         report_file.write(annotation_location[source_annotation.source])
 
         return report_file.getvalue()
 
@@ -226,7 +219,7 @@ class AnnotationBasedAnalysis(angr.Analysis):
         for arg_index, arg_summary in self._arguments_summary.iteritems():
             arg_safsu = dict()
             for annotation in arg_summary.annotations:
-                if type(annotation) is JobjectAnnotation and annotation.fields_info:
+                if isinstance(annotation, JobjectAnnotation) and annotation.fields_info:
                     for field_info in annotation.fields_info:
                         field_name = field_info.field_info['field_name']
                         field_type = field_info.obj_type.replace('/', '.')
@@ -256,7 +249,17 @@ class AnnotationBasedAnalysis(angr.Analysis):
                 for final_state in return_node.final_states:
                     return_value = final_state.regs.r0
                     for annotation in return_value.annotations:
-                        if type(annotation) is JobjectAnnotation:
+                        if isinstance(annotation, JstringAnnotation):
+                            # ret_type = annotation.primitive_type.split('L')[-1].replace('/', '.')
+                            ret_type = 'java.lang.String'
+                            ret_location = annotation_location[annotation.source]
+                            ret_value = annotation.value
+                            if ret_value is not None:
+                                ret_safsu = '  ret = ' + ret_type + '@' + ret_location + '(' + ret_value + ')'
+                            else:
+                                ret_safsu = '  ret = ' + ret_type + '@' + ret_location
+                            rets_safsu.append(ret_safsu)
+                        elif isinstance(annotation, JobjectAnnotation):
                             if annotation.field_info['is_field']:
                                 ret_type = annotation.obj_type.replace('/', '.')
                                 ret_location = 'arg:' + str(
@@ -269,16 +272,6 @@ class AnnotationBasedAnalysis(angr.Analysis):
                                 ret_location = annotation_location[annotation.source]
                                 ret_safsu = '  ret = ' + ret_type + '@' + ret_location
                                 rets_safsu.append(ret_safsu)
-                        elif type(annotation) is JstringAnnotation:
-                            # ret_type = annotation.primitive_type.split('L')[-1].replace('/', '.')
-                            ret_type = 'java.lang.String'
-                            ret_location = annotation_location[annotation.source]
-                            ret_value = annotation.value
-                            if ret_value is not None:
-                                ret_safsu = '  ret = ' + ret_type + '@' + ret_location + '(' + ret_value + ')'
-                            else:
-                                ret_safsu = '  ret = ' + ret_type + '@' + ret_location
-                            rets_safsu.append(ret_safsu)
         report_file = StringIO()
         report_file.write('`' + jni_method_signature + '`:' + '\n')
         if args_safsu:

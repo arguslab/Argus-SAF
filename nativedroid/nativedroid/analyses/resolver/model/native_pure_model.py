@@ -31,7 +31,6 @@ class CallbackHook(angr.SimProcedure):
         """
 
         for key, value in callbacks.iteritems():
-            # if type(value) is not str:
             self.call(value, [argument], 'final_call')
 
     def final_call(self, callbacks=None, argument=None):
