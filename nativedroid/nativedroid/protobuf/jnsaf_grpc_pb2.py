@@ -20,7 +20,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='nativedroid/protobuf/jnsaf_grpc.proto',
   package='jnsaf_server',
   syntax='proto3',
-  serialized_pb=_b('\n%nativedroid/protobuf/jnsaf_grpc.proto\x12\x0cjnsaf_server\x1a\"nativedroid/protobuf/summary.proto\" \n\x0eLoadAPKRequest\x12\x0e\n\x06\x62uffer\x18\x01 \x01(\x0c\"5\n\x0fLoadAPKResponse\x12\x12\n\napk_digest\x18\x01 \x01(\t\x12\x0e\n\x06length\x18\x02 \x01(\x05\"*\n\x14TaintAnalysisRequest\x12\x12\n\napk_digest\x18\x01 \x01(\t\"\'\n\x15TaintAnalysisResponse\x12\x0e\n\x06status\x18\x01 \x01(\x08\"V\n\x11GetSummaryRequest\x12\x12\n\napk_digest\x18\x01 \x01(\t\x12\x11\n\tsignature\x18\x02 \x01(\t\x12\x0b\n\x03gen\x18\x03 \x01(\x08\x12\r\n\x05\x64\x65pth\x18\x04 \x01(\x05\"[\n\x12GetSummaryResponse\x12/\n\x0cheap_summary\x18\x01 \x01(\x0b\x32\x19.jawa_summary.HeapSummary\x12\x14\n\x0ctaint_result\x18\x02 \x01(\t2\x82\x02\n\x05JNSaf\x12J\n\x07LoadAPK\x12\x1c.jnsaf_server.LoadAPKRequest\x1a\x1d.jnsaf_server.LoadAPKResponse\"\x00(\x01\x12Z\n\rTaintAnalysis\x12\".jnsaf_server.TaintAnalysisRequest\x1a#.jnsaf_server.TaintAnalysisResponse\"\x00\x12Q\n\nGetSummary\x12\x1f.jnsaf_server.GetSummaryRequest\x1a .jnsaf_server.GetSummaryResponse\"\x00\x42\x18\n\x16org.argus.jnsaf.serverb\x06proto3')
+  serialized_pb=_b('\n%nativedroid/protobuf/jnsaf_grpc.proto\x12\x0cjnsaf_server\x1a\"nativedroid/protobuf/summary.proto\" \n\x0eLoadAPKRequest\x12\x0e\n\x06\x62uffer\x18\x01 \x01(\x0c\"5\n\x0fLoadAPKResponse\x12\x12\n\napk_digest\x18\x01 \x01(\t\x12\x0e\n\x06length\x18\x02 \x01(\x05\"*\n\x14TaintAnalysisRequest\x12\x12\n\napk_digest\x18\x01 \x01(\t\"\'\n\x15TaintAnalysisResponse\x12\x0e\n\x06status\x18\x01 \x01(\x08\"n\n\x11GetSummaryRequest\x12\x12\n\napk_digest\x18\x01 \x01(\t\x12\x16\n\x0e\x63omponent_name\x18\x02 \x01(\t\x12\x11\n\tsignature\x18\x03 \x01(\t\x12\x0b\n\x03gen\x18\x04 \x01(\x08\x12\r\n\x05\x64\x65pth\x18\x05 \x01(\x05\"[\n\x12GetSummaryResponse\x12/\n\x0cheap_summary\x18\x01 \x01(\x0b\x32\x19.jawa_summary.HeapSummary\x12\x14\n\x0ctaint_result\x18\x02 \x01(\t\"\x9a\x01\n\x12RegisterICCRequest\x12\x12\n\napk_digest\x18\x01 \x01(\t\x12\x16\n\x0e\x63omponent_name\x18\x02 \x01(\t\x12\x1d\n\x15target_component_name\x18\x03 \x01(\t\x12\x11\n\tsignature\x18\x04 \x01(\t\x12\x11\n\tis_source\x18\x05 \x01(\x08\x12\x13\n\x0bsource_args\x18\x06 \x03(\x05\"%\n\x13RegisterICCResponse\x12\x0e\n\x06status\x18\x01 \x01(\x08\x32\xd8\x02\n\x05JNSaf\x12J\n\x07LoadAPK\x12\x1c.jnsaf_server.LoadAPKRequest\x1a\x1d.jnsaf_server.LoadAPKResponse\"\x00(\x01\x12Z\n\rTaintAnalysis\x12\".jnsaf_server.TaintAnalysisRequest\x1a#.jnsaf_server.TaintAnalysisResponse\"\x00\x12Q\n\nGetSummary\x12\x1f.jnsaf_server.GetSummaryRequest\x1a .jnsaf_server.GetSummaryResponse\"\x00\x12T\n\x0bRegisterICC\x12 .jnsaf_server.RegisterICCRequest\x1a!.jnsaf_server.RegisterICCResponse\"\x00\x42\x18\n\x16org.argus.jnsaf.serverb\x06proto3')
   ,
   dependencies=[nativedroid_dot_protobuf_dot_summary__pb2.DESCRIPTOR,])
 
@@ -173,22 +173,29 @@ _GETSUMMARYREQUEST = _descriptor.Descriptor(
       is_extension=False, extension_scope=None,
       options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='signature', full_name='jnsaf_server.GetSummaryRequest.signature', index=1,
+      name='component_name', full_name='jnsaf_server.GetSummaryRequest.component_name', index=1,
       number=2, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='gen', full_name='jnsaf_server.GetSummaryRequest.gen', index=2,
-      number=3, type=8, cpp_type=7, label=1,
+      name='signature', full_name='jnsaf_server.GetSummaryRequest.signature', index=2,
+      number=3, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='gen', full_name='jnsaf_server.GetSummaryRequest.gen', index=3,
+      number=4, type=8, cpp_type=7, label=1,
       has_default_value=False, default_value=False,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='depth', full_name='jnsaf_server.GetSummaryRequest.depth', index=3,
-      number=4, type=5, cpp_type=1, label=1,
+      name='depth', full_name='jnsaf_server.GetSummaryRequest.depth', index=4,
+      number=5, type=5, cpp_type=1, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
@@ -206,7 +213,7 @@ _GETSUMMARYREQUEST = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=265,
-  serialized_end=351,
+  serialized_end=375,
 )
 
 
@@ -243,8 +250,105 @@ _GETSUMMARYRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=353,
-  serialized_end=444,
+  serialized_start=377,
+  serialized_end=468,
+)
+
+
+_REGISTERICCREQUEST = _descriptor.Descriptor(
+  name='RegisterICCRequest',
+  full_name='jnsaf_server.RegisterICCRequest',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='apk_digest', full_name='jnsaf_server.RegisterICCRequest.apk_digest', index=0,
+      number=1, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='component_name', full_name='jnsaf_server.RegisterICCRequest.component_name', index=1,
+      number=2, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='target_component_name', full_name='jnsaf_server.RegisterICCRequest.target_component_name', index=2,
+      number=3, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='signature', full_name='jnsaf_server.RegisterICCRequest.signature', index=3,
+      number=4, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='is_source', full_name='jnsaf_server.RegisterICCRequest.is_source', index=4,
+      number=5, type=8, cpp_type=7, label=1,
+      has_default_value=False, default_value=False,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='source_args', full_name='jnsaf_server.RegisterICCRequest.source_args', index=5,
+      number=6, type=5, cpp_type=1, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=471,
+  serialized_end=625,
+)
+
+
+_REGISTERICCRESPONSE = _descriptor.Descriptor(
+  name='RegisterICCResponse',
+  full_name='jnsaf_server.RegisterICCResponse',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='status', full_name='jnsaf_server.RegisterICCResponse.status', index=0,
+      number=1, type=8, cpp_type=7, label=1,
+      has_default_value=False, default_value=False,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=627,
+  serialized_end=664,
 )
 
 _GETSUMMARYRESPONSE.fields_by_name['heap_summary'].message_type = nativedroid_dot_protobuf_dot_summary__pb2._HEAPSUMMARY
@@ -254,6 +358,8 @@ DESCRIPTOR.message_types_by_name['TaintAnalysisRequest'] = _TAINTANALYSISREQUEST
 DESCRIPTOR.message_types_by_name['TaintAnalysisResponse'] = _TAINTANALYSISRESPONSE
 DESCRIPTOR.message_types_by_name['GetSummaryRequest'] = _GETSUMMARYREQUEST
 DESCRIPTOR.message_types_by_name['GetSummaryResponse'] = _GETSUMMARYRESPONSE
+DESCRIPTOR.message_types_by_name['RegisterICCRequest'] = _REGISTERICCREQUEST
+DESCRIPTOR.message_types_by_name['RegisterICCResponse'] = _REGISTERICCRESPONSE
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
 LoadAPKRequest = _reflection.GeneratedProtocolMessageType('LoadAPKRequest', (_message.Message,), dict(
@@ -298,6 +404,20 @@ GetSummaryResponse = _reflection.GeneratedProtocolMessageType('GetSummaryRespons
   ))
 _sym_db.RegisterMessage(GetSummaryResponse)
 
+RegisterICCRequest = _reflection.GeneratedProtocolMessageType('RegisterICCRequest', (_message.Message,), dict(
+  DESCRIPTOR = _REGISTERICCREQUEST,
+  __module__ = 'nativedroid.protobuf.jnsaf_grpc_pb2'
+  # @@protoc_insertion_point(class_scope:jnsaf_server.RegisterICCRequest)
+  ))
+_sym_db.RegisterMessage(RegisterICCRequest)
+
+RegisterICCResponse = _reflection.GeneratedProtocolMessageType('RegisterICCResponse', (_message.Message,), dict(
+  DESCRIPTOR = _REGISTERICCRESPONSE,
+  __module__ = 'nativedroid.protobuf.jnsaf_grpc_pb2'
+  # @@protoc_insertion_point(class_scope:jnsaf_server.RegisterICCResponse)
+  ))
+_sym_db.RegisterMessage(RegisterICCResponse)
+
 
 DESCRIPTOR.has_options = True
 DESCRIPTOR._options = _descriptor._ParseOptions(descriptor_pb2.FileOptions(), _b('\n\026org.argus.jnsaf.server'))
@@ -308,8 +428,8 @@ _JNSAF = _descriptor.ServiceDescriptor(
   file=DESCRIPTOR,
   index=0,
   options=None,
-  serialized_start=447,
-  serialized_end=705,
+  serialized_start=667,
+  serialized_end=1011,
   methods=[
   _descriptor.MethodDescriptor(
     name='LoadAPK',
@@ -336,6 +456,15 @@ _JNSAF = _descriptor.ServiceDescriptor(
     containing_service=None,
     input_type=_GETSUMMARYREQUEST,
     output_type=_GETSUMMARYRESPONSE,
+    options=None,
+  ),
+  _descriptor.MethodDescriptor(
+    name='RegisterICC',
+    full_name='jnsaf_server.JNSaf.RegisterICC',
+    index=3,
+    containing_service=None,
+    input_type=_REGISTERICCREQUEST,
+    output_type=_REGISTERICCRESPONSE,
     options=None,
   ),
 ])

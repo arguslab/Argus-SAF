@@ -18,7 +18,7 @@ import org.argus.jawa.flow.pta.{PTAResult, VarSlot}
 import org.argus.jawa.flow.taintAnalysis._
 import org.argus.jawa.flow.util.ExplicitValueFinder
 import org.argus.jawa.core.ast.{CallStatement, Location}
-import org.argus.jawa.core.elements.Signature
+import org.argus.jawa.core.elements.{JawaType, Signature}
 import org.argus.jawa.core.util._
 
 object IntentSinkKind extends Enumeration {
@@ -75,7 +75,6 @@ abstract class AndroidSourceAndSinkManager(val sasFilePath: String) extends Sour
     }
     sinkflag
   }
-
 }
 
 /**

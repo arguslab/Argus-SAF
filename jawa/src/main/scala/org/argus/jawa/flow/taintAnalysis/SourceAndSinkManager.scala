@@ -72,6 +72,10 @@ trait SourceAndSinkManager[T <: Global] {
   def addSink(sink: Signature, positions: ISet[SSPosition], tags: ISet[String]): Unit = {
     this.sinks += (sink -> (positions, tags))
   }
+
+  protected val customSinks: MMap[String, MMap[Signature, (ISet[SSPosition], ISet[String])]] = mmapEmpty
+  def addCustomSink(key: String, sourceSig: Signature, positions: ISet[Int], tags: ISet[String]): Unit = this.customSinks.getOrElseUpdate(key, mmapEmpty) +=  (sourceSig -> (positions.map(p => new SSPosition(p)), tags))
+  def getCustomSinks(key: String): IMap[Signature,  (ISet[SSPosition], ISet[String])] = this.customSinks.getOrElse(key, mmapEmpty).toMap
   
   def getSourceAndSinkNode(global: T, node: ICFGNode, pos: Option[Int], ptaresult: PTAResult): (ISet[TaintSource], ISet[TaintSink]) = {
     val sources = msetEmpty[TaintSource]
@@ -131,7 +135,7 @@ trait SourceAndSinkManager[T <: Global] {
           }
         }
       case entNode: ICFGEntryNode =>
-        if(this.isEntryPointSource(global, entNode.getOwner)){
+        if(pos.isDefined && pos.get > 0 && this.isEntryPointSource(global, entNode.getOwner)){
           sources += TaintSource(TaintNode(entNode, pos.map(new SSPosition(_))), TypeTaintDescriptor(entNode.getOwner.signature, None, SourceAndSinkCategory.ENTRYPOINT_SOURCE))
         }
         if(pos.isDefined && pos.get > 0 && this.isCallbackSource(global, entNode.getOwner, pos.get - 1)){

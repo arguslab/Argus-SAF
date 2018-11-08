@@ -20,7 +20,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='nativedroid/protobuf/nativedroid_grpc.proto',
   package='nativedroid_server',
   syntax='proto3',
-  serialized_pb=_b('\n+nativedroid/protobuf/nativedroid_grpc.proto\x12\x12nativedroid_server\x1a*nativedroid/protobuf/java_signatures.proto\"\x91\x01\n\x11GenSummaryRequest\x12\x12\n\napk_digest\x18\x01 \x01(\t\x12\r\n\x05\x64\x65pth\x18\x02 \x01(\x05\x12\x11\n\tso_digest\x18\x03 \x01(\t\x12\x10\n\x08jni_func\x18\x04 \x01(\t\x12\x34\n\x10method_signature\x18\x05 \x01(\x0b\x32\x1a.jawa_core.MethodSignature\"S\n\x12GenSummaryResponse\x12\r\n\x05taint\x18\x01 \x01(\t\x12\x0f\n\x07summary\x18\x02 \x01(\t\x12\x1d\n\x15\x61nalyzed_instructions\x18\x03 \x01(\x03\"5\n\x10HasSymbolRequest\x12\x11\n\tso_digest\x18\x01 \x01(\t\x12\x0e\n\x06symbol\x18\x02 \x01(\t\"\'\n\x11HasSymbolResponse\x12\x12\n\nhas_symbol\x18\x01 \x01(\x08\"G\n\x1c\x41nalyseNativeActivityRequest\x12\x11\n\tso_digest\x18\x01 \x01(\t\x12\x14\n\x0c\x63ustom_entry\x18\x02 \x01(\t\";\n\x1d\x41nalyseNativeActivityResponse\x12\x1a\n\x12total_instructions\x18\x01 \x01(\x03\"#\n\x11LoadBinaryRequest\x12\x0e\n\x06\x62uffer\x18\x01 \x01(\x0c\"7\n\x12LoadBinaryResponse\x12\x11\n\tso_digest\x18\x01 \x01(\t\x12\x0e\n\x06length\x18\x02 \x01(\x05\x32\xa1\x03\n\x0bNativeDroid\x12[\n\nGenSummary\x12%.nativedroid_server.GenSummaryRequest\x1a&.nativedroid_server.GenSummaryResponse\x12X\n\tHasSymbol\x12$.nativedroid_server.HasSymbolRequest\x1a%.nativedroid_server.HasSymbolResponse\x12|\n\x15\x41nalyseNativeActivity\x12\x30.nativedroid_server.AnalyseNativeActivityRequest\x1a\x31.nativedroid_server.AnalyseNativeActivityResponse\x12]\n\nLoadBinary\x12%.nativedroid_server.LoadBinaryRequest\x1a&.nativedroid_server.LoadBinaryResponse(\x01\x42\x1e\n\x1corg.argus.nativedroid.serverb\x06proto3')
+  serialized_pb=_b('\n+nativedroid/protobuf/nativedroid_grpc.proto\x12\x12nativedroid_server\x1a*nativedroid/protobuf/java_signatures.proto\"\xa9\x01\n\x11GenSummaryRequest\x12\x12\n\napk_digest\x18\x01 \x01(\t\x12\x16\n\x0e\x63omponent_name\x18\x02 \x01(\t\x12\r\n\x05\x64\x65pth\x18\x03 \x01(\x05\x12\x11\n\tso_digest\x18\x04 \x01(\t\x12\x10\n\x08jni_func\x18\x05 \x01(\t\x12\x34\n\x10method_signature\x18\x06 \x01(\x0b\x32\x1a.jawa_core.MethodSignature\"S\n\x12GenSummaryResponse\x12\r\n\x05taint\x18\x01 \x01(\t\x12\x0f\n\x07summary\x18\x02 \x01(\t\x12\x1d\n\x15\x61nalyzed_instructions\x18\x03 \x01(\x03\"5\n\x10HasSymbolRequest\x12\x11\n\tso_digest\x18\x01 \x01(\t\x12\x0e\n\x06symbol\x18\x02 \x01(\t\"\'\n\x11HasSymbolResponse\x12\x12\n\nhas_symbol\x18\x01 \x01(\x08\"G\n\x1c\x41nalyseNativeActivityRequest\x12\x11\n\tso_digest\x18\x01 \x01(\t\x12\x14\n\x0c\x63ustom_entry\x18\x02 \x01(\t\";\n\x1d\x41nalyseNativeActivityResponse\x12\x1a\n\x12total_instructions\x18\x01 \x01(\x03\"#\n\x11LoadBinaryRequest\x12\x0e\n\x06\x62uffer\x18\x01 \x01(\x0c\"7\n\x12LoadBinaryResponse\x12\x11\n\tso_digest\x18\x01 \x01(\t\x12\x0e\n\x06length\x18\x02 \x01(\x05\x32\xa1\x03\n\x0bNativeDroid\x12[\n\nGenSummary\x12%.nativedroid_server.GenSummaryRequest\x1a&.nativedroid_server.GenSummaryResponse\x12X\n\tHasSymbol\x12$.nativedroid_server.HasSymbolRequest\x1a%.nativedroid_server.HasSymbolResponse\x12|\n\x15\x41nalyseNativeActivity\x12\x30.nativedroid_server.AnalyseNativeActivityRequest\x1a\x31.nativedroid_server.AnalyseNativeActivityResponse\x12]\n\nLoadBinary\x12%.nativedroid_server.LoadBinaryRequest\x1a&.nativedroid_server.LoadBinaryResponse(\x01\x42\x1e\n\x1corg.argus.nativedroid.serverb\x06proto3')
   ,
   dependencies=[nativedroid_dot_protobuf_dot_java__signatures__pb2.DESCRIPTOR,])
 
@@ -42,29 +42,36 @@ _GENSUMMARYREQUEST = _descriptor.Descriptor(
       is_extension=False, extension_scope=None,
       options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='depth', full_name='nativedroid_server.GenSummaryRequest.depth', index=1,
-      number=2, type=5, cpp_type=1, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
-    _descriptor.FieldDescriptor(
-      name='so_digest', full_name='nativedroid_server.GenSummaryRequest.so_digest', index=2,
-      number=3, type=9, cpp_type=9, label=1,
+      name='component_name', full_name='nativedroid_server.GenSummaryRequest.component_name', index=1,
+      number=2, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='jni_func', full_name='nativedroid_server.GenSummaryRequest.jni_func', index=3,
+      name='depth', full_name='nativedroid_server.GenSummaryRequest.depth', index=2,
+      number=3, type=5, cpp_type=1, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='so_digest', full_name='nativedroid_server.GenSummaryRequest.so_digest', index=3,
       number=4, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='method_signature', full_name='nativedroid_server.GenSummaryRequest.method_signature', index=4,
-      number=5, type=11, cpp_type=10, label=1,
+      name='jni_func', full_name='nativedroid_server.GenSummaryRequest.jni_func', index=4,
+      number=5, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='method_signature', full_name='nativedroid_server.GenSummaryRequest.method_signature', index=5,
+      number=6, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
@@ -82,7 +89,7 @@ _GENSUMMARYREQUEST = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=112,
-  serialized_end=257,
+  serialized_end=281,
 )
 
 
@@ -126,8 +133,8 @@ _GENSUMMARYRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=259,
-  serialized_end=342,
+  serialized_start=283,
+  serialized_end=366,
 )
 
 
@@ -164,8 +171,8 @@ _HASSYMBOLREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=344,
-  serialized_end=397,
+  serialized_start=368,
+  serialized_end=421,
 )
 
 
@@ -195,8 +202,8 @@ _HASSYMBOLRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=399,
-  serialized_end=438,
+  serialized_start=423,
+  serialized_end=462,
 )
 
 
@@ -233,8 +240,8 @@ _ANALYSENATIVEACTIVITYREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=440,
-  serialized_end=511,
+  serialized_start=464,
+  serialized_end=535,
 )
 
 
@@ -264,8 +271,8 @@ _ANALYSENATIVEACTIVITYRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=513,
-  serialized_end=572,
+  serialized_start=537,
+  serialized_end=596,
 )
 
 
@@ -295,8 +302,8 @@ _LOADBINARYREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=574,
-  serialized_end=609,
+  serialized_start=598,
+  serialized_end=633,
 )
 
 
@@ -333,8 +340,8 @@ _LOADBINARYRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=611,
-  serialized_end=666,
+  serialized_start=635,
+  serialized_end=690,
 )
 
 _GENSUMMARYREQUEST.fields_by_name['method_signature'].message_type = nativedroid_dot_protobuf_dot_java__signatures__pb2._METHODSIGNATURE
@@ -414,8 +421,8 @@ _NATIVEDROID = _descriptor.ServiceDescriptor(
   file=DESCRIPTOR,
   index=0,
   options=None,
-  serialized_start=669,
-  serialized_end=1086,
+  serialized_start=693,
+  serialized_end=1110,
   methods=[
   _descriptor.MethodDescriptor(
     name='GenSummary',

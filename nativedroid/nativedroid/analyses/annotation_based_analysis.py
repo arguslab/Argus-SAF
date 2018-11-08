@@ -182,10 +182,7 @@ class AnnotationBasedAnalysis(angr.Analysis):
                     if sink_annotation.source.startswith('arg'):
                         sink_location = re.split('arg|_', sink_annotation.source)[1]
                         report_file.write(str(sink_location))
-                    # else:
-                    #     report_file.write(annotation_location[sink_annotation.source])
-
-        elif sources:
+        if sources:
             report_file.write(jni_method_signature)
             report_file.write(' -> _SOURCE_ ')
             for source_annotation in sources:
@@ -204,7 +201,6 @@ class AnnotationBasedAnalysis(angr.Analysis):
                                         taint_field_name = taint_field_name + '.' + info.field_info['field_name']
                     if taint_field_name:
                         report_file.write(source_location.split('arg')[-1] + '.' + taint_field_name)
-
         return report_file.getvalue()
 
     def gen_saf_summary_report(self, jni_method_signature):

@@ -24,9 +24,10 @@ message TaintAnalysisResponse {
 
 message GetSummaryRequest {
     string apk_digest = 1;
-    string signature = 2;
-    bool gen = 3;
-    int32 depth = 4;
+    string component_name = 2;
+    string signature = 3;
+    bool gen = 4;
+    int32 depth = 5;
 }
 
 message GetSummaryResponse {
@@ -34,8 +35,22 @@ message GetSummaryResponse {
     string taint_result = 2;
 }
 
+message RegisterICCRequest {
+    string apk_digest = 1;
+    string component_name = 2;
+    string target_component_name = 3;
+    string signature = 4;
+    bool is_source = 5;
+    repeated int32 source_args = 6;
+}
+
+message RegisterICCResponse {
+    bool status = 1;
+}
+
 service JNSaf {
     rpc LoadAPK(stream LoadAPKRequest) returns (LoadAPKResponse) {}
     rpc TaintAnalysis(TaintAnalysisRequest) returns (TaintAnalysisResponse) {}
     rpc GetSummary(GetSummaryRequest) returns (GetSummaryResponse) {}
+    rpc RegisterICC(RegisterICCRequest) returns (RegisterICCResponse) {}
 }

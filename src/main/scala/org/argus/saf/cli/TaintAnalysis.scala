@@ -66,7 +66,6 @@ object TaintAnalysis{
       case e: Throwable => 
         CliLogger.logError(new File(outputPath), "Error: " , e)
     }
-  
   }
   
   private def getOutputDirUri(outputUri: FileResourceUri, apkUri: FileResourceUri): FileResourceUri = {

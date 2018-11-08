@@ -43,7 +43,7 @@ def gen_summary(jnsaf_client, so_file, jni_method_name, jni_method_signature, jn
     else:
         jni_method_addr = jni_method_symb.rebased_addr
     ssm = SourceAndSinkManager(native_ss_file, java_ss_file)
-    analysis_center = AnalysisCenter(jnsaf_client, ssm)
+    analysis_center = AnalysisCenter(jni_method_signature, jnsaf_client, ssm)
     annotation_based_analysis = project.analyses.AnnotationBasedAnalysis(
         analysis_center, jni_method_addr, jni_method_arguments, False)
     sources, sinks = annotation_based_analysis.run()

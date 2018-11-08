@@ -18,7 +18,7 @@ import org.argus.amandroid.core.appInfo.AppInfoCollector
 import org.argus.amandroid.core.decompile._
 import org.argus.amandroid.core.parser.ComponentType
 import org.argus.amandroid.core.util.ApkFileUtil
-import org.argus.jawa.core.elements.{AccessFlag, JawaType, Signature}
+import org.argus.jawa.core.elements.{AccessFlag, JavaKnowledge, JawaType, Signature}
 import org.argus.jawa.core.io.{FileReporter, MsgLevel, PrintReporter}
 import org.argus.jawa.core.util._
 import org.argus.jnsaf.analysis.NativeMethodHandler
@@ -209,8 +209,7 @@ object NativeStatistics {
     // apk is the apk meta data manager, class loader and class manager
     val apk = yard.loadApk(apkUri, settings, collectInfo = false, resolveCallBack = false)
     println("Apk Loaded!")
-
-    val client: NativeDroidClient = new NativeDroidClient("local", 50051, "", reporter)
+    val client: NativeDroidClient = new NativeDroidClient("localhost", 50051, "", reporter)
     val handler = new NativeMethodHandler(client)
     handler.buildNativeMethodMapping(apk)
     if(taint) {
@@ -221,7 +220,7 @@ object NativeStatistics {
       handler.nativeMethodSoMap foreach { case (sig, _) =>
         counter += 1
         println(s"Processing: $counter/$total")
-        handler.genSummary(apk, sig, 0)
+        handler.genSummary(apk, JavaKnowledge.OBJECT, sig, 0)
       }
     } else {
       handler.statisticsResolve(apk, i)
@@ -248,8 +247,7 @@ object NativeStatistics {
       val act = apk.getClassOrResolve(a.compType)
       nativeActivity.isAssignableFrom(act)
     }
-
-    val client: NativeDroidClient = new NativeDroidClient("local", 50051, "", reporter)
+    val client: NativeDroidClient = new NativeDroidClient("localhost", 50051, "", reporter)
     val handler = new NativeMethodHandler(client)
     var counter = 0
     val total = native_acts.size

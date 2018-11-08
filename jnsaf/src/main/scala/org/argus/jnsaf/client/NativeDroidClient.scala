@@ -33,10 +33,7 @@ class NativeDroidClient(address: String, port: Int, apkDigest: String, reporter:
   private val channel = ManagedChannelBuilder.forAddress(address, port).usePlaintext(true).build
   private val client = NativeDroidGrpc.stub(channel)
   private val blocking_client = NativeDroidGrpc.blockingStub(channel)
-
   private val loadedBinaries: MMap[FileResourceUri, String] = mmapEmpty
-
-
 
   @throws[InterruptedException]
   def shutdown(): Unit = {
@@ -178,13 +175,13 @@ class NativeDroidClient(address: String, port: Int, apkDigest: String, reporter:
     res.toList
   }
 
-  def genSummary(soFileUri: FileResourceUri, methodName: String, sig: Signature, depth: Int): (String, String) = {
+  def genSummary(soFileUri: FileResourceUri, componentName: String, methodName: String, sig: Signature, depth: Int): (String, String) = {
     reporter.echo(TITLE,s"Client genSummary for $sig")
     if(hasSymbol(soFileUri, methodName)) {
       try {
         val doneSignal = new CountDownLatch(1)
         val soDigest = getBinaryDigest(soFileUri)
-        val request = GenSummaryRequest(apkDigest, depth, soDigest, methodName, Some(sig.method_signature))
+        val request = GenSummaryRequest(apkDigest, componentName, depth, soDigest, methodName, Some(sig.method_signature))
         val responseFuture: Future[GenSummaryResponse] = client.genSummary(request)
         var responseOpt: Option[GenSummaryResponse] = None
         responseFuture.foreach { response =>

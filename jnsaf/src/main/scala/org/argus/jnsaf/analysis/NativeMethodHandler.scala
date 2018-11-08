@@ -116,7 +116,7 @@ class NativeMethodHandler(client: NativeDroidClient) {
     res.toSet
   }
 
-  def genSummary(apk: ApkGlobal, sig: Signature, depth: Int): (String, String) = {
+  def genSummary(apk: ApkGlobal, component: JawaType, sig: Signature, depth: Int): (String, String) = {
     val soOpt: Option[String] = nativeMethodSoMap.get(sig) match {
       case a@Some(_) => a
       case None =>
@@ -127,7 +127,7 @@ class NativeMethodHandler(client: NativeDroidClient) {
       case Some(soName) =>
         client.getSoFileUri(apk.model.layout.outputSrcUri, soName) match {
           case Some(soFileUri) =>
-            return client.genSummary(soFileUri, getJNIFunctionName(apk, sig), sig, depth)
+            return client.genSummary(soFileUri, component.jawaName, getJNIFunctionName(apk, sig), sig, depth)
           case None =>
         }
       case None =>

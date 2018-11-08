@@ -22,9 +22,10 @@ logger = logging.getLogger('nativedroid.server.NativeDroidServer')
 
 
 class JNSafClient(JNSafStub):
-    def __init__(self, channel, apk_digest, depth):
+    def __init__(self, channel, apk_digest, component_name, depth):
         super(JNSafClient, self).__init__(channel)
         self.apk_digest = apk_digest
+        self.component_name = component_name
         self.depth = depth
 
 
@@ -55,13 +56,13 @@ class NativeDroidServer(NativeDroidServicer):
         :return: server_pb2.GenSummaryResponse
         """
         logger.info('Server GenSummary: %s', request)
-        apk_digest = request.apk_digest
         depth = request.depth
         if depth is 0:
             return GenSummaryResponse()
         jnsaf_client = None
         if self._call_jnsaf:
-            jnsaf_client = JNSafClient(grpc.insecure_channel('localhost:55001'), apk_digest, depth - 1)
+            jnsaf_client = JNSafClient(grpc.insecure_channel('localhost:55001'), request.apk_digest,
+                                       request.component_name, depth - 1)
         so_path = request.so_digest
         signature = request.method_signature
         jni_method_name = request.jni_func
@@ -126,10 +127,3 @@ def serve(binary_path, native_ss_file, java_ss_file):
     except KeyboardInterrupt:
         server.stop(0)
     logger.info('Server stopped.')
-
-
-if __name__ == '__main__':
-    if len(sys.argv) != 4:
-        logger.error('usage: python nativedroid_server.py binary_path native_ss_file java_ss_file')
-        exit(0)
-    serve(sys.argv[1], sys.argv[2], sys.argv[3])

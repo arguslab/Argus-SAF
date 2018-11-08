@@ -18,9 +18,9 @@ trait GrpcServer {
   /**
     * Just for demo purposes
     */
-  def runServer(ssd: ServerServiceDefinition): Unit = {
+  def runServer(ssd: ServerServiceDefinition, port: Int): Unit = {
     val server = ServerBuilder
-      .forPort(55001)
+      .forPort(port)
       .addService(ssd)
       .build
       .start

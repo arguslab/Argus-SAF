@@ -12,7 +12,7 @@ package org.argus.jnsaf.summary.wu
 
 import org.argus.amandroid.core.ApkGlobal
 import org.argus.jawa.core.JawaMethod
-import org.argus.jawa.core.elements.Signature
+import org.argus.jawa.core.elements.{JawaType, Signature}
 import org.argus.jawa.core.util._
 import org.argus.jawa.flow.summary.wu.{TaintSummaryRule, WorkUnit}
 import org.argus.jawa.flow.summary.{Summary, SummaryManager}
@@ -21,6 +21,7 @@ import org.argus.jnsaf.analysis.NativeMethodHandler
 
 class NativeTaintWU(
     val global: ApkGlobal,
+    val component: JawaType,
     val method: JawaMethod,
     val sm: SummaryManager,
     ssm: SourceAndSinkManager[ApkGlobal],
@@ -30,7 +31,7 @@ class NativeTaintWU(
 
   override def generateSummary(suGen: (Signature, IList[TaintSummaryRule]) => Summary[TaintSummaryRule]): Summary[TaintSummaryRule] = {
     val sig = method.getSignature
-    val res = handler.genSummary(global, sig, depth)
+    val res = handler.genSummary(global, component, sig, depth)
     ssm.parseCode(res._1)
     sm.register(sig.methodName, res._2, fileAndSubsigMatch = false)
     suGen(sig, ilistEmpty)

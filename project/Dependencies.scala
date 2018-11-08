@@ -11,8 +11,8 @@
 import sbt._
 
 object ArgusVersions {
-  val scalaVersion = "2.12.6"
-  val sbtVersion = "1.1.1"
+  val scalaVersion = "2.12.7"
+  val sbtVersion = "1.2.4"
   val jgraphtVersion = "1.0.1"
   val json4sVersion = "3.5.0"
 }

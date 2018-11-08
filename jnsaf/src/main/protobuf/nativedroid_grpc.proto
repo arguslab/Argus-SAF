@@ -7,10 +7,11 @@ import "java_signatures.proto";
 
 message GenSummaryRequest {
     string apk_digest = 1;
-    int32 depth = 2;
-    string so_digest = 3;
-    string jni_func = 4;
-    jawa_core.MethodSignature method_signature = 5;
+    string component_name = 2;
+    int32 depth = 3;
+    string so_digest = 4;
+    string jni_func = 5;
+    jawa_core.MethodSignature method_signature = 6;
 }
 
 message GenSummaryResponse {

@@ -46,5 +46,6 @@ class AmandroidSettings(amandroid_home: String, iniPathOpt: Option[String]) {
   def parallel: Boolean = ini.get("analysis", "parallel", classOf[Boolean])
   def k_context: Int = ini.get("analysis", "k_context", classOf[Int])
   def sas_file: String = Option(ini.get("analysis", "sas_file", classOf[String])).getOrElse(amandroid_home + File.separator + "taintAnalysis" + File.separator + "sourceAndSinks" + File.separator + "TaintSourcesAndSinks.txt")
+  def native_sas_file: String = Option(ini.get("analysis", "sas_file", classOf[String])).getOrElse(amandroid_home + File.separator + "taintAnalysis" + File.separator + "sourceAndSinks" + File.separator + "NativeSourcesAndSinks.txt")
   def injection_sas_file: String = Option(ini.get("analysis", "injection_sas_file", classOf[String])).getOrElse(amandroid_home + File.separator + "taintAnalysis" + File.separator + "sourceAndSinks" + File.separator + "IntentInjectionSourcesAndSinks.txt")
 }

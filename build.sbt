@@ -14,11 +14,12 @@ bintrayReleaseOnPublish in ThisBuild := false
 bintrayRepository in ThisBuild := "maven"
 bintrayPackage in ThisBuild := "argus-saf"
 
-libraryDependencies in ThisBuild += "org.scalatest" %% "scalatest" % "3.0.1" % "test"
+libraryDependencies in ThisBuild += "org.scalamock" %% "scalamock" % "4.1.0" % Test
+libraryDependencies in ThisBuild += "org.scalatest" %% "scalatest" % "3.0.4" % Test
 
 val argusSafSettings = Defaults.coreDefaultSettings ++ Seq(
   libraryDependencies += "org.scala-lang" % "scala-compiler" % ArgusVersions.scalaVersion,
-  scalacOptions ++= Seq("-unchecked", "-deprecation", "-feature")
+  scalacOptions ++= Seq("-unchecked", "-deprecation", "-feature"),
 )
 
 val pbSettings = Seq(
@@ -62,6 +63,13 @@ val doNotPublishSettings = Seq(
   publish := {})
 
 val publishSettings = Seq(
+    test in assembly := {},
+    assemblyMergeStrategy in assembly := {
+      case "META-INF/io.netty.versions.properties" => MergeStrategy.concat
+      case x =>
+        val oldStrategy = (assemblyMergeStrategy in assembly).value
+        oldStrategy(x)
+    },
     publishArtifact in Test := false,
     releasePublishArtifactsAction := PgpKeys.publishSigned.value,
     pomExtra := <scm>
@@ -83,7 +91,7 @@ lazy val argus_saf: Project =
   newProject("argus-saf", file("."))
     .enablePlugins(BuildInfoPlugin, BintrayPlugin, ScalaUnidocPlugin)
     .settings(libraryDependencies ++= DependencyGroups.argus_saf)
-    .dependsOn(amandroid)
+    .dependsOn(jnsaf)
     .settings(argusSafSettings)
     .settings(buildInfoSettings)
     .aggregate(

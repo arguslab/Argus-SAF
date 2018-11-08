@@ -19,7 +19,7 @@ import org.argus.jawa.flow.pta.model.ModelCallHandler
 import org.argus.jawa.flow.pta.rfa.{RFAFact, ReachingFactsAnalysis, ReachingFactsAnalysisHelper}
 import org.argus.jawa.core.ast._
 import org.argus.jawa.core._
-import org.argus.jawa.core.elements.{JavaKnowledge, Signature}
+import org.argus.jawa.core.elements.{JavaKnowledge, JawaType, Signature}
 import org.argus.jawa.core.util.Property.Key
 import org.argus.jawa.core.util._
 import org.argus.jawa.flow.summary.susaf.rule._

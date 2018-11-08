@@ -14,17 +14,19 @@ import java.io.{BufferedOutputStream, ByteArrayOutputStream, File, FileOutputStr
 
 import com.google.common.hash.{Hashing, HashingOutputStream}
 import io.grpc.stub.StreamObserver
-import org.argus.amandroid.alir.componentSummary.ApkYard
+import org.argus.amandroid.alir.componentSummary.{ApkYard, ComponentBasedAnalysis}
 import org.argus.amandroid.alir.pta.summaryBasedAnalysis.AndroidSummaryProvider
+import org.argus.amandroid.alir.taintAnalysis.AndroidSourceAndSinkManager
+import org.argus.amandroid.core.AndroidGlobalConfig
 import org.argus.amandroid.core.decompile.DefaultDecompilerSettings
-import org.argus.jawa.core.elements.Signature
+import org.argus.jawa.core.elements.{JawaType, Signature}
 import org.argus.jawa.core.io.{MsgLevel, PrintReporter, Reporter}
 import org.argus.jawa.core.util._
 import org.argus.jawa.flow.summary.susaf.rule.HeapSummary
 import org.argus.jawa.flow.summary.wu.TaintSummary
 import org.argus.jawa.flow.summary.{SummaryProvider, SummaryToProto, summary}
 import org.argus.jawa.flow.taintAnalysis.TaintAnalysisResult
-import org.argus.jnsaf.analysis.NativeMethodHandler
+import org.argus.jnsaf.analysis.{JNISourceAndSinkManager, NativeMethodHandler}
 import org.argus.jnsaf.client.NativeDroidClient
 import org.argus.jnsaf.server.jnsaf_grpc._
 import org.argus.jnsaf.taint.JNTaintAnalysis
@@ -34,6 +36,13 @@ import scala.concurrent.{ExecutionContext, Future}
 object JNSafServer extends GrpcServer {
   def TITLE = "JNSafService"
 
+  def apply(outputPath: String, port: Int): Unit = {
+    val reporter = new PrintReporter(MsgLevel.INFO)
+    val dir_uri = FileUtil.toUri(outputPath)
+    val ssd = JNSafGrpc.bindService(new JNSafService(dir_uri, reporter), ExecutionContext.global)
+    runServer(ssd, port)
+  }
+
   class JNSafService(dir_uri: FileResourceUri, reporter: Reporter) extends JNSafGrpc.JNSaf {
     val dir: File = FileUtil.toFile(dir_uri)
     if (!dir.exists()) {
@@ -42,6 +51,8 @@ object JNSafServer extends GrpcServer {
     val map: MMap[String, FileResourceUri] = mmapEmpty
     val yard = new ApkYard(reporter)
     val summaries: MMap[String, SummaryProvider] = mmapEmpty
+    val ssms: MMap[String, JNISourceAndSinkManager] = mmapEmpty
+    val cbas: MMap[String, ComponentBasedAnalysis] = mmapEmpty
 
     def loadAPK(responseObserver: StreamObserver[LoadAPKResponse]): StreamObserver[LoadAPKRequest] = {
       reporter.echo(TITLE,"Server loadAPK")
@@ -85,9 +96,11 @@ object JNSafServer extends GrpcServer {
                 try {
                   val client = new NativeDroidClient("localhost", 50051, apkDigest, reporter)
                   val handler = new NativeMethodHandler(client)
+                  val ssm: AndroidSourceAndSinkManager = ssms.getOrElseUpdate(apkDigest, new JNISourceAndSinkManager(AndroidGlobalConfig.settings.sas_file))
                   val provider: SummaryProvider = summaries.getOrElseUpdate(apkDigest, new AndroidSummaryProvider(apk))
-                  val jntaint = new JNTaintAnalysis(yard, apk, handler, provider, reporter, 3)
-                  result = jntaint.process
+                  val cba: ComponentBasedAnalysis = cbas.getOrElseUpdate(apkDigest, new ComponentBasedAnalysis(yard))
+                  val jntaint = new JNTaintAnalysis(yard, apk, handler, ssm, provider, cba, reporter, 3)
+                  result = Some(jntaint.process)
                 } catch {
                   case e: Throwable =>
                     e.printStackTrace()
@@ -100,7 +113,7 @@ object JNSafServer extends GrpcServer {
       result
     }
 
-    private def performTaint(apkDigest: String, eps: ISet[Signature], depth: Int): Unit = {
+    private def performTaint(apkDigest: String, component: JawaType, eps: ISet[Signature], depth: Int): Unit = {
       map.get(apkDigest) match {
         case Some(uri) =>
           yard.getApk(uri) match {
@@ -108,9 +121,11 @@ object JNSafServer extends GrpcServer {
               try {
                 val client = new NativeDroidClient("localhost", 50051, apkDigest, reporter)
                 val handler = new NativeMethodHandler(client)
+                val ssm: AndroidSourceAndSinkManager = ssms.getOrElseUpdate(apkDigest, new JNISourceAndSinkManager(AndroidGlobalConfig.settings.sas_file))
                 val provider: SummaryProvider = summaries.getOrElseUpdate(apkDigest, new AndroidSummaryProvider(apk))
-                val jntaint = new JNTaintAnalysis(yard, apk, handler, provider, reporter, depth)
-                jntaint.process(eps)
+                val cba: ComponentBasedAnalysis = cbas.getOrElseUpdate(apkDigest, new ComponentBasedAnalysis(yard))
+                val jntaint = new JNTaintAnalysis(yard, apk, handler, ssm, provider, cba, reporter, depth)
+                jntaint.process(component, eps)
               } catch {
                 case e: Throwable =>
                   e.printStackTrace()
@@ -137,7 +152,7 @@ object JNSafServer extends GrpcServer {
           val sig = new Signature(request.signature)
           var summaries = provider.getSummaryManager.getSummaries(sig)
           if(summaries.isEmpty && request.gen) {
-            performTaint(request.apkDigest, Set(sig), request.depth - 1)
+            performTaint(request.apkDigest, new JawaType(request.componentName), Set(sig), request.depth - 1)
             summaries = provider.getSummaryManager.getSummaries(sig)
           }
           var heapSummary: Option[summary.HeapSummary] = None
@@ -153,8 +168,25 @@ object JNSafServer extends GrpcServer {
         case None => Future.failed(new RuntimeException(s"Could not load SummaryManager for apk digest: ${request.apkDigest}"))
       }
     }
-  }
 
+    def registerICC(request: RegisterICCRequest): Future[RegisterICCResponse] = {
+      reporter.echo(TITLE,s"Server registerICC ${request.toProtoString}")
+      val signature = new Signature(request.signature)
+      this.ssms.get(request.apkDigest) match {
+        case Some(ssm) =>
+          ssm.addCustomSink("ICC", signature, request.sourceArgs.toSet, Set("ICC_SINK"))
+        case None =>
+      }
+      if(request.targetComponentName.nonEmpty) {
+        this.cbas.get(request.apkDigest) match {
+          case Some(cba) =>
+            cba.customICCMap.getOrElseUpdate(signature, msetEmpty) += request.targetComponentName
+          case None =>
+        }
+      }
+      Future.successful(RegisterICCResponse(status = true))
+    }
+  }
 
   def main(args: Array[String]): Unit = {
     val reporter = new PrintReporter(MsgLevel.INFO)
@@ -163,8 +195,9 @@ object JNSafServer extends GrpcServer {
       System.exit(0)
     }
     val apk_path = args(0)
+    val port = args(1).toInt
     val dir_uri = FileUtil.toUri(apk_path)
     val ssd = JNSafGrpc.bindService(new JNSafService(dir_uri, reporter), ExecutionContext.global)
-    runServer(ssd)
+    runServer(ssd, port)
   }
 }

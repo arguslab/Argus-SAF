@@ -28,11 +28,9 @@ class JNSafClient(address: String, port: Int, reporter: Reporter) {
   final val TITLE = "JNSafClient"
   private val channel = ManagedChannelBuilder.forAddress(address, port).usePlaintext(true).build
   private val client = JNSafGrpc.stub(channel)
-  private val blocking_client = JNSafGrpc.blockingStub(channel)
+//  private val blocking_client = JNSafGrpc.blockingStub(channel)
 
   private val loadedAPKs: MMap[FileResourceUri, String] = mmapEmpty
-
-
 
   @throws[InterruptedException]
   def shutdown(): Unit = {

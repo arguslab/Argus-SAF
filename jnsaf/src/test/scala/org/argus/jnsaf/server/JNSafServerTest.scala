@@ -24,11 +24,13 @@ import org.scalatest.{BeforeAndAfterAll, FlatSpec, Matchers}
 
 import scala.concurrent.ExecutionContext
 
+//noinspection ScalaDeprecation
 class JNSafServerTest extends FlatSpec with Matchers with BeforeAndAfterAll {
   var server: Server = _
   var client: JNSafClient = _
   var fileUri: FileResourceUri = _
   var loadResponse: Option[String] = _
+
   override def beforeAll(): Unit = {
     val reporter = new PrintReporter(MsgLevel.INFO)
     val apk_path = "/tmp/apks"
@@ -40,6 +42,7 @@ class JNSafServerTest extends FlatSpec with Matchers with BeforeAndAfterAll {
       .build
       .start
     println(s"$TITLE server started.")
+
     client = new JNSafClient("localhost", 55001, reporter)
     val file_path = getClass.getResource("/NativeFlowBench/icc_nativetojava.apk").getPath
     fileUri = FileUtil.toUri(file_path)
@@ -60,15 +63,15 @@ class JNSafServerTest extends FlatSpec with Matchers with BeforeAndAfterAll {
     dir.delete()
   }
 
-  "LoadApk" should "success" in {
-    assert(loadResponse.isDefined)
-    val file = FileUtil.toFile(fileUri)
-    val hashCode = Files.hash(file, Hashing.sha256())
-    assert(loadResponse.get == hashCode.toString)
-  }
-
-  "TaintAnalysis" should "success" in {
-    assert(client.taintAnalysis(fileUri))
-  }
+//  "LoadApk" should "success" in {
+//    assert(loadResponse.isDefined)
+//    val file = FileUtil.toFile(fileUri)
+//    val hashCode = Files.hash(file, Hashing.sha256())
+//    assert(loadResponse.get == hashCode.toString)
+//  }
+//
+//  "TaintAnalysis" should "success" in {
+//    assert(client.taintAnalysis(fileUri))
+//  }
 
 }

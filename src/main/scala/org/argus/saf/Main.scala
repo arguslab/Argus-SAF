@@ -14,6 +14,8 @@ import org.apache.commons.cli._
 import org.argus.amandroid.core.AndroidGlobalConfig
 import org.argus.amandroid.core.decompile.DecompileLevel
 import org.argus.amandroid.plugin.{ApiMisuseModules, TaintAnalysisApproach, TaintAnalysisModules}
+import org.argus.jnsaf.server.JNSafServer
+import org.argus.jnsaf.submitter.ApkSubmitter
 import org.argus.saf.cli._
 
 /**
@@ -85,7 +87,7 @@ object Main extends App {
   }
 
   object Mode extends Enumeration {
-    val ARGUS_SAF, APICHECK, DECOMPILE, TAINT = Value
+    val ARGUS_SAF, APICHECK, DECOMPILE, TAINT, JNSAF_SERVER, APK_SUBMITTER = Value
   }
 
   private def usage(mode: Mode.Value): Unit ={
@@ -99,7 +101,9 @@ object Main extends App {
         println("""Available Modes:
                   |  a[picheck]    Detecting API misuse.
                   |  d[ecompile]   Decompile Apk file(s).
-                  |  t[aint]       Perform taint analysis on Apk(s).""".stripMargin)
+                  |  t[aint]       Perform taint analysis on Apk(s).
+                  |  jn[saf]       Launch JN-SAF server.
+                  |  s[ubmitter]   Apk submitter.""".stripMargin)
         println("")
         formatter.printHelp("<options>", normalOptions)
         println("For additional info, see: http://pag.arguslab.org/argus-saf")
@@ -109,6 +113,10 @@ object Main extends App {
         formatter.printHelp("d[compile] [options] <file_apk/dir>", decompilerOptions)
       case Mode.TAINT =>
         formatter.printHelp("t[aint] [options] <file_apk/dir>", taintOptions)
+      case Mode.JNSAF_SERVER =>
+        println("jn[saf] <out_dir>")
+      case Mode.APK_SUBMITTER =>
+        println("s[ubmitter] <file_apk/dir> <address> <port>")
     }
 
   }
@@ -130,8 +138,6 @@ object Main extends App {
       System.exit(1)
   }
 
-//  setupLogging(verbosity)
-
   var cmdFound: Boolean = false
 
   try {
@@ -149,6 +155,14 @@ object Main extends App {
       }
       else if (opt.equalsIgnoreCase("a") || opt.equalsIgnoreCase("apicheck")) {
         cmdApiMisuse(commandLine)
+        cmdFound = true
+      }
+      else if (opt.equalsIgnoreCase("jn") || opt.equalsIgnoreCase("jnsaf")) {
+        cmdStartJNSafServer(commandLine)
+        cmdFound = true
+      }
+      else if (opt.equalsIgnoreCase("s") || opt.equalsIgnoreCase("submitter")) {
+        cmdApkSubmitter(commandLine)
         cmdFound = true
       }
     }
@@ -290,5 +304,35 @@ object Main extends App {
         System.exit(0)
     }
     ApiMisuse(module, debug, sourcePath, outputPath, forceDelete, guessPackage)
+  }
+
+  private def cmdStartJNSafServer(cli: CommandLine): Unit = {
+    var outputPath: String = null
+    var port: Int = 0
+    try {
+      outputPath = cli.getArgList.get(1)
+      port = cli.getArgList.get(2).toInt
+    } catch {
+      case _: Exception =>
+        usage(Mode.JNSAF_SERVER)
+        System.exit(0)
+    }
+    JNSafServer(outputPath, port)
+  }
+
+  private def cmdApkSubmitter(cli: CommandLine): Unit = {
+    var outputPath: String = null
+    var address: String = null
+    var port: Int = 0
+    try {
+      outputPath = cli.getArgList.get(1)
+      address = cli.getArgList.get(2)
+      port = cli.getArgList.get(3).toInt
+    } catch {
+      case _: Exception =>
+        usage(Mode.APK_SUBMITTER)
+        System.exit(0)
+    }
+    ApkSubmitter(outputPath, address, port)
   }
 }

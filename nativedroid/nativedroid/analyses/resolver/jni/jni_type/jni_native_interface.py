@@ -248,22 +248,22 @@ jni_native_interface_origin_usage = {
 }
 
 
-def icc_handle(class_name, method_name, return_annotation, simproc):
+def icc_handle(analysis_center, class_name, method_name, return_annotation, simproc):
     """
 
+    :param analysis_center:
     :param class_name:
     :param method_name:
     :param return_annotation:
     :param simproc: Reflection call SimProcedure
     :return return_annotation
     """
-
     if class_name == 'android/content/Intent':
         if method_name == 'setClassName':
             for annotation in simproc.arg(4).annotations:
                 if isinstance(annotation, JstringAnnotation):
                     return_annotation.icc_info['is_icc'] = True
-                    return_annotation.icc_info['activity_name'] = annotation.value
+                    return_annotation.icc_info['component_name'] = annotation.value
         elif method_name == 'putExtra':
             return_annotation = simproc.arg(1).annotations[0]
             extra_key = None
@@ -281,16 +281,33 @@ def icc_handle(class_name, method_name, return_annotation, simproc):
                     return_annotation.taint_info['is_taint'] = True
                     return_annotation.taint_info['taint_type'] = ['_SOURCE_', '_API_']
                     return_annotation.taint_info['taint_info'] = ['SENSITIVE_INFO']
-
                     return_annotation.icc_info['is_icc'] = True
                     return_annotation.icc_info['extra'] = {annotation.value: None}
     elif class_name == 'android/content/Context':
-        if method_name == 'startActivity':
+        if method_name == 'startActivity' or method_name == 'sendBroadcast' or method_name == 'startService':
             for annotation in simproc.arg(3).annotations:
                 if isinstance(annotation, JobjectAnnotation):
-                    activity_name = annotation.icc_info['activity_name']
+                    # TODO(fengguow) For now we only handle explicit type.
+                    component_name = annotation.icc_info['component_name']
                     extra = annotation.icc_info['extra']
-                    print("Start Activity: %s, extra: %s" % (activity_name, extra))
+                    source_args = set()
+                    for _, extra_annotation in extra.items():
+                        if extra_annotation.source.startswith('arg'):
+                            arg_index = re.split('arg|_', extra_annotation.source)[1]
+                            source_args.add(int(arg_index))
+                    if source_args:
+                        jnsaf_client = analysis_center.get_jnsaf_client()
+                        if jnsaf_client:
+                            request = RegisterICCRequest(apk_digest=jnsaf_client.apk_digest,
+                                                         component_name=jnsaf_client.component_name,
+                                                         target_component_name=component_name,
+                                                         signature=analysis_center.get_signature(),
+                                                         is_source=False,
+                                                         source_args=source_args)
+                            response = jnsaf_client.RegisterICC(request)
+                            if response.status != 1:
+                                nativedroid_logger.error('RegisterICC failed for request: %s' % request)
+                    print("Start Component: %s, extra: %s" % (component_name, extra))
     return return_annotation
 
 
@@ -703,7 +720,9 @@ class CallObjectMethod(NativeDroidSimProcedure):
                 ssm = self._analysis_center.get_source_sink_manager()
                 if jnsaf_client:
                     request = GetSummaryRequest(
-                        apk_digest=jnsaf_client.apk_digest, signature=method_full_signature, gen=True,
+                        apk_digest=jnsaf_client.apk_digest,
+                        component_name=jnsaf_client.component_name,
+                        signature=method_full_signature, gen=True,
                         depth=jnsaf_client.depth)
                     response = jnsaf_client.GetSummary(request)
                     if response.taint_result:
@@ -731,7 +750,7 @@ class CallObjectMethod(NativeDroidSimProcedure):
                                         if field_info.is_tainted:
                                             return_annotation.taint_info = copy.deepcopy(
                                                 field_info.taint_info)
-                return_annotation = icc_handle(class_name, method_name, return_annotation, self)
+                return_annotation = icc_handle(self._analysis_center, class_name, method_name, return_annotation, self)
                 return_value = return_value.append_annotation(return_annotation)
                 return return_value
         jobject = JObject(self.project)

@@ -153,7 +153,6 @@ object AndroidDataDependentTaintAnalysis {
         case _ => true
       }
     }.toSet
-    
     val tps = tar.getTaintedPaths
     if(tps.nonEmpty) {
       System.err.println(TITLE + " found " + tps.size + s" path${if(tps.size > 1)"s" else ""}.")

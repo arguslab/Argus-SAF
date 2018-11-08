@@ -12,19 +12,22 @@ package org.argus.amandroid.alir.componentSummary
 
 import java.util.concurrent.TimeoutException
 
+import org.argus.amandroid.alir.componentSummary.ComponentSummaryTable.CHANNELS
 import org.argus.amandroid.alir.pta.model.AndroidModelCallHandler
 import org.argus.amandroid.alir.pta.reachingFactsAnalysis.{AndroidReachingFactsAnalysis, AndroidReachingFactsAnalysisConfig}
 import org.argus.amandroid.alir.pta.summaryBasedAnalysis.AndroidSummaryProvider
 import org.argus.amandroid.alir.taintAnalysis.{AndroidDataDependentTaintAnalysis, AndroidSourceAndSinkManager}
 import org.argus.amandroid.core.ApkGlobal
+import org.argus.amandroid.core.parser.ComponentInfo
 import org.argus.jawa.core.ClassLoadManager
-import org.argus.jawa.core.elements.JawaType
+import org.argus.jawa.core.elements.{JawaType, Signature}
 import org.argus.jawa.core.util.{MyTimeout, WorklistAlgorithm, _}
 import org.argus.jawa.flow.Context
-import org.argus.jawa.flow.cfg.{ICFGNode, InterProceduralControlFlowGraph}
+import org.argus.jawa.flow.cfg._
 import org.argus.jawa.flow.dda._
 import org.argus.jawa.flow.pta.PTAResult
-import org.argus.jawa.flow.taintAnalysis.TaintAnalysisResult
+import org.argus.jawa.flow.summary.store.{TSTaintPath, TaintStore}
+import org.argus.jawa.flow.taintAnalysis._
 
 import scala.compat.Platform.EOL
 import scala.concurrent.duration._
@@ -83,7 +86,8 @@ object ComponentBasedAnalysis {
 class ComponentBasedAnalysis(yard: ApkYard) {
   import ComponentBasedAnalysis._
   
-  val problematicComp: MMap[FileResourceUri, MSet[JawaType]] = mmapEmpty
+  val problematicComp: MMap[FileResourceUri, MSet[ComponentInfo]] = mmapEmpty
+  val customICCMap: MMap[Signature, MSet[String]] = mmapEmpty
   
   /**
    * ComponentBasedAnalysis phase1 is doing intra component analysis for one giving apk.
@@ -99,16 +103,16 @@ class ComponentBasedAnalysis(yard: ApkYard) {
         val iddResult = InterProceduralDataDependenceAnalysis(apk, idfg)
         apk.addIDDG(comp, iddResult)
       }
-      var components = apk.model.getComponents
-      problematicComp.getOrElseUpdate(apk.nameUri, msetEmpty) ++= (components -- idfgs.keySet)
+      var components = apk.model.getComponentInfos
+      problematicComp.getOrElseUpdate(apk.nameUri, msetEmpty) ++= components.filterNot(comp => idfgs.contains(comp.compType))
       components = components -- problematicComp(apk.nameUri)
 
       components.foreach { component =>
         println("----Building ST for component: " + component)
         try {
           // build summary table
-          val summaryTable = buildComponentSummaryTable(Component(apk, component))
-          apk.addSummaryTable(component, summaryTable)
+          val summaryTable = buildComponentSummaryTable(apk, component)
+          apk.addSummaryTable(component.compType, summaryTable)
         } catch {
           case ex: Exception =>
             problematicComp(apk.nameUri) += component
@@ -120,8 +124,8 @@ class ComponentBasedAnalysis(yard: ApkYard) {
   }
   
   def phase2(apks: ISet[ApkGlobal]): (ISet[ApkGlobal], InterProceduralDataDependenceInfo) = {
-    val components: ISet[Component] = apks.flatMap { apk =>
-      (apk.model.getComponents -- problematicComp.getOrElse(apk.nameUri, isetEmpty)).map(Component(apk, _))
+    val components: ISet[(ApkGlobal, ComponentInfo)] = apks.flatMap { apk =>
+      apk.model.getComponentInfos.map(comp => apk -> comp)
     }
     println(TITLE + ":" + " Phase 2-------" + apks.size + s" apk${if (apks.size > 1) "s" else ""} " + components.size + s" component${if (components.size > 1) "s" else ""}-------")
     val mddg = ComponentSummaryTable.buildMultiDataDependentGraph(components, yard.reporter)
@@ -131,11 +135,11 @@ class ComponentBasedAnalysis(yard: ApkYard) {
   
   def phase3(iddResult: (ISet[ApkGlobal], InterProceduralDataDependenceInfo), ssm: AndroidSourceAndSinkManager): Option[TaintAnalysisResult] = {
     val apks = iddResult._1
-    val components: ISet[Component] = apks.flatMap { apk =>
-      (apk.model.getComponents -- problematicComp.getOrElse(apk.nameUri, isetEmpty)).map(Component(apk, _))
+    val components: ISet[(ApkGlobal, ComponentInfo)] = apks.flatMap { apk =>
+      (apk.model.getComponentInfos -- problematicComp.getOrElse(apk.nameUri, msetEmpty)).map(comp => apk -> comp)
     }
     println(TITLE + ":" + " Phase 3-------" + apks.size + s" apk${if(apks.size > 1)"s" else ""} " + components.size + s" component${if(components.size > 1)"s" else ""}-------")
-    val idfgs = components.flatMap(component => component.apk.getIDFG(component.typ))
+    val idfgs = components.flatMap{ case (apk, component) => apk.getIDFG(component.compType)}
     if(idfgs.nonEmpty) {
       try {
         val ptaresult = idfgs.map(_.ptaresult).reduce(_.merge(_))
@@ -152,28 +156,82 @@ class ComponentBasedAnalysis(yard: ApkYard) {
     } else None
   }
 
-  def intraComponentTaintAnalysis(apks: ISet[ApkGlobal], ssm: AndroidSourceAndSinkManager): IMap[Component, TaintAnalysisResult] = {
-    val components: ISet[Component] = apks.flatMap { apk =>
-      (apk.model.getComponents -- problematicComp.getOrElse(apk.nameUri, isetEmpty)).map(Component(apk, _))
+  def intraComponentTaintAnalysis(apks: ISet[ApkGlobal], ssm: AndroidSourceAndSinkManager): IMap[ApkGlobal, IMap[ComponentInfo, TaintAnalysisResult]] = {
+    val components: ISet[(ApkGlobal, ComponentInfo)] = apks.flatMap { apk =>
+      apk.model.getComponentInfos.map(comp => apk -> comp)
     }
-    components.map{ component =>
-      val idfg = component.apk.getIDFG(component.typ).get
-      val iddg = component.apk.getIDDG(component.typ).get
+    val result: MMap[ApkGlobal, MMap[ComponentInfo, TaintAnalysisResult]] = mmapEmpty
+    components.foreach{ case (apk, component) =>
+      val idfg = apk.getIDFG(component.compType).get
+      val iddg = apk.getIDDG(component.compType).get
       val iddi = new DefaultInterProceduralDataDependenceInfo(iddg.getIddg)
       val tar = AndroidDataDependentTaintAnalysis(yard, iddi, idfg.ptaresult, ssm)
-      component.apk.addComponentTaintAnalysisResult(component.typ, tar)
-      component -> tar
-    }.toMap
+      apk.addComponentTaintAnalysisResult(component.compType, tar)
+      result.getOrElseUpdate(apk, mmapEmpty).getOrElseUpdate(component, tar)
+    }
+    result.map{ case (apk, comps) => apk -> comps.toMap }.toMap
   }
 
-  def interComponentTaintAnalysis(taintResults: IMap[Component, TaintAnalysisResult]) = {
-
+  def interComponentTaintAnalysis(taintResults: IMap[ApkGlobal, IMap[ComponentInfo, TaintAnalysisResult]]): TaintAnalysisResult = {
+    val summaryTables = taintResults.flatMap{ case (apk, components) => components.keys.flatMap(component => apk.getSummaryTable(component.compType)) }.toSet
+    val summaryMap = summaryTables.map(st => (st.component, st)).toMap
+    val iccChannels = summaryTables.map(_.get[ICC_Summary](CHANNELS.ICC))
+    val allICCCallees: ISet[(ICFGNode, CSTCallee)] = iccChannels.flatMap(_.asCallee)
+    val taint_result = new TaintStore
+    taintResults.foreach { case (apk, components) =>
+      components.foreach { case (component, tar) =>
+        try {
+          val summaryTable = summaryMap.getOrElse(component, throw new RuntimeException("Summary table does not exist for " + component))
+          // link the intent edges
+          val icc_summary: ICC_Summary = summaryTable.get(CHANNELS.ICC)
+          icc_summary.asCaller foreach {
+            case (caller_node, icc_caller) =>
+              val icc_sink_paths = tar.getTaintedPaths.filter { path =>
+                path.getSink.node.node == caller_node
+              }
+              if (icc_sink_paths.nonEmpty) {
+                val icc_callees = allICCCallees.filter(_._2.matchWith(icc_caller))
+                icc_caller match {
+                  case _: IntentCaller =>
+                    icc_callees foreach { case (callee_node, icc_callee) =>
+                      icc_callee match {
+                        case intent_callee: IntentCallee =>
+                          apk.reporter.println(component + " --intent--> " + intent_callee.component)
+                          components.get(intent_callee.component) match {
+                            case Some(callee_tar) =>
+                              val icc_source_paths = callee_tar.getTaintedPaths.filter { path =>
+                                path.getSource.node.node == callee_node
+                              }
+                              icc_sink_paths.foreach { sink_path =>
+                                icc_source_paths.foreach { source_path =>
+                                  val new_path = new TSTaintPath(sink_path.getSource, source_path.getSink, sink_path.getPath ++ source_path.getPath)
+                                  System.err.println("Inter-component " + new_path)
+                                  taint_result.addTaintPath(new_path)
+                                }
+                              }
+                            case None =>
+                          }
+                        case _ =>
+                      }
+                    }
+                  case _ =>
+                }
+              }
+          }
+        } catch {
+          case ex: Exception =>
+            if (DEBUG) ex.printStackTrace()
+            apk.reporter.error(TITLE, ex.getMessage)
+        }
+      }
+    }
+    taint_result
   }
   
-  def buildComponentSummaryTable(component: Component): ComponentSummaryTable = {
-    val idfgOpt = component.apk.getIDFG(component.typ)
+  def buildComponentSummaryTable(apk: ApkGlobal, component: ComponentInfo): ComponentSummaryTable = {
+    val idfgOpt = apk.getIDFG(component.compType)
     if(idfgOpt.isEmpty) return new ComponentSummaryTable(component)
     val idfg = idfgOpt.get
-    ComponentSummaryTable.buildComponentSummaryTable(component, idfg)
+    ComponentSummaryTable.buildComponentSummaryTable(apk, component, idfg, customICCMap.toMap)
   }
 }
