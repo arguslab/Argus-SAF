@@ -162,12 +162,16 @@ class ComponentBasedAnalysis(yard: ApkYard) {
     }
     val result: MMap[ApkGlobal, MMap[ComponentInfo, TaintAnalysisResult]] = mmapEmpty
     components.foreach{ case (apk, component) =>
-      val idfg = apk.getIDFG(component.compType).get
-      val iddg = apk.getIDDG(component.compType).get
-      val iddi = new DefaultInterProceduralDataDependenceInfo(iddg.getIddg)
-      val tar = AndroidDataDependentTaintAnalysis(yard, iddi, idfg.ptaresult, ssm)
-      apk.addComponentTaintAnalysisResult(component.compType, tar)
-      result.getOrElseUpdate(apk, mmapEmpty).getOrElseUpdate(component, tar)
+      if(apk.model.isNativeActivity(component.compType)) {
+
+      } else {
+        val idfg = apk.getIDFG(component.compType).get
+        val iddg = apk.getIDDG(component.compType).get
+        val iddi = new DefaultInterProceduralDataDependenceInfo(iddg.getIddg)
+        val tar = AndroidDataDependentTaintAnalysis(yard, iddi, idfg.ptaresult, ssm)
+        apk.addComponentTaintAnalysisResult(component.compType, tar)
+        result.getOrElseUpdate(apk, mmapEmpty).getOrElseUpdate(component, tar)
+      }
     }
     result.map{ case (apk, comps) => apk -> comps.toMap }.toMap
   }

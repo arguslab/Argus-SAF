@@ -30,6 +30,7 @@ case class ApkModel(nameUri: FileResourceUri, layout: DecompileLayout) {
   def getCertificates: ISet[ApkCertificate] = this.certificates.toSet
 
   private val activities: MSet[JawaType] = msetEmpty
+  private val nativeActivities: MSet[JawaType] = msetEmpty
   private val services: MSet[JawaType] = msetEmpty
   private val receivers: MSet[JawaType] = msetEmpty
   private val providers: MSet[JawaType] = msetEmpty
@@ -38,6 +39,10 @@ case class ApkModel(nameUri: FileResourceUri, layout: DecompileLayout) {
   private val rpcMethods: MMap[JawaType, MMap[Signature, Boolean]] = mmapEmpty
 
   def addActivity(activity: JawaType): Unit = this.activities += activity
+  def addNativeActivity(activity: JawaType): Unit = {
+    addActivity(activity)
+    this.nativeActivities += activity
+  }
   def addService(service: JawaType): Unit = this.services += service
   def addReceiver(receiver: JawaType): Unit = this.receivers += receiver
   def addProvider(provider: JawaType): Unit = this.providers += provider
@@ -88,9 +93,12 @@ case class ApkModel(nameUri: FileResourceUri, layout: DecompileLayout) {
 
   def getComponents: ISet[JawaType] = (this.activities ++ this.services ++ this.receivers ++ this.providers).toSet
   def getActivities: ISet[JawaType] = this.activities.toSet
+  def getNativeActivities: ISet[JawaType] = this.nativeActivities.toSet
   def getServices: ISet[JawaType] = this.services.toSet
   def getReceivers: ISet[JawaType] = this.receivers.toSet
   def getProviders: ISet[JawaType] = this.providers.toSet
+
+  def isNativeActivity(typ: JawaType): Boolean = getNativeActivities.contains(typ)
 
   def addDynamicRegisteredReceiver(receiver: JawaType): Unit =
     this.synchronized{
@@ -173,6 +181,7 @@ case class ApkModel(nameUri: FileResourceUri, layout: DecompileLayout) {
 
   def reset(): Unit = {
     this.activities.clear()
+    this.nativeActivities.clear()
     this.services.clear()
     this.receivers.clear()
     this.providers.clear()

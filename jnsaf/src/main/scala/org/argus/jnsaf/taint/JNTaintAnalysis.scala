@@ -47,10 +47,15 @@ class JNTaintAnalysis(yard: ApkYard, apk: ApkGlobal,
     components.foreach { comp =>
       i += 1
       reporter.println(s"Processing component $i/${components.size}: ${comp.compType.jawaName}")
-      val idfg = process(comp.compType, apk.getEntryPoints(comp))
-      apk.addIDFG(comp.compType, idfg)
-      val st = cba.buildComponentSummaryTable(apk, comp)
-      apk.addSummaryTable(comp.compType, st)
+      if(apk.model.isNativeActivity(comp.compType)) {
+        val instructions = native_handler.analyseNativeActivity(apk, comp)
+        println("instructions: " + instructions)
+      } else {
+        val idfg = process(comp.compType, apk.getEntryPoints(comp))
+        apk.addIDFG(comp.compType, idfg)
+        val st = cba.buildComponentSummaryTable(apk, comp)
+        apk.addSummaryTable(comp.compType, st)
+      }
     }
     cba.phase1(Set(apk))
     val intra_result = cba.intraComponentTaintAnalysis(Set(apk), ssm)

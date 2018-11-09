@@ -36,14 +36,14 @@ import scala.concurrent.{ExecutionContext, Future}
 object JNSafServer extends GrpcServer {
   def TITLE = "JNSafService"
 
-  def apply(outputPath: String, port: Int): Unit = {
+  def apply(outputPath: String, port: Int, nativedroid_address: String, nativedroid_port: Int): Unit = {
     val reporter = new PrintReporter(MsgLevel.INFO)
     val dir_uri = FileUtil.toUri(outputPath)
-    val ssd = JNSafGrpc.bindService(new JNSafService(dir_uri, reporter), ExecutionContext.global)
+    val ssd = JNSafGrpc.bindService(new JNSafService(dir_uri, nativedroid_address, nativedroid_port, reporter), ExecutionContext.global)
     runServer(ssd, port)
   }
 
-  class JNSafService(dir_uri: FileResourceUri, reporter: Reporter) extends JNSafGrpc.JNSaf {
+  class JNSafService(dir_uri: FileResourceUri, nativedroid_address: String, nativedroid_port: Int, reporter: Reporter) extends JNSafGrpc.JNSaf {
     val dir: File = FileUtil.toFile(dir_uri)
     if (!dir.exists()) {
       dir.mkdirs()
@@ -94,7 +94,7 @@ object JNSafServer extends GrpcServer {
             case Some(apk) =>
               TimeUtil.timed("TaintAnalysis Running Time", reporter) {
                 try {
-                  val client = new NativeDroidClient("localhost", 50051, apkDigest, reporter)
+                  val client = new NativeDroidClient(nativedroid_address, nativedroid_port, apkDigest, reporter)
                   val handler = new NativeMethodHandler(client)
                   val ssm: AndroidSourceAndSinkManager = ssms.getOrElseUpdate(apkDigest, new JNISourceAndSinkManager(AndroidGlobalConfig.settings.sas_file))
                   val provider: SummaryProvider = summaries.getOrElseUpdate(apkDigest, new AndroidSummaryProvider(apk))
@@ -119,7 +119,7 @@ object JNSafServer extends GrpcServer {
           yard.getApk(uri) match {
             case Some(apk) =>
               try {
-                val client = new NativeDroidClient("localhost", 50051, apkDigest, reporter)
+                val client = new NativeDroidClient(nativedroid_address, nativedroid_port, apkDigest, reporter)
                 val handler = new NativeMethodHandler(client)
                 val ssm: AndroidSourceAndSinkManager = ssms.getOrElseUpdate(apkDigest, new JNISourceAndSinkManager(AndroidGlobalConfig.settings.sas_file))
                 val provider: SummaryProvider = summaries.getOrElseUpdate(apkDigest, new AndroidSummaryProvider(apk))
@@ -186,18 +186,5 @@ object JNSafServer extends GrpcServer {
       }
       Future.successful(RegisterICCResponse(status = true))
     }
-  }
-
-  def main(args: Array[String]): Unit = {
-    val reporter = new PrintReporter(MsgLevel.INFO)
-    if (args.length != 1) {
-      reporter.error(TITLE, "Usage: apk_path")
-      System.exit(0)
-    }
-    val apk_path = args(0)
-    val port = args(1).toInt
-    val dir_uri = FileUtil.toUri(apk_path)
-    val ssd = JNSafGrpc.bindService(new JNSafService(dir_uri, reporter), ExecutionContext.global)
-    runServer(ssd, port)
   }
 }

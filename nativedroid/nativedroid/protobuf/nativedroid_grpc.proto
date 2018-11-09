@@ -30,8 +30,10 @@ message HasSymbolResponse {
 }
 
 message AnalyseNativeActivityRequest {
-    string so_digest = 1;
-    string custom_entry = 2;
+    string apk_digest = 1;
+    string component_name = 2;
+    string so_digest = 3;
+    string custom_entry = 4;
 }
 
 message AnalyseNativeActivityResponse {

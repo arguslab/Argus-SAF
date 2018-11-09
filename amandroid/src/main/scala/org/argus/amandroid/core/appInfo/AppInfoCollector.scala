@@ -225,10 +225,13 @@ object AppInfoCollector {
     apk.model.addUsesPermissions(mfp.getPermissions)
     apk.model.updateIntentFilterDB(mfp.getIntentDB)
     apk.model.addLayoutControls(lfp.getUserControls)
+    val nativeActivity = apk.getClassOrResolve(new JawaType("android.app.NativeActivity"))
     mfp.getComponentInfos.foreach { f =>
       if(f.enabled){
         val comp = apk.getClassOrResolve(f.compType)
-        if(!comp.isUnknown && comp.isApplicationClass){
+        if(f.typ == ComponentType.ACTIVITY && nativeActivity.isAssignableFrom(comp)) {
+          apk.model.addNativeActivity(comp.getType)
+        } else if(!comp.isUnknown && comp.isApplicationClass){
           apk.model.addComponent(comp.getType, f.typ)
         }
       }

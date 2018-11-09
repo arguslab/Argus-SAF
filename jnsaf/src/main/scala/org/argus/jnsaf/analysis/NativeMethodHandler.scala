@@ -135,7 +135,7 @@ class NativeMethodHandler(client: NativeDroidClient) {
     ("", s"`${sig.signature}`:;")
   }
 
-  def analyseNativeActivity(apk: ApkGlobal, native_ac: ComponentInfo): Unit = {
+  def analyseNativeActivity(apk: ApkGlobal, native_ac: ComponentInfo): Long = {
     val soNames: ISet[String] = native_ac.meta_datas.get("android.app.lib_name") match {
       case Some(libname) =>
         Set(s"lib$libname.so")
@@ -151,10 +151,10 @@ class NativeMethodHandler(client: NativeDroidClient) {
     val customEntry: Option[String] = native_ac.meta_datas.get("android.app.func_name")
     soUris.foreach { soUri =>
       if(client.hasNativeActivity(soUri, customEntry)) {
-        client.analyseNativeActivity(soUri, customEntry)
-        return
+        return client.analyseNativeActivity(soUri, native_ac.compType.jawaName, customEntry)
       }
     }
+    -1
   }
 
   def statisticsResolve(apk: ApkGlobal, i: Int): Unit = {

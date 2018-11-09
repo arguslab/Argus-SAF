@@ -206,23 +206,32 @@ class NativeDroidClient(address: String, port: Int, apkDigest: String, reporter:
     ("", s"`${sig.signature}`:;")
   }
 
-  def analyseNativeActivity(soFileUri: FileResourceUri, customEntry: Option[String]): String = {
-
+  def analyseNativeActivity(soFileUri: FileResourceUri, componentName: String, customEntry: Option[String]): Long = {
+    reporter.echo(TITLE,s"Client analyseNativeActivity for $soFileUri $customEntry")
     try {
-      //      val mainModule = PyModule.importModule("nativedroid")
-      //      var obj: PyObject = null
-      //      TimeUtil.timed("NativeDroid native_activity_analysis", reporter) {
-      //        obj = mainModule.call("native_activity_analysis", soFile, customEntry.getOrElse(""), native_ss_file, java_ss_file)
-      //      }
-      //      val v = obj.getStringValue
-      //      reporter.echo("Analyzed instructions", v)
-      //      v
-      "1"
+      val doneSignal = new CountDownLatch(1)
+      val soDigest = getBinaryDigest(soFileUri)
+      val request = AnalyseNativeActivityRequest(apkDigest, componentName, soDigest, customEntry.getOrElse(""))
+      val responseFuture: Future[AnalyseNativeActivityResponse] = client.analyseNativeActivity(request)
+      var responseOpt: Option[AnalyseNativeActivityResponse] = None
+      responseFuture.foreach { response =>
+        responseOpt = Some(response)
+        doneSignal.countDown()
+      }
+      if (!doneSignal.await(5, TimeUnit.MINUTES)) {
+        reporter.error(TITLE, "genSummary can not finish within 5 minutes")
+      }
+      responseOpt match {
+        case Some(response) =>
+          reporter.echo(TITLE, s"Analyzed ${response.totalInstructions} instructions")
+          return response.totalInstructions
+        case None =>
+      }
     } catch {
       case e: Throwable =>
         reporter.error(TITLE, e.getMessage)
         e.printStackTrace()
-        "-1"
     }
+    -1
   }
 }

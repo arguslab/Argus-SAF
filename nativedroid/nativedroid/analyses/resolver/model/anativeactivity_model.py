@@ -24,10 +24,11 @@ class ANativeActivity(ExternObject):
         9: "obbPath"
     }
 
-    def __init__(self, project, state=None):
+    def __init__(self, project, analysis_center, state=None):
         super(ANativeActivity, self).__init__(project.loader)
         self._provides = 'ANativeActivity'
         self._project = project
+        self._analysis_center = analysis_center
         self._state = state
         self._fptr_size = project.arch.bits / 8
         self._project.loader.add_object(self)
@@ -40,7 +41,7 @@ class ANativeActivity(ExternObject):
         self.memory.write_addr_at(self._ANativeActivity_ptr - self.min_addr, self._ANativeActivity)
 
         # set the right field off ANativeActivity struct to point to JavaVM(JNIInvokeInterface)
-        self._vm = JNIInvokeInterface(self._project)
+        self._vm = JNIInvokeInterface(self._project, self._analysis_center)
         self.memory.write_addr_at(self._ANativeActivity_ptr - self.min_addr + self.vm_offset * self._fptr_size,
                                   self._vm.ptr)
 

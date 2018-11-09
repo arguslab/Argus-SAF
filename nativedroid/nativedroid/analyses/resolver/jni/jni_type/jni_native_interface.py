@@ -702,7 +702,7 @@ class CallObjectMethod(NativeDroidSimProcedure):
                 return ['_SOURCE_', '|'.join(source_tags)]
             tags = ssm.get_sink_tags(method_full_signature)
             if tags:
-                poss = tags.first
+                poss = tags[0]
                 info = 'ALL' if not poss else '|'.join(map(str, poss))
                 return ['_SINK_', info]
         return None

@@ -37,7 +37,7 @@ class CallbackHook(angr.SimProcedure):
         self.exit(0)
 
 
-class EnvMethodModel():
+class EnvMethodModel:
 
     def __init__(self):
         pass
@@ -252,9 +252,10 @@ class EnvMethodModel():
         else:
             return None
 
-    def hook_android_main_callbacks(self, project, entry_func_symbol):
+    def hook_android_main_callbacks(self, project, analysis_center, entry_func_symbol):
         """
         Hook two callbacks to the android_main function.
+        :param analysis_center: Analysis Center
         :param project: Project object
         :param entry_func_symbol: Entry function symbol
         :return: initial state, android_app struct, initial execution instructions number
@@ -275,15 +276,16 @@ class EnvMethodModel():
             glue_callbacks_dict, stash_instructions = self.glue_callback(project, entry_func_symbol.rebased_addr,
                                                                          hook_addr)
         initial_state = project.factory.blank_state(addr=entry_func_symbol.rebased_addr)
-        android_app = android_app_model.AndroidApp(project, initial_state)
+        android_app = android_app_model.AndroidApp(project, analysis_center, initial_state)
         if glue_callbacks_dict:
             project.hook(hook_addr, CallbackHook(callbacks=glue_callbacks_dict, argument=android_app.ptr))
 
         return initial_state, android_app, cfg_instructions + stash_instructions
 
-    def hook_native_activity_direct_callbacks(self, project, entry_func_symbol):
+    def hook_native_activity_direct_callbacks(self, project, analysis_center, entry_func_symbol):
         """
         Hook two callbacks to the ANativeActivity_onCreate function.
+        :param analysis_center: Analysis Center
         :param project: Project object
         :param entry_func_symbol: Entry function symbol
         :return: initial state, ANativeActivity struct, initial execution instructions
@@ -299,6 +301,6 @@ class EnvMethodModel():
         callbacks, stash_instructions = self.ANativeActivity_callback(project, entry_func_symbol.rebased_addr)
         # nativedroid_logger.info('CALLBACKS:\n%s' % callbacks)
         initial_state = project.factory.blank_state(addr=entry_func_symbol.rebased_addr)
-        activity = ANativeActivity(project, initial_state)
+        activity = ANativeActivity(project, analysis_center, initial_state)
         project.hook(hook_addr, CallbackHook(callbacks=callbacks, argument=activity.ptr))
         return initial_state, activity, cfg_instructions + stash_instructions

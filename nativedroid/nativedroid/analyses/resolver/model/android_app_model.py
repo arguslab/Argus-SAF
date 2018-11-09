@@ -38,10 +38,11 @@ class AndroidApp(ExternObject):
         26: "pendingContentRect"
     }
 
-    def __init__(self, project, state=None):
+    def __init__(self, project, analysis_center, state=None):
         super(AndroidApp, self).__init__(project.loader)
         self._provides = 'android_app'
         self._project = project
+        self._analysis_center = analysis_center
         self._state = state
         self._fptr_size = project.arch.bits / 8
         self._project.loader.add_object(self)
@@ -55,7 +56,7 @@ class AndroidApp(ExternObject):
             self._android_app_ptr - self.min_addr, self._android_app)
 
         # construct ANativeActivity struct
-        self._activity = ANativeActivity(self._project, self._state)
+        self._activity = ANativeActivity(self._project, self._analysis_center, self._state)
         # set the right field off android_app struct to point to ANativeActivity struct
         self.memory.write_addr_at(
             self._android_app_ptr - self.min_addr + self.activity_offset * self._fptr_size,

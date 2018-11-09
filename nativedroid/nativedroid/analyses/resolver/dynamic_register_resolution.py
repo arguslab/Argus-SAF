@@ -29,9 +29,10 @@ class RegisterNativeMethods(angr.SimProcedure):
         return 'RegisterNativeMethods'
 
 
-def dynamic_register_resolve(project):
+def dynamic_register_resolve(project, analysis_center):
     """
     Resolve the dynamic register process and get the native methods mapping
+    :param analysis_center: Analysis Center
     :param project: Angr project
     :return: dynamic_register_methods_dict: native methods mapping information
     """
@@ -42,7 +43,7 @@ def dynamic_register_resolve(project):
     else:
         nativedroid_logger.info('Dynamic register resolution begins.')
         state = project.factory.blank_state(addr=jni_on_load_symb.rebased_addr)
-        java_vm = JNIInvokeInterface(project)
+        java_vm = JNIInvokeInterface(project, analysis_center)
         state.regs.r0 = claripy.BVV(java_vm.ptr, project.arch.bits)
         if 'jniRegisterNativeMethods' in project.loader.main_object.imports or \
                 '_ZN7android14AndroidRuntime21registerNativeMethodsEP7_JNIEnvPKcPK15JNINativeMethodi' in \

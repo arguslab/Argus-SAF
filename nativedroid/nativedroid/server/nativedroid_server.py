@@ -31,22 +31,24 @@ class JNSafClient(JNSafStub):
 
 class NativeDroidServer(NativeDroidServicer):
 
-    def __init__(self, binary_path, native_ss_file, java_ss_file):
+    def __init__(self, binary_path, jnsaf_address, jnsaf_port, native_ss_file, java_ss_file):
         self._binary_path = binary_path
+        self._jnsaf_address = jnsaf_address
+        self._jnsaf_port = jnsaf_port
         self._loaded_sos = set()
         self._native_ss_file = native_ss_file
         self._java_ss_file = java_ss_file
         self._call_jnsaf = True  # TODO(fengguow) Add flag for it
 
     @classmethod
-    def from_python_package(cls, binary_path):
+    def from_python_package(cls, jnsaf_address, jnsaf_port, binary_path):
         native_ss_file = pkg_resources.resource_filename('nativedroid.data', 'sourceAndSinks/NativeSourcesAndSinks.txt')
         java_ss_file = pkg_resources.resource_filename('nativedroid.data', 'sourceAndSinks/TaintSourcesAndSinks.txt')
-        return cls(binary_path, native_ss_file, java_ss_file)
+        return cls(binary_path, jnsaf_address, jnsaf_port, native_ss_file, java_ss_file)
 
     @classmethod
-    def from_filesystem(cls, binary_path, native_ss_file, java_ss_file):
-        return cls(binary_path, native_ss_file, java_ss_file)
+    def from_filesystem(cls, binary_path, jnsaf_address, jnsaf_port, native_ss_file, java_ss_file):
+        return cls(binary_path, jnsaf_address, jnsaf_port, native_ss_file, java_ss_file)
 
     def GenSummary(self, request, context):
         """
@@ -61,9 +63,9 @@ class NativeDroidServer(NativeDroidServicer):
             return GenSummaryResponse()
         jnsaf_client = None
         if self._call_jnsaf:
-            jnsaf_client = JNSafClient(grpc.insecure_channel('localhost:55001'), request.apk_digest,
-                                       request.component_name, depth - 1)
-        so_path = request.so_digest
+            jnsaf_client = JNSafClient(grpc.insecure_channel('%s:%s' % (self._jnsaf_address, self._jnsaf_port)),
+                                       request.apk_digest, request.component_name, depth - 1)
+        so_path = self._binary_path + request.so_digest
         signature = request.method_signature
         jni_method_name = request.jni_func
         method_signature = method_signature_str(signature)
@@ -74,6 +76,24 @@ class NativeDroidServer(NativeDroidServicer):
             self._native_ss_file, self._java_ss_file)
         return GenSummaryResponse(taint=taint_analysis_report, summary=safsu_report,
                                   analyzed_instructions=total_instructions)
+
+    def AnalyseNativeActivity(self, request, context):
+        """
+        Analysis given native activity.
+        :param AnalyseNativeActivityRequest request: server_pb2.AnalyseNativeActivityRequest
+        :param context:
+        :return: server_pb2.AnalyseNativeActivityResponse
+        """
+        logger.info('Server AnalyseNativeActivity: %s', request)
+        jnsaf_client = None
+        if self._call_jnsaf:
+            jnsaf_client = JNSafClient(grpc.insecure_channel('%s:%s' % (self._jnsaf_address, self._jnsaf_port)),
+                                       request.apk_digest, request.component_name, 3)
+        so_path = self._binary_path + request.so_digest
+        custom_entry = request.custom_entry
+        total_instructions = native_activity_analysis(
+            jnsaf_client, so_path, custom_entry, self._native_ss_file, self._java_ss_file)
+        return AnalyseNativeActivityResponse(total_instructions=total_instructions)
 
     def LoadBinary(self, request_iterator, context):
         """
@@ -100,7 +120,7 @@ class NativeDroidServer(NativeDroidServicer):
                 out.write(f.getvalue())
             self._loaded_sos.add(so_path)
         size = len(f.getvalue())
-        return LoadBinaryResponse(so_digest=so_path, length=size)
+        return LoadBinaryResponse(so_digest=so_digest, length=size)
 
     def HasSymbol(self, request, context):
         """
@@ -110,15 +130,15 @@ class NativeDroidServer(NativeDroidServicer):
         :return:
         """
         logger.info('Server HasSymbol: %s', request)
-        so_path = request.so_digest
+        so_path = self._binary_path + request.so_digest
         return HasSymbolResponse(has_symbol=has_symbol(so_path, request.symbol))
 
 
-def serve(binary_path, native_ss_file, java_ss_file):
+def serve(binary_path, address, port, jnsaf_address, jnsaf_port, native_ss_file, java_ss_file):
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
     add_NativeDroidServicer_to_server(
-        NativeDroidServer.from_filesystem(binary_path, native_ss_file, java_ss_file), server)
-    server.add_insecure_port('[::]:50051')
+        NativeDroidServer.from_filesystem(binary_path, jnsaf_address, jnsaf_port, native_ss_file, java_ss_file), server)
+    server.add_insecure_port('%s:%s' % (address, port))
     server.start()
     logger.info('Server started.')
     try:

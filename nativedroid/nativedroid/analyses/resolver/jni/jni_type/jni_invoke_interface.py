@@ -108,10 +108,11 @@ class JNIInvokeInterface(ExternObject):
         'AttachCurrentThreadAsDaemon': AttachCurrentThreadAsDaemon
     }
 
-    def __init__(self, project):
+    def __init__(self, project, analysis_center):
         super(JNIInvokeInterface, self).__init__(project.loader)
         self._provides = 'JavaVM'
         self._project = project
+        self._analysis_center = analysis_center
         self._fptr_size = self._project.arch.bits / 8
         self._project.loader.add_object(self)
         self._construct()
@@ -123,7 +124,7 @@ class JNIInvokeInterface(ExternObject):
         self._JavaVM = self.allocate(self._fptr_size)
         self.memory.write_addr_at(self._JavaVM - self.min_addr, self._JNIInvokeInterface)
 
-        self._JNINativeInterface = JNINativeInterface(self._project, None)
+        self._JNINativeInterface = JNINativeInterface(self._project, self._analysis_center)
         self._JNIEnv = self._JNINativeInterface.ptr
 
         # iterate through the mapping

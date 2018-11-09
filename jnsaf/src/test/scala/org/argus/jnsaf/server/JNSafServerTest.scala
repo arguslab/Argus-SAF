@@ -12,8 +12,6 @@ package org.argus.jnsaf.server
 
 import java.io.File
 
-import com.google.common.hash.Hashing
-import com.google.common.io.Files
 import io.grpc.{Server, ServerBuilder}
 import org.argus.jawa.core.io.{MsgLevel, PrintReporter}
 import org.argus.jawa.core.util.{FileResourceUri, FileUtil}
@@ -35,7 +33,7 @@ class JNSafServerTest extends FlatSpec with Matchers with BeforeAndAfterAll {
     val reporter = new PrintReporter(MsgLevel.INFO)
     val apk_path = "/tmp/apks"
     val apk_uri = FileUtil.toUri(apk_path)
-    val ssd = JNSafGrpc.bindService(new JNSafService(apk_uri, reporter), ExecutionContext.global)
+    val ssd = JNSafGrpc.bindService(new JNSafService(apk_uri, "localhost", 50051, reporter), ExecutionContext.global)
     server = ServerBuilder
       .forPort(55001)
       .addService(ssd)

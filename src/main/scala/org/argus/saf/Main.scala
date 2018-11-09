@@ -114,7 +114,7 @@ object Main extends App {
       case Mode.TAINT =>
         formatter.printHelp("t[aint] [options] <file_apk/dir>", taintOptions)
       case Mode.JNSAF_SERVER =>
-        println("jn[saf] <out_dir>")
+        println("jn[saf] <out_dir> <jnsaf_port> <nativedroid_address> <nativedroid_port>")
       case Mode.APK_SUBMITTER =>
         println("s[ubmitter] <file_apk/dir> <address> <port>")
     }
@@ -309,15 +309,19 @@ object Main extends App {
   private def cmdStartJNSafServer(cli: CommandLine): Unit = {
     var outputPath: String = null
     var port: Int = 0
+    var nativedroid_address: String = null
+    var nativedroid_port: Int = 0
     try {
       outputPath = cli.getArgList.get(1)
       port = cli.getArgList.get(2).toInt
+      nativedroid_address = cli.getArgList.get(3)
+      nativedroid_port = cli.getArgList.get(4).toInt
     } catch {
       case _: Exception =>
         usage(Mode.JNSAF_SERVER)
         System.exit(0)
     }
-    JNSafServer(outputPath, port)
+    JNSafServer(outputPath, port, nativedroid_address, nativedroid_port)
   }
 
   private def cmdApkSubmitter(cli: CommandLine): Unit = {
