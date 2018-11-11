@@ -15,7 +15,7 @@ import org.argus.amandroid.core.AndroidGlobalConfig
 import org.argus.amandroid.core.decompile.DecompileLevel
 import org.argus.amandroid.plugin.{ApiMisuseModules, TaintAnalysisApproach, TaintAnalysisModules}
 import org.argus.jnsaf.server.JNSafServer
-import org.argus.jnsaf.submitter.ApkSubmitter
+import org.argus.jnsaf.submitter.{ApkSubmitter, BenchmarkSubmitter}
 import org.argus.saf.cli._
 
 /**
@@ -87,7 +87,7 @@ object Main extends App {
   }
 
   object Mode extends Enumeration {
-    val ARGUS_SAF, APICHECK, DECOMPILE, TAINT, JNSAF_SERVER, APK_SUBMITTER = Value
+    val ARGUS_SAF, APICHECK, DECOMPILE, TAINT, JNSAF_SERVER, APK_SUBMITTER, BENCHMARK_SUBMITTER = Value
   }
 
   private def usage(mode: Mode.Value): Unit ={
@@ -96,14 +96,15 @@ object Main extends App {
     mode match {
       case Mode.ARGUS_SAF =>
         println(s"""Argus-SAF v$version - a static analysis framework for Android apks
-                    |Copyright 2017 Argus Cybersecurity Laboratory, University of South Florida""".stripMargin)
+                    |Copyright 2018 Argus Cybersecurity Laboratory, University of South Florida""".stripMargin)
         println("")
         println("""Available Modes:
                   |  a[picheck]    Detecting API misuse.
                   |  d[ecompile]   Decompile Apk file(s).
                   |  t[aint]       Perform taint analysis on Apk(s).
                   |  jn[saf]       Launch JN-SAF server.
-                  |  s[ubmitter]   Apk submitter.""".stripMargin)
+                  |  s[ubmitter]   Apk submitter.
+                  |  benchmark     Run Benchmark.""".stripMargin)
         println("")
         formatter.printHelp("<options>", normalOptions)
         println("For additional info, see: http://pag.arguslab.org/argus-saf")
@@ -117,6 +118,8 @@ object Main extends App {
         println("jn[saf] <out_dir> <jnsaf_port> <nativedroid_address> <nativedroid_port>")
       case Mode.APK_SUBMITTER =>
         println("s[ubmitter] <file_apk/dir> <address> <port>")
+      case Mode.BENCHMARK_SUBMITTER =>
+        println("benchmark <file_dir> <address> <port> <expected_result_file>")
     }
 
   }
@@ -134,6 +137,7 @@ object Main extends App {
   catch {
     case exp: ParseException =>
       println("ParseException:" + exp.getMessage)
+      exp.printStackTrace()
       usage(Mode.ARGUS_SAF)
       System.exit(1)
   }
@@ -165,10 +169,15 @@ object Main extends App {
         cmdApkSubmitter(commandLine)
         cmdFound = true
       }
+      else if (opt.equalsIgnoreCase("benchmark")) {
+        cmdBenchmarkSubmitter(commandLine)
+        cmdFound = true
+      }
     }
   } catch {
     case exp: Exception =>
       println("Unexpected exception:" + exp.getMessage)
+      exp.printStackTrace()
   } finally {
     // if no commands ran, run the version / usage check.
     if (!cmdFound) {
@@ -338,5 +347,23 @@ object Main extends App {
         System.exit(0)
     }
     ApkSubmitter(outputPath, address, port)
+  }
+
+  private def cmdBenchmarkSubmitter(cli: CommandLine): Unit = {
+    var outputPath: String = null
+    var address: String = null
+    var port: Int = 0
+    var expectedFile: String = null
+    try {
+      outputPath = cli.getArgList.get(1)
+      address = cli.getArgList.get(2)
+      port = cli.getArgList.get(3).toInt
+      expectedFile = cli.getArgList.get(4)
+    } catch {
+      case _: Exception =>
+        usage(Mode.BENCHMARK_SUBMITTER)
+        System.exit(0)
+    }
+    BenchmarkSubmitter(outputPath, address, port, expectedFile)
   }
 }

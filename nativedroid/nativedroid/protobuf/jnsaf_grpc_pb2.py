@@ -14,15 +14,16 @@ _sym_db = _symbol_database.Default()
 
 
 from nativedroid.protobuf import summary_pb2 as nativedroid_dot_protobuf_dot_summary__pb2
+from nativedroid.protobuf import taint_result_pb2 as nativedroid_dot_protobuf_dot_taint__result__pb2
 
 
 DESCRIPTOR = _descriptor.FileDescriptor(
   name='nativedroid/protobuf/jnsaf_grpc.proto',
   package='jnsaf_server',
   syntax='proto3',
-  serialized_pb=_b('\n%nativedroid/protobuf/jnsaf_grpc.proto\x12\x0cjnsaf_server\x1a\"nativedroid/protobuf/summary.proto\" \n\x0eLoadAPKRequest\x12\x0e\n\x06\x62uffer\x18\x01 \x01(\x0c\"5\n\x0fLoadAPKResponse\x12\x12\n\napk_digest\x18\x01 \x01(\t\x12\x0e\n\x06length\x18\x02 \x01(\x05\"*\n\x14TaintAnalysisRequest\x12\x12\n\napk_digest\x18\x01 \x01(\t\"\'\n\x15TaintAnalysisResponse\x12\x0e\n\x06status\x18\x01 \x01(\x08\"n\n\x11GetSummaryRequest\x12\x12\n\napk_digest\x18\x01 \x01(\t\x12\x16\n\x0e\x63omponent_name\x18\x02 \x01(\t\x12\x11\n\tsignature\x18\x03 \x01(\t\x12\x0b\n\x03gen\x18\x04 \x01(\x08\x12\r\n\x05\x64\x65pth\x18\x05 \x01(\x05\"[\n\x12GetSummaryResponse\x12/\n\x0cheap_summary\x18\x01 \x01(\x0b\x32\x19.jawa_summary.HeapSummary\x12\x14\n\x0ctaint_result\x18\x02 \x01(\t\"\x9a\x01\n\x12RegisterICCRequest\x12\x12\n\napk_digest\x18\x01 \x01(\t\x12\x16\n\x0e\x63omponent_name\x18\x02 \x01(\t\x12\x1d\n\x15target_component_name\x18\x03 \x01(\t\x12\x11\n\tsignature\x18\x04 \x01(\t\x12\x11\n\tis_source\x18\x05 \x01(\x08\x12\x13\n\x0bsource_args\x18\x06 \x03(\x05\"%\n\x13RegisterICCResponse\x12\x0e\n\x06status\x18\x01 \x01(\x08\x32\xd8\x02\n\x05JNSaf\x12J\n\x07LoadAPK\x12\x1c.jnsaf_server.LoadAPKRequest\x1a\x1d.jnsaf_server.LoadAPKResponse\"\x00(\x01\x12Z\n\rTaintAnalysis\x12\".jnsaf_server.TaintAnalysisRequest\x1a#.jnsaf_server.TaintAnalysisResponse\"\x00\x12Q\n\nGetSummary\x12\x1f.jnsaf_server.GetSummaryRequest\x1a .jnsaf_server.GetSummaryResponse\"\x00\x12T\n\x0bRegisterICC\x12 .jnsaf_server.RegisterICCRequest\x1a!.jnsaf_server.RegisterICCResponse\"\x00\x42\x18\n\x16org.argus.jnsaf.serverb\x06proto3')
+  serialized_pb=_b('\n%nativedroid/protobuf/jnsaf_grpc.proto\x12\x0cjnsaf_server\x1a\"nativedroid/protobuf/summary.proto\x1a\'nativedroid/protobuf/taint_result.proto\" \n\x0eLoadAPKRequest\x12\x0e\n\x06\x62uffer\x18\x01 \x01(\x0c\"5\n\x0fLoadAPKResponse\x12\x12\n\napk_digest\x18\x01 \x01(\t\x12\x0e\n\x06length\x18\x02 \x01(\x05\"*\n\x14TaintAnalysisRequest\x12\x12\n\napk_digest\x18\x01 \x01(\t\"H\n\x15TaintAnalysisResponse\x12/\n\x0ctaint_result\x18\x01 \x01(\x0b\x32\x19.taint_result.TaintResult\"n\n\x11GetSummaryRequest\x12\x12\n\napk_digest\x18\x01 \x01(\t\x12\x16\n\x0e\x63omponent_name\x18\x02 \x01(\t\x12\x11\n\tsignature\x18\x03 \x01(\t\x12\x0b\n\x03gen\x18\x04 \x01(\x08\x12\r\n\x05\x64\x65pth\x18\x05 \x01(\x05\"[\n\x12GetSummaryResponse\x12/\n\x0cheap_summary\x18\x01 \x01(\x0b\x32\x19.jawa_summary.HeapSummary\x12\x14\n\x0ctaint_result\x18\x02 \x01(\t\"\x9a\x01\n\x12RegisterICCRequest\x12\x12\n\napk_digest\x18\x01 \x01(\t\x12\x16\n\x0e\x63omponent_name\x18\x02 \x01(\t\x12\x1d\n\x15target_component_name\x18\x03 \x01(\t\x12\x11\n\tsignature\x18\x04 \x01(\t\x12\x11\n\tis_source\x18\x05 \x01(\x08\x12\x13\n\x0bsource_args\x18\x06 \x03(\x05\"%\n\x13RegisterICCResponse\x12\x0e\n\x06status\x18\x01 \x01(\x08\x32\xd8\x02\n\x05JNSaf\x12J\n\x07LoadAPK\x12\x1c.jnsaf_server.LoadAPKRequest\x1a\x1d.jnsaf_server.LoadAPKResponse\"\x00(\x01\x12Z\n\rTaintAnalysis\x12\".jnsaf_server.TaintAnalysisRequest\x1a#.jnsaf_server.TaintAnalysisResponse\"\x00\x12Q\n\nGetSummary\x12\x1f.jnsaf_server.GetSummaryRequest\x1a .jnsaf_server.GetSummaryResponse\"\x00\x12T\n\x0bRegisterICC\x12 .jnsaf_server.RegisterICCRequest\x1a!.jnsaf_server.RegisterICCResponse\"\x00\x42\x18\n\x16org.argus.jnsaf.serverb\x06proto3')
   ,
-  dependencies=[nativedroid_dot_protobuf_dot_summary__pb2.DESCRIPTOR,])
+  dependencies=[nativedroid_dot_protobuf_dot_summary__pb2.DESCRIPTOR,nativedroid_dot_protobuf_dot_taint__result__pb2.DESCRIPTOR,])
 
 
 
@@ -53,8 +54,8 @@ _LOADAPKREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=91,
-  serialized_end=123,
+  serialized_start=132,
+  serialized_end=164,
 )
 
 
@@ -91,8 +92,8 @@ _LOADAPKRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=125,
-  serialized_end=178,
+  serialized_start=166,
+  serialized_end=219,
 )
 
 
@@ -122,8 +123,8 @@ _TAINTANALYSISREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=180,
-  serialized_end=222,
+  serialized_start=221,
+  serialized_end=263,
 )
 
 
@@ -135,9 +136,9 @@ _TAINTANALYSISRESPONSE = _descriptor.Descriptor(
   containing_type=None,
   fields=[
     _descriptor.FieldDescriptor(
-      name='status', full_name='jnsaf_server.TaintAnalysisResponse.status', index=0,
-      number=1, type=8, cpp_type=7, label=1,
-      has_default_value=False, default_value=False,
+      name='taint_result', full_name='jnsaf_server.TaintAnalysisResponse.taint_result', index=0,
+      number=1, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None, file=DESCRIPTOR),
@@ -153,8 +154,8 @@ _TAINTANALYSISRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=224,
-  serialized_end=263,
+  serialized_start=265,
+  serialized_end=337,
 )
 
 
@@ -212,8 +213,8 @@ _GETSUMMARYREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=265,
-  serialized_end=375,
+  serialized_start=339,
+  serialized_end=449,
 )
 
 
@@ -250,8 +251,8 @@ _GETSUMMARYRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=377,
-  serialized_end=468,
+  serialized_start=451,
+  serialized_end=542,
 )
 
 
@@ -316,8 +317,8 @@ _REGISTERICCREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=471,
-  serialized_end=625,
+  serialized_start=545,
+  serialized_end=699,
 )
 
 
@@ -347,10 +348,11 @@ _REGISTERICCRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=627,
-  serialized_end=664,
+  serialized_start=701,
+  serialized_end=738,
 )
 
+_TAINTANALYSISRESPONSE.fields_by_name['taint_result'].message_type = nativedroid_dot_protobuf_dot_taint__result__pb2._TAINTRESULT
 _GETSUMMARYRESPONSE.fields_by_name['heap_summary'].message_type = nativedroid_dot_protobuf_dot_summary__pb2._HEAPSUMMARY
 DESCRIPTOR.message_types_by_name['LoadAPKRequest'] = _LOADAPKREQUEST
 DESCRIPTOR.message_types_by_name['LoadAPKResponse'] = _LOADAPKRESPONSE
@@ -428,8 +430,8 @@ _JNSAF = _descriptor.ServiceDescriptor(
   file=DESCRIPTOR,
   index=0,
   options=None,
-  serialized_start=667,
-  serialized_end=1011,
+  serialized_start=741,
+  serialized_end=1085,
   methods=[
   _descriptor.MethodDescriptor(
     name='LoadAPK',

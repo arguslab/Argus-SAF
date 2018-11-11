@@ -114,8 +114,9 @@ class AnnotationBasedAnalysis(angr.Analysis):
                     node_return_value = final_state.regs.r0
                     for annotation in node_return_value.annotations:
                         if isinstance(annotation, JobjectAnnotation):
-                            if annotation.taint_info['is_taint'] is True and \
-                                    annotation.taint_info['taint_type'] == ['_SOURCE_', '_API_']:
+                            if annotation.taint_info['is_taint'] and \
+                                    annotation.taint_info['taint_type'][0] == '_SOURCE_' and \
+                                    annotation.taint_info['taint_type'][1] != '_ARGUMENT_':
                                 sources_annotation.add(annotation)
         return sources_annotation
 
@@ -182,6 +183,7 @@ class AnnotationBasedAnalysis(angr.Analysis):
                     if sink_annotation.source.startswith('arg'):
                         sink_location = re.split('arg|_', sink_annotation.source)[1]
                         report_file.write(str(sink_location))
+            report_file.write('\n')
         if sources:
             report_file.write(jni_method_signature)
             report_file.write(' -> _SOURCE_ ')
@@ -201,7 +203,7 @@ class AnnotationBasedAnalysis(angr.Analysis):
                                         taint_field_name = taint_field_name + '.' + info.field_info['field_name']
                     if taint_field_name:
                         report_file.write(source_location.split('arg')[-1] + '.' + taint_field_name)
-        return report_file.getvalue()
+        return report_file.getvalue().strip()
 
     def gen_saf_summary_report(self, jni_method_signature):
         """
@@ -251,38 +253,39 @@ class AnnotationBasedAnalysis(angr.Analysis):
                             ret_location = annotation_location[annotation.source]
                             ret_value = annotation.value
                             if ret_value is not None:
-                                ret_safsu = '  ret = ' + ret_type + '@' + ret_location + '(' + ret_value + ')'
+                                ret_safsu = '  ret = "' + ret_value + '"@' + ret_location
                             else:
                                 ret_safsu = '  ret = ' + ret_type + '@' + ret_location
                             rets_safsu.append(ret_safsu)
                         elif isinstance(annotation, JobjectAnnotation):
                             if annotation.field_info['is_field']:
-                                ret_type = annotation.obj_type.replace('/', '.')
-                                ret_location = 'arg:' + str(
+                                ret_value = 'arg:' + str(
                                     re.split('arg|_', annotation.field_info['current_subordinate_obj'])[1]
                                 ) + '.' + annotation.field_info['field_name']
-                                ret_safsu = '  ret = ' + ret_type + '@' + ret_location
+                                ret_safsu = '  ret = ' + ret_value
                                 rets_safsu.append(ret_safsu)
                             else:
-                                ret_type = get_java_return_type(annotation.obj_type)
-                                ret_location = annotation_location[annotation.source]
-                                ret_safsu = '  ret = ' + ret_type + '@' + ret_location
+                                ret_value = annotation_location[annotation.source]
+                                ret_safsu = '  ret = ' + ret_value
                                 rets_safsu.append(ret_safsu)
         report_file = StringIO()
         report_file.write('`' + jni_method_signature + '`:' + '\n')
         if args_safsu:
             for arg_index, fields_safsu in args_safsu.iteritems():
                 arg_index = 'arg:' + str(re.split('arg|_', arg_index)[1])
-                for field_name, field_safsu in fields_safsu.iteritems():
-                    field_type = field_safsu[0]
-                    field_locations = field_safsu[1]
-                    field_safsu = arg_index + '.' + field_name + ' = ' + field_type + '@' + field_locations[0]
+                for field_name, field_su in fields_safsu.iteritems():
+                    field_type = field_su[0]
+                    field_locations = field_su[1]
+                    if field_locations[0] == '~':
+                        field_safsu = arg_index + '.' + field_name + ' = ' + field_type + '@' + field_locations[0]
+                    else:
+                        field_safsu = arg_index + '.' + field_name + ' = ' + field_locations[0]
                     report_file.write('  ' + field_safsu.strip() + '\n')
         if rets_safsu:
             for ret_safsu in rets_safsu:
                 report_file.write(ret_safsu + '\n')
         report_file.write(';\n')
-        return report_file.getvalue()
+        return report_file.getvalue().strip()
 
     def run(self):
         """

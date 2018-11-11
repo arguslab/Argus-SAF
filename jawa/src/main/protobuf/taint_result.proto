@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+package taint_result;
+option java_package = "org.argus.jawa.flow";
+
+import "java_signatures.proto";
+
+message TaintNode {
+    string name = 1;
+    string desc = 2;
+}
+
+message TaintPath {
+    TaintNode source = 1;
+    TaintNode sink = 2;
+    repeated string types = 3;
+    repeated string steps = 4;
+}
+
+message TaintResult {
+    repeated TaintPath paths = 1;
+}

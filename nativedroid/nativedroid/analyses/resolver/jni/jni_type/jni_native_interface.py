@@ -737,8 +737,8 @@ class CallObjectMethod(NativeDroidSimProcedure):
                 method_taint_attribute = CallObjectMethod.get_method_taint_attribute(ssm, method_full_signature)
                 if method_taint_attribute is not None:
                     return_annotation.taint_info['is_taint'] = True
-                    return_annotation.taint_info['taint_type'] = method_taint_attribute[0]
-                    return_annotation.taint_info['taint_info'] = method_taint_attribute[1]
+                    return_annotation.taint_info['taint_type'] = [method_taint_attribute[0], '_API_']
+                    return_annotation.taint_info['taint_info'] = [method_taint_attribute[1]]
                 else:
                     for anno in obj.annotations:
                         if isinstance(anno, JobjectAnnotation):

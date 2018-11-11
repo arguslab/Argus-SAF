@@ -18,6 +18,7 @@ import io.grpc.ManagedChannelBuilder
 import io.grpc.stub.StreamObserver
 import org.argus.jawa.core.io.Reporter
 import org.argus.jawa.core.util._
+import org.argus.jawa.flow.taint_result.TaintResult
 import org.argus.jnsaf.server.jnsaf_grpc._
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -106,7 +107,7 @@ class JNSafClient(address: String, port: Int, reporter: Reporter) {
     }
   }
 
-  def taintAnalysis(apkUri: FileResourceUri): Boolean = {
+  def taintAnalysis(apkUri: FileResourceUri): Option[TaintResult] = {
     reporter.echo(TITLE,"Client taintAnalysis")
     try {
       val doneSignal = new CountDownLatch(1)
@@ -123,7 +124,7 @@ class JNSafClient(address: String, port: Int, reporter: Reporter) {
       }
       responseOpt match {
         case Some(response) =>
-          return response.status
+          return response.taintResult
         case None =>
       }
     } catch {
@@ -131,7 +132,7 @@ class JNSafClient(address: String, port: Int, reporter: Reporter) {
         reporter.error(TITLE, e.getMessage)
         e.printStackTrace()
     }
-    false
+    None
   }
 
   private def getAPKDigest(apkUri: FileResourceUri): String = {

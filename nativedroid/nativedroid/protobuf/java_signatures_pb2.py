@@ -7,7 +7,6 @@ from google.protobuf import descriptor as _descriptor
 from google.protobuf import message as _message
 from google.protobuf import reflection as _reflection
 from google.protobuf import symbol_database as _symbol_database
-from google.protobuf import descriptor_pb2
 # @@protoc_insertion_point(imports)
 
 _sym_db = _symbol_database.Default()
@@ -19,6 +18,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='nativedroid/protobuf/java_signatures.proto',
   package='jawa_core',
   syntax='proto3',
+  serialized_options=_b('\n\023org.argus.jawa.core'),
   serialized_pb=_b('\n*nativedroid/protobuf/java_signatures.proto\x12\tjawa_core\"C\n\x0bJavaPackage\x12\x0c\n\x04name\x18\x01 \x01(\t\x12&\n\x06parent\x18\x02 \x01(\x0b\x32\x16.jawa_core.JavaPackage\"\xa4\x01\n\rPrimitiveType\x12\x30\n\x04type\x18\x01 \x01(\x0e\x32\".jawa_core.PrimitiveType.Primitive\"a\n\tPrimitive\x12\x08\n\x04\x42YTE\x10\x00\x12\t\n\x05SHORT\x10\x01\x12\x07\n\x03INT\x10\x02\x12\t\n\x05\x46LOAT\x10\x03\x12\x0b\n\x07\x42OOLEAN\x10\x04\x12\x08\n\x04\x43HAR\x10\x05\x12\x08\n\x04LONG\x10\x06\x12\n\n\x06\x44OUBLE\x10\x07\"S\n\tClassType\x12\'\n\x07package\x18\x01 \x01(\x0b\x32\x16.jawa_core.JavaPackage\x12\x0c\n\x04name\x18\x02 \x01(\t\x12\x0f\n\x07unknown\x18\x03 \x01(\x08\"\n\n\x08VoidType\"\x8a\x01\n\x08JavaType\x12\x32\n\x0eprimitive_type\x18\x01 \x01(\x0b\x32\x18.jawa_core.PrimitiveTypeH\x00\x12*\n\nclass_type\x18\x02 \x01(\x0b\x32\x14.jawa_core.ClassTypeH\x00\x12\x11\n\tdimension\x18\x03 \x01(\x05\x42\x0b\n\tbase_type\"\xa8\x01\n\x0bMethodProto\x12(\n\x0bparam_types\x18\x01 \x03(\x0b\x32\x13.jawa_core.JavaType\x12/\n\x10return_java_type\x18\x02 \x01(\x0b\x32\x13.jawa_core.JavaTypeH\x00\x12/\n\x10return_void_type\x18\x03 \x01(\x0b\x32\x13.jawa_core.VoidTypeH\x00\x42\r\n\x0breturn_type\"j\n\x0fMethodSignature\x12\"\n\x05owner\x18\x01 \x01(\x0b\x32\x13.jawa_core.JavaType\x12\x0c\n\x04name\x18\x02 \x01(\t\x12%\n\x05proto\x18\x03 \x01(\x0b\x32\x16.jawa_core.MethodProto\"k\n\x0e\x46ieldSignature\x12\"\n\x05owner\x18\x01 \x01(\x0b\x32\x13.jawa_core.JavaType\x12\x0c\n\x04name\x18\x02 \x01(\t\x12\'\n\nfield_type\x18\x03 \x01(\x0b\x32\x13.jawa_core.JavaTypeB\x15\n\x13org.argus.jawa.coreb\x06proto3')
 )
 
@@ -32,39 +32,39 @@ _PRIMITIVETYPE_PRIMITIVE = _descriptor.EnumDescriptor(
   values=[
     _descriptor.EnumValueDescriptor(
       name='BYTE', index=0, number=0,
-      options=None,
+      serialized_options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
       name='SHORT', index=1, number=1,
-      options=None,
+      serialized_options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
       name='INT', index=2, number=2,
-      options=None,
+      serialized_options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
       name='FLOAT', index=3, number=3,
-      options=None,
+      serialized_options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
       name='BOOLEAN', index=4, number=4,
-      options=None,
+      serialized_options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
       name='CHAR', index=5, number=5,
-      options=None,
+      serialized_options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
       name='LONG', index=6, number=6,
-      options=None,
+      serialized_options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
       name='DOUBLE', index=7, number=7,
-      options=None,
+      serialized_options=None,
       type=None),
   ],
   containing_type=None,
-  options=None,
+  serialized_options=None,
   serialized_start=194,
   serialized_end=291,
 )
@@ -84,21 +84,21 @@ _JAVAPACKAGE = _descriptor.Descriptor(
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='parent', full_name='jawa_core.JavaPackage.parent', index=1,
       number=2, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
   nested_types=[],
   enum_types=[
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=False,
   syntax='proto3',
   extension_ranges=[],
@@ -122,7 +122,7 @@ _PRIMITIVETYPE = _descriptor.Descriptor(
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
@@ -130,7 +130,7 @@ _PRIMITIVETYPE = _descriptor.Descriptor(
   enum_types=[
     _PRIMITIVETYPE_PRIMITIVE,
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=False,
   syntax='proto3',
   extension_ranges=[],
@@ -154,28 +154,28 @@ _CLASSTYPE = _descriptor.Descriptor(
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='name', full_name='jawa_core.ClassType.name', index=1,
       number=2, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='unknown', full_name='jawa_core.ClassType.unknown', index=2,
       number=3, type=8, cpp_type=7, label=1,
       has_default_value=False, default_value=False,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
   nested_types=[],
   enum_types=[
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=False,
   syntax='proto3',
   extension_ranges=[],
@@ -199,7 +199,7 @@ _VOIDTYPE = _descriptor.Descriptor(
   nested_types=[],
   enum_types=[
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=False,
   syntax='proto3',
   extension_ranges=[],
@@ -223,28 +223,28 @@ _JAVATYPE = _descriptor.Descriptor(
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='class_type', full_name='jawa_core.JavaType.class_type', index=1,
       number=2, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='dimension', full_name='jawa_core.JavaType.dimension', index=2,
       number=3, type=5, cpp_type=1, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
   nested_types=[],
   enum_types=[
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=False,
   syntax='proto3',
   extension_ranges=[],
@@ -271,28 +271,28 @@ _METHODPROTO = _descriptor.Descriptor(
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='return_java_type', full_name='jawa_core.MethodProto.return_java_type', index=1,
       number=2, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='return_void_type', full_name='jawa_core.MethodProto.return_void_type', index=2,
       number=3, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
   nested_types=[],
   enum_types=[
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=False,
   syntax='proto3',
   extension_ranges=[],
@@ -319,28 +319,28 @@ _METHODSIGNATURE = _descriptor.Descriptor(
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='name', full_name='jawa_core.MethodSignature.name', index=1,
       number=2, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='proto', full_name='jawa_core.MethodSignature.proto', index=2,
       number=3, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
   nested_types=[],
   enum_types=[
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=False,
   syntax='proto3',
   extension_ranges=[],
@@ -364,28 +364,28 @@ _FIELDSIGNATURE = _descriptor.Descriptor(
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='name', full_name='jawa_core.FieldSignature.name', index=1,
       number=2, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='field_type', full_name='jawa_core.FieldSignature.field_type', index=2,
       number=3, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
   nested_types=[],
   enum_types=[
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=False,
   syntax='proto3',
   extension_ranges=[],
@@ -487,6 +487,5 @@ FieldSignature = _reflection.GeneratedProtocolMessageType('FieldSignature', (_me
 _sym_db.RegisterMessage(FieldSignature)
 
 
-DESCRIPTOR.has_options = True
-DESCRIPTOR._options = _descriptor._ParseOptions(descriptor_pb2.FileOptions(), _b('\n\023org.argus.jawa.core'))
+DESCRIPTOR._options = None
 # @@protoc_insertion_point(module_scope)

@@ -184,6 +184,7 @@ class ComponentBasedAnalysis(yard: ApkYard) {
     val taint_result = new TaintStore
     taintResults.foreach { case (apk, components) =>
       components.foreach { case (component, tar) =>
+        taint_result.addTaintPaths(tar.getTaintedPaths)
         try {
           val summaryTable = summaryMap.getOrElse(component, throw new RuntimeException("Summary table does not exist for " + component))
           // link the intent edges
@@ -194,6 +195,7 @@ class ComponentBasedAnalysis(yard: ApkYard) {
                 path.getSink.node.node == caller_node
               }
               if (icc_sink_paths.nonEmpty) {
+                taint_result.removeTaintPaths(icc_sink_paths)
                 val icc_callees = allICCCallees.filter(_._2.matchWith(icc_caller))
                 icc_caller match {
                   case _: IntentCaller =>
@@ -206,11 +208,14 @@ class ComponentBasedAnalysis(yard: ApkYard) {
                               val icc_source_paths = callee_tar.getTaintedPaths.filter { path =>
                                 path.getSource.node.node == callee_node
                               }
-                              icc_sink_paths.foreach { sink_path =>
-                                icc_source_paths.foreach { source_path =>
-                                  val new_path = new TSTaintPath(sink_path.getSource, source_path.getSink, sink_path.getPath ++ source_path.getPath)
-                                  System.err.println("Inter-component " + new_path)
-                                  taint_result.addTaintPath(new_path)
+                              if(icc_source_paths.nonEmpty) {
+                                taint_result.removeTaintPaths(icc_source_paths)
+                                icc_sink_paths.foreach { sink_path =>
+                                  icc_source_paths.foreach { source_path =>
+                                    val new_path = new TSTaintPath(sink_path.getSource, source_path.getSink, sink_path.getPath ++ source_path.getPath)
+                                    System.err.println("Inter-component " + new_path)
+                                    taint_result.addTaintPath(new_path)
+                                  }
                                 }
                               }
                             case None =>

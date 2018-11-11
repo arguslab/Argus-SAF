@@ -138,8 +138,8 @@ object JNSafServer extends GrpcServer {
 
     def taintAnalysis(request: TaintAnalysisRequest): Future[TaintAnalysisResponse] = {
       reporter.echo(TITLE,"Server taintAnalysis")
-      performTaint(request.apkDigest)
-      Future.successful(TaintAnalysisResponse(true))
+      val taintResult = performTaint(request.apkDigest)
+      Future.successful(TaintAnalysisResponse(taintResult.map(_.toPb)))
     }
 
     def getSummary(request: GetSummaryRequest): Future[GetSummaryResponse] = {

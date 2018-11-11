@@ -36,6 +36,8 @@ class TaintStore extends TaintAnalysisResult {
   private val paths: MSet[TaintPath] = msetEmpty
 
   def addTaintPath(path: TaintPath): Unit = this.paths += path
+  def addTaintPaths(paths: ISet[TaintPath]): Unit = this.paths ++= paths
+  def removeTaintPaths(paths: ISet[TaintPath]): Unit = this.paths --= paths
 
   def getTaintedPaths: ISet[TaintPath] = {
     paths.toSet
