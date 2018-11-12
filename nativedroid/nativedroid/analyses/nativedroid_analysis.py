@@ -46,7 +46,6 @@ def gen_summary(jnsaf_client, so_file, jni_method_name_or_address, jni_method_si
             return '', '`' + jni_method_signature + '`:;', 0
         else:
             jni_method_addr = jni_method_symb.rebased_addr
-    print jni_method_addr
     annotation_based_analysis = project.analyses.AnnotationBasedAnalysis(
         analysis_center, jni_method_addr, jni_method_arguments, False)
     sources, sinks = annotation_based_analysis.run()

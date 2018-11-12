@@ -136,7 +136,7 @@ class AnnotationBasedAnalysis(angr.Analysis):
                     node_return_value = final_state.regs.r0
                     for annotation in node_return_value.annotations:
                         if isinstance(annotation, JobjectAnnotation):
-                            if annotation.taint_info['is_taint'] and annotation.taint_info['taint_type'] == '_SINK_':
+                            if annotation.taint_info['is_taint'] and annotation.taint_info['taint_type'][0] == '_SINK_':
                                 sink_annotations.add(annotation)
             fn = self.cfg.project.kb.functions.get(node.addr)
             ssm = self._analysis_center.get_source_sink_manager()

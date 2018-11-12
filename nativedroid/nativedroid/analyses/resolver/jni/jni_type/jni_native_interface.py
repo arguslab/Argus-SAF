@@ -724,6 +724,7 @@ class CallObjectMethod(NativeDroidSimProcedure):
                         signature=method_full_signature, gen=True,
                         depth=jnsaf_client.depth)
                     response = jnsaf_client.GetSummary(request)
+                    print response
                     if response.taint_result:
                         ssm.parse_lines(response.taint_result)
                 num_args += count_arg_nums(method_signature)
@@ -734,6 +735,7 @@ class CallObjectMethod(NativeDroidSimProcedure):
                 return_value = claripy.BVV(typ.ptr, typ_size)
                 return_annotation = construct_annotation(jni_return_type, 'from_reflection_call')
                 method_taint_attribute = CallObjectMethod.get_method_taint_attribute(ssm, method_full_signature)
+                print method_taint_attribute
                 if method_taint_attribute is not None:
                     return_annotation.taint_info['is_taint'] = True
                     return_annotation.taint_info['taint_type'] = [method_taint_attribute[0], '_API_']

@@ -18,7 +18,7 @@ class AndroidLogPrint(angr.SimProcedure):
     """
 
     def run(self, prio, tag, fmt):
-        logging.info('SimProcedure: %s', self)
+        nativedroid_logger.info('SimProcedure: %s', self)
         strlen_simproc = angr.SIM_PROCEDURES['libc']['strlen']
         fmt_strlen = self.inline_call(strlen_simproc, fmt)
 
