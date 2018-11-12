@@ -1,6 +1,7 @@
-import angr
 import logging
-import re
+
+import angr
+
 from nativedroid.analyses.analysis_center import AnalysisCenter
 from nativedroid.analyses.annotation_based_analysis import AnnotationBasedAnalysis
 from nativedroid.analyses.resolver.dynamic_register_resolution import dynamic_register_resolve
@@ -16,14 +17,14 @@ nativedroid_logger = logging.getLogger('nativedroid')
 nativedroid_logger.setLevel(logging.INFO)
 
 
-def gen_summary(jnsaf_client, so_file, jni_method_name, jni_method_signature, jni_method_arguments,
+def gen_summary(jnsaf_client, so_file, jni_method_name_or_address, jni_method_signature, jni_method_arguments,
                 native_ss_file, java_ss_file):
     """
     Generate summary and taint tracking report based on annotation-based analysis.
 
     :param JNSafClient jnsaf_client: JNSaf client
     :param so_file: Binary path
-    :param jni_method_name: JNI method name
+    :param jni_method_name_or_address: JNI method name or func address
     :param jni_method_signature: JNI method signature
     :param jni_method_arguments: Arguments of JNI method
     :param native_ss_file: Native source and sink file path
@@ -31,20 +32,21 @@ def gen_summary(jnsaf_client, so_file, jni_method_name, jni_method_signature, jn
     :return: Taint analysis report, safsu_report and total execution instructions number
     :rtype: tuple
     """
-    nativedroid_logger.info(jni_method_name)
     jni_native_interface.java_sas_file = java_ss_file
     angr.register_analysis(AnnotationBasedAnalysis, 'AnnotationBasedAnalysis')
     project = angr.Project(so_file, load_options={'main_opts': {'custom_base_addr': 0x0}})
     ssm = SourceAndSinkManager(native_ss_file, java_ss_file)
     analysis_center = AnalysisCenter(jni_method_signature, jnsaf_client, ssm)
-    jni_method_symb = project.loader.main_object.get_symbol(jni_method_name)
-    if jni_method_symb is None:
-        dynamic_register_methods = dynamic_register_resolve(project, analysis_center)
-        res = re.split(r";\.|:", jni_method_signature)
-        java_method_info = (res[1], res[2])
-        jni_method_addr = dynamic_register_methods[java_method_info]
+    if isinstance(jni_method_name_or_address, long):
+        jni_method_addr = jni_method_name_or_address
     else:
-        jni_method_addr = jni_method_symb.rebased_addr
+        jni_method_symb = project.loader.main_object.get_symbol(jni_method_name_or_address)
+        if jni_method_symb is None:
+            nativedroid_logger.error('Failed to resolve jni method address for %s', jni_method_name_or_address)
+            return '', '`' + jni_method_signature + '`:;', 0
+        else:
+            jni_method_addr = jni_method_symb.rebased_addr
+    print jni_method_addr
     annotation_based_analysis = project.analyses.AnnotationBasedAnalysis(
         analysis_center, jni_method_addr, jni_method_arguments, False)
     sources, sinks = annotation_based_analysis.run()
@@ -54,6 +56,19 @@ def gen_summary(jnsaf_client, so_file, jni_method_name, jni_method_signature, jn
     nativedroid_logger.info('[SafSu Analysis]\n%s', safsu_report)
     total_instructions = annotation_based_analysis.count_cfg_instructions()
     return taint_analysis_report, safsu_report, total_instructions
+
+
+def get_dynamic_register_methods(so_file, jni_method_signature):
+    """
+    Get dynamically registered methods
+    :param so_file: Binary path
+    :param jni_method_signature: JNI method signature
+    :return: dict
+    """
+    angr.register_analysis(AnnotationBasedAnalysis, 'AnnotationBasedAnalysis')
+    project = angr.Project(so_file, load_options={'main_opts': {'custom_base_addr': 0x0}})
+    analysis_center = AnalysisCenter(jni_method_signature, None, None)
+    return dynamic_register_resolve(project, analysis_center)
 
 
 # def clean_nativedroid(project, jni_method, jni_method_signature, jni_method_arguments, dynamic_register_methods,

@@ -177,7 +177,7 @@ class AnnotationBasedAnalysis(angr.Analysis):
                     if sink_annotation.array_info['subordinate_array'].annotations[0].source.startswith('arg'):
                         arg_index = \
                             re.split('arg|_', sink_annotation.array_info['subordinate_array'].annotations[0].source)[1]
-                        sink_location = arg_index + '[' + str(sink_annotation.array_info['element_index']) + ']'
+                        sink_location = arg_index
                         report_file.write(str(sink_location))
                 else:
                     if sink_annotation.source.startswith('arg'):

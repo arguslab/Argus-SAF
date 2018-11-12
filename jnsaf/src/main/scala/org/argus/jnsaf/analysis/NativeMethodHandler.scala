@@ -62,7 +62,9 @@ class NativeMethodHandler(client: NativeDroidClient) {
   /**
     * If there are no so file found, assume any so file could be the candidate
     */
-  val nativeMethodSoMap: MMap[Signature, String] = mmapEmpty
+  val nativeMethodSoMap: MMap[Signature, (FileResourceUri, Either[String, Long])] = mmapEmpty
+
+  val dynamicRegisterMap: MMap[String, (FileResourceUri, Long)] = mmapEmpty
 
   /**
     * Don't do this for large apps as it will try to resolve all the class.
@@ -81,16 +83,28 @@ class NativeMethodHandler(client: NativeDroidClient) {
       val nm = clazz.getDeclaredMethods.filter(_.isNative)
       if (nm.nonEmpty) {
         val soNames = resolveLoadLibrary(apk, typ)
+        val soUris: MSet[FileResourceUri] = msetEmpty
+        soNames.foreach { so =>
+          client.getSoFileUri(apk.model.layout.outputSrcUri, so) match {
+            case Some(soUri) =>
+              client.getDynamicRegisterMap(soUri).foreach { case (name, addr) =>
+                dynamicRegisterMap(name) = (soUri, addr)
+              }
+              soUris += soUri
+            case None =>
+          }
+        }
         nm.foreach { n =>
-          val jniFuncName = getJNIFunctionName(apk, n.getSignature)
-          soNames.foreach { so =>
-            client.getSoFileUri(apk.model.layout.outputSrcUri, so) match {
-              case Some(soUri) =>
+          dynamicRegisterMap.get(n.getSubSignature) match {
+            case Some((soUri, addr)) =>
+              nativeMethodSoMap(n.getSignature) = (soUri, Right(addr))
+            case None =>
+              val jniFuncName = getJNIFunctionName(apk, n.getSignature)
+              soUris.foreach { soUri =>
                 if(client.hasSymbol(soUri, jniFuncName)) {
-                  nativeMethodSoMap(n.getSignature) = so
+                  nativeMethodSoMap(n.getSignature) = (soUri, Left(jniFuncName))
                 }
-              case None =>
-            }
+              }
           }
         }
       }
@@ -117,22 +131,18 @@ class NativeMethodHandler(client: NativeDroidClient) {
   }
 
   def genSummary(apk: ApkGlobal, component: JawaType, sig: Signature, depth: Int): (String, String) = {
-    val soOpt: Option[String] = nativeMethodSoMap.get(sig) match {
+    val soUriOpt: Option[(FileResourceUri, Either[String, Long])] = nativeMethodSoMap.get(sig) match {
       case a@Some(_) => a
       case None =>
         resolveNativeToSoMap(apk)(sig.getClassType)
         nativeMethodSoMap.get(sig)
     }
-    soOpt match {
-      case Some(soName) =>
-        client.getSoFileUri(apk.model.layout.outputSrcUri, soName) match {
-          case Some(soFileUri) =>
-            return client.genSummary(soFileUri, component.jawaName, getJNIFunctionName(apk, sig), sig, depth)
-          case None =>
-        }
+    soUriOpt match {
+      case Some((soFileUri, name_or_addr)) =>
+        client.genSummary(soFileUri, component.jawaName, name_or_addr, sig, depth)
       case None =>
+        ("", s"`${sig.signature}`:;")
     }
-    ("", s"`${sig.signature}`:;")
   }
 
   def analyseNativeActivity(apk: ApkGlobal, native_ac: ComponentInfo): Long = {

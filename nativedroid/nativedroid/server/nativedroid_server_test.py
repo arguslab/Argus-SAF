@@ -21,7 +21,8 @@ class NativeDroidServerTest(unittest.TestCase):
         cls.server = grpc.server(futures.ThreadPoolExecutor(max_workers=1))
         native_ss_file = pkg_resources.resource_filename('nativedroid.data', 'sourceAndSinks/NativeSourcesAndSinks.txt')
         java_ss_file = pkg_resources.resource_filename('nativedroid.data', 'sourceAndSinks/TaintSourcesAndSinks.txt')
-        add_NativeDroidServicer_to_server(NativeDroidServer('/tmp/binaries/', native_ss_file, java_ss_file), cls.server)
+        add_NativeDroidServicer_to_server(
+            NativeDroidServer('/tmp/binaries/', 'localhost', 55001, native_ss_file, java_ss_file), cls.server)
         cls.server.add_insecure_port('[::]:50001')
         cls.server.start()
         logger.info('Server started.')

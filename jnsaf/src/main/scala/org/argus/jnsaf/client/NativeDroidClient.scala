@@ -19,6 +19,8 @@ import io.grpc.stub.StreamObserver
 import org.argus.jawa.core.elements.Signature
 import org.argus.jawa.core.io.Reporter
 import org.argus.jawa.core.util._
+import org.argus.nativedroid.server.nativedroid_grpc
+import org.argus.nativedroid.server.nativedroid_grpc.GenSummaryRequest.NameOrAddress.{Addr, JniFunc}
 import org.argus.nativedroid.server.nativedroid_grpc._
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -121,6 +123,38 @@ class NativeDroidClient(address: String, port: Int, apkDigest: String, reporter:
     }
   }
 
+  def getDynamicRegisterMap(soFileUri: FileResourceUri): IMap[String, Long] = {
+    reporter.echo(TITLE,s"Client getDynamicRegisterMap: $soFileUri")
+    val result: MMap[String, Long] = mmapEmpty
+    try {
+      val doneSignal = new CountDownLatch(1)
+      val soDigest = getBinaryDigest(soFileUri)
+      val request = nativedroid_grpc.GetDynamicRegisterMapRequest(soDigest)
+      val responseFuture: Future[GetDynamicRegisterMapResponse] = client.getDynamicRegisterMap(request)
+      var responseOpt: Option[GetDynamicRegisterMapResponse] = None
+      responseFuture.foreach { response =>
+        responseOpt = Some(response)
+        doneSignal.countDown()
+      }
+      if (!doneSignal.await(1, TimeUnit.MINUTES)) {
+        reporter.error(TITLE, "genSummary can not finish within 1 minutes")
+      }
+      responseOpt match {
+        case Some(response) =>
+          reporter.echo(TITLE, s"Dynamically registered ${response.methodMap.size} native functions.")
+          response.methodMap.foreach { map =>
+            result(map.methodName) = map.funcAddr
+          }
+        case None =>
+      }
+    } catch {
+      case e: Throwable =>
+        reporter.error(TITLE, e.getMessage)
+        e.printStackTrace()
+    }
+    result.toMap
+  }
+
   def hasSymbol(soFileUri: FileResourceUri, symbol: String): Boolean = {
     reporter.echo(TITLE,s"Client hasSymbol: $symbol")
     try {
@@ -175,33 +209,45 @@ class NativeDroidClient(address: String, port: Int, apkDigest: String, reporter:
     res.toList
   }
 
-  def genSummary(soFileUri: FileResourceUri, componentName: String, methodName: String, sig: Signature, depth: Int): (String, String) = {
+  def genSummary(soFileUri: FileResourceUri, componentName: String, name_or_addr: Either[String, Long], sig: Signature, depth: Int): (String, String) = {
     reporter.echo(TITLE,s"Client genSummary for $sig")
-    if(hasSymbol(soFileUri, methodName)) {
-      try {
-        val doneSignal = new CountDownLatch(1)
-        val soDigest = getBinaryDigest(soFileUri)
-        val request = GenSummaryRequest(apkDigest, componentName, depth, soDigest, methodName, Some(sig.method_signature))
-        val responseFuture: Future[GenSummaryResponse] = client.genSummary(request)
-        var responseOpt: Option[GenSummaryResponse] = None
-        responseFuture.foreach { response =>
-          responseOpt = Some(response)
-          doneSignal.countDown()
+    val soDigest = getBinaryDigest(soFileUri)
+    val requestOpt = name_or_addr match {
+      case Left(name) =>
+        if(hasSymbol(soFileUri, name)) {
+          Some(GenSummaryRequest(apkDigest, componentName, depth, soDigest, Some(sig.method_signature), JniFunc(name)))
+        } else {
+          None
         }
-        if (!doneSignal.await(5, TimeUnit.MINUTES)) {
-          reporter.error(TITLE, "genSummary can not finish within 5 minutes")
+      case Right(addr) =>
+        Some(GenSummaryRequest(apkDigest, componentName, depth, soDigest, Some(sig.method_signature), Addr(addr)))
+    }
+    requestOpt match {
+      case Some(request) =>
+        try {
+          val doneSignal = new CountDownLatch(1)
+
+          val responseFuture: Future[GenSummaryResponse] = client.genSummary(request)
+          var responseOpt: Option[GenSummaryResponse] = None
+          responseFuture.foreach { response =>
+            responseOpt = Some(response)
+            doneSignal.countDown()
+          }
+          if (!doneSignal.await(5, TimeUnit.MINUTES)) {
+            reporter.error(TITLE, "genSummary can not finish within 5 minutes")
+          }
+          responseOpt match {
+            case Some(response) =>
+              reporter.echo(TITLE, s"Analyzed ${response.analyzedInstructions} instructions")
+              return (response.taint, response.summary.trim)
+            case None =>
+          }
+        } catch {
+          case e: Throwable =>
+            reporter.error(TITLE, e.getMessage)
+            e.printStackTrace()
         }
-        responseOpt match {
-          case Some(response) =>
-            reporter.echo(TITLE, s"Analyzed ${response.analyzedInstructions} instructions")
-            return (response.taint, response.summary.trim)
-          case None =>
-        }
-      } catch {
-        case e: Throwable =>
-          reporter.error(TITLE, e.getMessage)
-          e.printStackTrace()
-      }
+      case None =>
     }
     ("", s"`${sig.signature}`:;")
   }

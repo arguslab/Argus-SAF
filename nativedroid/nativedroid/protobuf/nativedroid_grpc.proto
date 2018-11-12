@@ -10,14 +10,31 @@ message GenSummaryRequest {
     string component_name = 2;
     int32 depth = 3;
     string so_digest = 4;
-    string jni_func = 5;
-    jawa_core.MethodSignature method_signature = 6;
+    oneof name_or_address {
+        string jni_func = 5;
+        int64 addr = 6;
+    }
+    jawa_core.MethodSignature method_signature = 7;
 }
 
 message GenSummaryResponse {
     string taint = 1;
     string summary = 2;
     int64 analyzed_instructions = 3;
+}
+
+
+message GetDynamicRegisterMapRequest {
+    string so_digest = 1;
+}
+
+message MethodMap {
+    string method_name = 1;
+    int64 func_addr = 2;
+}
+
+message GetDynamicRegisterMapResponse {
+    repeated MethodMap method_map = 1;
 }
 
 message HasSymbolRequest {
@@ -51,6 +68,7 @@ message LoadBinaryResponse {
 
 service NativeDroid {
     rpc GenSummary(GenSummaryRequest) returns (GenSummaryResponse);
+    rpc GetDynamicRegisterMap(GetDynamicRegisterMapRequest) returns (GetDynamicRegisterMapResponse);
     rpc HasSymbol(HasSymbolRequest) returns (HasSymbolResponse);
     rpc AnalyseNativeActivity(AnalyseNativeActivityRequest) returns (AnalyseNativeActivityResponse);
     rpc LoadBinary(stream LoadBinaryRequest) returns (LoadBinaryResponse);

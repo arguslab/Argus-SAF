@@ -67,12 +67,12 @@ class NativeDroidServer(NativeDroidServicer):
                                        request.apk_digest, request.component_name, depth - 1)
         so_path = self._binary_path + request.so_digest
         signature = request.method_signature
-        jni_method_name = request.jni_func
+        name_or_address = request.jni_func if request.HasField('jni_func') else request.addr
         method_signature = method_signature_str(signature)
         jni_method_arguments = get_params_from_method_signature(signature, False)
         arguments_str = ",".join(java_type_str(arg, False) for arg in jni_method_arguments)
         taint_analysis_report, safsu_report, total_instructions = gen_summary(
-            jnsaf_client, so_path, jni_method_name, method_signature, arguments_str,
+            jnsaf_client, so_path, name_or_address, method_signature, arguments_str,
             self._native_ss_file, self._java_ss_file)
         return GenSummaryResponse(taint=taint_analysis_report, summary=safsu_report,
                                   analyzed_instructions=total_instructions)
@@ -94,6 +94,21 @@ class NativeDroidServer(NativeDroidServicer):
         total_instructions = native_activity_analysis(
             jnsaf_client, so_path, custom_entry, self._native_ss_file, self._java_ss_file)
         return AnalyseNativeActivityResponse(total_instructions=total_instructions)
+
+    def GetDynamicRegisterMap(self, request, context):
+        """
+        Get dynamically registered methods
+        :param GetDynamicRegisterRequest request: server_pb2.GetDynamicRegisterRequest
+        :param context:
+        :return: server_pb2.GetDynamicRegisterResponse
+        """
+        logger.info('Server GetDynamicRegisterMap: %s', request)
+        so_path = self._binary_path + request.so_digest
+        dynamic_methods = get_dynamic_register_methods(so_path, None)
+        method_map = []
+        for name, addr in dynamic_methods.items():
+            method_map.append(MethodMap(method_name=name, func_addr=addr))
+        return GetDynamicRegisterMapResponse(method_map=method_map)
 
     def LoadBinary(self, request_iterator, context):
         """

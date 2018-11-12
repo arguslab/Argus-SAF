@@ -47,9 +47,9 @@ object BenchmarkSubmitter {
       compare.getOrElseUpdate(name, Compare()).result = num
     }
     println("Taint analysis result:")
-    println("Expected\tResult\tApk")
+    println("Expected\tResult\t\tApk")
     compare.foreach { case (name, comp) =>
-      println(s"${comp.expected}\t${comp.result}\t$name")
+      println(s"${comp.expected}\t\t${comp.result}\t\t$name")
     }
   }
 }

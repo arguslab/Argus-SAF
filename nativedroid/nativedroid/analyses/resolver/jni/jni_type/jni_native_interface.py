@@ -13,8 +13,7 @@ __license__ = "Apache v2.0"
 
 nativedroid_logger = logging.getLogger('nativedroid.jni_native_interface')
 
-# Record the mapping info of dynamic register methods
-DYNAMIC_REGISTER_METHODS = {}
+
 jni_native_interface_origin_usage = {
     'GetVersion': 0,
     'DefineClass': 0,
@@ -2176,15 +2175,14 @@ class SetDoubleArrayRegion(NativeDroidSimProcedure):
 class RegisterNatives(NativeDroidSimProcedure):
     def run(self, env, clazz, methods, nMethods):
         nativedroid_logger.info('JNINativeInterface SimProcedure: %s', self)
-
         method_num = nMethods.ast.args[0]
         for i in range(method_num):
             method = self.state.mem[methods + i * 3 * self.state.arch.bytes].JNINativeMethod
             name = method.name.deref.string.concrete
             signature = method.signature.deref.string.concrete
             fn_ptr = method.fnPtr.resolved.args[0]
-            DYNAMIC_REGISTER_METHODS[(name, signature)] = fn_ptr
-
+            dynamic_map = self._analysis_center.get_dynamic_register_map()
+            dynamic_map['%s:%s' % (name, signature)] = long(fn_ptr)
         jint = JInt(self.project)
         return_value = claripy.BVV(jint.ptr, self.project.arch.bits)
         return return_value

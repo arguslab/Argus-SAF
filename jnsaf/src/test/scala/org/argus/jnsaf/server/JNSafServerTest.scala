@@ -12,6 +12,8 @@ package org.argus.jnsaf.server
 
 import java.io.File
 
+import com.google.common.hash.Hashing
+import com.google.common.io.Files
 import io.grpc.{Server, ServerBuilder}
 import org.argus.jawa.core.io.{MsgLevel, PrintReporter}
 import org.argus.jawa.core.util.{FileResourceUri, FileUtil}
@@ -42,7 +44,7 @@ class JNSafServerTest extends FlatSpec with Matchers with BeforeAndAfterAll {
     println(s"$TITLE server started.")
 
     client = new JNSafClient("localhost", 55001, reporter)
-    val file_path = getClass.getResource("/NativeFlowBench/icc_nativetojava.apk").getPath
+    val file_path = "/Users/fengguow/IdeaProjects/Argus-SAF/benchmarks/NativeFlowBench/native_leak_dynamic_register.apk"
     fileUri = FileUtil.toUri(file_path)
     loadResponse = client.loadAPK(fileUri)
   }
@@ -61,15 +63,15 @@ class JNSafServerTest extends FlatSpec with Matchers with BeforeAndAfterAll {
     dir.delete()
   }
 
-//  "LoadApk" should "success" in {
-//    assert(loadResponse.isDefined)
-//    val file = FileUtil.toFile(fileUri)
-//    val hashCode = Files.hash(file, Hashing.sha256())
-//    assert(loadResponse.get == hashCode.toString)
-//  }
-//
-//  "TaintAnalysis" should "success" in {
-//    assert(client.taintAnalysis(fileUri))
-//  }
+  "LoadApk" should "success" in {
+    assert(loadResponse.isDefined)
+    val file = FileUtil.toFile(fileUri)
+    val hashCode = Files.hash(file, Hashing.sha256())
+    assert(loadResponse.get == hashCode.toString)
+  }
+
+  "TaintAnalysis" should "success" in {
+    assert(client.taintAnalysis(fileUri).isDefined)
+  }
 
 }

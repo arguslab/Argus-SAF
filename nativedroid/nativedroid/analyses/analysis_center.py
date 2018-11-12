@@ -11,7 +11,6 @@ class AnalysisCenter(object):
     """
     This class is used to hold nativedroid analysis related util classes.
 
-    :param str apk_digest: digest
     :param str signature: method signature
     :param JNSafClient jnsaf_client: JNSaf client
     :param SourceAndSinkManager ssm:
@@ -20,6 +19,7 @@ class AnalysisCenter(object):
         self._signature = signature
         self._jnsaf_client = jnsaf_client
         self._ssm = ssm
+        self._dynamic_register_map = dict()
 
     def get_signature(self):
         return self._signature
@@ -29,3 +29,6 @@ class AnalysisCenter(object):
 
     def get_source_sink_manager(self):
         return self._ssm
+
+    def get_dynamic_register_map(self):
+        return self._dynamic_register_map

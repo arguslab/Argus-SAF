@@ -19,6 +19,11 @@ class NativeDroidStub(object):
         request_serializer=nativedroid_dot_protobuf_dot_nativedroid__grpc__pb2.GenSummaryRequest.SerializeToString,
         response_deserializer=nativedroid_dot_protobuf_dot_nativedroid__grpc__pb2.GenSummaryResponse.FromString,
         )
+    self.GetDynamicRegisterMap = channel.unary_unary(
+        '/nativedroid_server.NativeDroid/GetDynamicRegisterMap',
+        request_serializer=nativedroid_dot_protobuf_dot_nativedroid__grpc__pb2.GetDynamicRegisterMapRequest.SerializeToString,
+        response_deserializer=nativedroid_dot_protobuf_dot_nativedroid__grpc__pb2.GetDynamicRegisterMapResponse.FromString,
+        )
     self.HasSymbol = channel.unary_unary(
         '/nativedroid_server.NativeDroid/HasSymbol',
         request_serializer=nativedroid_dot_protobuf_dot_nativedroid__grpc__pb2.HasSymbolRequest.SerializeToString,
@@ -41,6 +46,13 @@ class NativeDroidServicer(object):
   pass
 
   def GenSummary(self, request, context):
+    # missing associated documentation comment in .proto file
+    pass
+    context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+    context.set_details('Method not implemented!')
+    raise NotImplementedError('Method not implemented!')
+
+  def GetDynamicRegisterMap(self, request, context):
     # missing associated documentation comment in .proto file
     pass
     context.set_code(grpc.StatusCode.UNIMPLEMENTED)
@@ -75,6 +87,11 @@ def add_NativeDroidServicer_to_server(servicer, server):
           servicer.GenSummary,
           request_deserializer=nativedroid_dot_protobuf_dot_nativedroid__grpc__pb2.GenSummaryRequest.FromString,
           response_serializer=nativedroid_dot_protobuf_dot_nativedroid__grpc__pb2.GenSummaryResponse.SerializeToString,
+      ),
+      'GetDynamicRegisterMap': grpc.unary_unary_rpc_method_handler(
+          servicer.GetDynamicRegisterMap,
+          request_deserializer=nativedroid_dot_protobuf_dot_nativedroid__grpc__pb2.GetDynamicRegisterMapRequest.FromString,
+          response_serializer=nativedroid_dot_protobuf_dot_nativedroid__grpc__pb2.GetDynamicRegisterMapResponse.SerializeToString,
       ),
       'HasSymbol': grpc.unary_unary_rpc_method_handler(
           servicer.HasSymbol,
