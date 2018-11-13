@@ -171,6 +171,9 @@ class AnnotationBasedAnalysis(angr.Analysis):
             report_file.write(jni_method_signature)
             report_file.write(' -> _SINK_ ')
             for sink_annotation in sinks:
+                print sink_annotation.field_info
+                print sink_annotation.array_info
+                print sink_annotation.taint_info
                 if sink_annotation.field_info['is_field'] is True:
                     pass
                 elif sink_annotation.array_info['is_element'] is True:
@@ -179,10 +182,13 @@ class AnnotationBasedAnalysis(angr.Analysis):
                             re.split('arg|_', sink_annotation.array_info['subordinate_array'].annotations[0].source)[1]
                         sink_location = arg_index
                         report_file.write(str(sink_location))
-                else:
-                    if sink_annotation.source.startswith('arg'):
-                        sink_location = re.split('arg|_', sink_annotation.source)[1]
-                        report_file.write(str(sink_location))
+                elif sink_annotation.source.startswith('arg'):
+                    sink_location = re.split('arg|_', sink_annotation.source)[1]
+                    report_file.write(str(sink_location))
+                elif sink_annotation.source is 'from_reflection_call':
+                    if sink_annotation.taint_info['is_taint']:
+                        # TODO(fengguow): Handle Source and Sink together.
+                        print 'Found taint'
             report_file.write('\n')
         if sources:
             report_file.write(jni_method_signature)

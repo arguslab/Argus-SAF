@@ -1,13 +1,10 @@
+import logging
 import angr
 import claripy
 from cle.backends.externs import ExternObject
 
 from nativedroid.analyses.resolver.jni.java_type import *
 from nativedroid.analyses.resolver.jni.jni_type.jni_native_interface import JNINativeInterface
-
-__author__ = "Xingwei Lin, Fengguo Wei"
-__copyright__ = "Copyright 2018, The Argus-SAF Project"
-__license__ = "Apache v2.0"
 
 java_vm_origin_dict = {
     "DestroyJavaVM": 0,
@@ -17,10 +14,17 @@ java_vm_origin_dict = {
     "AttachCurrentThreadAsDaemon": 0
 }
 
+__author__ = "Xingwei Lin, Fengguo Wei"
+__copyright__ = "Copyright 2018, The Argus-SAF Project"
+__license__ = "Apache v2.0"
+
+nativedroid_logger = logging.getLogger('nativedroid.jni_invoke_interface')
+nativedroid_logger.setLevel(logging.INFO)
+
 
 class DestroyJavaVM(angr.SimProcedure):
     def run(self, java_vm, JNIEnv_ptr=None):
-        print 'JavaVM SimProcedure: ', self
+        nativedroid_logger.info('JNIInvokeInterface SimProcedure: %s', self)
 
         jint = JInt(self.project)
         return_value = claripy.BVV(jint.ptr, self.arch.bits)
@@ -32,7 +36,7 @@ class DestroyJavaVM(angr.SimProcedure):
 
 class AttachCurrentThread(angr.SimProcedure):
     def run(self, java_vm, p_env, thr_args, JNIEnv_ptr=None):
-        print 'JNIInvokeInterface SimProcedure: ', self
+        nativedroid_logger.info('JNIInvokeInterface SimProcedure: %s', self)
         # JavaVM_ptr_addr = JavaVM_ptr.ast.args[0]
         # JavaVM_addr = self.state.se.any_int(self.state.memory.load(JavaVM_ptr_addr, 4, endness='Iend_LE'))
 
@@ -51,7 +55,7 @@ class AttachCurrentThread(angr.SimProcedure):
 
 class DetachCurrentThread(angr.SimProcedure):
     def run(self, java_vm, JNIEnv_ptr=None):
-        print 'JNIInvokeInterface SimProcedure: ', self
+        nativedroid_logger.info('JNIInvokeInterface SimProcedure: %s', self)
         jint = JInt(self.project)
         return_value = claripy.BVV(jint.ptr, self.arch.bits)
         return return_value
@@ -62,7 +66,7 @@ class DetachCurrentThread(angr.SimProcedure):
 
 class GetEnv(angr.SimProcedure):
     def run(self, java_vm, env, version, JNIEnv_ptr=None):
-        print 'JNIInvokeInterface SimProcedure: ', self
+        nativedroid_logger.info('JNIInvokeInterface SimProcedure: %s', self)
         self.state.memory.store(env, JNIEnv_ptr, endness='Iend_LE')
         # void_ptr_ptr_addr = void_ptr_ptr.ast.args[0]
         # out = self.state.solver.eval(self.state.memory.load(void_ptr_ptr_addr, 4, endness='Iend_LE'), cast_to=int)
@@ -78,7 +82,7 @@ class GetEnv(angr.SimProcedure):
 
 class AttachCurrentThreadAsDaemon(angr.SimProcedure):
     def run(self, java_vm, p_env, thr_args, JNIEnv_ptr=None):
-        print 'JNIInvokeInterface SimProcedure: ', self
+        nativedroid_logger.info('JNIInvokeInterface SimProcedure: %s', self)
 
         jint = JInt(self.project)
         return_value = claripy.BVV(jint.ptr, self.arch.bits)

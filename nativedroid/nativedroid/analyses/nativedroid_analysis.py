@@ -131,8 +131,8 @@ def native_activity_analysis(jnsaf_client, so_file, custom_entry_func_name, nati
     angr.register_analysis(AnnotationBasedAnalysis, 'AnnotationBasedAnalysis')
     project = angr.Project(so_file, load_options={'auto_load_libs': False, 'main_opts': {'custom_base_addr': 0x0}})
     ssm = SourceAndSinkManager(native_ss_file, java_ss_file)
-    analysis_center = AnalysisCenter('Landroid/app/NativeActivity;.onCreate:(Landroid/os/Bundle;)V',
-                                     jnsaf_client, ssm)
+    jni_method_signature = 'Landroid/app/NativeActivity;.onCreate:(Landroid/os/Bundle;)V'
+    analysis_center = AnalysisCenter(jni_method_signature, jnsaf_client, ssm)
     env_method_model = EnvMethodModel()
     android_main_symbol = project.loader.main_object.get_symbol('android_main')
     if android_main_symbol:
@@ -154,7 +154,9 @@ def native_activity_analysis(jnsaf_client, so_file, custom_entry_func_name, nati
         nativedroid_logger.info(entry_func_symbol.name)
         annotation_based_analysis = project.analyses.AnnotationBasedAnalysis(
             analysis_center, entry_func_symbol.rebased_addr, list(), True, (initial_state, native_activity_argument))
-        annotation_based_analysis.run()
+        sources, sinks = annotation_based_analysis.run()
+        taint_analysis_report = annotation_based_analysis.gen_taint_analysis_report(sources, sinks, jni_method_signature)
+        print taint_analysis_report
         analysis_instructions = annotation_based_analysis.count_cfg_instructions()
         total_instructions = initial_instructions + analysis_instructions
         nativedroid_logger.info('[Total Instructions] %s', total_instructions)

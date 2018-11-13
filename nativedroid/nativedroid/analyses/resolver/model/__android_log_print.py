@@ -1,15 +1,16 @@
 import angr
 import claripy
+import logging
 
 from nativedroid.analyses.resolver.annotation.taint_position_annotation import *
 from nativedroid.analyses.resolver.jni.java_type.reference import *
-import logging
 
 __author__ = "Xingwei Lin, Fengguo Wei"
 __copyright__ = "Copyright 2018, The Argus-SAF Project"
 __license__ = "Apache v2.0"
 
 nativedroid_logger = logging.getLogger('AndroidLogPrint')
+nativedroid_logger.setLevel(logging.INFO)
 
 
 class AndroidLogPrint(angr.SimProcedure):
