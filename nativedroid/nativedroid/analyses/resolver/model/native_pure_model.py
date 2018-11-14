@@ -9,7 +9,7 @@ __author__ = "Xingwei Lin"
 __copyright__ = "Copyright 2018, The Argus-SAF Project"
 __license__ = "Apache v2.0"
 
-nativedroid_logger = logging.getLogger('nativedroid')
+nativedroid_logger = logging.getLogger('native_pure_model')
 nativedroid_logger.setLevel(logging.INFO)
 
 
@@ -33,6 +33,7 @@ class CallbackHook(angr.SimProcedure):
         for key, value in callbacks.iteritems():
             self.call(value, [argument], 'final_call')
 
+    # noinspection PyUnusedLocal
     def final_call(self, callbacks=None, argument=None):
         self.exit(0)
 
@@ -64,6 +65,7 @@ class EnvMethodModel:
         """
         Count instructions size from stash.
 
+        :param project:
         :param stash:
         :return: Instructions size
         :rtype: int

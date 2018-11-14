@@ -4,12 +4,14 @@ from nativedroid.analyses.resolver.annotation import *
 from nativedroid.analyses.resolver.armel_resolver import ArmelResolver
 from nativedroid.analyses.resolver.jni.jni_helper import *
 from nativedroid.analyses.resolver.model.__android_log_print import *
+from nativedroid.protobuf.jnsaf_grpc_pb2 import *
 
 __author__ = "Xingwei Lin, Fengguo Wei"
 __copyright__ = "Copyright 2018, The Argus-SAF Project"
 __license__ = "Apache v2.0"
 
 nativedroid_logger = logging.getLogger('AnnotationBasedAnalysis')
+nativedroid_logger.setLevel(logging.INFO)
 
 annotation_location = {
     'from_reflection_call': '~',
@@ -39,9 +41,11 @@ class AnnotationBasedAnalysis(angr.Analysis):
             raise ValueError('Unsupported architecture: %d' % self.project.arch.name)
         self._hook_system_calls()
         self._analysis_center = analysis_center
+        self._jni_method_signature = analysis_center.get_signature()
         self._jni_method_addr = jni_method_addr
         if is_native_pure:
             self._state = self._resolver.prepare_native_pure_state(native_pure_info)
+            self._arguments_summary = None
         else:
             self._state, self._arguments_summary = self._resolver.prepare_initial_state(jni_method_arguments)
 
@@ -81,43 +85,39 @@ class AnnotationBasedAnalysis(angr.Analysis):
         """
         Collect source nodes from CFG.
 
+        :param: jni_method_signature: method signature
         :return: A dictionary contains source nodes with its source tags (positions, taint_tags).
         :rtype: list
         """
         sources_annotation = set()
-        for node in self.cfg.nodes():
-            if node.is_simprocedure and node.name is 'SetObjectField':
-                node_arg_value = node.input_state.regs.r1
-                field_taint = False
-                for annotation in node_arg_value.annotations:
+        if self._arguments_summary:
+            for arg_index, arg_summary in self._arguments_summary.iteritems():
+                for annotation in arg_summary.annotations:
                     if isinstance(annotation, JobjectAnnotation):
-                        for field_info in annotation.fields_info:
-                            if field_info.taint_info['is_taint'] and \
-                                    field_info.taint_info['taint_type'][0] == '_SOURCE_' and \
-                                    field_info.taint_info['taint_type'][1] != '_ARGUMENT_':
-                                sources_annotation.add(annotation)
-                                field_taint = True
-                            else:
-                                if isinstance(field_info, JobjectAnnotation):
-                                    for info in field_info.fields_info:
-                                        if info.taint_info['is_taint'] and \
-                                                info.taint_info['taint_type'][0] == '_SOURCE_' and \
-                                                info.taint_info['taint_type'][1] != '_ARGUMENT_':
-                                            sources_annotation.add(annotation)
-                                            field_taint = True
-                        if field_taint is False and annotation.taint_info['is_taint'] and \
-                                annotation.taint_info['taint_type'][0] == '_SOURCE_' and \
-                                annotation.taint_info['taint_type'][1] != '_ARGUMENT_':
-                            sources_annotation.add(annotation)
-            elif node.is_simprocedure and node.name.startswith('Call'):
-                for final_state in node.final_states:
-                    node_return_value = final_state.regs.r0
-                    for annotation in node_return_value.annotations:
-                        if isinstance(annotation, JobjectAnnotation):
-                            if annotation.taint_info['is_taint'] and \
-                                    annotation.taint_info['taint_type'][0] == '_SOURCE_' and \
-                                    annotation.taint_info['taint_type'][1] != '_ARGUMENT_':
-                                sources_annotation.add(annotation)
+                        worklist = list(annotation.fields_info)
+                        while worklist:
+                            field_info = worklist[0]
+                            worklist = worklist[1:]
+                            if isinstance(field_info, JobjectAnnotation):
+                                if field_info.taint_info['is_taint'] and \
+                                        field_info.taint_info['taint_type'][0] == '_SOURCE_' and \
+                                        field_info.taint_info['taint_type'][1] != '_ARGUMENT_':
+                                    sources_annotation.add(annotation)
+                                else:
+                                    worklist.extend(field_info.fields_info)
+        if not self._jni_method_signature.endswith(")V"):
+            for node in self.cfg.nodes():
+                if not node.is_simprocedure and \
+                        node.block.vex.jumpkind == 'Ijk_Ret' and \
+                        node.function_address == self._jni_method_addr:
+                    for final_state in node.final_states:
+                        return_value = final_state.regs.r0
+                        for annotation in return_value.annotations:
+                            if isinstance(annotation, JobjectAnnotation):
+                                if annotation.taint_info['is_taint'] and \
+                                        annotation.taint_info['taint_type'][0] == '_SOURCE_' and \
+                                        annotation.taint_info['taint_type'][1] != '_ARGUMENT_':
+                                    sources_annotation.add(annotation)
         return sources_annotation
 
     def _collect_taint_sinks(self):
@@ -139,8 +139,8 @@ class AnnotationBasedAnalysis(angr.Analysis):
                             if annotation.taint_info['is_taint'] and annotation.taint_info['taint_type'][0] == '_SINK_':
                                 sink_annotations.add(annotation)
             fn = self.cfg.project.kb.functions.get(node.addr)
-            ssm = self._analysis_center.get_source_sink_manager()
-            if fn is not None:
+            if fn:
+                ssm = self._analysis_center.get_source_sink_manager()
                 if ssm.is_sink(fn.name):
                     sink_tag = ssm.get_sink_tags(fn.name)
                     sink_nodes[node] = sink_tag
@@ -155,25 +155,34 @@ class AnnotationBasedAnalysis(angr.Analysis):
             for sink in sink_arg:
                 for annotation in sink.annotations:
                     sink_annotations.add(annotation)
-        return sink_annotations
+        annotations = set()
+        for annotation in sink_annotations:
+            if annotation.source is 'from_reflection_call' and annotation.taint_info['is_taint']:
+                nativedroid_logger.info('Found taint in function %s.', self._jni_method_signature)
+                jnsaf_client = self._analysis_center.get_jnsaf_client()
+                if jnsaf_client:
+                    request = RegisterTaintRequest(
+                        apk_digest=jnsaf_client.apk_digest,
+                        signature=self._analysis_center.get_signature())
+                    response = jnsaf_client.RegisterTaint(request)
+                    if response.status:
+                        nativedroid_logger.info('Registered %s as taint.', self._jni_method_signature)
+            else:
+                annotations.add(annotation)
+        return annotations
 
-    @staticmethod
-    def gen_taint_analysis_report(sources, sinks, jni_method_signature):
+    def gen_taint_analysis_report(self, sources, sinks):
         """
         Generate the taint analysis report
         :param sources: Sources annotation
         :param sinks: Sinks annotation
-        :param jni_method_signature: JNI method signature
         :return: taint analysis report
         """
         report_file = StringIO()
         if sinks:
-            report_file.write(jni_method_signature)
+            report_file.write(self._jni_method_signature)
             report_file.write(' -> _SINK_ ')
             for sink_annotation in sinks:
-                print sink_annotation.field_info
-                print sink_annotation.array_info
-                print sink_annotation.taint_info
                 if sink_annotation.field_info['is_field'] is True:
                     pass
                 elif sink_annotation.array_info['is_element'] is True:
@@ -185,70 +194,64 @@ class AnnotationBasedAnalysis(angr.Analysis):
                 elif sink_annotation.source.startswith('arg'):
                     sink_location = re.split('arg|_', sink_annotation.source)[1]
                     report_file.write(str(sink_location))
-                elif sink_annotation.source is 'from_reflection_call':
-                    if sink_annotation.taint_info['is_taint']:
-                        # TODO(fengguow): Handle Source and Sink together.
-                        print 'Found taint'
             report_file.write('\n')
         if sources:
-            report_file.write(jni_method_signature)
+            report_file.write(self._jni_method_signature)
             report_file.write(' -> _SOURCE_ ')
             for source_annotation in sources:
                 if isinstance(source_annotation, JobjectAnnotation) and source_annotation.source.startswith('arg'):
                     source_location = source_annotation.source
-                    taint_field_name = None
-                    for field_info in source_annotation.fields_info:
-                        taint_field_name = field_info.field_info['field_name']
-                        if field_info.taint_info['is_taint'] and field_info.taint_info['taint_type'][0] != '_ARGUMENT_':
-                            taint_field_name = field_info.field_info['field_name']
-                        else:
-                            if isinstance(field_info, JobjectAnnotation):
-                                for info in field_info.fields_info:
-                                    if info.taint_info['is_taint'] and \
-                                            info.taint_info['taint_type'][0] != '_ARGUMENT_':
-                                        taint_field_name = taint_field_name + '.' + info.field_info['field_name']
+                    taint_field_name = ''
+                    worklist = list(source_annotation.fields_info)
+                    while worklist:
+                        field_info = worklist[0]
+                        worklist = worklist[1:]
+                        if field_info.taint_info['is_taint'] and field_info.taint_info['taint_type'][1] != '_ARGUMENT_':
+                            taint_field_name += '.' + field_info.field_info['field_name']
+                            break
+                        elif isinstance(field_info, JobjectAnnotation):
+                            taint_field_name += '.' + field_info.field_info['field_name']
+                            worklist.extend(field_info.fields_info)
                     if taint_field_name:
-                        report_file.write(source_location.split('arg')[-1] + '.' + taint_field_name)
+                        report_file.write(source_location.split('arg')[-1] + taint_field_name)
         return report_file.getvalue().strip()
 
-    def gen_saf_summary_report(self, jni_method_signature):
+    def gen_saf_summary_report(self):
         """
         Generate SAF summary report
-        :param jni_method_signature:
         :return: summary report
         """
         args_safsu = dict()
         rets_safsu = list()
-
-        for arg_index, arg_summary in self._arguments_summary.iteritems():
-            arg_safsu = dict()
-            for annotation in arg_summary.annotations:
-                if isinstance(annotation, JobjectAnnotation) and annotation.fields_info:
-                    for field_info in annotation.fields_info:
-                        field_name = field_info.field_info['field_name']
-                        field_type = field_info.obj_type.replace('/', '.')
-                        field_locations = list()
-                        if field_info.source in annotation_location:
-                            field_location = annotation_location[field_info.source]
-                            field_locations.append(field_location)
-                        elif field_info.source.startswith('arg'):
-                            field_location = 'arg:' + str(re.split('arg|_', field_info.source)[1])
-                            field_locations.append(field_location)
-                        elif field_info.source == 'from_object':
-                            if field_info.field_info['original_subordinate_obj'].startswith('arg'):
-                                field_location = 'arg:' + str(
-                                    re.split('arg|_', field_info.field_info['original_subordinate_obj'])[
-                                        1]) + '.' + field_info.field_info['field_name']
+        if self._arguments_summary:
+            for arg_index, arg_summary in self._arguments_summary.iteritems():
+                arg_safsu = dict()
+                for annotation in arg_summary.annotations:
+                    if isinstance(annotation, JobjectAnnotation) and annotation.fields_info:
+                        for field_info in annotation.fields_info:
+                            field_name = field_info.field_info['field_name']
+                            field_type = field_info.obj_type.replace('/', '.')
+                            field_locations = list()
+                            if field_info.source in annotation_location:
+                                field_location = annotation_location[field_info.source]
                                 field_locations.append(field_location)
-                        arg_safsu[field_name] = (field_type, field_locations)
-            args_safsu[arg_index] = arg_safsu
-
+                            elif field_info.source.startswith('arg'):
+                                field_location = 'arg:' + str(re.split('arg|_', field_info.source)[1])
+                                field_locations.append(field_location)
+                            elif field_info.source == 'from_object':
+                                if field_info.field_info['original_subordinate_obj'].startswith('arg'):
+                                    field_location = 'arg:' + str(
+                                        re.split('arg|_', field_info.field_info['original_subordinate_obj'])[
+                                            1]) + '.' + field_info.field_info['field_name']
+                                    field_locations.append(field_location)
+                            arg_safsu[field_name] = (field_type, field_locations)
+                args_safsu[arg_index] = arg_safsu
         return_nodes = list()
         for node in self.cfg.nodes():
             if not node.is_simprocedure:
                 if node.block.vex.jumpkind == 'Ijk_Ret' and node.function_address == self._jni_method_addr:
                     return_nodes.append(node)
-        if not jni_method_signature.endswith(")V"):
+        if not self._jni_method_signature.endswith(")V"):
             for return_node in return_nodes:
                 for final_state in return_node.final_states:
                     return_value = final_state.regs.r0
@@ -275,7 +278,7 @@ class AnnotationBasedAnalysis(angr.Analysis):
                                 ret_safsu = '  ret = ' + ret_value
                                 rets_safsu.append(ret_safsu)
         report_file = StringIO()
-        report_file.write('`' + jni_method_signature + '`:' + '\n')
+        report_file.write('`' + self._jni_method_signature + '`:' + '\n')
         if args_safsu:
             for arg_index, fields_safsu in args_safsu.iteritems():
                 arg_index = 'arg:' + str(re.split('arg|_', arg_index)[1])

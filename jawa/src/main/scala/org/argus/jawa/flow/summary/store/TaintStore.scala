@@ -62,8 +62,7 @@ class TaintStore extends TaintAnalysisResult {
   }
 }
 
-class TSTaintPath(source: TaintSource, sink: TaintSink, path: IList[TaintNode]) extends TaintPath {
-  require(path.lengthCompare(2) >= 0, "Path should larger than 2 node, but get " + path)
+case class TSTaintPath(source: TaintSource, sink: TaintSink, path: IList[TaintNode]) extends TaintPath {
   override def getSource: TaintSource = source
 
   override def getSink: TaintSink = sink

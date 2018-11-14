@@ -1,10 +1,6 @@
-import logging
-
 __author__ = "Fengguo Wei"
 __copyright__ = "Copyright 2018, The Argus-SAF Project"
 __license__ = "Apache v2.0"
-
-nativedroid_logger = logging.getLogger('AnnotationBasedAnalysis')
 
 
 class AnalysisCenter(object):

@@ -273,7 +273,7 @@ class TaintWu[T <: Global](
               case Some(sourceNode) =>
                 ts.getSinkNode(path.last) match {
                   case Some(sinkNode) =>
-                    ts.addTaintPath(new TSTaintPath(sourceNode, sinkNode, path))
+                    ts.addTaintPath(TSTaintPath(sourceNode, sinkNode, path))
                   case None =>
                 }
               case None =>

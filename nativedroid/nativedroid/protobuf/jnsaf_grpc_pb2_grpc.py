@@ -34,6 +34,11 @@ class JNSafStub(object):
         request_serializer=nativedroid_dot_protobuf_dot_jnsaf__grpc__pb2.RegisterICCRequest.SerializeToString,
         response_deserializer=nativedroid_dot_protobuf_dot_jnsaf__grpc__pb2.RegisterICCResponse.FromString,
         )
+    self.RegisterTaint = channel.unary_unary(
+        '/jnsaf_server.JNSaf/RegisterTaint',
+        request_serializer=nativedroid_dot_protobuf_dot_jnsaf__grpc__pb2.RegisterTaintRequest.SerializeToString,
+        response_deserializer=nativedroid_dot_protobuf_dot_jnsaf__grpc__pb2.RegisterTaintResponse.FromString,
+        )
 
 
 class JNSafServicer(object):
@@ -68,6 +73,13 @@ class JNSafServicer(object):
     context.set_details('Method not implemented!')
     raise NotImplementedError('Method not implemented!')
 
+  def RegisterTaint(self, request, context):
+    # missing associated documentation comment in .proto file
+    pass
+    context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+    context.set_details('Method not implemented!')
+    raise NotImplementedError('Method not implemented!')
+
 
 def add_JNSafServicer_to_server(servicer, server):
   rpc_method_handlers = {
@@ -90,6 +102,11 @@ def add_JNSafServicer_to_server(servicer, server):
           servicer.RegisterICC,
           request_deserializer=nativedroid_dot_protobuf_dot_jnsaf__grpc__pb2.RegisterICCRequest.FromString,
           response_serializer=nativedroid_dot_protobuf_dot_jnsaf__grpc__pb2.RegisterICCResponse.SerializeToString,
+      ),
+      'RegisterTaint': grpc.unary_unary_rpc_method_handler(
+          servicer.RegisterTaint,
+          request_deserializer=nativedroid_dot_protobuf_dot_jnsaf__grpc__pb2.RegisterTaintRequest.FromString,
+          response_serializer=nativedroid_dot_protobuf_dot_jnsaf__grpc__pb2.RegisterTaintResponse.SerializeToString,
       ),
   }
   generic_handler = grpc.method_handlers_generic_handler(

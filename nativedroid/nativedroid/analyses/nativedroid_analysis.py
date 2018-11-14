@@ -49,8 +49,8 @@ def gen_summary(jnsaf_client, so_file, jni_method_name_or_address, jni_method_si
     annotation_based_analysis = project.analyses.AnnotationBasedAnalysis(
         analysis_center, jni_method_addr, jni_method_arguments, False)
     sources, sinks = annotation_based_analysis.run()
-    taint_analysis_report = annotation_based_analysis.gen_taint_analysis_report(sources, sinks, jni_method_signature)
-    safsu_report = annotation_based_analysis.gen_saf_summary_report(jni_method_signature)
+    taint_analysis_report = annotation_based_analysis.gen_taint_analysis_report(sources, sinks)
+    safsu_report = annotation_based_analysis.gen_saf_summary_report()
     nativedroid_logger.info('[Taint Analysis]\n%s', taint_analysis_report)
     nativedroid_logger.info('[SafSu Analysis]\n%s', safsu_report)
     total_instructions = annotation_based_analysis.count_cfg_instructions()
@@ -68,41 +68,6 @@ def get_dynamic_register_methods(so_file, jni_method_signature):
     project = angr.Project(so_file, load_options={'main_opts': {'custom_base_addr': 0x0}})
     analysis_center = AnalysisCenter(jni_method_signature, None, None)
     return dynamic_register_resolve(project, analysis_center)
-
-
-# def clean_nativedroid(project, jni_method, jni_method_signature, jni_method_arguments, dynamic_register_methods,
-#                       native_ss_file, java_ss_file):
-#     """
-#     generate summary using annotation-based taint analysis
-#     :param project: Loaded Angr project
-#     :param jni_method: JNI method name
-#     :param jni_method_signature: JNI method signature
-#     :param jni_method_arguments: Arguments of JNI method
-#     :param dynamic_register_methods: Mapping information of dynamic register methods
-#     :param native_ss_file: native source and sink file path
-#     :param java_ss_file: java source and sink file path
-#     :return:
-#     """
-#
-#     angr.register_analysis(AnnotationBasedAnalysis, 'AnnotationBasedAnalysis')
-#     jni_method_symb = project.loader.main_object.get_symbol(jni_method)
-#     if jni_method_symb is None:
-#         res = re.split(r";\.|:", jni_method_signature)
-#         java_method_info = (res[1], res[2])
-#         jni_method_addr = dynamic_register_methods[java_method_info]
-#         nativedroid_logger.debug('[JNI Method Addr]: %s', hex(jni_method_addr))
-#     else:
-#         jni_method_addr = jni_method_symb.rebased_addr
-#     ssm = SourceAndSinkManager(native_ss_file, java_ss_file)
-#     annotation_based_analysis = project.analyses.AnnotationBasedAnalysis(ssm, jni_method_addr, jni_method_arguments,
-#                                                                          False)
-#     sources, sinks = annotation_based_analysis.run()
-#     taint_analysis_report = annotation_based_analysis.gen_taint_analysis_report(sources, sinks, jni_method_signature)
-#     safsu_report = annotation_based_analysis.gen_saf_summary_report(jni_method_signature)
-#     nativedroid_logger.info('[Taint Analysis]\n%s', taint_analysis_report)
-#     nativedroid_logger.info('[SafSu Analysis]\n%s', safsu_report)
-#     total_instructions = annotation_based_analysis.count_cfg_instructions()
-#     nativedroid_logger.info('[Total Instructions]\n%d', total_instructions)
 
 
 def has_symbol(so_file, symbol):
@@ -155,7 +120,8 @@ def native_activity_analysis(jnsaf_client, so_file, custom_entry_func_name, nati
         annotation_based_analysis = project.analyses.AnnotationBasedAnalysis(
             analysis_center, entry_func_symbol.rebased_addr, list(), True, (initial_state, native_activity_argument))
         sources, sinks = annotation_based_analysis.run()
-        taint_analysis_report = annotation_based_analysis.gen_taint_analysis_report(sources, sinks, jni_method_signature)
+        taint_analysis_report = \
+            annotation_based_analysis.gen_taint_analysis_report(sources, sinks)
         print taint_analysis_report
         analysis_instructions = annotation_based_analysis.count_cfg_instructions()
         total_instructions = initial_instructions + analysis_instructions

@@ -49,9 +49,19 @@ message RegisterICCResponse {
     bool status = 1;
 }
 
+message RegisterTaintRequest {
+    string apk_digest = 1;
+    string signature = 2;
+}
+
+message RegisterTaintResponse {
+    bool status = 1;
+}
+
 service JNSaf {
     rpc LoadAPK(stream LoadAPKRequest) returns (LoadAPKResponse) {}
     rpc TaintAnalysis(TaintAnalysisRequest) returns (TaintAnalysisResponse) {}
     rpc GetSummary(GetSummaryRequest) returns (GetSummaryResponse) {}
     rpc RegisterICC(RegisterICCRequest) returns (RegisterICCResponse) {}
+    rpc RegisterTaint(RegisterTaintRequest) returns (RegisterTaintResponse) {}
 }

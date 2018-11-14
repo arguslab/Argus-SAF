@@ -212,7 +212,7 @@ class ComponentBasedAnalysis(yard: ApkYard) {
                                 taint_result.removeTaintPaths(icc_source_paths)
                                 icc_sink_paths.foreach { sink_path =>
                                   icc_source_paths.foreach { source_path =>
-                                    val new_path = new TSTaintPath(sink_path.getSource, source_path.getSink, sink_path.getPath ++ source_path.getPath)
+                                    val new_path = TSTaintPath(sink_path.getSource, source_path.getSink, sink_path.getPath ++ source_path.getPath)
                                     System.err.println("Inter-component " + new_path)
                                     taint_result.addTaintPath(new_path)
                                   }

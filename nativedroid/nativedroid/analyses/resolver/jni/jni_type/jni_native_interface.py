@@ -12,6 +12,7 @@ __copyright__ = "Copyright 2018, The Argus-SAF Project"
 __license__ = "Apache v2.0"
 
 nativedroid_logger = logging.getLogger('nativedroid.jni_native_interface')
+nativedroid_logger.setLevel(logging.INFO)
 
 
 jni_native_interface_origin_usage = {
@@ -304,7 +305,7 @@ def icc_handle(analysis_center, class_name, method_name, return_annotation, simp
                                                          is_source=False,
                                                          source_args=source_args)
                             response = jnsaf_client.RegisterICC(request)
-                            if response.status != 1:
+                            if not response.status:
                                 nativedroid_logger.error('RegisterICC failed for request: %s' % request)
                     print("Start Component: %s, extra: %s" % (component_name, extra))
     return return_annotation

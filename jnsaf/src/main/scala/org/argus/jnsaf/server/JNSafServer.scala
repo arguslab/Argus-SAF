@@ -22,10 +22,13 @@ import org.argus.amandroid.core.decompile.DefaultDecompilerSettings
 import org.argus.jawa.core.elements.{JawaType, Signature}
 import org.argus.jawa.core.io.{MsgLevel, PrintReporter, Reporter}
 import org.argus.jawa.core.util._
+import org.argus.jawa.flow.Context
+import org.argus.jawa.flow.cfg.ICFGEntryNode
+import org.argus.jawa.flow.summary.store.{TSTaintPath, TaintStore}
 import org.argus.jawa.flow.summary.susaf.rule.HeapSummary
 import org.argus.jawa.flow.summary.wu.TaintSummary
 import org.argus.jawa.flow.summary.{SummaryProvider, SummaryToProto, summary}
-import org.argus.jawa.flow.taintAnalysis.TaintAnalysisResult
+import org.argus.jawa.flow.taintAnalysis._
 import org.argus.jnsaf.analysis.{JNISourceAndSinkManager, NativeMethodHandler}
 import org.argus.jnsaf.client.NativeDroidClient
 import org.argus.jnsaf.server.jnsaf_grpc._
@@ -53,6 +56,7 @@ object JNSafServer extends GrpcServer {
     val summaries: MMap[String, SummaryProvider] = mmapEmpty
     val ssms: MMap[String, JNISourceAndSinkManager] = mmapEmpty
     val cbas: MMap[String, ComponentBasedAnalysis] = mmapEmpty
+    val registeredTaintPaths: MMap[String, MSet[TaintPath]] = mmapEmpty
 
     def loadAPK(responseObserver: StreamObserver[LoadAPKResponse]): StreamObserver[LoadAPKRequest] = {
       reporter.echo(TITLE,"Server loadAPK")
@@ -139,6 +143,15 @@ object JNSafServer extends GrpcServer {
     def taintAnalysis(request: TaintAnalysisRequest): Future[TaintAnalysisResponse] = {
       reporter.echo(TITLE,"Server taintAnalysis")
       val taintResult = performTaint(request.apkDigest)
+      registeredTaintPaths.get(request.apkDigest) match {
+        case Some(paths) =>
+          taintResult match {
+            case Some(ts: TaintStore) =>
+              ts.addTaintPaths(paths.toSet)
+            case _ =>
+          }
+        case None =>
+      }
       Future.successful(TaintAnalysisResponse(taintResult.map(_.toPb)))
     }
 
@@ -185,6 +198,20 @@ object JNSafServer extends GrpcServer {
         }
       }
       Future.successful(RegisterICCResponse(status = true))
+    }
+
+    def registerTaint(request: RegisterTaintRequest): Future[RegisterTaintResponse] = {
+      reporter.echo(TITLE,s"Server registerTaint ${request.toProtoString}")
+      val signature = new Signature(request.signature)
+      val apk_digest = request.apkDigest
+      val context = new Context(apk_digest)
+      context.setContext(signature, signature.signature)
+      val node = TaintNode(ICFGEntryNode(context), None)
+      val source = TaintSource(node, TypeTaintDescriptor(signature.signature, None, SourceAndSinkCategory.API_SOURCE))
+      val sink = TaintSink(node, TypeTaintDescriptor(signature.signature, None, SourceAndSinkCategory.API_SINK))
+      val path = TSTaintPath(source, sink, List(node))
+      registeredTaintPaths.getOrElseUpdate(apk_digest, msetEmpty).add(path)
+      Future.successful(RegisterTaintResponse(status = true))
     }
   }
 }
