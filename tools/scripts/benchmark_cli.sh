@@ -12,7 +12,7 @@ jnsaf_pid=$!
 
 sleep 5
 
-java -jar $BASEDIR/../../target/scala-2.12/argus-saf-3.1.4-SNAPSHOT-assembly.jar benchmark $BASEDIR/../../benchmarks/NativeFlowBench localhost 55001 $BASEDIR/../../benchmarks/expected_nativeflow_bench.txt
+java -jar $BASEDIR/../../target/scala-2.12/argus-saf-3.1.4-SNAPSHOT-assembly.jar benchmark /Users/fengguow/Develop/output/bench localhost 55001 $BASEDIR/../../benchmarks/expected_nativeflow_bench.txt
 
 kill -KILL $nativedroid_pid
 kill -KILL $jnsaf_pid

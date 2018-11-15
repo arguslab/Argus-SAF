@@ -52,11 +52,11 @@ class AnnotationBasedAnalysis(angr.Analysis):
         if is_native_pure:
             self.cfg = self.project.analyses.CFGAccurate(fail_fast=True, starts=[self._jni_method_addr],
                                                          initial_state=self._state, context_sensitivity_level=1,
-                                                         keep_state=True, normalize=True)
+                                                         keep_state=True, normalize=True, call_depth=5)
         else:
             self.cfg = self.project.analyses.CFGAccurate(fail_fast=True, starts=[self._jni_method_addr],
                                                          initial_state=self._state, context_sensitivity_level=1,
-                                                         keep_state=True, normalize=True)
+                                                         keep_state=True, normalize=True, call_depth=5)
 
     def _hook_system_calls(self):
         if '__android_log_print' in self.project.loader.main_object.imports:
@@ -157,7 +157,7 @@ class AnnotationBasedAnalysis(angr.Analysis):
                     sink_annotations.add(annotation)
         annotations = set()
         for annotation in sink_annotations:
-            if annotation.source is 'from_reflection_call' and annotation.taint_info['is_taint']:
+            if annotation.taint_info['is_taint'] and annotation.taint_info['taint_type'][1] == '_API_':
                 nativedroid_logger.info('Found taint in function %s.', self._jni_method_signature)
                 jnsaf_client = self._analysis_center.get_jnsaf_client()
                 if jnsaf_client:
