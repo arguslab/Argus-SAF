@@ -101,7 +101,7 @@ class AnnotationBasedAnalysis(angr.Analysis):
                             if isinstance(field_info, JobjectAnnotation):
                                 if field_info.taint_info['is_taint'] and \
                                         field_info.taint_info['taint_type'][0] == '_SOURCE_' and \
-                                        field_info.taint_info['taint_type'][1] != '_ARGUMENT_':
+                                        '_ARGUMENT_' not in field_info.taint_info['taint_type'][1]:
                                     sources_annotation.add(annotation)
                                 else:
                                     worklist.extend(field_info.fields_info)
@@ -116,7 +116,7 @@ class AnnotationBasedAnalysis(angr.Analysis):
                             if isinstance(annotation, JobjectAnnotation):
                                 if annotation.taint_info['is_taint'] and \
                                         annotation.taint_info['taint_type'][0] == '_SOURCE_' and \
-                                        annotation.taint_info['taint_type'][1] != '_ARGUMENT_':
+                                        '_ARGUMENT_' not in annotation.taint_info['taint_type'][1]:
                                     sources_annotation.add(annotation)
         return sources_annotation
 
@@ -183,17 +183,21 @@ class AnnotationBasedAnalysis(angr.Analysis):
             report_file.write(self._jni_method_signature)
             report_file.write(' -> _SINK_ ')
             for sink_annotation in sinks:
-                if sink_annotation.field_info['is_field'] is True:
-                    pass
-                elif sink_annotation.array_info['is_element'] is True:
+                if sink_annotation.array_info['is_element'] is True:
                     if sink_annotation.array_info['subordinate_array'].annotations[0].source.startswith('arg'):
                         arg_index = \
                             re.split('arg|_', sink_annotation.array_info['subordinate_array'].annotations[0].source)[1]
                         sink_location = arg_index
                         report_file.write(str(sink_location))
-                elif sink_annotation.source.startswith('arg'):
-                    sink_location = re.split('arg|_', sink_annotation.source)[1]
-                    report_file.write(str(sink_location))
+                else:
+                    taint_field_name = ''
+                    anno = sink_annotation
+                    while anno:
+                        if anno.field_info['is_field']:
+                            taint_field_name = '.' + anno.field_info['field_name'] + taint_field_name
+                        elif anno.taint_info['is_taint'] and anno.source and anno.source.startswith('arg'):
+                            report_file.write(anno.source.split('arg')[-1] + taint_field_name)
+                        anno = anno.field_info['current_subordinate_obj']
             report_file.write('\n')
         if sources:
             report_file.write(self._jni_method_signature)
@@ -206,7 +210,8 @@ class AnnotationBasedAnalysis(angr.Analysis):
                     while worklist:
                         field_info = worklist[0]
                         worklist = worklist[1:]
-                        if field_info.taint_info['is_taint'] and field_info.taint_info['taint_type'][1] != '_ARGUMENT_':
+                        if field_info.taint_info['is_taint'] and \
+                                '_ARGUMENT_' not in field_info.taint_info['taint_type'][1]:
                             taint_field_name += '.' + field_info.field_info['field_name']
                             break
                         elif isinstance(field_info, JobjectAnnotation):

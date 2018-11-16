@@ -120,6 +120,7 @@ trait SourceAndSinkManager[T <: Global] {
               val poss: ISet[SSPosition] = this.sinks.filter(sink => matches(global, calleeSig, sink._1)).map(_._2._1).fold(isetEmpty)(iunion)
               pos match {
                 case Some(position) =>
+                  println(calleeSig, poss)
                   if(poss.isEmpty) {
                     sinks += TaintSink(TaintNode(invNode, Some(new SSPosition(s"$position"))), TypeTaintDescriptor(calleeSig.signature, Some(new SSPosition(position)), SourceAndSinkCategory.API_SINK))
                   } else {

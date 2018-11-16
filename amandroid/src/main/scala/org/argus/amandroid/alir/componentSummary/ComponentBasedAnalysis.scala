@@ -182,9 +182,14 @@ class ComponentBasedAnalysis(yard: ApkYard) {
     val iccChannels = summaryTables.map(_.get[ICC_Summary](CHANNELS.ICC))
     val allICCCallees: ISet[(ICFGNode, CSTCallee)] = iccChannels.flatMap(_.asCallee)
     val taint_result = new TaintStore
+    taintResults.foreach { case (_, components) =>
+      components.foreach { case (_, tar) =>
+
+        taint_result.addTaintPaths(tar.getTaintedPaths)
+      }
+    }
     taintResults.foreach { case (apk, components) =>
       components.foreach { case (component, tar) =>
-        taint_result.addTaintPaths(tar.getTaintedPaths)
         try {
           val summaryTable = summaryMap.getOrElse(component, throw new RuntimeException("Summary table does not exist for " + component))
           // link the intent edges

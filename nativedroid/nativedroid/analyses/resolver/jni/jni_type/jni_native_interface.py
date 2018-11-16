@@ -718,6 +718,7 @@ class CallObjectMethod(NativeDroidSimProcedure):
                 method_full_signature = get_method_full_signature(class_name, method_name, method_signature)
                 jnsaf_client = self._analysis_center.get_jnsaf_client()
                 ssm = self._analysis_center.get_source_sink_manager()
+                heap_summary = None
                 if jnsaf_client:
                     request = GetSummaryRequest(
                         apk_digest=jnsaf_client.apk_digest,
@@ -727,6 +728,8 @@ class CallObjectMethod(NativeDroidSimProcedure):
                     response = jnsaf_client.GetSummary(request)
                     if response.taint_result:
                         ssm.parse_lines(response.taint_result)
+                    if response.heap_summary:
+                        heap_summary = response.heap_summary
                 num_args += count_arg_nums(method_signature)
                 jni_return_type = get_jni_return_type(method_signature)
                 java_return_type = get_java_return_type(method_signature)
@@ -744,6 +747,26 @@ class CallObjectMethod(NativeDroidSimProcedure):
                         if isinstance(anno, JobjectAnnotation):
                             if anno.taint_info['is_taint']:
                                 return_annotation.taint_info = anno.taint_info
+                                if '_ARGUMENT_' in anno.taint_info['taint_type'][1] and heap_summary:
+                                    for rule in heap_summary.rules:
+                                        if rule.binary_rule and rule.binary_rule.rule_lhs.ret:
+                                            if rule.binary_rule.rule_rhs.this:
+                                                this = rule.binary_rule.rule_rhs.this
+                                                if this.heap and this.heap.heap_access:
+                                                    access = this.heap.heap_access[0]
+                                                    if access.field_access:
+                                                        field_anno = construct_annotation(
+                                                            jni_return_type, 'from_reflection_call')
+                                                        field_anno.field_info['is_field'] = True
+                                                        field_anno.field_info['field_name'] = \
+                                                            access.field_access.field_name
+                                                        field_anno.field_info['current_subordinate_obj'] = anno
+                                                        field_anno.taint_info['is_taint'] = True
+                                                        field_anno.taint_info['taint_type'] = \
+                                                            [anno.taint_info['taint_type'][0], '_ARGUMENT_FIELD_']
+                                                        field_anno.taint_info['taint_info'] = \
+                                                            anno.taint_info['taint_info']
+                                                        return_annotation = field_anno
                             else:
                                 if anno.fields_info:
                                     for field_info in anno.fields_info:
@@ -1272,7 +1295,7 @@ class SetObjectField(NativeDroidSimProcedure):
                 else:
                     field_annotation.field_info['is_field'] = True
                     field_annotation.field_info['field_name'] = id_annotation.field_name
-                    field_annotation.field_info['current_subordinate_obj'] = annotation.source
+                    field_annotation.field_info['current_subordinate_obj'] = annotation
                     annotation.fields_info.append(field_annotation)
 
     def __repr__(self):
@@ -1328,7 +1351,7 @@ class SetIntField(SetTypeField):
                 else:
                     field_annotation.field_info['is_field'] = True
                     field_annotation.field_info['field_name'] = id_annotation.field_name
-                    field_annotation.field_info['current_subordinate_obj'] = annotation.source
+                    field_annotation.field_info['current_subordinate_obj'] = annotation
                     annotation.fields_info.append(field_annotation)
 
     def __repr__(self):
