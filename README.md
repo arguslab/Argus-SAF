@@ -13,7 +13,7 @@ project, which have the basic setup for a Argus-SAF enhanced project with demo c
 ## JN-SAF Integration Status
 We are currently working on integrate [JN-SAF](http://www.fengguow.com/resources/papers/JN-SafCCS18.pdf) java-native code analysis framework into Argus-SAF. 
 
-Original plan was open-source the JN-SAF part by 2018-10-31. However, due to engineering issues, we have to postpone the open-source date to 2018-11-15. Thanks for the understanding.
+Original plan was open-source the JN-SAF part by 2018-10-31. However, due to engineering issues, we have to postpone the open-source date to 2018-11-30. Thanks for the understanding.
 
 ## Repository structure
 
