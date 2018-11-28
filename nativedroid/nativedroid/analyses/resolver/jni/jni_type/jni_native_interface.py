@@ -307,7 +307,7 @@ def icc_handle(analysis_center, class_name, method_name, return_annotation, simp
                             response = jnsaf_client.RegisterICC(request)
                             if not response.status:
                                 nativedroid_logger.error('RegisterICC failed for request: %s' % request)
-                    print("Start Component: %s, extra: %s" % (component_name, extra))
+                    nativedroid_logger.info("Start Component: %s, extra: %s", component_name, extra)
     return return_annotation
 
 

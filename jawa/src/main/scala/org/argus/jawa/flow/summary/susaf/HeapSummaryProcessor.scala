@@ -123,16 +123,16 @@ object HeapSummaryProcessor {
     rhs match {
       case st: SuThis =>
         val thisSlot = VarSlot(recvOpt.getOrElse("hack"))
-        slots = handleHeap(global, sig, thisSlot, st.heapOpt, retOpt, recvOpt, args, input, context, extraFacts, isLhs = false)
+        slots = handleHeap(global, sig, thisSlot, st.heapOpt, retOpt, recvOpt, args, input, context, extraFacts)
       case sr: SuRet =>
         val retSlot = VarSlot(retOpt.getOrElse("hack"))
-        slots = handleHeap(global, sig, retSlot, sr.heapOpt, retOpt, recvOpt, args, input, context, extraFacts, isLhs = false)
+        slots = handleHeap(global, sig, retSlot, sr.heapOpt, retOpt, recvOpt, args, input, context, extraFacts)
       case sa: SuArg =>
         val argSlot = VarSlot(args(sa.num - 1))
-        slots = handleHeap(global, sig, argSlot, sa.heapOpt, retOpt, recvOpt, args, input, context, extraFacts, isLhs = false)
+        slots = handleHeap(global, sig, argSlot, sa.heapOpt, retOpt, recvOpt, args, input, context, extraFacts)
       case sg: SuGlobal =>
         val gSlot = StaticFieldSlot(sg.fqn)
-        slots = handleHeap(global, sig, gSlot, sg.heapOpt, retOpt, recvOpt, args, input, context, extraFacts, isLhs = false)
+        slots = handleHeap(global, sig, gSlot, sg.heapOpt, retOpt, recvOpt, args, input, context, extraFacts)
       case sc: SuClassOf =>
         val newContext = sc.loc match {
           case scl: SuConcreteLocation =>
@@ -186,16 +186,16 @@ object HeapSummaryProcessor {
     lhs match {
       case st: SuThis =>
         val thisSlot = VarSlot(recvOpt.getOrElse("hack"))
-        slots = handleHeap(global, sig, thisSlot, st.heapOpt, retOpt, recvOpt, args, input, context, extraFacts, isLhs = true)
+        slots = handleHeap(global, sig, thisSlot, st.heapOpt, retOpt, recvOpt, args, input, context, extraFacts)
       case sa: SuArg =>
         val argSlot = VarSlot(args(sa.num - 1))
-        slots = handleHeap(global, sig, argSlot, sa.heapOpt, retOpt, recvOpt, args, input, context, extraFacts, isLhs = true)
+        slots = handleHeap(global, sig, argSlot, sa.heapOpt, retOpt, recvOpt, args, input, context, extraFacts)
       case sg: SuGlobal =>
         val gSlot = StaticFieldSlot(sg.fqn)
-        slots = handleHeap(global, sig, gSlot, sg.heapOpt, retOpt, recvOpt, args, input, context, extraFacts, isLhs = true)
+        slots = handleHeap(global, sig, gSlot, sg.heapOpt, retOpt, recvOpt, args, input, context, extraFacts)
       case sr: SuRet =>
         val rSlot = VarSlot(retOpt.getOrElse("hack"))
-        slots = handleHeap(global, sig, rSlot, sr.heapOpt, retOpt, recvOpt, args, input, context, extraFacts, isLhs = true)
+        slots = handleHeap(global, sig, rSlot, sr.heapOpt, retOpt, recvOpt, args, input, context, extraFacts)
     }
     slots
   }
@@ -210,8 +210,7 @@ object HeapSummaryProcessor {
       args: IList[String],
       input: IMap[PTASlot, ISet[Instance]],
       context: Context,
-      extraFacts: MSet[RFAFact],
-      isLhs: Boolean): ISet[PTASlot] = {
+      extraFacts: MSet[RFAFact]): ISet[PTASlot] = {
     var slots: ISet[PTASlot] = isetEmpty
     heapOpt match {
       case Some(heapAccess) =>
@@ -222,11 +221,11 @@ object HeapSummaryProcessor {
             currentSlots.foreach {
               case hs: HeapSlot =>
                 extraFacts ++= createHeapInstance(global, hs, context).map {i =>
+                  inss += i
                   RFAFact(hs, i)
                 }
               case _ => // should not be here
             }
-            inss ++= extraFacts.map(_.ins)
           }
           heapAccess match {
             case fa: SuFieldAccess =>

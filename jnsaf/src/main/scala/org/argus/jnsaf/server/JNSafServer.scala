@@ -209,7 +209,8 @@ object JNSafServer extends GrpcServer {
       val node = TaintNode(ICFGEntryNode(context), None)
       val source = TaintSource(node, TypeTaintDescriptor(signature.signature, None, SourceAndSinkCategory.API_SOURCE))
       val sink = TaintSink(node, TypeTaintDescriptor(signature.signature, None, SourceAndSinkCategory.API_SINK))
-      val path = TSTaintPath(source, sink, List(node))
+      val path = TSTaintPath(source, sink)
+      path.path = List(node)
       registeredTaintPaths.getOrElseUpdate(apk_digest, msetEmpty).add(path)
       Future.successful(RegisterTaintResponse(status = true))
     }

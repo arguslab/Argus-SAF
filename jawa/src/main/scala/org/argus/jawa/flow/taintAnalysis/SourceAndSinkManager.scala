@@ -32,6 +32,8 @@ object SourceAndSinkCategory {
   final val STMT_SINK = "stmt_sink"
   final val API_SOURCE = "api_source"
   final val API_SINK = "api_sink"
+  final val ICC_SOURCE = "icc_source"
+  final val ICC_SINK = "icc_sink"
   final val ENTRYPOINT_SOURCE = "entrypoint_source"
   final val CALLBACK_SOURCE = "callback_source"
 }
@@ -95,40 +97,43 @@ trait SourceAndSinkManager[T <: Global] {
                   }
                 case None =>
               }
-              if(this.isSourceMethod(global, calleeSig)) {
-                val poss: ISet[SSPosition] = this.sources.filter(source => matches(global, calleeSig, source._1)).map(_._2._1).fold(isetEmpty)(iunion)
-                if(poss.isEmpty) {
-                  if(pos.isEmpty) {
-                    sources += TaintSource(TaintNode(invNode, None), TypeTaintDescriptor(calleeSig.signature, None, SourceAndSinkCategory.API_SOURCE))
-                  }
-                } else {
-                  pos match {
-                    case Some(position) =>
-                      poss.foreach { p =>
-                        if(p.pos == position) {
-                          sources += TaintSource(TaintNode(invNode, Some(p)), TypeTaintDescriptor(calleeSig.signature, Some(p), SourceAndSinkCategory.API_SOURCE))
+              this.isSourceMethod(global, calleeSig) match {
+                case Some((tag, poss)) =>
+                  if(poss.isEmpty) {
+                    if(pos.isEmpty) {
+                      sources += TaintSource(TaintNode(invNode, None), TypeTaintDescriptor(calleeSig.signature, None, tag))
+                    }
+                  } else {
+                    pos match {
+                      case Some(position) =>
+                        poss.foreach { p =>
+                          if(p.pos == position) {
+                            sources += TaintSource(TaintNode(invNode, Some(p)), TypeTaintDescriptor(calleeSig.signature, Some(p), tag))
+                          }
                         }
-                      }
-                    case None =>
+                      case None =>
+                    }
                   }
-                }
+                case None =>
               }
             case _ =>
           }
           invNode match {
-            case _: ICFGCallNode if this.isSinkMethod(global, calleeSig) =>
-              val poss: ISet[SSPosition] = this.sinks.filter(sink => matches(global, calleeSig, sink._1)).map(_._2._1).fold(isetEmpty)(iunion)
-              pos match {
-                case Some(position) =>
-                  println(calleeSig, poss)
-                  if(poss.isEmpty) {
-                    sinks += TaintSink(TaintNode(invNode, Some(new SSPosition(s"$position"))), TypeTaintDescriptor(calleeSig.signature, Some(new SSPosition(position)), SourceAndSinkCategory.API_SINK))
-                  } else {
-                    poss.foreach { p =>
-                      if(p.pos == position) {
-                        sinks += TaintSink(TaintNode(invNode, Some(p)), TypeTaintDescriptor(calleeSig.signature, Some(p), SourceAndSinkCategory.API_SINK))
+            case _: ICFGCallNode =>
+              this.isSinkMethod(global, calleeSig) match {
+                case Some((tag, poss)) =>
+                  pos match {
+                    case Some(position) =>
+                      if(poss.isEmpty) {
+                        sinks += TaintSink(TaintNode(invNode, Some(new SSPosition(s"$position"))), TypeTaintDescriptor(calleeSig.signature, Some(new SSPosition(position)), tag))
+                      } else {
+                        poss.foreach { p =>
+                          if(p.pos == position) {
+                            sinks += TaintSink(TaintNode(invNode, Some(p)), TypeTaintDescriptor(calleeSig.signature, Some(p), tag))
+                          }
+                        }
                       }
-                    }
+                    case None =>
                   }
                 case None =>
               }
@@ -173,8 +178,24 @@ trait SourceAndSinkManager[T <: Global] {
   def isStmtSource(global: T, loc: Location): Boolean = false
   def isStmtSink(global: T, loc: Location): Boolean = false
 
-  def isSourceMethod(global: T, sig: Signature): Boolean = matches(global, sig, this.sources.keySet.toSet)
-  def isSinkMethod(global: T, sig: Signature): Boolean = matches(global, sig, this.sinks.keySet.toSet)
+  def isSourceMethod(global: T, sig: Signature): Option[(String, ISet[SSPosition])] = {
+    val srcs = this.sources.filter(source => matches(global, sig, source._1))
+    val poss = srcs.map(_._2._1).fold(isetEmpty)(iunion)
+    if(srcs.nonEmpty) {
+      Some((SourceAndSinkCategory.API_SOURCE, poss))
+    } else {
+      None
+    }
+  }
+  def isSinkMethod(global: T, sig: Signature): Option[(String, ISet[SSPosition])] = {
+    val sinks = this.sinks.filter(sink => matches(global, sig, sink._1))
+    val poss = sinks.map(_._2._1).fold(isetEmpty)(iunion)
+    if(sinks.nonEmpty) {
+      Some((SourceAndSinkCategory.API_SINK, poss))
+    } else {
+      None
+    }
+  }
 
   def isUISource(global: T, calleeSig: Signature, callerSig: Signature, callerLoc: Location): Boolean = false
   def isCallbackSource(global: T, sig: Signature, pos: Int): Boolean = false

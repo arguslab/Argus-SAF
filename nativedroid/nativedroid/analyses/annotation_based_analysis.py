@@ -197,7 +197,7 @@ class AnnotationBasedAnalysis(angr.Analysis):
                             taint_field_name = '.' + anno.field_info['field_name'] + taint_field_name
                         elif anno.taint_info['is_taint'] and anno.source and anno.source.startswith('arg'):
                             report_file.write(anno.source.split('arg')[-1] + taint_field_name)
-                        anno = anno.field_info['current_subordinate_obj']
+                        anno = anno.field_info.get('current_subordinate_obj')
             report_file.write('\n')
         if sources:
             report_file.write(self._jni_method_signature)
@@ -274,7 +274,7 @@ class AnnotationBasedAnalysis(angr.Analysis):
                         elif isinstance(annotation, JobjectAnnotation):
                             if annotation.field_info['is_field']:
                                 ret_value = 'arg:' + str(
-                                    re.split('arg|_', annotation.field_info['current_subordinate_obj'])[1]
+                                    re.split('arg|_', annotation.field_info['current_subordinate_obj'].source)[1]
                                 ) + '.' + annotation.field_info['field_name']
                                 ret_safsu = '  ret = ' + ret_value
                                 rets_safsu.append(ret_safsu)

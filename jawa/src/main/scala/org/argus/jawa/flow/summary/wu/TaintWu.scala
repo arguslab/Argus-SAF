@@ -10,19 +10,18 @@
 
 package org.argus.jawa.flow.summary.wu
 
+import org.argus.jawa.core.ast.ReturnStatement
+import org.argus.jawa.core.elements.Signature
+import org.argus.jawa.core.util._
+import org.argus.jawa.core.{Global, JawaMethod}
 import org.argus.jawa.flow.cfg._
-import org.argus.jawa.flow.dda.InterProceduralReachingDefinitionAnalysis.Node
 import org.argus.jawa.flow.dfa.InterProceduralDataFlowGraph
 import org.argus.jawa.flow.pta._
 import org.argus.jawa.flow.pta.model.ModelCallHandler
-import org.argus.jawa.flow.taintAnalysis.{SSPosition, SourceAndSinkManager, TaintNode}
-import org.argus.jawa.core.ast.{CallStatement, ReturnStatement}
-import org.argus.jawa.core.elements.Signature
-import org.argus.jawa.core.{Global, JawaMethod}
-import org.argus.jawa.core.util._
 import org.argus.jawa.flow.summary.store.{TSTaintPath, TaintStore}
 import org.argus.jawa.flow.summary.susaf.rule._
 import org.argus.jawa.flow.summary.{Summary, SummaryManager, SummaryRule}
+import org.argus.jawa.flow.taintAnalysis._
 
 class TaintWu[T <: Global](
     global: T,
@@ -32,286 +31,234 @@ class TaintWu[T <: Global](
     ssm: SourceAndSinkManager[T],
     ts: TaintStore) extends DataFlowWu[T, TaintSummaryRule](global, method, sm, handler) {
 
-  val srcInss: MSet[Instance] = msetEmpty
-  val sinkInss: MSet[Instance] = msetEmpty
+  private def getTainted(cn: ICFGCallNode, poss: ISet[SSPosition], isSource: Boolean): ISet[Instance] = {
+    val vars: MSet[String] = msetEmpty
+    if(poss.isEmpty) {
+      // Source means return value, sink means all poss
+      if(isSource) {
+        vars ++= cn.retNameOpt
+      } else {
+        vars ++= cn.argNames
+      }
+    } else {
+      val inc = if(cn.getCallType == "static") 1 else 0
+      poss.foreach { pos =>
+        vars ++= cn.argNames.lift(pos.pos - inc)
+      }
+    }
+    vars.flatMap { v =>
+      ptaresult.getRelatedInstances(cn.getContext, VarSlot(v)) ++ ptaresult.getRelatedInstancesAfterCall(cn.getContext, VarSlot(v))
+    }.toSet
+  }
+
+  object TaintStatus extends Enumeration {
+    val TAINT, FAKE, PASS = Value
+  }
+
+  case class TaintInfo(status: TaintStatus.Value, pos: Option[SSPosition], path: IList[TaintNode])
+
+  def getTaintInstance: ICFGNode => (IMap[Instance, TaintInfo], IMap[Instance, TaintInfo]) = {
+    case en: ICFGEntryNode =>
+      val srcInss: MMap[Instance, TaintInfo] = mmapEmpty
+      val inc = if(method.isStatic) 1 else 0
+      en.paramNames.indices foreach { idx =>
+        val name = en.paramNames(idx)
+        val inss = ptaresult.getRelatedInstances(en.getContext, VarSlot(name))
+        val status = if(ssm.isEntryPointSource(global, en.getContext.getMethodSig) || ssm.isCallbackSource(global, en.getContext.getMethodSig, idx)) {
+          TaintStatus.TAINT
+        } else {
+          TaintStatus.PASS
+        }
+        val info = TaintInfo(status, Some(new SSPosition(idx + inc)), ilistEmpty)
+        srcInss ++= inss.map(ins => (ins, info))
+      }
+      (srcInss.toMap, imapEmpty)
+    case cn: ICFGCallNode =>
+      val srcInss: MMap[Instance, TaintInfo] = mmapEmpty
+      val sinkInss: MMap[Instance, TaintInfo] = mmapEmpty
+      // Handle method calls with generated summary.
+      val callees = cn.getCalleeSet
+      callees foreach { callee =>
+        ssm.isSourceMethod(global, callee.callee) match {
+          case Some((_, poss)) =>
+            val info = TaintInfo(TaintStatus.TAINT, None, ilistEmpty)
+            srcInss ++= getTainted(cn, poss, isSource = true).map(ins => (ins, info))
+          case None =>
+        }
+        ssm.isSinkMethod(global, callee.callee) match {
+          case Some((_, poss)) =>
+            val info = TaintInfo(TaintStatus.TAINT, None, ilistEmpty)
+            sinkInss ++= getTainted(cn, poss, isSource = false).map(ins => (ins, info))
+          case None =>
+        }
+
+        sm.getSummary[TaintSummary](callee.callee) match {
+          case Some(summary) =>
+            summary.rules.foreach {
+              case SourceSummaryRule(ins, path) =>
+                val info = TaintInfo(TaintStatus.FAKE, None, path)
+                srcInss += ((ins, info))
+              case SinkSummaryRule(hb, path) =>
+                val inss = getHeapInstance(hb, cn.retNameOpt, cn.retNameOpt, cn.argNames, cn.getContext)
+                val info = TaintInfo(TaintStatus.FAKE, None, path)
+                sinkInss ++= inss.map(ins => (ins, info))
+              case _ =>
+            }
+          case None =>
+        }
+      }
+      (srcInss.toMap, sinkInss.toMap)
+    case nn: ICFGNormalNode =>
+      val sinkInss: MMap[Instance, TaintInfo] = mmapEmpty
+      val loc = method.getBody.resolvedBody.location(nn.locIndex)
+      loc.statement match {
+        case rs: ReturnStatement =>
+          rs.varOpt match {
+            case Some(ret) =>
+              val inss = ptaresult.getRelatedInstances(nn.getContext, VarSlot(ret.varName))
+              val info = TaintInfo(TaintStatus.PASS, None, ilistEmpty)
+              sinkInss ++= inss.map(ins => (ins, info))
+            case None =>
+          }
+        case _ =>
+      }
+      (imapEmpty, sinkInss.toMap)
+    case _ =>
+      (imapEmpty, imapEmpty)
+  }
+
+  def getAllInstances: ICFGNode => ISet[Instance] = {
+    case cn: ICFGCallNode =>
+      val allInss: MSet[Instance] = msetEmpty
+      cn.retNameOpt match {
+        case Some(rn) =>
+          allInss ++= ptaresult.getRelatedInstancesAfterCall(cn.getContext, VarSlot(rn))
+        case None =>
+      }
+      for (arg <- cn.argNames) {
+        allInss ++= ptaresult.getRelatedInstances(cn.getContext, VarSlot(arg)) ++ ptaresult.getRelatedInstancesAfterCall(cn.getContext, VarSlot(arg))
+      }
+      allInss.toSet
+    case _ =>
+      isetEmpty
+  }
 
   override def parseIDFG(idfg: InterProceduralDataFlowGraph): IList[TaintSummaryRule] = {
     var rules = super.parseIDFG(idfg)
-    // propagate source and sink
-    var sources = srcInss.toSet
-    val processed: MSet[Instance] = msetEmpty
-    while(sources.nonEmpty) {
-      processed ++= sources
-      val newsources = propagateSource(sources)
-      sources = newsources -- processed
-      srcInss ++= sources
-    }
-    var sinks = sinkInss.toSet
-    processed.clear()
-    while(sinks.nonEmpty) {
-      processed ++= sinks
-      val newsinks = propagateSink(sinks)
-      sinks = newsinks -- processed
-      sinkInss ++= sinks
+
+    val srcInstances: MSet[(Instance, IList[TaintNode])] = msetEmpty
+    val sinkHeapBases: MSet[(HeapBase, IList[TaintNode])] = msetEmpty
+
+    def dfs(node: ICFGNode, taintInss: IMap[Instance, TaintInfo], paths: IMap[Instance, IList[TaintNode]]): Unit = {
+      var newPaths: IMap[Instance, IList[TaintNode]] = paths
+      // handle pass through
+      val allInss = getAllInstances(node)
+      allInss.intersect(taintInss.keys.toSet).foreach { ins =>
+        newPaths += (ins -> (newPaths.getOrElse(ins, ilistEmpty) :+ TaintNode(node, None)))
+      }
+      // handle source and sink
+      val (srcInss, sinkInss) = getTaintInstance(node)
+//      println(node)
+//      println("srcInss: " + srcInss)
+//      println("sinkInss: " + sinkInss)
+      sinkInss.foreach { case (sink, realsink) =>
+        taintInss.get(sink) match {
+          case Some(realsource) =>
+            val sinkNode = TaintNode(node, realsink.pos)
+            val path: IList[TaintNode] = paths(sink) :+ sinkNode
+            val sourceNode = path.head
+            realsource.status match {
+              case TaintStatus.TAINT =>
+                val taintSource = TaintSource(sourceNode, TypeTaintDescriptor(sourceNode.node.toString, realsource.pos, SourceAndSinkCategory.API_SOURCE))
+                realsink.status match {
+                  case TaintStatus.TAINT =>
+                    val taintSink = TaintSink(sinkNode, TypeTaintDescriptor(node.toString, realsink.pos, SourceAndSinkCategory.API_SINK))
+                    val tp = TSTaintPath(taintSource, taintSink)
+                    tp.path = path
+                    ts.addTaintPath(tp)
+                  case TaintStatus.FAKE =>
+                    val sinkPath = realsink.path
+                    if(sinkPath.nonEmpty) {
+                      val realSinkNode = sinkPath.last
+                      val taintSink = TaintSink(realSinkNode, TypeTaintDescriptor(realSinkNode.node.toString, realSinkNode.pos, SourceAndSinkCategory.API_SINK))
+                      val tp = TSTaintPath(taintSource, taintSink)
+                      tp.path = path ++ sinkPath
+                      ts.addTaintPath(tp)
+                    }
+                  case TaintStatus.PASS =>
+                    srcInstances += ((sink, path))
+                }
+              case TaintStatus.FAKE =>
+                val sourcePath = realsource.path
+                if(sourcePath.nonEmpty) {
+                  val realSourceNode = sourcePath.head
+                  val taintSource = TaintSource(realSourceNode, TypeTaintDescriptor(realSourceNode.node.toString, realsource.pos, SourceAndSinkCategory.API_SOURCE))
+                  realsink.status match {
+                    case TaintStatus.TAINT =>
+                      val taintSink = TaintSink(sinkNode, TypeTaintDescriptor(node.toString, realsink.pos, SourceAndSinkCategory.API_SINK))
+                      val tp = TSTaintPath(taintSource, taintSink)
+                      tp.path = sourcePath ++ path
+                      ts.addTaintPath(tp)
+                    case TaintStatus.FAKE =>
+                      val sinkPath = realsink.path
+                      if(sinkPath.nonEmpty) {
+                        val realSinkNode = sinkPath.last
+                        val taintSink = TaintSink(realSinkNode, TypeTaintDescriptor(realSinkNode.node.toString, realSinkNode.pos, SourceAndSinkCategory.API_SINK))
+                        val tp = TSTaintPath(taintSource, taintSink)
+                        tp.path = sourcePath ++ path ++ sinkPath
+                        ts.addTaintPath(tp)
+                      }
+                    case TaintStatus.PASS =>
+                      srcInstances += ((sink, sourcePath ++ path))
+                  }
+                }
+              case TaintStatus.PASS =>
+                realsink.status match {
+                  case TaintStatus.TAINT =>
+                    getInitialHeapBase(sink) match {
+                      case Some(hb) =>
+                        sinkHeapBases += ((hb, path))
+                      case None =>
+                    }
+                  case TaintStatus.FAKE =>
+                    getInitialHeapBase(sink) match {
+                      case Some(hb) =>
+                        sinkHeapBases += ((hb, path ++ realsink.path))
+                      case None =>
+                    }
+                  case TaintStatus.PASS =>
+                }
+            }
+          case None =>
+        }
+      }
+      newPaths ++= srcInss.map { case (ins, info) =>
+        val sourceNode = TaintNode(node, info.pos)
+        info.status match {
+          case TaintStatus.TAINT =>
+            ins -> List(sourceNode)
+          case TaintStatus.FAKE =>
+            val sourcePath = info.path
+            ins -> (sourcePath :+ sourceNode)
+          case TaintStatus.PASS =>
+            ins -> List(sourceNode)
+        }
+      }
+      idfg.icfg.successors(node).foreach { succ =>
+        dfs(succ, taintInss ++ srcInss, newPaths)
+      }
     }
 
     // Update SourceSummaryRule
-    icfg.nodes foreach {
-      case nn: ICFGNormalNode =>
-        val l = method.getBody.resolvedBody.location(nn.locIndex)
-        l.statement match {
-          case rs: ReturnStatement =>
-            rs.varOpt match {
-              case Some(rv) =>
-                val rvInss = ptaresult.pointsToSet(nn.getContext, VarSlot(rv.varName))
-                val intersectInss = rvInss.intersect(srcInss)
-                rules ++= intersectInss map (iins => SourceSummaryRule(iins))
-              case None =>
-            }
-          case _ =>
-        }
-      case _ =>
-    }
-    srcInss foreach { srcIns =>
-      getInitialHeapBase(srcIns) match {
-        case Some(_) =>
-          rules +:= SourceSummaryRule(srcIns)
-        case None =>
-      }
+    dfs(idfg.icfg.entryNode, imapEmpty, imapEmpty)
+    srcInstances foreach { case (srcIns, path) =>
+      rules +:= SourceSummaryRule(srcIns, path)
     }
     // Update SinkSummaryRule
-    sinkInss foreach { sinkIns =>
-      getInitialHeapBase(sinkIns) match {
-        case Some(hb) =>
-          rules +:= SinkSummaryRule(hb, sinkIns)
-        case None =>
-      }
+    sinkHeapBases foreach { case (hb, path) =>
+      rules +:= SinkSummaryRule(hb, path)
     }
     rules
-  }
-
-  override def processNode(node: ICFGNode, rules: MList[TaintSummaryRule]): Unit = {
-    val poss: MSet[Option[Int]] = msetEmpty
-    node match {
-      case in: ICFGInvokeNode =>
-        val l = method.getBody.resolvedBody.location(in.locIndex)
-        l.statement match {
-          case cs: CallStatement =>
-            val res: MSet[Option[Int]] = msetEmpty
-            if(cs.lhsOpt.isDefined) {
-              res += Some(-1)
-            }
-            val inc = if(cs.isStatic) 1 else 0
-            for(i <- cs.rhs.varSymbols.indices) {
-              res += Some(i + inc)
-            }
-            if(in.getCalleeSet.exists{ c =>
-              val calleep = global.getMethodOrResolve(c.callee).get
-              handler.isModelCall(calleep)
-            }) {
-              res += None
-            }
-            poss ++= res.toSet
-
-            // Handle method calls with generated summary.
-            val callees = in.getCalleeSet
-            callees foreach { callee =>
-              sm.getSummary[TaintSummary](callee.callee) match {
-                case Some(summary) =>
-                  summary.rules.foreach {
-                    case SourceSummaryRule(ins) =>
-                      srcInss += ins
-                    case SinkSummaryRule(hb, oldIns) =>
-                      val inss = getHeapInstance(hb, in.retNameOpt, cs.recvOpt, cs.arg, in.getContext)
-                      sinkInss ++= inss
-                      val pos = hb match {
-                        case _: SuThis =>
-                          Some(new SSPosition(0))
-                        case a: SuArg =>
-                          Some(new SSPosition(a.num))
-                        case _: SuGlobal =>
-                          None
-                        case _: SuRet =>
-                          Some(new SSPosition(-1))
-                      }
-                      inss foreach { ins => ts.sinkDependence(ins) = TaintNode(in, pos) :: ts.sinkDependence.getOrElse(oldIns, ilistEmpty)}
-                    case _ =>
-                  }
-                case None =>
-              }
-            }
-          case _ => poss += None
-        }
-      case _: ICFGEntryNode =>
-        val res: MSet[Option[Int]] = msetEmpty
-        method.thisOpt match {
-          case Some(_) =>
-            res += Some(0)
-          case None =>
-        }
-        for(i <- 1 to method.getParamNames.size) {
-          res += Some(i)
-        }
-        poss ++= res.toSet
-      case _ => poss += None
-    }
-    poss foreach { pos =>
-      val (srcs, sinks) = ssm.getSourceAndSinkNode(global, node, pos, ptaresult)
-      ts.sourceNodes ++= srcs
-      ts.sinkNodes ++= sinks
-      if(srcs.nonEmpty) {
-        srcs foreach { src =>
-          val inss = getTaintCandidateInstances(node, src.node.pos)
-          inss foreach { ins => ts.taintedInstance(ins) = List(src.node) }
-          srcInss ++= inss
-        }
-      }
-      if(sinks.nonEmpty) {
-        sinks foreach { sink =>
-          val inss = getTaintCandidateInstances(node, sink.node.pos)
-          inss foreach { ins => ts.sinkDependence(ins) = List(sink.node)}
-          sinkInss ++= inss
-        }
-      }
-    }
-    super.processNode(node, rules)
-  }
-
-  private def getTaintCandidateInstances(node: Node, pos: Option[SSPosition]): ISet[Instance] = {
-    node match {
-      case ln: ICFGLocNode =>
-        val l = method.getBody.resolvedBody.location(ln.locIndex)
-        l.statement match {
-          case cs: CallStatement =>
-            pos match {
-              case Some(i) =>
-                if(i.pos == -1) {
-                  val ns: NameSlot = VarSlot(cs.lhsOpt.map(lhs => lhs.name).getOrElse("hack"))
-                  val fInss = ptaresult.getFieldInstances(node.getContext, ns, i.fields)
-                  ptaresult.getRelatedInstances(node.getContext, fInss)
-                } else {
-                  val varName = if(cs.isStatic) {
-                    cs.arg(i.pos - 1)
-                  } else if(i.pos == 0) {
-                    cs.recvOpt.get
-                  } else {
-                    cs.arg(i.pos - 1)
-                  }
-                  val ns: NameSlot = VarSlot(varName)
-                  val fInss = ptaresult.getFieldInstancesAfterCall(node.getContext, ns, i.fields)
-                  ptaresult.getRelatedInstancesAfterCall(node.getContext, fInss)
-                }
-              case None =>
-                ptaresult.getRelatedInstances(node.getContext, VarSlot(cs.lhsOpt.map(lhs => lhs.name).getOrElse("hack")))
-            }
-          case _ =>
-            isetEmpty
-        }
-      case _: ICFGEntryNode =>
-        pos match {
-          case Some(i) =>
-            val args: IList[String] = (method.thisOpt ++ method.getParamNames).toList
-            val ns: NameSlot = VarSlot(args.lift(i.pos).getOrElse("hack"))
-            ptaresult.pointsToSet(node.getContext, ns)
-          case None => isetEmpty
-        }
-      case _ => isetEmpty
-    }
-  }
-
-  private def propagateSource(srcInss: ISet[Instance]): ISet[Instance] = {
-    val newSources: MSet[Instance] = msetEmpty
-    icfg.nodes foreach {
-      case cn: ICFGCallNode =>
-        val callees = cn.getCalleeSet
-        if(callees exists { callee =>
-          val method = global.getMethodOrResolve(callee.callee).get
-          handler.scopeManager.shouldBypass(method.getDeclaringClass) && !handler.isConcreteModelCall(method)
-        }) {
-          for(i <- cn.argNames.indices) {
-            val an = cn.argNames(i)
-            val anInss = ptaresult.getRelatedInstances(cn.getContext, VarSlot(an))
-            val intersectInss = anInss.intersect(srcInss)
-            if(intersectInss.nonEmpty) {
-              // Taint all other instances
-              val allOtherInss: MSet[Instance] = msetEmpty
-              cn.retNameOpt match {
-                case Some(rn) =>
-                  allOtherInss ++= ptaresult.pointsToSet(cn.getContext, VarSlot(rn))
-                case None =>
-              }
-              for(j <- cn.argNames.indices) {
-                if(i != j) {
-                  val new_an = cn.argNames(j)
-                  val new_anInss = ptaresult.getRelatedInstances(cn.getContext, VarSlot(new_an))
-                  allOtherInss ++= new_anInss
-                }
-              }
-              allOtherInss foreach { aoIns =>
-                val list = ts.taintedInstance.getOrElseUpdate(aoIns, ilistEmpty)
-                intersectInss foreach { iIns =>
-                  ts.taintedInstance(aoIns) = ts.taintedInstance(iIns) ::: list
-                }
-              }
-              newSources ++= allOtherInss
-            }
-          }
-        }
-      case _ =>
-    }
-    newSources.toSet
-  }
-
-  private def propagateSink(sinkInss: ISet[Instance]): ISet[Instance] = {
-    val newSinks: MSet[Instance] = msetEmpty
-    sinkInss foreach { sinkIns =>
-      ts.tainted(sinkIns) match {
-        case Some(list) =>
-          val path = list ::: ts.sinkDependence.getOrElse(sinkIns, ilistEmpty)
-          if(path.lengthCompare(2) >= 0) {
-            ts.getSourceNode(path.head) match {
-              case Some(sourceNode) =>
-                ts.getSinkNode(path.last) match {
-                  case Some(sinkNode) =>
-                    ts.addTaintPath(TSTaintPath(sourceNode, sinkNode, path))
-                  case None =>
-                }
-              case None =>
-            }
-          }
-        case None =>
-          val defSite = sinkIns.defSite
-          if(defSite.getMethodSig == method.getSignature) {
-            if(!heapMap.contains(sinkIns)) {
-              // Taint all other instances
-              val allOtherInss: MSet[Instance] = msetEmpty
-              val loc = method.getBody.resolvedBody.location(defSite.getCurrentLocUri)
-              loc.statement match {
-                case _: CallStatement =>
-                  val cn: ICFGCallNode = icfg.getICFGCallNode(defSite).asInstanceOf[ICFGCallNode]
-                  val callees = cn.getCalleeSet
-                  if (callees exists { callee =>
-                    val method = global.getMethodOrResolve(callee.callee).get
-                    handler.scopeManager.shouldBypass(method.getDeclaringClass) && !handler.isConcreteModelCall(method)
-                  }) {
-                    for (i <- cn.argNames.indices) {
-                      val an = cn.argNames(i)
-                      val anInss = ptaresult.getRelatedInstances(cn.getContext, VarSlot(an))
-                      allOtherInss ++= anInss
-                    }
-                  }
-                case _ =>
-              }
-              allOtherInss foreach { aoIns =>
-                val list = ts.sinkDependence.getOrElseUpdate(aoIns, ilistEmpty)
-                ts.sinkDependence(aoIns) = ts.sinkDependence(sinkIns) ::: list
-              }
-              newSinks ++= allOtherInss
-            }
-          }
-      }
-    }
-    newSinks.toSet
   }
 
   override def toString: String = s"TaintWu($method)"
@@ -330,10 +277,10 @@ case class TaintSummary(sig: Signature, rules: Seq[TaintSummaryRule]) extends Su
   }
 }
 trait TaintSummaryRule extends SummaryRule
-case class SourceSummaryRule(ins: Instance) extends TaintSummaryRule {
+case class SourceSummaryRule(ins: Instance, path: IList[TaintNode]) extends TaintSummaryRule {
   override def toString: FileResourceUri = "_SOURCE_"
 }
-case class SinkSummaryRule(hb: HeapBase, ins: Instance) extends TaintSummaryRule {
+case class SinkSummaryRule(hb: HeapBase, path: IList[TaintNode]) extends TaintSummaryRule {
   override def toString: FileResourceUri = {
     val sb = new StringBuilder
     sb.append("_SINK_ ")

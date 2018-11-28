@@ -10,16 +10,16 @@
 
 package org.argus.amandroid.alir.taintAnalysis
 
-import org.argus.amandroid.alir.pta.reachingFactsAnalysis.IntentHelper
 import org.argus.amandroid.alir.pta.model.InterComponentCommunicationModel
+import org.argus.amandroid.alir.pta.reachingFactsAnalysis.IntentHelper
 import org.argus.amandroid.core.{AndroidConstants, ApkGlobal}
+import org.argus.jawa.core.ast.{CallStatement, Location}
+import org.argus.jawa.core.elements.Signature
+import org.argus.jawa.core.util._
 import org.argus.jawa.flow.cfg._
 import org.argus.jawa.flow.pta.{PTAResult, VarSlot}
 import org.argus.jawa.flow.taintAnalysis._
 import org.argus.jawa.flow.util.ExplicitValueFinder
-import org.argus.jawa.core.ast.{CallStatement, Location}
-import org.argus.jawa.core.elements.{JawaType, Signature}
-import org.argus.jawa.core.util._
 
 object IntentSinkKind extends Enumeration {
   val NO, IMPLICIT, ALL = Value
@@ -39,8 +39,20 @@ abstract class AndroidSourceAndSinkManager(val sasFilePath: String) extends Sour
   def getSinkSigs: ISet[Signature] = this.sinks.keySet.toSet
   def getInterestedSigs: ISet[Signature] = getSourceSigs ++ getSinkSigs
 
-  override def isSinkMethod(global: ApkGlobal, sig: Signature): Boolean = {
-    InterComponentCommunicationModel.isIccOperation(sig) || super.isSinkMethod(global, sig)
+  override def isSourceMethod(global: ApkGlobal, sig: Signature): Option[(String, ISet[SSPosition])] = {
+    if(sig.classTyp.jawaName == AndroidConstants.INTENT && sig.methodName.startsWith("get") && sig.methodName.contains("Extra")) {
+      Some((SourceAndSinkCategory.ICC_SOURCE, isetEmpty))
+    } else {
+      super.isSourceMethod(global, sig)
+    }
+  }
+
+  override def isSinkMethod(global: ApkGlobal, sig: Signature): Option[(String, ISet[SSPosition])] = {
+    if(InterComponentCommunicationModel.isIccOperation(sig)) {
+      Some(SourceAndSinkCategory.ICC_SINK, Set(new SSPosition(1)))
+    } else {
+      super.isSinkMethod(global, sig)
+    }
   }
 
   def intentSink: IntentSinkKind.Value = IntentSinkKind.IMPLICIT

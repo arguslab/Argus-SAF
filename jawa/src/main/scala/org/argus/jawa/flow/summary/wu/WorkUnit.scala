@@ -10,6 +10,11 @@
 
 package org.argus.jawa.flow.summary.wu
 
+import org.argus.jawa.core._
+import org.argus.jawa.core.ast._
+import org.argus.jawa.core.elements.{JavaKnowledge, Signature}
+import org.argus.jawa.core.util.Property.Key
+import org.argus.jawa.core.util._
 import org.argus.jawa.flow.Context
 import org.argus.jawa.flow.cfg._
 import org.argus.jawa.flow.dfa.InterProceduralDataFlowGraph
@@ -17,11 +22,6 @@ import org.argus.jawa.flow.interprocedural.ModelCallResolver
 import org.argus.jawa.flow.pta._
 import org.argus.jawa.flow.pta.model.ModelCallHandler
 import org.argus.jawa.flow.pta.rfa.{RFAFact, ReachingFactsAnalysis, ReachingFactsAnalysisHelper}
-import org.argus.jawa.core.ast._
-import org.argus.jawa.core._
-import org.argus.jawa.core.elements.{JavaKnowledge, JawaType, Signature}
-import org.argus.jawa.core.util.Property.Key
-import org.argus.jawa.core.util._
 import org.argus.jawa.flow.summary.susaf.rule._
 import org.argus.jawa.flow.summary.{Summary, SummaryManager, SummaryRule}
 
@@ -153,6 +153,7 @@ abstract class DataFlowWu[T <: Global, S <: SummaryRule] (
           thisContext.setContext(method.getSignature, s"Entry.$pos")
           pos += 1
           val ins = Instance.getInstance(method.getDeclaringClass.typ, thisContext, toUnknown = false)
+          ptaresult.addInstance(thisContext, VarSlot(t), ins)
           result += RFAFact(VarSlot(t), ins)
         case None =>
       }
@@ -167,6 +168,7 @@ abstract class DataFlowWu[T <: Global, S <: SummaryRule] (
           argContext.setContext(method.getSignature, s"Entry.$pos")
           pos += 1
           val ins = Instance.getInstance(typ, argContext, unknown)
+          ptaresult.addInstance(argContext, VarSlot(name), ins)
           result += RFAFact(VarSlot(name), ins)
         }
       }

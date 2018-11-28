@@ -57,9 +57,9 @@ class JNTaintAnalysis(yard: ApkYard, apk: ApkGlobal,
         apk.addSummaryTable(comp.compType, st)
       }
     }
-    cba.phase1(Set(apk))
-    val intra_result = cba.intraComponentTaintAnalysis(Set(apk), ssm)
-    val inter_result = cba.interComponentTaintAnalysis(intra_result)
+//    cba.phase1(Set(apk))
+//    val intra_result = cba.intraComponentTaintAnalysis(Set(apk), ssm)
+    val inter_result = cba.interComponentTaintAnalysis(apk)
     inter_result
   }
 
@@ -80,6 +80,7 @@ class JNTaintAnalysis(yard: ApkYard, apk: ApkGlobal,
     }
     analysis.debug = true
     analysis.build(orderedWUs)
+    apk.addComponentTaintAnalysisResult(component, store)
     val icfg = new InterProceduralControlFlowGraph[ICFGNode]
     val ptaresult = new PTAResult
     val methods: MList[JawaMethod] = mlistEmpty

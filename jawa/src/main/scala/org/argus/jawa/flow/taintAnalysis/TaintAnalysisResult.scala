@@ -43,7 +43,7 @@ case class TagTaintDescriptor(desc: String, positions: ISet[SSPosition], typ: St
  * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
  */
 case class TaintNode(node: ICFGNode, pos: Option[SSPosition]) {
-  override def toString: FileResourceUri = {
+  override def toString: String = {
     s"$node ${if(pos.isDefined) "param: " + pos.get else "" }".trim
   }
 }

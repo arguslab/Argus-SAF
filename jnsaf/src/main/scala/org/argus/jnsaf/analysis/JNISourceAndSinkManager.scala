@@ -13,17 +13,23 @@ package org.argus.jnsaf.analysis
 import org.argus.amandroid.alir.taintAnalysis.{AndroidSourceAndSinkManager, IntentSinkKind}
 import org.argus.amandroid.core.ApkGlobal
 import org.argus.jawa.core.elements.Signature
-import org.argus.jawa.core.util.ISet
+import org.argus.jawa.core.util._
 import org.argus.jawa.flow.cfg.ICFGCallNode
 import org.argus.jawa.flow.pta.PTAResult
+import org.argus.jawa.flow.taintAnalysis.{SSPosition, SourceAndSinkCategory}
 
 /**
   * Created by fgwei on 4/27/17.
   */
 class JNISourceAndSinkManager(sasFilePath: String) extends AndroidSourceAndSinkManager(sasFilePath) {
 
-  override def isSinkMethod(global: ApkGlobal, sig: Signature): Boolean = {
-    getCustomSinks("ICC").contains(sig) || super.isSinkMethod(global, sig)
+  override def isSinkMethod(global: ApkGlobal, sig: Signature): Option[(String, ISet[SSPosition])] = {
+    val poss = this.customSinks.getOrElse("ICC", mmapEmpty).filter(sink => matches(global, sig, sink._1)).map(_._2._1).fold(isetEmpty)(iunion)
+    if(poss.nonEmpty) {
+      Some((SourceAndSinkCategory.ICC_SINK, poss))
+    } else {
+      super.isSinkMethod(global, sig)
+    }
   }
 
   override def intentSink: IntentSinkKind.Value = IntentSinkKind.ALL

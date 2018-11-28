@@ -176,49 +176,46 @@ class ComponentBasedAnalysis(yard: ApkYard) {
     result.map{ case (apk, comps) => apk -> comps.toMap }.toMap
   }
 
-  def interComponentTaintAnalysis(taintResults: IMap[ApkGlobal, IMap[ComponentInfo, TaintAnalysisResult]]): TaintAnalysisResult = {
-    val summaryTables = taintResults.flatMap{ case (apk, components) => components.keys.flatMap(component => apk.getSummaryTable(component.compType)) }.toSet
-    val summaryMap = summaryTables.map(st => (st.component, st)).toMap
+  def interComponentTaintAnalysis(apk: ApkGlobal): TaintAnalysisResult = {
+    val summaryTables = apk.getSummaryTables.values.toSet
+    val summaryMap = summaryTables.map(st => (st.component.compType, st)).toMap
     val iccChannels = summaryTables.map(_.get[ICC_Summary](CHANNELS.ICC))
     val allICCCallees: ISet[(ICFGNode, CSTCallee)] = iccChannels.flatMap(_.asCallee)
     val taint_result = new TaintStore
-    taintResults.foreach { case (_, components) =>
-      components.foreach { case (_, tar) =>
-
-        taint_result.addTaintPaths(tar.getTaintedPaths)
-      }
+    apk.getComponentTaintAnalysisResults.foreach { case (_, tar) =>
+      taint_result.addTaintPaths(tar.getTaintedPaths)
     }
-    taintResults.foreach { case (apk, components) =>
-      components.foreach { case (component, tar) =>
-        try {
+    apk.getComponentTaintAnalysisResults.foreach { case (component, tar) =>
+      try {
+        if(!apk.model.isNativeActivity(component)) {
           val summaryTable = summaryMap.getOrElse(component, throw new RuntimeException("Summary table does not exist for " + component))
           // link the intent edges
           val icc_summary: ICC_Summary = summaryTable.get(CHANNELS.ICC)
           icc_summary.asCaller foreach {
-            case (caller_node, icc_caller) =>
+            case (_, icc_caller) =>
               val icc_sink_paths = tar.getTaintedPaths.filter { path =>
-                path.getSink.node.node == caller_node
+                path.getSink.descriptor.typ == SourceAndSinkCategory.ICC_SINK
               }
               if (icc_sink_paths.nonEmpty) {
                 taint_result.removeTaintPaths(icc_sink_paths)
                 val icc_callees = allICCCallees.filter(_._2.matchWith(icc_caller))
                 icc_caller match {
                   case _: IntentCaller =>
-                    icc_callees foreach { case (callee_node, icc_callee) =>
+                    icc_callees foreach { case (_, icc_callee) =>
                       icc_callee match {
                         case intent_callee: IntentCallee =>
-                          apk.reporter.println(component + " --intent--> " + intent_callee.component)
-                          components.get(intent_callee.component) match {
+                          apk.reporter.println(component + " --intent--> " + intent_callee.component.compType)
+                          apk.getComponentTaintAnalysisResult(intent_callee.component.compType) match {
                             case Some(callee_tar) =>
                               val icc_source_paths = callee_tar.getTaintedPaths.filter { path =>
-                                path.getSource.node.node == callee_node
+                                path.getSource.descriptor.typ == SourceAndSinkCategory.ICC_SOURCE
                               }
-                              if(icc_source_paths.nonEmpty) {
+                              if (icc_source_paths.nonEmpty) {
                                 taint_result.removeTaintPaths(icc_source_paths)
                                 icc_sink_paths.foreach { sink_path =>
                                   icc_source_paths.foreach { source_path =>
-                                    val new_path = TSTaintPath(sink_path.getSource, source_path.getSink, sink_path.getPath ++ source_path.getPath)
-                                    System.err.println("Inter-component " + new_path)
+                                    val new_path = TSTaintPath(sink_path.getSource, source_path.getSink)
+                                    new_path.path = sink_path.getPath ++ source_path.getPath
                                     taint_result.addTaintPath(new_path)
                                   }
                                 }
@@ -232,13 +229,14 @@ class ComponentBasedAnalysis(yard: ApkYard) {
                 }
               }
           }
-        } catch {
-          case ex: Exception =>
-            if (DEBUG) ex.printStackTrace()
-            apk.reporter.error(TITLE, ex.getMessage)
         }
+      } catch {
+        case ex: Exception =>
+          if (DEBUG) ex.printStackTrace()
+          apk.reporter.error(TITLE, ex.getMessage)
       }
     }
+    System.err.println(taint_result)
     taint_result
   }
   

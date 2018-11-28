@@ -77,7 +77,7 @@ trait HeapBase extends RuleLhs with RuleRhs {
   * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
   */
 case class SuThis(heapOpt: Option[SuHeap]) extends HeapBase {
-  def make(heapAccesses: Seq[HeapAccess]): HeapBase = {
+  def make(heapAccesses: Seq[HeapAccess]): SuThis = {
     val heap: Seq[HeapAccess] = heapOpt match {
       case Some(h) => h.indices ++ heapAccesses
       case None => heapAccesses
@@ -92,7 +92,7 @@ case class SuThis(heapOpt: Option[SuHeap]) extends HeapBase {
   * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
   */
 case class SuArg(num: Int, heapOpt: Option[SuHeap]) extends HeapBase {
-  def make(heapAccesses: Seq[HeapAccess]): HeapBase = {
+  def make(heapAccesses: Seq[HeapAccess]): SuArg = {
     val heap: Seq[HeapAccess] = heapOpt match {
       case Some(h) => h.indices ++ heapAccesses
       case None => heapAccesses
@@ -107,7 +107,7 @@ case class SuArg(num: Int, heapOpt: Option[SuHeap]) extends HeapBase {
   * @author <a href="mailto:fgwei521@gmail.com">Fengguo Wei</a>
   */
 case class SuGlobal(fqn: String, heapOpt: Option[SuHeap]) extends HeapBase {
-  def make(heapAccesses: Seq[HeapAccess]): HeapBase = {
+  def make(heapAccesses: Seq[HeapAccess]): SuGlobal = {
     val heap: Seq[HeapAccess] = heapOpt match {
       case Some(h) => h.indices ++ heapAccesses
       case None => heapAccesses

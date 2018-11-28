@@ -10,9 +10,9 @@
 
 package org.argus.jawa.flow.summary.store
 
-import org.argus.jawa.flow.pta.Instance
-import org.argus.jawa.flow.taintAnalysis._
 import org.argus.jawa.core.util._
+import org.argus.jawa.flow.cfg.ICFGNode
+import org.argus.jawa.flow.taintAnalysis._
 
 class TaintStore extends TaintAnalysisResult {
   var sourceNodes: ISet[TaintSource] = isetEmpty
@@ -28,11 +28,6 @@ class TaintStore extends TaintAnalysisResult {
     sinkNodes.find(sn => sn.node == tn)
   }
 
-  val taintedInstance: MMap[Instance, IList[TaintNode]] = mmapEmpty
-  val sinkDependence: MMap[Instance, IList[TaintNode]] = mmapEmpty
-
-  def tainted(ins: Instance): Option[IList[TaintNode]] = taintedInstance.get(ins)
-
   private val paths: MSet[TaintPath] = msetEmpty
 
   def addTaintPath(path: TaintPath): Unit = this.paths += path
@@ -46,8 +41,6 @@ class TaintStore extends TaintAnalysisResult {
   def merge(ts: TaintStore): TaintStore = {
     sourceNodes ++= ts.sourceNodes
     sinkNodes ++= ts.sinkNodes
-    taintedInstance ++= ts.taintedInstance
-    sinkDependence ++= ts.sinkDependence
     paths ++= ts.getTaintedPaths
     this
   }
@@ -56,20 +49,32 @@ class TaintStore extends TaintAnalysisResult {
     val sb = new StringBuilder
     val paths = getTaintedPaths
     if(paths.nonEmpty) {
-      getTaintedPaths.foreach(tp => sb.append(tp.toString) + "\n")
+      getTaintedPaths.foreach(tp => sb.append(tp.toString + "\n"))
     }
     sb.toString.intern()
   }
 }
 
-case class TSTaintPath(source: TaintSource, sink: TaintSink, path: IList[TaintNode]) extends TaintPath {
+case class TSTaintPath(source: TaintSource, sink: TaintSink) extends TaintPath {
+  var path: IList[TaintNode] = ilistEmpty
+
   override def getSource: TaintSource = source
 
   override def getSink: TaintSink = sink
 
   override def getTypes: ISet[String] = isetEmpty
 
-  override def getPath: IList[TaintNode] = path
+  override def getPath: IList[TaintNode] = {
+    var prev: ICFGNode = null
+    val newPath: MList[TaintNode] = mlistEmpty
+    path.foreach { node =>
+      if(prev != node.node) {
+        newPath += node
+      }
+      prev = node.node
+    }
+    newPath.toList
+  }
 
   override def toString: String = {
     val sb = new StringBuilder
@@ -77,10 +82,10 @@ case class TSTaintPath(source: TaintSource, sink: TaintSink, path: IList[TaintNo
     getTypes foreach (typ => sb.append(typ + " "))
     sb.append("\n")
     sb.append(getSource.descriptor + "\n\t-> " + getSink.descriptor + "\n")
-    for(i <- 0 to path.size - 2) {
-      sb.append(path(i) + "\n\t-> ")
+    for(i <- 0 to getPath.size - 2) {
+      sb.append(getPath(i) + "\n\t-> ")
     }
-    sb.append(path.last + "\n")
+    sb.append(getPath.last + "\n")
     sb.toString().trim
   }
 }

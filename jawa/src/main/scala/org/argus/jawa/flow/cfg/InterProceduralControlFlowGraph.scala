@@ -166,11 +166,13 @@ class InterProceduralControlFlowGraph[Node <: ICFGNode] extends ControlFlowGraph
           case "Entry" =>
             val entryNode = addICFGEntryNode(callerContext.copy.setContext(calleeSig, "Entry"))
             entryNode.setOwner(calleeProc.getSignature)
+            entryNode.asInstanceOf[ICFGVirtualNode].paramNames ++= calleeProc.params.map(_._1)
             nodes += entryNode
             if (isFirst) this.entryN = entryNode
           case "Exit" =>
             val exitNode = addICFGExitNode(callerContext.copy.setContext(calleeSig, "Exit"))
             exitNode.setOwner(calleeProc.getSignature)
+            exitNode.asInstanceOf[ICFGVirtualNode].paramNames ++= calleeProc.params.map(_._1)
             nodes += exitNode
             if (isFirst) this.exitN = exitNode
           case a => throw new RuntimeException("unexpected virtual label: " + a)
@@ -184,6 +186,7 @@ class InterProceduralControlFlowGraph[Node <: ICFGNode] extends ControlFlowGraph
           c.asInstanceOf[ICFGInvokeNode].argNames = (cs.recvOpt ++ cs.args).toList
           c.asInstanceOf[ICFGInvokeNode].retNameOpt = cs.lhsOpt.map(lhs => lhs.name)
           c.asInstanceOf[ICFGLocNode].setLocIndex(ln.locIndex)
+          c.asInstanceOf[ICFGLocNode].setCode(l.toCode)
           c.asInstanceOf[ICFGInvokeNode].setCalleeSig(cs.signature)
           c.asInstanceOf[ICFGInvokeNode].setCallType(cs.kind)
           nodes += c
@@ -193,6 +196,7 @@ class InterProceduralControlFlowGraph[Node <: ICFGNode] extends ControlFlowGraph
             r.asInstanceOf[ICFGInvokeNode].argNames = (cs.recvOpt ++ cs.args).toList
             r.asInstanceOf[ICFGInvokeNode].retNameOpt = cs.lhsOpt.map(lhs => lhs.name)
             r.asInstanceOf[ICFGLocNode].setLocIndex(ln.locIndex)
+            r.asInstanceOf[ICFGLocNode].setCode(l.toCode)
             r.asInstanceOf[ICFGInvokeNode].setCalleeSig(cs.signature)
             r.asInstanceOf[ICFGInvokeNode].setCallType(cs.kind)
             nodes += r
@@ -202,6 +206,7 @@ class InterProceduralControlFlowGraph[Node <: ICFGNode] extends ControlFlowGraph
           val node = addICFGNormalNode(callerContext.copy.setContext(calleeSig, ln.locUri))
           node.setOwner(calleeProc.getSignature)
           node.asInstanceOf[ICFGLocNode].setLocIndex(ln.locIndex)
+          node.asInstanceOf[ICFGLocNode].setCode(l.toCode)
           nodes += node
         }
     }
@@ -457,7 +462,7 @@ sealed abstract class ICFGNode(context: Context) extends InterProceduralNode(con
 
 abstract class ICFGVirtualNode(context: Context) extends ICFGNode(context) {
   def getVirtualLabel: String
-  
+  var paramNames: IList[String] = ilistEmpty
   override def toString: String = getVirtualLabel + "@" + context.getMethodSig
 }
 
@@ -478,6 +483,10 @@ abstract class ICFGLocNode(context: Context) extends ICFGNode(context) with Alir
   protected val LOC_INDEX = "LocIndex"
   def setLocIndex(i: Int): Option[Int] = setProperty(LOC_INDEX, i)
   def locIndex: Int = getProperty[Int](LOC_INDEX)
+  protected val CODE = "Code"
+  def setCode(str: String): Option[String] = setProperty(CODE, str)
+
+  override def toString: String = getProperty[String](CODE)
 }
 
 abstract class ICFGInvokeNode(context: Context) extends ICFGLocNode(context) {
@@ -497,7 +506,7 @@ abstract class ICFGInvokeNode(context: Context) extends ICFGLocNode(context) {
     this.setProperty(CALL_TYPE, callType)
   }
   def getCallType: String = this.getPropertyOrElse(CALL_TYPE, throw new RuntimeException("Call type did not set for " + this))
-  override def toString: String = getInvokeLabel + "@" + context
+
   var argNames: IList[String] = ilistEmpty
   var retNameOpt: Option[String] = None
 }
@@ -510,6 +519,4 @@ final case class ICFGReturnNode(context: Context) extends ICFGInvokeNode(context
   def getInvokeLabel: String = "Return"
 }
 
-final case class ICFGNormalNode(context: Context) extends ICFGLocNode(context){
-  override def toString: String = context.toString
-}
+final case class ICFGNormalNode(context: Context) extends ICFGLocNode(context)

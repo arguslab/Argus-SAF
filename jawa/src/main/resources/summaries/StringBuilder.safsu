@@ -9,7 +9,7 @@ java.lang.StringBuilder:value:java.lang.String;
 ;
 
 `Ljava/lang/StringBuilder;.<init>:(Ljava/lang/CharSequence;)V`:
-   this.value = arg:1
+   this.value = java.lang.String@~
 ;
 
 `Ljava/lang/StringBuilder;.<init>:(Ljava/lang/String;)V`:
@@ -72,7 +72,7 @@ java.lang.StringBuilder:value:java.lang.String;
 ;
 
 `Ljava/lang/StringBuilder;.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;`:
-  this.value += java.lang.String@~
+  this.value += arg:1
   ret = this
 ;
 

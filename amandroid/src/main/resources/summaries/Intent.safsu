@@ -263,15 +263,15 @@ android.content.Intent:mCategories:java.lang.String;
 ;
 
 `Landroid/content/Intent;.getStringArrayExtra:(Ljava/lang/String;)[Ljava/lang/String;`:
-  ret = this.mExtras.entries.value
+  ret = java.lang.String[]@~
 ;
 
 `Landroid/content/Intent;.getStringArrayListExtra:(Ljava/lang/String;)Ljava/util/ArrayList;`:
-  ret = this.mExtras.entries.value
+  ret = java.lang.String[]@~
 ;
 
 `Landroid/content/Intent;.getStringExtra:(Ljava/lang/String;)Ljava/lang/String;`:
-  ret = this.mExtras.entries.value
+  ret = java.lang.String@~
 ;
 
 `Landroid/content/Intent;.getType:()Ljava/lang/String;`:
