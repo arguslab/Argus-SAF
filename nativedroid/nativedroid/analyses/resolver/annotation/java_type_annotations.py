@@ -1,3 +1,4 @@
+import re
 from claripy import Annotation
 
 __author__ = "Xingwei Lin, Fengguo Wei"
@@ -13,9 +14,9 @@ class JavaTypeAnnotation(Annotation):
         :param obj_type: Type of this Java value.
         """
         self._source = source
+        self._heap = 'arg:' + str(re.split('arg|_', source)[1])
         self._obj_type = obj_type
-        self._field_info = {'is_field': False, 'field_name': None, 'original_subordinate_obj': None,
-                            'current_subordinate_obj': None}
+        self._field_info = {'is_field': False, 'field_name': None, 'base_annotation': None}
         self._array_info = {'is_element': False, 'element_index': None, 'subordinate_array': None}
         self._taint_info = {'is_taint': False, 'taint_type': None, 'taint_info': None}
         self._icc_info = {'is_icc': False, 'activity_name': None, 'extra': None}
@@ -27,6 +28,14 @@ class JavaTypeAnnotation(Annotation):
     @source.setter
     def source(self, value):
         self._source = value
+
+    @property
+    def heap(self):
+        return self._heap
+
+    @heap.setter
+    def heap(self, value):
+        self._heap = value
 
     @property
     def obj_type(self):

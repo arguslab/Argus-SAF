@@ -56,16 +56,21 @@ class InterProceduralDataDependenceGraph[Node <: IDDGNode] extends DataDependenc
 			case cn: ICFGCenterNode =>
 				addIDDGCenterNode(cn)
 			case cn: ICFGCallNode =>
-				val inc = if(cn.getCallType == "static") 1 else 0
+				cn.recvNameOpt match {
+					case Some(recv) =>
+						val n = addIDDGCallArgNode(cn, 0)
+						n.asInstanceOf[IDDGCallArgNode].argName = recv
+					case None =>
+				}
 				for (i <- cn.argNames.indices) {
 					val argName = cn.argNames(i)
-					val n = addIDDGCallArgNode(cn, i + inc)
+					val n = addIDDGCallArgNode(cn, i + 1)
 					n.asInstanceOf[IDDGCallArgNode].argName = argName
 				}
 				val succs = icfg.successors(cn)
 				if (succs.exists { succ => succ.isInstanceOf[ICFGReturnNode] }) {
 					val vn = addIDDGVirtualBodyNode(cn)
-					vn.asInstanceOf[IDDGVirtualBodyNode].argNames = cn.argNames
+					vn.asInstanceOf[IDDGVirtualBodyNode].argNames = (cn.recvNameOpt ++ cn.argNames).toList
 				}
 			case rn: ICFGReturnNode =>
 				rn.retNameOpt match {
@@ -74,10 +79,15 @@ class InterProceduralDataDependenceGraph[Node <: IDDGNode] extends DataDependenc
 						rvn.asInstanceOf[IDDGReturnVarNode].retVarName = name
 					case None =>
 				}
-				val inc = if(rn.getCallType == "static") 1 else 0
+				rn.recvNameOpt match {
+					case Some(recv) =>
+						val n = addIDDGReturnArgNode(rn, 0)
+						n.asInstanceOf[IDDGCallArgNode].argName = recv
+					case None =>
+				}
 				for (i <- rn.argNames.indices) {
 					val argName = rn.argNames(i)
-					val n = addIDDGReturnArgNode(rn, i + inc)
+					val n = addIDDGReturnArgNode(rn, i + 1)
 					n.asInstanceOf[IDDGReturnArgNode].argName = argName
 				}
 			case nn: ICFGNormalNode => addIDDGNormalNode(nn)

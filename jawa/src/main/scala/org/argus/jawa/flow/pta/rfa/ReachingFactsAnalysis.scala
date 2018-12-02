@@ -53,18 +53,11 @@ class ReachingFactsAnalysis(
     val initial: ISet[RFAFact] = isetEmpty
     val ip = new Ip(icfg)
     icfg.collectCfgToBaseGraph(entryPointProc, initContext, isFirst = true, callr.needReturnNode())
-    val iota: ISet[RFAFact] = initialFacts + RFAFact(StaticFieldSlot("Analysis.RFAiota"), PTAInstance(JavaKnowledge.OBJECT.toUnknown, initContext.copy))
-    val entryContext = icfg.entryNode.getContext
-    entryPointProc.getParams.foreach { case (name, typ) =>
-      if(typ.isObject) {
-        val ins = if(typ == JavaKnowledge.STRING) {
-          PTAPointStringInstance(entryContext)
-        } else {
-          PTAInstance(typ, entryContext)
-        }
-        ptaresult.addInstance(entryContext, VarSlot(name), ins)
-      }
+    initialFacts.foreach { fact =>
+      val entryContext = icfg.entryNode.getContext.copy
+      ptaresult.addInstance(entryContext, fact.slot, fact.ins)
     }
+    val iota: ISet[RFAFact] = initialFacts + RFAFact(StaticFieldSlot("Analysis.RFAiota"), PTAInstance(JavaKnowledge.OBJECT.toUnknown, initContext.copy))
     try {
       mdf = MonotoneDataFlowAnalysisFramework[ICFGNode, RFAFact, Context](icfg,
         forward = true, lub = true, ip, gen, kill, Some(callr), iota, initial)

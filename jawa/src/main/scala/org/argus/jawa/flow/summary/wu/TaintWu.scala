@@ -11,7 +11,7 @@
 package org.argus.jawa.flow.summary.wu
 
 import org.argus.jawa.core.ast.ReturnStatement
-import org.argus.jawa.core.elements.Signature
+import org.argus.jawa.core.elements.{JavaKnowledge, Signature}
 import org.argus.jawa.core.util._
 import org.argus.jawa.core.{Global, JawaMethod}
 import org.argus.jawa.flow.cfg._
@@ -32,23 +32,50 @@ class TaintWu[T <: Global](
     ts: TaintStore) extends DataFlowWu[T, TaintSummaryRule](global, method, sm, handler) {
 
   private def getTainted(cn: ICFGCallNode, poss: ISet[SSPosition], isSource: Boolean): ISet[Instance] = {
-    val vars: MSet[String] = msetEmpty
     if(poss.isEmpty) {
+      val vars: MSet[String] = msetEmpty
       // Source means return value, sink means all poss
       if(isSource) {
         vars ++= cn.retNameOpt
       } else {
         vars ++= cn.argNames
       }
+      vars.flatMap { v =>
+        ptaresult.getRelatedInstances(cn.getContext, VarSlot(v)) ++ ptaresult.getRelatedInstancesAfterCall(cn.getContext, VarSlot(v))
+      }.toSet
     } else {
-      val inc = if(cn.getCallType == "static") 1 else 0
+      val inss: MSet[Instance] = msetEmpty
       poss.foreach { pos =>
-        vars ++= cn.argNames.lift(pos.pos - inc)
+        cn.argNames.lift(pos.pos - 1) match {
+          case Some(name) =>
+            val argInss = ptaresult.getRelatedInstances(cn.getContext, VarSlot(name)) ++ ptaresult.getRelatedInstancesAfterCall(cn.getContext, VarSlot(name))
+            def getFieldInss(baseInss: ISet[Instance], fields: IList[String]): ISet[Instance] = {
+              if(fields.isEmpty) return baseInss
+              val field = fields.head
+              var newInss = baseInss.flatMap { baseIns =>
+                ptaresult.getRelatedInstances(cn.getContext, FieldSlot(baseIns, field)) ++ ptaresult.getRelatedInstancesAfterCall(cn.getContext, FieldSlot(baseIns, field))
+              }
+              if(newInss.isEmpty) {
+                val typ = baseInss.head.typ
+                val clazz = global.getClassOrResolve(typ)
+                val ftype = clazz.getField(field) match {
+                  case Some(f) => f.getType
+                  case None => JavaKnowledge.OBJECT
+                }
+                baseInss.foreach { baseIns =>
+                  val fins = Instance.getInstance(ftype, baseIns.defSite, toUnknown = true)
+                  ptaresult.addInstance(cn.getContext, FieldSlot(baseIns, field), fins)
+                  newInss += fins
+                }
+              }
+              getFieldInss(newInss, fields.tail)
+            }
+            inss ++= getFieldInss(argInss, pos.fields)
+          case None =>
+        }
       }
+      inss.toSet
     }
-    vars.flatMap { v =>
-      ptaresult.getRelatedInstances(cn.getContext, VarSlot(v)) ++ ptaresult.getRelatedInstancesAfterCall(cn.getContext, VarSlot(v))
-    }.toSet
   }
 
   object TaintStatus extends Enumeration {
@@ -60,7 +87,6 @@ class TaintWu[T <: Global](
   def getTaintInstance: ICFGNode => (IMap[Instance, TaintInfo], IMap[Instance, TaintInfo]) = {
     case en: ICFGEntryNode =>
       val srcInss: MMap[Instance, TaintInfo] = mmapEmpty
-      val inc = if(method.isStatic) 1 else 0
       en.paramNames.indices foreach { idx =>
         val name = en.paramNames(idx)
         val inss = ptaresult.getRelatedInstances(en.getContext, VarSlot(name))
@@ -69,7 +95,7 @@ class TaintWu[T <: Global](
         } else {
           TaintStatus.PASS
         }
-        val info = TaintInfo(status, Some(new SSPosition(idx + inc)), ilistEmpty)
+        val info = TaintInfo(status, Some(new SSPosition(idx + 1)), ilistEmpty)
         srcInss ++= inss.map(ins => (ins, info))
       }
       (srcInss.toMap, imapEmpty)
@@ -99,7 +125,7 @@ class TaintWu[T <: Global](
                 val info = TaintInfo(TaintStatus.FAKE, None, path)
                 srcInss += ((ins, info))
               case SinkSummaryRule(hb, path) =>
-                val inss = getHeapInstance(hb, cn.retNameOpt, cn.retNameOpt, cn.argNames, cn.getContext)
+                val inss = getHeapInstance(hb, cn.retNameOpt, cn.recvNameOpt, cn.argNames, cn.getContext)
                 val info = TaintInfo(TaintStatus.FAKE, None, path)
                 sinkInss ++= inss.map(ins => (ins, info))
               case _ =>
@@ -135,7 +161,7 @@ class TaintWu[T <: Global](
           allInss ++= ptaresult.getRelatedInstancesAfterCall(cn.getContext, VarSlot(rn))
         case None =>
       }
-      for (arg <- cn.argNames) {
+      for (arg <- cn.allArgs) {
         allInss ++= ptaresult.getRelatedInstances(cn.getContext, VarSlot(arg)) ++ ptaresult.getRelatedInstancesAfterCall(cn.getContext, VarSlot(arg))
       }
       allInss.toSet
@@ -148,7 +174,6 @@ class TaintWu[T <: Global](
 
     val srcInstances: MSet[(Instance, IList[TaintNode])] = msetEmpty
     val sinkHeapBases: MSet[(HeapBase, IList[TaintNode])] = msetEmpty
-
     def dfs(node: ICFGNode, taintInss: IMap[Instance, TaintInfo], paths: IMap[Instance, IList[TaintNode]]): Unit = {
       var newPaths: IMap[Instance, IList[TaintNode]] = paths
       // handle pass through
@@ -158,9 +183,6 @@ class TaintWu[T <: Global](
       }
       // handle source and sink
       val (srcInss, sinkInss) = getTaintInstance(node)
-//      println(node)
-//      println("srcInss: " + srcInss)
-//      println("sinkInss: " + sinkInss)
       sinkInss.foreach { case (sink, realsink) =>
         taintInss.get(sink) match {
           case Some(realsource) =>
@@ -255,10 +277,24 @@ class TaintWu[T <: Global](
       rules +:= SourceSummaryRule(srcIns, path)
     }
     // Update SinkSummaryRule
-    sinkHeapBases foreach { case (hb, path) =>
+    clearHeapBases(sinkHeapBases.toSet) foreach { case (hb, path) =>
       rules +:= SinkSummaryRule(hb, path)
     }
     rules
+  }
+
+  def clearHeapBases(heapBases: ISet[(HeapBase, IList[TaintNode])]): ISet[(HeapBase, IList[TaintNode])] = {
+    var minHeapBases: ISet[HeapBase] = isetEmpty
+    heapBases.foreach { case (hb, path) =>
+      val size = minHeapBases.size
+      minHeapBases = minHeapBases.filterNot { mhb =>
+        mhb.toString.startsWith(hb.toString)
+      }
+      if(minHeapBases.isEmpty || minHeapBases.size < size) {
+        minHeapBases += hb
+      }
+    }
+    heapBases.filter{case (k, _) => minHeapBases.contains(k)}
   }
 
   override def toString: String = s"TaintWu($method)"

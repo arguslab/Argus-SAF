@@ -44,7 +44,7 @@ class BottomUpSummaryGenerator[T <: Global, S <: SummaryRule](
           generateHeapSummary(wu.method) match {
             case Some(w) =>
               wu match {
-                case dfw: DataFlowWu[T, S] => dfw.setIDFG(w.getIDFG)
+                case dfw: DataFlowWu[T, S] => dfw.setIDFG(w.getIDFG, w.getHeapMap)
                 case _ =>
               }
             case None =>

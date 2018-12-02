@@ -122,8 +122,8 @@ class ModelCallHandler(val scopeManager: ScopeManager) {
     
     callModelMap.get(calleeProc.getSignature) match {
       case Some(model) =>
-        val (facts, byPassFlag) = model.doModelCall(sm, s, calleeProc, retOpt, recvOpt, args, currentContext)
-        if(!byPassFlag) {
+        val (facts, bypassFlag) = model.doModelCall(sm, s, calleeProc, retOpt, recvOpt, args, currentContext)
+        if(!bypassFlag) {
           val (newF, delF) = ReachingFactsAnalysisHelper.getUnknownObject(calleeProc, s, retOpt, recvOpt, args, currentContext)
           return facts -- delF ++ newF
         }

@@ -340,8 +340,8 @@ object ReachingFactsAnalysisHelper {
           if(fieldValue.isEmpty) {
             val typ = ae.typ
             val newUnknown =
-              if(typ.jawaName == "java.lang.String") PTAPointStringInstance(currentContext)
-              else PTAInstance(typ.toUnknown, currentContext)
+              if(typ.jawaName == "java.lang.String") PTAPointStringInstance(ins.defSite)
+              else PTAInstance(typ.toUnknown, ins.defSite)
             result += RFAFact(fieldSlot, newUnknown)
             ptaresult.addInstance(currentContext, fieldSlot, newUnknown)
           }
@@ -357,8 +357,8 @@ object ReachingFactsAnalysisHelper {
             val dim = if(originalType.dimensions == 0) 0 else originalType.dimensions - 1
             val newType = new JawaType(originalType.baseType, dim)
             val newUnknown =
-              if(newType.jawaName == "java.lang.String") PTAPointStringInstance(currentContext)
-              else PTAInstance(newType.toUnknown, currentContext)
+              if(newType.jawaName == "java.lang.String") PTAPointStringInstance(ins.defSite)
+              else PTAInstance(newType.toUnknown, ins.defSite)
             result += RFAFact(arraySlot, newUnknown)
             ptaresult.addInstance(currentContext, arraySlot, newUnknown)
           }

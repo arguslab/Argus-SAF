@@ -65,7 +65,7 @@ object BuildICFGFromExistingPTAResult {
                 case None =>
               }
             case _ =>
-              val inss = pta_result.getPTSMap(icn.context).getOrElse(VarSlot(icn.argNames.head), isetEmpty)
+              val inss = pta_result.getPTSMap(icn.context).getOrElse(VarSlot(icn.recvNameOpt.get), isetEmpty)
               callType match {
                 case "direct" =>
                   CallHandler.getDirectCalleeMethod(global, calleesig) match {

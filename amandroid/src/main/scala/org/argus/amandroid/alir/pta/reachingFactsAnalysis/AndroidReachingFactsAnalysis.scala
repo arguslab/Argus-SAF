@@ -49,7 +49,7 @@ class AndroidReachingFactsAnalysis(
     currentComponent = entryPointProc.getDeclaringClass
     val idfg = process(entryPointProc, initialFacts, initContext, new Callr)
     registerReceiverNodes.foreach { node =>
-      InterComponentCommunicationModel.registerReceiver(apk, ptaresult, node.argNames.headOption, node.argNames.tail, node.context)
+      InterComponentCommunicationModel.registerReceiver(apk, ptaresult, node.recvNameOpt, node.argNames, node.context)
     }
     idfg
   }

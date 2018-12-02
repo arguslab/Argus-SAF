@@ -67,7 +67,7 @@ abstract class AndroidSourceAndSinkManager(val sasFilePath: String) extends Sour
       case IntentSinkKind.IMPLICIT =>
         if(InterComponentCommunicationModel.isIccOperation(invNode.getCalleeSig)) {
           val args = invNode.argNames
-          val intentSlot = VarSlot(args(1))
+          val intentSlot = VarSlot(args.head)
           val intentValues = s.pointsToSet(invNode.getContext, intentSlot)
           val intentContents = IntentHelper.getIntentContents(s, intentValues, invNode.getContext)
           val compType = AndroidConstants.getIccCallType(invNode.getCalleeSig.getSubSignature)

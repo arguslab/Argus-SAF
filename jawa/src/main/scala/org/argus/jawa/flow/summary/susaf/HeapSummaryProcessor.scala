@@ -62,7 +62,7 @@ object HeapSummaryProcessor {
       case cr: ClearRule =>
         output = ReachingFactsAnalysisHelper.aggregate(output)
         val map = ReachingFactsAnalysisHelper.getFactMap(output)
-        val slots = processLhs(global, summary.sig, cr.v, retOpt, recvOpt, args, map, context, extraFacts)
+        val slots = processLhs(global, summary.sig, cr.v, retOpt, recvOpt, args, map, extraFacts)
         val heaps = ReachingFactsAnalysisHelper.getRelatedHeapFactsFrom(output.filter(i => slots.contains(i.slot)), output)
         output --= heaps
         kill = true
@@ -96,7 +96,7 @@ object HeapSummaryProcessor {
       input: IMap[PTASlot, ISet[Instance]],
       context: Context,
       extraFacts: MSet[RFAFact]): ISet[RFAFact] = {
-    val slots = processLhs(global, sig, br.lhs, retOpt, recvOpt, args, input, context, extraFacts)
+    val slots = processLhs(global, sig, br.lhs, retOpt, recvOpt, args, input, extraFacts)
     val isReturn = retOpt match {
       case Some(ret) => slots.exists(s => s.getId == ret)
       case None => false
@@ -123,16 +123,16 @@ object HeapSummaryProcessor {
     rhs match {
       case st: SuThis =>
         val thisSlot = VarSlot(recvOpt.getOrElse("hack"))
-        slots = handleHeap(global, sig, thisSlot, st.heapOpt, retOpt, recvOpt, args, input, context, extraFacts)
+        slots = handleHeap(global, sig, thisSlot, st.heapOpt, retOpt, recvOpt, args, input, extraFacts)
       case sr: SuRet =>
         val retSlot = VarSlot(retOpt.getOrElse("hack"))
-        slots = handleHeap(global, sig, retSlot, sr.heapOpt, retOpt, recvOpt, args, input, context, extraFacts)
+        slots = handleHeap(global, sig, retSlot, sr.heapOpt, retOpt, recvOpt, args, input, extraFacts)
       case sa: SuArg =>
         val argSlot = VarSlot(args(sa.num - 1))
-        slots = handleHeap(global, sig, argSlot, sa.heapOpt, retOpt, recvOpt, args, input, context, extraFacts)
+        slots = handleHeap(global, sig, argSlot, sa.heapOpt, retOpt, recvOpt, args, input, extraFacts)
       case sg: SuGlobal =>
         val gSlot = StaticFieldSlot(sg.fqn)
-        slots = handleHeap(global, sig, gSlot, sg.heapOpt, retOpt, recvOpt, args, input, context, extraFacts)
+        slots = handleHeap(global, sig, gSlot, sg.heapOpt, retOpt, recvOpt, args, input, extraFacts)
       case sc: SuClassOf =>
         val newContext = sc.loc match {
           case scl: SuConcreteLocation =>
@@ -162,7 +162,7 @@ object HeapSummaryProcessor {
     if(inss.isEmpty) {
       slots.foreach {
         case hs: HeapSlot =>
-          extraFacts ++= createHeapInstance(global, hs, context).map {i =>
+          extraFacts ++= createHeapInstance(global, hs).map {i =>
             RFAFact(hs, i)
           }
           inss ++= extraFacts.filter(i => slots.contains(i.slot)).map(i => i.v)
@@ -180,22 +180,21 @@ object HeapSummaryProcessor {
       recvOpt: Option[String],
       args: IList[String],
       input: IMap[PTASlot, ISet[Instance]],
-      context: Context,
       extraFacts: MSet[RFAFact]): ISet[PTASlot] = {
     var slots: ISet[PTASlot] = isetEmpty
     lhs match {
       case st: SuThis =>
         val thisSlot = VarSlot(recvOpt.getOrElse("hack"))
-        slots = handleHeap(global, sig, thisSlot, st.heapOpt, retOpt, recvOpt, args, input, context, extraFacts)
+        slots = handleHeap(global, sig, thisSlot, st.heapOpt, retOpt, recvOpt, args, input, extraFacts)
       case sa: SuArg =>
         val argSlot = VarSlot(args(sa.num - 1))
-        slots = handleHeap(global, sig, argSlot, sa.heapOpt, retOpt, recvOpt, args, input, context, extraFacts)
+        slots = handleHeap(global, sig, argSlot, sa.heapOpt, retOpt, recvOpt, args, input, extraFacts)
       case sg: SuGlobal =>
         val gSlot = StaticFieldSlot(sg.fqn)
-        slots = handleHeap(global, sig, gSlot, sg.heapOpt, retOpt, recvOpt, args, input, context, extraFacts)
+        slots = handleHeap(global, sig, gSlot, sg.heapOpt, retOpt, recvOpt, args, input, extraFacts)
       case sr: SuRet =>
         val rSlot = VarSlot(retOpt.getOrElse("hack"))
-        slots = handleHeap(global, sig, rSlot, sr.heapOpt, retOpt, recvOpt, args, input, context, extraFacts)
+        slots = handleHeap(global, sig, rSlot, sr.heapOpt, retOpt, recvOpt, args, input, extraFacts)
     }
     slots
   }
@@ -209,7 +208,6 @@ object HeapSummaryProcessor {
       recvOpt: Option[String],
       args: IList[String],
       input: IMap[PTASlot, ISet[Instance]],
-      context: Context,
       extraFacts: MSet[RFAFact]): ISet[PTASlot] = {
     var slots: ISet[PTASlot] = isetEmpty
     heapOpt match {
@@ -220,7 +218,7 @@ object HeapSummaryProcessor {
           if(inss.isEmpty) {
             currentSlots.foreach {
               case hs: HeapSlot =>
-                extraFacts ++= createHeapInstance(global, hs, context).map {i =>
+                extraFacts ++= createHeapInstance(global, hs).map {i =>
                   inss += i
                   RFAFact(hs, i)
                 }
@@ -240,18 +238,18 @@ object HeapSummaryProcessor {
     slots
   }
 
-  private def createHeapInstance(global: Global, hs: HeapSlot, context: Context): Option[Instance] = {
+  private def createHeapInstance(global: Global, hs: HeapSlot): Option[Instance] = {
     hs match {
       case fs: FieldSlot =>
         val baseClass = global.getClassOrResolve(fs.instance.typ)
         baseClass.getField(fs.fieldName) match {
-          case Some(f) => Some(Instance.getInstance(f.getType, context, toUnknown = false))
-          case None => Some(Instance.getInstance(JavaKnowledge.OBJECT, context, toUnknown = true))
+          case Some(f) => Some(Instance.getInstance(f.getType, hs.instance.defSite, toUnknown = false))
+          case None => Some(Instance.getInstance(JavaKnowledge.OBJECT, hs.instance.defSite, toUnknown = true))
         }
       case as: ArraySlot =>
         require(as.instance.typ.dimensions > 0, "Array type dimensions should larger than 0.")
         val typ = new JawaType(as.instance.typ.baseType, as.instance.typ.dimensions - 1)
-        Some(Instance.getInstance(typ, context, toUnknown = true))
+        Some(Instance.getInstance(typ, as.instance.defSite, toUnknown = true))
       case _ => None // should not be here
     }
   }

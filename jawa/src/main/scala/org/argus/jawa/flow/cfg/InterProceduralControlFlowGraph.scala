@@ -183,7 +183,8 @@ class InterProceduralControlFlowGraph[Node <: ICFGNode] extends ControlFlowGraph
           val cs = l.statement.asInstanceOf[CallStatement]
           val c = addICFGCallNode(callerContext.copy.setContext(calleeSig, ln.locUri))
           c.setOwner(calleeProc.getSignature)
-          c.asInstanceOf[ICFGInvokeNode].argNames = (cs.recvOpt ++ cs.args).toList
+          c.asInstanceOf[ICFGInvokeNode].recvNameOpt = cs.recvOpt
+          c.asInstanceOf[ICFGInvokeNode].argNames = cs.args
           c.asInstanceOf[ICFGInvokeNode].retNameOpt = cs.lhsOpt.map(lhs => lhs.name)
           c.asInstanceOf[ICFGLocNode].setLocIndex(ln.locIndex)
           c.asInstanceOf[ICFGLocNode].setCode(l.toCode)
@@ -193,7 +194,8 @@ class InterProceduralControlFlowGraph[Node <: ICFGNode] extends ControlFlowGraph
           if(needReturnNode) {
             val r = addICFGReturnNode(callerContext.copy.setContext(calleeSig, ln.locUri))
             r.setOwner(calleeProc.getSignature)
-            r.asInstanceOf[ICFGInvokeNode].argNames = (cs.recvOpt ++ cs.args).toList
+            r.asInstanceOf[ICFGInvokeNode].recvNameOpt = cs.recvOpt
+            r.asInstanceOf[ICFGInvokeNode].argNames = cs.args
             r.asInstanceOf[ICFGInvokeNode].retNameOpt = cs.lhsOpt.map(lhs => lhs.name)
             r.asInstanceOf[ICFGLocNode].setLocIndex(ln.locIndex)
             r.asInstanceOf[ICFGLocNode].setCode(l.toCode)
@@ -507,8 +509,10 @@ abstract class ICFGInvokeNode(context: Context) extends ICFGLocNode(context) {
   }
   def getCallType: String = this.getPropertyOrElse(CALL_TYPE, throw new RuntimeException("Call type did not set for " + this))
 
+  var recvNameOpt: Option[String] = None
   var argNames: IList[String] = ilistEmpty
   var retNameOpt: Option[String] = None
+  def allArgs: IList[String] = (recvNameOpt ++ argNames).toList
 }
 
 final case class ICFGCallNode(context: Context) extends ICFGInvokeNode(context){

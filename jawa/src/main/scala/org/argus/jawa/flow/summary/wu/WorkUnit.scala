@@ -12,7 +12,7 @@ package org.argus.jawa.flow.summary.wu
 
 import org.argus.jawa.core._
 import org.argus.jawa.core.ast._
-import org.argus.jawa.core.elements.{JavaKnowledge, Signature}
+import org.argus.jawa.core.elements.{JavaKnowledge, JawaType, Signature}
 import org.argus.jawa.core.util.Property.Key
 import org.argus.jawa.core.util._
 import org.argus.jawa.flow.Context
@@ -82,46 +82,23 @@ abstract class DataFlowWu[T <: Global, S <: SummaryRule] (
   var icfg: InterProceduralControlFlowGraph[ICFGNode] = new InterProceduralControlFlowGraph[ICFGNode]
   var idfgOpt: Option[InterProceduralDataFlowGraph] = None
   def hasIDFG: Boolean = idfgOpt.isDefined
-  def setIDFG(idfg: InterProceduralDataFlowGraph): Unit = {
-    idfgOpt = Some(idfg)
-    ptaresult = idfg.ptaresult
-    icfg = idfg.icfg
-    var pos = 0
-    method.thisOpt match {
-      case Some(_) =>
-        val thisContext = initContext.copy
-        thisContext.setContext(method.getSignature, s"Entry.$pos")
-        pos += 1
-        val ins = Instance.getInstance(method.getDeclaringClass.typ, thisContext, toUnknown = false)
-        addHeapBase(ins, SuThis(None))
-      case None =>
-    }
-    method.params.indices.foreach { i =>
-      val (_, typ) = method.params(i)
-      if(typ.isObject) {
-        val unknown = typ.jawaName match {
-          case "java.lang.String" => false
-          case _ => true
-        }
-        val argContext = initContext.copy
-        argContext.setContext(method.getSignature, s"Entry.$pos")
-        pos += 1
-        val ins = Instance.getInstance(typ, argContext, unknown)
-        addHeapBase(ins, SuArg(i + 1, None))
-      }
-    }
+  def setIDFG(idfg: InterProceduralDataFlowGraph, heapMap: IMap[Instance, MList[HeapBase]]): Unit = {
+    this.idfgOpt = Some(idfg)
+    this.ptaresult = idfg.ptaresult
+    this.icfg = idfg.icfg
+    this.heapMap ++= heapMap
   }
   def getIDFG: InterProceduralDataFlowGraph = {
     idfgOpt match {
       case Some(idfg) => idfg
       case None =>
         val idfg = generateIDFG_RFA
-        setIDFG(idfg)
+        setIDFG(idfg, imapEmpty)
         idfg
     }
   }
 
-  protected val heapMap: MMap[Instance, MList[HeapBase]] = mmapEmpty
+  protected var heapMap: MMap[Instance, MList[HeapBase]] = mmapEmpty
 
   protected def addHeapBase(ins: Instance, heapBase: HeapBase): Unit = {
     this.heapMap.getOrElseUpdate(ins, mlistEmpty) += heapBase
@@ -135,6 +112,8 @@ abstract class DataFlowWu[T <: Global, S <: SummaryRule] (
     this.heapMap.getOrElse(ins, mlistEmpty).headOption
   }
 
+  def getHeapMap: IMap[Instance, MList[HeapBase]] = this.heapMap.toMap
+
   override def needHeapSummary: Boolean = true
 
   def generateSummary(suGen: (Signature, IList[S]) => Summary[S]): Summary[S] = {
@@ -142,38 +121,79 @@ abstract class DataFlowWu[T <: Global, S <: SummaryRule] (
     suGen(method.getSignature, parseIDFG(idfg))
   }
 
-  def generateIDFG_RFA: InterProceduralDataFlowGraph = {
-    val analysis = new ReachingFactsAnalysis(global, icfg, ptaresult, handler, sm, new ClassLoadManager, resolve_static_init, Some(new MyTimeout(1 minutes)))
-    val initialFacts: ISet[RFAFact] = {
-      val result = msetEmpty[RFAFact]
-      var pos = 0
-      method.thisOpt match {
-        case Some(t) =>
-          val thisContext = initContext.copy
-          thisContext.setContext(method.getSignature, s"Entry.$pos")
-          pos += 1
-          val ins = Instance.getInstance(method.getDeclaringClass.typ, thisContext, toUnknown = false)
-          ptaresult.addInstance(thisContext, VarSlot(t), ins)
-          result += RFAFact(VarSlot(t), ins)
-        case None =>
-      }
-      method.params.indices.foreach { i =>
-        val (name, typ) = method.params(i)
-        if(typ.isObject) {
-          val unknown = typ.jawaName match {
-            case "java.lang.String" => false
-            case _ => true
+  private def isInterestingType(typ: JawaType): Boolean = {
+    if(typ.isObject) {
+      val clazz = global.getClassOrResolve(typ)
+      clazz.isApplicationClass
+    } else {
+      false
+    }
+  }
+
+  private def getNextLevelFacts(facts: ISet[RFAFact], level: Int): ISet[RFAFact] = {
+    val newfacts: MSet[RFAFact] = msetEmpty
+    if(level == 0) return newfacts.toSet
+    facts.foreach { fact =>
+      val defSite = fact.ins.defSite
+      val typ = fact.ins.typ
+      if(isInterestingType(typ)) {
+        val clazz = global.getClassOrResolve(typ)
+        clazz.getFields.foreach { field =>
+          if(field.typ.isObject) {
+            val context = defSite.copy.setContext(defSite.getMethodSig, defSite.getLocUri + "." + field.getName)
+            val unknown = field.typ.jawaName match {
+              case "java.lang.String" => false
+              case _ => true
+            }
+            val slot = FieldSlot(fact.ins, field.getName)
+            val ins = Instance.getInstance(field.typ, context, unknown)
+            newfacts += RFAFact(slot, ins)
+            getLatestHeapBase(fact.ins) match {
+              case Some(hb) =>
+                addHeapBase(ins, hb.make(Seq(SuFieldAccess(field.getName))))
+              case None =>
+            }
           }
-          val argContext = initContext.copy
-          argContext.setContext(method.getSignature, s"Entry.$pos")
-          pos += 1
-          val ins = Instance.getInstance(typ, argContext, unknown)
-          ptaresult.addInstance(argContext, VarSlot(name), ins)
-          result += RFAFact(VarSlot(name), ins)
         }
       }
-      result.toSet
     }
+    getNextLevelFacts(newfacts.toSet, level - 1) ++ newfacts
+  }
+
+  private def prepareInitialFacts(level: Int): ISet[RFAFact] = {
+    val result = msetEmpty[RFAFact]
+    var pos = 0
+    method.thisOpt match {
+      case Some(t) =>
+        val thisContext = initContext.copy
+        thisContext.setContext(method.getSignature, s"Entry.$pos")
+        pos += 1
+        val ins = Instance.getInstance(method.getDeclaringClass.typ, thisContext, toUnknown = false)
+        result += RFAFact(VarSlot(t), ins)
+        addHeapBase(ins, SuThis(None))
+      case None =>
+    }
+    method.params.indices.foreach { i =>
+      val (name, typ) = method.params(i)
+      if(typ.isObject) {
+        val unknown = typ.jawaName match {
+          case "java.lang.String" => false
+          case _ => true
+        }
+        val argContext = initContext.copy
+        argContext.setContext(method.getSignature, s"Entry.$pos")
+        pos += 1
+        val ins = Instance.getInstance(typ, argContext, unknown)
+        result += RFAFact(VarSlot(name), ins)
+        addHeapBase(ins, SuArg(i + 1, None))
+      }
+    }
+    getNextLevelFacts(result.toSet, level) ++ result
+  }
+
+  def generateIDFG_RFA: InterProceduralDataFlowGraph = {
+    val analysis = new ReachingFactsAnalysis(global, icfg, ptaresult, handler, sm, new ClassLoadManager, resolve_static_init, Some(new MyTimeout(1 minutes)))
+    val initialFacts: ISet[RFAFact] = prepareInitialFacts(2)
     analysis.process(method, initialFacts, initContext, new ModelCallResolver(global, ptaresult, icfg, sm, handler))
   }
 

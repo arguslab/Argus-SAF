@@ -12,7 +12,7 @@ package org.argus.jawa.flow.interprocedural
 
 import org.argus.jawa.flow.{AlirNode, Context}
 import org.argus.jawa.flow.cfg.{ICFGCallNode, ICFGNode, ICFGReturnNode, InterProceduralControlFlowGraph}
-import org.argus.jawa.flow.pta.{Instance, PTAResult, VarSlot}
+import org.argus.jawa.flow.pta.{FieldSlot, Instance, PTAResult, VarSlot}
 import org.argus.jawa.flow.pta.model.ModelCallHandler
 import org.argus.jawa.flow.pta.rfa.{RFAFact, ReachingFactsAnalysisHelper}
 import org.argus.jawa.core.ast.{CallStatement, Location, ReturnStatement}
@@ -207,21 +207,44 @@ class ModelCallResolver(
     icfg: InterProceduralControlFlowGraph[ICFGNode],
     sm: SummaryManager,
     handler: ModelCallHandler) extends CallResolver[ICFGNode, RFAFact] {
+
+  private def getNextLevelFacts(facts: ISet[RFAFact], level: Int): ISet[RFAFact] = {
+    val newfacts: MSet[RFAFact] = msetEmpty
+    if(level == 0) return newfacts.toSet
+    facts.foreach { fact =>
+      val typ = fact.ins.typ
+      if(typ.isObject) {
+        val clazz = global.getClassOrResolve(typ)
+        clazz.getFields.foreach { field =>
+          if(field.typ.isObject) {
+            val unknown = field.typ.jawaName match {
+              case "java.lang.String" => false
+              case _ => true
+            }
+            val slot = FieldSlot(fact.ins, field.getName)
+            val ins = Instance.getInstance(field.typ, fact.ins.defSite, unknown)
+            newfacts += RFAFact(slot, ins)
+          }
+        }
+      }
+    }
+    getNextLevelFacts(newfacts.toSet, level - 1) ++ newfacts
+  }
+
   /**
     * It returns the facts for each callee entry node and caller return node
     */
   def resolveCall(s: ISet[RFAFact], cs: CallStatement, callerNode: ICFGNode): (IMap[ICFGNode, ISet[RFAFact]], ISet[RFAFact]) = {
     val callerContext = callerNode.getContext
     val calleeSet = CallHandler.getCalleeSet(global, cs, callerContext, ptaresult)
-    val icfgCallnode = icfg.getICFGCallNode(callerContext)
-    icfgCallnode.asInstanceOf[ICFGCallNode].setCalleeSet(calleeSet.map(_.asInstanceOf[Callee]))
+    callerNode.asInstanceOf[ICFGCallNode].setCalleeSet(calleeSet.map(_.asInstanceOf[Callee]))
 
     val killSet: MSet[RFAFact] = msetEmpty
     cs.lhsOpt match {
       case Some(lhs) =>
         val slotsWithMark = ReachingFactsAnalysisHelper.processLHS(lhs, callerContext, ptaresult).toSet
         for (rdf <- s) {
-          //if it is a strong definition, we can kill the existing definition
+          // if it is a strong definition, we can kill the existing definition
           if (slotsWithMark.contains(rdf.s, true)) {
             killSet += rdf
           }

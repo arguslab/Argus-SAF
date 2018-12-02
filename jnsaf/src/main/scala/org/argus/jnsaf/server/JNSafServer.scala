@@ -145,6 +145,7 @@ object JNSafServer extends GrpcServer {
       val taintResult = performTaint(request.apkDigest)
       registeredTaintPaths.get(request.apkDigest) match {
         case Some(paths) =>
+          System.err.println(paths.mkString(""))
           taintResult match {
             case Some(ts: TaintStore) =>
               ts.addTaintPaths(paths.toSet)
@@ -152,7 +153,9 @@ object JNSafServer extends GrpcServer {
           }
         case None =>
       }
-      Future.successful(TaintAnalysisResponse(taintResult.map(_.toPb)))
+      val response = TaintAnalysisResponse(taintResult.map(_.toPb))
+      reporter.echo(TITLE, response.toProtoString)
+      Future.successful(response)
     }
 
     def getSummary(request: GetSummaryRequest): Future[GetSummaryResponse] = {
@@ -177,7 +180,9 @@ object JNSafServer extends GrpcServer {
               taintResult = Some(taint.toString)
             case _ =>
           }
-          Future.successful(GetSummaryResponse(heapSummary = heapSummary, taintResult = taintResult.getOrElse("")))
+          val response = GetSummaryResponse(heapSummary = heapSummary, taintResult = taintResult.getOrElse(""))
+          reporter.echo(TITLE, response.toProtoString)
+          Future.successful(response)
         case None => Future.failed(new RuntimeException(s"Could not load SummaryManager for apk digest: ${request.apkDigest}"))
       }
     }

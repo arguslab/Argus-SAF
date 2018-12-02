@@ -99,7 +99,7 @@ object ComponentSummaryTable {
           val ptsmap = idfg.ptaresult.getPTSMap(cn.context)
           if (AndroidConstants.isIccMethod(calleeSig.getSubSignature)) {
             // add icc call as icc caller
-            val intentSlot = VarSlot(cn.argNames(1))
+            val intentSlot = VarSlot(cn.argNames.head)
             val intentValue: ISet[Instance] = ptsmap.getOrElse(intentSlot, isetEmpty)
             val intentContents = IntentHelper.getIntentContents(idfg.ptaresult, intentValue, cn.context)
             intentContents foreach { intentContent =>
@@ -283,14 +283,16 @@ object ComponentSummaryTable {
                     mddg.addEdge(calleeDDGNode, callerDDGNode)
                   case bsc: BoundServiceCallee =>
                     reporter.println(comp + " --rpc: " + bsc.sig + "--> " + bsc.component)
-                    for (i <- callernode.asInstanceOf[ICFGCallNode].argNames.indices) {
+                    val args = callernode.asInstanceOf[ICFGCallNode].allArgs
+                    for (i <- args.indices) {
                       val callerDDGNode = mddg.getIDDGCallArgNode(callernode.asInstanceOf[ICFGCallNode], i)
                       val calleeDDGNode = mddg.getIDDGEntryParamNode(calleenode.asInstanceOf[ICFGEntryNode], i)
                       mddg.addEdge(calleeDDGNode, callerDDGNode)
                     }
                   case bsrc: BoundServiceReturnCallee =>
                     reporter.println(comp + " --rpc return: " + bsrc.callee_sig + "--> " + bsrc.component)
-                    for (i <- calleenode.asInstanceOf[ICFGReturnNode].argNames.indices) {
+                    val args = callernode.asInstanceOf[ICFGCallNode].allArgs
+                    for (i <- args.indices) {
                       val callerDDGNode = mddg.getIDDGExitParamNode(callernode.asInstanceOf[ICFGExitNode], i)
                       val calleeDDGNode = mddg.getIDDGReturnArgNode(calleenode.asInstanceOf[ICFGReturnNode], i)
                       mddg.addEdge(calleeDDGNode, callerDDGNode)

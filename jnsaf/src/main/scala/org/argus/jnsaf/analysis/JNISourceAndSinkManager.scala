@@ -50,6 +50,11 @@ class JNISourceAndSinkManager(sasFilePath: String) extends AndroidSourceAndSinkM
   }
 
   override def isEntryPointSource(apk: ApkGlobal, signature: Signature): Boolean = {
-    apk.model.getComponents.contains(signature.classTyp)
+    apk.model.getComponentInfos foreach { info =>
+      if(info.compType == signature.classTyp) {
+        return apk.getEntryPoints(info).contains(signature)
+      }
+    }
+    false
   }
 }

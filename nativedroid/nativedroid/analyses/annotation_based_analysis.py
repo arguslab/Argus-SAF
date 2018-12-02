@@ -1,3 +1,4 @@
+import copy
 from cStringIO import StringIO
 
 from nativedroid.analyses.resolver.annotation import *
@@ -91,7 +92,7 @@ class AnnotationBasedAnalysis(angr.Analysis):
         """
         sources_annotation = set()
         if self._arguments_summary:
-            for arg_index, arg_summary in self._arguments_summary.iteritems():
+            for _, arg_summary in self._arguments_summary.iteritems():
                 for annotation in arg_summary.annotations:
                     if isinstance(annotation, JobjectAnnotation):
                         worklist = list(annotation.fields_info)
@@ -128,7 +129,6 @@ class AnnotationBasedAnalysis(angr.Analysis):
         :rtype: dict
         """
         sink_nodes = {}
-        sinks = list()
         sink_annotations = set()
         for node in self.cfg.nodes():
             if node.is_simprocedure and node.name.startswith('Call'):
@@ -150,14 +150,16 @@ class AnnotationBasedAnalysis(angr.Analysis):
             args = self._resolver.get_taint_args(input_state, final_states, positions, tags)
             if args:
                 nativedroid_logger.debug('tainted: %s, belong_obj: %s' % (args, sink.final_states[0].regs.r0))
-                sinks.append(args)
-        for sink_arg in sinks:
-            for sink in sink_arg:
-                for annotation in sink.annotations:
-                    sink_annotations.add(annotation)
+                for arg in args:
+                    for annotation in arg.annotations:
+                        sink_annotation = copy.deepcopy(annotation)
+                        sink_annotation.taint_info['taint_type'][0] = '_SINK_'
+                        if annotation.taint_info['is_taint'] and annotation.taint_info['taint_type'][0] == '_SOURCE_':
+                            sink_annotation.taint_info['taint_type'][1] = '_SOURCE_'
+                        sink_annotations.add(sink_annotation)
         annotations = set()
         for annotation in sink_annotations:
-            if annotation.taint_info['is_taint'] and annotation.taint_info['taint_type'][1] == '_API_':
+            if annotation.taint_info['is_taint'] and annotation.taint_info['taint_type'][1] == '_SOURCE_':
                 nativedroid_logger.info('Found taint in function %s.', self._jni_method_signature)
                 jnsaf_client = self._analysis_center.get_jnsaf_client()
                 if jnsaf_client:
@@ -195,9 +197,9 @@ class AnnotationBasedAnalysis(angr.Analysis):
                     while anno:
                         if anno.field_info['is_field']:
                             taint_field_name = '.' + anno.field_info['field_name'] + taint_field_name
-                        elif anno.taint_info['is_taint'] and anno.source and anno.source.startswith('arg'):
+                        if anno.taint_info['is_taint'] and anno.source and anno.source.startswith('arg'):
                             report_file.write(anno.source.split('arg')[-1] + taint_field_name)
-                        anno = anno.field_info.get('current_subordinate_obj')
+                        anno = anno.field_info.get('base_annotation')
             report_file.write('\n')
         if sources:
             report_file.write(self._jni_method_signature)
@@ -241,14 +243,8 @@ class AnnotationBasedAnalysis(angr.Analysis):
                                 field_location = annotation_location[field_info.source]
                                 field_locations.append(field_location)
                             elif field_info.source.startswith('arg'):
-                                field_location = 'arg:' + str(re.split('arg|_', field_info.source)[1])
+                                field_location = field_info.heap
                                 field_locations.append(field_location)
-                            elif field_info.source == 'from_object':
-                                if field_info.field_info['original_subordinate_obj'].startswith('arg'):
-                                    field_location = 'arg:' + str(
-                                        re.split('arg|_', field_info.field_info['original_subordinate_obj'])[
-                                            1]) + '.' + field_info.field_info['field_name']
-                                    field_locations.append(field_location)
                             arg_safsu[field_name] = (field_type, field_locations)
                 args_safsu[arg_index] = arg_safsu
         return_nodes = list()
@@ -273,9 +269,7 @@ class AnnotationBasedAnalysis(angr.Analysis):
                             rets_safsu.append(ret_safsu)
                         elif isinstance(annotation, JobjectAnnotation):
                             if annotation.field_info['is_field']:
-                                ret_value = 'arg:' + str(
-                                    re.split('arg|_', annotation.field_info['current_subordinate_obj'].source)[1]
-                                ) + '.' + annotation.field_info['field_name']
+                                ret_value = annotation.heap
                                 ret_safsu = '  ret = ' + ret_value
                                 rets_safsu.append(ret_safsu)
                             else:

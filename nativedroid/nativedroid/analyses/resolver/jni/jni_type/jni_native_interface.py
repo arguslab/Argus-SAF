@@ -1,6 +1,7 @@
 import angr
 
 from angr.sim_type import *
+from angr.state_plugins import SimActionObject
 from cle.backends.externs import ExternObject
 from nativedroid.analyses.resolver.annotation import *
 from nativedroid.analyses.resolver.jni.java_type import *
@@ -13,7 +14,6 @@ __license__ = "Apache v2.0"
 
 nativedroid_logger = logging.getLogger('nativedroid.jni_native_interface')
 nativedroid_logger.setLevel(logging.INFO)
-
 
 jni_native_interface_origin_usage = {
     'GetVersion': 0,
@@ -707,7 +707,7 @@ class CallObjectMethod(NativeDroidSimProcedure):
                 return ['_SINK_', info]
         return None
 
-    def run(self, env, obj, methodID):
+    def run(self, env, obj, methodID, arg1, arg2, arg3, arg4):
         nativedroid_logger.info('JNINativeInterface SimProcedure: %s', self)
         num_args = 3
         for annotation in methodID.annotations:
@@ -738,41 +738,85 @@ class CallObjectMethod(NativeDroidSimProcedure):
                 return_value = claripy.BVV(typ.ptr, typ_size)
                 return_annotation = construct_annotation(jni_return_type, 'from_reflection_call')
                 method_taint_attribute = CallObjectMethod.get_method_taint_attribute(ssm, method_full_signature)
-                if method_taint_attribute is not None:
-                    return_annotation.taint_info['is_taint'] = True
-                    return_annotation.taint_info['taint_type'] = [method_taint_attribute[0], '_API_']
-                    return_annotation.taint_info['taint_info'] = [method_taint_attribute[1]]
-                else:
-                    for anno in obj.annotations:
-                        if isinstance(anno, JobjectAnnotation):
-                            if anno.taint_info['is_taint']:
-                                return_annotation.taint_info = anno.taint_info
-                                if '_ARGUMENT_' in anno.taint_info['taint_type'][1] and heap_summary:
-                                    for rule in heap_summary.rules:
-                                        if rule.binary_rule and rule.binary_rule.rule_lhs.ret:
-                                            if rule.binary_rule.rule_rhs.this:
-                                                this = rule.binary_rule.rule_rhs.this
-                                                if this.heap and this.heap.heap_access:
-                                                    access = this.heap.heap_access[0]
-                                                    if access.field_access:
-                                                        field_anno = construct_annotation(
-                                                            jni_return_type, 'from_reflection_call')
-                                                        field_anno.field_info['is_field'] = True
-                                                        field_anno.field_info['field_name'] = \
-                                                            access.field_access.field_name
-                                                        field_anno.field_info['current_subordinate_obj'] = anno
-                                                        field_anno.taint_info['is_taint'] = True
-                                                        field_anno.taint_info['taint_type'] = \
-                                                            [anno.taint_info['taint_type'][0], '_ARGUMENT_FIELD_']
-                                                        field_anno.taint_info['taint_info'] = \
-                                                            anno.taint_info['taint_info']
-                                                        return_annotation = field_anno
-                            else:
-                                if anno.fields_info:
-                                    for field_info in anno.fields_info:
-                                        if field_info.is_tainted:
-                                            return_annotation.taint_info = copy.deepcopy(
-                                                field_info.taint_info)
+                if method_taint_attribute:
+                    if method_taint_attribute[0] == '_SOURCE_':
+                        return_annotation.taint_info['is_taint'] = True
+                        return_annotation.taint_info['taint_type'] = [method_taint_attribute[0], '_API_']
+                        return_annotation.taint_info['taint_info'] = [method_taint_attribute[1]]
+                    elif method_taint_attribute[0] == '_SINK_':
+                        process_args = []
+                        if method_taint_attribute[1] == 'ALL':
+                            process_args.append(obj)
+                            if isinstance(arg1, SimActionObject):
+                                process_args.append(arg1)
+                            if isinstance(arg2, SimActionObject):
+                                process_args.append(arg2)
+                            if isinstance(arg3, SimActionObject):
+                                process_args.append(arg3)
+                            if isinstance(arg4, SimActionObject):
+                                process_args.append(arg4)
+                        else:
+                            poss = method_taint_attribute[1].split('|')
+                            for pos in poss:
+                                try:
+                                    index = int(pos.split('.')[0])
+                                    if isinstance(arg1, SimActionObject) and index == 1:
+                                        process_args.append(arg1)
+                                    if isinstance(arg2, SimActionObject) and index == 2:
+                                        process_args.append(arg2)
+                                    if isinstance(arg3, SimActionObject) and index == 3:
+                                        process_args.append(arg3)
+                                    if isinstance(arg4, SimActionObject) and index == 4:
+                                        process_args.append(arg4)
+                                except ValueError:
+                                    nativedroid_logger.error('Cannot parse int: %s', pos)
+                        for parg in process_args:
+                            for anno in parg.annotations:
+                                if isinstance(anno, JobjectAnnotation):
+                                    if anno.taint_info['is_taint']:
+                                        return_annotation.taint_info = anno.taint_info
+                                        return_annotation.field_info = anno.field_info
+                                        if '_SOURCE_' in anno.taint_info['taint_type'][0]:
+                                            if '_API_' in anno.taint_info['taint_type'][1]:
+                                                return_annotation.taint_info['is_taint'] = True
+                                                return_annotation.taint_info['taint_type'] = ['_SINK_', '_SOURCE_']
+                                                return_annotation.taint_info['taint_info'] = \
+                                                    [method_taint_attribute[1]]
+                                            elif '_ARGUMENT_' in anno.taint_info['taint_type'][1]:
+                                                return_annotation.taint_info['is_taint'] = True
+                                                return_annotation.taint_info['taint_type'] = \
+                                                    ['_SINK_', anno.taint_info['taint_type'][1]]
+                                                return_annotation.taint_info['taint_info'] = \
+                                                    [method_taint_attribute[1]]
+                for anno in obj.annotations:
+                    if isinstance(anno, JobjectAnnotation):
+                        if anno.taint_info['is_taint']:
+                            if '_ARGUMENT_' in anno.taint_info['taint_type'][1] and heap_summary:
+                                for rule in heap_summary.rules:
+                                    if rule.binary_rule and rule.binary_rule.rule_lhs.ret:
+                                        if rule.binary_rule.rule_rhs.this:
+                                            this = rule.binary_rule.rule_rhs.this
+                                            if this.heap and this.heap.heap_access:
+                                                access = this.heap.heap_access[0]
+                                                if access.field_access:
+                                                    field_anno = construct_annotation(
+                                                        jni_return_type, 'from_reflection_call')
+                                                    field_anno.field_info['is_field'] = True
+                                                    field_anno.field_info['field_name'] = \
+                                                        access.field_access.field_name
+                                                    field_anno.field_info['base_annotation'] = anno
+                                                    field_anno.taint_info['is_taint'] = True
+                                                    field_anno.taint_info['taint_type'] = \
+                                                        [anno.taint_info['taint_type'][0], '_ARGUMENT_FIELD_']
+                                                    field_anno.taint_info['taint_info'] = \
+                                                        anno.taint_info['taint_info']
+                                                    return_annotation = field_anno
+                        else:
+                            if anno.fields_info:
+                                for field_info in anno.fields_info:
+                                    if field_info.is_tainted:
+                                        return_annotation.taint_info = copy.deepcopy(
+                                            field_info.taint_info)
                 return_annotation = icc_handle(self._analysis_center, class_name, method_name, return_annotation, self)
                 return_value = return_value.append_annotation(return_annotation)
                 return return_value
@@ -1146,11 +1190,10 @@ class GetObjectField(NativeDroidSimProcedure):
                                 copy.deepcopy(anno.fields_info[field_index]))
                         else:
                             jni_return_type = get_jni_return_type(field_signature)
-                            return_annotation = construct_annotation(jni_return_type, 'from_object')
-                            # return_annotation.source = 'from_object'
-                            # return_annotation.obj_type = jni_return_type
+                            return_annotation = construct_annotation(jni_return_type, anno.source)
+                            return_annotation.heap = anno.heap + '.' + field_name
                             return_annotation.field_info = {'is_field': True, 'field_name': field_name,
-                                                            'original_subordinate_obj': anno.source}
+                                                            'base_annotation': anno}
                             if anno.source.startswith('arg'):
                                 return_annotation.taint_info['is_taint'] = True
                                 return_annotation.taint_info['taint_type'] = ['_SOURCE_', '_ARGUMENT_FIELD_']
@@ -1295,7 +1338,7 @@ class SetObjectField(NativeDroidSimProcedure):
                 else:
                     field_annotation.field_info['is_field'] = True
                     field_annotation.field_info['field_name'] = id_annotation.field_name
-                    field_annotation.field_info['current_subordinate_obj'] = annotation
+                    field_annotation.field_info['base_annotation'] = annotation
                     annotation.fields_info.append(field_annotation)
 
     def __repr__(self):
@@ -1349,9 +1392,10 @@ class SetIntField(SetTypeField):
                     # TODO need refactor logic
                     pass
                 else:
+                    field_annotation.heap = annotation.heap + '.' + id_annotation.field_name
                     field_annotation.field_info['is_field'] = True
                     field_annotation.field_info['field_name'] = id_annotation.field_name
-                    field_annotation.field_info['current_subordinate_obj'] = annotation
+                    field_annotation.field_info['base_annotation'] = annotation
                     annotation.fields_info.append(field_annotation)
 
     def __repr__(self):
@@ -1569,7 +1613,7 @@ class GetStaticObjectField(GetObjectField):
                             # return_annotation.obj_type = jni_return_type
                             return_annotation.field_info['is_field'] = True
                             return_annotation.field_info['field_name'] = field_name
-                            return_annotation.field_info['original_subordinate_obj'] = anno.class_type
+                            return_annotation.field_info['base_annotation'] = anno
 
                             return_annotation.taint_info['is_taint'] = True
                             return_annotation.taint_info['taint_type'] = ['_SOURCE_', '_CLASS_FIELD_']
