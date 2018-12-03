@@ -154,7 +154,8 @@ class AnnotationBasedAnalysis(angr.Analysis):
                     for annotation in arg.annotations:
                         sink_annotation = copy.deepcopy(annotation)
                         sink_annotation.taint_info['taint_type'][0] = '_SINK_'
-                        if annotation.taint_info['is_taint'] and annotation.taint_info['taint_type'][0] == '_SOURCE_':
+                        if annotation.taint_info['is_taint'] and \
+                                annotation.taint_info['taint_type'] == ['_SOURCE_', '_API_']:
                             sink_annotation.taint_info['taint_type'][1] = '_SOURCE_'
                         sink_annotations.add(sink_annotation)
         annotations = set()
@@ -268,13 +269,14 @@ class AnnotationBasedAnalysis(angr.Analysis):
                                 ret_safsu = '  ret = ' + ret_type + '@' + ret_location
                             rets_safsu.append(ret_safsu)
                         elif isinstance(annotation, JobjectAnnotation):
-                            if annotation.field_info['is_field']:
+                            if annotation.heap:
                                 ret_value = annotation.heap
                                 ret_safsu = '  ret = ' + ret_value
                                 rets_safsu.append(ret_safsu)
                             else:
-                                ret_value = annotation_location[annotation.source]
-                                ret_safsu = '  ret = ' + ret_value
+                                ret_type = annotation.obj_type.replace('/', '.')
+                                ret_location = annotation_location[annotation.source]
+                                ret_safsu = '  ret = ' + ret_type + '@' + ret_location
                                 rets_safsu.append(ret_safsu)
         report_file = StringIO()
         report_file.write('`' + self._jni_method_signature + '`:' + '\n')

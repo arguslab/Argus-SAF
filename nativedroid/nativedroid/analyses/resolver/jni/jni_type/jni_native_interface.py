@@ -1186,12 +1186,15 @@ class GetObjectField(NativeDroidSimProcedure):
                                 field_exist = True
                                 field_index = index
                         if field_exist:
-                            return_value = return_value.append_annotation(
-                                copy.deepcopy(anno.fields_info[field_index]))
+                            return_annotation = copy.deepcopy(anno.fields_info[field_index])
+                            return_annotation.heap = anno.heap + '.' + field_name if anno.heap else None
+                            return_annotation.field_info = {'is_field': True, 'field_name': field_name,
+                                                            'base_annotation': anno}
+                            return_value = return_value.append_annotation(return_annotation)
                         else:
                             jni_return_type = get_jni_return_type(field_signature)
                             return_annotation = construct_annotation(jni_return_type, anno.source)
-                            return_annotation.heap = anno.heap + '.' + field_name
+                            return_annotation.heap = anno.heap + '.' + field_name if anno.heap else None
                             return_annotation.field_info = {'is_field': True, 'field_name': field_name,
                                                             'base_annotation': anno}
                             if anno.source.startswith('arg'):
@@ -1328,7 +1331,7 @@ class SetObjectField(NativeDroidSimProcedure):
         for annotation in obj.annotations:
             if isinstance(annotation, JobjectAnnotation):
                 field_exist = False
-                for index, field_info in enumerate(annotation.fields_info):
+                for field_info in annotation.fields_info:
                     if field_info.field_name == \
                             id_annotation.field_name and field_info.field_signature == id_annotation.field_signature:
                         field_exist = True
@@ -1392,7 +1395,7 @@ class SetIntField(SetTypeField):
                     # TODO need refactor logic
                     pass
                 else:
-                    field_annotation.heap = annotation.heap + '.' + id_annotation.field_name
+                    field_annotation.heap = annotation.heap + '.' + id_annotation.field_name if annotation.heap else None
                     field_annotation.field_info['is_field'] = True
                     field_annotation.field_info['field_name'] = id_annotation.field_name
                     field_annotation.field_info['base_annotation'] = annotation

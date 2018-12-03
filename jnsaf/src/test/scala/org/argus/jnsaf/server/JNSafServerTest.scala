@@ -44,7 +44,7 @@ class JNSafServerTest extends FlatSpec with Matchers with BeforeAndAfterAll {
     println(s"$TITLE server started.")
 
     client = new JNSafClient("localhost", 55001, reporter)
-    val file_path = "/Users/fengguow/IdeaProjects/Argus-SAF/benchmarks/NativeFlowBench/native_set_field_from_arg_field.apk"
+    val file_path = "/Users/fengguow/IdeaProjects/Argus-SAF/benchmarks/NativeFlowBench/icc_javatonative.apk"
     fileUri = FileUtil.toUri(file_path)
     loadResponse = client.loadAPK(fileUri)
   }

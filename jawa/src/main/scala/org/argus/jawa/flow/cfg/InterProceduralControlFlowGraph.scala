@@ -147,12 +147,6 @@ class InterProceduralControlFlowGraph[Node <: ICFGNode] extends ControlFlowGraph
         }
       }
     }
-    callMap foreach {
-      case (context, callees) =>
-        callees.foreach { callee =>
-          extendGraph(callee.callee, context, needReturnNode = true)
-        }
-    }
   }
   
   def collectCfgToBaseGraph(calleeProc: JawaMethod, callerContext: Context, isFirst: Boolean, needReturnNode: Boolean): ISet[Node] = {

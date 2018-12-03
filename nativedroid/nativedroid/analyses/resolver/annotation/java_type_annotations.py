@@ -14,12 +14,19 @@ class JavaTypeAnnotation(Annotation):
         :param obj_type: Type of this Java value.
         """
         self._source = source
-        self._heap = 'arg:' + str(re.split('arg|_', source)[1])
+        self._heap = 'arg:' + str(re.split('arg|_', source)[1]) if source.startswith('arg') else None
         self._obj_type = obj_type
         self._field_info = {'is_field': False, 'field_name': None, 'base_annotation': None}
         self._array_info = {'is_element': False, 'element_index': None, 'subordinate_array': None}
         self._taint_info = {'is_taint': False, 'taint_type': None, 'taint_info': None}
         self._icc_info = {'is_icc': False, 'activity_name': None, 'extra': None}
+
+    def __repr__(self):
+        text = '%s {\n  Source: %s\n  Heap: %s\n  Type: %s\n  '\
+               'Field Info: %s\n  Array Info: %s\n  Taint Info: %s\n  ICC Info: %s\n}' % \
+               (self.__class__.__name__, self._source, self.heap, self.obj_type, self.field_info,
+                self.array_info, self.taint_info, self.icc_info)
+        return text
 
     @property
     def source(self):

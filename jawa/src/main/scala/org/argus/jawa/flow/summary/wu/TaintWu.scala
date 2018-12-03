@@ -82,7 +82,7 @@ class TaintWu[T <: Global](
     val TAINT, FAKE, PASS = Value
   }
 
-  case class TaintInfo(status: TaintStatus.Value, pos: Option[SSPosition], path: IList[TaintNode])
+  case class TaintInfo(status: TaintStatus.Value, pos: Option[SSPosition], path: IList[TaintNode], kind: String)
 
   def getTaintInstance: ICFGNode => (IMap[Instance, TaintInfo], IMap[Instance, TaintInfo]) = {
     case en: ICFGEntryNode =>
@@ -95,7 +95,7 @@ class TaintWu[T <: Global](
         } else {
           TaintStatus.PASS
         }
-        val info = TaintInfo(status, Some(new SSPosition(idx + 1)), ilistEmpty)
+        val info = TaintInfo(status, Some(new SSPosition(idx + 1)), ilistEmpty, SourceAndSinkCategory.ENTRYPOINT_SOURCE)
         srcInss ++= inss.map(ins => (ins, info))
       }
       (srcInss.toMap, imapEmpty)
@@ -106,27 +106,26 @@ class TaintWu[T <: Global](
       val callees = cn.getCalleeSet
       callees foreach { callee =>
         ssm.isSourceMethod(global, callee.callee) match {
-          case Some((_, poss)) =>
-            val info = TaintInfo(TaintStatus.TAINT, None, ilistEmpty)
+          case Some((kind, poss)) =>
+            val info = TaintInfo(TaintStatus.TAINT, None, ilistEmpty, kind)
             srcInss ++= getTainted(cn, poss, isSource = true).map(ins => (ins, info))
           case None =>
         }
         ssm.isSinkMethod(global, callee.callee) match {
-          case Some((_, poss)) =>
-            val info = TaintInfo(TaintStatus.TAINT, None, ilistEmpty)
+          case Some((kind, poss)) =>
+            val info = TaintInfo(TaintStatus.TAINT, None, ilistEmpty, kind)
             sinkInss ++= getTainted(cn, poss, isSource = false).map(ins => (ins, info))
           case None =>
         }
-
         sm.getSummary[TaintSummary](callee.callee) match {
           case Some(summary) =>
             summary.rules.foreach {
-              case SourceSummaryRule(ins, path) =>
-                val info = TaintInfo(TaintStatus.FAKE, None, path)
+              case SourceSummaryRule(ins, kind, path) =>
+                val info = TaintInfo(TaintStatus.FAKE, None, path, kind)
                 srcInss += ((ins, info))
-              case SinkSummaryRule(hb, path) =>
+              case SinkSummaryRule(hb, kind, path) =>
                 val inss = getHeapInstance(hb, cn.retNameOpt, cn.recvNameOpt, cn.argNames, cn.getContext)
-                val info = TaintInfo(TaintStatus.FAKE, None, path)
+                val info = TaintInfo(TaintStatus.FAKE, None, path, kind)
                 sinkInss ++= inss.map(ins => (ins, info))
               case _ =>
             }
@@ -142,7 +141,7 @@ class TaintWu[T <: Global](
           rs.varOpt match {
             case Some(ret) =>
               val inss = ptaresult.getRelatedInstances(nn.getContext, VarSlot(ret.varName))
-              val info = TaintInfo(TaintStatus.PASS, None, ilistEmpty)
+              val info = TaintInfo(TaintStatus.PASS, None, ilistEmpty, SourceAndSinkCategory.API_SINK)
               sinkInss ++= inss.map(ins => (ins, info))
             case None =>
           }
@@ -172,9 +171,9 @@ class TaintWu[T <: Global](
   override def parseIDFG(idfg: InterProceduralDataFlowGraph): IList[TaintSummaryRule] = {
     var rules = super.parseIDFG(idfg)
 
-    val srcInstances: MSet[(Instance, IList[TaintNode])] = msetEmpty
-    val sinkHeapBases: MSet[(HeapBase, IList[TaintNode])] = msetEmpty
-    def dfs(node: ICFGNode, taintInss: IMap[Instance, TaintInfo], paths: IMap[Instance, IList[TaintNode]]): Unit = {
+    val srcInstances: MSet[(Instance, String, IList[TaintNode])] = msetEmpty
+    val sinkHeapBases: MSet[(HeapBase, String, IList[TaintNode])] = msetEmpty
+    def dfs(node: ICFGNode, taintInss: IMap[Instance, TaintInfo], paths: IMap[Instance, IList[TaintNode]], processed: ISet[ICFGNode]): Unit = {
       var newPaths: IMap[Instance, IList[TaintNode]] = paths
       // handle pass through
       val allInss = getAllInstances(node)
@@ -191,10 +190,10 @@ class TaintWu[T <: Global](
             val sourceNode = path.head
             realsource.status match {
               case TaintStatus.TAINT =>
-                val taintSource = TaintSource(sourceNode, TypeTaintDescriptor(sourceNode.node.toString, realsource.pos, SourceAndSinkCategory.API_SOURCE))
+                val taintSource = TaintSource(sourceNode, TypeTaintDescriptor(sourceNode.node.toString, realsource.pos, realsource.kind))
                 realsink.status match {
                   case TaintStatus.TAINT =>
-                    val taintSink = TaintSink(sinkNode, TypeTaintDescriptor(node.toString, realsink.pos, SourceAndSinkCategory.API_SINK))
+                    val taintSink = TaintSink(sinkNode, TypeTaintDescriptor(node.toString, realsink.pos, realsink.kind))
                     val tp = TSTaintPath(taintSource, taintSink)
                     tp.path = path
                     ts.addTaintPath(tp)
@@ -202,22 +201,22 @@ class TaintWu[T <: Global](
                     val sinkPath = realsink.path
                     if(sinkPath.nonEmpty) {
                       val realSinkNode = sinkPath.last
-                      val taintSink = TaintSink(realSinkNode, TypeTaintDescriptor(realSinkNode.node.toString, realSinkNode.pos, SourceAndSinkCategory.API_SINK))
+                      val taintSink = TaintSink(realSinkNode, TypeTaintDescriptor(realSinkNode.node.toString, realSinkNode.pos, realsink.kind))
                       val tp = TSTaintPath(taintSource, taintSink)
                       tp.path = path ++ sinkPath
                       ts.addTaintPath(tp)
                     }
                   case TaintStatus.PASS =>
-                    srcInstances += ((sink, path))
+                    srcInstances += ((sink, realsource.kind, path))
                 }
               case TaintStatus.FAKE =>
                 val sourcePath = realsource.path
                 if(sourcePath.nonEmpty) {
                   val realSourceNode = sourcePath.head
-                  val taintSource = TaintSource(realSourceNode, TypeTaintDescriptor(realSourceNode.node.toString, realsource.pos, SourceAndSinkCategory.API_SOURCE))
+                  val taintSource = TaintSource(realSourceNode, TypeTaintDescriptor(realSourceNode.node.toString, realsource.pos, realsource.kind))
                   realsink.status match {
                     case TaintStatus.TAINT =>
-                      val taintSink = TaintSink(sinkNode, TypeTaintDescriptor(node.toString, realsink.pos, SourceAndSinkCategory.API_SINK))
+                      val taintSink = TaintSink(sinkNode, TypeTaintDescriptor(node.toString, realsink.pos, realsink.kind))
                       val tp = TSTaintPath(taintSource, taintSink)
                       tp.path = sourcePath ++ path
                       ts.addTaintPath(tp)
@@ -225,13 +224,13 @@ class TaintWu[T <: Global](
                       val sinkPath = realsink.path
                       if(sinkPath.nonEmpty) {
                         val realSinkNode = sinkPath.last
-                        val taintSink = TaintSink(realSinkNode, TypeTaintDescriptor(realSinkNode.node.toString, realSinkNode.pos, SourceAndSinkCategory.API_SINK))
+                        val taintSink = TaintSink(realSinkNode, TypeTaintDescriptor(realSinkNode.node.toString, realSinkNode.pos, realsink.kind))
                         val tp = TSTaintPath(taintSource, taintSink)
                         tp.path = sourcePath ++ path ++ sinkPath
                         ts.addTaintPath(tp)
                       }
                     case TaintStatus.PASS =>
-                      srcInstances += ((sink, sourcePath ++ path))
+                      srcInstances += ((sink, realsource.kind, sourcePath ++ path))
                   }
                 }
               case TaintStatus.PASS =>
@@ -239,13 +238,13 @@ class TaintWu[T <: Global](
                   case TaintStatus.TAINT =>
                     getInitialHeapBase(sink) match {
                       case Some(hb) =>
-                        sinkHeapBases += ((hb, path))
+                        sinkHeapBases += ((hb, realsink.kind, path))
                       case None =>
                     }
                   case TaintStatus.FAKE =>
                     getInitialHeapBase(sink) match {
                       case Some(hb) =>
-                        sinkHeapBases += ((hb, path ++ realsink.path))
+                        sinkHeapBases += ((hb, realsink.kind, path ++ realsink.path))
                       case None =>
                     }
                   case TaintStatus.PASS =>
@@ -267,25 +266,27 @@ class TaintWu[T <: Global](
         }
       }
       idfg.icfg.successors(node).foreach { succ =>
-        dfs(succ, taintInss ++ srcInss, newPaths)
+        if(!processed.contains(succ)) {
+          dfs(succ, taintInss ++ srcInss, newPaths, processed + node)
+        }
       }
     }
 
     // Update SourceSummaryRule
-    dfs(idfg.icfg.entryNode, imapEmpty, imapEmpty)
-    srcInstances foreach { case (srcIns, path) =>
-      rules +:= SourceSummaryRule(srcIns, path)
+    dfs(idfg.icfg.entryNode, imapEmpty, imapEmpty, isetEmpty)
+    srcInstances foreach { case (srcIns, kind, path) =>
+      rules +:= SourceSummaryRule(srcIns, kind, path)
     }
     // Update SinkSummaryRule
-    clearHeapBases(sinkHeapBases.toSet) foreach { case (hb, path) =>
-      rules +:= SinkSummaryRule(hb, path)
+    clearHeapBases(sinkHeapBases.toSet) foreach { case (hb, kind, path) =>
+      rules +:= SinkSummaryRule(hb, kind, path)
     }
     rules
   }
 
-  def clearHeapBases(heapBases: ISet[(HeapBase, IList[TaintNode])]): ISet[(HeapBase, IList[TaintNode])] = {
+  def clearHeapBases(heapBases: ISet[(HeapBase, String, IList[TaintNode])]): ISet[(HeapBase, String, IList[TaintNode])] = {
     var minHeapBases: ISet[HeapBase] = isetEmpty
-    heapBases.foreach { case (hb, path) =>
+    heapBases.foreach { case (hb, _, _) =>
       val size = minHeapBases.size
       minHeapBases = minHeapBases.filterNot { mhb =>
         mhb.toString.startsWith(hb.toString)
@@ -294,7 +295,7 @@ class TaintWu[T <: Global](
         minHeapBases += hb
       }
     }
-    heapBases.filter{case (k, _) => minHeapBases.contains(k)}
+    heapBases.filter{case (k, _, _) => minHeapBases.contains(k)}
   }
 
   override def toString: String = s"TaintWu($method)"
@@ -313,10 +314,10 @@ case class TaintSummary(sig: Signature, rules: Seq[TaintSummaryRule]) extends Su
   }
 }
 trait TaintSummaryRule extends SummaryRule
-case class SourceSummaryRule(ins: Instance, path: IList[TaintNode]) extends TaintSummaryRule {
+case class SourceSummaryRule(ins: Instance, kind: String, path: IList[TaintNode]) extends TaintSummaryRule {
   override def toString: FileResourceUri = "_SOURCE_"
 }
-case class SinkSummaryRule(hb: HeapBase, path: IList[TaintNode]) extends TaintSummaryRule {
+case class SinkSummaryRule(hb: HeapBase, kind: String, path: IList[TaintNode]) extends TaintSummaryRule {
   override def toString: FileResourceUri = {
     val sb = new StringBuilder
     sb.append("_SINK_ ")
