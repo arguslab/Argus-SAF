@@ -56,7 +56,6 @@ object JNSafServer extends GrpcServer {
     val summaries: MMap[String, SummaryProvider] = mmapEmpty
     val ssms: MMap[String, JNISourceAndSinkManager] = mmapEmpty
     val cbas: MMap[String, ComponentBasedAnalysis] = mmapEmpty
-    val registeredTaintPaths: MMap[String, MSet[TaintPath]] = mmapEmpty
 
     def loadAPK(responseObserver: StreamObserver[LoadAPKResponse]): StreamObserver[LoadAPKRequest] = {
       reporter.echo(TITLE,"Server loadAPK")
@@ -143,16 +142,6 @@ object JNSafServer extends GrpcServer {
     def taintAnalysis(request: TaintAnalysisRequest): Future[TaintAnalysisResponse] = {
       reporter.echo(TITLE,"Server taintAnalysis")
       val taintResult = performTaint(request.apkDigest)
-      registeredTaintPaths.get(request.apkDigest) match {
-        case Some(paths) =>
-          System.err.println(paths.mkString(""))
-          taintResult match {
-            case Some(ts: TaintStore) =>
-              ts.addTaintPaths(paths.toSet)
-            case _ =>
-          }
-        case None =>
-      }
       val response = TaintAnalysisResponse(taintResult.map(_.toPb))
       reporter.echo(TITLE, response.toProtoString)
       Future.successful(response)
@@ -208,15 +197,25 @@ object JNSafServer extends GrpcServer {
     def registerTaint(request: RegisterTaintRequest): Future[RegisterTaintResponse] = {
       reporter.echo(TITLE,s"Server registerTaint ${request.toProtoString}")
       val signature = new Signature(request.signature)
-      val apk_digest = request.apkDigest
-      val context = new Context(apk_digest)
+      val apkDigest = request.apkDigest
+      val context = new Context(apkDigest)
       context.setContext(signature, signature.signature)
       val node = TaintNode(ICFGEntryNode(context), None)
-      val source = TaintSource(node, TypeTaintDescriptor(signature.signature, None, SourceAndSinkCategory.API_SOURCE))
-      val sink = TaintSink(node, TypeTaintDescriptor(signature.signature, None, SourceAndSinkCategory.API_SINK))
+      val source = TaintSource(node, TypeTaintDescriptor(signature.signature, None, request.sourceKind))
+      val sink = TaintSink(node, TypeTaintDescriptor(signature.signature, None, request.sinkKind))
       val path = TSTaintPath(source, sink)
       path.path = List(node)
-      registeredTaintPaths.getOrElseUpdate(apk_digest, msetEmpty).add(path)
+      val store = new TaintStore
+      store.addTaintPath(path)
+      map.get(apkDigest) match {
+        case Some(uri) =>
+          yard.getApk(uri) match {
+            case Some(apk) =>
+              apk.addComponentTaintAnalysisResult(signature.getClassType, store)
+            case None =>
+          }
+        case None =>
+      }
       Future.successful(RegisterTaintResponse(status = true))
     }
   }

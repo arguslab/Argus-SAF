@@ -67,6 +67,7 @@ class ArmelResolver(TaintResolver):
             argument_annotation.taint_info['is_taint'] = True
             argument_annotation.taint_info['taint_type'] = ['_SOURCE_', '_ARGUMENT_']
             argument_annotation.taint_info['taint_info'] = ['SENSITIVE_INFO']
+            argument_annotation.taint_info['source_kind'] = 'api_source'
             data = data.annotate(argument_annotation)
             state.regs.__setattr__('r%d' % (idx + i), data)
             # store the argument summary
@@ -83,6 +84,7 @@ class ArmelResolver(TaintResolver):
             argument_annotation.taint_info['is_taint'] = True
             argument_annotation.taint_info['taint_type'] = ['_SOURCE_', '_ARGUMENT_']
             argument_annotation.taint_info['taint_info'] = ['SENSITIVE_INFO']
+            argument_annotation.taint_info['source_kind'] = 'api_source'
             data = data.annotate(argument_annotation)
             state.stack_push(data)
             # store the argument summary

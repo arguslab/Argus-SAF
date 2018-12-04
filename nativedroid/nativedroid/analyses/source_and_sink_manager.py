@@ -26,6 +26,36 @@ class SourceAndSinkManager(object):
         self._parse(native_ss_file)
         self._parse(java_ss_file)
 
+    _ICC_SOURCE_METHODS = [
+        'Landroid/content/Intent;.getStringArrayExtra:(Ljava/lang/String;)[Ljava/lang/String;',
+        'Landroid/content/Intent;.getStringArrayListExtra:(Ljava/lang/String;)Ljava/util/ArrayList;'
+        'Landroid/content/Intent;.getStringExtra:(Ljava/lang/String;)Ljava/lang/String;'
+    ]
+
+    _ICC_SINK_METHODS = [
+        'Landroid/content/Context;startService:(Landroid/content/Intent;)Landroid/content/ComponentName;',
+        'bindService:(Landroid/content/Intent;Landroid/content/ServiceConnection;I)Z',
+        'startActivity:(Landroid/content/Intent;)V',
+        'startActivity:(Landroid/content/Intent;Landroid/os/Bundle;)V',
+        'startActivityForResult:(Landroid/content/Intent;I)V',
+        'startActivityForResult:(Landroid/content/Intent;ILandroid/os/Bundle;)V',
+        'sendBroadcast:(Landroid/content/Intent;)V',
+        'sendBroadcast:(Landroid/content/Intent;Ljava/lang/String;)V',
+        'sendBroadcastAsUser:(Landroid/content/Intent;Landroid/os/UserHandle;)V',
+        'sendBroadcastAsUser:(Landroid/content/Intent;Landroid/os/UserHandle;Ljava/lang/String;)V',
+        'sendOrderedBroadcast:(Landroid/content/Intent;Ljava/lang/String;)V',
+        'sendOrderedBroadcast:(Landroid/content/Intent;Ljava/lang/String;Landroid/content/BroadcastReceiver;'
+        'Landroid/os/Handler;ILjava/lang/String;Landroid/os/Bundle;)V',
+        'sendOrderedBroadcastAsUser:(Landroid/content/Intent;Landroid/os/UserHandle;Ljava/lang/String;'
+        'Landroid/content/BroadcastReceiver;Landroid/os/Handler;ILjava/lang/String;Landroid/os/Bundle;)V',
+        'sendStickyBroadcast:(Landroid/content/Intent;)V',
+        'sendStickyBroadcastAsUser:(Landroid/content/Intent;Landroid/os/UserHandle;)V',
+        'sendStickyOrderedBroadcast:(Landroid/content/Intent;Landroid/content/BroadcastReceiver;'
+        'Landroid/os/Handler;ILjava/lang/String;Landroid/os/Bundle;)V',
+        'sendStickyOrderedBroadcastAsUser:(Landroid/content/Intent;Landroid/os/UserHandle;'
+        'Landroid/content/BroadcastReceiver;Landroid/os/Handler;ILjava/lang/String;Landroid/os/Bundle;)V'
+    ]
+
     #
     # Private methods.
     #
@@ -62,3 +92,9 @@ class SourceAndSinkManager(object):
 
     def get_sink_tags(self, name):
         return self._sinks.get(name)
+
+    def get_source_kind(self, name):
+        return 'icc_source' if name in self._ICC_SOURCE_METHODS else 'api_source'
+
+    def get_sink_kind(self, name):
+        return 'icc_sink' if name in self._ICC_SINK_METHODS else 'api_sink'

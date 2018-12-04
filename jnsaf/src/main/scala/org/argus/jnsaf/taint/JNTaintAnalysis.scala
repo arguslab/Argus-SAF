@@ -11,7 +11,8 @@
 package org.argus.jnsaf.taint
 
 import hu.ssh.progressbar.ConsoleProgressBar
-import org.argus.amandroid.alir.componentSummary.{ApkYard, ComponentBasedAnalysis}
+import org.argus.amandroid.alir.componentSummary.ComponentSummaryTable.CHANNELS
+import org.argus.amandroid.alir.componentSummary._
 import org.argus.amandroid.alir.pta.model.AndroidModelCallHandler
 import org.argus.amandroid.alir.taintAnalysis.AndroidSourceAndSinkManager
 import org.argus.amandroid.core.ApkGlobal
@@ -19,7 +20,8 @@ import org.argus.jawa.core.JawaMethod
 import org.argus.jawa.core.elements.{JawaType, Signature}
 import org.argus.jawa.core.io.Reporter
 import org.argus.jawa.core.util._
-import org.argus.jawa.flow.cfg.{ICFGNode, InterProceduralControlFlowGraph}
+import org.argus.jawa.flow.Context
+import org.argus.jawa.flow.cfg.{ICFGEntryNode, ICFGNode, InterProceduralControlFlowGraph}
 import org.argus.jawa.flow.cg.CHA
 import org.argus.jawa.flow.dfa.InterProceduralDataFlowGraph
 import org.argus.jawa.flow.pta.PTAResult
@@ -48,7 +50,17 @@ class JNTaintAnalysis(yard: ApkYard, apk: ApkGlobal,
       i += 1
       reporter.println(s"Processing component $i/${components.size}: ${comp.compType.jawaName}")
       if(apk.model.isNativeActivity(comp.compType)) {
+        val summaryTable: ComponentSummaryTable = new ComponentSummaryTable(comp)
+        // Add component as icc callee
+        val filters = apk.model.getIntentFilterDB.getIntentFilters(comp.compType)
+        val icc_summary: ICC_Summary = summaryTable.get(CHANNELS.ICC)
+        val context = new Context(apk.model.getAppName)
+        val signature = new Signature("Landroid/app/NativeActivity;.onCreate:(Landroid/os/Bundle;)V")
+        context.setContext(signature, signature.signature)
+        val node = ICFGEntryNode(context)
+        icc_summary.addCallee(node, IntentCallee(apk, comp, filters, apk.model.isExported(comp.compType)))
         val instructions = native_handler.analyseNativeActivity(apk, comp)
+        apk.addSummaryTable(comp.compType, summaryTable)
         println("instructions: " + instructions)
       } else {
         val idfg = process(comp.compType, apk.getEntryPoints(comp))

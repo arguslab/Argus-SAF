@@ -38,7 +38,7 @@ message GetSummaryResponse {
 
 message RegisterICCRequest {
     string apk_digest = 1;
-    string comp_name = 2;
+    string component_name = 2;
     string target_component_name = 3;
     string signature = 4;
     bool is_source = 5;
@@ -52,6 +52,8 @@ message RegisterICCResponse {
 message RegisterTaintRequest {
     string apk_digest = 1;
     string signature = 2;
+    string source_kind = 3;
+    string sink_kind = 4;
 }
 
 message RegisterTaintResponse {

@@ -166,7 +166,9 @@ class AnnotationBasedAnalysis(angr.Analysis):
                 if jnsaf_client:
                     request = RegisterTaintRequest(
                         apk_digest=jnsaf_client.apk_digest,
-                        signature=self._analysis_center.get_signature())
+                        signature=self._analysis_center.get_signature(),
+                        source_kind=annotation.taint_info['source_kind'],
+                        sink_kind=annotation.taint_info['sink_kind'])
                     response = jnsaf_client.RegisterTaint(request)
                     if response.status:
                         nativedroid_logger.info('Registered %s as taint.', self._jni_method_signature)

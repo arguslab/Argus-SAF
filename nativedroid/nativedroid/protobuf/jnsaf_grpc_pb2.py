@@ -21,7 +21,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='nativedroid/protobuf/jnsaf_grpc.proto',
   package='jnsaf_server',
   syntax='proto3',
-  serialized_pb=_b('\n%nativedroid/protobuf/jnsaf_grpc.proto\x12\x0cjnsaf_server\x1a\"nativedroid/protobuf/summary.proto\x1a\'nativedroid/protobuf/taint_result.proto\" \n\x0eLoadAPKRequest\x12\x0e\n\x06\x62uffer\x18\x01 \x01(\x0c\"5\n\x0fLoadAPKResponse\x12\x12\n\napk_digest\x18\x01 \x01(\t\x12\x0e\n\x06length\x18\x02 \x01(\x05\"*\n\x14TaintAnalysisRequest\x12\x12\n\napk_digest\x18\x01 \x01(\t\"H\n\x15TaintAnalysisResponse\x12/\n\x0ctaint_result\x18\x01 \x01(\x0b\x32\x19.taint_result.TaintResult\"n\n\x11GetSummaryRequest\x12\x12\n\napk_digest\x18\x01 \x01(\t\x12\x16\n\x0e\x63omponent_name\x18\x02 \x01(\t\x12\x11\n\tsignature\x18\x03 \x01(\t\x12\x0b\n\x03gen\x18\x04 \x01(\x08\x12\r\n\x05\x64\x65pth\x18\x05 \x01(\x05\"[\n\x12GetSummaryResponse\x12/\n\x0cheap_summary\x18\x01 \x01(\x0b\x32\x19.jawa_summary.HeapSummary\x12\x14\n\x0ctaint_result\x18\x02 \x01(\t\"\x9a\x01\n\x12RegisterICCRequest\x12\x12\n\napk_digest\x18\x01 \x01(\t\x12\x16\n\x0e\x63omponent_name\x18\x02 \x01(\t\x12\x1d\n\x15target_component_name\x18\x03 \x01(\t\x12\x11\n\tsignature\x18\x04 \x01(\t\x12\x11\n\tis_source\x18\x05 \x01(\x08\x12\x13\n\x0bsource_args\x18\x06 \x03(\x05\"%\n\x13RegisterICCResponse\x12\x0e\n\x06status\x18\x01 \x01(\x08\"=\n\x14RegisterTaintRequest\x12\x12\n\napk_digest\x18\x01 \x01(\t\x12\x11\n\tsignature\x18\x02 \x01(\t\"\'\n\x15RegisterTaintResponse\x12\x0e\n\x06status\x18\x01 \x01(\x08\x32\xb4\x03\n\x05JNSaf\x12J\n\x07LoadAPK\x12\x1c.jnsaf_server.LoadAPKRequest\x1a\x1d.jnsaf_server.LoadAPKResponse\"\x00(\x01\x12Z\n\rTaintAnalysis\x12\".jnsaf_server.TaintAnalysisRequest\x1a#.jnsaf_server.TaintAnalysisResponse\"\x00\x12Q\n\nGetSummary\x12\x1f.jnsaf_server.GetSummaryRequest\x1a .jnsaf_server.GetSummaryResponse\"\x00\x12T\n\x0bRegisterICC\x12 .jnsaf_server.RegisterICCRequest\x1a!.jnsaf_server.RegisterICCResponse\"\x00\x12Z\n\rRegisterTaint\x12\".jnsaf_server.RegisterTaintRequest\x1a#.jnsaf_server.RegisterTaintResponse\"\x00\x42\x18\n\x16org.argus.jnsaf.serverb\x06proto3')
+  serialized_pb=_b('\n%nativedroid/protobuf/jnsaf_grpc.proto\x12\x0cjnsaf_server\x1a\"nativedroid/protobuf/summary.proto\x1a\'nativedroid/protobuf/taint_result.proto\" \n\x0eLoadAPKRequest\x12\x0e\n\x06\x62uffer\x18\x01 \x01(\x0c\"5\n\x0fLoadAPKResponse\x12\x12\n\napk_digest\x18\x01 \x01(\t\x12\x0e\n\x06length\x18\x02 \x01(\x05\"*\n\x14TaintAnalysisRequest\x12\x12\n\napk_digest\x18\x01 \x01(\t\"H\n\x15TaintAnalysisResponse\x12/\n\x0ctaint_result\x18\x01 \x01(\x0b\x32\x19.taint_result.TaintResult\"n\n\x11GetSummaryRequest\x12\x12\n\napk_digest\x18\x01 \x01(\t\x12\x16\n\x0e\x63omponent_name\x18\x02 \x01(\t\x12\x11\n\tsignature\x18\x03 \x01(\t\x12\x0b\n\x03gen\x18\x04 \x01(\x08\x12\r\n\x05\x64\x65pth\x18\x05 \x01(\x05\"[\n\x12GetSummaryResponse\x12/\n\x0cheap_summary\x18\x01 \x01(\x0b\x32\x19.jawa_summary.HeapSummary\x12\x14\n\x0ctaint_result\x18\x02 \x01(\t\"\x9a\x01\n\x12RegisterICCRequest\x12\x12\n\napk_digest\x18\x01 \x01(\t\x12\x16\n\x0e\x63omponent_name\x18\x02 \x01(\t\x12\x1d\n\x15target_component_name\x18\x03 \x01(\t\x12\x11\n\tsignature\x18\x04 \x01(\t\x12\x11\n\tis_source\x18\x05 \x01(\x08\x12\x13\n\x0bsource_args\x18\x06 \x03(\x05\"%\n\x13RegisterICCResponse\x12\x0e\n\x06status\x18\x01 \x01(\x08\"e\n\x14RegisterTaintRequest\x12\x12\n\napk_digest\x18\x01 \x01(\t\x12\x11\n\tsignature\x18\x02 \x01(\t\x12\x13\n\x0bsource_kind\x18\x03 \x01(\t\x12\x11\n\tsink_kind\x18\x04 \x01(\t\"\'\n\x15RegisterTaintResponse\x12\x0e\n\x06status\x18\x01 \x01(\x08\x32\xb4\x03\n\x05JNSaf\x12J\n\x07LoadAPK\x12\x1c.jnsaf_server.LoadAPKRequest\x1a\x1d.jnsaf_server.LoadAPKResponse\"\x00(\x01\x12Z\n\rTaintAnalysis\x12\".jnsaf_server.TaintAnalysisRequest\x1a#.jnsaf_server.TaintAnalysisResponse\"\x00\x12Q\n\nGetSummary\x12\x1f.jnsaf_server.GetSummaryRequest\x1a .jnsaf_server.GetSummaryResponse\"\x00\x12T\n\x0bRegisterICC\x12 .jnsaf_server.RegisterICCRequest\x1a!.jnsaf_server.RegisterICCResponse\"\x00\x12Z\n\rRegisterTaint\x12\".jnsaf_server.RegisterTaintRequest\x1a#.jnsaf_server.RegisterTaintResponse\"\x00\x42\x18\n\x16org.argus.jnsaf.serverb\x06proto3')
   ,
   dependencies=[nativedroid_dot_protobuf_dot_summary__pb2.DESCRIPTOR,nativedroid_dot_protobuf_dot_taint__result__pb2.DESCRIPTOR,])
 
@@ -374,6 +374,20 @@ _REGISTERTAINTREQUEST = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='source_kind', full_name='jnsaf_server.RegisterTaintRequest.source_kind', index=2,
+      number=3, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='sink_kind', full_name='jnsaf_server.RegisterTaintRequest.sink_kind', index=3,
+      number=4, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
@@ -387,7 +401,7 @@ _REGISTERTAINTREQUEST = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=740,
-  serialized_end=801,
+  serialized_end=841,
 )
 
 
@@ -417,8 +431,8 @@ _REGISTERTAINTRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=803,
-  serialized_end=842,
+  serialized_start=843,
+  serialized_end=882,
 )
 
 _TAINTANALYSISRESPONSE.fields_by_name['taint_result'].message_type = nativedroid_dot_protobuf_dot_taint__result__pb2._TAINTRESULT
@@ -515,8 +529,8 @@ _JNSAF = _descriptor.ServiceDescriptor(
   file=DESCRIPTOR,
   index=0,
   options=None,
-  serialized_start=845,
-  serialized_end=1281,
+  serialized_start=885,
+  serialized_end=1321,
   methods=[
   _descriptor.MethodDescriptor(
     name='LoadAPK',

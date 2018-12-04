@@ -281,6 +281,7 @@ def icc_handle(analysis_center, class_name, method_name, return_annotation, simp
                     return_annotation.taint_info['is_taint'] = True
                     return_annotation.taint_info['taint_type'] = ['_SOURCE_', '_API_']
                     return_annotation.taint_info['taint_info'] = ['SENSITIVE_INFO']
+                    return_annotation.taint_info['source_kind'] = 'icc_source'
                     return_annotation.icc_info['is_icc'] = True
                     return_annotation.icc_info['extra'] = {annotation.value: None}
     elif class_name == 'android/content/Context':
@@ -698,13 +699,15 @@ class CallObjectMethod(NativeDroidSimProcedure):
     def get_method_taint_attribute(ssm, method_full_signature):
         if method_full_signature:
             source_tags = ssm.get_source_tags(method_full_signature)
+            source_kind = ssm.get_source_kind(method_full_signature)
             if source_tags:
-                return ['_SOURCE_', '|'.join(source_tags)]
+                return ['_SOURCE_', '|'.join(source_tags), source_kind]
             tags = ssm.get_sink_tags(method_full_signature)
             if tags:
                 poss = tags[0]
                 info = 'ALL' if not poss else '|'.join(map(str, poss))
-                return ['_SINK_', info]
+                sink_kind = ssm.get_sink_kind(method_full_signature)
+                return ['_SINK_', info, sink_kind]
         return None
 
     def run(self, env, obj, methodID, arg1, arg2, arg3, arg4):
@@ -743,6 +746,7 @@ class CallObjectMethod(NativeDroidSimProcedure):
                         return_annotation.taint_info['is_taint'] = True
                         return_annotation.taint_info['taint_type'] = [method_taint_attribute[0], '_API_']
                         return_annotation.taint_info['taint_info'] = [method_taint_attribute[1]]
+                        return_annotation.taint_info['source_kind'] = method_taint_attribute[2]
                     elif method_taint_attribute[0] == '_SINK_':
                         process_args = []
                         if method_taint_attribute[1] == 'ALL':
@@ -776,12 +780,16 @@ class CallObjectMethod(NativeDroidSimProcedure):
                                     if anno.taint_info['is_taint']:
                                         return_annotation.taint_info = anno.taint_info
                                         return_annotation.field_info = anno.field_info
+                                        return_annotation.taint_info['sink_kind'] = method_taint_attribute[2]
                                         if '_SOURCE_' in anno.taint_info['taint_type'][0]:
                                             if '_API_' in anno.taint_info['taint_type'][1]:
                                                 return_annotation.taint_info['is_taint'] = True
                                                 return_annotation.taint_info['taint_type'] = ['_SINK_', '_SOURCE_']
                                                 return_annotation.taint_info['taint_info'] = \
                                                     [method_taint_attribute[1]]
+                                                return_annotation.taint_info['source_kind'] = \
+                                                    anno.taint_info['source_kind']
+
                                             elif '_ARGUMENT_' in anno.taint_info['taint_type'][1]:
                                                 return_annotation.taint_info['is_taint'] = True
                                                 return_annotation.taint_info['taint_type'] = \
@@ -810,6 +818,10 @@ class CallObjectMethod(NativeDroidSimProcedure):
                                                         [anno.taint_info['taint_type'][0], '_ARGUMENT_FIELD_']
                                                     field_anno.taint_info['taint_info'] = \
                                                         anno.taint_info['taint_info']
+                                                    field_anno.taint_info['source_kind'] = \
+                                                        anno.taint_info['source_kind']
+                                                    field_anno.taint_info['sink_kind'] = \
+                                                        anno.taint_info['sink_kind']
                                                     return_annotation = field_anno
                         else:
                             if anno.fields_info:
@@ -1201,6 +1213,8 @@ class GetObjectField(NativeDroidSimProcedure):
                                 return_annotation.taint_info['is_taint'] = True
                                 return_annotation.taint_info['taint_type'] = ['_SOURCE_', '_ARGUMENT_FIELD_']
                                 return_annotation.taint_info['taint_info'] = ['SENSITIVE_INFO']
+                                return_annotation.taint_info['source_kind'] = anno.taint_info['source_kind']
+                                return_annotation.taint_info['sink_kind'] = anno.taint_info['sink_kind']
                             return_value = return_value.append_annotation(return_annotation)
                 return return_value
         jobject = JObject(self.project)
@@ -1621,6 +1635,7 @@ class GetStaticObjectField(GetObjectField):
                             return_annotation.taint_info['is_taint'] = True
                             return_annotation.taint_info['taint_type'] = ['_SOURCE_', '_CLASS_FIELD_']
                             return_annotation.taint_info['taint_info'] = ['SENSITIVE_INFO']
+                            return_annotation.taint_info['source_kind'] = 'api_source'
                             return_value = return_value.append_annotation(return_annotation)
                 return return_value
         jobject = JObject(self.project)
@@ -1845,6 +1860,8 @@ class GetObjectArrayElement(NativeDroidSimProcedure):
             element_annotation.taint_info['is_taint'] = True
             element_annotation.taint_info['taint_type'] = ['_SOURCE_', '_ARGUMENT_ELEMENT_']
             element_annotation.taint_info['taint_info'] = ['SENSITIVE_INFO']
+            element_annotation.taint_info['source_kind'] = array.annotations[0].taint_info['source_kind']
+            element_annotation.taint_info['sink_kind'] = array.annotations[0].taint_info['sink_kind']
         return_value = return_value.annotate(element_annotation)
         return return_value
 

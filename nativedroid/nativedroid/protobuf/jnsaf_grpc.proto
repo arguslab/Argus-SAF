@@ -52,6 +52,8 @@ message RegisterICCResponse {
 message RegisterTaintRequest {
     string apk_digest = 1;
     string signature = 2;
+    string source_kind = 3;
+    string sink_kind = 4;
 }
 
 message RegisterTaintResponse {
