@@ -137,25 +137,6 @@ class NativeDroidAnalysisTest(unittest.TestCase):
                          ';',
                          safsu_report)
 
-    def testLibData(self):
-        so_file = pkg_resources.resource_filename('nativedroid.testdata',
-                                                  'NativeLibs/native_complexdata/lib/armeabi/libdata.so')
-        jni_method_name = 'Java_org_arguslab_native_1complexdata_MainActivity_send'
-        jni_method_signature = 'Lorg/arguslab/native_complexdata/MainActivity;' \
-                               '.send:(Lorg/arguslab/native_complexdata/ComplexData;)V'
-        jni_method_arguments = 'org.arguslab.native_complexdata.ComplexData'
-        taint_analysis_report, safsu_report, total_instructions = gen_summary(None, so_file, jni_method_name,
-                                                                              jni_method_signature,
-                                                                              jni_method_arguments,
-                                                                              native_ss_file, java_ss_file)
-        self.assertEqual('Lorg/arguslab/native_complexdata/MainActivity;'
-                         '.send:(Lorg/arguslab/native_complexdata/ComplexData;)V -> _SINK_',
-                         taint_analysis_report)
-        self.assertEqual('`Lorg/arguslab/native_complexdata/MainActivity;'
-                         '.send:(Lorg/arguslab/native_complexdata/ComplexData;)V`:\n'
-                         ';',
-                         safsu_report)
-
     def testLibDataStringOp(self):
         so_file = pkg_resources.resource_filename('nativedroid.testdata',
                                                   'NativeLibs/native_complexdata_stringop/lib/armeabi/libdata.so')
@@ -169,7 +150,7 @@ class NativeDroidAnalysisTest(unittest.TestCase):
                                                                               jni_method_arguments,
                                                                               native_ss_file, java_ss_file)
         self.assertEqual('Lorg/arguslab/native_complexdata_stringop/MainActivity;'
-                         '.send:(Lorg/arguslab/native_complexdata_stringop/ComplexData;)V -> _SINK_',
+                         '.send:(Lorg/arguslab/native_complexdata_stringop/ComplexData;)V -> _SINK_ 1.other',
                          taint_analysis_report)
         self.assertEqual('`Lorg/arguslab/native_complexdata_stringop/MainActivity;'
                          '.send:(Lorg/arguslab/native_complexdata_stringop/ComplexData;)V`:\n'

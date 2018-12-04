@@ -202,7 +202,8 @@ class AnnotationBasedAnalysis(angr.Analysis):
                             taint_field_name = '.' + anno.field_info['field_name'] + taint_field_name
                         if anno.taint_info['is_taint'] and anno.source and anno.source.startswith('arg'):
                             report_file.write(anno.source.split('arg')[-1] + taint_field_name)
-                        anno = anno.field_info.get('base_annotation')
+                            break
+                        anno = anno.field_info['base_annotation']
             report_file.write('\n')
         if sources:
             report_file.write(self._jni_method_signature)
