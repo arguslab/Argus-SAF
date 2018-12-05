@@ -1851,17 +1851,19 @@ class GetObjectArrayElement(NativeDroidSimProcedure):
         jobject = JObject(self.project)
         return_value = claripy.BVV(jobject.ptr, self.project.arch.bits)
         element_index = index.ast.args[0]
-        element_type = array.annotations[0].obj_type.split('[]')[0]
-        element_annotation = construct_annotation(element_type, 'from_array')
+        array_annotation = array.annotations[0]
+        element_type = array_annotation.obj_type.split('[]')[0]
+        element_annotation = construct_annotation(element_type, array_annotation.source)
+        element_annotation.heap = array_annotation.heap + '[]' if array_annotation.heap else None
         element_annotation.array_info['is_element'] = True
         element_annotation.array_info['element_index'] = element_index
-        element_annotation.array_info['subordinate_array'] = copy.deepcopy(array)
+        element_annotation.array_info['base_annotation'] = copy.deepcopy(array_annotation)
         if array.annotations[0].source.startswith('arg'):
             element_annotation.taint_info['is_taint'] = True
             element_annotation.taint_info['taint_type'] = ['_SOURCE_', '_ARGUMENT_ELEMENT_']
             element_annotation.taint_info['taint_info'] = ['SENSITIVE_INFO']
-            element_annotation.taint_info['source_kind'] = array.annotations[0].taint_info['source_kind']
-            element_annotation.taint_info['sink_kind'] = array.annotations[0].taint_info['sink_kind']
+            element_annotation.taint_info['source_kind'] = array_annotation.taint_info['source_kind']
+            element_annotation.taint_info['sink_kind'] = array_annotation.taint_info['sink_kind']
         return_value = return_value.annotate(element_annotation)
         return return_value
 
