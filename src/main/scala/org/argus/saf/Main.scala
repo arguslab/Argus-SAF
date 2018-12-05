@@ -14,6 +14,7 @@ import org.apache.commons.cli._
 import org.argus.amandroid.core.AndroidGlobalConfig
 import org.argus.amandroid.core.decompile.DecompileLevel
 import org.argus.amandroid.plugin.{ApiMisuseModules, TaintAnalysisApproach, TaintAnalysisModules}
+import org.argus.amandroid.summary.gpu.GPUSummaryBasedAnalysis
 import org.argus.saf.cli._
 
 /**
@@ -28,6 +29,7 @@ object Main extends App {
   private val decompilerOptions: Options = new Options
   private val taintOptions: Options = new Options
   private val apiMisuseOptions: Options = new Options
+  private val gpuOptions: Options = new Options
   private val allOptions: Options = new Options
 
   private def createOptions(): Unit = {
@@ -70,6 +72,8 @@ object Main extends App {
     apiMisuseOptions.addOptionGroup(generalOptionGroup)
     apiMisuseOptions.addOption(apimoduleOption)
 
+    gpuOptions.addOptionGroup(generalOptionGroup)
+
     allOptions.addOption(versionOption)
     allOptions.addOption(guessPackageOption)
     allOptions.addOption(bottomupOption)
@@ -85,7 +89,7 @@ object Main extends App {
   }
 
   object Mode extends Enumeration {
-    val ARGUS_SAF, APICHECK, DECOMPILE, TAINT = Value
+    val ARGUS_SAF, APICHECK, DECOMPILE, TAINT, GPU_RESULT = Value
   }
 
   private def usage(mode: Mode.Value): Unit ={
@@ -99,7 +103,8 @@ object Main extends App {
         println("""Available Modes:
                   |  a[picheck]    Detecting API misuse.
                   |  d[ecompile]   Decompile Apk file(s).
-                  |  t[aint]       Perform taint analysis on Apk(s).""".stripMargin)
+                  |  t[aint]       Perform taint analysis on Apk(s).
+                  |  gpu           Generate analysis result to compare with GPU engine.""".stripMargin)
         println("")
         formatter.printHelp("<options>", normalOptions)
         println("For additional info, see: http://pag.arguslab.org/argus-saf")
@@ -109,6 +114,8 @@ object Main extends App {
         formatter.printHelp("d[compile] [options] <file_apk/dir>", decompilerOptions)
       case Mode.TAINT =>
         formatter.printHelp("t[aint] [options] <file_apk/dir>", taintOptions)
+      case Mode.GPU_RESULT =>
+        formatter.printHelp("gpu [options] <file_apk>", gpuOptions)
     }
 
   }
@@ -149,6 +156,10 @@ object Main extends App {
       }
       else if (opt.equalsIgnoreCase("a") || opt.equalsIgnoreCase("apicheck")) {
         cmdApiMisuse(commandLine)
+        cmdFound = true
+      }
+      else if (opt.equalsIgnoreCase("gpu")) {
+        cmdGPUResult(commandLine)
         cmdFound = true
       }
     }
@@ -290,5 +301,26 @@ object Main extends App {
         System.exit(0)
     }
     ApiMisuse(module, debug, sourcePath, outputPath, forceDelete, guessPackage)
+  }
+
+  private def cmdGPUResult(cli: CommandLine): Unit = {
+    var outputPath: String = "."
+    var forceDelete: Boolean = false
+    if(cli.hasOption("o") || cli.hasOption("output")) {
+      outputPath = cli.getOptionValue("o")
+    }
+    if(cli.hasOption("f") || cli.hasOption("force")) {
+      forceDelete = true
+    }
+    var sourcePath: String = null
+
+    try {
+      sourcePath = cli.getArgList.get(1)
+    } catch {
+      case _: Exception =>
+        usage(Mode.APICHECK)
+        System.exit(0)
+    }
+    GPUSummaryBasedAnalysis(sourcePath, outputPath, forceDelete)
   }
 }

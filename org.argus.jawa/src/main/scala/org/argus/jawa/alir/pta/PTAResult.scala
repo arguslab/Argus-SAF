@@ -141,15 +141,17 @@ class PTAResult {
     result
   }
 
-  def pprint(): Unit = {
+  def pprint(): String = {
+    val sb = new StringBuilder
     ptMap.toList.sortBy(_._1.getCurrentLocUri).foreach {
       case (c, map) =>
-        println(c.getCurrentLocUri + ":")
+        sb.append(c.getCurrentLocUri + ":\n")
         map.foreach {
           case (s, inss) =>
-            println("  " + s + "---" + inss.mkString(", "))
+            sb.append("  " + s + "---" + inss.mkString(", ") + "\n")
         }
     }
+    sb.toString().trim
   }
 
   private val afterCallMap: MMap[Context, MMap[PTASlot, MSet[Instance]]] = mmapEmpty

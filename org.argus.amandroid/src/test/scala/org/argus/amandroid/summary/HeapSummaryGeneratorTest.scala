@@ -27,6 +27,7 @@ import scala.language.implicitConversions
 /**
   * Created by fgwei on 8/1/17.
   */
+//noinspection ScalaUnnecessaryParentheses
 class HeapSummaryGeneratorTest extends FlatSpec with Matchers {
   final val DEBUG = false
 
