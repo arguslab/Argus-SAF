@@ -57,6 +57,7 @@ val doNotPublishSettings = Seq(
   publish := {})
 
 val publishSettings = Seq(
+    test in assembly := {},
     publishArtifact in Test := false,
     releasePublishArtifactsAction := PgpKeys.publishSigned.value,
     pomExtra := <scm>

@@ -318,7 +318,7 @@ object Main extends App {
       sourcePath = cli.getArgList.get(1)
     } catch {
       case _: Exception =>
-        usage(Mode.APICHECK)
+        usage(Mode.GPU_RESULT)
         System.exit(0)
     }
     GPUSummaryBasedAnalysis(sourcePath, outputPath, forceDelete)
