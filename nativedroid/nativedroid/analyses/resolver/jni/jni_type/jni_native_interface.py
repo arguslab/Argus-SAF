@@ -719,6 +719,7 @@ class CallObjectMethod(NativeDroidSimProcedure):
                 method_name = annotation.method_name
                 method_signature = annotation.method_signature
                 method_full_signature = get_method_full_signature(class_name, method_name, method_signature)
+                print method_full_signature
                 jnsaf_client = self._analysis_center.get_jnsaf_client()
                 ssm = self._analysis_center.get_source_sink_manager()
                 heap_summary = None
