@@ -19,7 +19,7 @@ import org.argus.amandroid.alir.pta.summaryBasedAnalysis.AndroidSummaryProvider
 import org.argus.amandroid.core.ApkGlobal
 import org.argus.amandroid.core.decompile.{DecompileLayout, DecompileStrategy, DecompilerSettings}
 import org.argus.jawa.alir.JawaAlirInfoProvider
-import org.argus.jawa.alir.cfg.{CFGLocationNode, CFGNode}
+import org.argus.jawa.alir.cfg.{CFGLocationNode, CFGNode, CFGVirtualNode}
 import org.argus.jawa.alir.reachability.SignatureBasedCallGraph
 import org.argus.jawa.ast.MethodDeclaration
 import org.argus.jawa.core._
@@ -36,8 +36,8 @@ object GPUSummaryBasedAnalysis {
       val locUri = ln.toString
       val l = body.resolvedBody.location(locUri)
       l.statement.toStructure
-    case _ =>
-      body.signature.signature
+    case _: CFGVirtualNode =>
+      body.signature.signature + " " + body.params.map(param => s"${param.typ.typ}:${param.name}").mkString(",")
   }
 
   def generate(apk: ApkGlobal, ep: Signature, outputUri: FileResourceUri): Unit = {
@@ -51,9 +51,10 @@ object GPUSummaryBasedAnalysis {
       val method = apk.getMethodOrResolve(sig).getOrElse(throw new RuntimeException("Method does not exist: " + sig))
       new HeapSummaryWu(apk, method, sm, handler)
     }
-    analysis.build(orderedWUs)
     val resultUri = FileUtil.appendFileName(outputUri, apk.model.getAppName + ".result")
-    val writer = new FileWriter(FileUtil.toFile(resultUri))
+    val writer = new FileWriter(FileUtil.toFile(resultUri), true)
+    writer.write("Entry point: " + ep.signature + "\n")
+    TimeUtil.timed("Analysis time", writer)(analysis.build(orderedWUs))
     try {
       orderedWUs.foreach {
         case wu: HeapSummaryWu =>
@@ -71,8 +72,9 @@ object GPUSummaryBasedAnalysis {
     } catch {
       case e: Exception =>
         e.printStackTrace()
-        writer.flush()
-        writer.close()
+    } finally {
+      writer.flush()
+      writer.close()
     }
   }
 

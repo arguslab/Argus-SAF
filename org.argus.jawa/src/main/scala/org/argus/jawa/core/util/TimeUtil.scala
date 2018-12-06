@@ -10,6 +10,8 @@
 
 package org.argus.jawa.core.util
 
+import java.io.Writer
+
 import org.argus.jawa.core.Reporter
 
 object TimeUtil {
@@ -18,6 +20,13 @@ object TimeUtil {
     val result = t
     val elapsed = System.nanoTime - start
     reporter.echo(label, (elapsed/1e9) + " s")
+    result
+  }
+  def timed[T](label: String, w: Writer)(t: => T): T = {
+    val start = System.nanoTime
+    val result = t
+    val elapsed = System.nanoTime - start
+    w.write(label + ": " + (elapsed/1e9) + " s\n")
     result
   }
 }
