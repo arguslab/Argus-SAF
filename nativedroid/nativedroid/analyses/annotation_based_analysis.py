@@ -133,11 +133,24 @@ class AnnotationBasedAnalysis(angr.Analysis):
         for node in self.cfg.nodes():
             if node.is_simprocedure and node.name.startswith('Call'):
                 for final_state in node.final_states:
-                    node_return_value = final_state.regs.r0
-                    for annotation in node_return_value.annotations:
-                        if isinstance(annotation, JobjectAnnotation):
-                            if annotation.taint_info['is_taint'] and annotation.taint_info['taint_type'][0] == '_SINK_':
-                                sink_annotations.add(annotation)
+                    regs = [final_state.regs.r0,
+                            final_state.regs.r1,
+                            final_state.regs.r2,
+                            final_state.regs.r3,
+                            final_state.regs.r4,
+                            final_state.regs.r5,
+                            final_state.regs.r6,
+                            final_state.regs.r7,
+                            final_state.regs.r8,
+                            final_state.regs.r9,
+                            final_state.regs.r10]
+                    for reg in regs:
+                        # node_return_value = final_state.regs.r0
+                        for annotation in reg.annotations:
+                            if isinstance(annotation, JobjectAnnotation):
+                                if annotation.taint_info['is_taint'] and \
+                                        annotation.taint_info['taint_type'][0] == '_SINK_':
+                                    sink_annotations.add(annotation)
             fn = self.cfg.project.kb.functions.get(node.addr)
             if fn:
                 ssm = self._analysis_center.get_source_sink_manager()
@@ -187,13 +200,14 @@ class AnnotationBasedAnalysis(angr.Analysis):
         if sinks:
             report_file.write(self._jni_method_signature)
             report_file.write(' -> _SINK_ ')
+            args = set([])
             for sink_annotation in sinks:
                 if sink_annotation.array_info['is_element']:
                     if sink_annotation.array_info['base_annotation'].source.startswith('arg'):
                         arg_index = \
                             re.split('arg|_', sink_annotation.array_info['base_annotation'].source)[1]
                         sink_location = arg_index
-                        report_file.write(str(sink_location))
+                        args.add(str(sink_location))
                 else:
                     taint_field_name = ''
                     anno = sink_annotation
@@ -201,9 +215,10 @@ class AnnotationBasedAnalysis(angr.Analysis):
                         if anno.field_info['is_field']:
                             taint_field_name = '.' + anno.field_info['field_name'] + taint_field_name
                         if anno.taint_info['is_taint'] and anno.source and anno.source.startswith('arg'):
-                            report_file.write(anno.source.split('arg')[-1] + taint_field_name)
+                            args.add(anno.source.split('arg')[-1] + taint_field_name)
                             break
                         anno = anno.field_info['base_annotation']
+            report_file.write('|'.join(args))
             report_file.write('\n')
         if sources:
             report_file.write(self._jni_method_signature)
