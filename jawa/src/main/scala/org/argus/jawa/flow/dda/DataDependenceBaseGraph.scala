@@ -46,7 +46,7 @@ trait DataDependenceBaseGraph[Node <: IDDGNode]
         return Some(getIDDGVirtualBodyNode(node))
       }
     }
-    if(defSite.getLocUri.startsWith("Entry.")) {
+    if(defSite.getLocUri.startsWith("Entry:")) {
       val context = defSite.copy.removeTopContext()
       context.setContext(defSite.getMethodSig, "Entry")
       if(this.icfg.icfgEntryNodeExists(context)) {

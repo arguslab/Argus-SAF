@@ -87,6 +87,18 @@ class TaintWu[T <: Global](
   def getTaintInstance: ICFGNode => (IMap[Instance, TaintInfo], IMap[Instance, TaintInfo]) = {
     case en: ICFGEntryNode =>
       val srcInss: MMap[Instance, TaintInfo] = mmapEmpty
+      en.thisName match {
+        case Some(name) =>
+          val inss = ptaresult.getRelatedInstances(en.getContext, VarSlot(name))
+          val status = if(ssm.isEntryPointSource(global, en.getContext.getMethodSig)) {
+            TaintStatus.TAINT
+          } else {
+            TaintStatus.PASS
+          }
+          val info = TaintInfo(status, Some(new SSPosition(0)), ilistEmpty, SourceAndSinkCategory.ENTRYPOINT_SOURCE)
+          srcInss ++= inss.map(ins => (ins, info))
+        case None =>
+      }
       en.paramNames.indices foreach { idx =>
         val name = en.paramNames(idx)
         val inss = ptaresult.getRelatedInstances(en.getContext, VarSlot(name))
@@ -146,6 +158,24 @@ class TaintWu[T <: Global](
             case None =>
           }
         case _ =>
+      }
+      (imapEmpty, sinkInss.toMap)
+    case en: ICFGExitNode =>
+      val sinkInss: MMap[Instance, TaintInfo] = mmapEmpty
+      en.thisName match {
+        case Some(name) =>
+          val thisInss = ptaresult.pointsToSet(en.getContext, VarSlot(name))
+          val inss = ptaresult.getRelatedHeapInstances(en.getContext, thisInss)
+          val info = TaintInfo(TaintStatus.PASS, Some(new SSPosition(0)), ilistEmpty, SourceAndSinkCategory.API_SINK)
+          sinkInss ++= inss.map(ins => (ins, info))
+        case None =>
+      }
+      en.paramNames.indices foreach { idx =>
+        val name = en.paramNames(idx)
+        val argInss = ptaresult.pointsToSet(en.getContext, VarSlot(name))
+        val inss = ptaresult.getRelatedHeapInstances(en.getContext, argInss)
+        val info = TaintInfo(TaintStatus.PASS, Some(new SSPosition(idx + 1)), ilistEmpty, SourceAndSinkCategory.API_SINK)
+        sinkInss ++= inss.map(ins => (ins, info))
       }
       (imapEmpty, sinkInss.toMap)
     case _ =>

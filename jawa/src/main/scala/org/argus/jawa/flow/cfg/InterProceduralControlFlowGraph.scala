@@ -160,12 +160,14 @@ class InterProceduralControlFlowGraph[Node <: ICFGNode] extends ControlFlowGraph
           case "Entry" =>
             val entryNode = addICFGEntryNode(callerContext.copy.setContext(calleeSig, "Entry"))
             entryNode.setOwner(calleeProc.getSignature)
+            entryNode.asInstanceOf[ICFGVirtualNode].thisName = calleeProc.thisOpt
             entryNode.asInstanceOf[ICFGVirtualNode].paramNames ++= calleeProc.params.map(_._1)
             nodes += entryNode
             if (isFirst) this.entryN = entryNode
           case "Exit" =>
             val exitNode = addICFGExitNode(callerContext.copy.setContext(calleeSig, "Exit"))
             exitNode.setOwner(calleeProc.getSignature)
+            exitNode.asInstanceOf[ICFGVirtualNode].thisName = calleeProc.thisOpt
             exitNode.asInstanceOf[ICFGVirtualNode].paramNames ++= calleeProc.params.map(_._1)
             nodes += exitNode
             if (isFirst) this.exitN = exitNode
@@ -458,6 +460,7 @@ sealed abstract class ICFGNode(context: Context) extends InterProceduralNode(con
 
 abstract class ICFGVirtualNode(context: Context) extends ICFGNode(context) {
   def getVirtualLabel: String
+  var thisName: Option[String] = None
   var paramNames: IList[String] = ilistEmpty
   override def toString: String = getVirtualLabel + "@" + context.getMethodSig
 }

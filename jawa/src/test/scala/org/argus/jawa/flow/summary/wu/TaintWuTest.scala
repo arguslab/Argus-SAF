@@ -46,10 +46,10 @@ class TaintWuTest extends FlatSpec with Matchers {
 
   "/jawa/taint/TaintTest.jawa" ep "LTaintTest;.singleFunc:()V" produce
     """Taint path:
-      |api_source: LTest;.source:()LTaintData;
-      |	-> api_sink: LTest;.sink:(Ljava/lang/Object;)V 1
-      |Call@(TaintTest.singleFunc,L3)
-      |	-> Call@(TaintTest.singleFunc,L5) param: 1
+      |api_source: #L3.  call TaintData_temp:= `source`() @signature `LTest;.source:()LTaintData;` @kind static;
+      |	-> api_sink: #L5.  call `sink`(TaintData_v0) @signature `LTest;.sink:(Ljava/lang/Object;)V` @kind static;
+      |#L3.  call TaintData_temp:= `source`() @signature `LTest;.source:()LTaintData;` @kind static;
+      |	-> #L5.  call `sink`(TaintData_v0) @signature `LTest;.sink:(Ljava/lang/Object;)V` @kind static;
       |
     """.stripMargin.trim
 
@@ -59,66 +59,83 @@ class TaintWuTest extends FlatSpec with Matchers {
 
   "/jawa/taint/TaintTest.jawa" ep "LTaintTest;.caller:()V" produce
     """Taint path:
-      |api_source: LTest;.source:()LTaintData;
-      |	-> api_sink: LTest;.sink:(Ljava/lang/Object;)V 1
-      |Call@(TaintTest.caller,L12)
-      |	-> Call@(TaintTest.caller,L15) param: 1
-      |	-> Call@(TaintTest.direct_sink,L17) param: 1
+      |api_source: #L12.  call TaintData_temp:= `source`() @signature `LTest;.source:()LTaintData;` @kind static;
+      |	-> api_sink: #L17.  call `sink`(Object_v0) @signature `LTest;.sink:(Ljava/lang/Object;)V` @kind static;
+      |#L12.  call TaintData_temp:= `source`() @signature `LTest;.source:()LTaintData;` @kind static;
+      |	-> #L15.  call `TaintTest.direct_sink`(`this`, TaintData_v0) @signature `LTaintTest;.direct_sink:(Ljava/lang/Object;)V` @kind virtual;
+      |	-> Entry@LTaintTest;.direct_sink:(Ljava/lang/Object;)V param: 1
+      |	-> #L17.  call `sink`(Object_v0) @signature `LTest;.sink:(Ljava/lang/Object;)V` @kind static;
       |
     """.stripMargin.trim
 
   "/jawa/taint/TaintTest.jawa" ep "LTaintTest;.caller2:()V" produce
     """Taint path:
-      |api_source: LTest;.source:()LTaintData;
-      |	-> api_sink: LTest;.sink:(Ljava/lang/Object;)V 1
-      |Call@(TaintTest.caller2,L19)
-      |	-> Call@(TaintTest.caller2,L23) param: 0
-      |	-> Call@(TaintTest.field_sink,L26) param: 1
+      |api_source: #L19.  call TaintData_temp:= `source`() @signature `LTest;.source:()LTaintData;` @kind static;
+      |	-> api_sink: #L26.  call `sink`(Object_v0) @signature `LTest;.sink:(Ljava/lang/Object;)V` @kind static;
+      |#L19.  call TaintData_temp:= `source`() @signature `LTest;.source:()LTaintData;` @kind static;
+      |	-> #L23.  call `field_sink`(`this`) @signature `LTaintTest;.field_sink:()V` @kind virtual;
+      |	-> Entry@LTaintTest;.field_sink:()V param: 0
+      |	-> #L26.  call `sink`(Object_v0) @signature `LTest;.sink:(Ljava/lang/Object;)V` @kind static;
       |
     """.stripMargin.trim
 
   "/jawa/taint/TaintTest.jawa" ep "LTaintTest;.caller3:()V" produce
     """Taint path:
-      |api_source: LTest;.source:()LTaintData;
-      |	-> api_sink: LTest;.sink:(Ljava/lang/Object;)V 1
-      |Call@(TaintTest.direct_source,L34)
-      |	-> Call@(TaintTest.caller3,L32) param: 0
-      |	-> Call@(TaintTest.field_sink,L26) param: 1
+      |api_source: #L34.  call TaintData_temp:= `source`() @signature `LTest;.source:()LTaintData;` @kind static;
+      |	-> api_sink: #L26.  call `sink`(Object_v0) @signature `LTest;.sink:(Ljava/lang/Object;)V` @kind static;
+      |#L34.  call TaintData_temp:= `source`() @signature `LTest;.source:()LTaintData;` @kind static;
+      |	-> #L36.  return TaintData_v0 @kind object;
+      |	-> #L34.  call TaintData_temp:= `source`() @signature `LTest;.source:()LTaintData;` @kind static;
+      |	-> #L36.  return TaintData_v0 @kind object;
+      |	-> #L28.  call TaintData_temp:= `direct_source`(`this`) @signature `LTaintTest;.direct_source:()LTaintData;` @kind static;
+      |	-> #L32.  call `field_sink`(`this`) @signature `LTaintTest;.field_sink:()V` @kind virtual;
+      |	-> Entry@LTaintTest;.field_sink:()V param: 0
+      |	-> #L26.  call `sink`(Object_v0) @signature `LTest;.sink:(Ljava/lang/Object;)V` @kind static;
       |
     """.stripMargin.trim
 
   "/jawa/taint/TaintTest.jawa" ep "LTaintTest;.caller4:()V" produce
     """Taint path:
-      |api_source: LTest;.source:()LTaintData;
-      |	-> api_sink: LTest;.sink:(Ljava/lang/Object;)V 1
-      |Call@(TaintTest.field_source,L37)
-      |	-> Call@(TaintTest.caller4,L42) param: 0
-      |	-> Call@(TaintTest.field_sink,L26) param: 1
+      |api_source: #L37.  call TaintData_temp:= `source`() @signature `LTest;.source:()LTaintData;` @kind static;
+      |	-> api_sink: #L26.  call `sink`(Object_v0) @signature `LTest;.sink:(Ljava/lang/Object;)V` @kind static;
+      |#L37.  call TaintData_temp:= `source`() @signature `LTest;.source:()LTaintData;` @kind static;
+      |	-> Exit@LTaintTest;.field_source:()V param: 0
+      |	-> #L37.  call TaintData_temp:= `source`() @signature `LTest;.source:()LTaintData;` @kind static;
+      |	-> Exit@LTaintTest;.field_source:()V param: 0
+      |	-> #L41.  call `field_source`(`this`) @signature `LTaintTest;.field_source:()V` @kind virtual;
+      |	-> #L42.  call `field_sink`(`this`) @signature `LTaintTest;.field_sink:()V` @kind virtual;
+      |	-> Entry@LTaintTest;.field_sink:()V param: 0
+      |	-> #L26.  call `sink`(Object_v0) @signature `LTest;.sink:(Ljava/lang/Object;)V` @kind static;
       |
     """.stripMargin.trim
 
   "/jawa/taint/TaintTest.jawa" ep "LTaintTest;.caller5:()V" produce
     """Taint path:
-      |api_source: LTest;.source:()LTaintData;
-      |	-> api_sink: LTest;.sink:(Ljava/lang/Object;)V 1
-      |Call@(TaintTest.field_source,L37)
-      |	-> Call@(TaintTest.caller5,L45) param: 1
+      |api_source: #L37.  call TaintData_temp:= `source`() @signature `LTest;.source:()LTaintData;` @kind static;
+      |	-> api_sink: #L45.  call `sink`(`this`) @signature `LTest;.sink:(Ljava/lang/Object;)V` @kind static;
+      |#L37.  call TaintData_temp:= `source`() @signature `LTest;.source:()LTaintData;` @kind static;
+      |	-> Exit@LTaintTest;.field_source:()V param: 0
+      |	-> #L37.  call TaintData_temp:= `source`() @signature `LTest;.source:()LTaintData;` @kind static;
+      |	-> Exit@LTaintTest;.field_source:()V param: 0
+      |	-> #L44.  call `field_source`(`this`) @signature `LTaintTest;.field_source:()V` @kind virtual;
+      |	-> #L45.  call `sink`(`this`) @signature `LTest;.sink:(Ljava/lang/Object;)V` @kind static;
+      |
     """.stripMargin.trim
 
   "/jawa/taint/TaintTest.jawa" ep "LTaintTest;.caller6:()V" produce
     """Taint path:
-      |api_source: LTest;.source:()LTaintData;
-      |	-> api_sink: LTest;.sink:(Ljava/lang/Object;)V 1
-      |Call@(TaintTest.caller6,L47)
-      |	-> Call@(TaintTest.caller6,L50) param: 1
+      |api_source: #L47.  call TaintData_temp:= `source`() @signature `LTest;.source:()LTaintData;` @kind static;
+      |	-> api_sink: #L50.  call `sink`(`this`) @signature `LTest;.sink:(Ljava/lang/Object;)V` @kind static;
+      |#L47.  call TaintData_temp:= `source`() @signature `LTest;.source:()LTaintData;` @kind static;
+      |	-> #L50.  call `sink`(`this`) @signature `LTest;.sink:(Ljava/lang/Object;)V` @kind static;
     """.stripMargin.trim
 
   "/jawa/taint/TaintTest.jawa" ep "LTaintTest;.caller7:()V" produce
     """Taint path:
-      |api_source: LTest;.source:(LData;)V 1.str
-      |	-> api_sink: LTest;.sink:(Ljava/lang/Object;)V 1
-      |Call@(TaintTest.caller7,L3) param: 1.str
-      |	-> Call@(TaintTest.caller7,L5) param: 1
+      |api_source: #L3.  call `source`(Data_v0) @signature `LTest;.source:(LData;)V` @kind static;
+      |	-> api_sink: #L5.  call `sink`(String_v1) @signature `LTest;.sink:(Ljava/lang/Object;)V` @kind static;
+      |#L3.  call `source`(Data_v0) @signature `LTest;.source:(LData;)V` @kind static;
+      |	-> #L5.  call `sink`(String_v1) @signature `LTest;.sink:(Ljava/lang/Object;)V` @kind static;
     """.stripMargin.trim
 
   "/jawa/taint/TaintTest.jawa" ep "LTaintTest;.caller8:()V" produce
@@ -155,6 +172,7 @@ class TaintWuTest extends FlatSpec with Matchers {
         }
         analysis.build(orderedWUs)
         val path = store.getTaintedPaths.mkString("\n").trim
+        println(path)
         assert(path == tp)
       }
     }

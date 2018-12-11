@@ -12,7 +12,7 @@ package org.argus.jawa.flow.summary.wu
 
 import org.argus.jawa.core._
 import org.argus.jawa.core.ast._
-import org.argus.jawa.core.elements.{JavaKnowledge, JawaType, Signature}
+import org.argus.jawa.core.elements.{JavaKnowledge, Signature}
 import org.argus.jawa.core.util.Property.Key
 import org.argus.jawa.core.util._
 import org.argus.jawa.flow.Context
@@ -121,23 +121,14 @@ abstract class DataFlowWu[T <: Global, S <: SummaryRule] (
     suGen(method.getSignature, parseIDFG(idfg))
   }
 
-  private def isInterestingType(typ: JawaType): Boolean = {
-    if(typ.isObject) {
-      val clazz = global.getClassOrResolve(typ)
-      clazz.isApplicationClass
-    } else {
-      false
-    }
-  }
-
   private def getNextLevelFacts(facts: ISet[RFAFact], level: Int): ISet[RFAFact] = {
     val newfacts: MSet[RFAFact] = msetEmpty
     if(level == 0) return newfacts.toSet
     facts.foreach { fact =>
       val defSite = fact.ins.defSite
       val typ = fact.ins.typ
-      if(isInterestingType(typ)) {
-        val clazz = global.getClassOrResolve(typ)
+      val clazz = global.getClassOrResolve(typ)
+      if(clazz.isApplicationClass) {
         clazz.getFields.foreach { field =>
           if(field.typ.isObject) {
             val context = defSite.copy.setContext(defSite.getMethodSig, defSite.getLocUri + "." + field.getName)
@@ -166,7 +157,7 @@ abstract class DataFlowWu[T <: Global, S <: SummaryRule] (
     method.thisOpt match {
       case Some(t) =>
         val thisContext = initContext.copy
-        thisContext.setContext(method.getSignature, s"Entry.$pos")
+        thisContext.setContext(method.getSignature, s"Entry:$pos")
         pos += 1
         val ins = Instance.getInstance(method.getDeclaringClass.typ, thisContext, toUnknown = false)
         result += RFAFact(VarSlot(t), ins)
@@ -181,7 +172,7 @@ abstract class DataFlowWu[T <: Global, S <: SummaryRule] (
           case _ => true
         }
         val argContext = initContext.copy
-        argContext.setContext(method.getSignature, s"Entry.$pos")
+        argContext.setContext(method.getSignature, s"Entry:$pos")
         pos += 1
         val ins = Instance.getInstance(typ, argContext, unknown)
         result += RFAFact(VarSlot(name), ins)

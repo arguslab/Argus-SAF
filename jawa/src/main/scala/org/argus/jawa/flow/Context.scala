@@ -90,10 +90,7 @@ class Context(val application: FileResourceUri) {
     this.callStack.foreach{
       case(sig, str) =>
         sb.append("(" + sig.classTyp.simpleName + "." + sig.methodName)
-          
-        if(str.lastIndexOf('.') > 0)
-          sb.append("," + str.substring(str.lastIndexOf('.') + 1, str.lastIndexOf(':')) + ")")
-        else sb.append("," + str + ")")
+        sb.append("," + str + ")")
     }
     sb.toString.intern()
   }

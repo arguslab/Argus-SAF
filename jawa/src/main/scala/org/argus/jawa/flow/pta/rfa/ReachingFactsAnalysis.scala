@@ -65,6 +65,11 @@ class ReachingFactsAnalysis(
       case te: TimeoutException =>
         global.reporter.warning("ReachingFactsAnalysis", entryPointProc.getSignature + " " + te.getMessage)
     }
+    val finalFacts = mdf.entrySet(icfg.exitNode)
+    finalFacts.foreach { fact =>
+      val exitContext = icfg.exitNode.getContext.copy
+      ptaresult.addInstance(exitContext, fact.slot, fact.ins)
+    }
     InterProceduralDataFlowGraph(icfg, ptaresult)
   }
 
