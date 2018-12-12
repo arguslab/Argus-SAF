@@ -30,6 +30,8 @@ class HeapSummaryWu(
     sm: SummaryManager,
     handler: ModelCallHandler) extends DataFlowWu[Global, HeapSummaryRule](global, method, sm, handler) {
 
+  override def needHeapSummary: Boolean = false
+
   override def processNode(node: ICFGNode, rules: MList[HeapSummaryRule]): Unit = {
     node match {
       case ln: ICFGLocNode =>
@@ -49,7 +51,7 @@ class HeapSummaryWu(
                   case Some(mc) =>
                     processModelCall(mc, calleeSig, retOpt, cs.recvOpt, cs.arg, context, rules)
                   case None =>
-                  // Should not be here.
+                    // Should not be here.
                 }
               } else {
                 sm.getSummary[HeapSummary](calleeSig) match {

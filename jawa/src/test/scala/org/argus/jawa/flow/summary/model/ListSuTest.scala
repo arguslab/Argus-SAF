@@ -119,8 +119,8 @@ class ListSuTest extends SuTestBase("List.safsu") {
 
   "Ljava/util/List;.get:(I)Ljava/lang/Object;" with_input thisFact produce (
     thisFact,
-    RFAFact(FieldSlot(thisInstance, "items"), PTAInstance(JavaKnowledge.OBJECT.toUnknown, currentContext)),
-    RFAFact(VarSlot("temp"), PTAInstance(JavaKnowledge.OBJECT.toUnknown, currentContext))
+    RFAFact(FieldSlot(thisInstance, "items"), PTAInstance(JavaKnowledge.OBJECT.toUnknown, thisInstance.defSite)),
+    RFAFact(VarSlot("temp"), PTAInstance(JavaKnowledge.OBJECT.toUnknown, thisInstance.defSite))
   )
 
   "Ljava/util/List;.subList:(II)Ljava/util/List;" with_input (

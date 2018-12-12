@@ -536,17 +536,17 @@ case class JawaClass(global: Global, typ: JawaType, accessFlags: Int) extends Ja
   /**
    * is this class an application class
    */
-  def isApplicationClass: Boolean = global.isApplicationClasses(getType)
+  def isApplicationClass: Boolean = global.isApplicationClasses(getType.removeUnknown())
 
   /**
    * is this class  a framework class
    */
-  def isSystemLibraryClass: Boolean = global.isSystemLibraryClasses(getType)
+  def isSystemLibraryClass: Boolean = global.isSystemLibraryClasses(getType.removeUnknown())
 
   /**
    * is this class  a user lib class
    */
-  def isUserLibraryClass: Boolean = global.isUserLibraryClasses(getType)
+  def isUserLibraryClass: Boolean = global.isUserLibraryClasses(getType.removeUnknown())
 
   /**
    * whether this class is a java library class
@@ -577,7 +577,7 @@ case class JawaClass(global: Global, typ: JawaType, accessFlags: Int) extends Ja
     */
   def isAssignableFrom(other: JawaClass): Boolean = {
     if(other == null) false
-    else if(getType == other.getType) true
+    else if(getType.removeUnknown() == other.getType) true
     else if(isInterface && other.isInterface) {
       other.getInterfaces.exists(isAssignableFrom)
     } else if(isInterface && !other.isInterface) {
@@ -589,7 +589,7 @@ case class JawaClass(global: Global, typ: JawaType, accessFlags: Int) extends Ja
       }
       found
     } else if(!isInterface && other.isInterface) {
-      getType == JavaKnowledge.OBJECT
+      getType.removeUnknown() == JavaKnowledge.OBJECT
     } else {
       isAssignableFrom(other.getSuperClass)
     }

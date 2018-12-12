@@ -12,7 +12,7 @@ package org.argus.jawa.flow.summary.wu
 
 import org.argus.jawa.core._
 import org.argus.jawa.core.ast._
-import org.argus.jawa.core.elements.{JavaKnowledge, Signature}
+import org.argus.jawa.core.elements.{JavaKnowledge, JawaType, Signature}
 import org.argus.jawa.core.util.Property.Key
 import org.argus.jawa.core.util._
 import org.argus.jawa.flow.Context
@@ -127,22 +127,41 @@ abstract class DataFlowWu[T <: Global, S <: SummaryRule] (
     facts.foreach { fact =>
       val defSite = fact.ins.defSite
       val typ = fact.ins.typ
-      val clazz = global.getClassOrResolve(typ)
-      if(clazz.isApplicationClass) {
-        clazz.getFields.foreach { field =>
-          if(field.typ.isObject) {
-            val context = defSite.copy.setContext(defSite.getMethodSig, defSite.getLocUri + "." + field.getName)
-            val unknown = field.typ.jawaName match {
-              case "java.lang.String" => false
-              case _ => true
-            }
-            val slot = FieldSlot(fact.ins, field.getName)
-            val ins = Instance.getInstance(field.typ, context, unknown)
-            newfacts += RFAFact(slot, ins)
-            getLatestHeapBase(fact.ins) match {
-              case Some(hb) =>
-                addHeapBase(ins, hb.make(Seq(SuFieldAccess(field.getName))))
-              case None =>
+      if(typ.isArray) {
+        val context = defSite.copy.setContext(defSite.getMethodSig, defSite.getLocUri + "[]")
+        val slot = ArraySlot(fact.ins)
+        val indexType = JawaType.addDimensions(typ, -1)
+        if(indexType.isObject) {
+          val unknown = indexType.jawaName match {
+            case "java.lang.String" => false
+            case _ => true
+          }
+          val ins = Instance.getInstance(indexType, context, unknown)
+          newfacts += RFAFact(slot, ins)
+          getLatestHeapBase(fact.ins) match {
+            case Some(hb) =>
+              addHeapBase(ins, hb.make(Seq(SuArrayAccess())))
+            case None =>
+          }
+        }
+      } else {
+        val clazz = global.getClassOrResolve(typ)
+        if (clazz.isApplicationClass) {
+          clazz.getFields.foreach { field =>
+            if (!field.isStatic && field.typ.isObject) {
+              val context = defSite.copy.setContext(defSite.getMethodSig, defSite.getLocUri + "." + field.getName)
+              val unknown = field.typ.jawaName match {
+                case "java.lang.String" => false
+                case _ => true
+              }
+              val slot = FieldSlot(fact.ins, field.getName)
+              val ins = Instance.getInstance(field.typ, context, unknown)
+              newfacts += RFAFact(slot, ins)
+              getLatestHeapBase(fact.ins) match {
+                case Some(hb) =>
+                  addHeapBase(ins, hb.make(Seq(SuFieldAccess(field.getName))))
+                case None =>
+              }
             }
           }
         }
@@ -153,12 +172,10 @@ abstract class DataFlowWu[T <: Global, S <: SummaryRule] (
 
   private def prepareInitialFacts(level: Int): ISet[RFAFact] = {
     val result = msetEmpty[RFAFact]
-    var pos = 0
     method.thisOpt match {
       case Some(t) =>
         val thisContext = initContext.copy
-        thisContext.setContext(method.getSignature, s"Entry:$pos")
-        pos += 1
+        thisContext.setContext(method.getSignature, s"Entry:0")
         val ins = Instance.getInstance(method.getDeclaringClass.typ, thisContext, toUnknown = false)
         result += RFAFact(VarSlot(t), ins)
         addHeapBase(ins, SuThis(None))
@@ -172,11 +189,32 @@ abstract class DataFlowWu[T <: Global, S <: SummaryRule] (
           case _ => true
         }
         val argContext = initContext.copy
-        argContext.setContext(method.getSignature, s"Entry:$pos")
-        pos += 1
+        argContext.setContext(method.getSignature, s"Entry:${i + 1}")
         val ins = Instance.getInstance(typ, argContext, unknown)
         result += RFAFact(VarSlot(name), ins)
         addHeapBase(ins, SuArg(i + 1, None))
+      }
+    }
+    method.getBody.resolvedBody.locations.foreach { loc =>
+      loc.statement match {
+        case as: AssignmentStatement =>
+          as.rhs match {
+            case sfe: StaticFieldAccessExpression =>
+              val typ = sfe.typ
+              if(typ.isObject) {
+                val unknown = typ.jawaName match {
+                  case "java.lang.String" => false
+                  case _ => true
+                }
+                val staticContext = initContext.copy
+                staticContext.setContext(method.getSignature, s"Entry:${sfe.name}")
+                val ins = Instance.getInstance(typ, staticContext, unknown)
+                result += RFAFact(StaticFieldSlot(sfe.name), ins)
+                addHeapBase(ins, SuGlobal(sfe.name, None))
+              }
+            case _ =>
+          }
+        case _ =>
       }
     }
     getNextLevelFacts(result.toSet, level) ++ result
@@ -184,7 +222,7 @@ abstract class DataFlowWu[T <: Global, S <: SummaryRule] (
 
   def generateIDFG_RFA: InterProceduralDataFlowGraph = {
     val analysis = new ReachingFactsAnalysis(global, icfg, ptaresult, handler, sm, new ClassLoadManager, resolve_static_init, Some(new MyTimeout(1 minutes)))
-    val initialFacts: ISet[RFAFact] = prepareInitialFacts(2)
+    val initialFacts: ISet[RFAFact] = prepareInitialFacts(3)
     analysis.process(method, initialFacts, initContext, new ModelCallResolver(global, ptaresult, icfg, sm, handler))
   }
 

@@ -40,7 +40,7 @@ class StringBuilderTest extends SuTestBase("StringBuilder.safsu") {
   ) produce (
     thisFact,
     RFAFact(VarSlot("v1"), PTAConcreteStringInstance("NewString", defContext2)),
-    RFAFact(FieldSlot(thisInstance, "value"), PTAConcreteStringInstance("NewString", defContext2))
+    RFAFact(FieldSlot(thisInstance, "value"), PTAPointStringInstance(currentContext))
   )
 
   "Ljava/lang/StringBuilder;.<init>:(Ljava/lang/String;)V" with_input (
@@ -164,11 +164,13 @@ class StringBuilderTest extends SuTestBase("StringBuilder.safsu") {
 
   "Ljava/lang/StringBuilder;.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;" with_input (
     thisFact,
-    thisValueFact
+    thisValueFact,
+    RFAFact(VarSlot("v1"), PTAConcreteStringInstance("string", currentContext))
   ) produce (
     thisFact,
     thisValueFact,
-    RFAFact(FieldSlot(thisInstance, "value"), PTAPointStringInstance(currentContext)),
+    RFAFact(FieldSlot(thisInstance, "value"), PTAConcreteStringInstance("string", currentContext)),
+    RFAFact(VarSlot("v1"), PTAConcreteStringInstance("string", currentContext)),
     RFAFact(VarSlot("temp"), thisInstance)
   )
 

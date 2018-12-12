@@ -59,11 +59,11 @@ class HeapSummaryGeneratorTest extends FlatSpec with Matchers {
       |;
     """.stripMargin.trim.intern()
 
-  "/jawa/summary/SingleFunction.jawa" ep "Lcom/hugo/test/SingleFunction;.clearHeaps:()V" produce
-    """`Lcom/hugo/test/SingleFunction;.clearHeaps:()V`:
-      |  ~`com.hugo.test.SingleFunction.myglobal`.myarray[].myself.myself.myself.myset
-      |;
-    """.stripMargin.trim.intern()
+//  "/jawa/summary/SingleFunction.jawa" ep "Lcom/hugo/test/SingleFunction;.clearHeaps:()V" produce
+//    """`Lcom/hugo/test/SingleFunction;.clearHeaps:()V`:
+//      |  ~`com.hugo.test.SingleFunction.myglobal`.myarray[].myself.myself.myself.myset
+//      |;
+//    """.stripMargin.trim.intern()
 
   "/jawa/summary/SingleFunction.jawa" ep "Lcom/hugo/test/SingleFunction;.add:(Ljava/util/Set;)Ljava/lang/String;" produce
     """`Lcom/hugo/test/SingleFunction;.add:(Ljava/util/Set;)Ljava/lang/String;`:
@@ -152,7 +152,7 @@ class HeapSummaryGeneratorTest extends FlatSpec with Matchers {
           new HeapSummaryWu(global, method, sm, handler)
         }
         analysis.build(orderedWUs)
-        assert(sm.getSummary[HeapSummary](entrypoint).get.toString == rule)
+        assertResult(rule)(sm.getSummary[HeapSummary](entrypoint).get.toString)
       }
     }
   }
