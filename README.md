@@ -98,25 +98,30 @@ the directory where Scala plugin repository is and then import it as SBT project
   $ tools/bin/sbt assembly
   ```
   
-## Compile Protobuf
+## Install JN-Saf with NativeDroid
 
-1. Scala protobuf files:
+Install `JN-Saf` and `NativeDroid`:
   ```
-  $ tools/bin/sbt clean compile
+  $ tools/scripts/install.sh
+  ```
+  
+You can install only either one by:
+  ```
+  $ tools/scripts/install.sh jnsaf
+  $ tools/scripts/install.sh nativedroid
   ```
 
-2. Python protobuf files:
+## Run BenchMark Test
+After install JN-Saf and Native Droid. Run:
   ```
-  $ python -m grpc_tools.protoc -I. --python_out=. --grpc_python_out=. nativedroid/nativedroid/protobuf/server.proto
+  $ tools/scripts/benchmark_cli.sh
   ```
   
 ## Launch JN-SAF for native analysis
 
 1. Install nativedroid:
   ```
-  $ cd nativedroid
-  $ python setup.py install
-  $ cd ..
+  $ tools/scripts/install.sh nativedroid
   ```
 
 2. Start nativedroid server:
