@@ -859,7 +859,7 @@ class IntentSuTest extends SuTestBase("Intent.safsu") {
     RFAFact(FieldSlot(thisMExtrasEntriesInstance, "key"), PTAConcreteStringInstance("key", defContext)),
     RFAFact(FieldSlot(thisMExtrasEntriesInstance, "value"), PTAInstance(new JawaType("java.lang.String", 1), defContext)),
     RFAFact(VarSlot("v1"), PTAConcreteStringInstance("key", defContext2)),
-    RFAFact(VarSlot("temp"), PTAInstance(new JawaType("java.lang.String", 1), defContext))
+    RFAFact(VarSlot("temp"), PTAInstance(new JawaType("java.lang.String", 1), currentContext))
   )
 
   "Landroid/content/Intent;.getStringArrayListExtra:(Ljava/lang/String;)Ljava/util/ArrayList;" with_input (
@@ -876,7 +876,7 @@ class IntentSuTest extends SuTestBase("Intent.safsu") {
     RFAFact(FieldSlot(thisMExtrasEntriesInstance, "key"), PTAConcreteStringInstance("key", defContext)),
     RFAFact(FieldSlot(thisMExtrasEntriesInstance, "value"), PTAInstance(new JawaType("java.util.ArrayList"), defContext)),
     RFAFact(VarSlot("v1"), PTAConcreteStringInstance("key", defContext2)),
-    RFAFact(VarSlot("temp"), PTAInstance(new JawaType("java.util.ArrayList"), defContext))
+    RFAFact(VarSlot("temp"), PTAInstance(new JawaType("java.util.ArrayList"), currentContext))
   )
 
   "Landroid/content/Intent;.getStringExtra:(Ljava/lang/String;)Ljava/lang/String;" with_input (
@@ -893,7 +893,7 @@ class IntentSuTest extends SuTestBase("Intent.safsu") {
     RFAFact(FieldSlot(thisMExtrasEntriesInstance, "key"), PTAConcreteStringInstance("key", defContext)),
     RFAFact(FieldSlot(thisMExtrasEntriesInstance, "value"), PTAInstance(new JawaType("java.lang.String"), defContext)),
     RFAFact(VarSlot("v1"), PTAConcreteStringInstance("key", defContext2)),
-    RFAFact(VarSlot("temp"), PTAInstance(new JawaType("java.lang.String"), defContext))
+    RFAFact(VarSlot("temp"), PTAPointStringInstance(currentContext))
   )
 
   "Landroid/content/Intent;.getType:()Ljava/lang/String;" with_input (

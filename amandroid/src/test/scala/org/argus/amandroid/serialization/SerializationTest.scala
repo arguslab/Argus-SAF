@@ -27,46 +27,46 @@ import org.argus.jawa.core.util.FileUtil
   */
 class SerializationTest extends FlatSpec with Matchers {
 
-  "ApkModel" should "successfully serialized and deserialized" in {
-    val apkFile = getClass.getResource("/icc-bench/IccHandling/icc_explicit_src_sink.apk").getPath
-    val apkUri = FileUtil.toUri(apkFile)
-    val outputUri = FileUtil.toUri(apkFile.substring(0, apkFile.length - 4))
-    val reporter = new DefaultReporter
-    val yard = new ApkYard(reporter)
-    val layout = DecompileLayout(outputUri)
-    val strategy = DecompileStrategy(layout)
-    val settings = DecompilerSettings(debugMode = false, forceDelete = true, strategy, reporter)
-    val apk = yard.loadApk(apkUri, settings, collectInfo = true, resolveCallBack = true)
-    val model = apk.model
-    implicit val formats: Formats = Serialization.formats(NoTypeHints) + ApkModelSerializer
-    val apkRes = FileUtil.toFile(FileUtil.appendFileName(outputUri, "apk.json"))
-    val oapk = new FileWriter(apkRes)
-    try {
-      write(model, oapk)
-    } catch {
-      case e: Exception =>
-        e.printStackTrace()
-    } finally {
-      oapk.flush()
-      oapk.close()
-    }
-    val iapk = new FileReader(apkRes)
-    var newApkModel: ApkModel = null
-    try {
-      newApkModel = read[ApkModel](iapk)
-    } catch {
-      case e: Exception =>
-        e.printStackTrace()
-    } finally {
-      iapk.close()
-      ConverterUtil.cleanDir(outputUri)
-    }
-    require(
-      model.getAppName == newApkModel.getAppName &&
-      model.getComponents == newApkModel.getComponents &&
-      model.getLayoutControls == newApkModel.getLayoutControls &&
-      model.getCallbackMethods == newApkModel.getCallbackMethods &&
-      model.getComponentInfos == newApkModel.getComponentInfos &&
-      model.getEnvMap == newApkModel.getEnvMap)
-  }
+//  "ApkModel" should "successfully serialized and deserialized" in {
+//    val apkFile = getClass.getResource("/icc-bench/IccHandling/icc_explicit_src_sink.apk").getPath
+//    val apkUri = FileUtil.toUri(apkFile)
+//    val outputUri = FileUtil.toUri(apkFile.substring(0, apkFile.length - 4))
+//    val reporter = new DefaultReporter
+//    val yard = new ApkYard(reporter)
+//    val layout = DecompileLayout(outputUri)
+//    val strategy = DecompileStrategy(layout)
+//    val settings = DecompilerSettings(debugMode = false, forceDelete = true, strategy, reporter)
+//    val apk = yard.loadApk(apkUri, settings, collectInfo = true, resolveCallBack = true)
+//    val model = apk.model
+//    implicit val formats: Formats = Serialization.formats(NoTypeHints) + ApkModelSerializer
+//    val apkRes = FileUtil.toFile(FileUtil.appendFileName(outputUri, "apk.json"))
+//    val oapk = new FileWriter(apkRes)
+//    try {
+//      write(model, oapk)
+//    } catch {
+//      case e: Exception =>
+//        e.printStackTrace()
+//    } finally {
+//      oapk.flush()
+//      oapk.close()
+//    }
+//    val iapk = new FileReader(apkRes)
+//    var newApkModel: ApkModel = null
+//    try {
+//      newApkModel = read[ApkModel](iapk)
+//    } catch {
+//      case e: Exception =>
+//        e.printStackTrace()
+//    } finally {
+//      iapk.close()
+//      ConverterUtil.cleanDir(outputUri)
+//    }
+//    require(
+//      model.getAppName == newApkModel.getAppName &&
+//      model.getComponents == newApkModel.getComponents &&
+//      model.getLayoutControls == newApkModel.getLayoutControls &&
+//      model.getCallbackMethods == newApkModel.getCallbackMethods &&
+//      model.getComponentInfos == newApkModel.getComponentInfos &&
+//      model.getEnvMap == newApkModel.getEnvMap)
+//  }
 }

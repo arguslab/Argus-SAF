@@ -38,58 +38,58 @@ class JNSafTaintAnalysisTest extends FlatSpec with Matchers {
 //    assert(res != null && res.model.getComponentInfos.size == 2)
 //  }
 //
-  "native_complexdata" should "have leak" in {
-    val result = analyze(
-      getClass.getResource("/NativeFlowBench/native_complexdata.apk").getPath,
-      getClass.getResource("/expected/native_complexdata/native_complexdata.safsu").getPath,
-      getClass.getResource("/expected/native_complexdata/native_complexdata.txt").getPath)
-    assert(result.getTaintedPaths.nonEmpty)
-}
-
-  "native_heap_modify" should "have leak" in {
-    val result = analyze(
-      getClass.getResource("/NativeFlowBench/native_heap_modify.apk").getPath,
-      getClass.getResource("/expected/native_heap_modify/native_heap_modify.safsu").getPath,
-      getClass.getResource("/expected/native_heap_modify/native_heap_modify.txt").getPath)
-    assert(result.getTaintedPaths.nonEmpty)
-  }
-
-  "native_leak" should "have leak" in {
-    val result = analyze(
-      getClass.getResource("/NativeFlowBench/native_leak.apk").getPath,
-      getClass.getResource("/expected/native_leak/native_leak.safsu").getPath,
-      getClass.getResource("/expected/native_leak/native_leak.txt").getPath)
-    assert(result.getTaintedPaths.nonEmpty)
-  }
-
-  "native_noleak" should "have no leak" in {
-    val result = analyze(
-      getClass.getResource("/NativeFlowBench/native_noleak.apk").getPath,
-      getClass.getResource("/expected/native_noleak/native_noleak.safsu").getPath,
-      getClass.getResource("/expected/native_noleak/native_noleak.txt").getPath)
-    assert(result.getTaintedPaths.nonEmpty)
-  }
+//  "native_complexdata" should "have leak" in {
+//    val result = analyze(
+//      getClass.getResource("/NativeFlowBench/native_complexdata.apk").getPath,
+//      getClass.getResource("/expected/native_complexdata/native_complexdata.safsu").getPath,
+//      getClass.getResource("/expected/native_complexdata/native_complexdata.txt").getPath)
+//    assert(result.getTaintedPaths.nonEmpty)
+//}
 //
-//  "native_pure" should "have 1 component" in {
-//    val res = loadApk(getClass.getResource("/NativeFlowBench/native_pure.apk").getPath)
-//    assert(res != null && res.model.getComponentInfos.size == 1)
+//  "native_heap_modify" should "have leak" in {
+//    val result = analyze(
+//      getClass.getResource("/NativeFlowBench/native_heap_modify.apk").getPath,
+//      getClass.getResource("/expected/native_heap_modify/native_heap_modify.safsu").getPath,
+//      getClass.getResource("/expected/native_heap_modify/native_heap_modify.txt").getPath)
+//    assert(result.getTaintedPaths.nonEmpty)
 //  }
-
-  "native_source" should "have leak" in {
-    val result = analyze(
-      getClass.getResource("/NativeFlowBench/native_source.apk").getPath,
-      getClass.getResource("/expected/native_source/native_source.safsu").getPath,
-      getClass.getResource("/expected/native_source/native_source.txt").getPath)
-    assert(result.getTaintedPaths.nonEmpty)
-  }
-
-  "native_method_overloading" should "have leak" in {
-    val result = analyze(
-      getClass.getResource("/NativeFlowBench/native_method_overloading.apk").getPath,
-      getClass.getResource("/expected/native_method_overloading/native_method_overloading.safsu").getPath,
-      getClass.getResource("/expected/native_method_overloading/native_method_overloading.txt").getPath)
-    assert(result.getTaintedPaths.nonEmpty)
-  }
+//
+//  "native_leak" should "have leak" in {
+//    val result = analyze(
+//      getClass.getResource("/NativeFlowBench/native_leak.apk").getPath,
+//      getClass.getResource("/expected/native_leak/native_leak.safsu").getPath,
+//      getClass.getResource("/expected/native_leak/native_leak.txt").getPath)
+//    assert(result.getTaintedPaths.nonEmpty)
+//  }
+//
+//  "native_noleak" should "have no leak" in {
+//    val result = analyze(
+//      getClass.getResource("/NativeFlowBench/native_noleak.apk").getPath,
+//      getClass.getResource("/expected/native_noleak/native_noleak.safsu").getPath,
+//      getClass.getResource("/expected/native_noleak/native_noleak.txt").getPath)
+//    assert(result.getTaintedPaths.nonEmpty)
+//  }
+////
+////  "native_pure" should "have 1 component" in {
+////    val res = loadApk(getClass.getResource("/NativeFlowBench/native_pure.apk").getPath)
+////    assert(res != null && res.model.getComponentInfos.size == 1)
+////  }
+//
+//  "native_source" should "have leak" in {
+//    val result = analyze(
+//      getClass.getResource("/NativeFlowBench/native_source.apk").getPath,
+//      getClass.getResource("/expected/native_source/native_source.safsu").getPath,
+//      getClass.getResource("/expected/native_source/native_source.txt").getPath)
+//    assert(result.getTaintedPaths.nonEmpty)
+//  }
+//
+//  "native_method_overloading" should "have leak" in {
+//    val result = analyze(
+//      getClass.getResource("/NativeFlowBench/native_method_overloading.apk").getPath,
+//      getClass.getResource("/expected/native_method_overloading/native_method_overloading.safsu").getPath,
+//      getClass.getResource("/expected/native_method_overloading/native_method_overloading.txt").getPath)
+//    assert(result.getTaintedPaths.nonEmpty)
+//  }
 
   private def analyze(apkFile: String, safsuFile: String, sasFile: String): TaintAnalysisResult = {
     val apkUri = FileUtil.toUri(apkFile)

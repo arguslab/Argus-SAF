@@ -246,193 +246,193 @@ class LocalTypeResolverTest extends FlatSpec with Matchers {
     true
   }
 
-  "ICC_Explicit_NoSrc_NoSink" should "successfully resolved" in {
-    assert(resolveApk(getClass.getResource("/icc-bench/IccHandling/icc_explicit_nosrc_nosink.apk").getPath))
-  }
-
-  "ICC_Explicit_NoSrc_Sink" should "successfully resolved" in {
-    assert(resolveApk(getClass.getResource("/icc-bench/IccHandling/icc_explicit_nosrc_sink.apk").getPath))
-  }
-
-  "ICC_Explicit_Src_NoSink" should "successfully resolved" in {
-    assert(resolveApk(getClass.getResource("/icc-bench/IccHandling/icc_explicit_src_nosink.apk").getPath))
-  }
-
-  "ICC_Explicit_Src_Sink" should "successfully resolved" in {
-    assert(resolveApk(getClass.getResource("/icc-bench/IccHandling/icc_explicit_src_sink.apk").getPath))
-  }
-
-  "ICC_Implicit_NoSrc_NoSink" should "successfully resolved" in {
-    assert(resolveApk(getClass.getResource("/icc-bench/IccHandling/icc_implicit_nosrc_nosink.apk").getPath))
-  }
-
-  "ICC_Implicit_NoSrc_Sink" should "successfully resolved" in {
-    assert(resolveApk(getClass.getResource("/icc-bench/IccHandling/icc_implicit_nosrc_sink.apk").getPath))
-  }
-
-  "ICC_Implicit_Src_NoSink" should "successfully resolved" in {
-    assert(resolveApk(getClass.getResource("/icc-bench/IccHandling/icc_implicit_src_nosink.apk").getPath))
-  }
-
-  "ICC_Implicit_Src_Sink" should "successfully resolved" in {
-    assert(resolveApk(getClass.getResource("/icc-bench/IccHandling/icc_implicit_src_sink.apk").getPath))
-  }
-
-  "ICC_IntentService" should "successfully resolved" in {
-    assert(resolveApk(getClass.getResource("/icc-bench/IccHandling/icc_intentservice.apk").getPath))
-  }
-
-  "ICC_Stateful" should "successfully resolved" in {
-    assert(resolveApk(getClass.getResource("/icc-bench/IccHandling/icc_stateful.apk").getPath))
-  }
-
-  "ICC_DynRegister1" should "successfully resolved" in {
-    assert(resolveApk(getClass.getResource("/icc-bench/IccTargetFinding/icc_dynregister1.apk").getPath))
-  }
-
-  "ICC_DynRegister2" should "successfully resolved" in {
-    assert(resolveApk(getClass.getResource("/icc-bench/IccTargetFinding/icc_dynregister2.apk").getPath))
-  }
-
-  "ICC_Explicit1" should "successfully resolved" in {
-    assert(resolveApk(getClass.getResource("/icc-bench/IccTargetFinding/icc_explicit1.apk").getPath))
-  }
-
-  "ICC_Implicit1" should "successfully resolved" in {
-    assert(resolveApk(getClass.getResource("/icc-bench/IccTargetFinding/icc_implicit_action.apk").getPath))
-  }
-
-  "ICC_Implicit2" should "successfully resolved" in {
-    assert(resolveApk(getClass.getResource("/icc-bench/IccTargetFinding/icc_implicit_category.apk").getPath))
-  }
-
-  "ICC_Implicit3" should "successfully resolved" in {
-    assert(resolveApk(getClass.getResource("/icc-bench/IccTargetFinding/icc_implicit_data1.apk").getPath))
-  }
-
-  "ICC_Implicit4" should "successfully resolved" in {
-    assert(resolveApk(getClass.getResource("/icc-bench/IccTargetFinding/icc_implicit_data2.apk").getPath))
-  }
-
-  "ICC_Implicit5" should "successfully resolved" in {
-    assert(resolveApk(getClass.getResource("/icc-bench/IccTargetFinding/icc_implicit_mix1.apk").getPath))
-  }
-
-  "ICC_Implicit6" should "successfully resolved" in {
-    assert(resolveApk(getClass.getResource("/icc-bench/IccTargetFinding/icc_implicit_mix2.apk").getPath))
-  }
-
-  "ICC_RPC_Comprehensive" should "successfully resolved" in {
-    assert(resolveApk(getClass.getResource("/icc-bench/Mixed/icc_rpc_comprehensive.apk").getPath))
-  }
-
-  "RPC_LocalService" should "successfully resolved" in {
-    assert(resolveApk(getClass.getResource("/icc-bench/RpcHandling/rpc_localservice.apk").getPath))
-  }
-
-  "RPC_MessengerService" should "successfully resolved" in {
-    assert(resolveApk(getClass.getResource("/icc-bench/RpcHandling/rpc_messengerservice.apk").getPath))
-  }
-
-  "RPC_RemoteService" should "successfully resolved" in {
-    assert(resolveApk(getClass.getResource("/icc-bench/RpcHandling/rpc_remoteservice.apk").getPath))
-  }
-
-  "RPC_ReturnSensitive" should "successfully resolved" in {
-    assert(resolveApk(getClass.getResource("/icc-bench/RpcHandling/rpc_returnsensitive.apk").getPath))
-  }
-
-  "ActivityCommunication1" should "successfully resolved" in {
-    assert(resolveApk(getClass.getResource("/droid-bench/InterComponentCommunication/ActivityCommunication1.apk").getPath))
-  }
-
-  "ActivityCommunication2" should "successfully resolved" in {
-    assert(resolveApk(getClass.getResource("/droid-bench/InterComponentCommunication/ActivityCommunication2.apk").getPath))
-  }
-
-  "ActivityCommunication3" should "successfully resolved" in {
-    assert(resolveApk(getClass.getResource("/droid-bench/InterComponentCommunication/ActivityCommunication3.apk").getPath))
-  }
-
-  "ActivityCommunication4" should "successfully resolved" in {
-    assert(resolveApk(getClass.getResource("/droid-bench/InterComponentCommunication/ActivityCommunication4.apk").getPath))
-  }
-
-  "ActivityCommunication5" should "successfully resolved" in {
-    assert(resolveApk(getClass.getResource("/droid-bench/InterComponentCommunication/ActivityCommunication5.apk").getPath))
-  }
-
-  "ActivityCommunication6" should "successfully resolved" in {
-    assert(resolveApk(getClass.getResource("/droid-bench/InterComponentCommunication/ActivityCommunication6.apk").getPath))
-  }
-
-  "ActivityCommunication7" should "successfully resolved" in {
-    assert(resolveApk(getClass.getResource("/droid-bench/InterComponentCommunication/ActivityCommunication7.apk").getPath))
-  }
-
-  "ActivityCommunication8" should "successfully resolved" in {
-    assert(resolveApk(getClass.getResource("/droid-bench/InterComponentCommunication/ActivityCommunication8.apk").getPath))
-  }
-
-  "BroadcastTaintAndLeak1" should "successfully resolved" in {
-    assert(resolveApk(getClass.getResource("/droid-bench/InterComponentCommunication/BroadcastTaintAndLeak1.apk").getPath))
-  }
-
-  "ComponentNotInManifest1" should "successfully resolved" in {
-    assert(resolveApk(getClass.getResource("/droid-bench/InterComponentCommunication/ComponentNotInManifest1.apk").getPath))
-  }
-
-  "EventOrdering1" should "successfully resolved" in {
-    assert(resolveApk(getClass.getResource("/droid-bench/InterComponentCommunication/EventOrdering1.apk").getPath))
-  }
-
-  "IntentSink1" should "successfully resolved" in {
-    assert(resolveApk(getClass.getResource("/droid-bench/InterComponentCommunication/IntentSink1.apk").getPath))
-  }
-
-  "IntentSink2" should "successfully resolved" in {
-    assert(resolveApk(getClass.getResource("/droid-bench/InterComponentCommunication/IntentSink2.apk").getPath))
-  }
-
-  "IntentSource1" should "successfully resolved" in {
-    assert(resolveApk(getClass.getResource("/droid-bench/InterComponentCommunication/IntentSource1.apk").getPath))
-  }
-
-  "ServiceCommunication1" should "successfully resolved" in {
-    assert(resolveApk(getClass.getResource("/droid-bench/InterComponentCommunication/ServiceCommunication1.apk").getPath))
-  }
-
-  "SharedPreferences1" should "successfully resolved" in {
-    assert(resolveApk(getClass.getResource("/droid-bench/InterComponentCommunication/SharedPreferences1.apk").getPath))
-  }
-
-  "Singletons1" should "successfully resolved" in {
-    assert(resolveApk(getClass.getResource("/droid-bench/InterComponentCommunication/Singletons1.apk").getPath))
-  }
-
-  "UnresolvableIntent1" should "successfully resolved" in {
-    assert(resolveApk(getClass.getResource("/droid-bench/InterComponentCommunication/UnresolvableIntent1.apk").getPath))
-  }
-
-  "AsyncTask1" should "successfully resolved" in {
-    assert(resolveApk(getClass.getResource("/droid-bench/Threading/AsyncTask1.apk").getPath))
-  }
-
-  "Executor1" should "successfully resolved" in {
-    assert(resolveApk(getClass.getResource("/droid-bench/Threading/Executor1.apk").getPath))
-  }
-
-  "JavaThread1" should "successfully resolved" in {
-    assert(resolveApk(getClass.getResource("/droid-bench/Threading/JavaThread1.apk").getPath))
-  }
-
-  "JavaThread2" should "successfully resolved" in {
-    assert(resolveApk(getClass.getResource("/droid-bench/Threading/JavaThread2.apk").getPath))
-  }
-
-  "Looper1" should "successfully resolved" in {
-    assert(resolveApk(getClass.getResource("/droid-bench/Threading/Looper1.apk").getPath))
-  }
+//  "ICC_Explicit_NoSrc_NoSink" should "successfully resolved" in {
+//    assert(resolveApk(getClass.getResource("/icc-bench/IccHandling/icc_explicit_nosrc_nosink.apk").getPath))
+//  }
+//
+//  "ICC_Explicit_NoSrc_Sink" should "successfully resolved" in {
+//    assert(resolveApk(getClass.getResource("/icc-bench/IccHandling/icc_explicit_nosrc_sink.apk").getPath))
+//  }
+//
+//  "ICC_Explicit_Src_NoSink" should "successfully resolved" in {
+//    assert(resolveApk(getClass.getResource("/icc-bench/IccHandling/icc_explicit_src_nosink.apk").getPath))
+//  }
+//
+//  "ICC_Explicit_Src_Sink" should "successfully resolved" in {
+//    assert(resolveApk(getClass.getResource("/icc-bench/IccHandling/icc_explicit_src_sink.apk").getPath))
+//  }
+//
+//  "ICC_Implicit_NoSrc_NoSink" should "successfully resolved" in {
+//    assert(resolveApk(getClass.getResource("/icc-bench/IccHandling/icc_implicit_nosrc_nosink.apk").getPath))
+//  }
+//
+//  "ICC_Implicit_NoSrc_Sink" should "successfully resolved" in {
+//    assert(resolveApk(getClass.getResource("/icc-bench/IccHandling/icc_implicit_nosrc_sink.apk").getPath))
+//  }
+//
+//  "ICC_Implicit_Src_NoSink" should "successfully resolved" in {
+//    assert(resolveApk(getClass.getResource("/icc-bench/IccHandling/icc_implicit_src_nosink.apk").getPath))
+//  }
+//
+//  "ICC_Implicit_Src_Sink" should "successfully resolved" in {
+//    assert(resolveApk(getClass.getResource("/icc-bench/IccHandling/icc_implicit_src_sink.apk").getPath))
+//  }
+//
+//  "ICC_IntentService" should "successfully resolved" in {
+//    assert(resolveApk(getClass.getResource("/icc-bench/IccHandling/icc_intentservice.apk").getPath))
+//  }
+//
+//  "ICC_Stateful" should "successfully resolved" in {
+//    assert(resolveApk(getClass.getResource("/icc-bench/IccHandling/icc_stateful.apk").getPath))
+//  }
+//
+//  "ICC_DynRegister1" should "successfully resolved" in {
+//    assert(resolveApk(getClass.getResource("/icc-bench/IccTargetFinding/icc_dynregister1.apk").getPath))
+//  }
+//
+//  "ICC_DynRegister2" should "successfully resolved" in {
+//    assert(resolveApk(getClass.getResource("/icc-bench/IccTargetFinding/icc_dynregister2.apk").getPath))
+//  }
+//
+//  "ICC_Explicit1" should "successfully resolved" in {
+//    assert(resolveApk(getClass.getResource("/icc-bench/IccTargetFinding/icc_explicit1.apk").getPath))
+//  }
+//
+//  "ICC_Implicit1" should "successfully resolved" in {
+//    assert(resolveApk(getClass.getResource("/icc-bench/IccTargetFinding/icc_implicit_action.apk").getPath))
+//  }
+//
+//  "ICC_Implicit2" should "successfully resolved" in {
+//    assert(resolveApk(getClass.getResource("/icc-bench/IccTargetFinding/icc_implicit_category.apk").getPath))
+//  }
+//
+//  "ICC_Implicit3" should "successfully resolved" in {
+//    assert(resolveApk(getClass.getResource("/icc-bench/IccTargetFinding/icc_implicit_data1.apk").getPath))
+//  }
+//
+//  "ICC_Implicit4" should "successfully resolved" in {
+//    assert(resolveApk(getClass.getResource("/icc-bench/IccTargetFinding/icc_implicit_data2.apk").getPath))
+//  }
+//
+//  "ICC_Implicit5" should "successfully resolved" in {
+//    assert(resolveApk(getClass.getResource("/icc-bench/IccTargetFinding/icc_implicit_mix1.apk").getPath))
+//  }
+//
+//  "ICC_Implicit6" should "successfully resolved" in {
+//    assert(resolveApk(getClass.getResource("/icc-bench/IccTargetFinding/icc_implicit_mix2.apk").getPath))
+//  }
+//
+//  "ICC_RPC_Comprehensive" should "successfully resolved" in {
+//    assert(resolveApk(getClass.getResource("/icc-bench/Mixed/icc_rpc_comprehensive.apk").getPath))
+//  }
+//
+//  "RPC_LocalService" should "successfully resolved" in {
+//    assert(resolveApk(getClass.getResource("/icc-bench/RpcHandling/rpc_localservice.apk").getPath))
+//  }
+//
+//  "RPC_MessengerService" should "successfully resolved" in {
+//    assert(resolveApk(getClass.getResource("/icc-bench/RpcHandling/rpc_messengerservice.apk").getPath))
+//  }
+//
+//  "RPC_RemoteService" should "successfully resolved" in {
+//    assert(resolveApk(getClass.getResource("/icc-bench/RpcHandling/rpc_remoteservice.apk").getPath))
+//  }
+//
+//  "RPC_ReturnSensitive" should "successfully resolved" in {
+//    assert(resolveApk(getClass.getResource("/icc-bench/RpcHandling/rpc_returnsensitive.apk").getPath))
+//  }
+//
+//  "ActivityCommunication1" should "successfully resolved" in {
+//    assert(resolveApk(getClass.getResource("/droid-bench/InterComponentCommunication/ActivityCommunication1.apk").getPath))
+//  }
+//
+//  "ActivityCommunication2" should "successfully resolved" in {
+//    assert(resolveApk(getClass.getResource("/droid-bench/InterComponentCommunication/ActivityCommunication2.apk").getPath))
+//  }
+//
+//  "ActivityCommunication3" should "successfully resolved" in {
+//    assert(resolveApk(getClass.getResource("/droid-bench/InterComponentCommunication/ActivityCommunication3.apk").getPath))
+//  }
+//
+//  "ActivityCommunication4" should "successfully resolved" in {
+//    assert(resolveApk(getClass.getResource("/droid-bench/InterComponentCommunication/ActivityCommunication4.apk").getPath))
+//  }
+//
+//  "ActivityCommunication5" should "successfully resolved" in {
+//    assert(resolveApk(getClass.getResource("/droid-bench/InterComponentCommunication/ActivityCommunication5.apk").getPath))
+//  }
+//
+//  "ActivityCommunication6" should "successfully resolved" in {
+//    assert(resolveApk(getClass.getResource("/droid-bench/InterComponentCommunication/ActivityCommunication6.apk").getPath))
+//  }
+//
+//  "ActivityCommunication7" should "successfully resolved" in {
+//    assert(resolveApk(getClass.getResource("/droid-bench/InterComponentCommunication/ActivityCommunication7.apk").getPath))
+//  }
+//
+//  "ActivityCommunication8" should "successfully resolved" in {
+//    assert(resolveApk(getClass.getResource("/droid-bench/InterComponentCommunication/ActivityCommunication8.apk").getPath))
+//  }
+//
+//  "BroadcastTaintAndLeak1" should "successfully resolved" in {
+//    assert(resolveApk(getClass.getResource("/droid-bench/InterComponentCommunication/BroadcastTaintAndLeak1.apk").getPath))
+//  }
+//
+//  "ComponentNotInManifest1" should "successfully resolved" in {
+//    assert(resolveApk(getClass.getResource("/droid-bench/InterComponentCommunication/ComponentNotInManifest1.apk").getPath))
+//  }
+//
+//  "EventOrdering1" should "successfully resolved" in {
+//    assert(resolveApk(getClass.getResource("/droid-bench/InterComponentCommunication/EventOrdering1.apk").getPath))
+//  }
+//
+//  "IntentSink1" should "successfully resolved" in {
+//    assert(resolveApk(getClass.getResource("/droid-bench/InterComponentCommunication/IntentSink1.apk").getPath))
+//  }
+//
+//  "IntentSink2" should "successfully resolved" in {
+//    assert(resolveApk(getClass.getResource("/droid-bench/InterComponentCommunication/IntentSink2.apk").getPath))
+//  }
+//
+//  "IntentSource1" should "successfully resolved" in {
+//    assert(resolveApk(getClass.getResource("/droid-bench/InterComponentCommunication/IntentSource1.apk").getPath))
+//  }
+//
+//  "ServiceCommunication1" should "successfully resolved" in {
+//    assert(resolveApk(getClass.getResource("/droid-bench/InterComponentCommunication/ServiceCommunication1.apk").getPath))
+//  }
+//
+//  "SharedPreferences1" should "successfully resolved" in {
+//    assert(resolveApk(getClass.getResource("/droid-bench/InterComponentCommunication/SharedPreferences1.apk").getPath))
+//  }
+//
+//  "Singletons1" should "successfully resolved" in {
+//    assert(resolveApk(getClass.getResource("/droid-bench/InterComponentCommunication/Singletons1.apk").getPath))
+//  }
+//
+//  "UnresolvableIntent1" should "successfully resolved" in {
+//    assert(resolveApk(getClass.getResource("/droid-bench/InterComponentCommunication/UnresolvableIntent1.apk").getPath))
+//  }
+//
+//  "AsyncTask1" should "successfully resolved" in {
+//    assert(resolveApk(getClass.getResource("/droid-bench/Threading/AsyncTask1.apk").getPath))
+//  }
+//
+//  "Executor1" should "successfully resolved" in {
+//    assert(resolveApk(getClass.getResource("/droid-bench/Threading/Executor1.apk").getPath))
+//  }
+//
+//  "JavaThread1" should "successfully resolved" in {
+//    assert(resolveApk(getClass.getResource("/droid-bench/Threading/JavaThread1.apk").getPath))
+//  }
+//
+//  "JavaThread2" should "successfully resolved" in {
+//    assert(resolveApk(getClass.getResource("/droid-bench/Threading/JavaThread2.apk").getPath))
+//  }
+//
+//  "Looper1" should "successfully resolved" in {
+//    assert(resolveApk(getClass.getResource("/droid-bench/Threading/Looper1.apk").getPath))
+//  }
 
   private def resolveApk(filePath: String): Boolean = {
     val fileUri = FileUtil.toUri(filePath)

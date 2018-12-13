@@ -267,7 +267,7 @@ android.content.Intent:mCategories:java.lang.String;
 ;
 
 `Landroid/content/Intent;.getStringArrayListExtra:(Ljava/lang/String;)Ljava/util/ArrayList;`:
-  ret = java.lang.String[]@~
+  ret = java.util.ArrayList@~
 ;
 
 `Landroid/content/Intent;.getStringExtra:(Ljava/lang/String;)Ljava/lang/String;`:
