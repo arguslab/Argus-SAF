@@ -10,11 +10,6 @@ This is official reporitory for the [Argus-SAF](http://pag.arguslab.org/argus-sa
 For test and play with Argus-SAF, you can fork from our [Argus-SAF-playground](https://github.com/arguslab/Argus-SAF-playground)
 project, which have the basic setup for a Argus-SAF enhanced project with demo codes of how to perform different kind of analysis.
 
-## JN-SAF Integration Status
-We are currently working on integrate [JN-SAF](http://www.fengguow.com/resources/papers/JN-SafCCS18.pdf) java-native code analysis framework into Argus-SAF. 
-
-Original plan was open-source the JN-SAF part by 2018-10-31. However, due to engineering issues, we have to postpone the open-source date to 2018-11-30. Thanks for the understanding.
-
 ## Repository structure
 
 ```
