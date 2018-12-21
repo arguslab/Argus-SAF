@@ -16,7 +16,7 @@ import com.google.common.hash.{Hashing, HashingOutputStream}
 import io.grpc.stub.StreamObserver
 import org.argus.amandroid.alir.componentSummary.{ApkYard, ComponentBasedAnalysis}
 import org.argus.amandroid.alir.pta.summaryBasedAnalysis.AndroidSummaryProvider
-import org.argus.amandroid.alir.taintAnalysis.AndroidSourceAndSinkManager
+import org.argus.amandroid.alir.taintAnalysis.{AndroidSourceAndSinkManager, DataLeakageAndroidSourceAndSinkManager}
 import org.argus.amandroid.core.AndroidGlobalConfig
 import org.argus.amandroid.core.decompile.DefaultDecompilerSettings
 import org.argus.jawa.core.elements.{JawaType, Signature}
@@ -34,7 +34,9 @@ import org.argus.jnsaf.client.NativeDroidClient
 import org.argus.jnsaf.server.jnsaf_grpc._
 import org.argus.jnsaf.taint.JNTaintAnalysis
 
+import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
+import scala.language.postfixOps
 
 object JNSafServer extends GrpcServer {
   def TITLE = "JNSafService"
@@ -89,25 +91,34 @@ object JNSafServer extends GrpcServer {
       }
     }
 
-    private def performTaint(apkDigest: String): Option[TaintAnalysisResult] = {
+    private def performTaint(apkDigest: String, algo: TaintAnalysisRequest.Algorithm): Option[TaintAnalysisResult] = {
       var result: Option[TaintAnalysisResult] = None
       map.get(apkDigest) match {
         case Some(uri) =>
           yard.getApk(uri) match {
             case Some(apk) =>
-              TimeUtil.timed("TaintAnalysis Running Time", reporter) {
-                try {
-                  val client = new NativeDroidClient(nativedroid_address, nativedroid_port, apkDigest, reporter)
-                  val handler = new NativeMethodHandler(client)
-                  val ssm: AndroidSourceAndSinkManager = ssms.getOrElseUpdate(apkDigest, new JNISourceAndSinkManager(AndroidGlobalConfig.settings.sas_file))
-                  val provider: SummaryProvider = summaries.getOrElseUpdate(apkDigest, new AndroidSummaryProvider(apk))
-                  val cba: ComponentBasedAnalysis = cbas.getOrElseUpdate(apkDigest, new ComponentBasedAnalysis(yard))
-                  val jntaint = new JNTaintAnalysis(yard, apk, handler, ssm, provider, cba, reporter, 3)
-                  result = Some(jntaint.process)
-                } catch {
-                  case e: Throwable =>
-                    e.printStackTrace()
+              if(algo.isBottomUp) {
+                TimeUtil.timed("TaintAnalysis Running Time", reporter) {
+                  try {
+                    val client = new NativeDroidClient(nativedroid_address, nativedroid_port, apkDigest, reporter)
+                    val handler = new NativeMethodHandler(client)
+                    val ssm: AndroidSourceAndSinkManager = ssms.getOrElseUpdate(apkDigest, new JNISourceAndSinkManager(AndroidGlobalConfig.settings.sas_file))
+                    val provider: SummaryProvider = summaries.getOrElseUpdate(apkDigest, new AndroidSummaryProvider(apk))
+                    val cba: ComponentBasedAnalysis = cbas.getOrElseUpdate(apkDigest, new ComponentBasedAnalysis(yard))
+                    val jntaint = new JNTaintAnalysis(yard, apk, handler, ssm, provider, cba, reporter, 3)
+                    result = Some(jntaint.process)
+                  } catch {
+                    case e: Throwable =>
+                      e.printStackTrace()
+                  }
                 }
+              } else if(algo.isComponentBased) {
+                ComponentBasedAnalysis.prepare(Set(apk))(AndroidGlobalConfig.settings.timeout minutes)
+                val cba = new ComponentBasedAnalysis(yard)
+                cba.phase1(Set(apk))
+                val iddResult = cba.phase2(Set(apk))
+                val ssm = new DataLeakageAndroidSourceAndSinkManager(AndroidGlobalConfig.settings.sas_file)
+                result = cba.phase3(iddResult, ssm)
               }
             case None =>
           }
@@ -141,7 +152,7 @@ object JNSafServer extends GrpcServer {
 
     def taintAnalysis(request: TaintAnalysisRequest): Future[TaintAnalysisResponse] = {
       reporter.echo(TITLE,"Server taintAnalysis")
-      val taintResult = performTaint(request.apkDigest)
+      val taintResult = performTaint(request.apkDigest, request.algo)
       val response = TaintAnalysisResponse(taintResult.map(_.toPb))
       reporter.echo(TITLE, response.toProtoString)
       Future.successful(response)

@@ -19,7 +19,7 @@ import org.argus.jawa.flow.cfg._
 import org.argus.jawa.flow.dda.{IDDGNode, MultiDataDependenceGraph}
 import org.argus.jawa.flow.dfa.InterProceduralDataFlowGraph
 import org.argus.jawa.flow.pta.{Instance, VarSlot}
-import org.argus.jawa.core.ast.{AssignmentStatement, StaticFieldAccessExpression}
+import org.argus.jawa.core.ast.{AssignmentStatement, ReturnStatement, StaticFieldAccessExpression}
 import org.argus.jawa.core.elements.{FieldFQN, JawaType, Signature}
 import org.argus.jawa.core.io.Reporter
 import org.argus.jawa.core.util._
@@ -68,6 +68,13 @@ object ComponentSummaryTable {
               case ne: StaticFieldAccessExpression =>
                 sf_summary.addCallee(nn, StaticFieldRead(apk, component, new FieldFQN(ne.name, ne.typ)))
               case _ =>
+            }
+          case _: ReturnStatement =>
+            rpcs.filter(rpc => rpc._1 == nn.context.getMethodSig).foreach { rpc =>
+              if(rpc._1.getReturnType != new JawaType("void")) {
+                // Add return node as rpc callee
+                rpc_summary.addCaller(nn, BoundServiceReturnCaller(apk, component, rpc._1, rpc._2))
+              }
             }
           case _ =>
         }
@@ -143,14 +150,6 @@ object ComponentSummaryTable {
             if(apk.model.getRpcMethods.contains(calleeSig))
               rpc_summary.addCaller(cn, BoundServiceCaller(apk, component, calleeSig))
           }
-        }
-      case en: ICFGExitNode =>
-        rpcs.filter(rpc => rpc._1 == en.context.getMethodSig).foreach {
-          rpc =>
-            if(rpc._1.getReturnType != new JawaType("void")) {
-              // Add return node as rpc callee
-              rpc_summary.addCaller(en, BoundServiceReturnCaller(apk, component, rpc._1, rpc._2))
-            }
         }
       case rn: ICFGReturnNode =>
         val callees = rn.getCalleeSet
@@ -248,7 +247,7 @@ object ComponentSummaryTable {
       }
     }
 
-    components.foreach { case (apk, comp) =>
+    components.foreach { case (_, comp) =>
       try {
         val summaryTable = summaryMap.getOrElse(comp, throw new RuntimeException("Summary table does not exist for " + comp))
         val icc_summary: ICC_Summary = summaryTable.get(CHANNELS.ICC)
@@ -291,23 +290,9 @@ object ComponentSummaryTable {
                     }
                   case bsrc: BoundServiceReturnCallee =>
                     reporter.println(comp + " --rpc return: " + bsrc.callee_sig + "--> " + bsrc.component)
-                    val args = callernode.asInstanceOf[ICFGCallNode].allArgs
-                    for (i <- args.indices) {
-                      val callerDDGNode = mddg.getIDDGExitParamNode(callernode.asInstanceOf[ICFGExitNode], i)
-                      val calleeDDGNode = mddg.getIDDGReturnArgNode(calleenode.asInstanceOf[ICFGReturnNode], i)
-                      mddg.addEdge(calleeDDGNode, callerDDGNode)
-                    }
-                    apk.getIDFG(comp.compType) match {
-                      case Some(idfg) =>
-                        val calleeDDGNode = mddg.getIDDGReturnVarNode(calleenode.asInstanceOf[ICFGReturnNode])
-                        idfg.icfg.predecessors(callernode) foreach {
-                          case nn: ICFGNormalNode =>
-                            val callerDDGNode = mddg.getIDDGNormalNode(nn)
-                            mddg.addEdge(calleeDDGNode, callerDDGNode)
-                          case _ =>
-                        }
-                      case None =>
-                    }
+                    val callerDDGNode = mddg.getIDDGNormalNode(callernode.asInstanceOf[ICFGNormalNode])
+                    val calleeDDGNode = mddg.getIDDGReturnVarNode(calleenode.asInstanceOf[ICFGReturnNode])
+                    mddg.addEdge(calleeDDGNode, callerDDGNode)
                   case _ =>
                 }
             }
@@ -380,7 +365,7 @@ case class IntentCallee(apk: ApkGlobal, component: ComponentInfo, filter: ISet[I
   def matchWith(caller: CSTCaller): Boolean = {
     caller match {
       case intent_caller: IntentCaller =>
-        if((exported || apk.nameUri == intent_caller.apk.nameUri) && component.typ == intent_caller.component.typ){
+        if(exported || apk.nameUri == intent_caller.apk.nameUri){
           if (intent_caller.intent.explicit && !intent_caller.intent.precise) true
           else if (!intent_caller.intent.explicit && !intent_caller.intent.precise && filter.nonEmpty) true
           else if (intent_caller.intent.componentNames.contains(component.compType.name)) true

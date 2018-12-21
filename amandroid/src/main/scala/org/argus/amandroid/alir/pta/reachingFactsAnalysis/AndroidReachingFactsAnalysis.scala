@@ -77,12 +77,10 @@ class AndroidReachingFactsAnalysis(
         val calleeSig: Signature = callee.callee
         icfg.getCallGraph.addCall(callerNode.getOwner, calleeSig)
         val calleep = apk.getMethodOrResolve(calleeSig).get
-        if(handler.isICCCall(calleeSig) || handler.isRPCCall(apk, currentComponent.getType, calleeSig) || handler.isModelCall(calleep)) {
+        if(handler.isICCCall(calleeSig) || handler.isModelCall(calleep)) {
           pureNormalFlag = false
           if(handler.isICCCall(calleeSig)) {
             // don't do anything for the ICC call now.
-          } else if (handler.isRPCCall(apk, currentComponent.getType, calleeSig)) {
-            // don't do anything for the RPC call now.
           } else { // for non-ICC-RPC model call
             callee match {
               case _: IndirectCallee =>

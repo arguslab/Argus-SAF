@@ -1,0 +1,102 @@
+record `org.arguslab.rpc_messengerservice.MainActivity` @kind class @AccessFlag PUBLIC extends `android.app.Activity` @kind class {
+  `boolean` `org.arguslab.rpc_messengerservice.MainActivity.mBound` @AccessFlag ;
+  `android.content.ServiceConnection` `org.arguslab.rpc_messengerservice.MainActivity.mConnection` @AccessFlag PRIVATE;
+  `android.os.Messenger` `org.arguslab.rpc_messengerservice.MainActivity.mService` @AccessFlag ;
+}
+procedure `void` `<init>`(`org.arguslab.rpc_messengerservice.MainActivity` v1 @kind this) @signature `Lorg/arguslab/rpc_messengerservice/MainActivity;.<init>:()V` @AccessFlag PUBLIC_CONSTRUCTOR {
+    temp;
+    v0;
+
+  #L018bac.  call `<init>`(v1) @signature `Landroid/app/Activity;.<init>:()V` @kind direct;
+  #L018bb2.  v0:= 0I;
+  #L018bb4.  v1.`org.arguslab.rpc_messengerservice.MainActivity.mService` @type ^`android.os.Messenger` := v0 @kind object;
+  #L018bb8.  v0:= new `org.arguslab.rpc_messengerservice.MainActivity$1`;
+  #L018bbc.  call `<init>`(v0, v1) @signature `Lorg/arguslab/rpc_messengerservice/MainActivity$1;.<init>:(Lorg/arguslab/rpc_messengerservice/MainActivity;)V` @kind direct;
+  #L018bc2.  v1.`org.arguslab.rpc_messengerservice.MainActivity.mConnection` @type ^`android.content.ServiceConnection` := v0 @kind object;
+  #L018bc6.  return @kind void;
+}
+procedure `void` `leakImei`(`org.arguslab.rpc_messengerservice.MainActivity` v6 @kind this) @signature `Lorg/arguslab/rpc_messengerservice/MainActivity;.leakImei:()V` @AccessFlag PRIVATE {
+    temp;
+    v0;
+    v1;
+    v2;
+    v3;
+    v4;
+    v5;
+
+  #L018bd8.  v4:= "phone" @kind object;
+  #L018bdc.  call temp:= `getSystemService`(v6, v4) @signature `Lorg/arguslab/rpc_messengerservice/MainActivity;.getSystemService:(Ljava/lang/String;)Ljava/lang/Object;` @kind virtual;
+  #L018be2.  v3:= temp @kind object;
+  #L018be4.  v3:= (`android.telephony.TelephonyManager`) v3 @kind object;
+  #L018be8.  call temp:= `getDeviceId`(v3) @signature `Landroid/telephony/TelephonyManager;.getDeviceId:()Ljava/lang/String;` @kind virtual;
+  #L018bee.  v1:= temp @kind object;
+  #L018bf0.  v4:= 0I;
+  #L018bf2.  v5:= 0I;
+  #L018bf4.  call temp:= `obtain`(v4, v5, v1) @signature `Landroid/os/Message;.obtain:(Landroid/os/Handler;ILjava/lang/Object;)Landroid/os/Message;` @kind static;
+  #L018bfa.  v2:= temp @kind object;
+  #L018bfc.  v4:= v6.`org.arguslab.rpc_messengerservice.MainActivity.mService` @type ^`android.os.Messenger` @kind object;
+  #L018c00.  call `send`(v4, v2) @signature `Landroid/os/Messenger;.send:(Landroid/os/Message;)V` @kind virtual;
+  #L018c06.  return @kind void;
+  #L018c08.  v0:= Exception @type ^`android.os.RemoteException` @kind object;
+  #L018c0a.  call `printStackTrace`(v0) @signature `Landroid/os/RemoteException;.printStackTrace:()V` @kind virtual;
+  #L018c10.  goto L018c06;
+  catch `android.os.RemoteException` @[L018bfc..L018c06] goto L018c08;
+}
+procedure `void` `onCreate`(`org.arguslab.rpc_messengerservice.MainActivity` v1 @kind this, `android.os.Bundle` v2 @kind object @name `savedInstanceState`) @signature `Lorg/arguslab/rpc_messengerservice/MainActivity;.onCreate:(Landroid/os/Bundle;)V` @AccessFlag PROTECTED {
+    temp;
+    v0;
+
+  #L018c30.  call `onCreate`(v1, v2) @signature `Landroid/app/Activity;.onCreate:(Landroid/os/Bundle;)V` @kind super;
+  #L018c36.  v0:= 2130903040I;
+  #L018c3a.  call `setContentView`(v1, v0) @signature `Lorg/arguslab/rpc_messengerservice/MainActivity;.setContentView:(I)V` @kind virtual;
+  #L018c40.  return @kind void;
+}
+procedure `void` `onRequestPermissionsResult`(`org.arguslab.rpc_messengerservice.MainActivity` v0 @kind this, `int` v1 @name `requestCode`, `java.lang.String`[] v2 @kind object @name `permissions`, `int`[] v3 @kind object @name `grantResults`) @signature `Lorg/arguslab/rpc_messengerservice/MainActivity;.onRequestPermissionsResult:(I[Ljava/lang/String;[I)V` @AccessFlag PUBLIC {
+    temp;
+
+  #L018c54.  goto L018c64;
+  #L018c5a.  return @kind void;
+  #L018c5c.  call `leakImei`(v0) @signature `Lorg/arguslab/rpc_messengerservice/MainActivity;.leakImei:()V` @kind direct;
+  #L018c62.  goto L018c5a;
+  #L018c64.  switch v1
+                  | 1 => goto L018c5c
+                  | else => goto L018c5a;
+}
+procedure `void` `onStart`(`org.arguslab.rpc_messengerservice.MainActivity` v4 @kind this) @signature `Lorg/arguslab/rpc_messengerservice/MainActivity;.onStart:()V` @AccessFlag PROTECTED {
+    temp;
+    v0;
+    v1;
+    v2;
+    v3;
+
+  #L018c80.  v3:= 1I;
+  #L018c82.  call `onStart`(v4) @signature `Landroid/app/Activity;.onStart:()V` @kind super;
+  #L018c88.  v0:= new `android.content.Intent`;
+  #L018c8c.  v1:= constclass @type ^`org.arguslab.rpc_messengerservice.MessengerService` @kind object;
+  #L018c90.  call `<init>`(v0, v4, v1) @signature `Landroid/content/Intent;.<init>:(Landroid/content/Context;Ljava/lang/Class;)V` @kind direct;
+  #L018c96.  v1:= v4.`org.arguslab.rpc_messengerservice.MainActivity.mConnection` @type ^`android.content.ServiceConnection` @kind object;
+  #L018c9a.  call temp:= `bindService`(v4, v0, v1, v3) @signature `Lorg/arguslab/rpc_messengerservice/MainActivity;.bindService:(Landroid/content/Intent;Landroid/content/ServiceConnection;I)Z` @kind virtual;
+  #L018ca0.  v0:= "android.permission.READ_PHONE_STATE" @kind object;
+  #L018ca4.  call temp:= `checkSelfPermission`(v4, v0) @signature `Lorg/arguslab/rpc_messengerservice/MainActivity;.checkSelfPermission:(Ljava/lang/String;)I` @kind virtual;
+  #L018caa.  v0:= temp;
+  #L018cac.  if v0 == 0 then goto L018cc4;
+  #L018cb0.  v0:= new `java.lang.String`[v3];
+  #L018cb4.  v1:= 0I;
+  #L018cb6.  v2:= "android.permission.READ_PHONE_STATE" @kind object;
+  #L018cba.  v0[v1]:= v2 @kind object;
+  #L018cbe.  call `requestPermissions`(v4, v0, v3) @signature `Lorg/arguslab/rpc_messengerservice/MainActivity;.requestPermissions:([Ljava/lang/String;I)V` @kind virtual;
+  #L018cc4.  return @kind void;
+}
+procedure `void` `onStop`(`org.arguslab.rpc_messengerservice.MainActivity` v1 @kind this) @signature `Lorg/arguslab/rpc_messengerservice/MainActivity;.onStop:()V` @AccessFlag PROTECTED {
+    temp;
+    v0;
+
+  #L018cd8.  call `onStop`(v1) @signature `Landroid/app/Activity;.onStop:()V` @kind super;
+  #L018cde.  v0:= v1.`org.arguslab.rpc_messengerservice.MainActivity.mBound` @type ^`boolean` @kind boolean;
+  #L018ce2.  if v0 == 0 then goto L018cf6;
+  #L018ce6.  v0:= v1.`org.arguslab.rpc_messengerservice.MainActivity.mConnection` @type ^`android.content.ServiceConnection` @kind object;
+  #L018cea.  call `unbindService`(v1, v0) @signature `Lorg/arguslab/rpc_messengerservice/MainActivity;.unbindService:(Landroid/content/ServiceConnection;)V` @kind virtual;
+  #L018cf0.  v0:= 0I;
+  #L018cf2.  v1.`org.arguslab.rpc_messengerservice.MainActivity.mBound` @type ^`boolean` := v0 @kind boolean;
+  #L018cf6.  return @kind void;
+}

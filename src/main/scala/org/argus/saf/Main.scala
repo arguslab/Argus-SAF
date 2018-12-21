@@ -30,6 +30,7 @@ object Main extends App {
   private val decompilerOptions: Options = new Options
   private val taintOptions: Options = new Options
   private val apiMisuseOptions: Options = new Options
+  private val apkSubmitterOptions: Options = new Options
   private val allOptions: Options = new Options
 
   private def createOptions(): Unit = {
@@ -71,6 +72,8 @@ object Main extends App {
 
     apiMisuseOptions.addOptionGroup(generalOptionGroup)
     apiMisuseOptions.addOption(apimoduleOption)
+
+    apkSubmitterOptions.addOption(bottomupOption)
 
     allOptions.addOption(versionOption)
     allOptions.addOption(guessPackageOption)
@@ -117,9 +120,9 @@ object Main extends App {
       case Mode.JNSAF_SERVER =>
         println("jn[saf] <out_dir> <jnsaf_port> <nativedroid_address> <nativedroid_port>")
       case Mode.APK_SUBMITTER =>
-        println("s[ubmitter] <file_apk/dir> <address> <port>")
+        println("s[ubmitter] [options] <file_apk/dir> <address> <port>", apkSubmitterOptions)
       case Mode.BENCHMARK_SUBMITTER =>
-        println("benchmark <file_dir> <address> <port> <expected_result_file>")
+        println("benchmark [options] <file_dir> <address> <port> <expected_result_file>", apkSubmitterOptions)
     }
 
   }
@@ -337,6 +340,10 @@ object Main extends App {
     var outputPath: String = null
     var address: String = null
     var port: Int = 0
+    var approach: TaintAnalysisApproach.Value = TaintAnalysisApproach.COMPONENT_BASED
+    if(cli.hasOption("bu") || cli.hasOption("bottom-up")) {
+      approach = TaintAnalysisApproach.BOTTOM_UP
+    }
     try {
       outputPath = cli.getArgList.get(1)
       address = cli.getArgList.get(2)
@@ -346,7 +353,7 @@ object Main extends App {
         usage(Mode.APK_SUBMITTER)
         System.exit(0)
     }
-    ApkSubmitter(outputPath, address, port)
+    ApkSubmitter(outputPath, address, port, approach)
   }
 
   private def cmdBenchmarkSubmitter(cli: CommandLine): Unit = {
@@ -354,6 +361,10 @@ object Main extends App {
     var address: String = null
     var port: Int = 0
     var expectedFile: String = null
+    var approach: TaintAnalysisApproach.Value = TaintAnalysisApproach.COMPONENT_BASED
+    if(cli.hasOption("bu") || cli.hasOption("bottom-up")) {
+      approach = TaintAnalysisApproach.BOTTOM_UP
+    }
     try {
       outputPath = cli.getArgList.get(1)
       address = cli.getArgList.get(2)
@@ -364,6 +375,6 @@ object Main extends App {
         usage(Mode.BENCHMARK_SUBMITTER)
         System.exit(0)
     }
-    BenchmarkSubmitter(outputPath, address, port, expectedFile)
+    BenchmarkSubmitter(outputPath, address, port, expectedFile, approach)
   }
 }

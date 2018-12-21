@@ -181,6 +181,7 @@ class ComponentBasedAnalysis(yard: ApkYard) {
     val summaryMap = summaryTables.map(st => (st.component.compType, st)).toMap
     val iccChannels = summaryTables.map(_.get[ICC_Summary](CHANNELS.ICC))
     val allICCCallees: ISet[(ICFGNode, CSTCallee)] = iccChannels.flatMap(_.asCallee)
+
     val taint_result = new TaintStore
     apk.getComponentTaintAnalysisResults.foreach { case (_, tar) =>
       taint_result.addTaintPaths(tar.getTaintedPaths)

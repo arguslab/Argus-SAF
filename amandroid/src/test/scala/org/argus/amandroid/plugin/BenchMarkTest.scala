@@ -130,18 +130,18 @@ class BenchMarkTest extends FlatSpec with Matchers {
 //    assert(res.isDefined && res.get.getTaintedPaths.size == 1)
 //  }
 //
-//  "RPC_MessengerService" should "have 1 taint path" taggedAs Slow in {
-//    val res = taintAnalysis(getClass.getResource("/icc-bench/RpcHandling/rpc_messengerservice.apk").getPath)
-//    assert(res.isDefined && res.get.getTaintedPaths.size == 1)
-//  }
+  "RPC_MessengerService" should "have 1 taint path" taggedAs Slow in {
+    val res = taintAnalysis("/Users/fengguow/IdeaProjects/Argus-SAF/benchmarks/ICCBench/RpcHandling/rpc_messengerservice.apk")
+    assert(res.isDefined && res.get.getTaintedPaths.size == 1)
+  }
 //
 //  "RPC_RemoteService" should "have 1 taint path" taggedAs Slow in {
-//    val res = taintAnalysis(getClass.getResource("/icc-bench/RpcHandling/rpc_remoteservice.apk").getPath)
+//    val res = taintAnalysis("/Users/fengguow/IdeaProjects/Argus-SAF/benchmarks/ICCBench/RpcHandling/rpc_remoteservice.apk")
 //    assert(res.isDefined && res.get.getTaintedPaths.size == 1)
 //  }
 //
 //  "RPC_ReturnSensitive" should "have 1 taint path" taggedAs Slow in {
-//    val res = taintAnalysis(getClass.getResource("/icc-bench/RpcHandling/rpc_returnsensitive.apk").getPath)
+//    val res = taintAnalysis("/Users/fengguow/IdeaProjects/Argus-SAF/benchmarks/ICCBench/RpcHandling/rpc_returnsensitive.apk")
 //    assert(res.isDefined && res.get.getTaintedPaths.size == 1)
 //  }
 //

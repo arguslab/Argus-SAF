@@ -10,7 +10,7 @@
 
 package org.argus.jawa.flow.summary.wu
 
-import org.argus.jawa.core.ast.ReturnStatement
+import org.argus.jawa.core.ast.{AssignmentStatement, ReturnStatement, StaticFieldAccessExpression}
 import org.argus.jawa.core.elements.{JavaKnowledge, Signature}
 import org.argus.jawa.core.util._
 import org.argus.jawa.core.{Global, JawaMethod}
@@ -146,20 +146,42 @@ class TaintWu[T <: Global](
       }
       (srcInss.toMap, sinkInss.toMap)
     case nn: ICFGNormalNode =>
+      val srcInss: MMap[Instance, TaintInfo] = mmapEmpty
       val sinkInss: MMap[Instance, TaintInfo] = mmapEmpty
       val loc = method.getBody.resolvedBody.location(nn.locIndex)
       loc.statement match {
+        case as: AssignmentStatement =>
+          as.lhs match {
+            case sfae: StaticFieldAccessExpression =>
+              if(sfae.typ.isObject) {
+                val inss = ptaresult.getRelatedInstances(nn.getContext, StaticFieldSlot(sfae.name))
+                val info = TaintInfo(TaintStatus.PASS, None, ilistEmpty, SourceAndSinkCategory.STMT_SINK)
+                sinkInss ++= inss.map(ins => (ins, info))
+              }
+            case _ =>
+          }
+          as.rhs match {
+            case sfae: StaticFieldAccessExpression =>
+              if(sfae.typ.isObject) {
+                val inss = ptaresult.getRelatedInstances(nn.getContext, StaticFieldSlot(sfae.name))
+                val info = TaintInfo(TaintStatus.PASS, None, ilistEmpty, SourceAndSinkCategory.STMT_SOURCE)
+                srcInss ++= inss.map(ins => (ins, info))
+              }
+            case _ =>
+          }
         case rs: ReturnStatement =>
           rs.varOpt match {
             case Some(ret) =>
-              val inss = ptaresult.getRelatedInstances(nn.getContext, VarSlot(ret.varName))
-              val info = TaintInfo(TaintStatus.PASS, None, ilistEmpty, SourceAndSinkCategory.API_SINK)
-              sinkInss ++= inss.map(ins => (ins, info))
+              if (method.getReturnType.isObject) {
+                val inss = ptaresult.getRelatedInstances(nn.getContext, VarSlot(ret.varName))
+                val info = TaintInfo(TaintStatus.PASS, None, ilistEmpty, SourceAndSinkCategory.API_SINK)
+                sinkInss ++= inss.map(ins => (ins, info))
+              }
             case None =>
           }
         case _ =>
       }
-      (imapEmpty, sinkInss.toMap)
+      (srcInss.toMap, sinkInss.toMap)
     case en: ICFGExitNode =>
       val sinkInss: MMap[Instance, TaintInfo] = mmapEmpty
       en.thisName match {

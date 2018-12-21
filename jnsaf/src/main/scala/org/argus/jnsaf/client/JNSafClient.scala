@@ -16,6 +16,7 @@ import java.util.concurrent.{CountDownLatch, TimeUnit}
 import com.google.protobuf.ByteString
 import io.grpc.ManagedChannelBuilder
 import io.grpc.stub.StreamObserver
+import org.argus.amandroid.plugin.TaintAnalysisApproach
 import org.argus.jawa.core.io.Reporter
 import org.argus.jawa.core.util._
 import org.argus.jawa.flow.taint_result.TaintResult
@@ -107,12 +108,18 @@ class JNSafClient(address: String, port: Int, reporter: Reporter) {
     }
   }
 
-  def taintAnalysis(apkUri: FileResourceUri): Option[TaintResult] = {
+  def taintAnalysis(apkUri: FileResourceUri, approach: TaintAnalysisApproach.Value): Option[TaintResult] = {
     reporter.echo(TITLE,"Client taintAnalysis")
     try {
       val doneSignal = new CountDownLatch(1)
       val digest = getAPKDigest(apkUri)
-      val request = TaintAnalysisRequest(digest)
+      val algo = approach match {
+        case TaintAnalysisApproach.COMPONENT_BASED =>
+          TaintAnalysisRequest.Algorithm.COMPONENT_BASED
+        case TaintAnalysisApproach.BOTTOM_UP =>
+          TaintAnalysisRequest.Algorithm.BOTTOM_UP
+      }
+      val request = TaintAnalysisRequest(digest, algo)
       val responseFuture: Future[TaintAnalysisResponse] = client.taintAnalysis(request)
       var responseOpt: Option[TaintAnalysisResponse] = None
       responseFuture.foreach { response =>

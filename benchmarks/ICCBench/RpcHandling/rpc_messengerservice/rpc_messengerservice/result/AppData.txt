@@ -1,0 +1,47 @@
+Application Name: rpc_messengerservice.apk
+Uses Permissions: android.permission.READ_PHONE_STATE
+
+Component org.arguslab.rpc_messengerservice.MainActivity
+  Component type: activity
+  Exported: true
+  Dynamic Registered: false
+  Required Permission: 
+  IntentFilters:
+    IntentFilter:(Actions:["android.intent.action.MAIN"],Categories:["android.intent.category.LAUNCHER"])
+
+  Inter-component communication (ICC) Result:
+    ICC call details are listed below:
+      Caller Procedure: Landroid/content/ContextWrapper;.bindService:(Landroid/content/Intent;Landroid/content/ServiceConnection;I)Z
+      Caller Context: (MainActivity.onStart,L018c9a)
+      Outgoing Intents via this call:
+        Intent:
+          Component Names:
+            org.arguslab.rpc_messengerservice.MessengerService
+          Explicit: true
+          Precise: true
+          ICC Targets:
+            org.arguslab.rpc_messengerservice.MessengerService
+
+Component org.arguslab.rpc_messengerservice.MessengerService
+  Component type: service
+  Exported: true
+  Dynamic Registered: false
+  Required Permission: 
+  IntentFilters:
+
+  Inter-component communication (ICC) Result:
+
+
+
+Taint analysis result:
+  Sources found:
+    <Descriptors: api_source: Landroid/telephony/TelephonyManager;.getDeviceId:()Ljava/lang/String;>
+  Sinks found:
+    <Descriptors: api_sink: Landroid/util/Log;.d:(Ljava/lang/String;Ljava/lang/String;)I 2>
+  Discovered taint paths are listed below:
+    TaintPath:
+      Source: <Descriptors: api_source: Landroid/telephony/TelephonyManager;.getDeviceId:()Ljava/lang/String;>
+      Sink: <Descriptors: api_sink: Landroid/util/Log;.d:(Ljava/lang/String;Ljava/lang/String;)I 2>
+      Types: maliciousness:information_theft
+      The path consists of the following edges ("->"). The nodes have the context information (p1 to pn means which parameter). The source is at the top :
+        List(#L018be8.  call temp:= `getDeviceId`(v3) @signature `Landroid/telephony/TelephonyManager;.getDeviceId:()Ljava/lang/String;` @kind virtual;, #L018bf4.  call temp:= `obtain`(v4, v5, v1) @signature `Landroid/os/Message;.obtain:(Landroid/os/Handler;ILjava/lang/Object;)Landroid/os/Message;` @kind static;, #L018c00.  call `send`(v4, v2) @signature `Landroid/os/Messenger;.send:(Landroid/os/Message;)V` @kind virtual; param: 1, Entry@Lorg/arguslab/rpc_messengerservice/MessengerService$IncomingHandler;.handleMessage:(Landroid/os/Message;)V param: 1, #L018d3e.  v2:= v4.`android.os.Message.obj` @type ^`java.lang.Object` @kind object;, #L018d42.  call temp:= `append`(v1, v2) @signature `Ljava/lang/StringBuilder;.append:(Ljava/lang/Object;)Ljava/lang/StringBuilder;` @kind virtual; param: 1, #L018d42.  call temp:= `append`(v1, v2) @signature `Ljava/lang/StringBuilder;.append:(Ljava/lang/Object;)Ljava/lang/StringBuilder;` @kind virtual;, #L018d48.  v1:= temp @kind object;, #L018d4a.  call temp:= `toString`(v1) @signature `Ljava/lang/StringBuilder;.toString:()Ljava/lang/String;` @kind virtual; param: 0, #L018d4a.  call temp:= `toString`(v1) @signature `Ljava/lang/StringBuilder;.toString:()Ljava/lang/String;` @kind virtual;, #L018d50.  v1:= temp @kind object;, #L018d52.  call temp:= `d`(v0, v1) @signature `Landroid/util/Log;.d:(Ljava/lang/String;Ljava/lang/String;)I` @kind static; param: 2)

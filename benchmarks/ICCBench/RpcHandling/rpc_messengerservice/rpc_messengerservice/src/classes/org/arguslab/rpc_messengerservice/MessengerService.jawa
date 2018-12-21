@@ -1,0 +1,25 @@
+record `org.arguslab.rpc_messengerservice.MessengerService` @kind class @AccessFlag PUBLIC extends `android.app.Service` @kind class {
+  `android.os.Messenger` `org.arguslab.rpc_messengerservice.MessengerService.mMessenger` @AccessFlag FINAL;
+}
+procedure `void` `<init>`(`org.arguslab.rpc_messengerservice.MessengerService` v2 @kind this) @signature `Lorg/arguslab/rpc_messengerservice/MessengerService;.<init>:()V` @AccessFlag PUBLIC_CONSTRUCTOR {
+    temp;
+    v0;
+    v1;
+
+  #L018d6c.  call `<init>`(v2) @signature `Landroid/app/Service;.<init>:()V` @kind direct;
+  #L018d72.  v0:= new `android.os.Messenger`;
+  #L018d76.  v1:= new `org.arguslab.rpc_messengerservice.MessengerService$IncomingHandler`;
+  #L018d7a.  call `<init>`(v1, v2) @signature `Lorg/arguslab/rpc_messengerservice/MessengerService$IncomingHandler;.<init>:(Lorg/arguslab/rpc_messengerservice/MessengerService;)V` @kind direct;
+  #L018d80.  call `<init>`(v0, v1) @signature `Landroid/os/Messenger;.<init>:(Landroid/os/Handler;)V` @kind direct;
+  #L018d86.  v2.`org.arguslab.rpc_messengerservice.MessengerService.mMessenger` @type ^`android.os.Messenger` := v0 @kind object;
+  #L018d8a.  return @kind void;
+}
+procedure `android.os.IBinder` `onBind`(`org.arguslab.rpc_messengerservice.MessengerService` v1 @kind this, `android.content.Intent` v2 @kind object @name `intent`) @signature `Lorg/arguslab/rpc_messengerservice/MessengerService;.onBind:(Landroid/content/Intent;)Landroid/os/IBinder;` @AccessFlag PUBLIC {
+    temp;
+    v0;
+
+  #L018d9c.  v0:= v1.`org.arguslab.rpc_messengerservice.MessengerService.mMessenger` @type ^`android.os.Messenger` @kind object;
+  #L018da0.  call temp:= `getBinder`(v0) @signature `Landroid/os/Messenger;.getBinder:()Landroid/os/IBinder;` @kind virtual;
+  #L018da6.  v0:= temp @kind object;
+  #L018da8.  return v0 @kind object;
+}

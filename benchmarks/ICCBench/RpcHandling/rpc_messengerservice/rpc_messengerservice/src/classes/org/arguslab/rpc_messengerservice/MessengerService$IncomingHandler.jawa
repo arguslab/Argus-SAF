@@ -1,0 +1,30 @@
+record `org.arguslab.rpc_messengerservice.MessengerService$IncomingHandler` @kind class @AccessFlag  extends `android.os.Handler` @kind class {
+  `org.arguslab.rpc_messengerservice.MessengerService` `org.arguslab.rpc_messengerservice.MessengerService$IncomingHandler.this$0` @AccessFlag FINAL_SYNTHETIC;
+}
+procedure `void` `<init>`(`org.arguslab.rpc_messengerservice.MessengerService$IncomingHandler` v0 @kind this, `org.arguslab.rpc_messengerservice.MessengerService` v1 @kind object @name `this$0`) @signature `Lorg/arguslab/rpc_messengerservice/MessengerService$IncomingHandler;.<init>:(Lorg/arguslab/rpc_messengerservice/MessengerService;)V` @AccessFlag CONSTRUCTOR {
+    temp;
+
+  #L018d08.  v0.`org.arguslab.rpc_messengerservice.MessengerService$IncomingHandler.this$0` @type ^`org.arguslab.rpc_messengerservice.MessengerService` := v1 @kind object;
+  #L018d0c.  call `<init>`(v0) @signature `Landroid/os/Handler;.<init>:()V` @kind direct;
+  #L018d12.  return @kind void;
+}
+procedure `void` `handleMessage`(`org.arguslab.rpc_messengerservice.MessengerService$IncomingHandler` v3 @kind this, `android.os.Message` v4 @kind object @name `msg`) @signature `Lorg/arguslab/rpc_messengerservice/MessengerService$IncomingHandler;.handleMessage:(Landroid/os/Message;)V` @AccessFlag PUBLIC {
+    temp;
+    v0;
+    v1;
+    v2;
+
+  #L018d24.  v0:= "imei" @kind object;
+  #L018d28.  v1:= new `java.lang.StringBuilder`;
+  #L018d2c.  call `<init>`(v1) @signature `Ljava/lang/StringBuilder;.<init>:()V` @kind direct;
+  #L018d32.  v2:= "" @kind object;
+  #L018d36.  call temp:= `append`(v1, v2) @signature `Ljava/lang/StringBuilder;.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;` @kind virtual;
+  #L018d3c.  v1:= temp @kind object;
+  #L018d3e.  v2:= v4.`android.os.Message.obj` @type ^`java.lang.Object` @kind object;
+  #L018d42.  call temp:= `append`(v1, v2) @signature `Ljava/lang/StringBuilder;.append:(Ljava/lang/Object;)Ljava/lang/StringBuilder;` @kind virtual;
+  #L018d48.  v1:= temp @kind object;
+  #L018d4a.  call temp:= `toString`(v1) @signature `Ljava/lang/StringBuilder;.toString:()Ljava/lang/String;` @kind virtual;
+  #L018d50.  v1:= temp @kind object;
+  #L018d52.  call temp:= `d`(v0, v1) @signature `Landroid/util/Log;.d:(Ljava/lang/String;Ljava/lang/String;)I` @kind static;
+  #L018d58.  return @kind void;
+}

@@ -17,6 +17,11 @@ message LoadAPKResponse {
 
 message TaintAnalysisRequest {
     string apk_digest = 1;
+    enum Algorithm {
+        COMPONENT_BASED = 0;
+        BOTTOM_UP = 1;
+    }
+    Algorithm algo = 2;
 }
 
 message TaintAnalysisResponse {

@@ -63,7 +63,8 @@ class JNTaintAnalysis(yard: ApkYard, apk: ApkGlobal,
         apk.addSummaryTable(comp.compType, summaryTable)
         println("instructions: " + instructions)
       } else {
-        val idfg = process(comp.compType, apk.getEntryPoints(comp))
+        val eps: ISet[Signature] = apk.getEntryPoints(comp) ++ apk.model.getCallbackMethods(comp.compType) ++ apk.model.getRpcMethods(comp.compType).keys
+        val idfg = process(comp.compType, eps)
         apk.addIDFG(comp.compType, idfg)
         val st = cba.buildComponentSummaryTable(apk, comp)
         apk.addSummaryTable(comp.compType, st)

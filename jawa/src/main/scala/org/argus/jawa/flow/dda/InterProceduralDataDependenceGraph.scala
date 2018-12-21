@@ -82,7 +82,7 @@ class InterProceduralDataDependenceGraph[Node <: IDDGNode] extends DataDependenc
 				rn.recvNameOpt match {
 					case Some(recv) =>
 						val n = addIDDGReturnArgNode(rn, 0)
-						n.asInstanceOf[IDDGCallArgNode].argName = recv
+						n.asInstanceOf[IDDGReturnArgNode].argName = recv
 					case None =>
 				}
 				for (i <- rn.argNames.indices) {

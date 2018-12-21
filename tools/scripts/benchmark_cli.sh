@@ -12,7 +12,37 @@ jnsaf_pid=$!
 
 sleep 5
 
-java -jar $BASEDIR/../../target/scala-2.12/argus-saf-3.1.4-SNAPSHOT-assembly.jar benchmark $BASEDIR/../../benchmarks/NativeFlowBench localhost 55001 $BASEDIR/../../benchmarks/expected_nativeflow_bench.txt
+droid_bench_submitter()
+{
+    java -jar $BASEDIR/../../target/scala-2.12/argus-saf-3.1.4-SNAPSHOT-assembly.jar benchmark $BASEDIR/../../benchmarks/DroidBench localhost 55001 $BASEDIR/../../benchmarks/expected_droid_bench.txt
+}
+
+icc_bench_submitter()
+{
+    java -jar $BASEDIR/../../target/scala-2.12/argus-saf-3.1.4-SNAPSHOT-assembly.jar benchmark $BASEDIR/../../benchmarks/ICCBench localhost 55001 $BASEDIR/../../benchmarks/expected_icc_bench.txt
+}
+
+native_flow_bench_submitter()
+{
+    java -jar $BASEDIR/../../target/scala-2.12/argus-saf-3.1.4-SNAPSHOT-assembly.jar benchmark -bu $BASEDIR/../../benchmarks/NativeFlowBench localhost 55001 $BASEDIR/../../benchmarks/expected_nativeflow_bench.txt
+}
+
+MODE='ALL'
+if [[ -n "$1" ]]; then
+    MODE=$1
+fi
+
+if [[ "$MODE" == "ALL" ]]; then
+    droid_bench_submitter
+    icc_bench_submitter
+    native_flow_bench_submitter
+elif [[ "$MODE" == 'droidbench' ]]; then
+    droid_bench_submitter
+elif [[ "$MODE" == 'iccbench' ]]; then
+    icc_bench_submitter
+else
+    native_flow_bench_submitter
+fi
 
 kill -KILL $nativedroid_pid
 kill -KILL $jnsaf_pid

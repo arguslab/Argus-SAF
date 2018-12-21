@@ -12,6 +12,7 @@ package org.argus.jnsaf.submitter
 
 import java.io.{BufferedReader, FileReader}
 
+import org.argus.amandroid.plugin.TaintAnalysisApproach
 import org.argus.jawa.core.util._
 
 object BenchmarkSubmitter {
@@ -29,9 +30,9 @@ object BenchmarkSubmitter {
     rdr.close()
     result.toMap
   }
-  def apply(sourcePath: String, address: String, port: Int, expectedFile: String): Unit = {
+  def apply(sourcePath: String, address: String, port: Int, expectedFile: String, approach: TaintAnalysisApproach.Value): Unit = {
     val expected = readExpected(expectedFile)
-    val analysisResult = ApkSubmitter(sourcePath, address, port)
+    val analysisResult = ApkSubmitter(sourcePath, address, port, approach)
     case class Compare(var expected: Int = 0, var result: Int = 0)
     val compare: MMap[String, Compare] = mmapEmpty
     expected.foreach { case (name, num) =>
@@ -48,7 +49,7 @@ object BenchmarkSubmitter {
     }
     println("Taint analysis result:")
     println("Expected\tResult\t\tApk")
-    compare.foreach { case (name, comp) =>
+    compare.toList.sortBy(_._1).foreach { case (name, comp) =>
       println(s"${comp.expected}\t\t${comp.result}\t\t$name")
     }
   }

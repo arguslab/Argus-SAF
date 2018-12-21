@@ -1,0 +1,37 @@
+record `org.arguslab.rpc_messengerservice.MainActivity$1` @kind class @AccessFlag  extends `android.content.ServiceConnection` @kind interface {
+  `org.arguslab.rpc_messengerservice.MainActivity` `org.arguslab.rpc_messengerservice.MainActivity$1.this$0` @AccessFlag FINAL_SYNTHETIC;
+}
+procedure `void` `<init>`(`org.arguslab.rpc_messengerservice.MainActivity$1` v0 @kind this, `org.arguslab.rpc_messengerservice.MainActivity` v1 @kind object @name `this$0`) @signature `Lorg/arguslab/rpc_messengerservice/MainActivity$1;.<init>:(Lorg/arguslab/rpc_messengerservice/MainActivity;)V` @AccessFlag CONSTRUCTOR {
+    temp;
+
+  #L018b38.  v0.`org.arguslab.rpc_messengerservice.MainActivity$1.this$0` @type ^`org.arguslab.rpc_messengerservice.MainActivity` := v1 @kind object;
+  #L018b3c.  call `<init>`(v0) @signature `Ljava/lang/Object;.<init>:()V` @kind direct;
+  #L018b42.  return @kind void;
+}
+procedure `void` `onServiceConnected`(`org.arguslab.rpc_messengerservice.MainActivity$1` v2 @kind this, `android.content.ComponentName` v3 @kind object @name `componentName`, `android.os.IBinder` v4 @kind object @name `iBinder`) @signature `Lorg/arguslab/rpc_messengerservice/MainActivity$1;.onServiceConnected:(Landroid/content/ComponentName;Landroid/os/IBinder;)V` @AccessFlag PUBLIC {
+    temp;
+    v0;
+    v1;
+
+  #L018b54.  v0:= v2.`org.arguslab.rpc_messengerservice.MainActivity$1.this$0` @type ^`org.arguslab.rpc_messengerservice.MainActivity` @kind object;
+  #L018b58.  v1:= new `android.os.Messenger`;
+  #L018b5c.  call `<init>`(v1, v4) @signature `Landroid/os/Messenger;.<init>:(Landroid/os/IBinder;)V` @kind direct;
+  #L018b62.  v0.`org.arguslab.rpc_messengerservice.MainActivity.mService` @type ^`android.os.Messenger` := v1 @kind object;
+  #L018b66.  v0:= v2.`org.arguslab.rpc_messengerservice.MainActivity$1.this$0` @type ^`org.arguslab.rpc_messengerservice.MainActivity` @kind object;
+  #L018b6a.  v1:= 1I;
+  #L018b6c.  v0.`org.arguslab.rpc_messengerservice.MainActivity.mBound` @type ^`boolean` := v1 @kind boolean;
+  #L018b70.  return @kind void;
+}
+procedure `void` `onServiceDisconnected`(`org.arguslab.rpc_messengerservice.MainActivity$1` v2 @kind this, `android.content.ComponentName` v3 @kind object @name `componentName`) @signature `Lorg/arguslab/rpc_messengerservice/MainActivity$1;.onServiceDisconnected:(Landroid/content/ComponentName;)V` @AccessFlag PUBLIC {
+    temp;
+    v0;
+    v1;
+
+  #L018b84.  v0:= v2.`org.arguslab.rpc_messengerservice.MainActivity$1.this$0` @type ^`org.arguslab.rpc_messengerservice.MainActivity` @kind object;
+  #L018b88.  v1:= 0I;
+  #L018b8a.  v0.`org.arguslab.rpc_messengerservice.MainActivity.mService` @type ^`android.os.Messenger` := v1 @kind object;
+  #L018b8e.  v0:= v2.`org.arguslab.rpc_messengerservice.MainActivity$1.this$0` @type ^`org.arguslab.rpc_messengerservice.MainActivity` @kind object;
+  #L018b92.  v1:= 0I;
+  #L018b94.  v0.`org.arguslab.rpc_messengerservice.MainActivity.mBound` @type ^`boolean` := v1 @kind boolean;
+  #L018b98.  return @kind void;
+}
