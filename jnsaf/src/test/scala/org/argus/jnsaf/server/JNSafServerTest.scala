@@ -15,6 +15,7 @@ import java.io.File
 import com.google.common.hash.Hashing
 import com.google.common.io.Files
 import io.grpc.{Server, ServerBuilder}
+import org.argus.amandroid.plugin.TaintAnalysisApproach
 import org.argus.jawa.core.io.{MsgLevel, PrintReporter}
 import org.argus.jawa.core.util.{FileResourceUri, FileUtil}
 import org.argus.jnsaf.client.JNSafClient
@@ -71,7 +72,7 @@ class JNSafServerTest extends FlatSpec with Matchers with BeforeAndAfterAll {
   }
 
   "TaintAnalysis" should "success" in {
-    val taint = client.taintAnalysis(fileUri)
+    val taint = client.taintAnalysis(fileUri, TaintAnalysisApproach.BOTTOM_UP)
     assert(taint.isDefined)
   }
 

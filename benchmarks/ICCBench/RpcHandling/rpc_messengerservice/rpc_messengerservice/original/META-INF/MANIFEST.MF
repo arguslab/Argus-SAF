@@ -1,4 +1,0 @@
-Manifest-Version: 1.0
-Built-By: Generated-by-ADT
-Created-By: Android Gradle 2.3.0-beta3
-
