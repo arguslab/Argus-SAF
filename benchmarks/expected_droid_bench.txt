@@ -1,12 +1,12 @@
 ActivityCommunication1.apk 1
-ActivityCommunication2.apk 2
+ActivityCommunication2.apk 1
 ActivityCommunication3.apk 1
-ActivityCommunication4.apk 2
+ActivityCommunication4.apk 1
 ActivityCommunication5.apk 1
 ActivityCommunication6.apk 1
 ActivityCommunication7.apk 1
-ActivityCommunication8.apk 2
-BroadcastTaintAndLeak1.apk 2
+ActivityCommunication8.apk 1
+BroadcastTaintAndLeak1.apk 1
 ComponentNotInManifest1.apk 0
 EventOrdering1.apk 1
 IntentSink1.apk 1

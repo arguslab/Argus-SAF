@@ -39,7 +39,7 @@ object Main extends App {
 
     val debugDecOption: Option = Option.builder("d").longOpt("debug").desc("Output debug information.").build()
     val guessPackageOption: Option = Option.builder("g").longOpt("guess").desc("Guess application package prefixes.").build()
-    val bottomupOption: Option = Option.builder("bu").longOpt("bottom-up").desc("Use bottom up analysis approach.").build()
+    val approachOption: Option = Option.builder("a").longOpt("approach").desc("Choose analysis approach. [Default: BOTTOM_UP, Choices: (BOTTOM_UP, COMPONENT_BASED)]").hasArg(true).argName("approach").build()
     val outputOption: Option = Option.builder("o").longOpt("output").desc("Set output directory. [Default: .]").hasArg(true).argName("dir").build()
     val forceDeleteOption: Option = Option.builder("f").longOpt("force").desc("Force delete previous decompile result. [Default: false]").build()
     val srclevelOption: Option = Option.builder("sl").longOpt("src-level").desc("Application code decompile level. [Default: UNTYPED, Choices: (NO, SIGNATURE, UNTYPED, TYPED)]").hasArg(true).argName("level").build()
@@ -68,16 +68,16 @@ object Main extends App {
 
     taintOptions.addOptionGroup(generalOptionGroup)
     taintOptions.addOption(taintmoduleOption)
-    taintOptions.addOption(bottomupOption)
+    taintOptions.addOption(approachOption)
 
     apiMisuseOptions.addOptionGroup(generalOptionGroup)
     apiMisuseOptions.addOption(apimoduleOption)
 
-    apkSubmitterOptions.addOption(bottomupOption)
+    apkSubmitterOptions.addOption(approachOption)
 
     allOptions.addOption(versionOption)
     allOptions.addOption(guessPackageOption)
-    allOptions.addOption(bottomupOption)
+    allOptions.addOption(approachOption)
     allOptions.addOption(debugDecOption)
     allOptions.addOption(outputOption)
     allOptions.addOption(forceDeleteOption)
@@ -244,7 +244,7 @@ object Main extends App {
     var outputPath: String = "."
     var forceDelete: Boolean = false
     var module: TaintAnalysisModules.Value = TaintAnalysisModules.DATA_LEAKAGE
-    var approach: TaintAnalysisApproach.Value = TaintAnalysisApproach.COMPONENT_BASED
+    var approach: TaintAnalysisApproach.Value = TaintAnalysisApproach.BOTTOM_UP
     if(cli.hasOption("d") || cli.hasOption("debug")) {
       debug = true
     }
@@ -266,8 +266,11 @@ object Main extends App {
         case "COMMUNICATION_LEAKAGE" => TaintAnalysisModules.COMMUNICATION_LEAKAGE
       }
     }
-    if(cli.hasOption("bu") || cli.hasOption("bottom-up")) {
-      approach = TaintAnalysisApproach.BOTTOM_UP
+    if(cli.hasOption("a") || cli.hasOption("approach")) {
+      approach = cli.getOptionValue("a") match {
+        case "BOTTOM_UP" => TaintAnalysisApproach.BOTTOM_UP
+        case "COMPONENT_BASED" => TaintAnalysisApproach.COMPONENT_BASED
+      }
     }
     var sourcePath: String = null
 
@@ -340,9 +343,12 @@ object Main extends App {
     var outputPath: String = null
     var address: String = null
     var port: Int = 0
-    var approach: TaintAnalysisApproach.Value = TaintAnalysisApproach.COMPONENT_BASED
-    if(cli.hasOption("bu") || cli.hasOption("bottom-up")) {
-      approach = TaintAnalysisApproach.BOTTOM_UP
+    var approach: TaintAnalysisApproach.Value = TaintAnalysisApproach.BOTTOM_UP
+    if(cli.hasOption("a") || cli.hasOption("approach")) {
+      approach = cli.getOptionValue("a") match {
+        case "BOTTOM_UP" => TaintAnalysisApproach.BOTTOM_UP
+        case "COMPONENT_BASED" => TaintAnalysisApproach.COMPONENT_BASED
+      }
     }
     try {
       outputPath = cli.getArgList.get(1)
@@ -361,9 +367,12 @@ object Main extends App {
     var address: String = null
     var port: Int = 0
     var expectedFile: String = null
-    var approach: TaintAnalysisApproach.Value = TaintAnalysisApproach.COMPONENT_BASED
-    if(cli.hasOption("bu") || cli.hasOption("bottom-up")) {
-      approach = TaintAnalysisApproach.BOTTOM_UP
+    var approach: TaintAnalysisApproach.Value = TaintAnalysisApproach.BOTTOM_UP
+    if(cli.hasOption("a") || cli.hasOption("approach")) {
+      approach = cli.getOptionValue("a") match {
+        case "BOTTOM_UP" => TaintAnalysisApproach.BOTTOM_UP
+        case "COMPONENT_BASED" => TaintAnalysisApproach.COMPONENT_BASED
+      }
     }
     try {
       outputPath = cli.getArgList.get(1)

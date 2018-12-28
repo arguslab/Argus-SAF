@@ -105,16 +105,18 @@ Install `JN-Saf` and `NativeDroid`:
   $ tools/scripts/install.sh
   ```
   
-You can install only either one by:
+You can install either one by:
   ```
   $ tools/scripts/install.sh jnsaf
   $ tools/scripts/install.sh nativedroid
   ```
 
 ## Run BenchMark Test
-After install JN-Saf and Native Droid. Run:
+After install `JN-Saf` and `NativeDroid`. Run:
   ```
-  $ tools/scripts/benchmark_cli.sh
+  $ tools/scripts/benchmark_cli.sh droidbench
+  $ tools/scripts/benchmark_cli.sh iccbench
+  $ tools/scripts/benchmark_cli.sh nativeflowbench
   ```
   
 ## Launch JN-SAF for native analysis
@@ -123,13 +125,11 @@ After install JN-Saf and Native Droid. Run:
   ```
   $ tools/scripts/install.sh nativedroid
   ```
-
 2. Start nativedroid server:
   ```
   $ python nativedroid/nativedroid/server/native_droid_server.py /tmp/binaries nativedroid/nativedroid/data/sourceAndSinks/NativeSourcesAndSinks.txt nativedroid/data/sourceAndSinks/TaintSourcesAndSinks.txt
   ```
-
-3. Use [NativeDroidClient.scala]() to communicate with the nativedroid server to perform native analysis.
+3. Use [NativeDroidClient.scala](https://github.com/arguslab/Argus-SAF/blob/master/jnsaf/src/main/scala/org/argus/jnsaf/client/NativeDroidClient.scala) to communicate with the nativedroid server to perform native analysis.
 
 ### Troubleshooting:
 

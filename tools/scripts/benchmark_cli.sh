@@ -14,17 +14,17 @@ sleep 5
 
 droid_bench_submitter()
 {
-    java -jar $BASEDIR/../../target/scala-2.12/argus-saf-3.1.4-SNAPSHOT-assembly.jar benchmark $BASEDIR/../../benchmarks/DroidBench localhost 55001 $BASEDIR/../../benchmarks/expected_droid_bench.txt
+    java -jar $BASEDIR/../../target/scala-2.12/argus-saf-3.1.4-SNAPSHOT-assembly.jar benchmark -a COMPONENT_BASED $BASEDIR/../../benchmarks/DroidBench localhost 55001 $BASEDIR/../../benchmarks/expected_droid_bench.txt
 }
 
 icc_bench_submitter()
 {
-    java -jar $BASEDIR/../../target/scala-2.12/argus-saf-3.1.4-SNAPSHOT-assembly.jar benchmark $BASEDIR/../../benchmarks/ICCBench localhost 55001 $BASEDIR/../../benchmarks/expected_icc_bench.txt
+    java -jar $BASEDIR/../../target/scala-2.12/argus-saf-3.1.4-SNAPSHOT-assembly.jar benchmark -a COMPONENT_BASED $BASEDIR/../../benchmarks/ICCBench localhost 55001 $BASEDIR/../../benchmarks/expected_icc_bench.txt
 }
 
 native_flow_bench_submitter()
 {
-    java -jar $BASEDIR/../../target/scala-2.12/argus-saf-3.1.4-SNAPSHOT-assembly.jar benchmark -bu $BASEDIR/../../benchmarks/NativeFlowBench localhost 55001 $BASEDIR/../../benchmarks/expected_nativeflow_bench.txt
+    java -jar $BASEDIR/../../target/scala-2.12/argus-saf-3.1.4-SNAPSHOT-assembly.jar benchmark -a BOTTOM_UP $BASEDIR/../../benchmarks/NativeFlowBench localhost 55001 $BASEDIR/../../benchmarks/expected_nativeflow_bench.txt
 }
 
 MODE='ALL'
