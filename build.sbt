@@ -5,7 +5,7 @@ import sbtassembly.AssemblyPlugin.autoImport._
 import sbtbuildinfo.BuildInfoPlugin.autoImport._
 import sbtrelease.ReleaseStateTransformations._
 
-licenses in ThisBuild += ("Apache-2.0", url("http://www.apache.org/licenses/")) :: Nil // this is required! otherwise Bintray will reject the code
+licenses in ThisBuild := ("Apache-2.0" -> url("http://www.apache.org/licenses/")) :: Nil // this is required! otherwise Bintray will reject the code
 
 homepage in ThisBuild := Some(url("https://github.com/arguslab/Argus-SAF"))
 
