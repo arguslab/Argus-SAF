@@ -448,6 +448,7 @@ object MonotoneDataFlowAnalysisFramework {
     val mdaf = new Mdaf(getEntrySet, initial)
     entrySetMap.put(startNode, iota)
     ip.process(startNode, mdaf, callr)
+    entrySetMap.size
     mdaf
   }
 }

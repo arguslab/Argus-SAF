@@ -47,14 +47,24 @@ object GPUSummaryBasedAnalysis {
     val analysis = new BottomUpSummaryGenerator[Global](apk, sm, handler,
       HeapSummary(_, _),
       ConsoleProgressBar.on(System.out).withFormat("[:bar] :percent% :elapsed Left: :remain"))
-    val orderedWUs: IList[WorkUnit[Global]] = cg.topologicalSort(true).map { sig =>
-      val method = apk.getMethodOrResolve(sig).getOrElse(throw new RuntimeException("Method does not exist: " + sig))
-      new HeapSummaryWu(apk, method, sm, handler)
-    }
     val resultUri = FileUtil.appendFileName(outputUri, apk.model.getAppName + ".result")
     val writer = new FileWriter(FileUtil.toFile(resultUri), true)
     writer.write("Entry point: " + ep.signature + "\n")
+    val orderedWUs: IList[WorkUnit[Global]] = cg.topologicalSort(true).map { sig =>
+      val method = apk.getMethodOrResolve(sig).getOrElse(throw new RuntimeException("Method does not exist: " + sig))
+      val wu = new HeapSummaryWu(apk, method, sm, handler)
+      wu.setWriter(writer)
+      wu
+    }
+
     TimeUtil.timed("Analysis time", writer)(analysis.build(orderedWUs))
+    // memory info
+    val mb = 1024*1024
+    val runtime = Runtime.getRuntime
+    writer.write("** Used Memory:  " + (runtime.totalMemory - runtime.freeMemory) / mb)
+    writer.write("** Free Memory:  " + runtime.freeMemory / mb)
+    writer.write("** Total Memory: " + runtime.totalMemory / mb)
+    writer.write("** Max Memory:   " + runtime.maxMemory / mb)
     try {
       orderedWUs.foreach {
         case wu: HeapSummaryWu =>

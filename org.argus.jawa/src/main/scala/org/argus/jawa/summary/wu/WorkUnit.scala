@@ -10,6 +10,8 @@
 
 package org.argus.jawa.summary.wu
 
+import java.io.Writer
+
 import org.argus.jawa.alir.Context
 import org.argus.jawa.alir.cfg._
 import org.argus.jawa.alir.dfa.InterProceduralDataFlowGraph
@@ -61,6 +63,11 @@ trait WorkUnit[T <: Global] {
     * Implement this function to do post-analysis tasks
     */
   def finalFn(): Unit = {}
+
+  var w: Option[Writer] = None
+  def setWriter(w: Writer): Unit = {
+    this.w = Some(w)
+  }
 }
 
 abstract class DataFlowWu[T <: Global] (
@@ -111,7 +118,10 @@ abstract class DataFlowWu[T <: Global] (
     idfgOpt match {
       case Some(idfg) => idfg
       case None =>
-        val idfg = generateIDFG_RFA
+        val idfg = this.w match {
+          case Some(writer) => TimeUtil.timed("Gen IDFG", writer)(generateIDFG_RFA)
+          case None => generateIDFG_RFA
+        }
         setIDFG(idfg)
         idfg
     }
