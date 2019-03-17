@@ -61,10 +61,10 @@ object GPUSummaryBasedAnalysis {
     // memory info
     val mb = 1024*1024
     val runtime = Runtime.getRuntime
-    writer.write("** Used Memory:  " + (runtime.totalMemory - runtime.freeMemory) / mb)
-    writer.write("** Free Memory:  " + runtime.freeMemory / mb)
-    writer.write("** Total Memory: " + runtime.totalMemory / mb)
-    writer.write("** Max Memory:   " + runtime.maxMemory / mb)
+    writer.write("** Used Memory:  " + (runtime.totalMemory - runtime.freeMemory) / mb + "\n")
+    writer.write("** Free Memory:  " + runtime.freeMemory / mb + "\n")
+    writer.write("** Total Memory: " + runtime.totalMemory / mb + "\n")
+    writer.write("** Max Memory:   " + runtime.maxMemory / mb + "\n")
     try {
       orderedWUs.foreach {
         case wu: HeapSummaryWu =>
