@@ -50,14 +50,19 @@ object GPUSummaryBasedAnalysis {
     val resultUri = FileUtil.appendFileName(outputUri, apk.model.getAppName + ".result")
     val writer = new FileWriter(FileUtil.toFile(resultUri), true)
     writer.write("Entry point: " + ep.signature + "\n")
-    val orderedWUs: IList[WorkUnit[Global]] = cg.topologicalSort(true).map { sig =>
+    val orderedWUs: IList[HeapSummaryWu] = cg.topologicalSort(true).map { sig =>
       val method = apk.getMethodOrResolve(sig).getOrElse(throw new RuntimeException("Method does not exist: " + sig))
-      val wu = new HeapSummaryWu(apk, method, sm, handler)
-      wu.setWriter(writer)
-      wu
+      new HeapSummaryWu(apk, method, sm, handler)
     }
 
-    TimeUtil.timed("Analysis time", writer)(analysis.build(orderedWUs))
+    val start = System.nanoTime
+    analysis.build(orderedWUs)
+    val elapsed = System.nanoTime - start
+    val totalTime = elapsed/1e9
+    val idfgTime = orderedWUs.map { wu => wu.totalaIdfgTimeSec }.sum
+    writer.write(s"** IDFG builiding time: $idfgTime s")
+    writer.write(s"** Total time: $totalTime s")
+    writer.write(s"** IDFG / Total: ${idfgTime * 100 / totalTime} %")
     // memory info
     val mb = 1024*1024
     val runtime = Runtime.getRuntime
