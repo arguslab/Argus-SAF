@@ -43,7 +43,9 @@ class BottomUpSummaryGenerator[T <: Global](
           generateHeapSummary(wu.method) match {
             case Some(w) =>
               wu match {
-                case dfw: DataFlowWu[T] => dfw.setIDFG(w.getIDFG)
+                case dfw: DataFlowWu[T] =>
+                  dfw.setIDFG(w.getIDFG)
+                  dfw.totalaIdfgTimeSec = w.totalaIdfgTimeSec
                 case _ =>
               }
             case None =>

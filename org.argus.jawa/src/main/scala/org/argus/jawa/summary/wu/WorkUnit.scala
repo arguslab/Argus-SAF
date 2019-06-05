@@ -76,7 +76,7 @@ abstract class DataFlowWu[T <: Global] (
     val sm: SummaryManager,
     handler: ModelCallHandler) extends WorkUnit[T] {
 
-  var totalaIdfgTimeSec = 0D
+  var totalaIdfgTimeSec: Double = 0D
 
   override def needProcess(handler: ModelCallHandler): Boolean = !handler.isModelCall(method)
 
@@ -120,10 +120,10 @@ abstract class DataFlowWu[T <: Global] (
     idfgOpt match {
       case Some(idfg) => idfg
       case None =>
-        val start = System.nanoTime
+        val start = System.currentTimeMillis
         val idfg = generateIDFG_RFA
-        val elapsed = System.nanoTime - start
-        totalaIdfgTimeSec = totalaIdfgTimeSec + elapsed/1e9
+        val elapsed = System.currentTimeMillis - start
+        this.totalaIdfgTimeSec = elapsed / 1e3
         setIDFG(idfg)
         idfg
     }

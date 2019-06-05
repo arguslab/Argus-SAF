@@ -25,7 +25,7 @@ import org.argus.jawa.ast.MethodDeclaration
 import org.argus.jawa.core._
 import org.argus.jawa.core.util._
 import org.argus.jawa.summary.susaf.rule.HeapSummary
-import org.argus.jawa.summary.wu.{HeapSummaryWu, WorkUnit}
+import org.argus.jawa.summary.wu.HeapSummaryWu
 import org.argus.jawa.summary.{BottomUpSummaryGenerator, SummaryManager}
 import org.jgrapht.ext.ComponentNameProvider
 
