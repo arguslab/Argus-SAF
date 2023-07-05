@@ -10,7 +10,7 @@ setup(
     package_data={
     },
     install_requires=[
-        'grpcio==1.9.0',
+        'grpcio==1.53.0',
         'grpcio-tools==1.9.0',
         'claripy',
         'cle',
